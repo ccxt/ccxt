@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -22,6 +22,8 @@ class woo(ccxt.async_support.woo):
             'has': {
                 'ws': True,
                 'watchBalance': True,
+                'watchFundingRate': True,
+                'watchFundingRates': False,
                 'watchMyTrades': True,
                 'watchOHLCV': True,
                 'watchOrderBook': True,
@@ -996,14 +998,10 @@ class woo(ccxt.async_support.woo):
         avgPrice = self.safe_number(order, 'avgPrice')
         if Precise.string_eq(priceString, '0') and (avgPrice is not None):
             price = avgPrice
-        amount = self.safe_float(order, 'quantity')
+        amount = self.safe_string(order, 'quantity')
         side = self.safe_string_lower(order, 'side')
         type = self.safe_string_lower(order, 'type')
-        filled = self.safe_number(order, 'totalExecutedQuantity')
-        totalExecQuantity = self.safe_float(order, 'totalExecutedQuantity')
-        remaining = amount
-        if amount >= totalExecQuantity:
-            remaining -= totalExecQuantity
+        filled = self.safe_string_2(order, 'totalExecutedQuantity', 'executed')
         rawStatus = self.safe_string_2(order, 'status', 'algoStatus')
         status = self.parse_order_status(rawStatus)
         trades = None
@@ -1029,7 +1027,7 @@ class woo(ccxt.async_support.woo):
             'cost': None,
             'average': avgPrice,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             'fee': fee,
             'trades': trades,
@@ -1326,6 +1324,46 @@ class woo(ccxt.async_support.woo):
         self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, 'balance')
 
+    async def watch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+        """
+        watch the current funding rate
+
+        https://docs.woox.io/#estfundingrate
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        symbol = market['symbol']
+        topic = market['id'] + '@estfundingrate'
+        request: dict = {
+            'event': 'subscribe',
+            'topic': topic,
+        }
+        message = self.extend(request, params)
+        return await self.watch_public(topic, message)
+
+    def handle_funding_rate(self, client: Client, message):
+        #
+        #     {
+        #         "topic": "PERP_BTC_USDT@estfundingrate",
+        #         "ts": 1771484159016,
+        #         "data": {
+        #             "symbol": "PERP_BTC_USDT",
+        #             "fundingRate": 0.0001,
+        #             "fundingTs": 1771488000000
+        #         }
+        #     }
+        #
+        data = self.safe_dict(message, 'data', {})
+        fundingRate = self.parse_funding_rate(data)
+        symbol = fundingRate['symbol']
+        self.fundingRates[symbol] = fundingRate
+        messageHash = self.safe_string(message, 'topic')
+        client.resolve(fundingRate, messageHash)
+
     def handle_error_message(self, client: Client, message) -> Bool:
         #
         # {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
@@ -1392,6 +1430,7 @@ class woo(ccxt.async_support.woo):
             'balance': self.handle_balance,
             'position': self.handle_positions,
             'bbos': self.handle_bid_ask,
+            'estfundingrate': self.handle_funding_rate,
         }
         event = self.safe_string(message, 'event')
         method = self.safe_value(methods, event)

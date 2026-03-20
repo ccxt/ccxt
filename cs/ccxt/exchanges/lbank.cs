@@ -2308,7 +2308,7 @@ public partial class lbank : Exchange
         //              },
         //          ],
         //          "error_code":0,
-        //          "ts":1648506641469
+        //          "ts":1648506641468
         //      }
         //
         object data = this.safeList(response, "data", new List<object>() {});

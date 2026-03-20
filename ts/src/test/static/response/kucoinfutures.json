@@ -789,6 +789,106 @@
                     }
                 }
             }
+        ],
+        "fetchPositionADLRank": [
+            {
+                "description": "linear swap fetch position adl rank",
+                "method": "fetchPositionADLRank",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        {
+                            "id": "600000000001260912",
+                            "symbol": "XBTUSDTM",
+                            "crossMode": true,
+                            "maintMarginReq": 0.0040000133,
+                            "delevPercentage": 0.21,
+                            "openingTimestamp": 1768481882915,
+                            "currentTimestamp": 1768482325065,
+                            "currentQty": 1,
+                            "currentCost": 96.9768,
+                            "currentComm": 0.05818608,
+                            "unrealisedCost": 96.9768,
+                            "realisedGrossCost": 0,
+                            "realisedCost": 0.05818608,
+                            "isOpen": true,
+                            "markPrice": 96927.6,
+                            "markValue": 96.9276,
+                            "posCost": 96.9768,
+                            "posInit": 4.84884,
+                            "posMargin": 4.84638,
+                            "posMaint": 0.3877116892,
+                            "realisedGrossPnl": 0,
+                            "realisedPnl": -0.05818608,
+                            "unrealisedPnl": -0.0492,
+                            "unrealisedPnlPcnt": -0.0005,
+                            "unrealisedRoePcnt": -0.0101,
+                            "avgEntryPrice": 96976.8,
+                            "liquidationPrice": 52351.69,
+                            "bankruptPrice": 52110.87,
+                            "settleCurrency": "USDT",
+                            "isInverse": false,
+                            "maintainMargin": 0.0040000133,
+                            "marginMode": "CROSS",
+                            "positionSide": "LONG",
+                            "leverage": 20,
+                            "dealComm": -0.05818608,
+                            "fundingFee": 0,
+                            "tax": 0
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "id": "600000000001260912",
+                        "symbol": "XBTUSDTM",
+                        "crossMode": true,
+                        "maintMarginReq": 0.0040000133,
+                        "delevPercentage": 0.21,
+                        "openingTimestamp": 1768481882915,
+                        "currentTimestamp": 1768482325065,
+                        "currentQty": 1,
+                        "currentCost": 96.9768,
+                        "currentComm": 0.05818608,
+                        "unrealisedCost": 96.9768,
+                        "realisedGrossCost": 0,
+                        "realisedCost": 0.05818608,
+                        "isOpen": true,
+                        "markPrice": 96927.6,
+                        "markValue": 96.9276,
+                        "posCost": 96.9768,
+                        "posInit": 4.84884,
+                        "posMargin": 4.84638,
+                        "posMaint": 0.3877116892,
+                        "realisedGrossPnl": 0,
+                        "realisedPnl": -0.05818608,
+                        "unrealisedPnl": -0.0492,
+                        "unrealisedPnlPcnt": -0.0005,
+                        "unrealisedRoePcnt": -0.0101,
+                        "avgEntryPrice": 96976.8,
+                        "liquidationPrice": 52351.69,
+                        "bankruptPrice": 52110.87,
+                        "settleCurrency": "USDT",
+                        "isInverse": false,
+                        "maintainMargin": 0.0040000133,
+                        "marginMode": "CROSS",
+                        "positionSide": "LONG",
+                        "leverage": 20,
+                        "dealComm": -0.05818608,
+                        "fundingFee": 0,
+                        "tax": 0
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "rank": null,
+                    "rating": null,
+                    "percentage": 21,
+                    "timestamp": 1768481882915,
+                    "datetime": "2026-01-15T12:58:02.915Z"
+                }
+            }
         ]
     }
 }

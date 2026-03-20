@@ -24,7 +24,7 @@ func (this *DeribitCore) Describe() interface{} {
 		"pro":       true,
 		"has": map[string]interface{}{
 			"CORS":                           true,
-			"spot":                           false,
+			"spot":                           true,
 			"margin":                         false,
 			"swap":                           true,
 			"future":                         true,

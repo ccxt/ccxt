@@ -25,7 +25,7 @@ class gate extends gate$1["default"] {
             'pro': true,
             'urls': {
                 'logo': 'https://github.com/user-attachments/assets/64f988c5-07b6-4652-b5c1-679a6bf67c85',
-                'doc': 'https://www.gate.com/docs/developers/apiv4/en/',
+                'doc': 'https://www.gate.com/en-eu/docs/developers/apiv4/',
                 'www': 'https://gate.com',
                 'api': {
                     'public': {
@@ -1162,6 +1162,7 @@ class gate extends gate$1["default"] {
                     'Your order size': errors.InvalidOrder, // {"label":"INVALID_PARAM_VALUE","message":"Your order size 0.003749448 USDT is too small. The minimum is 3 USDT"}
                 },
             },
+            'rollingWindowSize': 5000.0,
         });
     }
     setSandboxMode(enable) {
@@ -1211,7 +1212,7 @@ class gate extends gate$1["default"] {
      * @method
      * @name gate#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://www.gate.com/docs/developers/apiv4/en/#get-server-current-time
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#get-server-current-time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -1939,7 +1940,7 @@ class gate extends gate$1["default"] {
      * @method
      * @name gate#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://www.gate.com/docs/developers/apiv4/en/#list-all-currencies-details
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#list-all-currencies-details
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -2293,6 +2294,7 @@ class gate extends gate$1["default"] {
      * @method
      * @name gate#fetchDepositAddressesByNetwork
      * @description fetch a dictionary of addresses for a currency, indexed by network
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#generate-currency-deposit-address
      * @param {string} code unified currency code of the currency for the deposit address
      * @param {object} [params] extra parameters specific to the api endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
@@ -2352,7 +2354,7 @@ class gate extends gate$1["default"] {
      * @method
      * @name gate#fetchTradingFee
      * @description fetch the trading fees for a market
-     * @see https://www.gate.com/docs/developers/apiv4/en/#retrieve-personal-trading-fee
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#query-personal-trading-fees
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -2384,7 +2386,7 @@ class gate extends gate$1["default"] {
      * @method
      * @name gate#fetchTradingFees
      * @description fetch the trading fees for multiple markets
-     * @see https://www.gate.com/docs/developers/apiv4/en/#retrieve-personal-trading-fee
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#query-a-batch-of-user-trading-fee-rates
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
@@ -2451,7 +2453,7 @@ class gate extends gate$1["default"] {
      * @name gate#fetchTransactionFees
      * @deprecated
      * @description please use fetchDepositWithdrawFees instead
-     * @see https://www.gate.com/docs/developers/apiv4/en/#retrieve-withdrawal-status
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#query-withdrawal-status
      * @param {string[]|undefined} codes list of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -2680,7 +2682,7 @@ class gate extends gate$1["default"] {
      * @method
      * @name gate#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://www.gate.com/docs/developers/apiv4/en/#retrieve-order-book
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#retrieve-order-book
      * @see https://www.gate.com/docs/developers/apiv4/en/#futures-order-book
      * @see https://www.gate.com/docs/developers/apiv4/en/#futures-order-book-2
      * @see https://www.gate.com/docs/developers/apiv4/en/#options-order-book
@@ -2806,6 +2808,7 @@ class gate extends gate$1["default"] {
      * @method
      * @name gate#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#retrieve-ticker-information
      * @see https://www.gate.com/docs/developers/apiv4/en/#get-details-of-a-specifc-order
      * @see https://www.gate.com/docs/developers/apiv4/en/#list-futures-tickers
      * @see https://www.gate.com/docs/developers/apiv4/en/#list-futures-tickers-2
@@ -3024,6 +3027,8 @@ class gate extends gate$1["default"] {
     /**
      * @method
      * @name gate#fetchBalance
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#list-spot-accounts
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#query-personal-account-totals
      * @see https://www.gate.com/docs/developers/apiv4/en/#margin-account-list
      * @see https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information
      * @see https://www.gate.com/docs/developers/apiv4/en/#list-spot-trading-accounts
@@ -3326,7 +3331,7 @@ class gate extends gate$1["default"] {
      * @method
      * @name gateio#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://www.gate.com/docs/developers/apiv4/en/#market-candlesticks       // spot
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#market-candlesticks        // spot
      * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-candlesticks  // swap
      * @see https://www.gate.com/docs/developers/apiv4/en/#market-candlesticks       // future
      * @see https://www.gate.com/docs/developers/apiv4/en/#get-options-candlesticks  // option
@@ -3525,7 +3530,7 @@ class gate extends gate$1["default"] {
      * @method
      * @name gate#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://www.gate.com/docs/developers/apiv4/en/#retrieve-market-trades
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#retrieve-market-trades
      * @see https://www.gate.com/docs/developers/apiv4/en/#futures-trading-history
      * @see https://www.gate.com/docs/developers/apiv4/en/#futures-trading-history-2
      * @see https://www.gate.com/docs/developers/apiv4/en/#options-trade-history
@@ -3640,7 +3645,7 @@ class gate extends gate$1["default"] {
      * @method
      * @name gate#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#list-personal-trading-history
      * @see https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-2
      * @see https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-3
      * @see https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-4
@@ -3682,7 +3687,7 @@ class gate extends gate$1["default"] {
      * @method
      * @name gate#fetchMyTrades
      * @description Fetch personal trading history
-     * @see https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#list-personal-trading-history
      * @see https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-2
      * @see https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-3
      * @see https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-4
@@ -3994,7 +3999,7 @@ class gate extends gate$1["default"] {
      * @method
      * @name gate#fetchDeposits
      * @description fetch all deposits made to an account
-     * @see https://www.gate.com/docs/developers/apiv4/en/#retrieve-deposit-records
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#get-deposit-records
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -4032,7 +4037,7 @@ class gate extends gate$1["default"] {
      * @method
      * @name gate#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://www.gate.com/docs/developers/apiv4/en/#retrieve-withdrawal-records
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#get-withdrawal-records
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -4070,7 +4075,7 @@ class gate extends gate$1["default"] {
      * @method
      * @name gate#withdraw
      * @description make a withdrawal
-     * @see https://www.gate.com/docs/developers/apiv4/en/#withdraw
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#withdrawal
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
@@ -4250,8 +4255,8 @@ class gate extends gate$1["default"] {
      * @method
      * @name gate#createOrder
      * @description Create an order on the exchange
-     * @see https://www.gate.com/docs/developers/apiv4/en/#create-an-order
-     * @see https://www.gate.com/docs/developers/apiv4/en/#create-a-price-triggered-order
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#create-an-order
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#create-a-price-triggered-order
      * @see https://www.gate.com/docs/developers/apiv4/en/#create-a-futures-order
      * @see https://www.gate.com/docs/developers/apiv4/en/#create-a-price-triggered-order-2
      * @see https://www.gate.com/docs/developers/apiv4/en/#create-a-futures-order-2
@@ -4279,6 +4284,7 @@ class gate extends gate$1["default"] {
      * @param {int} [params.price_type] *contract only* 0 latest deal price, 1 mark price, 2 index price
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @param {bool} [params.unifiedAccount] set to true for creating an order in the unified account
+     * @param {string} [params.clientOrderId] the clientOrderId of the order
      * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -4428,7 +4434,7 @@ class gate extends gate$1["default"] {
      * @name gate#createOrders
      * @description create a list of trade orders
      * @see https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order-2
-     * @see https://www.gate.com/docs/developers/apiv4/en/#create-a-batch-of-orders
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#create-a-batch-of-orders
      * @see https://www.gate.com/docs/developers/apiv4/en/#create-a-batch-of-futures-orders
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4472,7 +4478,8 @@ class gate extends gate$1["default"] {
         }
         // we only omit the unified params here
         // this is because the other params will get extended into the request
-        params = this.omit(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly']);
+        let clientOrderId = this.safeString2(params, 'text', 'clientOrderId');
+        params = this.omit(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly', 'clientOrderId']);
         const isLimitOrder = (type === 'limit');
         const isMarketOrder = (type === 'market');
         if (isLimitOrder && price === undefined) {
@@ -4585,7 +4592,6 @@ class gate extends gate$1["default"] {
                     request['time_in_force'] = timeInForce;
                 }
             }
-            let clientOrderId = this.safeString2(params, 'text', 'clientOrderId');
             const textIsRequired = this.safeBool(params, 'textIsRequired', false);
             if (clientOrderId !== undefined) {
                 // user-defined, must follow the rules if not empty
@@ -4595,7 +4601,7 @@ class gate extends gate$1["default"] {
                 if (clientOrderId.length > 28) {
                     throw new errors.BadRequest(this.id + ' createOrder () clientOrderId or text param must be up to 28 characters');
                 }
-                params = this.omit(params, ['text', 'clientOrderId', 'textIsRequired']);
+                params = this.omit(params, 'textIsRequired');
                 if (clientOrderId[0] !== 't') {
                     clientOrderId = 't-' + clientOrderId;
                 }
@@ -4664,6 +4670,9 @@ class gate extends gate$1["default"] {
                 if (timeInForce !== undefined) {
                     request['initial']['tif'] = timeInForce;
                 }
+                if (clientOrderId !== undefined) {
+                    request['initial']['text'] = clientOrderId;
+                }
             }
             else {
                 // spot conditional order
@@ -4704,6 +4713,9 @@ class gate extends gate$1["default"] {
                         'rule': rule,
                         'expiration': expiration, // required, how long (in seconds) to wait for the condition to be triggered before cancelling the order
                     };
+                    if (clientOrderId !== undefined) {
+                        request['trigger']['text'] = clientOrderId;
+                    }
                 }
             }
         }
@@ -5135,9 +5147,21 @@ class gate extends gate$1["default"] {
         if (lastTradeTimestampStr !== undefined) {
             lastTradeTimestamp = this.parseToInt(lastTradeTimestampStr);
         }
+        const initial = this.safeDict(order, 'initial', {});
+        const reduceOnlyInitial = this.safeBool(initial, 'is_reduce_only');
+        const reduceOnly = this.safeBool(order, 'is_reduce_only', reduceOnlyInitial);
+        let clientOrderId = this.safeString(order, 'text');
+        if (clientOrderId === undefined) {
+            if ('initial' in order) {
+                clientOrderId = this.safeString(order['initial'], 'text');
+            }
+            else if ('trigger' in order) {
+                clientOrderId = this.safeString(order['trigger'], 'text');
+            }
+        }
         return this.safeOrder({
             'id': this.safeString(order, 'id'),
-            'clientOrderId': this.safeString(order, 'text'),
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -5146,7 +5170,7 @@ class gate extends gate$1["default"] {
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
-            'reduceOnly': this.safeValue(order, 'is_reduce_only'),
+            'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
             'triggerPrice': triggerPrice,
@@ -5184,7 +5208,8 @@ class gate extends gate$1["default"] {
      * @method
      * @name gate#fetchOrder
      * @description Retrieves information on an order
-     * @see https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#get-a-single-order
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#get-a-price-triggered-order
      * @see https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order-2
      * @see https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order-3
      * @see https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order-4
@@ -5243,7 +5268,7 @@ class gate extends gate$1["default"] {
      * @method
      * @name gate#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://www.gate.com/docs/developers/apiv4/en/#list-all-open-orders
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#list-all-open-orders
      * @see https://www.gate.com/docs/developers/apiv4/en/#retrieve-running-auto-order-list
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
@@ -5262,8 +5287,8 @@ class gate extends gate$1["default"] {
      * @method
      * @name gate#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
-     * @see https://www.gate.com/docs/developers/apiv4/en/#list-orders
-     * @see https://www.gate.com/docs/developers/apiv4/en/#retrieve-running-auto-order-list
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#list-orders
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#retrieve-running-auto-order-list
      * @see https://www.gate.com/docs/developers/apiv4/en/#list-futures-orders
      * @see https://www.gate.com/docs/developers/apiv4/en/#list-all-auto-orders
      * @see https://www.gate.com/docs/developers/apiv4/en/#list-futures-orders-2
@@ -5565,7 +5590,8 @@ class gate extends gate$1["default"] {
      * @method
      * @name gate#cancelOrder
      * @description Cancels an open order
-     * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-a-single-order
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-a-single-order
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-a-price-triggered-order
      * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-a-single-order-2
      * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-a-single-order-3
      * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-a-single-order-4
@@ -5703,8 +5729,7 @@ class gate extends gate$1["default"] {
      * @method
      * @name gate#cancelOrders
      * @description cancel multiple orders
-     * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list
-     * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list-2
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-a-batch-of-orders-with-an-id-list
      * @param {string[]} ids order ids
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5752,7 +5777,7 @@ class gate extends gate$1["default"] {
      * @method
      * @name gate#cancelOrdersForSymbols
      * @description cancel multiple orders for multiple symbols
-     * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-a-batch-of-orders-with-an-id-list
      * @param {CancellationRequest[]} orders list of order ids with symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string[]} [params.clientOrderIds] client order ids
@@ -5792,7 +5817,8 @@ class gate extends gate$1["default"] {
      * @method
      * @name gate#cancelAllOrders
      * @description cancel all open orders
-     * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-in-specified-currency-pair
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-all-open-orders-in-specified-currency-pair
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-all-open-orders
      * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-matched
      * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-matched-2
      * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-matched-3
@@ -5874,7 +5900,7 @@ class gate extends gate$1["default"] {
      * @method
      * @name gate#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://www.gate.com/docs/developers/apiv4/en/#transfer-between-trading-accounts
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#transfer-between-trading-accounts
      * @param {string} code unified currency code for currency being transferred
      * @param {float} amount the amount of currency to transfer
      * @param {string} fromAccount the account to transfer currency from

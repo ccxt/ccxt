@@ -185,6 +185,7 @@ export default class gate extends gateRest {
         if (market['swap'] !== true) {
             throw new NotSupported (this.id + ' createOrdersWs is not supported for swap markets');
         }
+        // todo add swap support
         const messageType = this.getTypeByMarket (market);
         const channel = messageType + '.order_batch_place';
         const url = this.getUrlByMarket (market);
@@ -197,7 +198,7 @@ export default class gate extends gateRest {
      * @method
      * @name gate#cancelAllOrdersWs
      * @description cancel all open orders
-     * @see https://www.gate.io/docs/developers/futures/ws/en/#cancel-all-open-orders-matched
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#cancel-matched-open-orders
      * @see https://www.gate.io/docs/developers/apiv4/ws/en/#order-cancel-all-with-specified-currency-pair
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -376,6 +377,7 @@ export default class gate extends gateRest {
      * @see https://www.gate.com/docs/developers/futures/ws/en/#order-book-api
      * @see https://www.gate.com/docs/developers/futures/ws/en/#order-book-v2-api
      * @see https://www.gate.com/docs/developers/delivery/ws/en/#order-book-api
+     * @see https://www.gate.com/docs/developers/options/ws/en/#order-book-channel
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -394,6 +396,9 @@ export default class gate extends gateRest {
         const payload = [ marketId, interval ];
         if (limit === undefined) {
             limit = 100; // max 100 atm
+            if (messageType === 'options') {
+                limit = 50; // max 50 for options
+            }
         }
         if (market['contract']) {
             const stringLimit = limit.toString ();
@@ -588,6 +593,8 @@ export default class gate extends gateRest {
      * @method
      * @name gate#watchTicker
      * @see https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#tickers-api
+     * @see https://www.gate.com/docs/developers/delivery/ws/en/#tickers-api
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -606,6 +613,8 @@ export default class gate extends gateRest {
      * @method
      * @name gate#watchTickers
      * @see https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#tickers-api
+     * @see https://www.gate.com/docs/developers/delivery/ws/en/#tickers-api
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -642,6 +651,7 @@ export default class gate extends gateRest {
      * @name gate#watchBidsAsks
      * @see https://www.gate.io/docs/developers/apiv4/ws/en/#best-bid-or-ask-price
      * @see https://www.gate.io/docs/developers/apiv4/ws/en/#order-book-channel
+     * @see https://www.gate.com/docs/developers/options/ws/en/#best-bid-or-ask-price
      * @description watches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -733,6 +743,10 @@ export default class gate extends gateRest {
     /**
      * @method
      * @name gate#watchTrades
+     * @see https://www.gate.com/docs/developers/apiv4/ws/en/#public-trades-channel
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#trades-api
+     * @see https://www.gate.com/docs/developers/delivery/ws/en/#trades-api
+     * @see https://www.gate.com/docs/developers/options/ws/en/#public-contract-trades-channel
      * @description get the list of most recent trades for a particular symbol
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -747,6 +761,10 @@ export default class gate extends gateRest {
     /**
      * @method
      * @name gate#watchTradesForSymbols
+     * @see https://www.gate.com/docs/developers/apiv4/ws/en/#public-trades-channel
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#trades-api
+     * @see https://www.gate.com/docs/developers/delivery/ws/en/#trades-api
+     * @see https://www.gate.com/docs/developers/options/ws/en/#public-contract-trades-channel
      * @description get the list of most recent trades for a particular symbol
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -854,6 +872,9 @@ export default class gate extends gateRest {
     /**
      * @method
      * @name gate#watchOHLCV
+     * @see https://www.gate.com/docs/developers/apiv4/ws/en/#candlesticks-channel
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#candlesticks-api
+     * @see https://www.gate.com/docs/developers/delivery/ws/en/#candlesticks-api
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -864,6 +885,7 @@ export default class gate extends gateRest {
      */
     async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
+        // todo add options support
         const market = this.market (symbol);
         symbol = market['symbol'];
         const marketId = market['id'];
@@ -940,6 +962,10 @@ export default class gate extends gateRest {
     /**
      * @method
      * @name gate#watchMyTrades
+     * @see https://www.gate.com/docs/developers/apiv4/ws/en/#user-trades-channel
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#user-trades-api
+     * @see https://www.gate.com/docs/developers/delivery/ws/en/#user-trades-api
+     * @see https://www.gate.com/docs/developers/options/ws/en/#user-trades-channel
      * @description watches information on multiple trades made by the user
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1035,6 +1061,10 @@ export default class gate extends gateRest {
     /**
      * @method
      * @name gate#watchBalance
+     * @see https://www.gate.com/docs/developers/apiv4/ws/en/#spot-balance-channel
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#balances-api
+     * @see https://www.gate.com/docs/developers/delivery/ws/en/#balances-api
+     * @see https://www.gate.com/docs/developers/options/ws/en/#balances-channel
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -1055,6 +1085,7 @@ export default class gate extends gateRest {
             'swap': 'futures',
             'option': 'options',
         });
+        // todo: add correct margin support
         const channel = channelType + '.balances';
         const messageHash = type + '.balance';
         return await this.subscribePrivate (url, messageHash, undefined, channel, params, requiresUid);
@@ -1324,6 +1355,10 @@ export default class gate extends gateRest {
     /**
      * @method
      * @name gate#watchOrders
+     * @see https://www.gate.com/docs/developers/apiv4/ws/en/#orders-channel
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#orders-api
+     * @see https://www.gate.com/docs/developers/delivery/ws/en/#orders-api
+     * @see https://www.gate.com/docs/developers/options/ws/en/#orders-channel
      * @description watches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
@@ -1724,6 +1759,7 @@ export default class gate extends gateRest {
             'balance': this.handleBalanceSubscription,
             'spot.order_book_update': this.handleOrderBookSubscription,
             'futures.order_book_update': this.handleOrderBookSubscription,
+            'options.order_book_update': this.handleOrderBookSubscription,
         };
         const id = this.safeString (message, 'id');
         if (channel in methods) {

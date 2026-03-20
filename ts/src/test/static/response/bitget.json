@@ -2444,10 +2444,10 @@
                             "holdMode": "hedge_mode",
                             "reduceOnly": "NO",
                             "feeDetail": [
-                            {
+                                {
                                     "feeCoin": "USDT",
                                     "fee": "0.00641773"
-                            }
+                                }
                             ],
                             "createdTime": "1751020099828",
                             "updatedTime": "1751020099843",
@@ -2822,43 +2822,43 @@
                     "data": {
                         "list": [
                             {
-                            "orderId": "1321323928055336960",
-                            "clientOid": "1321323928055336961",
-                            "category": "SPOT",
-                            "symbol": "BTCUSDT",
-                            "orderType": "limit",
-                            "side": "buy",
-                            "price": "50000",
-                            "qty": "0.001",
-                            "amount": "50",
-                            "cumExecQty": "0",
-                            "cumExecValue": "0",
-                            "avgPrice": "0",
-                            "timeInForce": "gtc",
-                            "orderStatus": "live",
-                            "posSide": "",
-                            "holdMode": "",
-                            "reduceOnly": "NO",
-                            "feeDetail": [
-                                {
-                                    "feeCoin": "",
-                                    "fee": ""
-                                }
-                            ],
-                            "createdTime": "1750754094136",
-                            "updatedTime": "1750754094136",
-                            "stpMode": "none",
-                            "tpTriggerBy": null,
-                            "slTriggerBy": null,
-                            "takeProfit": null,
-                            "stopLoss": null,
-                            "tpOrderType": null,
-                            "slOrderType": null,
-                            "tpLimitPrice": null,
-                            "slLimitPrice": null
+                                "orderId": "1321323928055336960",
+                                "clientOid": "1321323928055336961",
+                                "category": "SPOT",
+                                "symbol": "BTCUSDT",
+                                "orderType": "limit",
+                                "side": "buy",
+                                "price": "50000",
+                                "qty": "0.001",
+                                "amount": "50",
+                                "cumExecQty": "0",
+                                "cumExecValue": "0",
+                                "avgPrice": "0",
+                                "timeInForce": "gtc",
+                                "orderStatus": "live",
+                                "posSide": "",
+                                "holdMode": "",
+                                "reduceOnly": "NO",
+                                "feeDetail": [
+                                    {
+                                        "feeCoin": "",
+                                        "fee": ""
+                                    }
+                                ],
+                                "createdTime": "1750754094136",
+                                "updatedTime": "1750754094136",
+                                "stpMode": "none",
+                                "tpTriggerBy": null,
+                                "slTriggerBy": null,
+                                "takeProfit": null,
+                                "stopLoss": null,
+                                "tpOrderType": null,
+                                "slOrderType": null,
+                                "tpLimitPrice": null,
+                                "slLimitPrice": null
                             }
                         ],
-                    "cursor": "1321323928055336960"
+                        "cursor": "1321323928055336960"
                     }
                 },
                 "parsedResponse": [
@@ -2990,7 +2990,7 @@
                                 "slLimitPrice": null
                             }
                         ],
-                    "cursor": "1321320757371228160"
+                        "cursor": "1321320757371228160"
                     }
                 },
                 "parsedResponse": [
@@ -3181,40 +3181,40 @@
                     "data": {
                         "list": [
                             {
-                            "orderId": "1330996689136631808",
-                            "clientOid": "1330996689136631809",
-                            "category": "MARGIN",
-                            "symbol": "BTCUSDT",
-                            "orderType": "limit",
-                            "side": "buy",
-                            "price": "101000",
-                            "qty": "0.001",
-                            "amount": "101",
-                            "cumExecQty": "0",
-                            "cumExecValue": "0",
-                            "avgPrice": "0",
-                            "timeInForce": "gtc",
-                            "orderStatus": "new",
-                            "posSide": "",
-                            "holdMode": "",
-                            "reduceOnly": "NO",
-                            "feeDetail": [
-                                {
-                                "feeCoin": "",
-                                "fee": ""
-                                }
-                            ],
-                            "createdTime": "1753060260089",
-                            "updatedTime": "1753060260089",
-                            "stpMode": "none",
-                            "tpTriggerBy": null,
-                            "slTriggerBy": null,
-                            "takeProfit": null,
-                            "stopLoss": null,
-                            "tpOrderType": null,
-                            "slOrderType": null,
-                            "tpLimitPrice": null,
-                            "slLimitPrice": null
+                                "orderId": "1330996689136631808",
+                                "clientOid": "1330996689136631809",
+                                "category": "MARGIN",
+                                "symbol": "BTCUSDT",
+                                "orderType": "limit",
+                                "side": "buy",
+                                "price": "101000",
+                                "qty": "0.001",
+                                "amount": "101",
+                                "cumExecQty": "0",
+                                "cumExecValue": "0",
+                                "avgPrice": "0",
+                                "timeInForce": "gtc",
+                                "orderStatus": "new",
+                                "posSide": "",
+                                "holdMode": "",
+                                "reduceOnly": "NO",
+                                "feeDetail": [
+                                    {
+                                        "feeCoin": "",
+                                        "fee": ""
+                                    }
+                                ],
+                                "createdTime": "1753060260089",
+                                "updatedTime": "1753060260089",
+                                "stpMode": "none",
+                                "tpTriggerBy": null,
+                                "slTriggerBy": null,
+                                "takeProfit": null,
+                                "stopLoss": null,
+                                "tpOrderType": null,
+                                "slOrderType": null,
+                                "tpLimitPrice": null,
+                                "slLimitPrice": null
                             }
                         ],
                         "cursor": "1330996689136631808"
@@ -4779,64 +4779,64 @@
                 "description": "fetch spot order",
                 "method": "fetchOrder",
                 "input": [
-                  "1134354173590421508",
-                  "LTC/USDT"
+                    "1134354173590421508",
+                    "LTC/USDT"
                 ],
                 "httpResponse": "{\"code\":\"00000\",\"msg\":\"success\",\"requestTime\":1711468234260,\"data\":[{\"userId\":\"7393346635\",\"symbol\":\"LTCUSDT\",\"orderId\":\"1134354173590421508\",\"clientOid\":\"84e6d418-b92b-480c-9169-6082702b32b7\",\"price\":\"0\",\"size\":\"6.0000000000000000\",\"orderType\":\"market\",\"side\":\"buy\",\"status\":\"filled\",\"priceAvg\":\"65.5210000000000000\",\"baseVolume\":\"0.0915000000000000\",\"quoteVolume\":\"5.9951715000000000\",\"enterPointSource\":\"API\",\"feeDetail\":\"{\\\"newFees\\\":{\\\"c\\\":0,\\\"d\\\":0,\\\"deduction\\\":false,\\\"r\\\":-0.0000915,\\\"t\\\":-0.0000915,\\\"totalDeductionFee\\\":0},\\\"LTC\\\":{\\\"deduction\\\":false,\\\"feeCoinCode\\\":\\\"LTC\\\",\\\"totalDeductionFee\\\":0,\\\"totalFee\\\":-0.0000915000000000}}\",\"orderSource\":\"market\",\"cTime\":\"1706177030942\",\"uTime\":\"1706177031075\"}]}",
                 "parsedResponse": {
-                  "info": {
-                    "userId": "7393346635",
-                    "symbol": "LTCUSDT",
-                    "orderId": "1134354173590421508",
-                    "clientOid": "84e6d418-b92b-480c-9169-6082702b32b7",
-                    "price": "0",
-                    "size": "6.0000000000000000",
-                    "orderType": "market",
+                    "info": {
+                        "userId": "7393346635",
+                        "symbol": "LTCUSDT",
+                        "orderId": "1134354173590421508",
+                        "clientOid": "84e6d418-b92b-480c-9169-6082702b32b7",
+                        "price": "0",
+                        "size": "6.0000000000000000",
+                        "orderType": "market",
+                        "side": "buy",
+                        "status": "filled",
+                        "priceAvg": "65.5210000000000000",
+                        "baseVolume": "0.0915000000000000",
+                        "quoteVolume": "5.9951715000000000",
+                        "enterPointSource": "API",
+                        "feeDetail": "{\"newFees\":{\"c\":0,\"d\":0,\"deduction\":false,\"r\":-0.0000915,\"t\":-0.0000915,\"totalDeductionFee\":0},\"LTC\":{\"deduction\":false,\"feeCoinCode\":\"LTC\",\"totalDeductionFee\":0,\"totalFee\":-0.0000915000000000}}",
+                        "orderSource": "market",
+                        "cTime": "1706177030942",
+                        "uTime": "1706177031075"
+                    },
+                    "id": "1134354173590421508",
+                    "clientOrderId": "84e6d418-b92b-480c-9169-6082702b32b7",
+                    "timestamp": 1706177030942,
+                    "datetime": "2024-01-25T10:03:50.942Z",
+                    "lastTradeTimestamp": 1706177031075,
+                    "lastUpdateTimestamp": 1706177031075,
+                    "symbol": "LTC/USDT",
+                    "type": "market",
                     "side": "buy",
-                    "status": "filled",
-                    "priceAvg": "65.5210000000000000",
-                    "baseVolume": "0.0915000000000000",
-                    "quoteVolume": "5.9951715000000000",
-                    "enterPointSource": "API",
-                    "feeDetail": "{\"newFees\":{\"c\":0,\"d\":0,\"deduction\":false,\"r\":-0.0000915,\"t\":-0.0000915,\"totalDeductionFee\":0},\"LTC\":{\"deduction\":false,\"feeCoinCode\":\"LTC\",\"totalDeductionFee\":0,\"totalFee\":-0.0000915000000000}}",
-                    "orderSource": "market",
-                    "cTime": "1706177030942",
-                    "uTime": "1706177031075"
-                  },
-                  "id": "1134354173590421508",
-                  "clientOrderId": "84e6d418-b92b-480c-9169-6082702b32b7",
-                  "timestamp": 1706177030942,
-                  "datetime": "2024-01-25T10:03:50.942Z",
-                  "lastTradeTimestamp": 1706177031075,
-                  "lastUpdateTimestamp": 1706177031075,
-                  "symbol": "LTC/USDT",
-                  "type": "market",
-                  "side": "buy",
-                  "price": 65.521,
-                  "amount": 0.0915,
-                  "cost": 5.9951715,
-                  "average": 65.521,
-                  "filled": 0.0915,
-                  "remaining": 0,
-                  "timeInForce": "IOC",
-                  "postOnly": null,
-                  "reduceOnly": null,
-                  "stopPrice": null,
-                  "triggerPrice": null,
-                  "takeProfitPrice": null,
-                  "stopLossPrice": null,
-                  "status": "closed",
-                  "fee": {
-                    "cost": 0.0000915,
-                    "currency": "LTC"
-                  },
-                  "trades": [],
-                  "fees": [
-                    {
-                      "cost": 0.0000915,
-                      "currency": "LTC"
-                    }
-                  ]
+                    "price": 65.521,
+                    "amount": 0.0915,
+                    "cost": 5.9951715,
+                    "average": 65.521,
+                    "filled": 0.0915,
+                    "remaining": 0,
+                    "timeInForce": "IOC",
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "status": "closed",
+                    "fee": {
+                        "cost": 0.0000915,
+                        "currency": "LTC"
+                    },
+                    "trades": [],
+                    "fees": [
+                        {
+                            "cost": 0.0000915,
+                            "currency": "LTC"
+                        }
+                    ]
                 }
             },
             {
@@ -4873,8 +4873,8 @@
                         "reduceOnly": "NO",
                         "feeDetail": [
                             {
-                            "feeCoin": "",
-                            "fee": ""
+                                "feeCoin": "",
+                                "fee": ""
                             }
                         ],
                         "createdTime": "1750495435090",
@@ -4913,8 +4913,8 @@
                         "reduceOnly": "NO",
                         "feeDetail": [
                             {
-                            "feeCoin": "",
-                            "fee": ""
+                                "feeCoin": "",
+                                "fee": ""
                             }
                         ],
                         "createdTime": "1750495435090",
@@ -4959,10 +4959,10 @@
                     },
                     "trades": [],
                     "fees": [
-                    {
-                        "cost": null,
-                        "currency": null
-                    }
+                        {
+                            "cost": null,
+                            "currency": null
+                        }
                     ],
                     "stopPrice": null
                 }
@@ -5001,8 +5001,8 @@
                         "reduceOnly": "NO",
                         "feeDetail": [
                             {
-                            "feeCoin": "",
-                            "fee": ""
+                                "feeCoin": "",
+                                "fee": ""
                             }
                         ],
                         "createdTime": "1750496809871",
@@ -5041,8 +5041,8 @@
                         "reduceOnly": "NO",
                         "feeDetail": [
                             {
-                            "feeCoin": "",
-                            "fee": ""
+                                "feeCoin": "",
+                                "fee": ""
                             }
                         ],
                         "createdTime": "1750496809871",
@@ -5087,10 +5087,10 @@
                     },
                     "trades": [],
                     "fees": [
-                    {
-                        "cost": null,
-                        "currency": "USDT"
-                    }
+                        {
+                            "cost": null,
+                            "currency": "USDT"
+                        }
                     ],
                     "stopPrice": null
                 }
@@ -5141,7 +5141,10 @@
                         "cost": 4237.08452964,
                         "timestamp": 1710327601000,
                         "datetime": "2024-03-13T11:00:01.000Z",
-                        "fee": {"cost": null, "currency": null },
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
                         "fees": []
                     }
                 ]
@@ -5777,43 +5780,43 @@
                 "description": "fetch position",
                 "method": "fetchPosition",
                 "input": [
-                  "LTC/USDT:USDT"
+                    "LTC/USDT:USDT"
                 ],
                 "httpResponse": {
-                  "code": "00000",
-                  "msg": "success",
-                  "requestTime": "1711468344701",
-                  "data": []
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1711468344701",
+                    "data": []
                 },
                 "parsedResponse": {
-                  "info": {},
-                  "id": null,
-                  "symbol": "LTC/USDT:USDT",
-                  "notional": null,
-                  "marginMode": null,
-                  "liquidationPrice": null,
-                  "entryPrice": null,
-                  "unrealizedPnl": null,
-                  "realizedPnl": null,
-                  "percentage": null,
-                  "contracts": null,
-                  "contractSize": 1,
-                  "markPrice": null,
-                  "lastPrice": null,
-                  "side": null,
-                  "hedged": null,
-                  "timestamp": null,
-                  "datetime": null,
-                  "lastUpdateTimestamp": null,
-                  "maintenanceMargin": null,
-                  "maintenanceMarginPercentage": null,
-                  "collateral": null,
-                  "initialMargin": null,
-                  "initialMarginPercentage": null,
-                  "leverage": null,
-                  "marginRatio": null,
-                  "stopLossPrice": null,
-                  "takeProfitPrice": null
+                    "info": {},
+                    "id": null,
+                    "symbol": "LTC/USDT:USDT",
+                    "notional": null,
+                    "marginMode": null,
+                    "liquidationPrice": null,
+                    "entryPrice": null,
+                    "unrealizedPnl": null,
+                    "realizedPnl": null,
+                    "percentage": null,
+                    "contracts": null,
+                    "contractSize": 1,
+                    "markPrice": null,
+                    "lastPrice": null,
+                    "side": null,
+                    "hedged": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastUpdateTimestamp": null,
+                    "maintenanceMargin": null,
+                    "maintenanceMarginPercentage": null,
+                    "collateral": null,
+                    "initialMargin": null,
+                    "initialMarginPercentage": null,
+                    "leverage": null,
+                    "marginRatio": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null
                 }
             },
             {
@@ -5924,109 +5927,109 @@
                 "description": "cross fetch borrow interest",
                 "method": "fetchBorrowInterest",
                 "input": [
-                  "USDT",
-                  "BTC/USDT"
+                    "USDT",
+                    "BTC/USDT"
                 ],
                 "httpResponse": {
-                  "code": "00000",
-                  "msg": "success",
-                  "requestTime": "1731480251909",
-                  "data": {
-                    "resultList": [
-                      {
-                        "interestId": "1240483507970117633",
-                        "interestCoin": "USDT",
-                        "dailyInterestRate": "0.00014",
-                        "loanCoin": "USDT",
-                        "interestAmount": "0.00003034",
-                        "interstType": "first",
-                        "cTime": "1731480236046",
-                        "uTime": "1731480236046"
-                      }
-                    ],
-                    "maxId": "1240483507970117633",
-                    "minId": "1240483507970117633"
-                  }
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1731480251909",
+                    "data": {
+                        "resultList": [
+                            {
+                                "interestId": "1240483507970117633",
+                                "interestCoin": "USDT",
+                                "dailyInterestRate": "0.00014",
+                                "loanCoin": "USDT",
+                                "interestAmount": "0.00003034",
+                                "interstType": "first",
+                                "cTime": "1731480236046",
+                                "uTime": "1731480236046"
+                            }
+                        ],
+                        "maxId": "1240483507970117633",
+                        "minId": "1240483507970117633"
+                    }
                 },
                 "parsedResponse": [
-                  {
-                    "info": {
-                      "interestId": "1240483507970117633",
-                      "interestCoin": "USDT",
-                      "dailyInterestRate": "0.00014",
-                      "loanCoin": "USDT",
-                      "interestAmount": "0.00003034",
-                      "interstType": "first",
-                      "cTime": "1731480236046",
-                      "uTime": "1731480236046"
-                    },
-                    "symbol": "BTC/USDT",
-                    "currency": "USDT",
-                    "interest": 0.00003034,
-                    "interestRate": 0.00014,
-                    "amountBorrowed": null,
-                    "marginMode": "cross",
-                    "timestamp": 1731480236046,
-                    "datetime": "2024-11-13T06:43:56.046Z"
-                  }
+                    {
+                        "info": {
+                            "interestId": "1240483507970117633",
+                            "interestCoin": "USDT",
+                            "dailyInterestRate": "0.00014",
+                            "loanCoin": "USDT",
+                            "interestAmount": "0.00003034",
+                            "interstType": "first",
+                            "cTime": "1731480236046",
+                            "uTime": "1731480236046"
+                        },
+                        "symbol": "BTC/USDT",
+                        "currency": "USDT",
+                        "interest": 0.00003034,
+                        "interestRate": 0.00014,
+                        "amountBorrowed": null,
+                        "marginMode": "cross",
+                        "timestamp": 1731480236046,
+                        "datetime": "2024-11-13T06:43:56.046Z"
+                    }
                 ]
             },
             {
                 "description": "isolated fetch borrow interest",
                 "method": "fetchBorrowInterest",
                 "input": [
-                  "USDT",
-                  "BTC/USDT",
-                  null,
-                  null,
-                  {
-                    "marginMode": "isolated"
-                  }
+                    "USDT",
+                    "BTC/USDT",
+                    null,
+                    null,
+                    {
+                        "marginMode": "isolated"
+                    }
                 ],
                 "httpResponse": {
-                  "code": "00000",
-                  "msg": "success",
-                  "requestTime": "1731480120096",
-                  "data": {
-                    "resultList": [
-                      {
-                        "interestId": "1240482481565208581",
-                        "interestCoin": "USDT",
-                        "dailyInterestRate": "0.00014",
-                        "loanCoin": "USDT",
-                        "interestAmount": "0.00006125",
-                        "interstType": "first",
-                        "symbol": "BTCUSDT",
-                        "cTime": "1731479991332",
-                        "uTime": "1731479991332"
-                      }
-                    ],
-                    "maxId": "1240482481565208581",
-                    "minId": "1240482481565208581"
-                  }
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1731480120096",
+                    "data": {
+                        "resultList": [
+                            {
+                                "interestId": "1240482481565208581",
+                                "interestCoin": "USDT",
+                                "dailyInterestRate": "0.00014",
+                                "loanCoin": "USDT",
+                                "interestAmount": "0.00006125",
+                                "interstType": "first",
+                                "symbol": "BTCUSDT",
+                                "cTime": "1731479991332",
+                                "uTime": "1731479991332"
+                            }
+                        ],
+                        "maxId": "1240482481565208581",
+                        "minId": "1240482481565208581"
+                    }
                 },
                 "parsedResponse": [
-                  {
-                    "info": {
-                      "interestId": "1240482481565208581",
-                      "interestCoin": "USDT",
-                      "dailyInterestRate": "0.00014",
-                      "loanCoin": "USDT",
-                      "interestAmount": "0.00006125",
-                      "interstType": "first",
-                      "symbol": "BTCUSDT",
-                      "cTime": "1731479991332",
-                      "uTime": "1731479991332"
-                    },
-                    "symbol": "BTC/USDT",
-                    "currency": "USDT",
-                    "interest": 0.00006125,
-                    "interestRate": 0.00014,
-                    "amountBorrowed": null,
-                    "marginMode": "isolated",
-                    "timestamp": 1731479991332,
-                    "datetime": "2024-11-13T06:39:51.332Z"
-                  }
+                    {
+                        "info": {
+                            "interestId": "1240482481565208581",
+                            "interestCoin": "USDT",
+                            "dailyInterestRate": "0.00014",
+                            "loanCoin": "USDT",
+                            "interestAmount": "0.00006125",
+                            "interstType": "first",
+                            "symbol": "BTCUSDT",
+                            "cTime": "1731479991332",
+                            "uTime": "1731479991332"
+                        },
+                        "symbol": "BTC/USDT",
+                        "currency": "USDT",
+                        "interest": 0.00006125,
+                        "interestRate": 0.00014,
+                        "amountBorrowed": null,
+                        "marginMode": "isolated",
+                        "timestamp": 1731479991332,
+                        "datetime": "2024-11-13T06:39:51.332Z"
+                    }
                 ]
             }
         ],
@@ -6035,120 +6038,120 @@
                 "description": "fetch linear swap margin mode",
                 "method": "fetchMarginMode",
                 "input": [
-                  "BTC/USDT:USDT"
+                    "BTC/USDT:USDT"
                 ],
                 "httpResponse": {
-                  "code": "00000",
-                  "msg": "success",
-                  "requestTime": "1731569715346",
-                  "data": {
-                    "marginCoin": "USDT",
-                    "locked": "0",
-                    "available": "19.88811074",
-                    "crossedMaxAvailable": "19.88811074",
-                    "isolatedMaxAvailable": "19.88811074",
-                    "maxTransferOut": "19.88811074",
-                    "accountEquity": "19.88811074",
-                    "usdtEquity": "19.888110749166",
-                    "btcEquity": "0.000221569208",
-                    "crossedRiskRate": "0",
-                    "crossedMarginLeverage": "10",
-                    "isolatedLongLever": "10",
-                    "isolatedShortLever": "10",
-                    "marginMode": "crossed",
-                    "posMode": "hedge_mode",
-                    "unrealizedPL": "0",
-                    "coupon": "0",
-                    "crossedUnrealizedPL": "0",
-                    "isolatedUnrealizedPL": "",
-                    "grant": ""
-                  }
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1731569715346",
+                    "data": {
+                        "marginCoin": "USDT",
+                        "locked": "0",
+                        "available": "19.88811074",
+                        "crossedMaxAvailable": "19.88811074",
+                        "isolatedMaxAvailable": "19.88811074",
+                        "maxTransferOut": "19.88811074",
+                        "accountEquity": "19.88811074",
+                        "usdtEquity": "19.888110749166",
+                        "btcEquity": "0.000221569208",
+                        "crossedRiskRate": "0",
+                        "crossedMarginLeverage": "10",
+                        "isolatedLongLever": "10",
+                        "isolatedShortLever": "10",
+                        "marginMode": "crossed",
+                        "posMode": "hedge_mode",
+                        "unrealizedPL": "0",
+                        "coupon": "0",
+                        "crossedUnrealizedPL": "0",
+                        "isolatedUnrealizedPL": "",
+                        "grant": ""
+                    }
                 },
                 "parsedResponse": {
-                  "info": {
-                    "marginCoin": "USDT",
-                    "locked": "0",
-                    "available": "19.88811074",
-                    "crossedMaxAvailable": "19.88811074",
-                    "isolatedMaxAvailable": "19.88811074",
-                    "maxTransferOut": "19.88811074",
-                    "accountEquity": "19.88811074",
-                    "usdtEquity": "19.888110749166",
-                    "btcEquity": "0.000221569208",
-                    "crossedRiskRate": "0",
-                    "crossedMarginLeverage": "10",
-                    "isolatedLongLever": "10",
-                    "isolatedShortLever": "10",
-                    "marginMode": "crossed",
-                    "posMode": "hedge_mode",
-                    "unrealizedPL": "0",
-                    "coupon": "0",
-                    "crossedUnrealizedPL": "0",
-                    "isolatedUnrealizedPL": "",
-                    "grant": ""
-                  },
-                  "symbol": "BTC/USDT:USDT",
-                  "marginMode": "cross"
+                    "info": {
+                        "marginCoin": "USDT",
+                        "locked": "0",
+                        "available": "19.88811074",
+                        "crossedMaxAvailable": "19.88811074",
+                        "isolatedMaxAvailable": "19.88811074",
+                        "maxTransferOut": "19.88811074",
+                        "accountEquity": "19.88811074",
+                        "usdtEquity": "19.888110749166",
+                        "btcEquity": "0.000221569208",
+                        "crossedRiskRate": "0",
+                        "crossedMarginLeverage": "10",
+                        "isolatedLongLever": "10",
+                        "isolatedShortLever": "10",
+                        "marginMode": "crossed",
+                        "posMode": "hedge_mode",
+                        "unrealizedPL": "0",
+                        "coupon": "0",
+                        "crossedUnrealizedPL": "0",
+                        "isolatedUnrealizedPL": "",
+                        "grant": ""
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": "cross"
                 }
             },
             {
                 "description": "fetch inverse swap margin mode",
                 "method": "fetchMarginMode",
                 "input": [
-                  "BTC/USD:BTC"
+                    "BTC/USD:BTC"
                 ],
                 "httpResponse": {
-                  "code": "00000",
-                  "msg": "success",
-                  "requestTime": "1731569580954",
-                  "data": {
-                    "marginCoin": "BTC",
-                    "locked": "0",
-                    "available": "0",
-                    "crossedMaxAvailable": "0",
-                    "isolatedMaxAvailable": "0",
-                    "maxTransferOut": "0",
-                    "accountEquity": "0",
-                    "usdtEquity": "0.000028085535",
-                    "btcEquity": "0.000000000312",
-                    "crossedRiskRate": "0",
-                    "crossedMarginLeverage": "10",
-                    "isolatedLongLever": "10",
-                    "isolatedShortLever": "10",
-                    "marginMode": "crossed",
-                    "posMode": "hedge_mode",
-                    "unrealizedPL": "0",
-                    "coupon": "0",
-                    "crossedUnrealizedPL": "0",
-                    "isolatedUnrealizedPL": "",
-                    "grant": ""
-                  }
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1731569580954",
+                    "data": {
+                        "marginCoin": "BTC",
+                        "locked": "0",
+                        "available": "0",
+                        "crossedMaxAvailable": "0",
+                        "isolatedMaxAvailable": "0",
+                        "maxTransferOut": "0",
+                        "accountEquity": "0",
+                        "usdtEquity": "0.000028085535",
+                        "btcEquity": "0.000000000312",
+                        "crossedRiskRate": "0",
+                        "crossedMarginLeverage": "10",
+                        "isolatedLongLever": "10",
+                        "isolatedShortLever": "10",
+                        "marginMode": "crossed",
+                        "posMode": "hedge_mode",
+                        "unrealizedPL": "0",
+                        "coupon": "0",
+                        "crossedUnrealizedPL": "0",
+                        "isolatedUnrealizedPL": "",
+                        "grant": ""
+                    }
                 },
                 "parsedResponse": {
-                  "info": {
-                    "marginCoin": "BTC",
-                    "locked": "0",
-                    "available": "0",
-                    "crossedMaxAvailable": "0",
-                    "isolatedMaxAvailable": "0",
-                    "maxTransferOut": "0",
-                    "accountEquity": "0",
-                    "usdtEquity": "0.000028085535",
-                    "btcEquity": "0.000000000312",
-                    "crossedRiskRate": "0",
-                    "crossedMarginLeverage": "10",
-                    "isolatedLongLever": "10",
-                    "isolatedShortLever": "10",
-                    "marginMode": "crossed",
-                    "posMode": "hedge_mode",
-                    "unrealizedPL": "0",
-                    "coupon": "0",
-                    "crossedUnrealizedPL": "0",
-                    "isolatedUnrealizedPL": "",
-                    "grant": ""
-                  },
-                  "symbol": "BTC/USD:BTC",
-                  "marginMode": "cross"
+                    "info": {
+                        "marginCoin": "BTC",
+                        "locked": "0",
+                        "available": "0",
+                        "crossedMaxAvailable": "0",
+                        "isolatedMaxAvailable": "0",
+                        "maxTransferOut": "0",
+                        "accountEquity": "0",
+                        "usdtEquity": "0.000028085535",
+                        "btcEquity": "0.000000000312",
+                        "crossedRiskRate": "0",
+                        "crossedMarginLeverage": "10",
+                        "isolatedLongLever": "10",
+                        "isolatedShortLever": "10",
+                        "marginMode": "crossed",
+                        "posMode": "hedge_mode",
+                        "unrealizedPL": "0",
+                        "coupon": "0",
+                        "crossedUnrealizedPL": "0",
+                        "isolatedUnrealizedPL": "",
+                        "grant": ""
+                    },
+                    "symbol": "BTC/USD:BTC",
+                    "marginMode": "cross"
                 }
             }
         ],
@@ -6157,35 +6160,49 @@
                 "description": "Fetch the funding rate",
                 "method": "fetchFundingRate",
                 "input": [
-                  "BTC/USDT:USDT"
+                    "BTC/USDT:USDT"
                 ],
-                "httpResponse": {"code":"00000","msg":"success","requestTime":1745500986108,"data":[{"symbol":"BTCUSDT","fundingRate":"-0.000014","fundingRateInterval":"8","nextUpdate":"1745510400000","minFundingRate":"-0.003","maxFundingRate":"0.003"}]},
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1745500986108,
+                    "data": [
+                        {
+                            "symbol": "BTCUSDT",
+                            "fundingRate": "-0.000014",
+                            "fundingRateInterval": "8",
+                            "nextUpdate": "1745510400000",
+                            "minFundingRate": "-0.003",
+                            "maxFundingRate": "0.003"
+                        }
+                    ]
+                },
                 "parsedResponse": {
-                  "info": {
-                    "symbol": "BTCUSDT",
-                    "fundingRate": "-0.000014",
-                    "fundingRateInterval": "8",
-                    "nextUpdate": "1745510400000",
-                    "minFundingRate": "-0.003",
-                    "maxFundingRate": "0.003"
-                  },
-                  "symbol": "BTC/USDT:USDT",
-                  "markPrice": null,
-                  "indexPrice": null,
-                  "interestRate": null,
-                  "estimatedSettlePrice": null,
-                  "timestamp": null,
-                  "datetime": null,
-                  "fundingRate": -0.000014,
-                  "fundingTimestamp": 1745510400000,
-                  "fundingDatetime": "2025-04-24T16:00:00.000Z",
-                  "nextFundingRate": null,
-                  "nextFundingTimestamp": null,
-                  "nextFundingDatetime": null,
-                  "previousFundingRate": null,
-                  "previousFundingTimestamp": null,
-                  "previousFundingDatetime": null,
-                  "interval": "8h"
+                    "info": {
+                        "symbol": "BTCUSDT",
+                        "fundingRate": "-0.000014",
+                        "fundingRateInterval": "8",
+                        "nextUpdate": "1745510400000",
+                        "minFundingRate": "-0.003",
+                        "maxFundingRate": "0.003"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": -0.000014,
+                    "fundingTimestamp": 1745510400000,
+                    "fundingDatetime": "2025-04-24T16:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "8h"
                 }
             },
             {
@@ -6197,7 +6214,18 @@
                         "method": "publicMixGetV2MixMarketFundingTime"
                     }
                 ],
-                "httpResponse": {"code":"00000","msg":"success","requestTime":1745402656867,"data":[{"symbol":"BTCUSDT","nextFundingTime":"1745424000000","ratePeriod":"8"}]},
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1745402656867,
+                    "data": [
+                        {
+                            "symbol": "BTCUSDT",
+                            "nextFundingTime": "1745424000000",
+                            "ratePeriod": "8"
+                        }
+                    ]
+                },
                 "parsedResponse": {
                     "info": {
                         "symbol": "BTCUSDT",
@@ -6237,24 +6265,24 @@
                     "msg": "success",
                     "requestTime": "1750897372153",
                     "data": [
-                    {
+                        {
+                            "symbol": "BTCUSDT",
+                            "fundingRate": "0.00001",
+                            "fundingRateInterval": "8",
+                            "nextUpdate": "1750924800000",
+                            "minFundingRate": "-0.003",
+                            "maxFundingRate": "0.003"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
                         "symbol": "BTCUSDT",
                         "fundingRate": "0.00001",
                         "fundingRateInterval": "8",
                         "nextUpdate": "1750924800000",
                         "minFundingRate": "-0.003",
                         "maxFundingRate": "0.003"
-                    }
-                    ]
-                },
-                "parsedResponse": {
-                    "info": {
-                    "symbol": "BTCUSDT",
-                    "fundingRate": "0.00001",
-                    "fundingRateInterval": "8",
-                    "nextUpdate": "1750924800000",
-                    "minFundingRate": "-0.003",
-                    "maxFundingRate": "0.003"
                     },
                     "symbol": "BTC/USDT:USDT",
                     "markPrice": null,
@@ -6982,49 +7010,49 @@
                     "msg": "success",
                     "requestTime": "1751021563169",
                     "data": {
-                    "list": [
-                        {
-                            "positionId": "1322441328637100049",
-                            "category": "USDT-FUTURES",
-                            "symbol": "BTCUSDT",
-                            "marginCoin": "USDT",
-                            "holdMode": "hedge_mode",
-                            "posSide": "long",
-                            "marginMode": "crossed",
-                            "openPriceAvg": "107003.7",
-                            "closePriceAvg": "107005.4",
-                            "openTotalPos": "0.0001",
-                            "closeTotalPos": "0.0001",
-                            "cumRealisedPnl": "0.00017",
-                            "netProfit": "-0.01267055",
-                            "totalFunding": "0",
-                            "openFeeTotal": "-0.00642022",
-                            "closeFeeTotal": "-0.00642032",
-                            "createdTime": "1751020503195",
-                            "updatedTime": "1751020520458"
-                        },
-                        {
-                            "positionId": "1322061241945276417",
-                            "category": "USDT-FUTURES",
-                            "symbol": "BTCUSDT",
-                            "marginCoin": "USDT",
-                            "holdMode": "hedge_mode",
-                            "posSide": "long",
-                            "marginMode": "crossed",
-                            "openPriceAvg": "107369.5",
-                            "closePriceAvg": "107007.2",
-                            "openTotalPos": "0.0011",
-                            "closeTotalPos": "0.0011",
-                            "cumRealisedPnl": "-0.3986",
-                            "netProfit": "-0.51234353",
-                            "totalFunding": "0.02774513",
-                            "openFeeTotal": "-0.07086391",
-                            "closeFeeTotal": "-0.07062475",
-                            "createdTime": "1750929883466",
-                            "updatedTime": "1751020218409"
-                        }
-                    ],
-                    "cursor": "1322440134158041089"
+                        "list": [
+                            {
+                                "positionId": "1322441328637100049",
+                                "category": "USDT-FUTURES",
+                                "symbol": "BTCUSDT",
+                                "marginCoin": "USDT",
+                                "holdMode": "hedge_mode",
+                                "posSide": "long",
+                                "marginMode": "crossed",
+                                "openPriceAvg": "107003.7",
+                                "closePriceAvg": "107005.4",
+                                "openTotalPos": "0.0001",
+                                "closeTotalPos": "0.0001",
+                                "cumRealisedPnl": "0.00017",
+                                "netProfit": "-0.01267055",
+                                "totalFunding": "0",
+                                "openFeeTotal": "-0.00642022",
+                                "closeFeeTotal": "-0.00642032",
+                                "createdTime": "1751020503195",
+                                "updatedTime": "1751020520458"
+                            },
+                            {
+                                "positionId": "1322061241945276417",
+                                "category": "USDT-FUTURES",
+                                "symbol": "BTCUSDT",
+                                "marginCoin": "USDT",
+                                "holdMode": "hedge_mode",
+                                "posSide": "long",
+                                "marginMode": "crossed",
+                                "openPriceAvg": "107369.5",
+                                "closePriceAvg": "107007.2",
+                                "openTotalPos": "0.0011",
+                                "closeTotalPos": "0.0011",
+                                "cumRealisedPnl": "-0.3986",
+                                "netProfit": "-0.51234353",
+                                "totalFunding": "0.02774513",
+                                "openFeeTotal": "-0.07086391",
+                                "closeFeeTotal": "-0.07062475",
+                                "createdTime": "1750929883466",
+                                "updatedTime": "1751020218409"
+                            }
+                        ],
+                        "cursor": "1322440134158041089"
                     }
                 },
                 "parsedResponse": [
@@ -7148,44 +7176,44 @@
                     "data": {
                         "list": [
                             {
-                            "positionId": "1322441328637100049",
-                            "category": "USDT-FUTURES",
-                            "symbol": "BTCUSDT",
-                            "marginCoin": "USDT",
-                            "holdMode": "hedge_mode",
-                            "posSide": "long",
-                            "marginMode": "crossed",
-                            "openPriceAvg": "107003.7",
-                            "closePriceAvg": "107005.4",
-                            "openTotalPos": "0.0001",
-                            "closeTotalPos": "0.0001",
-                            "cumRealisedPnl": "0.00017",
-                            "netProfit": "-0.01267055",
-                            "totalFunding": "0",
-                            "openFeeTotal": "-0.00642022",
-                            "closeFeeTotal": "-0.00642032",
-                            "createdTime": "1751020503195",
-                            "updatedTime": "1751020520458"
+                                "positionId": "1322441328637100049",
+                                "category": "USDT-FUTURES",
+                                "symbol": "BTCUSDT",
+                                "marginCoin": "USDT",
+                                "holdMode": "hedge_mode",
+                                "posSide": "long",
+                                "marginMode": "crossed",
+                                "openPriceAvg": "107003.7",
+                                "closePriceAvg": "107005.4",
+                                "openTotalPos": "0.0001",
+                                "closeTotalPos": "0.0001",
+                                "cumRealisedPnl": "0.00017",
+                                "netProfit": "-0.01267055",
+                                "totalFunding": "0",
+                                "openFeeTotal": "-0.00642022",
+                                "closeFeeTotal": "-0.00642032",
+                                "createdTime": "1751020503195",
+                                "updatedTime": "1751020520458"
                             },
                             {
-                            "positionId": "1322061241945276417",
-                            "category": "USDT-FUTURES",
-                            "symbol": "BTCUSDT",
-                            "marginCoin": "USDT",
-                            "holdMode": "hedge_mode",
-                            "posSide": "long",
-                            "marginMode": "crossed",
-                            "openPriceAvg": "107369.5",
-                            "closePriceAvg": "107007.2",
-                            "openTotalPos": "0.0011",
-                            "closeTotalPos": "0.0011",
-                            "cumRealisedPnl": "-0.3986",
-                            "netProfit": "-0.51234353",
-                            "totalFunding": "0.02774513",
-                            "openFeeTotal": "-0.07086391",
-                            "closeFeeTotal": "-0.07062475",
-                            "createdTime": "1750929883466",
-                            "updatedTime": "1751020218409"
+                                "positionId": "1322061241945276417",
+                                "category": "USDT-FUTURES",
+                                "symbol": "BTCUSDT",
+                                "marginCoin": "USDT",
+                                "holdMode": "hedge_mode",
+                                "posSide": "long",
+                                "marginMode": "crossed",
+                                "openPriceAvg": "107369.5",
+                                "closePriceAvg": "107007.2",
+                                "openTotalPos": "0.0011",
+                                "closeTotalPos": "0.0011",
+                                "cumRealisedPnl": "-0.3986",
+                                "netProfit": "-0.51234353",
+                                "totalFunding": "0.02774513",
+                                "openFeeTotal": "-0.07086391",
+                                "closeFeeTotal": "-0.07062475",
+                                "createdTime": "1750929883466",
+                                "updatedTime": "1751020218409"
                             }
                         ],
                         "cursor": "1322440134158041089"
@@ -7375,8 +7403,8 @@
                                 "reduceOnly": "NO",
                                 "feeDetail": [
                                     {
-                                    "feeCoin": "",
-                                    "fee": ""
+                                        "feeCoin": "",
+                                        "fee": ""
                                     }
                                 ],
                                 "createdTime": "1752554021554",
@@ -7413,8 +7441,8 @@
                                 "reduceOnly": "NO",
                                 "feeDetail": [
                                     {
-                                    "feeCoin": "USDT",
-                                    "fee": "0.06444618"
+                                        "feeCoin": "USDT",
+                                        "fee": "0.06444618"
                                     }
                                 ],
                                 "createdTime": "1750929883443",
@@ -8195,6 +8223,62 @@
                     "previousFundingDatetime": null,
                     "interval": "8h"
                 }
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "Fetch the funding history UTA",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USDT:USDT",
+                    0,
+                    100,
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1772814846943,
+                    "data": {
+                        "list": [
+                            {
+                                "category": "USDT-FUTURES",
+                                "id": "1413844852469551105",
+                                "symbol": "BTCUSDT",
+                                "coin": "USDT",
+                                "type": "CONTRACT_MAIN_SETTLE_FEE_USER_OUT",
+                                "amount": "-0.31399125",
+                                "fee": "0",
+                                "balance": "59981.7105387860399993",
+                                "ts": "1772812800000"
+                            }
+                        ],
+                        "cursor": "1388756642227965952"
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "category": "USDT-FUTURES",
+                            "id": "1413844852469551105",
+                            "symbol": "BTCUSDT",
+                            "coin": "USDT",
+                            "type": "CONTRACT_MAIN_SETTLE_FEE_USER_OUT",
+                            "amount": "-0.31399125",
+                            "fee": "0",
+                            "balance": "59981.7105387860399993",
+                            "ts": "1772812800000"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1772812800000,
+                        "datetime": "2026-03-06T16:00:00.000Z",
+                        "code": "USDT",
+                        "amount": -0.31399125,
+                        "id": "1413844852469551105"
+                    }
+                ]
             }
         ]
     }

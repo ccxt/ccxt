@@ -101,6 +101,36 @@ public partial class bitvavo : Exchange
         return await this.callAsync ("privateGetWithdrawalHistory",parameters);
     }
 
+    public async Task<object> privateGetSubaccounts (object parameters = null)
+    {
+        return await this.callAsync ("privateGetSubaccounts",parameters);
+    }
+
+    public async Task<object> privateGetSubaccountsTransfers (object parameters = null)
+    {
+        return await this.callAsync ("privateGetSubaccountsTransfers",parameters);
+    }
+
+    public async Task<object> privateGetSubaccountsTransfersTransferId (object parameters = null)
+    {
+        return await this.callAsync ("privateGetSubaccountsTransfersTransferId",parameters);
+    }
+
+    public async Task<object> privateGetInstitutionalSubaccountsBalance (object parameters = null)
+    {
+        return await this.callAsync ("privateGetInstitutionalSubaccountsBalance",parameters);
+    }
+
+    public async Task<object> privateGetInstitutionalSubaccountsHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetInstitutionalSubaccountsHistory",parameters);
+    }
+
+    public async Task<object> privateGetInstitutionalSubaccountsOrdersOpen (object parameters = null)
+    {
+        return await this.callAsync ("privateGetInstitutionalSubaccountsOrdersOpen",parameters);
+    }
+
     public async Task<object> privatePostOrder (object parameters = null)
     {
         return await this.callAsync ("privatePostOrder",parameters);
@@ -109,6 +139,16 @@ public partial class bitvavo : Exchange
     public async Task<object> privatePostWithdrawal (object parameters = null)
     {
         return await this.callAsync ("privatePostWithdrawal",parameters);
+    }
+
+    public async Task<object> privatePostSubaccounts (object parameters = null)
+    {
+        return await this.callAsync ("privatePostSubaccounts",parameters);
+    }
+
+    public async Task<object> privatePostSubaccountsTransfers (object parameters = null)
+    {
+        return await this.callAsync ("privatePostSubaccountsTransfers",parameters);
     }
 
     public async Task<object> privatePutOrder (object parameters = null)
@@ -124,6 +164,16 @@ public partial class bitvavo : Exchange
     public async Task<object> privateDeleteOrders (object parameters = null)
     {
         return await this.callAsync ("privateDeleteOrders",parameters);
+    }
+
+    public async Task<object> privateDeleteInstitutionalSubaccountsOrder (object parameters = null)
+    {
+        return await this.callAsync ("privateDeleteInstitutionalSubaccountsOrder",parameters);
+    }
+
+    public async Task<object> privateDeleteInstitutionalSubaccountsOrders (object parameters = null)
+    {
+        return await this.callAsync ("privateDeleteInstitutionalSubaccountsOrders",parameters);
     }
 
 }

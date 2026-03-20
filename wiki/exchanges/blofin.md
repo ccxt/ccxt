@@ -36,6 +36,7 @@
 * [setMarginMode](#setmarginmode)
 * [fetchPositionMode](#fetchpositionmode)
 * [setPositionMode](#setpositionmode)
+* [fetchPositionsADLRank](#fetchpositionsadlrank)
 * [watchTrades](#watchtrades)
 * [watchTradesForSymbols](#watchtradesforsymbols)
 * [watchOrderBook](#watchorderbook)
@@ -48,6 +49,7 @@
 * [watchBalance](#watchbalance)
 * [watchOrdersForSymbols](#watchordersforsymbols)
 * [watchPositions](#watchpositions)
+* [watchFundingRate](#watchfundingrate)
 
 <a name="fetchMarkets" id="fetchmarkets"></a>
 
@@ -801,6 +803,27 @@ blofin.setPositionMode (hedged[, symbol, params])
 ```
 
 
+<a name="fetchPositionsADLRank" id="fetchpositionsadlrank"></a>
+
+### fetchPositionsADLRank{docsify-ignore}
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [auto de leverage structures](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+**See**: https://docs.blofin.com/index.html#get-positions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.fetchPositionsADLRank ([symbols, params])
+```
+
+
 <a name="watchTrades" id="watchtrades"></a>
 
 ### watchTrades{docsify-ignore}
@@ -1069,5 +1092,26 @@ watch all open positions
 
 ```javascript
 blofin.watchPositions (symbols[, since, limit, params])
+```
+
+
+<a name="watchFundingRate" id="watchfundingrate"></a>
+
+### watchFundingRate{docsify-ignore}
+watch the current funding rate
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
+
+**See**: https://docs.blofin.com/index.html#ws-funding-rate-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.watchFundingRate (symbol[, params])
 ```
 

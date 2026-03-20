@@ -24,6 +24,9 @@ public partial class phemex : Exchange
                 { "future", false },
                 { "option", false },
                 { "addMargin", false },
+                { "borrowCrossMargin", false },
+                { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
                 { "closePosition", false },
@@ -34,9 +37,14 @@ public partial class phemex : Exchange
                 { "createStopMarketOrder", true },
                 { "createStopOrder", true },
                 { "editOrder", true },
+                { "fetchAllGreeks", false },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchClosedOrders", true },
                 { "fetchConvertQuote", true },
                 { "fetchConvertTrade", false },
@@ -53,6 +61,7 @@ public partial class phemex : Exchange
                 { "fetchFundingRateHistories", false },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
@@ -65,10 +74,14 @@ public partial class phemex : Exchange
                 { "fetchOHLCV", true },
                 { "fetchOpenInterest", true },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
+                { "fetchPositionADLRank", true },
                 { "fetchPositions", true },
+                { "fetchPositionsADLRank", true },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -77,8 +90,11 @@ public partial class phemex : Exchange
                 { "fetchTradingFee", false },
                 { "fetchTradingFees", false },
                 { "fetchTransfers", true },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", false },
+                { "repayCrossMargin", false },
+                { "repayIsolatedMargin", false },
                 { "sandbox", true },
                 { "setLeverage", true },
                 { "setMargin", true },
@@ -5681,6 +5697,218 @@ public partial class phemex : Exchange
             { "toAmount", this.parseNumber(toAmount) },
             { "price", this.safeNumber(quoteArgs, "price") },
             { "fee", null },
+        };
+    }
+
+    /**
+     * @method
+     * @name phemex#fetchPositionADLRank
+     * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
+     * @see https://phemex-docs.github.io/#query-account-positions
+     * @see https://phemex-docs.github.io/#query-trading-account-and-positions
+     * @see https://phemex-docs.github.io/#query-account-positions-with-unrealized-pnl
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.code] the currency code to fetch ranks for, USD, BTC or USDT, USDT is the default
+     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
+     * @returns {object} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+     */
+    public async override Task<object> fetchPositionsADLRank(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, true, true, true);
+        object subType = null;
+        object code = this.safeString2(parameters, "currency", "code", "USDT");
+        parameters = this.omit(parameters, new List<object>() {"currency", "code"});
+        object settle = null;
+        object market = null;
+        object firstSymbol = this.safeString(symbols, 0);
+        if (isTrue(!isEqual(firstSymbol, null)))
+        {
+            market = this.market(firstSymbol);
+            settle = getValue(market, "settle");
+            code = getValue(market, "settle");
+        } else
+        {
+            var settleparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionsADLRank", "settle", code);
+            settle = ((IList<object>)settleparametersVariable)[0];
+            parameters = ((IList<object>)settleparametersVariable)[1];
+        }
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object isUSDTSettled = isEqual(settle, "USDT");
+        if (isTrue(isUSDTSettled))
+        {
+            code = "USDT";
+        } else if (isTrue(isEqual(settle, "BTC")))
+        {
+            code = "BTC";
+        } else if (isTrue(isEqual(code, null)))
+        {
+            code = ((bool) isTrue((isEqual(subType, "linear")))) ? "USD" : "BTC";
+        }
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "currency", getValue(currency, "id") },
+        };
+        object response = null;
+        if (isTrue(isUSDTSettled))
+        {
+            object method = null;
+            var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionsADLRank", "method", "privateGetGAccountsAccountPositions");
+            method = ((IList<object>)methodparametersVariable)[0];
+            parameters = ((IList<object>)methodparametersVariable)[1];
+            if (isTrue(isEqual(method, "privateGetGAccountsAccountPositions")))
+            {
+                response = await this.privateGetGAccountsAccountPositions(this.extend(request, parameters));
+            } else
+            {
+                response = await this.privateGetGAccountsPositions(this.extend(request, parameters));
+            }
+        } else
+        {
+            response = await this.privateGetAccountsAccountPositions(this.extend(request, parameters));
+        }
+        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object ranks = this.safeValue(data, "positions", new List<object>() {});
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(ranks)); postFixIncrement(ref i))
+        {
+            object rank = getValue(ranks, i);
+            ((IList<object>)result).Add(this.parseADLRank(rank));
+        }
+        return this.filterByArrayADLRanks(result, "symbol", symbols, false);
+    }
+
+    public override object parseADLRank(object info, object market = null)
+    {
+        //
+        // fetchPositionADLRank: linear
+        //
+        //     {
+        //         "userID": 940666,
+        //         "accountID": 9406660003,
+        //         "symbol": "BTCUSDT",
+        //         "currency": "USDT",
+        //         "side": "Buy",
+        //         "positionStatus": "Normal",
+        //         "crossMargin": true,
+        //         "leverageRr": "-10",
+        //         "initMarginReqRr": "0.1",
+        //         "maintMarginReqRr": "0.005",
+        //         "riskLimitRv": "20000000",
+        //         "size": "0.01",
+        //         "valueRv": "887.531",
+        //         "avgEntryPriceRp": "88753.1",
+        //         "avgEntryPrice": "88753.1",
+        //         "posCostRv": "89.22502732",
+        //         "assignedPosBalanceRv": "89.29802732",
+        //         "bankruptCommRv": "0.529812426",
+        //         "bankruptPriceRp": "44783.79",
+        //         "positionMarginRv": "88.695214894",
+        //         "liquidationPriceRp": "45009",
+        //         "deleveragePercentileRr": "0",
+        //         "buyValueToCostRr": "0.10114",
+        //         "sellValueToCostRr": "0.10126",
+        //         "markPriceRp": "88747.2",
+        //         "estimatedOrdLossRv": "0",
+        //         "usedBalanceRv": "89.22502732",
+        //         "cumClosedPnlRv": "425.97796",
+        //         "cumFundingFeeRv": "54.892930099379",
+        //         "cumTransactFeeRv": "1.288782144",
+        //         "transactTimeNs": 1767176685241254818,
+        //         "takerFeeRateRr": "-1",
+        //         "makerFeeRateRr": "-1",
+        //         "term": 6,
+        //         "lastTermEndTimeNs": 1759835547751667598,
+        //         "lastFundingTimeNs": 1759824000000000000,
+        //         "curTermRealisedPnlRv": "-0.5325186",
+        //         "execSeq": 47732822790,
+        //         "posSide": "Long",
+        //         "posMode": "Hedged",
+        //         "buyLeavesValueRv": "0",
+        //         "buyLeavesQtyRq": "0",
+        //         "sellLeavesValueRv": "0",
+        //         "sellLeavesQtyRq": "0"
+        //     }
+        //
+        // fetchPositionADLRank: inverse
+        //
+        //     {
+        //         "userID": 940666,
+        //         "accountID": 9406660001,
+        //         "symbol": "BTCUSD",
+        //         "currency": "BTC",
+        //         "side": "Buy",
+        //         "positionStatus": "Normal",
+        //         "crossMargin": false,
+        //         "leverageEr": -2000000000,
+        //         "leverage": -20.00000000,
+        //         "initMarginReqEr": 5000000,
+        //         "initMarginReq": 0.05000000,
+        //         "maintMarginReqEr": 500000,
+        //         "maintMarginReq": 0.00500000,
+        //         "riskLimitEv": 150000000000,
+        //         "riskLimit": 1500.00000000,
+        //         "size": 1,
+        //         "value": 0.00001128,
+        //         "valueEv": 1128,
+        //         "avgEntryPriceEp": 886524823,
+        //         "avgEntryPrice": 88652.48230000,
+        //         "posCostEv": 58,
+        //         "posCost": 5.8E-7,
+        //         "assignedPosBalanceEv": 58,
+        //         "assignedPosBalance": 5.8E-7,
+        //         "bankruptCommEv": 1,
+        //         "bankruptComm": 1E-8,
+        //         "bankruptPriceEp": 100000,
+        //         "bankruptPrice": 10.00000000,
+        //         "positionMarginEv": 57,
+        //         "positionMargin": 5.7E-7,
+        //         "liquidationPriceEp": 100000,
+        //         "liquidationPrice": 10.00000000,
+        //         "deleveragePercentileEr": 0,
+        //         "deleveragePercentile": 0E-8,
+        //         "buyValueToCostEr": 5123000,
+        //         "buyValueToCost": 0.05123000,
+        //         "sellValueToCostEr": 5117000,
+        //         "sellValueToCost": 0.05117000,
+        //         "markPriceEp": 886028000,
+        //         "markPrice": 88602.80000000,
+        //         "estimatedOrdLossEv": 0,
+        //         "estimatedOrdLoss": 0E-8,
+        //         "usedBalanceEv": 58,
+        //         "usedBalance": 5.8E-7,
+        //         "cumClosedPnlEv": 127,
+        //         "cumFundingFeeEv": -146,
+        //         "cumTransactFeeEv": 3,
+        //         "transactTimeNs": 1767177964554892106,
+        //         "takerFeeRateEr": 60000,
+        //         "makerFeeRateEr": 10000,
+        //         "term": 2,
+        //         "lastTermEndTimeNs": 1716225275381802994,
+        //         "lastFundingTimeNs": 1767168000000000000,
+        //         "curTermRealisedPnlEv": -1,
+        //         "execSeq": 1104909332,
+        //         "freeQty": -1,
+        //         "freeCostEv": 0,
+        //         "buyLeavesValueEv": 0,
+        //         "sellLeavesValueEv": 0,
+        //         "buyLeavesQty": 0,
+        //         "sellLeavesQty": 0
+        //     }
+        //
+        object marketId = this.safeString(info, "symbol");
+        return new Dictionary<string, object>() {
+            { "info", info },
+            { "symbol", this.safeSymbol(marketId, market, null, "contract") },
+            { "rank", null },
+            { "rating", null },
+            { "percentage", this.safeNumber2(info, "deleveragePercentileRr", "deleveragePercentileEr") },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 

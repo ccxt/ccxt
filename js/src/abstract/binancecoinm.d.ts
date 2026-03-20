@@ -259,6 +259,9 @@ interface binance {
     sapiGetDciProductList(params?: {}): Promise<implicitReturnType>;
     sapiGetDciProductPositions(params?: {}): Promise<implicitReturnType>;
     sapiGetDciProductAccounts(params?: {}): Promise<implicitReturnType>;
+    sapiGetAccumulatorProductList(params?: {}): Promise<implicitReturnType>;
+    sapiGetAccumulatorProductPositionList(params?: {}): Promise<implicitReturnType>;
+    sapiGetAccumulatorProductSumHolding(params?: {}): Promise<implicitReturnType>;
     sapiPostAssetDust(params?: {}): Promise<implicitReturnType>;
     sapiPostAssetDustBtc(params?: {}): Promise<implicitReturnType>;
     sapiPostAssetTransfer(params?: {}): Promise<implicitReturnType>;
@@ -382,6 +385,7 @@ interface binance {
     sapiPostSimpleEarnLockedSetRedeemOption(params?: {}): Promise<implicitReturnType>;
     sapiPostDciProductSubscribe(params?: {}): Promise<implicitReturnType>;
     sapiPostDciProductAutoCompoundEdit(params?: {}): Promise<implicitReturnType>;
+    sapiPostAccumulatorProductSubscribe(params?: {}): Promise<implicitReturnType>;
     sapiPutUserDataStream(params?: {}): Promise<implicitReturnType>;
     sapiPutUserDataStreamIsolated(params?: {}): Promise<implicitReturnType>;
     sapiDeleteMarginOpenOrders(params?: {}): Promise<implicitReturnType>;

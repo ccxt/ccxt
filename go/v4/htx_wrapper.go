@@ -2294,6 +2294,42 @@ func (this *Htx) SetPositionMode(hedged bool, options ...SetPositionModeOptions)
 	return res.(map[string]interface{}), nil
 }
 
+/**
+ * @method
+ * @name htx#fetchPositionsADLRank
+ * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb81b5a-77b5-11ed-9966-0242ac110003
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb81c49-77b5-11ed-9966-0242ac110003
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c2f164-77ae-11ed-9966-0242ac110003
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=5d518648-77b6-11ed-9966-0242ac110003
+ * @param {string[]} [symbols] a list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+ */
+func (this *Htx) FetchPositionsADLRank(options ...FetchPositionsADLRankOptions) ([]ADL, error) {
+
+	opts := FetchPositionsADLRankOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols interface{} = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchPositionsADLRank(symbols, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewADLArray(res), nil
+}
+
 // missing typed methods from base
 // nolint
 func (this *Htx) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {

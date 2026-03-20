@@ -105,8 +105,10 @@ export default class blofin extends Exchange {
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPositionADLRank': true,
                 'fetchPositionMode': true,
                 'fetchPositions': true,
+                'fetchPositionsADLRank': true,
                 'fetchPositionsForSymbol': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -1749,7 +1751,7 @@ export default class blofin extends Exchange {
         //     {
         //         "currency": "USDT",
         //         "chain": "TRC20",
-        //         "address": "TGfJLtnsh3B9EqekFEBZ1nR14QanBUf5Bi",
+        //         "address": "TGfJLtnsh3B9EqekFEBZ1nR14QanBUf5Be",
         //         "txId": "892f4e0c32268b29b2e541ef30d32a30bbf10f902adcc4b1428319ed7c3758fd",
         //         "type": "0",
         //         "amount": "86.975843",
@@ -2501,6 +2503,89 @@ export default class blofin extends Exchange {
         //     }
         //
         return await this.privatePostAccountSetPositionMode(this.extend(request, params));
+    }
+    /**
+     * @method
+     * @name blofin#fetchPositionsADLRank
+     * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
+     * @see https://docs.blofin.com/index.html#get-positions
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+     */
+    async fetchPositionsADLRank(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, true, true, true);
+        const response = await this.privateGetAccountPositions(params);
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "positionId": "756786",
+        //                 "instId": "BTC-USDT",
+        //                 "instType": "SWAP",
+        //                 "marginMode": "cross",
+        //                 "positionSide": "net",
+        //                 "adl": "1",
+        //                 "positions": "0.1",
+        //                 "availablePositions": "0.1",
+        //                 "averagePrice": "88564.9",
+        //                 "markPrice": "88546.3696492756",
+        //                 "marginRatio": "822.305183525552961566",
+        //                 "liquidationPrice": "",
+        //                 "unrealizedPnl": "-0.00185303507244",
+        //                 "unrealizedPnlRatio": "-0.000627687178252332",
+        //                 "initialMargin": "2.951545654975853333",
+        //                 "maintenanceMargin": "0.02656391089478268",
+        //                 "createTime": "1767169876207",
+        //                 "updateTime": "1767169876207",
+        //                 "leverage": "3"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList(response, 'data', []);
+        return this.parseADLRanks(data, symbols);
+    }
+    parseADLRank(info, market = undefined) {
+        //
+        // fetchPositionsADLRank
+        //
+        //     {
+        //         "positionId": "756786",
+        //         "instId": "BTC-USDT",
+        //         "instType": "SWAP",
+        //         "marginMode": "cross",
+        //         "positionSide": "net",
+        //         "adl": "1",
+        //         "positions": "0.1",
+        //         "availablePositions": "0.1",
+        //         "averagePrice": "88564.9",
+        //         "markPrice": "88546.3696492756",
+        //         "marginRatio": "822.305183525552961566",
+        //         "liquidationPrice": "",
+        //         "unrealizedPnl": "-0.00185303507244",
+        //         "unrealizedPnlRatio": "-0.000627687178252332",
+        //         "initialMargin": "2.951545654975853333",
+        //         "maintenanceMargin": "0.02656391089478268",
+        //         "createTime": "1767169876207",
+        //         "updateTime": "1767169876207",
+        //         "leverage": "3"
+        //     }
+        //
+        const marketId = this.safeString(info, 'instId');
+        const timestamp = this.safeIntegerOmitZero(info, 'createTime');
+        return {
+            'info': info,
+            'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
+            'rank': this.safeInteger(info, 'adl'),
+            'rating': undefined,
+            'percentage': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+        };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

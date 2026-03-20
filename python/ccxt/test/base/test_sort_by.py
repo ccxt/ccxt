@@ -15,7 +15,7 @@ sys.path.append(root)
 import ccxt.async_support as ccxt  # noqa: F402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
-def test_sort_by():
+def test_sort_by_1():
     # todo: other argument checks
     exchange = ccxt.Exchange({
         'id': 'sampleexchange',
@@ -63,3 +63,163 @@ def test_sort_by():
 }])
     empty_array = exchange.sort_by([], 'x')
     test_shared_methods.assert_deep_equal(exchange, None, 'sortBy', empty_array, [])
+
+
+def test_sort_by_2():
+    exchange = ccxt.Exchange({
+        'id': 'sampleexchange',
+    })
+    # sort ascending by key1, then key2 (key1 values are all distinct here)
+    arr = [{
+    'x': 3,
+    'y': 1,
+}, {
+    'x': 1,
+    'y': 2,
+}, {
+    'x': 2,
+    'y': 3,
+}, {
+    'x': 0,
+    'y': 4,
+}]
+    sorted = exchange.sort_by_2(arr, 'x', 'y')
+    test_shared_methods.assert_deep_equal(exchange, None, 'sortBy2', sorted, [{
+    'x': 0,
+    'y': 4,
+}, {
+    'x': 1,
+    'y': 2,
+}, {
+    'x': 2,
+    'y': 3,
+}, {
+    'x': 3,
+    'y': 1,
+}])
+    # sort descending by key1
+    arr2 = [{
+    'x': 3,
+    'y': 1,
+}, {
+    'x': 1,
+    'y': 2,
+}, {
+    'x': 2,
+    'y': 3,
+}, {
+    'x': 0,
+    'y': 4,
+}]
+    sorted_descending = exchange.sort_by_2(arr2, 'x', 'y', True)
+    test_shared_methods.assert_deep_equal(exchange, None, 'sortBy2', sorted_descending, [{
+    'x': 3,
+    'y': 1,
+}, {
+    'x': 2,
+    'y': 3,
+}, {
+    'x': 1,
+    'y': 2,
+}, {
+    'x': 0,
+    'y': 4,
+}])
+    # when key1 values are equal, sort by key2 ascending
+    arr3 = [{
+    'x': 1,
+    'y': 5,
+}, {
+    'x': 1,
+    'y': 2,
+}, {
+    'x': 1,
+    'y': 9,
+}, {
+    'x': 1,
+    'y': 1,
+}]
+    sorted_by_key_2 = exchange.sort_by_2(arr3, 'x', 'y')
+    test_shared_methods.assert_deep_equal(exchange, None, 'sortBy2', sorted_by_key_2, [{
+    'x': 1,
+    'y': 1,
+}, {
+    'x': 1,
+    'y': 2,
+}, {
+    'x': 1,
+    'y': 5,
+}, {
+    'x': 1,
+    'y': 9,
+}])
+    # when key1 values are equal, sort by key2 descending
+    arr4 = [{
+    'x': 1,
+    'y': 5,
+}, {
+    'x': 1,
+    'y': 2,
+}, {
+    'x': 1,
+    'y': 9,
+}, {
+    'x': 1,
+    'y': 1,
+}]
+    sorted_by_key2_descending = exchange.sort_by_2(arr4, 'x', 'y', True)
+    test_shared_methods.assert_deep_equal(exchange, None, 'sortBy2', sorted_by_key2_descending, [{
+    'x': 1,
+    'y': 9,
+}, {
+    'x': 1,
+    'y': 5,
+}, {
+    'x': 1,
+    'y': 2,
+}, {
+    'x': 1,
+    'y': 1,
+}])
+    # mixed: sort by key1 first, then key2 as tiebreaker
+    arr5 = [{
+    'x': 2,
+    'y': 3,
+}, {
+    'x': 1,
+    'y': 5,
+}, {
+    'x': 2,
+    'y': 1,
+}, {
+    'x': 1,
+    'y': 2,
+}, {
+    'x': 2,
+    'y': 2,
+}]
+    sorted_mixed = exchange.sort_by_2(arr5, 'x', 'y')
+    test_shared_methods.assert_deep_equal(exchange, None, 'sortBy2', sorted_mixed, [{
+    'x': 1,
+    'y': 2,
+}, {
+    'x': 1,
+    'y': 5,
+}, {
+    'x': 2,
+    'y': 1,
+}, {
+    'x': 2,
+    'y': 2,
+}, {
+    'x': 2,
+    'y': 3,
+}])
+    # empty array
+    empty_array = exchange.sort_by_2([], 'x', 'y')
+    test_shared_methods.assert_deep_equal(exchange, None, 'sortBy2', empty_array, [])
+
+
+def test_sort_by():
+    test_sort_by_1()
+    test_sort_by_2()

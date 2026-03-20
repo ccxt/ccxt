@@ -166,6 +166,7 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     "safeCurrencyCode": false,
     "parseConversion": false,
     "sign": false,
+    "signIn": true,
     // ws methods
     'cancelAllOrdersWs': true,
     'cancelOrdersWs': true,
@@ -235,6 +236,8 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     'watchTradesForSymbols': true,
     'withdrawWs': true,
     "parseLastPrice": false,
+    'fetchPositionsADLRank': true,
+    'parseADLRank': false
     // 'fetchCurrenciesWs': true,
     // 'fetchMarketsWs': true,
 }
@@ -2056,6 +2059,8 @@ ${caseStatements.join('\n')}
             'PAD_WITH_ZERO',
             'TRUNCATE',
             'ROUND',
+            'ROUND_UP',
+            'ROUND_DOWN',
             'toFixed',
             'throwDynamicException',
             'NewArrayCache',

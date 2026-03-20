@@ -184,11 +184,20 @@ function getLang() {
 function getExt() {
     return EXT;
 }
+function isWindows() {
+    return process.platform === "win32";
+}
+function isLinux() {
+    return process.platform === "linux";
+}
+function isAmd64() {
+    return process.arch === "x64";
+}
 export { 
 // errors
 AuthenticationError, NotSupported, ExchangeError, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, 
 // shared
 getCliArgValue, 
 //
-dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, callOverridenMethod, exceptionMessage, getRootException, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFiles, getTestFilesSync, setFetchResponse, isNullValue, close, getRootDir, argvExchange, argvSymbol, argvMethod, isSync, LANG, ENV_VARS, NEW_LINE, EXT, getEnvVars, getLang, getExt };
+dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, callOverridenMethod, exceptionMessage, getRootException, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFiles, getTestFilesSync, setFetchResponse, isNullValue, close, getRootDir, argvExchange, argvSymbol, argvMethod, isSync, LANG, ENV_VARS, NEW_LINE, EXT, getEnvVars, getLang, getExt, isWindows, isLinux, isAmd64, };
 export default {};

@@ -39,6 +39,7 @@
 * [closeAllPositions](#closeallpositions)
 * [fetchMarginMode](#fetchmarginmode)
 * [fetchOption](#fetchoption)
+* [fetchPositionsADLRank](#fetchpositionsadlrank)
 
 <a name="fetchTime" id="fetchtime"></a>
 
@@ -781,5 +782,26 @@ fetches option data that is commonly found in an option chain
 
 ```javascript
 delta.fetchOption (symbol[, params])
+```
+
+
+<a name="fetchPositionsADLRank" id="fetchpositionsadlrank"></a>
+
+### fetchPositionsADLRank{docsify-ignore}
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+**Kind**: instance method of [<code>delta</code>](#delta)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [auto de leverage structures](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+**See**: https://docs.delta.exchange/#get-margined-positions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+delta.fetchPositionsADLRank ([symbols, params])
 ```
 

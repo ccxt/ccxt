@@ -67,6 +67,7 @@ export default class binance extends Exchange {
                 'editOrder': true,
                 'editOrders': true,
                 'fetchAccounts': undefined,
+                'fetchADLRank': true,
                 'fetchAllGreeks': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
@@ -136,9 +137,11 @@ export default class binance extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPositionADLRank': true,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': true,
                 'fetchPositions': true,
+                'fetchPositionsADLRank': true,
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': true,
                 'fetchPremiumIndexOHLCV': true,
@@ -541,6 +544,10 @@ export default class binance extends Exchange {
                         'dci/product/list': 0.1,
                         'dci/product/positions': 0.1,
                         'dci/product/accounts': 0.1,
+                        // Discount Buy
+                        'accumulator/product/list': 0.1,
+                        'accumulator/product/position/list': 0.1,
+                        'accumulator/product/sum-holding': 0.1,
                     },
                     'post': {
                         'asset/dust': 0.06667,
@@ -679,6 +686,8 @@ export default class binance extends Exchange {
                         // convert
                         'dci/product/subscribe': 0.1,
                         'dci/product/auto_compound/edit': 0.1,
+                        // discount buy
+                        'accumulator/product/subscribe': 0.1,
                     },
                     'put': {
                         'userDataStream': 0.1,
@@ -1379,10 +1388,60 @@ export default class binance extends Exchange {
                     'TRC20': 'TRX',
                     'BEP2': 'BNB',
                     'BEP20': 'BSC',
-                    'OMNI': 'OMNI',
                     'EOS': 'EOS',
                     'SPL': 'SOL',
-                    'SOL': 'SOL', // we shouldn't rename SOL
+                    'SOL': 'SOL',
+                    // 'FIAT': 'FIAT_MONEY', // not unified atm
+                    // 'LEVERAGE_TOKEN': 'ETF', // not unified atm
+                    // 'STAKING': 'STAKING', // not unified atm
+                    'ARBONE': 'ARBITRUM',
+                    'AVAXC': 'AVAXC',
+                    'MATIC': 'MATIC',
+                    'BASE': 'BASE',
+                    'SUI': 'SUI',
+                    'OPTIMISM': 'OPTIMISM',
+                    'NEAR': 'NEAR',
+                    'APT': 'APT',
+                    'SCROLL': 'SCROLL',
+                    'KAVA': 'KAVA',
+                    'XLM': 'XLM',
+                    // BLAST - not supported
+                    // LINEA - not supported
+                    // CRO - not supported
+                    // TAIKO - not supported
+                    'RSK': 'RSK',
+                    'SEI': 'SEI',
+                    // MNT - not supported
+                    'TON': 'TON',
+                    'ADA': 'ADA',
+                    // HYPE - not supported
+                    // CORE - not supported
+                    'ALGO': 'ALGO',
+                    'RUNE': 'RUNE',
+                    'OSMO': 'OSMO',
+                    // XIN - not supported
+                    'CELO': 'CELO',
+                    'HBAR': 'HBAR',
+                    // FTM - renamed
+                    // WEMIX - not supported
+                    'ZKSYNCERA': 'ZKSYNCERA',
+                    'KLAY': 'KLAY',
+                    // HECO - not supported
+                    // FSN - not supported
+                    'ACA': 'ACA',
+                    'STX': 'STX',
+                    'XTZ': 'XTZ',
+                    // 'NEO': 'NEO', // tbd NEO3
+                    'METIS': 'METIS',
+                    // TLOS - not supported
+                    'EGLD': 'EGLD',
+                    'ASTR': 'ASTR',
+                    'CFX': 'CFX',
+                    // 'GLMR': 'GLMR', GLIMMER vs MOONBEAM
+                    // CANTO - not supported
+                    'SCRT': 'SCRT',
+                    // AUR - not supported
+                    'ONT': 'ONT', // ontology
                 },
                 'networksById': {
                     'SOL': 'SOL', // temporary fix for SPL definition
@@ -6408,6 +6467,7 @@ export default class binance extends Exchange {
      * @param {string} [params.stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
      * @param {string} [params.positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
      * @param {bool} [params.hedged] *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
+     * @param {string} [params.clientOrderId] the clientOrderId of the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -14618,6 +14678,145 @@ export default class binance extends Exchange {
             'datetime': this.iso8601(timestamp),
             'timeframe': undefined,
             'longShortRatio': this.safeNumber(info, 'longShortRatio'),
+        };
+    }
+    /**
+     * @method
+     * @name binance#fetchADLRank
+     * @description fetches the auto deleveraging rank and risk percentage for a symbol
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/ADL-Risk
+     * @param {string} symbol unified symbol of the market to fetch the auto deleveraging rank for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+     */
+    async fetchADLRank(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchADLRank', market, params);
+        let response = undefined;
+        if (subType === 'linear') {
+            response = await this.fapiPublicGetSymbolAdlRisk(this.extend(request, params));
+            //
+            //     {
+            //         "symbol": "BTCUSDT",
+            //         "adlRisk": "LOW",
+            //         "updateTime": 1766827800453
+            //     }
+            //
+        }
+        else {
+            throw new BadRequest(this.id + ' fetchADLRank() supports linear subTypes only');
+        }
+        return this.parseADLRank(response, market);
+    }
+    /**
+     * @method
+     * @name binance#fetchPositionsADLRank
+     * @description fetches the auto deleveraging rank and risk percentage for a list of symbols that have open positions
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation
+     * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Position-ADL-Quantile-Estimation
+     * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Position-ADL-Quantile-Estimation
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.portfolioMargin] set to true for the portfolio margin account
+     * @returns {object[]} an array of [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+     */
+    async fetchPositionsADLRank(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, true, true, true);
+        const market = this.getMarketFromSymbols(symbols);
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchPositionsADLRank', market, params);
+        let isPortfolioMargin = undefined;
+        [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'fetchPositionsADLRank', 'papi', 'portfolioMargin', false);
+        let response = undefined;
+        if (subType === 'linear') {
+            if (isPortfolioMargin) {
+                response = await this.papiGetUmAdlQuantile(params);
+            }
+            else {
+                response = await this.fapiPrivateGetAdlQuantile(params);
+            }
+        }
+        else if (subType === 'inverse') {
+            if (isPortfolioMargin) {
+                response = await this.papiGetCmAdlQuantile(params);
+            }
+            else {
+                response = await this.dapiPrivateGetAdlQuantile(params);
+            }
+        }
+        else {
+            throw new BadRequest(this.id + ' fetchPositionsADLRank() supports linear and inverse subTypes only');
+        }
+        //
+        //     [
+        //         {
+        //             "symbol": "BTCUSDT",
+        //             "adlQuantile": {
+        //                 "LONG": 0,
+        //                 "SHORT": 0,
+        //                 "BOTH": 1
+        //             }
+        //         }
+        //     ]
+        //
+        return this.parseADLRanks(response, symbols);
+    }
+    parseADLRank(info, market = undefined) {
+        //
+        // fetchADLRank
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "adlRisk": "LOW",
+        //         "updateTime": 1766827800453
+        //     }
+        //
+        // fetchPositionADLRank
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "adlQuantile": {
+        //             "LONG": 0,
+        //             "SHORT": 0,
+        //             "BOTH": 1
+        //         }
+        //     }
+        //
+        const adlQuantile = this.safeDict(info, 'adlQuantile', {});
+        const longNum = this.safeNumber(adlQuantile, 'LONG');
+        const shortNum = this.safeNumber(adlQuantile, 'SHORT');
+        const both = this.safeNumber(adlQuantile, 'BOTH');
+        let rank = undefined;
+        if (both !== undefined) {
+            rank = both;
+        }
+        else {
+            if (longNum !== undefined && shortNum !== undefined) {
+                if (longNum > shortNum) {
+                    rank = longNum;
+                }
+                else {
+                    rank = shortNum;
+                }
+            }
+        }
+        const marketId = this.safeString(info, 'symbol');
+        const timestamp = this.safeInteger2(info, 'timestamp', 'updateTime');
+        return {
+            'info': info,
+            'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
+            'rank': rank,
+            'rating': this.safeStringLower(info, 'adlRisk'),
+            'percentage': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
         };
     }
 }

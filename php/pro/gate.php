@@ -193,6 +193,7 @@ class gate extends \ccxt\async\gate {
             if ($market['swap'] !== true) {
                 throw new NotSupported($this->id . ' createOrdersWs is not supported for swap markets');
             }
+            // todo add swap support
             $messageType = $this->get_type_by_market($market);
             $channel = $messageType . '.order_batch_place';
             $url = $this->get_url_by_market($market);
@@ -207,7 +208,7 @@ class gate extends \ccxt\async\gate {
             /**
              * cancel all open orders
              *
-             * @see https://www.gate.io/docs/developers/futures/ws/en/#cancel-all-open-orders-matched
+             * @see https://www.gate.com/docs/developers/futures/ws/en/#cancel-matched-open-orders
              * @see https://www.gate.io/docs/developers/apiv4/ws/en/#order-cancel-all-with-specified-currency-pair
              *
              * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
@@ -400,6 +401,7 @@ class gate extends \ccxt\async\gate {
              * @see https://www.gate.com/docs/developers/futures/ws/en/#order-book-api
              * @see https://www.gate.com/docs/developers/futures/ws/en/#order-book-v2-api
              * @see https://www.gate.com/docs/developers/delivery/ws/en/#order-book-api
+             * @see https://www.gate.com/docs/developers/options/ws/en/#order-book-$channel
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
@@ -418,6 +420,9 @@ class gate extends \ccxt\async\gate {
             $payload = array( $marketId, $interval );
             if ($limit === null) {
                 $limit = 100; // max 100 atm
+                if ($messageType === 'options') {
+                    $limit = 50; // max 50 for options
+                }
             }
             if ($market['contract']) {
                 $stringLimit = (string) $limit;
@@ -614,6 +619,8 @@ class gate extends \ccxt\async\gate {
             /**
              *
              * @see https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel
+             * @see https://www.gate.com/docs/developers/futures/ws/en/#tickers-api
+             * @see https://www.gate.com/docs/developers/delivery/ws/en/#tickers-api
              *
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
@@ -634,6 +641,8 @@ class gate extends \ccxt\async\gate {
             /**
              *
              * @see https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel
+             * @see https://www.gate.com/docs/developers/futures/ws/en/#tickers-api
+             * @see https://www.gate.com/docs/developers/delivery/ws/en/#tickers-api
              *
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
@@ -672,6 +681,7 @@ class gate extends \ccxt\async\gate {
              *
              * @see https://www.gate.io/docs/developers/apiv4/ws/en/#best-bid-or-ask-price
              * @see https://www.gate.io/docs/developers/apiv4/ws/en/#order-book-channel
+             * @see https://www.gate.com/docs/developers/options/ws/en/#best-bid-or-ask-price
              *
              * watches best bid & ask for $symbols
              * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
@@ -766,6 +776,12 @@ class gate extends \ccxt\async\gate {
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             *
+             * @see https://www.gate.com/docs/developers/apiv4/ws/en/#public-trades-channel
+             * @see https://www.gate.com/docs/developers/futures/ws/en/#trades-api
+             * @see https://www.gate.com/docs/developers/delivery/ws/en/#trades-api
+             * @see https://www.gate.com/docs/developers/options/ws/en/#public-contract-trades-channel
+             *
              * get the list of most recent trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -780,6 +796,12 @@ class gate extends \ccxt\async\gate {
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
+             *
+             * @see https://www.gate.com/docs/developers/apiv4/ws/en/#public-$trades-$channel
+             * @see https://www.gate.com/docs/developers/futures/ws/en/#$trades-api
+             * @see https://www.gate.com/docs/developers/delivery/ws/en/#$trades-api
+             * @see https://www.gate.com/docs/developers/options/ws/en/#public-contract-$trades-$channel
+             *
              * get the list of most recent $trades for a particular $symbol
              * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -887,6 +909,11 @@ class gate extends \ccxt\async\gate {
     public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
+             *
+             * @see https://www.gate.com/docs/developers/apiv4/ws/en/#candlesticks-$channel
+             * @see https://www.gate.com/docs/developers/futures/ws/en/#candlesticks-api
+             * @see https://www.gate.com/docs/developers/delivery/ws/en/#candlesticks-api
+             *
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -896,6 +923,7 @@ class gate extends \ccxt\async\gate {
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
+            // todo add options support
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $marketId = $market['id'];
@@ -973,6 +1001,12 @@ class gate extends \ccxt\async\gate {
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             *
+             * @see https://www.gate.com/docs/developers/apiv4/ws/en/#user-$trades-$channel
+             * @see https://www.gate.com/docs/developers/futures/ws/en/#user-$trades-api
+             * @see https://www.gate.com/docs/developers/delivery/ws/en/#user-$trades-api
+             * @see https://www.gate.com/docs/developers/options/ws/en/#user-$trades-$channel
+             *
              * watches information on multiple $trades made by the user
              * @param {string} $symbol unified $market $symbol of the $market $trades were made in
              * @param {int} [$since] the earliest time in ms to fetch $trades for
@@ -1068,6 +1102,12 @@ class gate extends \ccxt\async\gate {
     public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
+             *
+             * @see https://www.gate.com/docs/developers/apiv4/ws/en/#spot-balance-$channel
+             * @see https://www.gate.com/docs/developers/futures/ws/en/#balances-api
+             * @see https://www.gate.com/docs/developers/delivery/ws/en/#balances-api
+             * @see https://www.gate.com/docs/developers/options/ws/en/#balances-$channel
+             *
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
@@ -1087,6 +1127,7 @@ class gate extends \ccxt\async\gate {
                 'swap' => 'futures',
                 'option' => 'options',
             ));
+            // todo => add correct margin support
             $channel = $channelType . '.balances';
             $messageHash = $type . '.balance';
             return Async\await($this->subscribe_private($url, $messageHash, null, $channel, $params, $requiresUid));
@@ -1361,6 +1402,12 @@ class gate extends \ccxt\async\gate {
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             *
+             * @see https://www.gate.com/docs/developers/apiv4/ws/en/#$orders-$channel
+             * @see https://www.gate.com/docs/developers/futures/ws/en/#$orders-api
+             * @see https://www.gate.com/docs/developers/delivery/ws/en/#$orders-api
+             * @see https://www.gate.com/docs/developers/options/ws/en/#$orders-$channel
+             *
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -1763,6 +1810,7 @@ class gate extends \ccxt\async\gate {
             'balance' => array($this, 'handle_balance_subscription'),
             'spot.order_book_update' => array($this, 'handle_order_book_subscription'),
             'futures.order_book_update' => array($this, 'handle_order_book_subscription'),
+            'options.order_book_update' => array($this, 'handle_order_book_subscription'),
         );
         $id = $this->safe_string($message, 'id');
         if (is_array($methods) && array_key_exists($channel, $methods)) {

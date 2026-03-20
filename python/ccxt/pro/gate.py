@@ -190,6 +190,7 @@ class gate(ccxt.async_support.gate):
         market = self.market(firstOrder['symbol'])
         if market['swap'] is not True:
             raise NotSupported(self.id + ' createOrdersWs is not supported for swap markets')
+        # todo add swap support
         messageType = self.get_type_by_market(market)
         channel = messageType + '.order_batch_place'
         url = self.get_url_by_market(market)
@@ -201,7 +202,7 @@ class gate(ccxt.async_support.gate):
         """
         cancel all open orders
 
-        https://www.gate.io/docs/developers/futures/ws/en/#cancel-all-open-orders-matched
+        https://www.gate.com/docs/developers/futures/ws/en/#cancel-matched-open-orders
         https://www.gate.io/docs/developers/apiv4/ws/en/#order-cancel-all-with-specified-currency-pair
 
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -371,6 +372,7 @@ class gate(ccxt.async_support.gate):
         https://www.gate.com/docs/developers/futures/ws/en/#order-book-api
         https://www.gate.com/docs/developers/futures/ws/en/#order-book-v2-api
         https://www.gate.com/docs/developers/delivery/ws/en/#order-book-api
+        https://www.gate.com/docs/developers/options/ws/en/#order-book-channel
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -389,6 +391,8 @@ class gate(ccxt.async_support.gate):
         payload = [marketId, interval]
         if limit is None:
             limit = 100  # max 100 atm
+            if messageType == 'options':
+                limit = 50  # max 50 for options
         if market['contract']:
             stringLimit = str(limit)
             payload.append(stringLimit)
@@ -562,6 +566,8 @@ class gate(ccxt.async_support.gate):
         """
 
         https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel
+        https://www.gate.com/docs/developers/futures/ws/en/#tickers-api
+        https://www.gate.com/docs/developers/delivery/ws/en/#tickers-api
 
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -579,6 +585,8 @@ class gate(ccxt.async_support.gate):
         """
 
         https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel
+        https://www.gate.com/docs/developers/futures/ws/en/#tickers-api
+        https://www.gate.com/docs/developers/delivery/ws/en/#tickers-api
 
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] symbols: unified symbol of the market to fetch the ticker for
@@ -613,6 +621,7 @@ class gate(ccxt.async_support.gate):
 
         https://www.gate.io/docs/developers/apiv4/ws/en/#best-bid-or-ask-price
         https://www.gate.io/docs/developers/apiv4/ws/en/#order-book-channel
+        https://www.gate.com/docs/developers/options/ws/en/#best-bid-or-ask-price
 
         watches best bid & ask for symbols
         :param str[] symbols: unified symbol of the market to fetch the ticker for
@@ -694,6 +703,12 @@ class gate(ccxt.async_support.gate):
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
+
+        https://www.gate.com/docs/developers/apiv4/ws/en/#public-trades-channel
+        https://www.gate.com/docs/developers/futures/ws/en/#trades-api
+        https://www.gate.com/docs/developers/delivery/ws/en/#trades-api
+        https://www.gate.com/docs/developers/options/ws/en/#public-contract-trades-channel
+
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -705,6 +720,12 @@ class gate(ccxt.async_support.gate):
 
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
+
+        https://www.gate.com/docs/developers/apiv4/ws/en/#public-trades-channel
+        https://www.gate.com/docs/developers/futures/ws/en/#trades-api
+        https://www.gate.com/docs/developers/delivery/ws/en/#trades-api
+        https://www.gate.com/docs/developers/options/ws/en/#public-contract-trades-channel
+
         get the list of most recent trades for a particular symbol
         :param str[] symbols: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -796,6 +817,11 @@ class gate(ccxt.async_support.gate):
 
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
+
+        https://www.gate.com/docs/developers/apiv4/ws/en/#candlesticks-channel
+        https://www.gate.com/docs/developers/futures/ws/en/#candlesticks-api
+        https://www.gate.com/docs/developers/delivery/ws/en/#candlesticks-api
+
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -805,6 +831,7 @@ class gate(ccxt.async_support.gate):
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
+        # todo add options support
         market = self.market(symbol)
         symbol = market['symbol']
         marketId = market['id']
@@ -873,6 +900,12 @@ class gate(ccxt.async_support.gate):
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
+
+        https://www.gate.com/docs/developers/apiv4/ws/en/#user-trades-channel
+        https://www.gate.com/docs/developers/futures/ws/en/#user-trades-api
+        https://www.gate.com/docs/developers/delivery/ws/en/#user-trades-api
+        https://www.gate.com/docs/developers/options/ws/en/#user-trades-channel
+
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
@@ -957,6 +990,12 @@ class gate(ccxt.async_support.gate):
 
     async def watch_balance(self, params={}) -> Balances:
         """
+
+        https://www.gate.com/docs/developers/apiv4/ws/en/#spot-balance-channel
+        https://www.gate.com/docs/developers/futures/ws/en/#balances-api
+        https://www.gate.com/docs/developers/delivery/ws/en/#balances-api
+        https://www.gate.com/docs/developers/options/ws/en/#balances-channel
+
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
@@ -976,6 +1015,7 @@ class gate(ccxt.async_support.gate):
             'swap': 'futures',
             'option': 'options',
         })
+        # todo: add correct margin support
         channel = channelType + '.balances'
         messageHash = type + '.balance'
         return await self.subscribe_private(url, messageHash, None, channel, params, requiresUid)
@@ -1218,6 +1258,12 @@ class gate(ccxt.async_support.gate):
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
+
+        https://www.gate.com/docs/developers/apiv4/ws/en/#orders-channel
+        https://www.gate.com/docs/developers/futures/ws/en/#orders-api
+        https://www.gate.com/docs/developers/delivery/ws/en/#orders-api
+        https://www.gate.com/docs/developers/options/ws/en/#orders-channel
+
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1588,6 +1634,7 @@ class gate(ccxt.async_support.gate):
             'balance': self.handle_balance_subscription,
             'spot.order_book_update': self.handle_order_book_subscription,
             'futures.order_book_update': self.handle_order_book_subscription,
+            'options.order_book_update': self.handle_order_book_subscription,
         }
         id = self.safe_string(message, 'id')
         if channel in methods:

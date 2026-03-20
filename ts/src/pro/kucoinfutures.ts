@@ -740,9 +740,9 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const parsed = [
             this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
-            this.safeNumber (ohlcv, 2),
             this.safeNumber (ohlcv, 3),
             this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 2),
             this.safeNumber (ohlcv, 6), // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
         ];
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});

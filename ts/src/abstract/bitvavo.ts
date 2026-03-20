@@ -27,11 +27,21 @@ interface Exchange {
     privateGetDeposit (params?: {}): Promise<implicitReturnType>;
     privateGetDepositHistory (params?: {}): Promise<implicitReturnType>;
     privateGetWithdrawalHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetSubaccounts (params?: {}): Promise<implicitReturnType>;
+    privateGetSubaccountsTransfers (params?: {}): Promise<implicitReturnType>;
+    privateGetSubaccountsTransfersTransferId (params?: {}): Promise<implicitReturnType>;
+    privateGetInstitutionalSubaccountsBalance (params?: {}): Promise<implicitReturnType>;
+    privateGetInstitutionalSubaccountsHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetInstitutionalSubaccountsOrdersOpen (params?: {}): Promise<implicitReturnType>;
     privatePostOrder (params?: {}): Promise<implicitReturnType>;
     privatePostWithdrawal (params?: {}): Promise<implicitReturnType>;
+    privatePostSubaccounts (params?: {}): Promise<implicitReturnType>;
+    privatePostSubaccountsTransfers (params?: {}): Promise<implicitReturnType>;
     privatePutOrder (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrder (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrders (params?: {}): Promise<implicitReturnType>;
+    privateDeleteInstitutionalSubaccountsOrder (params?: {}): Promise<implicitReturnType>;
+    privateDeleteInstitutionalSubaccountsOrders (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

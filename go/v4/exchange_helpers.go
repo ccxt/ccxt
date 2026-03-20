@@ -760,9 +760,6 @@ func IsEqual(a, b interface{}) bool {
 	if a == nil && b == nil {
 		return true
 	}
-	if a == nil || b == nil {
-		return false
-	}
 
 	if (a == true && b == false) || (a == false && b == true) {
 		return false
@@ -781,6 +778,15 @@ func IsEqual(a, b interface{}) bool {
 	case int:
 		switch bVal := b.(type) {
 		case int:
+			return aVal == bVal
+		case int64:
+			return int64(aVal) == bVal
+		case float64:
+			return float64(aVal) == bVal
+		}
+	case uint8:
+		switch bVal := b.(type) {
+		case uint8:
 			return aVal == bVal
 		case int64:
 			return int64(aVal) == bVal
@@ -813,6 +819,10 @@ func IsEqual(a, b interface{}) bool {
 		if aVal == nil {
 			return true
 		}
+	}
+
+	if a == nil || b == nil {
+		return false
 	}
 
 	// If types don't match or aren't handled, return false

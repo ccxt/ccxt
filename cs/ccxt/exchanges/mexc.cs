@@ -4300,7 +4300,15 @@ public partial class mexc : Exchange
         //         "timestamp": 1643240373359
         //     }
         //
-        object nextFundingRate = this.safeNumber(contract, "fundingRate");
+        // watchFundingRate
+        //
+        //     {
+        //         "symbol": "BTC_USDT",
+        //         "rate": -0.000021,
+        //         "nextSettleTime": 1771084800000
+        //     }
+        //
+        object nextFundingRate = this.safeNumber2(contract, "fundingRate", "rate");
         object nextFundingTimestamp = this.safeInteger(contract, "nextSettleTime");
         object marketId = this.safeString(contract, "symbol");
         object symbol = this.safeSymbol(marketId, market, null, "contract");
@@ -4618,7 +4626,6 @@ public partial class mexc : Exchange
         object address = this.safeString(depositAddress, "address");
         object currencyId = this.safeString(depositAddress, "coin");
         object networkId = this.safeString(depositAddress, "netWork");
-        this.checkAddress(address);
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", this.safeCurrencyCode(currencyId, currency) },

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Bool, Conversion, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, MarginModification, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, ADL, Balances, Bool, Conversion, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, MarginModification, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -102,9 +102,11 @@ class woo(Exchange, ImplicitAPI):
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
+                'fetchPositionADLRank': True,
                 'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': True,
+                'fetchPositionsADLRank': True,
                 'fetchPositionsHistory': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
@@ -3145,12 +3147,23 @@ class woo(Exchange, ImplicitAPI):
         #         "estFundingIntervalHours": 8
         #     }
         #
+        # watchFundingRate
+        #
+        #     {
+        #         "symbol": "PERP_BTC_USDT",
+        #         "fundingRate": 0.0001,
+        #         "fundingTs": 1771488000000
+        #     }
+        #
         symbol = self.safe_string(fundingRate, 'symbol')
         market = self.market(symbol)
-        nextFundingTimestamp = self.safe_integer(fundingRate, 'nextFundingTime')
+        nextFundingTimestamp = self.safe_integer_2(fundingRate, 'nextFundingTime', 'fundingTs')
         estFundingRateTimestamp = self.safe_integer(fundingRate, 'estFundingRateTimestamp')
         lastFundingRateTimestamp = self.safe_integer(fundingRate, 'lastFundingRateTimestamp')
         intervalString = self.safe_string(fundingRate, 'estFundingIntervalHours')
+        interval = None
+        if intervalString is not None:
+            interval = intervalString + 'h'
         return {
             'info': fundingRate,
             'symbol': market['symbol'],
@@ -3160,7 +3173,7 @@ class woo(Exchange, ImplicitAPI):
             'estimatedSettlePrice': None,
             'timestamp': estFundingRateTimestamp,
             'datetime': self.iso8601(estFundingRateTimestamp),
-            'fundingRate': self.safe_number(fundingRate, 'estFundingRate'),
+            'fundingRate': self.safe_number_2(fundingRate, 'estFundingRate', 'fundingRate'),
             'fundingTimestamp': nextFundingTimestamp,
             'fundingDatetime': self.iso8601(nextFundingTimestamp),
             'nextFundingRate': None,
@@ -3169,7 +3182,7 @@ class woo(Exchange, ImplicitAPI):
             'previousFundingRate': self.safe_number(fundingRate, 'lastFundingRate'),
             'previousFundingTimestamp': lastFundingRateTimestamp,
             'previousFundingDatetime': self.iso8601(lastFundingRateTimestamp),
-            'interval': intervalString + 'h',
+            'interval': interval,
         }
 
     def fetch_funding_interval(self, symbol: str, params={}) -> FundingRate:
@@ -4032,6 +4045,92 @@ class woo(Exchange, ImplicitAPI):
                 'created': self.safe_timestamp(entry, 'createdTime'),
             }
         return result
+
+    def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> List[ADL]:
+        """
+        fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+        https://docs.woox.io/#get-all-position-info-new
+
+        :param str[] [symbols]: a list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of `auto de leverage structures <https://docs.ccxt.com/?id=auto-de-leverage-structure>`
+        """
+        self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True, True)
+        response = self.v3PrivateGetFuturesPositions(params)
+        #
+        #     {
+        #         "success": True,
+        #         "data": {
+        #             "positions": [
+        #                 {
+        #                     "symbol": "PERP_BTC_USDT",
+        #                     "holding": "0.001",
+        #                     "pendingLongQty": "0",
+        #                     "pendingShortQty": "0",
+        #                     "settlePrice": "90732",
+        #                     "averageOpenPrice": "90732",
+        #                     "pnl24H": "-0.001",
+        #                     "fee24H": "0.1360115",
+        #                     "markPrice": "90736",
+        #                     "estLiqPrice": "0",
+        #                     "timestamp": 1768049379264,
+        #                     "adlQuantile": 3,
+        #                     "positionSide": "BOTH",
+        #                     "marginMode": "CROSS",
+        #                     "isolatedMarginToken": "",
+        #                     "isolatedMarginAmount": "0",
+        #                     "isolatedFrozenLong": "0",
+        #                     "isolatedFrozenShort": "0",
+        #                     "leverage": 10
+        #                 },
+        #             ]
+        #         },
+        #         "timestamp": 1768049428472
+        #     }
+        #
+        result = self.safe_dict(response, 'data', {})
+        positions = self.safe_list(result, 'positions', [])
+        return self.parse_adl_ranks(positions, symbols)
+
+    def parse_adl_rank(self, info: dict, market: Market = None) -> ADL:
+        #
+        # fetchPositionsADLRank
+        #
+        #     {
+        #         "symbol": "PERP_BTC_USDT",
+        #         "holding": "0.001",
+        #         "pendingLongQty": "0",
+        #         "pendingShortQty": "0",
+        #         "settlePrice": "90732",
+        #         "averageOpenPrice": "90732",
+        #         "pnl24H": "-0.001",
+        #         "fee24H": "0.1360115",
+        #         "markPrice": "90736",
+        #         "estLiqPrice": "0",
+        #         "timestamp": 1768049379264,
+        #         "adlQuantile": 3,
+        #         "positionSide": "BOTH",
+        #         "marginMode": "CROSS",
+        #         "isolatedMarginToken": "",
+        #         "isolatedMarginAmount": "0",
+        #         "isolatedFrozenLong": "0",
+        #         "isolatedFrozenShort": "0",
+        #         "leverage": 10
+        #     }
+        #
+        marketId = self.safe_string(info, 'symbol')
+        timestamp = self.safe_integer(info, 'timestamp')
+        return {
+            'info': info,
+            'symbol': self.safe_symbol(marketId, market, None, 'contract'),
+            'rank': self.safe_number(info, 'adlQuantile'),
+            'rating': None,
+            'percentage': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
 
     def default_network_code_for_currency(self, code):
         currencyItem = self.currency(code)

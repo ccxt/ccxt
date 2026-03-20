@@ -760,6 +760,7 @@ class hitbtc extends hitbtc$1["default"] {
                 'XMT': 'MTL',
                 'XPNT': 'PNT',
             },
+            'rollingWindowSize': 1000.0,
         });
     }
     nonce() {

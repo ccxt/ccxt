@@ -58,6 +58,7 @@ class poloniex(Exchange, ImplicitAPI):
                 'createStopOrder': True,
                 'createTriggerOrder': True,
                 'editOrder': True,
+                'fetchAllGreeks': False,
                 'fetchBalance': True,
                 'fetchClosedOrder': False,
                 'fetchClosedOrders': True,
@@ -75,6 +76,7 @@ class poloniex(Exchange, ImplicitAPI):
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': None,  # has but not implemented
+                'fetchGreeks': False,
                 'fetchLedger': None,  # has but not implemented
                 'fetchLeverage': True,
                 'fetchLiquidations': None,  # has but not implemented
@@ -85,6 +87,8 @@ class poloniex(Exchange, ImplicitAPI):
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrder': False,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': False,
@@ -101,6 +105,7 @@ class poloniex(Exchange, ImplicitAPI):
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': False,
                 'fetchTransfers': False,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
                 'sandbox': True,

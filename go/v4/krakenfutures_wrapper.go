@@ -495,8 +495,8 @@ func (this *Krakenfutures) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([
 /**
  * @method
  * @name krakenfutures#fetchOrders
- * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
  * @description Gets all orders for an account from the exchange api
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
  * @param {string} symbol Unified market symbol
  * @param {int} [since] Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
  * @param {int} [limit] How many orders to return. (Not used by kraken api but filtered internally by CCXT)

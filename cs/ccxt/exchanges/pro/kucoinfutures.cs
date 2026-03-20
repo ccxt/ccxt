@@ -778,7 +778,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         object symbol = this.safeSymbol(marketId);
         object messageHash = add(add(add("ohlcv::", symbol), "_"), timeframe);
         object ohlcv = this.safeList(data, "candles");
-        object parsed = new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 6)};
+        object parsed = new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 6)};
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         if (!isTrue((inOp(getValue(this.ohlcvs, symbol), timeframe))))
         {

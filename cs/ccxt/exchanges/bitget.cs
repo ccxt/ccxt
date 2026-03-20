@@ -281,6 +281,7 @@ public partial class bitget : Exchange
                             { "v3/market/tickers", 1 },
                             { "v3/market/orderbook", 1 },
                             { "v3/market/fills", 1 },
+                            { "v3/market/proof-of-reserves", 1 },
                             { "v3/market/open-interest", 1 },
                             { "v3/market/candles", 1 },
                             { "v3/market/history-candles", 1 },
@@ -291,6 +292,7 @@ public partial class bitget : Exchange
                             { "v3/market/margin-loans", 1 },
                             { "v3/market/position-tier", 1 },
                             { "v3/market/oi-limit", 2 },
+                            { "v3/market/index-components", 2 },
                         } },
                     } },
                 } },
@@ -328,6 +330,7 @@ public partial class bitget : Exchange
                             { "v2/spot/wallet/deposit-address", 2 },
                             { "v2/spot/wallet/deposit-records", 2 },
                             { "v2/spot/wallet/withdrawal-records", 2 },
+                            { "v2/spot/account/upgrade-status", 20 },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "spot/v1/wallet/transfer", 4 },
@@ -397,6 +400,7 @@ public partial class bitget : Exchange
                             { "v2/spot/wallet/withdrawal", 2 },
                             { "v2/spot/wallet/cancel-withdrawal", 2 },
                             { "v2/spot/wallet/modify-deposit-account", 2 },
+                            { "v2/spot/account/upgrade", 20 },
                         } },
                     } },
                     { "mix", new Dictionary<string, object>() {
@@ -805,14 +809,29 @@ public partial class bitget : Exchange
                     { "uta", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
                             { "v3/account/assets", 1 },
+                            { "v3/account/funding-assets", 1 },
                             { "v3/account/settings", 1 },
-                            { "v3/account/deposit-records", 2 },
                             { "v3/account/financial-records", 1 },
                             { "v3/account/repayable-coins", 2 },
                             { "v3/account/payment-coins", 2 },
                             { "v3/account/convert-records", 1 },
+                            { "v3/account/deduct-info", 20 },
+                            { "v3/account/fee-rate", 6.6667 },
+                            { "v3/account/switch-status", 4 },
+                            { "v3/account/max-transferable", 6.6667 },
+                            { "v3/account/open-interest-limit", 4 },
+                            { "v3/account/sub-unified-assets", 20 },
                             { "v3/account/transferable-coins", 2 },
                             { "v3/account/sub-transfer-record", 4 },
+                            { "v3/account/deposit-address", 2 },
+                            { "v3/account/sub-deposit-address", 2 },
+                            { "v3/account/deposit-records", 2 },
+                            { "v3/account/sub-deposit-records", 2 },
+                            { "v3/account/withdrawal-records", 2 },
+                            { "v3/broker/sub-list", 1 },
+                            { "v3/broker/all-sub-deposit-withdrawal", 1 },
+                            { "v3/broker/commission", 1 },
+                            { "v3/broker/query-sub-apikey", 1 },
                             { "v3/ins-loan/transfered", 6.6667 },
                             { "v3/ins-loan/symbols", 6.6667 },
                             { "v3/ins-loan/risk-unit", 6.6667 },
@@ -821,8 +840,18 @@ public partial class bitget : Exchange
                             { "v3/ins-loan/loan-order", 6.6667 },
                             { "v3/ins-loan/ltv-convert", 6.6667 },
                             { "v3/ins-loan/ensure-coins-convert", 6.6667 },
+                            { "v3/loan/coins", 2 },
+                            { "v3/loan/interest", 2 },
+                            { "v3/loan/borrow-ongoing", 2 },
+                            { "v3/loan/borrow-history", 2 },
+                            { "v3/loan/repay-history", 2 },
+                            { "v3/loan/pledge-rate-history", 2 },
+                            { "v3/loan/debts", 2 },
+                            { "v3/loan/reduces", 2 },
                             { "v3/position/current-position", 1 },
                             { "v3/position/history-position", 1 },
+                            { "v3/position/adlRank", 20 },
+                            { "v3/tax/records", 20 },
                             { "v3/trade/order-info", 1 },
                             { "v3/trade/unfilled-orders", 1 },
                             { "v3/trade/unfilled-strategy-orders", 1 },
@@ -836,10 +865,26 @@ public partial class bitget : Exchange
                             { "v3/account/set-leverage", 2 },
                             { "v3/account/set-hold-mode", 2 },
                             { "v3/account/repay", 4 },
+                            { "v3/account/switch-deduct", 20 },
+                            { "v3/account/deposit-account", 20 },
+                            { "v3/account/switch", 20 },
+                            { "v3/account/adjust-account-mode", 20 },
                             { "v3/account/transfer", 4 },
                             { "v3/account/sub-transfer", 4 },
+                            { "v3/account/sub-master-transfer", 4 },
                             { "v3/account/max-open-available", 4 },
+                            { "v3/account/withdrawal", 20 },
+                            { "v3/broker/create-sub", 1 },
+                            { "v3/broker/modify-sub", 1 },
+                            { "v3/broker/sub-withdrawal", 1 },
+                            { "v3/broker/sub-deposit-address", 1 },
+                            { "v3/broker/create-sub-apikey", 1 },
+                            { "v3/broker/modify-sub-apikey", 1 },
+                            { "v3/broker/delete-sub-apikey", 1 },
                             { "v3/ins-loan/bind-uid", 6.6667 },
+                            { "v3/loan/borrow", 2 },
+                            { "v3/loan/repay", 2 },
+                            { "v3/loan/revise-pledge", 2 },
                             { "v3/trade/place-order", 2 },
                             { "v3/trade/place-strategy-order", 2 },
                             { "v3/trade/modify-order", 2 },
@@ -851,6 +896,7 @@ public partial class bitget : Exchange
                             { "v3/trade/cancel-batch", 4 },
                             { "v3/trade/cancel-symbol-order", 4 },
                             { "v3/trade/close-positions", 4 },
+                            { "v3/trade/countdown-cancel-all", 20 },
                             { "v3/user/create-sub", 2 },
                             { "v3/user/freeze-sub", 2 },
                             { "v3/user/create-sub-api", 2 },
@@ -9361,12 +9407,20 @@ public partial class bitget : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
         }
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingHistory", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
+            if (isTrue(uta))
+            {
+                return await this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, parameters, "cursor", "cursor");
+            }
             return await this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, parameters, "endId", "idLessThan");
         }
         object market = this.market(symbol);
@@ -9378,12 +9432,7 @@ public partial class bitget : Exchange
         var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
         productType = ((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
-            { "marginCoin", getValue(market, "settleId") },
-            { "businessType", "contract_settle_fee" },
-            { "productType", productType },
-        };
+        object request = new Dictionary<string, object>() {};
         var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
@@ -9395,32 +9444,27 @@ public partial class bitget : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await this.privateMixGetV2MixAccountBill(this.extend(request, parameters));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700795977890,
-        //         "data": {
-        //             "bills": [
-        //                 {
-        //                     "billId": "1111499428100472833",
-        //                     "symbol": "BTCUSDT",
-        //                     "amount": "-0.004992",
-        //                     "fee": "0",
-        //                     "feeByCoupon": "",
-        //                     "businessType": "contract_settle_fee",
-        //                     "coin": "USDT",
-        //                     "cTime": "1700728034996"
-        //                 },
-        //             ],
-        //             "endId": "1098396773329305606"
-        //         }
-        //     }
-        //
+        object response = null;
+        if (isTrue(uta))
+        {
+            ((IDictionary<string,object>)request)["coin"] = getValue(market, "settleId");
+            ((IDictionary<string,object>)request)["category"] = productType;
+            response = await this.privateUtaGetV3AccountFinancialRecords(this.extend(request, parameters));
+        } else
+        {
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["marginCoin"] = getValue(market, "settleId");
+            ((IDictionary<string,object>)request)["businessType"] = "contract_settle_fee";
+            ((IDictionary<string,object>)request)["productType"] = productType;
+            response = await this.privateMixGetV2MixAccountBill(this.extend(request, parameters));
+        }
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object result = this.safeValue(data, "bills", new List<object>() {});
-        return this.parseFundingHistories(result, market, since, limit);
+        object bills = this.safeList2(data, "bills", "list", new List<object>() {});
+        if (isTrue(uta))
+        {
+            bills = this.filterByArray(bills, "type", new List<object>() {"CONTRACT_MAIN_SETTLE_FEE_USER_IN", "CONTRACT_MAIN_SETTLE_FEE_USER_OUT"}, false);
+        }
+        return this.parseFundingHistories(bills, market, since, limit);
     }
 
     public virtual object parseFundingHistory(object contract, object market = null)
@@ -9437,9 +9481,21 @@ public partial class bitget : Exchange
         //         "cTime": "1700728034996"
         //     }
         //
+        //     {
+        //         "category": "Margin",
+        //         "id": "13111111111111111",
+        //         "symbol": "BTCUSDT",
+        //         "coin": "BTC",
+        //         "type": "ORDER_DEALT_IN",
+        //         "amount": "0.00531168",
+        //         "fee": "-0.00000531",
+        //         "balance": "55.10017801",
+        //         "ts": "1745853486185"
+        //     }
+        //
         object marketId = this.safeString(contract, "symbol");
         object currencyId = this.safeString(contract, "coin");
-        object timestamp = this.safeInteger(contract, "cTime");
+        object timestamp = this.safeInteger2(contract, "cTime", "ts");
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", this.safeSymbol(marketId, market, null, "swap") },
@@ -9447,7 +9503,7 @@ public partial class bitget : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "code", this.safeCurrencyCode(currencyId) },
             { "amount", this.safeNumber(contract, "amount") },
-            { "id", this.safeString(contract, "billId") },
+            { "id", this.safeString2(contract, "billId", "id") },
         };
     }
 
@@ -9457,11 +9513,11 @@ public partial class bitget : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(contracts)); postFixIncrement(ref i))
         {
             object contract = getValue(contracts, i);
-            object business = this.safeString(contract, "businessType");
-            if (isTrue(!isEqual(business, "contract_settle_fee")))
-            {
-                continue;
-            }
+            // for non-uta, we've set bussinessType in request payload. Not sure why this existed.
+            // const business = this.safeString (contract, 'businessType');
+            // if (business !== 'contract_settle_fee') {
+            //     continue;
+            // }
             ((IList<object>)result).Add(this.parseFundingHistory(contract, market));
         }
         object sorted = this.sortBy(result, "timestamp");

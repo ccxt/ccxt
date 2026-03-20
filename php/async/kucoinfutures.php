@@ -92,9 +92,11 @@ class kucoinfutures extends kucoin {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => true,
+                'fetchPositionADLRank' => true,
                 'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => true,
+                'fetchPositionsADLRank' => true,
                 'fetchPositionsHistory' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
@@ -3534,6 +3536,129 @@ class kucoinfutures extends kucoin {
             'marginMode' => null,
             'longLeverage' => $leverageNum,
             'shortLeverage' => $leverageNum,
+        );
+    }
+
+    public function fetch_positions_adl_rank(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches the auto deleveraging rank and risk percentage for a list of $symbols
+             *
+             * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list
+             *
+             * @param {string[]} [$symbols] list of unified market $symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structures~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true, true, true);
+            $response = Async\await($this->futuresPrivateGetPositions ($params));
+            //
+            //     {
+            //         "code" => "200000",
+            //         "data" => array(
+            //             {
+            //                 "id" => "600000000001260912",
+            //                 "symbol" => "XBTUSDTM",
+            //                 "crossMode" => true,
+            //                 "maintMarginReq" => 0.0040000133,
+            //                 "delevPercentage" => 0.0,
+            //                 "openingTimestamp" => 1768481882915,
+            //                 "currentTimestamp" => 1768481897988,
+            //                 "currentQty" => 1,
+            //                 "currentCost" => 96.9768,
+            //                 "currentComm" => 0.05818608,
+            //                 "unrealisedCost" => 96.9768,
+            //                 "realisedGrossCost" => 0.0,
+            //                 "realisedCost" => 0.05818608,
+            //                 "isOpen" => true,
+            //                 "markPrice" => 96985.6,
+            //                 "markValue" => 96.9856,
+            //                 "posCost" => 96.9768,
+            //                 "posInit" => 4.84884,
+            //                 "posMargin" => 4.84928,
+            //                 "posMaint" => 0.38794369,
+            //                 "realisedGrossPnl" => 0.0,
+            //                 "realisedPnl" => -0.05818608,
+            //                 "unrealisedPnl" => 0.0088,
+            //                 "unrealisedPnlPcnt" => 1.0E-4,
+            //                 "unrealisedRoePcnt" => 0.0018,
+            //                 "avgEntryPrice" => 96976.8,
+            //                 "liquidationPrice" => 52351.69,
+            //                 "bankruptPrice" => 52110.87,
+            //                 "settleCurrency" => "USDT",
+            //                 "isInverse" => false,
+            //                 "maintainMargin" => 0.0040000133,
+            //                 "marginMode" => "CROSS",
+            //                 "positionSide" => "LONG",
+            //                 "leverage" => 20,
+            //                 "dealComm" => -0.05818608,
+            //                 "fundingFee" => 0,
+            //                 "tax" => 0
+            //             }
+            //         )
+            //     }
+            //
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_adl_ranks($data, $symbols);
+        }) ();
+    }
+
+    public function parse_adl_rank(array $info, ?array $market = null): array {
+        //
+        // fetchPositionsADLRank
+        //
+        //     {
+        //         "id" => "600000000001260912",
+        //         "symbol" => "XBTUSDTM",
+        //         "crossMode" => true,
+        //         "maintMarginReq" => 0.0040000133,
+        //         "delevPercentage" => 0.0,
+        //         "openingTimestamp" => 1768481882915,
+        //         "currentTimestamp" => 1768481897988,
+        //         "currentQty" => 1,
+        //         "currentCost" => 96.9768,
+        //         "currentComm" => 0.05818608,
+        //         "unrealisedCost" => 96.9768,
+        //         "realisedGrossCost" => 0.0,
+        //         "realisedCost" => 0.05818608,
+        //         "isOpen" => true,
+        //         "markPrice" => 96985.6,
+        //         "markValue" => 96.9856,
+        //         "posCost" => 96.9768,
+        //         "posInit" => 4.84884,
+        //         "posMargin" => 4.84928,
+        //         "posMaint" => 0.38794369,
+        //         "realisedGrossPnl" => 0.0,
+        //         "realisedPnl" => -0.05818608,
+        //         "unrealisedPnl" => 0.0088,
+        //         "unrealisedPnlPcnt" => 1.0E-4,
+        //         "unrealisedRoePcnt" => 0.0018,
+        //         "avgEntryPrice" => 96976.8,
+        //         "liquidationPrice" => 52351.69,
+        //         "bankruptPrice" => 52110.87,
+        //         "settleCurrency" => "USDT",
+        //         "isInverse" => false,
+        //         "maintainMargin" => 0.0040000133,
+        //         "marginMode" => "CROSS",
+        //         "positionSide" => "LONG",
+        //         "leverage" => 20,
+        //         "dealComm" => -0.05818608,
+        //         "fundingFee" => 0,
+        //         "tax" => 0
+        //     }
+        //
+        $marketId = $this->safe_string($info, 'symbol');
+        $timestamp = $this->safe_integer($info, 'openingTimestamp');
+        $percentage = $this->safe_string($info, 'delevPercentage');
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
+            'rank' => null,
+            'rating' => null,
+            'percentage' => $this->parse_number(Precise::string_mul($percentage, '100')),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
         );
     }
 }

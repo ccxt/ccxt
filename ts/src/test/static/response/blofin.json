@@ -1012,6 +1012,71 @@
                     "triggerPrice": null
                 }
             }
+        ],
+        "fetchPositionADLRank": [
+            {
+                "description": "linear swap fetchPositionADLRank",
+                "method": "fetchPositionADLRank",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": [
+                        {
+                            "positionId": "756786",
+                            "instId": "BTC-USDT",
+                            "instType": "SWAP",
+                            "marginMode": "cross",
+                            "positionSide": "net",
+                            "adl": "1",
+                            "positions": "0.1",
+                            "availablePositions": "0.1",
+                            "averagePrice": "88564.9",
+                            "markPrice": "88546.3696492756",
+                            "marginRatio": "822.305183525552961566",
+                            "liquidationPrice": "",
+                            "unrealizedPnl": "-0.00185303507244",
+                            "unrealizedPnlRatio": "-0.000627687178252332",
+                            "initialMargin": "2.951545654975853333",
+                            "maintenanceMargin": "0.02656391089478268",
+                            "createTime": "1767169876207",
+                            "updateTime": "1767169876207",
+                            "leverage": "3"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "positionId": "756786",
+                        "instId": "BTC-USDT",
+                        "instType": "SWAP",
+                        "marginMode": "cross",
+                        "positionSide": "net",
+                        "adl": "1",
+                        "positions": "0.1",
+                        "availablePositions": "0.1",
+                        "averagePrice": "88564.9",
+                        "markPrice": "88546.3696492756",
+                        "marginRatio": "822.305183525552961566",
+                        "liquidationPrice": "",
+                        "unrealizedPnl": "-0.00185303507244",
+                        "unrealizedPnlRatio": "-0.000627687178252332",
+                        "initialMargin": "2.951545654975853333",
+                        "maintenanceMargin": "0.02656391089478268",
+                        "createTime": "1767169876207",
+                        "updateTime": "1767169876207",
+                        "leverage": "3"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "rank": 1,
+                    "rating": null,
+                    "percentage": null,
+                    "timestamp": 1767169876207,
+                    "datetime": "2025-12-31T08:31:16.207Z"
+                }
+            }
         ]
     }
 }

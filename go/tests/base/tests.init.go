@@ -8,7 +8,10 @@ func BaseTestsInit() <-chan interface{} {
 	go func() interface{} {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		TestLanguageSpecific()
+
+		retRes404 := (<-TestLanguageSpecific())
+		PanicOnError(retRes404)
+		TestConstants()
 		TestAfterConstructor()
 		TestExtend()
 		TestDeepExtend()
@@ -35,10 +38,17 @@ func BaseTestsInit() <-chan interface{} {
 		TestPrecisionFromString()
 		TestExtractParams()
 		TestArraysConcat()
-		TestEthMethods()
+		TestUuid()
 
-		retRes624 := (<-TestSleep())
-		PanicOnError(retRes624)
+		retRes694 := (<-TestSetMarketsFromExchange())
+		PanicOnError(retRes694)
+		TestEthMethods()
+		TestKeysort()
+		TestUnique()
+
+		retRes734 := (<-TestSleep())
+		PanicOnError(retRes734)
+		TestIo()
 		return nil
 	}()
 	return ch

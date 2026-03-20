@@ -51,8 +51,8 @@ func (this *BitstampCore) PublicGetTravelRuleVasps(args ...interface{}) <-chan i
 	return this.callEndpointAsync("publicGetTravelRuleVasps", args...)
 }
 
-func (this *BitstampCore) PublicGetFundingRatePair(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetFundingRatePair", args...)
+func (this *BitstampCore) PublicGetFundingRateMarketSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetFundingRateMarketSymbol", args...)
 }
 
 func (this *BitstampCore) PublicGetFundingRateHistoryPair(args ...interface{}) <-chan interface{} {

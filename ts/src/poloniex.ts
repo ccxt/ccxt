@@ -44,6 +44,7 @@ export default class poloniex extends Exchange {
                 'createStopOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': true,
@@ -61,6 +62,7 @@ export default class poloniex extends Exchange {
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': undefined, // has but not implemented
+                'fetchGreeks': false,
                 'fetchLedger': undefined, // has but not implemented
                 'fetchLeverage': true,
                 'fetchLiquidations': undefined, // has but not implemented
@@ -71,6 +73,8 @@ export default class poloniex extends Exchange {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
@@ -87,6 +91,7 @@ export default class poloniex extends Exchange {
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'sandbox': true,

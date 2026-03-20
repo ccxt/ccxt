@@ -1420,6 +1420,7 @@ class okx(Exchange, ImplicitAPI):
                 # the exchange refers to ERC20 version of Aeternity(AEToken)
                 'AE': 'AET',  # https://github.com/ccxt/ccxt/issues/4981
             },
+            'rollingWindowSize': 0.0,  # okx always receives rateLimitExceeded with rolling window
         })
 
     def handle_market_type_and_params(self, methodName: str, market: Market = None, params={}, defaultValue=None) -> Any:
@@ -5876,7 +5877,10 @@ class okx(Exchange, ImplicitAPI):
         if initialMarginPercentage is None:
             initialMarginPercentage = self.parse_number(Precise.string_div(initialMarginString, notionalString, 4))
         elif initialMarginString is None:
-            initialMarginString = Precise.string_div(Precise.string_div(Precise.string_mul(contractsAbs, contractSizeString), entryPriceString), leverageString)
+            if market['linear']:
+                initialMarginString = Precise.string_mul(initialMarginPercentage, notionalString)
+            else:
+                initialMarginString = Precise.string_div(Precise.string_div(Precise.string_mul(contractsAbs, contractSizeString), entryPriceString), leverageString)
         rounder = '0.00005'  # round to closest 0.01%
         maintenanceMarginPercentage = self.parse_number(Precise.string_div(Precise.string_add(maintenanceMarginPercentageString, rounder), '1', 4))
         liquidationPrice = self.safe_number(position, 'liqPx')
@@ -6491,6 +6495,13 @@ class okx(Exchange, ImplicitAPI):
             marketInner = self.safe_market(instId)
             currencyId = self.safe_string(entry, 'ccy')
             code = self.safe_currency_code(currencyId)
+            balanceChange = self.safe_string(entry, 'balChg')
+            positionBalanceChange = self.safe_string(entry, 'posBalChg')
+            amount = None
+            if (balanceChange is not None) and (not Precise.string_eq(balanceChange, '0')):
+                amount = balanceChange
+            else:
+                amount = positionBalanceChange
             result.append({
                 'info': entry,
                 'symbol': marketInner['symbol'],
@@ -6498,7 +6509,7 @@ class okx(Exchange, ImplicitAPI):
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
                 'id': self.safe_string(entry, 'billId'),
-                'amount': self.safe_number(entry, 'balChg'),
+                'amount': self.parse_number(amount),
             })
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)

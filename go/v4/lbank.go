@@ -2601,7 +2601,7 @@ func (this *LbankCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inter
 		//              },
 		//          ],
 		//          "error_code":0,
-		//          "ts":1648506641469
+		//          "ts":1648506641468
 		//      }
 		//
 		var data interface{} = this.SafeList(response, "data", []interface{}{})

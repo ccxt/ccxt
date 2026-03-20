@@ -480,6 +480,7 @@ public partial class kraken : Exchange
                 } },
             } },
             { "precisionMode", TICK_SIZE },
+            { "rollingWindowSize", 10000 },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
                     { "EQuery:Invalid asset pair", typeof(BadSymbol) },
@@ -1740,7 +1741,7 @@ public partial class kraken : Exchange
         object result = this.safeDict(response, "result");
         ((IDictionary<string,object>)result)["usingCost"] = isUsingCost;
         // it's impossible to know if the order was created using cost or base currency
-        // becuase kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
+        // because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
         // this usingCost flag is used to help the parsing but omited from the order
         return this.parseOrder(result);
     }

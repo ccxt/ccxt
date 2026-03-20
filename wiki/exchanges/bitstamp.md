@@ -18,13 +18,16 @@
 * [fetchTransactionFees](#fetchtransactionfees)
 * [fetchDepositWithdrawFees](#fetchdepositwithdrawfees)
 * [createOrder](#createorder)
+* [editOrder](#editorder)
 * [cancelOrder](#cancelorder)
 * [cancelAllOrders](#cancelallorders)
 * [fetchOrder](#fetchorder)
 * [fetchMyTrades](#fetchmytrades)
+* [fetchFundingRateHistory](#fetchfundingratehistory)
 * [fetchDepositsWithdrawals](#fetchdepositswithdrawals)
 * [fetchWithdrawals](#fetchwithdrawals)
 * [fetchLedger](#fetchledger)
+* [fetchFundingRate](#fetchfundingrate)
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchDepositAddress](#fetchdepositaddress)
 * [withdraw](#withdraw)
@@ -322,6 +325,35 @@ bitstamp.createOrder (symbol, type, side, amount[, price, params])
 ```
 
 
+<a name="editOrder" id="editorder"></a>
+
+### editOrder{docsify-ignore}
+edit a trade order
+
+**Kind**: instance method of [<code>bitstamp</code>](#bitstamp)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://www.bitstamp.net/api/#tag/Orders/operation/ReplaceOrder  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | No | unified symbol of the market to create an order in |
+| type | <code>string</code> | No | 'market', 'limit' or 'stop_limit' |
+| side | <code>string</code> | No | 'buy' or 'sell' |
+| amount | <code>float</code> | No | how much of the currency you want to trade in units of the base currency |
+| price | <code>float</code> | No | the price for the order, in units of the quote currency, ignored in market orders |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.triggerPrice | <code>string</code> | No | the price to trigger a stop order |
+| params.timeInForce | <code>string</code> | No | for crypto trading either 'gtc' or 'ioc' can be used |
+| params.clientOrderId | <code>string</code> | No | a unique identifier for the order, automatically generated if not sent |
+
+
+```javascript
+bitstamp.editOrder (id[, symbol, type, side, amount, price, params])
+```
+
+
 <a name="cancelOrder" id="cancelorder"></a>
 
 ### cancelOrder{docsify-ignore}
@@ -418,6 +450,32 @@ bitstamp.fetchMyTrades (symbol[, since, limit, params])
 ```
 
 
+<a name="fetchFundingRateHistory" id="fetchfundingratehistory"></a>
+
+### fetchFundingRateHistory{docsify-ignore}
+fetches historical funding rate prices
+
+**Kind**: instance method of [<code>bitstamp</code>](#bitstamp)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
+
+**See**: https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRateHistory  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
+| since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest funding rate |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.subType | <code>string</code> | No | "linear" or "inverse" |
+
+
+```javascript
+bitstamp.fetchFundingRateHistory (symbol[, since, limit, params])
+```
+
+
 <a name="fetchDepositsWithdrawals" id="fetchdepositswithdrawals"></a>
 
 ### fetchDepositsWithdrawals{docsify-ignore}
@@ -484,6 +542,27 @@ fetch the history of changes, actions done by the user or operations that altere
 
 ```javascript
 bitstamp.fetchLedger ([code, since, limit, params])
+```
+
+
+<a name="fetchFundingRate" id="fetchfundingrate"></a>
+
+### fetchFundingRate{docsify-ignore}
+fetch the current funding rate
+
+**Kind**: instance method of [<code>bitstamp</code>](#bitstamp)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+
+**See**: https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitstamp.fetchFundingRate (symbol[, params])
 ```
 
 

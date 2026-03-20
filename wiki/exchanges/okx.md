@@ -91,6 +91,7 @@
 * [unWatchTradesForSymbols](#unwatchtradesforsymbols)
 * [unWatchTrades](#unwatchtrades)
 * [watchFundingRate](#watchfundingrate)
+* [watchFundingRates](#watchfundingrates)
 * [watchTicker](#watchticker)
 * [unWatchTicker](#unwatchticker)
 * [watchTickers](#watchtickers)
@@ -2191,6 +2192,27 @@ watch the current funding rate
 
 ```javascript
 okx.watchFundingRate (symbol[, params])
+```
+
+
+<a name="watchFundingRates" id="watchfundingrates"></a>
+
+### watchFundingRates{docsify-ignore}
+watch the funding rate for multiple markets
+
+**Kind**: instance method of [<code>okx</code>](#okx)  
+**Returns**: <code>object</code> - a dictionary of [funding rates structures](https://docs.ccxt.com/?id=funding-rate-structure), indexed by market symbols
+
+**See**: https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | a list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+okx.watchFundingRates (symbols[, params])
 ```
 
 

@@ -29,6 +29,7 @@ export default class cex extends cexRest {
     handleTradesSnapshot(client: Client, message: any): void;
     parseWsOldTrade(trade: any, market?: any): Trade;
     handleTrade(client: Client, message: any): void;
+    handleTradesInner(client: Client, message: any): void;
     /**
      * @method
      * @name cex#watchTicker

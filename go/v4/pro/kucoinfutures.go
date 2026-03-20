@@ -625,7 +625,7 @@ func  (this *KucoinfuturesCore) HandlePosition(client interface{}, message inter
     //            "currentCost": 0.00266375, //Current position value
     //            "openingTimestamp": 1558433191000, //Open time
     //            "currentQty": -20, //Current position
-    //            "delevPercentage": 0.52, //ADL ranking percentile
+    //            "delevPercentage": 0.52, //ccxt.ADL ranking percentile
     //            "currentComm": 0.00000271, //Current commission
     //            "realisedGrossCost": 0E-8, //Accumulated reliased gross profit value
     //            "isOpen": true, //Opened position or not
@@ -649,7 +649,7 @@ func  (this *KucoinfuturesCore) HandlePosition(client interface{}, message inter
     //              "unrealisedPnl": -0.00014735,           //Unrealised profit and lost
     //              "unrealisedRoePcnt": -0.0553,           //Rate of return on investment
     //              "unrealisedPnlPcnt": -0.0553,            //ccxt.Position profit and loss ratio
-    //              "delevPercentage": 0.52,             //ADL ranking percentile
+    //              "delevPercentage": 0.52,             //ccxt.ADL ranking percentile
     //              "currentTimestamp": 1558087175068,      //Current timestamp
     //              "settleCurrency": "XBT"                 //ccxt.Currency used to clear and settle the trades
     //          }
@@ -979,7 +979,7 @@ func  (this *KucoinfuturesCore) HandleOHLCV(client interface{}, message interfac
     var symbol interface{} = this.SafeSymbol(marketId)
     var messageHash interface{} = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", symbol), "_"), timeframe)
     var ohlcv interface{} = this.SafeList(data, "candles")
-    var parsed interface{} = []interface{}{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 6)}
+    var parsed interface{} = []interface{}{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 6)}
     ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]interface{} {}))
     if !ccxt.IsTrue((ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe))) {
         var limit interface{} = this.SafeInteger(this.Options, "OHLCVLimit", 1000)

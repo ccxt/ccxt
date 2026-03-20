@@ -5,7 +5,7 @@
 
 from ccxt.async_support.kucoin import kucoin
 from ccxt.abstract.kucoinfutures import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Leverage, LeverageTier, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Any, ADL, Balances, Currency, DepositAddress, Int, Leverage, LeverageTier, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -100,9 +100,11 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': True,
+                'fetchPositionADLRank': True,
                 'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': True,
+                'fetchPositionsADLRank': True,
                 'fetchPositionsHistory': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
@@ -3305,4 +3307,123 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'marginMode': None,
             'longLeverage': leverageNum,
             'shortLeverage': leverageNum,
+        }
+
+    async def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> List[ADL]:
+        """
+        fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+        https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list
+
+        :param str[] [symbols]: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of `auto de leverage structures <https://docs.ccxt.com/?id=auto-de-leverage-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True, True)
+        response = await self.futuresPrivateGetPositions(params)
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": [
+        #             {
+        #                 "id": "600000000001260912",
+        #                 "symbol": "XBTUSDTM",
+        #                 "crossMode": True,
+        #                 "maintMarginReq": 0.0040000133,
+        #                 "delevPercentage": 0.0,
+        #                 "openingTimestamp": 1768481882915,
+        #                 "currentTimestamp": 1768481897988,
+        #                 "currentQty": 1,
+        #                 "currentCost": 96.9768,
+        #                 "currentComm": 0.05818608,
+        #                 "unrealisedCost": 96.9768,
+        #                 "realisedGrossCost": 0.0,
+        #                 "realisedCost": 0.05818608,
+        #                 "isOpen": True,
+        #                 "markPrice": 96985.6,
+        #                 "markValue": 96.9856,
+        #                 "posCost": 96.9768,
+        #                 "posInit": 4.84884,
+        #                 "posMargin": 4.84928,
+        #                 "posMaint": 0.38794369,
+        #                 "realisedGrossPnl": 0.0,
+        #                 "realisedPnl": -0.05818608,
+        #                 "unrealisedPnl": 0.0088,
+        #                 "unrealisedPnlPcnt": 1.0E-4,
+        #                 "unrealisedRoePcnt": 0.0018,
+        #                 "avgEntryPrice": 96976.8,
+        #                 "liquidationPrice": 52351.69,
+        #                 "bankruptPrice": 52110.87,
+        #                 "settleCurrency": "USDT",
+        #                 "isInverse": False,
+        #                 "maintainMargin": 0.0040000133,
+        #                 "marginMode": "CROSS",
+        #                 "positionSide": "LONG",
+        #                 "leverage": 20,
+        #                 "dealComm": -0.05818608,
+        #                 "fundingFee": 0,
+        #                 "tax": 0
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_adl_ranks(data, symbols)
+
+    def parse_adl_rank(self, info: dict, market: Market = None) -> ADL:
+        #
+        # fetchPositionsADLRank
+        #
+        #     {
+        #         "id": "600000000001260912",
+        #         "symbol": "XBTUSDTM",
+        #         "crossMode": True,
+        #         "maintMarginReq": 0.0040000133,
+        #         "delevPercentage": 0.0,
+        #         "openingTimestamp": 1768481882915,
+        #         "currentTimestamp": 1768481897988,
+        #         "currentQty": 1,
+        #         "currentCost": 96.9768,
+        #         "currentComm": 0.05818608,
+        #         "unrealisedCost": 96.9768,
+        #         "realisedGrossCost": 0.0,
+        #         "realisedCost": 0.05818608,
+        #         "isOpen": True,
+        #         "markPrice": 96985.6,
+        #         "markValue": 96.9856,
+        #         "posCost": 96.9768,
+        #         "posInit": 4.84884,
+        #         "posMargin": 4.84928,
+        #         "posMaint": 0.38794369,
+        #         "realisedGrossPnl": 0.0,
+        #         "realisedPnl": -0.05818608,
+        #         "unrealisedPnl": 0.0088,
+        #         "unrealisedPnlPcnt": 1.0E-4,
+        #         "unrealisedRoePcnt": 0.0018,
+        #         "avgEntryPrice": 96976.8,
+        #         "liquidationPrice": 52351.69,
+        #         "bankruptPrice": 52110.87,
+        #         "settleCurrency": "USDT",
+        #         "isInverse": False,
+        #         "maintainMargin": 0.0040000133,
+        #         "marginMode": "CROSS",
+        #         "positionSide": "LONG",
+        #         "leverage": 20,
+        #         "dealComm": -0.05818608,
+        #         "fundingFee": 0,
+        #         "tax": 0
+        #     }
+        #
+        marketId = self.safe_string(info, 'symbol')
+        timestamp = self.safe_integer(info, 'openingTimestamp')
+        percentage = self.safe_string(info, 'delevPercentage')
+        return {
+            'info': info,
+            'symbol': self.safe_symbol(marketId, market, None, 'contract'),
+            'rank': None,
+            'rating': None,
+            'percentage': self.parse_number(Precise.string_mul(percentage, '100')),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
         }

@@ -6,6 +6,7 @@ var coinbaseexchange$1 = require('../coinbaseexchange.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
+var Precise = require('../base/Precise.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -476,11 +477,11 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         if ('maker_fee_rate' in trade) {
             isMaker = true;
             parsed['takerOrMaker'] = 'maker';
-            feeRate = this.safeNumber(trade, 'maker_fee_rate');
+            feeRate = this.safeString(trade, 'maker_fee_rate');
         }
         else {
             parsed['takerOrMaker'] = 'taker';
-            feeRate = this.safeNumber(trade, 'taker_fee_rate');
+            feeRate = this.safeString(trade, 'taker_fee_rate');
             // side always represents the maker side of the trade
             // so if we're taker, we invert it
             const currentSide = parsed['side'];
@@ -495,12 +496,12 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         const feeCurrency = market['quote'];
         let feeCost = undefined;
         if ((parsed['cost'] !== undefined) && (feeRate !== undefined)) {
-            const cost = this.safeNumber(parsed, 'cost');
-            feeCost = cost * feeRate;
+            const cost = this.safeString(parsed, 'cost');
+            feeCost = Precise["default"].stringMul(cost, feeRate);
         }
         parsed['fee'] = {
-            'rate': feeRate,
-            'cost': feeCost,
+            'rate': this.parseNumber(feeRate),
+            'cost': this.parseNumber(feeCost),
             'currency': feeCurrency,
         };
         return parsed;
@@ -628,22 +629,23 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
                         }
                         previousOrder['trades'].push(trade);
                         previousOrder['lastTradeTimestamp'] = trade['timestamp'];
-                        let totalCost = 0;
-                        let totalAmount = 0;
+                        let totalCost = '0';
+                        let totalAmount = '0';
                         const trades = previousOrder['trades'];
                         for (let i = 0; i < trades.length; i++) {
                             const tradeEntry = trades[i];
-                            totalCost = this.sum(totalCost, tradeEntry['cost']);
-                            totalAmount = this.sum(totalAmount, tradeEntry['amount']);
+                            totalCost = this.safeString(tradeEntry, 'cost', '0');
+                            totalAmount = this.safeString(tradeEntry, 'amount', '0');
                         }
-                        if (totalAmount > 0) {
-                            previousOrder['average'] = totalCost / totalAmount;
+                        if (!Precise["default"].stringEq(totalAmount, '0')) {
+                            previousOrder['average'] = this.parseNumber(Precise["default"].stringDiv(totalCost, totalAmount));
                         }
-                        previousOrder['cost'] = totalCost;
-                        if (previousOrder['filled'] !== undefined) {
-                            previousOrder['filled'] += trade['amount'];
+                        previousOrder['cost'] = this.parseNumber(totalCost);
+                        const previousOrderFilled = this.safeString(previousOrder, 'filled');
+                        if (previousOrderFilled !== undefined) {
+                            previousOrder['filled'] = this.parseNumber(Precise["default"].stringAdd(previousOrderFilled, this.safeString(trade, 'amount')));
                             if (previousOrder['amount'] !== undefined) {
-                                previousOrder['remaining'] = previousOrder['amount'] - previousOrder['filled'];
+                                previousOrder['remaining'] = this.parseNumber(Precise["default"].stringSub(this.safeString(previousOrder, 'amount'), this.safeString(previousOrder, 'filled')));
                             }
                         }
                         if (previousOrder['fee'] === undefined) {
@@ -654,6 +656,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
                         }
                         if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
                             previousOrder['fee']['cost'] = this.sum(previousOrder['fee']['cost'], trade['fee']['cost']);
+                            const previousOrderFee = this.safeDict(previousOrder, 'fee');
+                            const tradeFee = this.safeDict(trade, 'fee');
+                            previousOrder['fee']['cost'] = this.parseNumber(Precise["default"].stringAdd(this.safeString(previousOrderFee, 'cost'), this.safeString(tradeFee, 'cost')));
                         }
                         // update the newUpdates count
                         orders.append(previousOrder);
@@ -685,22 +690,22 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         const symbol = this.safeSymbol(marketId);
         const side = this.safeString(order, 'side');
         const price = this.safeNumber(order, 'price');
-        const amount = this.safeNumber2(order, 'size', 'funds');
+        const amount = this.safeString2(order, 'size', 'funds');
         const time = this.safeString(order, 'time');
         const timestamp = this.parse8601(time);
         const reason = this.safeString(order, 'reason');
         const status = this.parseWsOrderStatus(reason);
         const orderType = this.safeString(order, 'order_type');
-        let remaining = this.safeNumber(order, 'remaining_size');
+        let remaining = this.safeString(order, 'remaining_size');
         const type = this.safeString(order, 'type');
         let filled = undefined;
         if ((amount !== undefined) && (remaining !== undefined)) {
-            filled = amount - remaining;
+            filled = Precise["default"].stringSub(amount, remaining);
         }
         else if (type === 'received') {
-            filled = 0;
+            filled = '0';
             if (amount !== undefined) {
-                remaining = amount - filled;
+                remaining = Precise["default"].stringSub(amount, filled);
             }
         }
         return this.safeOrder({
@@ -718,11 +723,11 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
             'price': price,
             'stopPrice': undefined,
             'triggerPrice': undefined,
-            'amount': amount,
+            'amount': this.parseNumber(amount),
             'cost': undefined,
             'average': undefined,
-            'filled': filled,
-            'remaining': remaining,
+            'filled': this.parseNumber(filled),
+            'remaining': this.parseNumber(remaining),
             'status': status,
             'fee': undefined,
             'trades': undefined,

@@ -931,8 +931,13 @@ func (this *CoinspotCore) Sign(path interface{}, optionalArgs ...interface{}) in
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url interface{} = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), path)
-	if IsTrue(IsEqual(api, "private")) {
+	var isVersionedApi interface{} = IsArray(api)
+	var version interface{} = Ternary(IsTrue(isVersionedApi), GetValue(api, 0), nil)
+	var accessType interface{} = Ternary(IsTrue(isVersionedApi), GetValue(api, 1), api)
+	var endpoint interface{} = Add("/", this.ImplodeParams(path, params))
+	var fullPath interface{} = Ternary(IsTrue((!IsEqual(version, nil))), Add(Add("/", version), endpoint), endpoint)
+	var url interface{} = Add(GetValue(GetValue(this.Urls, "api"), accessType), fullPath)
+	if IsTrue(IsEqual(accessType, "private")) {
 		this.CheckRequiredCredentials()
 		var nonce interface{} = this.Nonce()
 		body = this.Json(this.Extend(map[string]interface{}{

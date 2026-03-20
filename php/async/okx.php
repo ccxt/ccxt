@@ -1401,6 +1401,7 @@ class okx extends Exchange {
                 // the exchange refers to ERC20 version of Aeternity (AEToken)
                 'AE' => 'AET', // https://github.com/ccxt/ccxt/issues/4981
             ),
+            'rollingWindowSize' => 0.0,  // okx always receives rateLimitExceeded with rolling window
         ));
     }
 
@@ -6251,7 +6252,11 @@ class okx extends Exchange {
         if ($initialMarginPercentage === null) {
             $initialMarginPercentage = $this->parse_number(Precise::string_div($initialMarginString, $notionalString, 4));
         } elseif ($initialMarginString === null) {
-            $initialMarginString = Precise::string_div(Precise::string_div(Precise::string_mul($contractsAbs, $contractSizeString), $entryPriceString), $leverageString);
+            if ($market['linear']) {
+                $initialMarginString = Precise::string_mul($initialMarginPercentage, $notionalString);
+            } else {
+                $initialMarginString = Precise::string_div(Precise::string_div(Precise::string_mul($contractsAbs, $contractSizeString), $entryPriceString), $leverageString);
+            }
         }
         $rounder = '0.00005'; // round to closest 0.01%
         $maintenanceMarginPercentage = $this->parse_number(Precise::string_div(Precise::string_add($maintenanceMarginPercentageString, $rounder), '1', 4));
@@ -6913,6 +6918,14 @@ class okx extends Exchange {
                 $marketInner = $this->safe_market($instId);
                 $currencyId = $this->safe_string($entry, 'ccy');
                 $code = $this->safe_currency_code($currencyId);
+                $balanceChange = $this->safe_string($entry, 'balChg');
+                $positionBalanceChange = $this->safe_string($entry, 'posBalChg');
+                $amount = null;
+                if (($balanceChange !== null) && (!Precise::string_eq($balanceChange, '0'))) {
+                    $amount = $balanceChange;
+                } else {
+                    $amount = $positionBalanceChange;
+                }
                 $result[] = array(
                     'info' => $entry,
                     'symbol' => $marketInner['symbol'],
@@ -6920,7 +6933,7 @@ class okx extends Exchange {
                     'timestamp' => $timestamp,
                     'datetime' => $this->iso8601($timestamp),
                     'id' => $this->safe_string($entry, 'billId'),
-                    'amount' => $this->safe_number($entry, 'balChg'),
+                    'amount' => $this->parse_number($amount),
                 );
             }
             $sorted = $this->sort_by($result, 'timestamp');

@@ -881,6 +881,16 @@
                     }
                 ]
             }
+        ],
+        "fetchPositionADLRank": [
+            {
+                "description": "linear swap fetch position ADL rank",
+                "method": "fetchPositionADLRank",
+                "url": "https://api.woox.io/v3/futures/positions",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }

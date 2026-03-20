@@ -1806,7 +1806,7 @@ public partial class bybit : ccxt.bybit
      * @method
      * @name bybit#watchLiquidations
      * @description watch the public liquidations of a trading pair
-     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/liquidation
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/all-liquidation
      * @param {string} symbol unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -1823,7 +1823,7 @@ public partial class bybit : ccxt.bybit
         object url = await this.getUrlByMarketType(symbol, false, "watchLiquidations", parameters);
         parameters = this.cleanParams(parameters);
         object method = null;
-        var methodparametersVariable = this.handleOptionAndParams(parameters, "watchLiquidations", "method", "liquidation");
+        var methodparametersVariable = this.handleOptionAndParams(parameters, "watchLiquidations", "method", "allLiquidation");
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
         object messageHash = add("liquidations::", symbol);
