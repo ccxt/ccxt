@@ -9429,11 +9429,14 @@ export default class kucoin extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const request: Dict = {};
-        if ((symbols !== undefined) && (symbols.length < 11)) {
-            // the endpoint does not accept more than 10 symbols at a time
-            // if user has provided more than 10 symbols, we will fetch all symbols
-            const marketIds = this.marketIds (symbols);
-            request['symbol'] = marketIds.join (',');
+        if (symbols !== undefined) {
+            const length = symbols.length;
+            if (length > 10) {
+                // the endpoint does not accept more than 10 symbols at a time
+                // if user has provided more than 10 symbols, we will fetch all symbols
+                const marketIds = this.marketIds (symbols);
+                request['symbol'] = marketIds.join (',');
+            }
         }
         const response = await this.utaGetMarketOpenInterest (this.extend (request, params));
         //
