@@ -9431,9 +9431,9 @@ export default class kucoin extends Exchange {
         const request: Dict = {};
         if (symbols !== undefined) {
             const length = symbols.length;
-            if (length > 10) {
+            if (length < 11) {
                 // the endpoint does not accept more than 10 symbols at a time
-                // if user has provided more than 10 symbols, we will fetch all symbols
+                // if user provided more than 10 symbols, we will fetch all symbols
                 const marketIds = this.marketIds (symbols);
                 request['symbol'] = marketIds.join (',');
             }
