@@ -6732,8 +6732,8 @@ export default class gate extends Exchange {
             'currency': currency['id'].toUpperCase (), // todo: currencies have network-junctions
             'amount': this.currencyToPrecision (code, amount),
         };
-        let isUnifiedAccount = true;
-        [ isUnifiedAccount, params ] = this.handleParamBool (params, 'unifiedAccount', isUnifiedAccount); // check only params, cuz default option is undefined
+        let isUnifiedAccount = false;
+        [ isUnifiedAccount, params ] = this.handleOptionAndParams (params, 'borrowCrossMargin', 'unifiedAccount');
         let response = undefined;
         if (isUnifiedAccount) {
             request['type'] = 'borrow';
