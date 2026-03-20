@@ -1175,7 +1175,7 @@ class Exchange(object):
             return True
 
         # skip the strings
-        if hsattr(obj, "__len__") and not isinstance(obj, (str, bytes)):
+        if hasattr(obj, "__len__") and not isinstance(obj, (str, bytes)):
             return len(obj) == 0
 
         if hasattr(obj, "__dict__"):
