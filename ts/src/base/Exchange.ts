@@ -3412,8 +3412,8 @@ export default class Exchange {
         return res === 0;
     }
 
-    nonEmptyString (value) {
-        return this.valueIsDefined (value) && value !== '';
+    isEmptyString (value) {
+        return !this.valueIsDefined (value) || value === '';
     }
 
     safeNumberOmitZero (obj: object, key: IndexType, defaultValue: Num = undefined): Num {
