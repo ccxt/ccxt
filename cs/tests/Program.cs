@@ -98,10 +98,14 @@ public class Tests
         exchanges = parsedKey;
     }
 
-    static async void Main(string[] args)
+    static void Main(string[] args)
     {
+        MainAsync(args).GetAwaiter().GetResult();
+    }
 
-        Console.WriteLine("C# version: " + Environment.Version.ToString());
+    static async Task MainAsync(string[] args)
+    {
+      Console.WriteLine("C# version: " + Environment.Version.ToString());
       try {
         Tests.args = args;
         ReadConfig();
