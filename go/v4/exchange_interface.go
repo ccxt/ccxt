@@ -175,6 +175,8 @@ type ICoreExchange interface {
 	FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{}
 	FetchMyTrades(optionalArgs ...interface{}) <-chan interface{}
 	FetchOpenInterestHistory(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchOpenInterest(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchOpenInterests(optionalArgs ...interface{}) <-chan interface{}
 	FetchOrderBooks(optionalArgs ...interface{}) <-chan interface{}
 	FetchTickers(optionalArgs ...interface{}) <-chan interface{}
 	FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
