@@ -26,6 +26,7 @@ import testGroupBy from './test.groupBy.js';
 import testIndexBy from './test.indexBy.js';
 import testFilterBy from './test.filterBy.js';
 import testUuid from './test.uuid.js';
+import testInArray from './test.inArray.js';
 import testPrecisionFromString from './test.precisionFromString.js';
 import testUrlencodeBase64 from './test.urlencodeBase64.js';
 import testAfterConstructor from './test.afterConstructor.js';
@@ -37,8 +38,10 @@ import testSetMarketsFromExchange from './test.setMarketsFromExchange.js';
 import testSleep from './test.sleep.js';
 import testEthMethods from './test.ethMethods.js';
 import testKeysort from './test.keysort.js';
+import testImplodeParams from './test.implodeParams.js';
 import testCapitalize from './test.capitalize.js';
 import testConstants from './test.constants.js';
+import testIsJsonEncodedObject from './test.isJsonEncodedObject.js';
 async function baseTestsInit() {
     await testLanguageSpecific();
     testConstants();
@@ -61,6 +64,7 @@ async function baseTestsInit() {
     testOmit();
     testGroupBy();
     testIndexBy();
+    testInArray();
     testFilterBy();
     testHandleMethods();
     testRemoveRepeatedElementsFromArray();
@@ -72,8 +76,10 @@ async function baseTestsInit() {
     await testSetMarketsFromExchange();
     testEthMethods();
     testKeysort();
+    testImplodeParams();
     testUnique();
     await testSleep();
     testIo();
+    testIsJsonEncodedObject();
 }
 export default baseTestsInit;

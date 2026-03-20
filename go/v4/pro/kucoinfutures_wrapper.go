@@ -3,7 +3,7 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 type Kucoinfutures struct {
    *KucoinfuturesCore
    Core *KucoinfuturesCore
-   exchangeTyped *ccxt.Kucoinfutures
+   exchangeTyped *ccxt.Kucoin
 }
 
 func NewKucoinfutures(userConfig map[string]interface{}) *Kucoinfutures {
@@ -12,7 +12,7 @@ func NewKucoinfutures(userConfig map[string]interface{}) *Kucoinfutures {
    return &Kucoinfutures{
        KucoinfuturesCore: p,
        Core:  p,
-       exchangeTyped: ccxt.NewKucoinfuturesFromCore(p.base),
+       exchangeTyped: ccxt.NewKucoinfuturesFromCore(p.base.base),
    }
 }
 
@@ -23,42 +23,15 @@ func NewKucoinfutures(userConfig map[string]interface{}) *Kucoinfutures {
 
 /**
  * @method
- * @name kucoinfutures#watchTicker
- * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://www.kucoin.com/docs/websocket/futures-trading/public-channels/get-ticker
- * @param {string} symbol unified symbol of the market to fetch the ticker for
+ * @name kucoinfutures#fetchBidsAsks
+ * @description fetches the bid and ask price and volume for multiple markets
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Kucoinfutures) WatchTicker(symbol string, options ...ccxt.WatchTickerOptions) (ccxt.Ticker, error) {
+func (this *Kucoinfutures) FetchBidsAsks(options ...ccxt.FetchBidsAsksOptions) (ccxt.Tickers, error) {
 
-    opts := ccxt.WatchTickerOptionsStruct{}
-
-    for _, opt := range options {
-        opt(&opts)
-    }
-
-    var params interface{} = nil
-    if opts.Params != nil {
-        params = *opts.Params
-    }
-    res := <- this.Core.WatchTicker(symbol, params)
-    if ccxt.IsError(res) {
-        return ccxt.Ticker{}, ccxt.CreateReturnError(res)
-    }
-    return ccxt.NewTicker(res), nil
-}
-/**
- * @method
- * @name kucoinfutures#watchTickers
- * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
- * @param {string[]} symbols unified symbol of the market to fetch the ticker for
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
- */
-func (this *Kucoinfutures) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tickers, error) {
-
-    opts := ccxt.WatchTickersOptionsStruct{}
+    opts := ccxt.FetchBidsAsksOptionsStruct{}
 
     for _, opt := range options {
         opt(&opts)
@@ -73,7 +46,7 @@ func (this *Kucoinfutures) WatchTickers(options ...ccxt.WatchTickersOptions) (cc
     if opts.Params != nil {
         params = *opts.Params
     }
-    res := <- this.Core.WatchTickers(symbols, params)
+    res := <- this.Core.FetchBidsAsks(symbols, params)
     if ccxt.IsError(res) {
         return ccxt.Tickers{}, ccxt.CreateReturnError(res)
     }
@@ -81,157 +54,18 @@ func (this *Kucoinfutures) WatchTickers(options ...ccxt.WatchTickersOptions) (cc
 }
 /**
  * @method
- * @name kucoinfutures#watchBidsAsks
- * @see https://www.kucoin.com/docs/websocket/futures-trading/public-channels/get-ticker-v2
- * @description watches best bid & ask for symbols
- * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+ * @name kucoinfutures#transfer
+ * @description transfer currency internally between wallets on the same account
+ * @param {string} code unified currency code
+ * @param {float} amount amount to transfer
+ * @param {string} fromAccount account to transfer from
+ * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Kucoinfutures) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.Tickers, error) {
+func (this *Kucoinfutures) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...ccxt.TransferOptions) (ccxt.TransferEntry, error) {
 
-    opts := ccxt.WatchBidsAsksOptionsStruct{}
-
-    for _, opt := range options {
-        opt(&opts)
-    }
-
-    var symbols interface{} = nil
-    if opts.Symbols != nil {
-        symbols = *opts.Symbols
-    }
-
-    var params interface{} = nil
-    if opts.Params != nil {
-        params = *opts.Params
-    }
-    res := <- this.Core.WatchBidsAsks(symbols, params)
-    if ccxt.IsError(res) {
-        return ccxt.Tickers{}, ccxt.CreateReturnError(res)
-    }
-    return ccxt.NewTickers(res), nil
-}
-/**
- * @method
- * @name kucoinfutures#watchPosition
- * @description watch open positions for a specific symbol
- * @see https://docs.kucoin.com/futures/#position-change-events
- * @param {string|undefined} symbol unified market symbol
- * @param {object} params extra parameters specific to the exchange API endpoint
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
- */
-func (this *Kucoinfutures) WatchPosition(options ...ccxt.WatchPositionOptions) (ccxt.Position, error) {
-
-    opts := ccxt.WatchPositionOptionsStruct{}
-
-    for _, opt := range options {
-        opt(&opts)
-    }
-
-    var symbol interface{} = nil
-    if opts.Symbol != nil {
-        symbol = *opts.Symbol
-    }
-
-    var params interface{} = nil
-    if opts.Params != nil {
-        params = *opts.Params
-    }
-    res := <- this.Core.WatchPosition(symbol, params)
-    if ccxt.IsError(res) {
-        return ccxt.Position{}, ccxt.CreateReturnError(res)
-    }
-    return ccxt.NewPosition(res), nil
-}
-/**
- * @method
- * @name kucoinfutures#watchTrades
- * @description get the list of most recent trades for a particular symbol
- * @see https://docs.kucoin.com/futures/#execution-data
- * @param {string} symbol unified symbol of the market to fetch trades for
- * @param {int} [since] timestamp in ms of the earliest trade to fetch
- * @param {int} [limit] the maximum amount of trades to fetch
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
- */
-func (this *Kucoinfutures) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions) ([]ccxt.Trade, error) {
-
-    opts := ccxt.WatchTradesOptionsStruct{}
-
-    for _, opt := range options {
-        opt(&opts)
-    }
-
-    var since interface{} = nil
-    if opts.Since != nil {
-        since = *opts.Since
-    }
-
-    var limit interface{} = nil
-    if opts.Limit != nil {
-        limit = *opts.Limit
-    }
-
-    var params interface{} = nil
-    if opts.Params != nil {
-        params = *opts.Params
-    }
-    res := <- this.Core.WatchTrades(symbol, since, limit, params)
-    if ccxt.IsError(res) {
-        return nil, ccxt.CreateReturnError(res)
-    }
-    return ccxt.NewTradeArray(res), nil
-}
-/**
- * @method
- * @name kucoinfutures#watchTradesForSymbols
- * @description get the list of most recent trades for a particular symbol
- * @param {string[]} symbols
- * @param {int} [since] timestamp in ms of the earliest trade to fetch
- * @param {int} [limit] the maximum amount of trades to fetch
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
- */
-func (this *Kucoinfutures) WatchTradesForSymbols(symbols []string, options ...ccxt.WatchTradesForSymbolsOptions) ([]ccxt.Trade, error) {
-
-    opts := ccxt.WatchTradesForSymbolsOptionsStruct{}
-
-    for _, opt := range options {
-        opt(&opts)
-    }
-
-    var since interface{} = nil
-    if opts.Since != nil {
-        since = *opts.Since
-    }
-
-    var limit interface{} = nil
-    if opts.Limit != nil {
-        limit = *opts.Limit
-    }
-
-    var params interface{} = nil
-    if opts.Params != nil {
-        params = *opts.Params
-    }
-    res := <- this.Core.WatchTradesForSymbols(symbols, since, limit, params)
-    if ccxt.IsError(res) {
-        return nil, ccxt.CreateReturnError(res)
-    }
-    return ccxt.NewTradeArray(res), nil
-}
-/**
- * @method
- * @name kucoinfutures#unWatchTrades
- * @description unWatches trades stream
- * @see https://docs.kucoin.com/futures/#execution-data
- * @param {string} symbol unified symbol of the market to fetch trades for
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
- */
-func (this *Kucoinfutures) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (interface{}, error) {
-
-    opts := ccxt.UnWatchTradesOptionsStruct{}
+    opts := ccxt.TransferOptionsStruct{}
 
     for _, opt := range options {
         opt(&opts)
@@ -241,266 +75,11 @@ func (this *Kucoinfutures) UnWatchTrades(symbol string, options ...ccxt.UnWatchT
     if opts.Params != nil {
         params = *opts.Params
     }
-    res := <- this.Core.UnWatchTrades(symbol, params)
+    res := <- this.Core.Transfer(code, amount, fromAccount, toAccount, params)
     if ccxt.IsError(res) {
-        return nil, ccxt.CreateReturnError(res)
+        return ccxt.TransferEntry{}, ccxt.CreateReturnError(res)
     }
-    return res, nil
-}
-/**
- * @method
- * @name kucoinfutures#unWatchTradesForSymbols
- * @description get the list of most recent trades for a particular symbol
- * @param {string[]} symbols
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
- */
-func (this *Kucoinfutures) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWatchTradesForSymbolsOptions) (interface{}, error) {
-
-    opts := ccxt.UnWatchTradesForSymbolsOptionsStruct{}
-
-    for _, opt := range options {
-        opt(&opts)
-    }
-
-    var params interface{} = nil
-    if opts.Params != nil {
-        params = *opts.Params
-    }
-    res := <- this.Core.UnWatchTradesForSymbols(symbols, params)
-    if ccxt.IsError(res) {
-        return nil, ccxt.CreateReturnError(res)
-    }
-    return res, nil
-}
-/**
- * @method
- * @name kucoinfutures#watchOHLCV
- * @see https://www.kucoin.com/docs/websocket/futures-trading/public-channels/klines
- * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
- * @param {string} timeframe the length of time each candle represents
- * @param {int} [since] timestamp in ms of the earliest candle to fetch
- * @param {int} [limit] the maximum amount of candles to fetch
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
- */
-func (this *Kucoinfutures) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions) ([]ccxt.OHLCV, error) {
-
-    opts := ccxt.WatchOHLCVOptionsStruct{}
-
-    for _, opt := range options {
-        opt(&opts)
-    }
-
-    var timeframe interface{} = nil
-    if opts.Timeframe != nil {
-        timeframe = *opts.Timeframe
-    }
-
-    var since interface{} = nil
-    if opts.Since != nil {
-        since = *opts.Since
-    }
-
-    var limit interface{} = nil
-    if opts.Limit != nil {
-        limit = *opts.Limit
-    }
-
-    var params interface{} = nil
-    if opts.Params != nil {
-        params = *opts.Params
-    }
-    res := <- this.Core.WatchOHLCV(symbol, timeframe, since, limit, params)
-    if ccxt.IsError(res) {
-        return nil, ccxt.CreateReturnError(res)
-    }
-    return ccxt.NewOHLCVArray(res), nil
-}
-/**
- * @method
- * @name kucoinfutures#watchOrderBook
- * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- *   1. After receiving the websocket Level 2 data flow, cache the data.
- *   2. Initiate a REST request to get the snapshot data of Level 2 order book.
- *   3. Playback the cached Level 2 data flow.
- *   4. Apply the new Level 2 data flow to the local snapshot to ensure that the sequence of the new Level 2 update lines up with the sequence of the previous Level 2 data. Discard all the message prior to that sequence, and then playback the change to snapshot.
- *   5. Update the level2 full data based on sequence according to the size. If the price is 0, ignore the messages and update the sequence. If the size=0, update the sequence and remove the price of which the size is 0 out of level 2. For other cases, please update the price.
- *   6. If the sequence of the newly pushed message does not line up to the sequence of the last message, you could pull through REST Level 2 message request to get the updated messages. Please note that the difference between the start and end parameters cannot exceed 500.
- * @see https://docs.kucoin.com/futures/#level-2-market-data
- * @param {string} symbol unified symbol of the market to fetch the order book for
- * @param {int} [limit] the maximum amount of order book entries to return
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
- */
-func (this *Kucoinfutures) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOptions) (ccxt.OrderBook, error) {
-
-    opts := ccxt.WatchOrderBookOptionsStruct{}
-
-    for _, opt := range options {
-        opt(&opts)
-    }
-
-    var limit interface{} = nil
-    if opts.Limit != nil {
-        limit = *opts.Limit
-    }
-
-    var params interface{} = nil
-    if opts.Params != nil {
-        params = *opts.Params
-    }
-    res := <- this.Core.WatchOrderBook(symbol, limit, params)
-    if ccxt.IsError(res) {
-        return ccxt.OrderBook{}, ccxt.CreateReturnError(res)
-    }
-    return ccxt.NewOrderBookFromWs(res), nil
-}
-/**
- * @method
- * @name kucoinfutures#watchOrderBookForSymbols
- * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://docs.kucoin.com/futures/#level-2-market-data
- * @param {string[]} symbols unified array of symbols
- * @param {int} [limit] the maximum amount of order book entries to return
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
- */
-func (this *Kucoinfutures) WatchOrderBookForSymbols(symbols []string, options ...ccxt.WatchOrderBookForSymbolsOptions) (ccxt.OrderBook, error) {
-
-    opts := ccxt.WatchOrderBookForSymbolsOptionsStruct{}
-
-    for _, opt := range options {
-        opt(&opts)
-    }
-
-    var limit interface{} = nil
-    if opts.Limit != nil {
-        limit = *opts.Limit
-    }
-
-    var params interface{} = nil
-    if opts.Params != nil {
-        params = *opts.Params
-    }
-    res := <- this.Core.WatchOrderBookForSymbols(symbols, limit, params)
-    if ccxt.IsError(res) {
-        return ccxt.OrderBook{}, ccxt.CreateReturnError(res)
-    }
-    return ccxt.NewOrderBookFromWs(res), nil
-}
-/**
- * @method
- * @name kucoinfutures#unWatchOrderBook
- * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://docs.kucoin.com/futures/#level-2-market-data
- * @param {string} symbol unified symbol of the market to fetch the order book for
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
- */
-func (this *Kucoinfutures) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBookOptions) (interface{}, error) {
-
-    opts := ccxt.UnWatchOrderBookOptionsStruct{}
-
-    for _, opt := range options {
-        opt(&opts)
-    }
-
-    var params interface{} = nil
-    if opts.Params != nil {
-        params = *opts.Params
-    }
-    res := <- this.Core.UnWatchOrderBook(symbol, params)
-    if ccxt.IsError(res) {
-        return nil, ccxt.CreateReturnError(res)
-    }
-    return res, nil
-}
-/**
- * @method
- * @name kucoinfutures#unWatchOrderBookForSymbols
- * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @param {string[]} symbols unified array of symbols
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
- */
-func (this *Kucoinfutures) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
-
-    opts := ccxt.UnWatchOrderBookForSymbolsOptionsStruct{}
-
-    for _, opt := range options {
-        opt(&opts)
-    }
-
-    var params interface{} = nil
-    if opts.Params != nil {
-        params = *opts.Params
-    }
-    res := <- this.Core.UnWatchOrderBookForSymbols(symbols, params)
-    if ccxt.IsError(res) {
-        return nil, ccxt.CreateReturnError(res)
-    }
-    return res, nil
-}
-/**
- * @method
- * @name kucoinfutures#watchOrders
- * @description watches information on multiple orders made by the user
- * @see https://docs.kucoin.com/futures/#trade-orders-according-to-the-market
- * @param {string} symbol unified market symbol of the market orders were made in
- * @param {int} [since] the earliest time in ms to fetch orders for
- * @param {int} [limit] the maximum number of order structures to retrieve
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
- */
-func (this *Kucoinfutures) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order, error) {
-
-    opts := ccxt.WatchOrdersOptionsStruct{}
-
-    for _, opt := range options {
-        opt(&opts)
-    }
-
-    var symbol interface{} = nil
-    if opts.Symbol != nil {
-        symbol = *opts.Symbol
-    }
-
-    var since interface{} = nil
-    if opts.Since != nil {
-        since = *opts.Since
-    }
-
-    var limit interface{} = nil
-    if opts.Limit != nil {
-        limit = *opts.Limit
-    }
-
-    var params interface{} = nil
-    if opts.Params != nil {
-        params = *opts.Params
-    }
-    res := <- this.Core.WatchOrders(symbol, since, limit, params)
-    if ccxt.IsError(res) {
-        return nil, ccxt.CreateReturnError(res)
-    }
-    return ccxt.NewOrderArray(res), nil
-}
-/**
- * @method
- * @name kucoinfutures#watchBalance
- * @description watch balance and get the amount of funds available for trading or funds locked in orders
- * @see https://docs.kucoin.com/futures/#account-balance-events
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
- */
-func (this *Kucoinfutures) WatchBalance(params ...interface{}) (ccxt.Balances, error) {
-    res := <- this.Core.WatchBalance(params...)
-    if ccxt.IsError(res) {
-        return ccxt.Balances{}, ccxt.CreateReturnError(res)
-    }
-    return ccxt.NewBalances(res), nil
+    return ccxt.NewTransferEntry(res), nil
 }
 // missing typed methods from base
 //nolint
@@ -545,7 +124,6 @@ func (this *Kucoinfutures) EditOrders(orders []ccxt.OrderRequest, options ...ccx
 func (this *Kucoinfutures) FetchAccounts(params ...interface{}) ([]ccxt.Account, error) {return this.exchangeTyped.FetchAccounts(params...)}
 func (this *Kucoinfutures) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) ([]ccxt.Greeks, error) {return this.exchangeTyped.FetchAllGreeks(options...)}
 func (this *Kucoinfutures) FetchBalance(params ...interface{}) (ccxt.Balances, error) {return this.exchangeTyped.FetchBalance(params...)}
-func (this *Kucoinfutures) FetchBidsAsks(options ...ccxt.FetchBidsAsksOptions) (ccxt.Tickers, error) {return this.exchangeTyped.FetchBidsAsks(options...)}
 func (this *Kucoinfutures) FetchBorrowInterest(options ...ccxt.FetchBorrowInterestOptions) ([]ccxt.BorrowInterest, error) {return this.exchangeTyped.FetchBorrowInterest(options...)}
 func (this *Kucoinfutures) FetchBorrowRate(code string, amount float64, options ...ccxt.FetchBorrowRateOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchBorrowRate(code, amount, options...)}
 func (this *Kucoinfutures) FetchCanceledAndClosedOrders(options ...ccxt.FetchCanceledAndClosedOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)}
@@ -634,7 +212,6 @@ func (this *Kucoinfutures) FetchWithdrawals(options ...ccxt.FetchWithdrawalsOpti
 func (this *Kucoinfutures) SetMargin(symbol string, amount float64, options ...ccxt.SetMarginOptions) (ccxt.MarginModification, error) {return this.exchangeTyped.SetMargin(symbol, amount, options...)}
 func (this *Kucoinfutures) SetMarginMode(marginMode string, options ...ccxt.SetMarginModeOptions) (map[string]interface{}, error) {return this.exchangeTyped.SetMarginMode(marginMode, options...)}
 func (this *Kucoinfutures) SetPositionMode(hedged bool, options ...ccxt.SetPositionModeOptions) (map[string]interface{}, error) {return this.exchangeTyped.SetPositionMode(hedged, options...)}
-func (this *Kucoinfutures) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...ccxt.TransferOptions) (ccxt.TransferEntry, error) {return this.exchangeTyped.Transfer(code, amount, fromAccount, toAccount, options...)}
 func (this *Kucoinfutures) Withdraw(code string, amount float64, address string, options ...ccxt.WithdrawOptions) (ccxt.Transaction, error) {return this.exchangeTyped.Withdraw(code, amount, address, options...)}
 func (this *Kucoinfutures) CancelAllOrdersWs(options ...ccxt.CancelAllOrdersWsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelAllOrdersWs(options...)}
 func (this *Kucoinfutures) CancelOrdersWs(ids []string, options ...ccxt.CancelOrdersWsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelOrdersWs(ids, options...)}
@@ -682,16 +259,31 @@ func (this *Kucoinfutures) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOption
 func (this *Kucoinfutures) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (interface{}, error) {return this.exchangeTyped.UnWatchMyTrades(options...)}
 func (this *Kucoinfutures) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOHLCV(symbol, options...)}
 func (this *Kucoinfutures) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...ccxt.UnWatchOHLCVForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)}
+func (this *Kucoinfutures) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBookOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrderBook(symbol, options...)}
+func (this *Kucoinfutures) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.UnWatchOrderBookForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)}
 func (this *Kucoinfutures) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrders(options...)}
 func (this *Kucoinfutures) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTicker(symbol, options...)}
 func (this *Kucoinfutures) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTickers(options...)}
+func (this *Kucoinfutures) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTrades(symbol, options...)}
+func (this *Kucoinfutures) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWatchTradesForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)}
+func (this *Kucoinfutures) WatchBalance(params ...interface{}) (ccxt.Balances, error) {return this.exchangeTyped.WatchBalance(params...)}
+func (this *Kucoinfutures) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.Tickers, error) {return this.exchangeTyped.WatchBidsAsks(options...)}
 func (this *Kucoinfutures) WatchLiquidations(symbol string, options ...ccxt.WatchLiquidationsOptions) ([]ccxt.Liquidation, error) {return this.exchangeTyped.WatchLiquidations(symbol, options...)}
 func (this *Kucoinfutures) WatchMarkPrice(symbol string, options ...ccxt.WatchMarkPriceOptions) (ccxt.Ticker, error) {return this.exchangeTyped.WatchMarkPrice(symbol, options...)}
 func (this *Kucoinfutures) WatchMarkPrices(options ...ccxt.WatchMarkPricesOptions) (ccxt.Tickers, error) {return this.exchangeTyped.WatchMarkPrices(options...)}
 func (this *Kucoinfutures) WatchMyLiquidations(symbol string, options ...ccxt.WatchMyLiquidationsOptions) ([]ccxt.Liquidation, error) {return this.exchangeTyped.WatchMyLiquidations(symbol, options...)}
 func (this *Kucoinfutures) WatchMyLiquidationsForSymbols(symbols []string, options ...ccxt.WatchMyLiquidationsForSymbolsOptions) ([]ccxt.Liquidation, error) {return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)}
 func (this *Kucoinfutures) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.Trade, error) {return this.exchangeTyped.WatchMyTrades(options...)}
+func (this *Kucoinfutures) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions) ([]ccxt.OHLCV, error) {return this.exchangeTyped.WatchOHLCV(symbol, options...)}
 func (this *Kucoinfutures) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...ccxt.WatchOHLCVForSymbolsOptions) (map[string]map[string][]ccxt.OHLCV, error) {return this.exchangeTyped.WatchOHLCVForSymbols(symbolsAndTimeframes, options...)}
+func (this *Kucoinfutures) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOptions) (ccxt.OrderBook, error) {return this.exchangeTyped.WatchOrderBook(symbol, options...)}
+func (this *Kucoinfutures) WatchOrderBookForSymbols(symbols []string, options ...ccxt.WatchOrderBookForSymbolsOptions) (ccxt.OrderBook, error) {return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)}
+func (this *Kucoinfutures) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.WatchOrders(options...)}
 func (this *Kucoinfutures) WatchOrdersForSymbols(symbols []string, options ...ccxt.WatchOrdersForSymbolsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)}
+func (this *Kucoinfutures) WatchPosition(options ...ccxt.WatchPositionOptions) (ccxt.Position, error) {return this.exchangeTyped.WatchPosition(options...)}
 func (this *Kucoinfutures) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt.Position, error) {return this.exchangeTyped.WatchPositions(options...)}
+func (this *Kucoinfutures) WatchTicker(symbol string, options ...ccxt.WatchTickerOptions) (ccxt.Ticker, error) {return this.exchangeTyped.WatchTicker(symbol, options...)}
+func (this *Kucoinfutures) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tickers, error) {return this.exchangeTyped.WatchTickers(options...)}
+func (this *Kucoinfutures) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions) ([]ccxt.Trade, error) {return this.exchangeTyped.WatchTrades(symbol, options...)}
+func (this *Kucoinfutures) WatchTradesForSymbols(symbols []string, options ...ccxt.WatchTradesForSymbolsOptions) ([]ccxt.Trade, error) {return this.exchangeTyped.WatchTradesForSymbols(symbols, options...)}
 func (this *Kucoinfutures) WithdrawWs(code string, amount float64, address string, options ...ccxt.WithdrawWsOptions) (ccxt.Transaction, error) {return this.exchangeTyped.WithdrawWs(code, amount, address, options...)}

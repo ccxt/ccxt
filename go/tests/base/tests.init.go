@@ -9,8 +9,8 @@ func BaseTestsInit() <-chan interface{} {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 
-		retRes404 := (<-TestLanguageSpecific())
-		PanicOnError(retRes404)
+		retRes434 := (<-TestLanguageSpecific())
+		PanicOnError(retRes434)
 		TestConstants()
 		TestAfterConstructor()
 		TestExtend()
@@ -31,6 +31,7 @@ func BaseTestsInit() <-chan interface{} {
 		TestOmit()
 		TestGroupBy()
 		TestIndexBy()
+		TestInArray()
 		TestFilterBy()
 		TestHandleMethods()
 		TestRemoveRepeatedElementsFromArray()
@@ -40,15 +41,17 @@ func BaseTestsInit() <-chan interface{} {
 		TestArraysConcat()
 		TestUuid()
 
-		retRes694 := (<-TestSetMarketsFromExchange())
-		PanicOnError(retRes694)
+		retRes734 := (<-TestSetMarketsFromExchange())
+		PanicOnError(retRes734)
 		TestEthMethods()
 		TestKeysort()
+		TestImplodeParams()
 		TestUnique()
 
-		retRes734 := (<-TestSleep())
-		PanicOnError(retRes734)
+		retRes784 := (<-TestSleep())
+		PanicOnError(retRes784)
 		TestIo()
+		TestIsJsonEncodedObject()
 		return nil
 	}()
 	return ch

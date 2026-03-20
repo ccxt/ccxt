@@ -4831,6 +4831,14 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet' + message);
     }
 
+    async fetchSpotOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        throw new NotSupported (this.id + ' fetchSpotOHLCV() is not supported yet');
+    }
+
+    async fetchContractOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        throw new NotSupported (this.id + ' fetchContractOHLCV() is not supported yet');
+    }
+
     async fetchOHLCVWs (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         let message = '';
         if (this.has['fetchTradesWs']) {
@@ -6242,12 +6250,20 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchTickers() is not supported yet');
     }
 
+    async fetchSpotTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        throw new NotSupported (this.id + ' fetchSpotTickers() is not supported yet');
+    }
+
+    async fetchContractTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        throw new NotSupported (this.id + ' fetchContractTickers() is not supported yet');
+    }
+
     async fetchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         throw new NotSupported (this.id + ' fetchMarkPrices() is not supported yet');
     }
 
     async fetchTickersWs (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        throw new NotSupported (this.id + ' fetchTickers() is not supported yet');
+        throw new NotSupported (this.id + ' fetchTickersWs() is not supported yet');
     }
 
     async fetchOrderBooks (symbols: Strings = undefined, limit: Int = undefined, params = {}): Promise<OrderBooks> {
@@ -6788,6 +6804,14 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createOrders() is not supported yet');
     }
 
+    async createSpotOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
+        throw new NotSupported (this.id + ' createSpotOrders() is not supported yet');
+    }
+
+    async createContractOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
+        throw new NotSupported (this.id + ' createContractOrders() is not supported yet');
+    }
+
     async editOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
         throw new NotSupported (this.id + ' editOrders() is not supported yet');
     }
@@ -6798,6 +6822,14 @@ export default class Exchange {
 
     async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' cancelOrder() is not supported yet');
+    }
+
+    async cancelSpotOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        throw new NotSupported (this.id + ' cancelSpotOrder() is not supported yet');
+    }
+
+    async cancelContractOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        throw new NotSupported (this.id + ' cancelContractOrder() is not supported yet');
     }
 
     /**
@@ -6842,6 +6874,14 @@ export default class Exchange {
 
     async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
         throw new NotSupported (this.id + ' cancelAllOrders() is not supported yet');
+    }
+
+    async cancelAllSpotOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
+        throw new NotSupported (this.id + ' cancelAllSpotOrders() is not supported yet');
+    }
+
+    async cancelAllContractOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
+        throw new NotSupported (this.id + ' cancelAllContractOrders() is not supported yet');
     }
 
     async cancelAllOrdersAfter (timeout: Int, params = {}): Promise<{}> {
@@ -7036,6 +7076,10 @@ export default class Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchDepositAddress() is not supported yet');
         }
+    }
+
+    async fetchContractDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+        throw new NotSupported (this.id + ' fetchContractDepositAddress() is not supported yet');
     }
 
     account (): BalanceAccount {

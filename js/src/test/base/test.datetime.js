@@ -7,9 +7,9 @@
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 import { ROUND_DOWN, ROUND_UP } from '../../base/functions/number.js';
-function testDatetime() {
+function testIso8601() {
     const exchange = new ccxt.Exchange({
-        'id': 'regirock',
+        'id': 'sampleexchange',
     });
     assert(exchange.iso8601(514862627000) === '1986-04-26T01:23:47.000Z');
     assert(exchange.iso8601(514862627559) === '1986-04-26T01:23:47.559Z');
@@ -22,7 +22,11 @@ function testDatetime() {
     assert(exchange.iso8601('') === undefined);
     assert(exchange.iso8601('a') === undefined);
     assert(exchange.iso8601({}) === undefined);
-    // ----------------------------------------------------------------------------
+}
+function testParse8601() {
+    const exchange = new ccxt.Exchange({
+        'id': 'sampleexchange',
+    });
     assert(exchange.parse8601('1986-04-26T01:23:47.000Z') === 514862627000);
     assert(exchange.parse8601('1986-04-26T01:23:47.559Z') === 514862627559);
     assert(exchange.parse8601('1986-04-26T01:23:47.062Z') === 514862627062);
@@ -39,6 +43,11 @@ function testDatetime() {
     assert(exchange.parse8601({}) === undefined);
     assert(exchange.parse8601(33) === undefined);
     // ----------------------------------------------------------------------------
+}
+function testParseDate() {
+    const exchange = new ccxt.Exchange({
+        'id': 'sampleexchange',
+    });
     assert(exchange.parseDate('1986-04-26 00:00:00') === 514857600000);
     assert(exchange.parseDate('1986-04-26T01:23:47.000Z') === 514862627000);
     assert(exchange.parseDate('1986-13-13 00:00:00') === undefined);
@@ -48,6 +57,11 @@ function testDatetime() {
     // assert (exchange.parseDate ('Sun, 29 Dec 2024 01:01:10 GMT') === 1735434070000);
     // assert (exchange.parseDate ('Sun, 29 Dec 2024 02:11:10 GMT') === 1735438270000);
     // assert (exchange.parseDate ('Sun, 08 Dec 2024 02:03:04 GMT') === 1733623384000);
+}
+function testRoundTimeframe() {
+    const exchange = new ccxt.Exchange({
+        'id': 'sampleexchange',
+    });
     assert(exchange.roundTimeframe('5m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_DOWN) === exchange.parse8601('2019-08-12 13:20:00'));
     assert(exchange.roundTimeframe('10m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_DOWN) === exchange.parse8601('2019-08-12 13:20:00'));
     assert(exchange.roundTimeframe('30m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_DOWN) === exchange.parse8601('2019-08-12 13:00:00'));
@@ -82,5 +96,41 @@ function testDatetime() {
     // $this->assertSame(514848227000, Exchange::parse_date('25 Apr 1986 21:23:47 GMT'));
     // $this->assertSame(514862627000, Exchange::parse_date('1986-04-26T01:23:47.000Z'));
     // $this->assertSame(514862627123, Exchange::parse_date('1986-04-26T01:23:47.123Z'));
+}
+function testMicroseconds() {
+    const exchange = new ccxt.Exchange({
+        'id': 'sampleexchange',
+    });
+    const value = exchange.microseconds();
+    const valueString = value.toString();
+    assert(value > 0);
+    assert(valueString.length === 16);
+}
+function testMilliseconds() {
+    const exchange = new ccxt.Exchange({
+        'id': 'sampleexchange',
+    });
+    const value = exchange.milliseconds();
+    const valueString = value.toString();
+    assert(value > 0);
+    assert(valueString.length === 13);
+}
+function testSeconds() {
+    const exchange = new ccxt.Exchange({
+        'id': 'sampleexchange',
+    });
+    const value = exchange.seconds();
+    const valueString = value.toString();
+    assert(value > 0);
+    assert(valueString.length === 10);
+}
+function testDatetime() {
+    testIso8601();
+    testParse8601();
+    testParseDate();
+    testRoundTimeframe();
+    testMicroseconds();
+    testMilliseconds();
+    testSeconds();
 }
 export default testDatetime;
