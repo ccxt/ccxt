@@ -3,6 +3,63 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchOpenInterests": [
+            {
+                "description": "fetch open interests for swap markets",
+                "method": "fetchOpenInterests",
+                "input": [
+                    [
+                        "ETH/USDT:USDT",
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        {
+                            "symbol": "ETHUSDTM",
+                            "openInterest": "8085192",
+                            "ts": 1774007942959
+                        },
+                        {
+                            "symbol": "XBTUSDTM",
+                            "openInterest": "6387504",
+                            "ts": 1774007942959
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "ETH/USDT:USDT": {
+                        "symbol": "ETH/USDT:USDT",
+                        "openInterestAmount": 8085192,
+                        "openInterestValue": null,
+                        "timestamp": 1774007942959,
+                        "datetime": "2026-03-20T11:59:02.959Z",
+                        "info": {
+                            "symbol": "ETHUSDTM",
+                            "openInterest": "8085192",
+                            "ts": 1774007942959
+                        },
+                        "baseVolume": null,
+                        "quoteVolume": null
+                    },
+                    "BTC/USDT:USDT": {
+                        "symbol": "BTC/USDT:USDT",
+                        "openInterestAmount": 6387504,
+                        "openInterestValue": null,
+                        "timestamp": 1774007942959,
+                        "datetime": "2026-03-20T11:59:02.959Z",
+                        "info": {
+                            "symbol": "XBTUSDTM",
+                            "openInterest": "6387504",
+                            "ts": 1774007942959
+                        },
+                        "baseVolume": null,
+                        "quoteVolume": null
+                    }
+                }
+            }
+        ],
         "fetchPositionMode": [
             {
                 "description": "fetch positions mode",
