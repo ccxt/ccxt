@@ -17,9 +17,8 @@
                 "description": "fetch open interest",
                 "method": "fetchOpenInterest",
                 "url": "https://api.kucoin.com/api/ua/v1/market/open-interest?symbol=ETHUSDTM",
-                "input": [
-                    "ETH/USDT:USDT"
-                ],
+                "input":
+                    "ETH/USDT:USDT",
                 "output": null
             }
         ],
