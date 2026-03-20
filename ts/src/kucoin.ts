@@ -6,7 +6,7 @@ import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, B
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { ADL, Account, Balances, Bool, BorrowInterest, Currency, Currencies, DepositAddress, Dict, FundingHistory, FundingRate, Int, int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry } from './base/types.js';
+import type { ADL, Account, Balances, Bool, BorrowInterest, Currency, Currencies, DepositAddress, Dict, FundingHistory, FundingRate, Int, int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, OpenInterests, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -89,8 +89,9 @@ export default class kucoin extends Exchange {
                 'fetchMarkPrices': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOpenInterest': false,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -9413,6 +9414,63 @@ export default class kucoin extends Exchange {
             }
         }
         return result;
+    }
+
+    /**
+     * @method
+     * @name kucoin#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-futures-open-interset
+     * @param {string[]} [symbols] Unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    async fetchOpenInterests (symbols: Strings = undefined, params = {}) {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const request: Dict = {};
+        if ((symbols !== undefined) && (symbols.length < 11)) {
+            // the endpoint does not accept more than 10 symbols at a time
+            // if user has provided more than 10 symbols, we will fetch all symbols
+            const marketIds = this.marketIds (symbols);
+            request['symbol'] = marketIds.join (',');
+        }
+        const response = await this.utaGetMarketOpenInterest (this.extend (request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": [
+        //             {
+        //                 "symbol": "ETHUSDTM",
+        //                 "openInterest": "8053960",
+        //                 "ts": 1774007467050
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseOpenInterests (data, symbols) as OpenInterests;
+    }
+
+    parseOpenInterest (interest, market: Market = undefined) {
+        //
+        //     {
+        //         "symbol": "ETHUSDTM",
+        //         "openInterest": "8053960",
+        //         "ts": 1774007467050
+        //     }
+        //
+        const marketId = this.safeString (interest, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (interest, 'ts');
+        return this.safeOpenInterest ({
+            'symbol': this.safeSymbol (marketId),
+            'openInterestAmount': this.safeNumber (interest, 'openInterest'),
+            'openInterestValue': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
