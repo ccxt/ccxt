@@ -41,6 +41,7 @@ public partial class BaseTest
             await testSetMarketsFromExchange();
             testEthMethods();
             testKeysort();
+            testImplodeParams();
             testUnique();
             await testSleep();
             testIo();

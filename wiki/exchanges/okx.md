@@ -2601,6 +2601,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 **Kind**: instance method of [<code>okx</code>](#okx)  
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
+**See**: https://www.okx.com/docs-v5/en/#trading-account-websocket-account-channel  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

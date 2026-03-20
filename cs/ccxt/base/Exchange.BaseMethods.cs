@@ -3204,6 +3204,20 @@ public partial class Exchange
         throw new NotSupported ((string)add(add(this.id, " fetchOHLCV() is not supported yet"), message)) ;
     }
 
+    public async virtual Task<object> fetchSpotOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    {
+        timeframe ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchSpotOHLCV() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchContractOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    {
+        timeframe ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchContractOHLCV() is not supported yet")) ;
+    }
+
     public async virtual Task<object> fetchOHLCVWs(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         timeframe ??= "1m";
@@ -5023,6 +5037,18 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchTickers() is not supported yet")) ;
     }
 
+    public async virtual Task<object> fetchSpotTickers(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchSpotTickers() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchContractTickers(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchContractTickers() is not supported yet")) ;
+    }
+
     public async virtual Task<object> fetchMarkPrices(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -5032,7 +5058,7 @@ public partial class Exchange
     public async virtual Task<object> fetchTickersWs(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " fetchTickers() is not supported yet")) ;
+        throw new NotSupported ((string)add(this.id, " fetchTickersWs() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchOrderBooks(object symbols = null, object limit = null, object parameters = null)
@@ -5694,6 +5720,18 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " createOrders() is not supported yet")) ;
     }
 
+    public async virtual Task<object> createSpotOrders(object orders, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " createSpotOrders() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> createContractOrders(object orders, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " createContractOrders() is not supported yet")) ;
+    }
+
     public async virtual Task<object> editOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -5710,6 +5748,18 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " cancelOrder() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> cancelSpotOrder(object id, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " cancelSpotOrder() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> cancelContractOrder(object id, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " cancelContractOrder() is not supported yet")) ;
     }
 
     /**
@@ -5770,6 +5820,18 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " cancelAllOrders() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> cancelAllSpotOrders(object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " cancelAllSpotOrders() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> cancelAllContractOrders(object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " cancelAllContractOrders() is not supported yet")) ;
     }
 
     public async virtual Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
@@ -6037,6 +6099,12 @@ public partial class Exchange
         {
             throw new NotSupported ((string)add(this.id, " fetchDepositAddress() is not supported yet")) ;
         }
+    }
+
+    public async virtual Task<object> fetchContractDepositAddress(object code, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchContractDepositAddress() is not supported yet")) ;
     }
 
     public virtual object account()

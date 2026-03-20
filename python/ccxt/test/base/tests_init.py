@@ -48,6 +48,7 @@ from ccxt.test.base.test_set_markets_from_exchange import test_set_markets_from_
 from ccxt.test.base.test_sleep import test_sleep  # noqa E402
 from ccxt.test.base.test_eth_methods import test_eth_methods  # noqa E402
 from ccxt.test.base.test_keysort import test_keysort  # noqa E402
+from ccxt.test.base.test_implode_params import test_implode_params  # noqa E402
 from ccxt.test.base.test_capitalize import test_capitalize  # noqa E402
 from ccxt.test.base.test_constants import test_constants  # noqa E402
 
@@ -84,6 +85,7 @@ async def base_tests_init():
     await test_set_markets_from_exchange()
     test_eth_methods()
     test_keysort()
+    test_implode_params()
     test_unique()
     await test_sleep()
     test_io()

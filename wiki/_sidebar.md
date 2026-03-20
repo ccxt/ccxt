@@ -82,7 +82,7 @@
 	- [kraken](exchanges/kraken.md)
 	- [krakenfutures](exchanges/krakenfutures.md)
 	- [kucoin](exchanges/kucoin.md)
-	- [kucoinfutures](exchanges/kucoinfutures.md)
+	- [fetchBidsAsks](exchanges/fetchBidsAsks.md)
 	- [latoken](exchanges/latoken.md)
 	- [lbank](exchanges/lbank.md)
 	- [lighter](exchanges/lighter.md)

@@ -19,6 +19,7 @@ var FunctionsMap = map[string]interface{}{
 	"filterBy":                        TestFilterBy,
 	"groupBy":                         TestGroupBy,
 	"handleMethods":                   TestHandleMethods,
+	"implodeParams":                   TestImplodeParams,
 	"indexBy":                         TestIndexBy,
 	"io":                              TestIo,
 	"json":                            TestJson,
