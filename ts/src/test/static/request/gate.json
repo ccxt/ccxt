@@ -6,6 +6,26 @@
         "unifiedAccount": false
     },
     "methods": {
+        "fetchMySettlementHistory": [
+            {
+                "description": "fetch my settlement history for future",
+                "method": "fetchMySettlementHistory",
+                "url": "https://api.gateio.ws/api/v4/delivery/usdt/settlements?contract=BTC_USDT_20260626",
+                "input": [
+                    "BTC/USDT:USDT-260626"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch my settlement history for option",
+                "method": "fetchMySettlementHistory",
+                "url": "https://api.gateio.ws/api/v4/options/my_settlements?contract=XTI_USDT-20260327-70-P&underlying=XTI_USDT",
+                "input": [
+                    "XTI/USDT:USDT-260327-70-P"
+                ],
+                "output": null
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",
@@ -1782,7 +1802,10 @@
                 "url": "https://api.gateio.ws/api/v4/margin/cross/loans",
                 "input": [
                     "USDT",
-                    1
+                    1,
+                    {
+                        "unifiedAccount": false
+                    }
                 ],
                 "output": "{\"currency\":\"USDT\",\"amount\":\"1\"}"
             },
@@ -1792,10 +1815,7 @@
                 "url": "https://api.gateio.ws/api/v4/unified/loans",
                 "input": [
                   "USDT",
-                  5,
-                  {
-                    "unifiedAccount": true
-                  }
+                  5
                 ],
                 "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"type\":\"borrow\"}"
             }
