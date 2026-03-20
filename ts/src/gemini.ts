@@ -304,6 +304,7 @@ export default class gemini extends Exchange {
                     'webApiRetries': 5,
                     'webApiMuteFailure': true,
                 },
+                // fetchticker should use v1, confirmed that v2 is buggy ( https://github.com/ccxt/ccxt/issues/28077 )
                 'fetchTickerMethod': 'fetchTickerV1', // fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
                 'networks': {
                     'BTC': 'bitcoin',

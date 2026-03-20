@@ -211,6 +211,7 @@ type ICoreExchange interface {
 	SafeNumber(obj interface{}, key interface{}, optionalArgs ...interface{}) interface{}
 	SafeNumber2(dictionary interface{}, key1 interface{}, key2 interface{}, optionalArgs ...interface{}) interface{}
 	SafeNumberOmitZero(obj interface{}, key interface{}, optionalArgs ...interface{}) interface{}
+	NonEmptyString(obj interface{}) interface{}
 	SafeDictN(dictionaryOrList interface{}, keys interface{}, optionalArgs ...interface{}) interface{}
 	SafeListN(dictionaryOrList interface{}, keys interface{}, optionalArgs ...interface{}) interface{}
 	SafeList(dictionaryOrList interface{}, key interface{}, optionalArgs ...interface{}) interface{}

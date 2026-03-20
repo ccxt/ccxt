@@ -1036,15 +1036,10 @@ class woo extends woo$1["default"] {
         if (Precise["default"].stringEq(priceString, '0') && (avgPrice !== undefined)) {
             price = avgPrice;
         }
-        const amount = this.safeFloat(order, 'quantity');
+        const amount = this.safeString(order, 'quantity');
         const side = this.safeStringLower(order, 'side');
         const type = this.safeStringLower(order, 'type');
-        const filled = this.safeNumber(order, 'totalExecutedQuantity');
-        const totalExecQuantity = this.safeFloat(order, 'totalExecutedQuantity');
-        let remaining = amount;
-        if (amount >= totalExecQuantity) {
-            remaining -= totalExecQuantity;
-        }
+        const filled = this.safeString2(order, 'totalExecutedQuantity', 'executed');
         const rawStatus = this.safeString2(order, 'status', 'algoStatus');
         const status = this.parseOrderStatus(rawStatus);
         const trades = undefined;
@@ -1070,7 +1065,7 @@ class woo extends woo$1["default"] {
             'cost': undefined,
             'average': avgPrice,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             'fee': fee,
             'trades': trades,

@@ -1022,6 +1022,9 @@ class testMainClass:
                 'wasmExecPath': wasm_exec_path,
             },
         }
+        if exchange_name == 'grvt':
+            options['apiKey'] = ''
+            options['secret'] = ''
         exchange = init_exchange(exchange_name, options)
         exchange.currencies = currencies
         # not working in python if assigned  in the config dict
@@ -1033,16 +1036,16 @@ class testMainClass:
         global_options = exchange.safe_dict(exchange_data, 'options', {})
         # read apiKey/secret from the test file
         api_key = exchange.safe_string(exchange_data, 'apiKey')
-        if api_key:
+        if exchange.non_empty_string(api_key):
             exchange.apiKey = str(api_key)
         secret = exchange.safe_string(exchange_data, 'secret')
-        if secret:
+        if exchange.non_empty_string(secret):
             exchange.secret = str(secret)
         private_key = exchange.safe_string(exchange_data, 'privateKey')
-        if private_key:
+        if exchange.non_empty_string(private_key):
             exchange.privateKey = str(private_key)
         wallet_address = exchange.safe_string(exchange_data, 'walletAddress')
-        if wallet_address:
+        if exchange.non_empty_string(wallet_address):
             exchange.walletAddress = str(wallet_address)
         accounts = exchange.safe_list(exchange_data, 'accounts')
         if accounts:
@@ -1088,16 +1091,16 @@ class testMainClass:
         exchange = self.init_offline_exchange(exchange_name)
         # read apiKey/secret from the test file
         api_key = exchange.safe_string(exchange_data, 'apiKey')
-        if api_key:
+        if exchange.non_empty_string(api_key):
             exchange.apiKey = str(api_key)
         secret = exchange.safe_string(exchange_data, 'secret')
-        if secret:
+        if exchange.non_empty_string(secret):
             exchange.secret = str(secret)
         private_key = exchange.safe_string(exchange_data, 'privateKey')
-        if private_key:
+        if exchange.non_empty_string(private_key):
             exchange.privateKey = str(private_key)
         wallet_address = exchange.safe_string(exchange_data, 'walletAddress')
-        if wallet_address:
+        if exchange.non_empty_string(wallet_address):
             exchange.walletAddress = str(wallet_address)
         methods = exchange.safe_value(exchange_data, 'methods', {})
         options = exchange.safe_value(exchange_data, 'options', {})
@@ -1226,7 +1229,7 @@ class testMainClass:
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_coincatch(), self.test_defx(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_coincatch(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit()]
         await asyncio.gather(*promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1726,20 +1729,6 @@ class testMainClass:
             await close(exchange)
         return True
 
-    async def test_defx(self):
-        exchange = self.init_offline_exchange('defx')
-        req_headers = None
-        try:
-            await exchange.create_order('DOGE/USDC:USDC', 'limit', 'buy', 100, 1)
-        except Exception as e:
-            # we expect an error here, we're only interested in the headers
-            req_headers = exchange.last_request_headers
-        id = 'ccxt'
-        assert req_headers['X-DEFX-SOURCE'] == id, 'defx - id: ' + id + ' not in headers.'
-        if not is_sync():
-            await close(exchange)
-        return True
-
     async def test_cryptomus(self):
         exchange = self.init_offline_exchange('cryptomus')
         request = None
@@ -1802,6 +1791,20 @@ class testMainClass:
             # we expect an error here, we're only interested in the headers
             req_headers = exchange.last_request_headers
         assert req_headers['X-Broker-Id'] == id, 'backpack - id: ' + id + ' not in headers.'
+        if not is_sync():
+            await close(exchange)
+        return True
+
+    async def test_toobit(self):
+        exchange = self.init_offline_exchange('toobit')
+        req_headers = None
+        id = '177321641268789'
+        try:
+            await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            # we expect an error here, we're only interested in the headers
+            req_headers = exchange.last_request_headers
+        assert req_headers['X-BB-API-PLATFORM'] == id, 'toobit - id: ' + id + ' not in headers.'
         if not is_sync():
             await close(exchange)
         return True

@@ -1112,7 +1112,7 @@ class bingx(ccxt.async_support.bingx):
             messageHash = '::' + ','.join(symbols)
         type = None
         subType = None
-        type, params = self.handle_market_type_and_params('watchPositions', market, params)
+        type, params = self.handle_market_type_and_params('watchPositions', market, params, 'swap')
         subType, params = self.handle_sub_type_and_params('watchPositions', market, params, 'linear')
         if type == 'spot':
             raise NotSupported(self.id + ' watchPositions is not supported for spot markets')
@@ -1251,6 +1251,9 @@ class bingx(ccxt.async_support.bingx):
         for i in range(0, len(rawPositions)):
             rawPosition = rawPositions[i]
             position = self.parse_ws_position(rawPosition)
+            symbol = self.safe_string(position, 'symbol')
+            if symbol is None:
+                continue
             timestamp = self.safe_integer(message, 'E')
             position['timestamp'] = timestamp
             position['datetime'] = self.iso8601(timestamp)

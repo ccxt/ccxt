@@ -260,7 +260,7 @@ async function run () {
             process.exit (0);
         }
 
-        const exchange = await loadSettingsAndCreateExchange (exchangeId, cliOptions, params.length === 0);
+        const exchange = await loadSettingsAndCreateExchange (exchangeId, cliOptions);
 
         if (exchange[methodName] === undefined) {
             log.red (exchange.id + '.' + methodName + ': no such property');
@@ -268,7 +268,8 @@ async function run () {
         }
 
         if (typeof exchange[methodName] !== 'function') {
-            printHumanReadable (exchange, exchange[methodName], cliOptions);
+            printHumanReadable (exchange, exchange[methodName], cliOptions, cliOptions.table);
+            return;
         }
 
         let i = 0;

@@ -132,7 +132,7 @@ class htx(Exchange, ImplicitAPI):
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': True,
                 'fetchSettlementHistory': True,
-                'fetchStatus': True,
+                'fetchStatus': False,  # none of `summary.json` endpoint work atm. revise in near future
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -1417,6 +1417,7 @@ class htx(Exchange, ImplicitAPI):
                     },
                 },
             },
+            'rollingWindowSize': 2000.0,
         })
 
     async def fetch_status(self, params={}):

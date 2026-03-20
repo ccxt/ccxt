@@ -382,13 +382,35 @@ class lighter(Exchange, ImplicitAPI):
         self.options['signer'] = signer
         return signer
 
+    def pre_load_lighter_library(self, params={}):
+        """
+        if the required credentials are available in options, it will pre-load the lighter Signer to avoid delaying sensitive calls like createOrder the first time they're executed
+ @param params
+        :returns boolean: True if the signer was loaded, False otherwise
+        """
+        signer = self.safe_dict(self.options, 'signer')
+        if signer is not None:
+            return True
+        libraryPath = None
+        libraryPath, params = self.handle_option_and_params(params, 'loadAccount', 'libraryPath')
+        apiKeyIndex = None
+        apiKeyIndex, params = self.handle_option_and_params_2(params, 'loadAccount', 'apiKeyIndex', 'api_key_index')
+        accountIndex = None
+        accountIndex, params = self.handle_option_and_params_2(params, 'loadAccount', 'accountIndex', 'account_index')
+        privateKeyIsSet = (self.privateKey is not None) and (self.privateKey != '')
+        if privateKeyIsSet and (libraryPath is not None) and (apiKeyIndex is not None) and (accountIndex is not None):
+            signer = self.load_lighter_library(libraryPath, self.options['chainId'], self.privateKey, apiKeyIndex, accountIndex)
+            self.options['signer'] = signer
+            return True
+        return False
+
     def handle_account_index(self, params: object, methodName1: str, optionName1: str, optionName2: str, defaultValue=None):
         accountIndex = None
         accountIndex, params = self.handle_option_and_params_2(params, methodName1, optionName1, optionName2, defaultValue)
         if accountIndex is None:
             walletAddress = self.walletAddress
-            if walletAddress is None:
-                raise ArgumentsRequired(self.id + ' ' + methodName1 + '() requires an ' + optionName1 + ' or ' + optionName2 + ' parameter or walletAddress to fetch accountIndex')
+            if walletAddress is None or walletAddress == '':
+                raise ArgumentsRequired(self.id + ' ' + methodName1 + '() requires an ' + optionName1 + '/' + optionName2 + ' parameter or walletAddress to fetch accountIndex')
             res = self.publicGetAccountsByL1Address({'l1_address': walletAddress})
             #
             # {
@@ -420,7 +442,7 @@ class lighter(Exchange, ImplicitAPI):
                     raise ArgumentsRequired(self.id + ' ' + methodName1 + '() requires an ' + optionName1 + ' or ' + optionName2 + ' parameter')
                 accountIndex = account['index']
                 self.options['accountIndex'] = accountIndex
-        return [accountIndex, params]
+        return [self.parse_to_int(accountIndex), params]
 
     def create_sub_account(self, name: str, params={}):
         apiKeyIndex = None
@@ -515,7 +537,7 @@ class lighter(Exchange, ImplicitAPI):
         orderExpiry, params = self.handle_option_and_params(params, 'createOrder', 'orderExpiry', 0)
         request['nonce'] = nonce
         request['api_key_index'] = apiKeyIndex
-        request['account_index'] = accountIndex
+        request['account_index'] = self.parse_to_int(accountIndex)
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLossPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
@@ -928,6 +950,7 @@ class lighter(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         response = self.publicGetAssetDetails(params)
+        self.pre_load_lighter_library()
         #
         #     {
         #         "code": 200,
@@ -2053,8 +2076,13 @@ class lighter(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of  transfers structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.accountIndex]: account index
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_cursor('fetchTransfers', code, since, limit, params, 'cursor', 'cursor', None, 50)
         accountIndex = None
         accountIndex, params = self.handle_account_index(params, 'fetchTransfers', 'accountIndex', 'account_index')
         request: dict = {
@@ -2093,6 +2121,10 @@ class lighter(Exchange, ImplicitAPI):
         #     }
         #
         rows = self.safe_list(response, 'transfers', [])
+        cursor = self.safe_string(response, 'cursor')
+        first = self.safe_dict(rows, 0)
+        if (first is not None) and (cursor is not None):
+            rows[0]['cursor'] = cursor
         return self.parse_transfers(rows, currency, since, limit, params)
 
     def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
@@ -2142,8 +2174,13 @@ class lighter(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.accountIndex]: account index
         :param str [params.address]: l1_address
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_cursor('fetchDeposits', code, since, limit, params, 'cursor', 'cursor', None, 50)
         address = None
         address, params = self.handle_option_and_params_2(params, 'fetchDeposits', 'address', 'l1_address')
         if address is None:
@@ -2182,6 +2219,10 @@ class lighter(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'deposits', [])
+        cursor = self.safe_string(response, 'cursor')
+        first = self.safe_dict(data, 0)
+        if (first is not None) and (cursor is not None):
+            data[0]['cursor'] = cursor
         return self.parse_transactions(data, currency, since, limit)
 
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -2195,11 +2236,16 @@ class lighter(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.accountIndex]: account index
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_cursor('fetchWithdrawals', code, since, limit, params, 'cursor', 'cursor', None, 50)
         accountIndex = None
         accountIndex, params = self.handle_account_index(params, 'fetchWithdrawals', 'accountIndex', 'account_index')
+        self.load_markets()
         request: dict = {
             'account_index': accountIndex,
         }
@@ -2231,6 +2277,10 @@ class lighter(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'withdraws', [])
+        cursor = self.safe_string(response, 'cursor')
+        first = self.safe_dict(data, 0)
+        if (first is not None) and (cursor is not None):
+            data[0]['cursor'] = cursor
         return self.parse_transactions(data, currency, since, limit)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
@@ -2352,9 +2402,15 @@ class lighter(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.accountIndex]: account index
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param int [params.until]: timestamp in ms of the latest trade to fetch
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, params, 'next_cursor', 'cursor', None, 50)
         accountIndex = None
         accountIndex, params = self.handle_account_index(params, 'fetchMyTrades', 'accountIndex', 'account_index')
         apiKeyIndex = None
@@ -2363,12 +2419,16 @@ class lighter(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires an apiKeyIndex parameter')
         self.load_account(self.options['chainId'], self.privateKey, apiKeyIndex, accountIndex, params)
         request: dict = {
-            'sort_by': 'block_height',
+            'sort_by': 'timestamp',
             'limit': 100,
             'account_index': accountIndex,
         }
         if limit is not None:
             request['limit'] = min(limit, 100)
+        until = None
+        until, params = self.handle_option_and_params_2(params, 'fetchMyTrades', 'until', 'from')
+        if until is not None:
+            request['from'] = until
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -2408,6 +2468,10 @@ class lighter(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'trades', [])
         for i in range(0, len(data)):
             data[i]['account_index'] = accountIndex
+        nextCursor = self.safe_string(response, 'next_cursor')
+        first = self.safe_dict(data, 0)
+        if (first is not None) and (nextCursor is not None):
+            data[0]['next_cursor'] = nextCursor
         return self.parse_trades(data, market, since, limit, params)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:

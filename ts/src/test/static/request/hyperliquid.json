@@ -783,6 +783,18 @@
                     }
                 ],
                 "output": "{\"type\":\"spotClearinghouseState\",\"user\":\"0x3B3741c0EFf9C6b556Ec813e70589161F416661B\"}"
+            },
+            {
+                "description": "fetch unified margin balance",
+                "method": "fetchBalance",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    {
+                        "enableUnifiedMargin": true,
+                        "user": "0x3B3741c0EFf9C6b556Ec813e70589161F416662A"
+                    }
+                ],
+                "output": "{\"type\":\"spotClearinghouseState\",\"user\":\"0x3B3741c0EFf9C6b556Ec813e70589161F416662A\"}"
             }
         ],
         "fetchOrderBook": [

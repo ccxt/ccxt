@@ -779,6 +779,7 @@ class bingx extends bingx$1["default"] {
                     },
                 },
             },
+            'rollingWindowSize': 2000.0, // Some endpoints have a 10s window, some have a 5s window, a more complicated rate limiter is needed to accomodate for this
         });
     }
     /**

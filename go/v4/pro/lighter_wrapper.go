@@ -386,6 +386,82 @@ func (this *Lighter) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesO
 }
 /**
  * @method
+ * @name lighter#watchMyTrades
+ * @description subscribe to recent trades of an account.
+ * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades
+ * @param {string} [symbol] unified market symbol
+ * @param {int} [since] timestamp in ms of the earliest trade to fetch
+ * @param {int} [limit] the maximum amount of trades to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ */
+func (this *Lighter) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.Trade, error) {
+
+    opts := ccxt.WatchMyTradesOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbol interface{} = nil
+    if opts.Symbol != nil {
+        symbol = *opts.Symbol
+    }
+
+    var since interface{} = nil
+    if opts.Since != nil {
+        since = *opts.Since
+    }
+
+    var limit interface{} = nil
+    if opts.Limit != nil {
+        limit = *opts.Limit
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.WatchMyTrades(symbol, since, limit, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewTradeArray(res), nil
+}
+/**
+ * @method
+ * @name lighter#unWatchMyTrades
+ * @description unsubscribe from the account trades channel
+ * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades
+ * @param {string} [symbol] unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ */
+func (this *Lighter) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (interface{}, error) {
+
+    opts := ccxt.UnWatchMyTradesOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbol interface{} = nil
+    if opts.Symbol != nil {
+        symbol = *opts.Symbol
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.UnWatchMyTrades(symbol, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return res, nil
+}
+/**
+ * @method
  * @name lighter#watchLiquidations
  * @description watch the public liquidations of a trading pair
  * @see https://apidocs.lighter.xyz/docs/websocket-reference#trade
@@ -600,7 +676,6 @@ func (this *Lighter) FetchTradesWs(symbol string, options ...ccxt.FetchTradesWsO
 func (this *Lighter) FetchTradingFeesWs(params ...interface{}) (ccxt.TradingFees, error) {return this.exchangeTyped.FetchTradingFeesWs(params...)}
 func (this *Lighter) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchWithdrawalsWs(options...)}
 func (this *Lighter) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (interface{}, error) {return this.exchangeTyped.UnWatchBidsAsks(options...)}
-func (this *Lighter) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (interface{}, error) {return this.exchangeTyped.UnWatchMyTrades(options...)}
 func (this *Lighter) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOHLCV(symbol, options...)}
 func (this *Lighter) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...ccxt.UnWatchOHLCVForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)}
 func (this *Lighter) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.UnWatchOrderBookForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)}
@@ -610,7 +685,6 @@ func (this *Lighter) WatchBalance(params ...interface{}) (ccxt.Balances, error) 
 func (this *Lighter) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.Tickers, error) {return this.exchangeTyped.WatchBidsAsks(options...)}
 func (this *Lighter) WatchMyLiquidations(symbol string, options ...ccxt.WatchMyLiquidationsOptions) ([]ccxt.Liquidation, error) {return this.exchangeTyped.WatchMyLiquidations(symbol, options...)}
 func (this *Lighter) WatchMyLiquidationsForSymbols(symbols []string, options ...ccxt.WatchMyLiquidationsForSymbolsOptions) ([]ccxt.Liquidation, error) {return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)}
-func (this *Lighter) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.Trade, error) {return this.exchangeTyped.WatchMyTrades(options...)}
 func (this *Lighter) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions) ([]ccxt.OHLCV, error) {return this.exchangeTyped.WatchOHLCV(symbol, options...)}
 func (this *Lighter) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...ccxt.WatchOHLCVForSymbolsOptions) (map[string]map[string][]ccxt.OHLCV, error) {return this.exchangeTyped.WatchOHLCVForSymbols(symbolsAndTimeframes, options...)}
 func (this *Lighter) WatchOrderBookForSymbols(symbols []string, options ...ccxt.WatchOrderBookForSymbolsOptions) (ccxt.OrderBook, error) {return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)}

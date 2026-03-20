@@ -233,6 +233,7 @@ public partial class cex : Exchange
                     { "Get deposit address for main account is not allowed", typeof(PermissionDenied) },
                     { "Market Trigger orders are not allowed", typeof(BadRequest) },
                     { "key not passed or incorrect", typeof(AuthenticationError) },
+                    { "API rate limit reached", typeof(RateLimitExceeded) },
                 } },
             } },
             { "timeframes", new Dictionary<string, object>() {

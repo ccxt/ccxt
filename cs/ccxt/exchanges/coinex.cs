@@ -660,6 +660,7 @@ public partial class coinex : Exchange
                     { "Service is not available during funding fee settlement", typeof(OperationFailed) },
                 } },
             } },
+            { "rollingWindowSize", 1000 },
         });
     }
 

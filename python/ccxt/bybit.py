@@ -1367,6 +1367,7 @@ class bybit(Exchange, ImplicitAPI):
                     'deposit': {},
                 },
             },
+            'rollingWindowSize': 5000.0,  # According to the docs(https://bybit-exchange.github.io/docs/v5/rate-limit), tested with 90000.0 with no errors
         })
 
     def enable_demo_trading(self, enable: bool):

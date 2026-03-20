@@ -1490,6 +1490,11 @@ public partial class testMainClass
                 { "wasmExecPath", wasmExecPath },
             } },
         };
+        if (isTrue(isEqual(exchangeName, "grvt")))
+        {
+            ((IDictionary<string,object>)options)["apiKey"] = "";
+            ((IDictionary<string,object>)options)["secret"] = "";
+        }
         Exchange exchange = initExchange(exchangeName, options);
         exchange.currencies = currencies;
         // not working in python if assigned  in the config dict
@@ -1503,25 +1508,25 @@ public partial class testMainClass
         object globalOptions = exchange.safeDict(exchangeData, "options", new Dictionary<string, object>() {});
         // read apiKey/secret from the test file
         object apiKey = exchange.safeString(exchangeData, "apiKey");
-        if (isTrue(apiKey))
+        if (isTrue(exchange.nonEmptyString(apiKey)))
         {
             // c# to string requirement
             exchange.apiKey = ((object)apiKey).ToString();
         }
         object secret = exchange.safeString(exchangeData, "secret");
-        if (isTrue(secret))
+        if (isTrue(exchange.nonEmptyString(secret)))
         {
             // c# to string requirement
             exchange.secret = ((object)secret).ToString();
         }
         object privateKey = exchange.safeString(exchangeData, "privateKey");
-        if (isTrue(privateKey))
+        if (isTrue(exchange.nonEmptyString(privateKey)))
         {
             // c# to string requirement
             exchange.privateKey = ((object)privateKey).ToString();
         }
         object walletAddress = exchange.safeString(exchangeData, "walletAddress");
-        if (isTrue(walletAddress))
+        if (isTrue(exchange.nonEmptyString(walletAddress)))
         {
             // c# to string requirement
             exchange.walletAddress = ((object)walletAddress).ToString();
@@ -1590,25 +1595,25 @@ public partial class testMainClass
         Exchange exchange = this.initOfflineExchange(exchangeName);
         // read apiKey/secret from the test file
         object apiKey = exchange.safeString(exchangeData, "apiKey");
-        if (isTrue(apiKey))
+        if (isTrue(exchange.nonEmptyString(apiKey)))
         {
             // c# to string requirement
             exchange.apiKey = ((object)apiKey).ToString();
         }
         object secret = exchange.safeString(exchangeData, "secret");
-        if (isTrue(secret))
+        if (isTrue(exchange.nonEmptyString(secret)))
         {
             // c# to string requirement
             exchange.secret = ((object)secret).ToString();
         }
         object privateKey = exchange.safeString(exchangeData, "privateKey");
-        if (isTrue(privateKey))
+        if (isTrue(exchange.nonEmptyString(privateKey)))
         {
             // c# to string requirement
             exchange.privateKey = ((object)privateKey).ToString();
         }
         object walletAddress = exchange.safeString(exchangeData, "walletAddress");
-        if (isTrue(walletAddress))
+        if (isTrue(exchange.nonEmptyString(walletAddress)))
         {
             // c# to string requirement
             exchange.walletAddress = ((object)walletAddress).ToString();
@@ -1803,7 +1808,7 @@ public partial class testMainClass
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCoincatch(), this.testDefx(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack()};
+        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCoincatch(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit()};
         await promiseAll(promises);
         object successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
         dump(add("[INFO]", successMessage));
@@ -2492,27 +2497,6 @@ public partial class testMainClass
         return true;
     }
 
-    public async virtual Task<object> testDefx()
-    {
-        Exchange exchange = this.initOfflineExchange("defx");
-        object reqHeaders = null;
-        try
-        {
-            await exchange.createOrder("DOGE/USDC:USDC", "limit", "buy", 100, 1);
-        } catch(Exception e)
-        {
-            // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
-        }
-        object id = "ccxt";
-        assert(isEqual(getValue(reqHeaders, "X-DEFX-SOURCE"), id), add(add("defx - id: ", id), " not in headers."));
-        if (!isTrue(isSync()))
-        {
-            await close(exchange);
-        }
-        return true;
-    }
-
     public async virtual Task<object> testCryptomus()
     {
         Exchange exchange = this.initOfflineExchange("cryptomus");
@@ -2600,6 +2584,27 @@ public partial class testMainClass
             reqHeaders = exchange.last_request_headers;
         }
         assert(isEqual(getValue(reqHeaders, "X-Broker-Id"), id), add(add("backpack - id: ", id), " not in headers."));
+        if (!isTrue(isSync()))
+        {
+            await close(exchange);
+        }
+        return true;
+    }
+
+    public async virtual Task<object> testToobit()
+    {
+        Exchange exchange = this.initOfflineExchange("toobit");
+        object reqHeaders = null;
+        object id = "177321641268789";
+        try
+        {
+            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert(isEqual(getValue(reqHeaders, "X-BB-API-PLATFORM"), id), add(add("toobit - id: ", id), " not in headers."));
         if (!isTrue(isSync()))
         {
             await close(exchange);

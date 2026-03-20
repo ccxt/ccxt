@@ -1236,6 +1236,10 @@ class testMainClass {
                 'wasmExecPath' => $wasm_exec_path,
             ),
         );
+        if ($exchange_name === 'grvt') {
+            $options['apiKey'] = '';
+            $options['secret'] = '';
+        }
         $exchange = init_exchange($exchange_name, $options);
         $exchange->currencies = $currencies;
         // not working in python if assigned  in the config dict
@@ -1248,19 +1252,19 @@ class testMainClass {
         $global_options = $exchange->safe_dict($exchange_data, 'options', array());
         // read apiKey/secret from the test file
         $api_key = $exchange->safe_string($exchange_data, 'apiKey');
-        if ($api_key) {
+        if ($exchange->non_empty_string($api_key)) {
             $exchange->apiKey = ((string) $api_key);
         }
         $secret = $exchange->safe_string($exchange_data, 'secret');
-        if ($secret) {
+        if ($exchange->non_empty_string($secret)) {
             $exchange->secret = ((string) $secret);
         }
         $private_key = $exchange->safe_string($exchange_data, 'privateKey');
-        if ($private_key) {
+        if ($exchange->non_empty_string($private_key)) {
             $exchange->privateKey = ((string) $private_key);
         }
         $wallet_address = $exchange->safe_string($exchange_data, 'walletAddress');
-        if ($wallet_address) {
+        if ($exchange->non_empty_string($wallet_address)) {
             $exchange->walletAddress = ((string) $wallet_address);
         }
         $accounts = $exchange->safe_list($exchange_data, 'accounts');
@@ -1317,19 +1321,19 @@ class testMainClass {
         $exchange = $this->init_offline_exchange($exchange_name);
         // read apiKey/secret from the test file
         $api_key = $exchange->safe_string($exchange_data, 'apiKey');
-        if ($api_key) {
+        if ($exchange->non_empty_string($api_key)) {
             $exchange->apiKey = ((string) $api_key);
         }
         $secret = $exchange->safe_string($exchange_data, 'secret');
-        if ($secret) {
+        if ($exchange->non_empty_string($secret)) {
             $exchange->secret = ((string) $secret);
         }
         $private_key = $exchange->safe_string($exchange_data, 'privateKey');
-        if ($private_key) {
+        if ($exchange->non_empty_string($private_key)) {
             $exchange->privateKey = ((string) $private_key);
         }
         $wallet_address = $exchange->safe_string($exchange_data, 'walletAddress');
-        if ($wallet_address) {
+        if ($exchange->non_empty_string($wallet_address)) {
             $exchange->walletAddress = ((string) $wallet_address);
         }
         $methods = $exchange->safe_value($exchange_data, 'methods', array());
@@ -1488,7 +1492,7 @@ class testMainClass {
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_coincatch(), $this->test_defx(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack()];
+        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_coincatch(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit()];
         ($promises);
         $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
         dump('[INFO]' . $success_message);
@@ -2067,23 +2071,6 @@ class testMainClass {
         return true;
     }
 
-    public function test_defx() {
-        $exchange = $this->init_offline_exchange('defx');
-        $req_headers = null;
-        try {
-            $exchange->create_order('DOGE/USDC:USDC', 'limit', 'buy', 100, 1);
-        } catch(\Throwable $e) {
-            // we expect an error here, we're only interested in the headers
-            $req_headers = $exchange->last_request_headers;
-        }
-        $id = 'ccxt';
-        assert($req_headers['X-DEFX-SOURCE'] === $id, 'defx - id: ' . $id . ' not in headers.');
-        if (!is_sync()) {
-            close($exchange);
-        }
-        return true;
-    }
-
     public function test_cryptomus() {
         $exchange = $this->init_offline_exchange('cryptomus');
         $request = null;
@@ -2156,6 +2143,23 @@ class testMainClass {
             $req_headers = $exchange->last_request_headers;
         }
         assert($req_headers['X-Broker-Id'] === $id, 'backpack - id: ' . $id . ' not in headers.');
+        if (!is_sync()) {
+            close($exchange);
+        }
+        return true;
+    }
+
+    public function test_toobit() {
+        $exchange = $this->init_offline_exchange('toobit');
+        $req_headers = null;
+        $id = '177321641268789';
+        try {
+            $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch(\Throwable $e) {
+            // we expect an error here, we're only interested in the headers
+            $req_headers = $exchange->last_request_headers;
+        }
+        assert($req_headers['X-BB-API-PLATFORM'] === $id, 'toobit - id: ' . $id . ' not in headers.');
         if (!is_sync()) {
             close($exchange);
         }

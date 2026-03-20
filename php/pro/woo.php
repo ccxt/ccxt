@@ -1106,15 +1106,10 @@ class woo extends \ccxt\async\woo {
         if (Precise::string_eq($priceString, '0') && ($avgPrice !== null)) {
             $price = $avgPrice;
         }
-        $amount = $this->safe_float($order, 'quantity');
+        $amount = $this->safe_string($order, 'quantity');
         $side = $this->safe_string_lower($order, 'side');
         $type = $this->safe_string_lower($order, 'type');
-        $filled = $this->safe_number($order, 'totalExecutedQuantity');
-        $totalExecQuantity = $this->safe_float($order, 'totalExecutedQuantity');
-        $remaining = $amount;
-        if ($amount >= $totalExecQuantity) {
-            $remaining -= $totalExecQuantity;
-        }
+        $filled = $this->safe_string_2($order, 'totalExecutedQuantity', 'executed');
         $rawStatus = $this->safe_string_2($order, 'status', 'algoStatus');
         $status = $this->parse_order_status($rawStatus);
         $trades = null;
@@ -1140,7 +1135,7 @@ class woo extends \ccxt\async\woo {
             'cost' => null,
             'average' => $avgPrice,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'status' => $status,
             'fee' => $fee,
             'trades' => $trades,

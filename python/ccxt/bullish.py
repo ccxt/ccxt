@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bullish import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, OpenInterest, Trade, Transaction, FundingRateHistory, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -99,7 +99,9 @@ class bullish(Exchange, ImplicitAPI):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': False,
                 'fetchOpenOrder': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -2710,6 +2712,113 @@ class bullish(Exchange, ImplicitAPI):
 
     def get_timestamp(self):
         return self.milliseconds() - self.options['timeDifference']
+
+    def fetch_open_interest(self, symbol: str, params={}) -> OpenInterest:
+        """
+        fetches the open interest of a specific market
+
+        https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-symbol-/tick
+
+        :param str symbol: unified symbol of the market to fetch the open interest for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `open interest structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'symbol': market['id'],
+        }
+        response = self.publicGetV1MarketsSymbolTick(self.extend(request, params))
+        #
+        #     {
+        #         "createdAtDatetime": "2021-05-20T01:01:01.000Z",
+        #         "createdAtTimestamp": "1621490985000",
+        #         "high": "1.00000000",
+        #         "low": "1.00000000",
+        #         "bestBid": "1.00000000",
+        #         "bidVolume": "1.00000000",
+        #         "bestAsk": "1.00000000",
+        #         "askVolume": "1.00000000",
+        #         "vwap": "1.00000000",
+        #         "open": "1.00000000",
+        #         "close": "1.00000000",
+        #         "last": "1.00000000",
+        #         "change": "1.00000000",
+        #         "percentage": "1.00000000",
+        #         "average": "1.00000000",
+        #         "baseVolume": "1.00000000",
+        #         "quoteVolume": "1.00000000",
+        #         "bancorPrice": "1.00000000",
+        #         "markPrice": "19999.00",
+        #         "fundingRate": "0.01",
+        #         "openInterest": "100000.32452",
+        #         "lastTradeDatetime": "2021-05-20T01:01:01.000Z",
+        #         "lastTradeTimestamp": "1621490985000",
+        #         "lastTradeQuantity": "1.00000000",
+        #         "ammData": [
+        #             {
+        #                 "feeTierId": "1",
+        #                 "bidSpreadFee": "0.00040000",
+        #                 "askSpreadFee": "0.00040000",
+        #                 "baseReservesQuantity": "245.56257825",
+        #                 "quoteReservesQuantity": "3424383.3629",
+        #                 "currentPrice": "16856.0000"
+        #             }
+        #         ]
+        #     }
+        #
+        return self.parse_open_interest(response, market)
+
+    def parse_open_interest(self, interest, market: Market = None):
+        #
+        #     {
+        #         "createdAtDatetime": "2021-05-20T01:01:01.000Z",
+        #         "createdAtTimestamp": "1621490985000",
+        #         "high": "1.00000000",
+        #         "low": "1.00000000",
+        #         "bestBid": "1.00000000",
+        #         "bidVolume": "1.00000000",
+        #         "bestAsk": "1.00000000",
+        #         "askVolume": "1.00000000",
+        #         "vwap": "1.00000000",
+        #         "open": "1.00000000",
+        #         "close": "1.00000000",
+        #         "last": "1.00000000",
+        #         "change": "1.00000000",
+        #         "percentage": "1.00000000",
+        #         "average": "1.00000000",
+        #         "baseVolume": "1.00000000",
+        #         "quoteVolume": "1.00000000",
+        #         "bancorPrice": "1.00000000",
+        #         "markPrice": "19999.00",
+        #         "fundingRate": "0.01",
+        #         "openInterest": "100000.32452",
+        #         "lastTradeDatetime": "2021-05-20T01:01:01.000Z",
+        #         "lastTradeTimestamp": "1621490985000",
+        #         "lastTradeQuantity": "1.00000000",
+        #         "ammData": [
+        #             {
+        #                 "feeTierId": "1",
+        #                 "bidSpreadFee": "0.00040000",
+        #                 "askSpreadFee": "0.00040000",
+        #                 "baseReservesQuantity": "245.56257825",
+        #                 "quoteReservesQuantity": "3424383.3629",
+        #                 "currentPrice": "16856.0000"
+        #             }
+        #         ]
+        #     }
+        #
+        openInterest = self.safe_string(interest, 'openInterest')
+        return self.safe_open_interest({
+            'info': interest,
+            'symbol': self.safe_string(market, 'symbol'),
+            'openInterestAmount': openInterest,
+            'openInterestValue': None,
+            'timestamp': self.safe_string(interest, 'createdAtTimestamp'),
+            'datetime': self.safe_string(interest, 'createdAtDatetime'),
+            'baseVolume': openInterest,
+            'quoteVolume': None,
+        }, market)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = self.omit(params, self.extract_params(path))

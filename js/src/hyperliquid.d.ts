@@ -101,6 +101,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @param {string} [params.dex] for hip3 markets, the dex name, eg: 'xyz'
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {boolean} [params.enableUnifiedMargin] enable unified margin, CCXT tries to auto-detects this value but you can override it
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: {}): Promise<Balances>;
@@ -230,6 +231,16 @@ export default class hyperliquid extends Exchange {
     approveBuilderFee(builder: string, maxFeeRate: string): Promise<any>;
     initializeClient(): Promise<boolean>;
     handleBuilderFeeApproval(): Promise<boolean>;
+    /**
+     * @method
+     * @name hyperliquid#isUnifiedEnabled
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-abstraction-state
+     * @description returns enableUnifiedMargin so the user can check if unified account is enabled
+     * @param {string} method the method for which we want to check if unified margin is enabled, this is used to check options for specific methods (e.g. fetchBalance can have a specific option to enable unified margin)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {bool} enableUnifiedMargin
+     */
+    isUnifiedEnabled(method: string, params?: {}): Promise<any[]>;
     /**
      * @method
      * @name hyperliquid#setUserAbstraction

@@ -191,9 +191,10 @@ class independentreserve extends Exchange {
                         'takeProfitPrice' => false,
                         'attachedStopLossTakeProfit' => null,
                         'timeInForce' => array(
-                            'IOC' => false,
-                            'FOK' => false,
-                            'PO' => false,
+                            'GTC' => true,
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
                             'GTD' => false,
                         ),
                         'hedged' => false,
@@ -607,7 +608,7 @@ class independentreserve extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $orderType,
-            'timeInForce' => null,
+            'timeInForce' => $this->parse_time_in_force($this->safe_string($order, 'TimeInForce')),
             'postOnly' => null,
             'side' => $side,
             'price' => $this->safe_string($order, 'Price'),
@@ -636,8 +637,19 @@ class independentreserve extends Exchange {
             'Cancelled' => 'canceled',
             'PartiallyFilledAndExpired' => 'canceled',
             'Expired' => 'canceled',
+            'Failed' => 'canceled',
         );
         return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_time_in_force(?string $timeInForce) {
+        $timeInForces = array(
+            'Gtc' => 'GTC',
+            'Moc' => 'PO',
+            'Fok' => 'FOK',
+            'Ioc' => 'IOC',
+        );
+        return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {

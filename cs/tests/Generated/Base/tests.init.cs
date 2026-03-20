@@ -9,7 +9,7 @@ public partial class BaseTest
 {
         async public Task baseTestsInit()
         {
-            testLanguageSpecific();
+            await testLanguageSpecific();
             testConstants();
             testAfterConstructor();
             testExtend();
@@ -30,6 +30,7 @@ public partial class BaseTest
             testOmit();
             testGroupBy();
             testIndexBy();
+            testInArray();
             testFilterBy();
             testHandleMethods();
             testRemoveRepeatedElementsFromArray();
@@ -41,8 +42,10 @@ public partial class BaseTest
             await testSetMarketsFromExchange();
             testEthMethods();
             testKeysort();
+            testImplodeParams();
             testUnique();
             await testSleep();
             testIo();
+            testIsJsonEncodedObject();
         }
 }

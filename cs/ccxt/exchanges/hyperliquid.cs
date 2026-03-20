@@ -212,6 +212,7 @@ public partial class hyperliquid : Exchange
             { "options", new Dictionary<string, object>() {
                 { "defaultType", "swap" },
                 { "sandboxMode", false },
+                { "builderFee", true },
                 { "defaultSlippage", 0.05 },
                 { "marketHelperProps", new List<object>() {"hip3TokensByName", "cachedCurrenciesById"} },
                 { "zeroAddress", "0x0000000000000000000000000000000000000000" },
@@ -594,7 +595,8 @@ public partial class hyperliquid : Exchange
         {
             // builder-deployed perp dexs start at 110000
             object dex = getValue(fetchDexes, i);
-            object offset = add(110000, multiply((subtract(i, 1)), 10000));
+            object secondPart = multiply((subtract(i, 1)), 10000);
+            object offset = this.sum(110000, secondPart);
             ((IDictionary<string,object>)perpDexesOffset)[(string)getValue(dex, "name")] = offset;
         }
         object fetchDexesList = new List<object>() {};
@@ -910,6 +912,10 @@ public partial class hyperliquid : Exchange
             object quoteTokenInfo = this.safeDict(tokens, quoteTokenPos, new Dictionary<string, object>() {});
             object baseName = this.safeString(baseTokenInfo, "name");
             object quoteId = this.safeString(quoteTokenInfo, "name");
+            if (isTrue(isTrue(isEqual(baseName, null)) || isTrue(isEqual(quoteId, null))))
+            {
+                continue;
+            }
             // do spot currency mapping
             object spotCurrencyMapping = this.safeDict(this.options, "spotCurrencyMapping", new Dictionary<string, object>() {});
             object mappedBaseName = this.safeString(spotCurrencyMapping, baseName, baseName);
@@ -1124,6 +1130,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @param {string} [params.dex] for hip3 markets, the dex name, eg: 'xyz'
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {boolean} [params.enableUnifiedMargin] enable unified margin, CCXT tries to auto-detects this value but you can override it
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
@@ -1141,7 +1148,12 @@ public partial class hyperliquid : Exchange
         var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBalance", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        object isSpot = (isEqual(type, "spot"));
+        object isUnifiedEnabled = null;
+        var isUnifiedEnabledparametersVariable = await this.isUnifiedEnabled("fetchBalance", parameters);
+        isUnifiedEnabled = ((IList<object>)isUnifiedEnabledparametersVariable)[0];
+        parameters = ((IList<object>)isUnifiedEnabledparametersVariable)[1];
+        object dex = this.safeString(parameters, "dex");
+        object isSpot = isTrue((isTrue((isEqual(type, "spot"))) || isTrue(isUnifiedEnabled))) && isTrue((isEqual(dex, null)));
         object request = new Dictionary<string, object>() {
             { "type", ((bool) isTrue((isSpot))) ? "spotClearinghouseState" : "clearinghouseState" },
             { "user", userAddress },
@@ -1966,7 +1978,7 @@ public partial class hyperliquid : Exchange
     {
         try
         {
-            await promiseAll(new List<object> {this.handleBuilderFeeApproval(), this.setRef()});
+            await promiseAll(new List<object> {this.handleBuilderFeeApproval(), this.setRef(), this.isUnifiedEnabled("fetchBalance", new Dictionary<string, object>() {})}); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
         } catch(Exception e)
         {
             return false;
@@ -1997,6 +2009,49 @@ public partial class hyperliquid : Exchange
             ((IDictionary<string,object>)this.options)["builderFee"] = false; // disable builder fee if an error occurs
         }
         return true;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#isUnifiedEnabled
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-abstraction-state
+     * @description returns enableUnifiedMargin so the user can check if unified account is enabled
+     * @param {string} method the method for which we want to check if unified margin is enabled, this is used to check options for specific methods (e.g. fetchBalance can have a specific option to enable unified margin)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {bool} enableUnifiedMargin
+     */
+    public async virtual Task<object> isUnifiedEnabled(object method, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object userAddress = null;
+        var userAddressparametersVariable = this.handlePublicAddress("isUnifiedEnabled", parameters);
+        userAddress = ((IList<object>)userAddressparametersVariable)[0];
+        parameters = ((IList<object>)userAddressparametersVariable)[1];
+        object enableUnifiedMargin = null;
+        var enableUnifiedMarginparametersVariable = this.handleOptionAndParams(parameters, method, "enableUnifiedMargin");
+        enableUnifiedMargin = ((IList<object>)enableUnifiedMarginparametersVariable)[0];
+        parameters = ((IList<object>)enableUnifiedMarginparametersVariable)[1];
+        if (isTrue(isEqual(enableUnifiedMargin, null)))
+        {
+            object request = new Dictionary<string, object>() {
+                { "type", "userAbstraction" },
+                { "user", userAddress },
+            };
+            object response = null;
+            try
+            {
+                response = await this.publicPostInfo(this.extend(request, parameters));
+            } catch(Exception e)
+            {
+                response = null; // ignore this error and assume unified margin is not enabled
+            }
+            //
+            // "unifiedAccount" | "portfolioMargin" | "disabled" | "default" | "dexAbstraction"
+            //
+            enableUnifiedMargin = isEqual(response, "\"unifiedAccount\"");
+            ((IDictionary<string,object>)this.options)["enableUnifiedMargin"] = enableUnifiedMargin; // cache this for future calls
+        }
+        return new List<object>() {enableUnifiedMargin, parameters};
     }
 
     /**
@@ -5093,16 +5148,19 @@ public partial class hyperliquid : Exchange
         object id = this.safeString(income, "hash");
         object timestamp = this.safeInteger(income, "time");
         object delta = this.safeDict(income, "delta");
-        object baseId = this.safeString(delta, "coin");
-        object marketSymbol = add(baseId, "/USDC:USDC");
-        market = this.safeMarket(marketSymbol);
-        object symbol = getValue(market, "symbol");
+        object coin = this.safeString(delta, "coin");
+        object marketId = null;
+        if (isTrue(!isEqual(coin, null)))
+        {
+            marketId = this.coinToMarketId(coin);
+        }
+        market = this.safeMarket(marketId, market);
         object amount = this.safeString(delta, "usdc");
-        object code = this.safeCurrencyCode("USDC");
+        object code = this.safeString(market, "settle", "USDC");
         object rate = this.safeNumber(delta, "fundingRate");
         return new Dictionary<string, object>() {
             { "info", income },
-            { "symbol", symbol },
+            { "symbol", getValue(market, "symbol") },
             { "code", code },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },

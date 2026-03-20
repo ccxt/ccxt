@@ -196,9 +196,10 @@ export default class independentreserve extends Exchange {
                         'takeProfitPrice': false,
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
-                            'IOC': false,
-                            'FOK': false,
-                            'PO': false,
+                            'GTC': true,
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
                             'GTD': false,
                         },
                         'hedged': false,
@@ -620,7 +621,7 @@ export default class independentreserve extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': orderType,
-            'timeInForce': undefined,
+            'timeInForce': this.parseTimeInForce (this.safeString (order, 'TimeInForce')),
             'postOnly': undefined,
             'side': side,
             'price': this.safeString (order, 'Price'),
@@ -649,8 +650,19 @@ export default class independentreserve extends Exchange {
             'Cancelled': 'canceled',
             'PartiallyFilledAndExpired': 'canceled',
             'Expired': 'canceled',
+            'Failed': 'canceled',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    parseTimeInForce (timeInForce: Str) {
+        const timeInForces: Dict = {
+            'Gtc': 'GTC',
+            'Moc': 'PO',
+            'Fok': 'FOK',
+            'Ioc': 'IOC',
+        };
+        return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
     /**

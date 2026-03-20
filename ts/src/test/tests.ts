@@ -1371,6 +1371,10 @@ class testMainClass {
                 "wasmExecPath": wasmExecPath
             }
         };
+        if (exchangeName === 'grvt') {
+            options['apiKey'] = "";
+            options['secret'] = "";
+        }
         const exchange = initExchange (exchangeName, options);
         exchange.currencies = currencies;
         // not working in python if assigned  in the config dict
@@ -1384,22 +1388,22 @@ class testMainClass {
 
         // read apiKey/secret from the test file
         const apiKey = exchange.safeString (exchangeData, 'apiKey');
-        if (apiKey) {
+        if (exchange.nonEmptyString (apiKey)) {
             // c# to string requirement
             exchange.apiKey = apiKey.toString ();
         }
         const secret = exchange.safeString (exchangeData, 'secret');
-        if (secret) {
+        if (exchange.nonEmptyString (secret)) {
             // c# to string requirement
             exchange.secret = secret.toString ();
         }
         const privateKey = exchange.safeString (exchangeData, 'privateKey');
-        if (privateKey) {
+        if (exchange.nonEmptyString (privateKey)) {
             // c# to string requirement
             exchange.privateKey = privateKey.toString ();
         }
         const walletAddress = exchange.safeString (exchangeData, 'walletAddress');
-        if (walletAddress) {
+        if (exchange.nonEmptyString (walletAddress)) {
             // c# to string requirement
             exchange.walletAddress = walletAddress.toString ();
         }
@@ -1458,22 +1462,22 @@ class testMainClass {
         const exchange = this.initOfflineExchange (exchangeName);
         // read apiKey/secret from the test file
         const apiKey = exchange.safeString (exchangeData, 'apiKey');
-        if (apiKey) {
+        if (exchange.nonEmptyString (apiKey)) {
             // c# to string requirement
             exchange.apiKey = apiKey.toString ();
         }
         const secret = exchange.safeString (exchangeData, 'secret');
-        if (secret) {
+        if (exchange.nonEmptyString (secret)) {
             // c# to string requirement
             exchange.secret = secret.toString ();
         }
         const privateKey = exchange.safeString (exchangeData, 'privateKey');
-        if (privateKey) {
+        if (exchange.nonEmptyString (privateKey)) {
             // c# to string requirement
             exchange.privateKey = privateKey.toString ();
         }
         const walletAddress = exchange.safeString (exchangeData, 'walletAddress');
-        if (walletAddress) {
+        if (exchange.nonEmptyString (walletAddress)) {
             // c# to string requirement
             exchange.walletAddress = walletAddress.toString ();
         }
@@ -1660,11 +1664,11 @@ class testMainClass {
             this.testParadex (),
             this.testHashkey (),
             this.testCoincatch (),
-            this.testDefx (),
             this.testCryptomus (),
             this.testDerive (),
             this.testModeTrade (),
-            this.testBackpack ()
+            this.testBackpack (),
+            this.testToobit ()
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -2223,24 +2227,6 @@ class testMainClass {
         return true;
     }
 
-
-    async testDefx () {
-        const exchange = this.initOfflineExchange ('defx');
-        let reqHeaders = undefined;
-        try {
-            await exchange.createOrder ('DOGE/USDC:USDC', 'limit', 'buy', 100, 1);
-        } catch (e) {
-            // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
-        }
-        const id = 'ccxt';
-        assert (reqHeaders['X-DEFX-SOURCE'] === id, 'defx - id: ' + id + ' not in headers.');
-        if (!isSync ()) {
-            await close (exchange);
-        }
-        return true;
-    }
-
     async testCryptomus () {
         const exchange = this.initOfflineExchange ('cryptomus');
         let request = undefined;
@@ -2313,6 +2299,23 @@ class testMainClass {
             reqHeaders = exchange.last_request_headers;
         }
         assert (reqHeaders['X-Broker-Id'] === id, 'backpack - id: ' + id + ' not in headers.');
+        if (!isSync ()) {
+            await close (exchange);
+        }
+        return true;
+    }
+
+    async testToobit () {
+        const exchange = this.initOfflineExchange ('toobit');
+        let reqHeaders = undefined;
+        const id = '177321641268789';
+        try {
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert (reqHeaders['X-BB-API-PLATFORM'] === id, 'toobit - id: ' + id + ' not in headers.');
         if (!isSync ()) {
             await close (exchange);
         }

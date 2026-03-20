@@ -80,7 +80,7 @@ class whitebit(Exchange, ImplicitAPI):
                 'fetchFundingHistory': True,
                 'fetchFundingLimits': True,
                 'fetchFundingRate': True,
-                'fetchFundingRateHistory': False,
+                'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': False,
@@ -205,6 +205,7 @@ class whitebit(Exchange, ImplicitAPI):
                             'assets',
                             'collateral/markets',
                             'fee',
+                            'funding-history/{market}',
                             'orderbook/depth/{market}',
                             'orderbook/{market}',
                             'ticker',
@@ -3853,6 +3854,62 @@ class whitebit(Exchange, ImplicitAPI):
     def is_fiat(self, currency: str) -> bool:
         fiatCurrencies = self.safe_value(self.options, 'fiatCurrencies', [])
         return self.in_array(currency, fiatCurrencies)
+
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetches historical funding rate prices
+
+        https://docs.whitebit.com/api-reference/market-data/funding-history
+
+        :param str symbol: unified symbol of the market to fetch the funding rate history for
+        :param int [since]: timestamp in ms of the earliest funding rate to fetch
+        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>` to fetch(default 100, max 1000)
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest funding rate
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        maxLimit = 1000
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, maxLimit)
+        await self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'market': market['id'],
+        }
+        if since is not None:
+            request['startDate'] = int(round(since / 1000))
+        request, params = self.handle_until_option('until_timestamp', request, params, 0.001)
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.v4PublicGetFundingHistoryMarket(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "fundingTime": "1773648000",
+        #             "fundingRate": "-0.00004593",
+        #             "market": "ETH_PERP",
+        #             "settlementPrice": "2248.47",
+        #             "rateCalculatedTime": "1773619200"
+        #         }
+        #     ]
+        #
+        return self.parse_funding_rate_histories(response, market, since, limit)
+
+    def parse_funding_rate_history(self, info, market: Market = None):
+        marketId = self.safe_string(info, 'market')
+        market = self.safe_market(marketId, market)
+        timestamp = self.safe_timestamp(info, 'fundingTime')
+        return {
+            'info': info,
+            'symbol': market['symbol'],
+            'fundingRate': self.safe_number(info, 'fundingRate'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
 
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']

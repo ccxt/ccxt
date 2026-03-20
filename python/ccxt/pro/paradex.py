@@ -277,16 +277,16 @@ class paradex(ccxt.async_support.paradex):
             },
         }
         messageHashes = []
-        if isinstance(symbols, list):
+        if symbols is not None and isinstance(symbols, list):
             for i in range(0, len(symbols)):
                 messageHash = channel + '.' + symbols[i]
                 messageHashes.append(messageHash)
         else:
             messageHashes.append(channel)
-        newTickers = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes)
+        newTicker = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes)
         if self.newUpdates:
             result: dict = {}
-            result[newTickers['symbol']] = newTickers
+            result[newTicker['symbol']] = newTicker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 

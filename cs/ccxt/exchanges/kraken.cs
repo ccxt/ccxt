@@ -480,6 +480,7 @@ public partial class kraken : Exchange
                 } },
             } },
             { "precisionMode", TICK_SIZE },
+            { "rollingWindowSize", 10000 },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
                     { "EQuery:Invalid asset pair", typeof(BadSymbol) },

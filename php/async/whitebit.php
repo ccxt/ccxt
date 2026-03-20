@@ -74,7 +74,7 @@ class whitebit extends Exchange {
                 'fetchFundingHistory' => true,
                 'fetchFundingLimits' => true,
                 'fetchFundingRate' => true,
-                'fetchFundingRateHistory' => false,
+                'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
@@ -199,6 +199,7 @@ class whitebit extends Exchange {
                             'assets',
                             'collateral/markets',
                             'fee',
+                            'funding-history/{market}',
                             'orderbook/depth/{market}',
                             'orderbook/{market}',
                             'ticker',
@@ -4153,6 +4154,70 @@ class whitebit extends Exchange {
     public function is_fiat(string $currency): bool {
         $fiatCurrencies = $this->safe_value($this->options, 'fiatCurrencies', array());
         return $this->in_array($currency, $fiatCurrencies);
+    }
+
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches historical funding rate prices
+             *
+             * @see https://docs.whitebit.com/api-reference/market-data/funding-history
+             *
+             * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
+             * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
+             * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch (default 100, max 1000)
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest funding rate
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            }
+            $maxLimit = 1000;
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, $maxLimit));
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'market' => $market['id'],
+            );
+            if ($since !== null) {
+                $request['startDate'] = (int) round($since / 1000);
+            }
+            list($request, $params) = $this->handle_until_option('until_timestamp', $request, $params, 0.001);
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->v4PublicGetFundingHistoryMarket ($this->extend($request, $params)));
+            //
+            //     array(
+            //         {
+            //             "fundingTime" => "1773648000",
+            //             "fundingRate" => "-0.00004593",
+            //             "market" => "ETH_PERP",
+            //             "settlementPrice" => "2248.47",
+            //             "rateCalculatedTime" => "1773619200"
+            //         }
+            //     )
+            //
+            return $this->parse_funding_rate_histories($response, $market, $since, $limit);
+        }) ();
+    }
+
+    public function parse_funding_rate_history($info, ?array $market = null) {
+        $marketId = $this->safe_string($info, 'market');
+        $market = $this->safe_market($marketId, $market);
+        $timestamp = $this->safe_timestamp($info, 'fundingTime');
+        return array(
+            'info' => $info,
+            'symbol' => $market['symbol'],
+            'fundingRate' => $this->safe_number($info, 'fundingRate'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
     }
 
     public function nonce() {

@@ -40,11 +40,25 @@
             {
                 "description": "my trades",
                 "method": "fetchMyTrades",
-                "url": "https://mainnet.zklighter.elliot.ai/api/v1/trades?sort_by=block_height&limit=2&account_index=715085&market_id=35",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/trades?sort_by=timestamp&limit=2&account_index=715085&market_id=35",
                 "input": [
                     "LTC/USDC:USDC",
                     null,
                     2
+                ],
+                "output": null
+            },
+            {
+                "description": "my trades with until",
+                "method": "fetchMyTrades",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/trades?sort_by=timestamp&limit=2&account_index=715085&market_id=35&from=1768189847017",
+                "input": [
+                    "LTC/USDC:USDC",
+                    null,
+                    2,
+                    {
+                        "until": 1768189847017
+                    }
                 ],
                 "output": null
             }

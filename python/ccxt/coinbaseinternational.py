@@ -15,6 +15,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DuplicateOrderId
+from ccxt.base.errors import NotSupported
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -235,6 +236,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                     'is a required field': BadRequest,
                     'Not Found': BadRequest,
                     'ip not allowed': AuthenticationError,
+                    'cbe spot routing instrument not supported': NotSupported,
                 },
             },
             'timeframes': {

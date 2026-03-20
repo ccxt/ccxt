@@ -216,12 +216,13 @@ func  (this *GateCore) CreateOrdersWs(orders interface{}, optionalArgs ...interf
             if ccxt.IsTrue(!ccxt.IsEqual(ccxt.GetValue(market, "swap"), true)) {
                 panic(ccxt.NotSupported(ccxt.Add(this.Id, " createOrdersWs is not supported for swap markets")))
             }
+            // todo add swap support
             var messageType interface{} = this.GetTypeByMarket(market)
             var channel interface{} = ccxt.Add(messageType, ".order_batch_place")
             var url interface{} = this.GetUrlByMarket(market)
         
-            retRes1908 := (<-this.Authenticate(url, messageType))
-            ccxt.PanicOnError(retRes1908)
+            retRes1918 := (<-this.Authenticate(url, messageType))
+            ccxt.PanicOnError(retRes1918)
         
             rawOrders:= (<-this.RequestPrivate(url, request, channel))
             ccxt.PanicOnError(rawOrders)
@@ -236,7 +237,7 @@ func  (this *GateCore) CreateOrdersWs(orders interface{}, optionalArgs ...interf
  * @method
  * @name gate#cancelAllOrdersWs
  * @description cancel all open orders
- * @see https://www.gate.io/docs/developers/futures/ws/en/#cancel-all-open-orders-matched
+ * @see https://www.gate.com/docs/developers/futures/ws/en/#cancel-matched-open-orders
  * @see https://www.gate.io/docs/developers/apiv4/ws/en/#order-cancel-all-with-specified-currency-pair
  * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -253,8 +254,8 @@ func  (this *GateCore) CancelAllOrdersWs(optionalArgs ...interface{}) <- chan in
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes2078 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2078)
+            retRes2088 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2088)
             var market interface{} = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(symbol, nil))), nil, this.Market(symbol))
             var trigger interface{} = this.SafeBool2(params, "stop", "trigger")
             var messageType interface{} = this.GetTypeByMarket(market)
@@ -271,8 +272,8 @@ func  (this *GateCore) CancelAllOrdersWs(optionalArgs ...interface{}) <- chan in
             request := ccxt.GetValue(requestrequestParamsVariable,0)
             requestParams := ccxt.GetValue(requestrequestParamsVariable,1)
         
-            retRes2178 := (<-this.Authenticate(url, messageType))
-            ccxt.PanicOnError(retRes2178)
+            retRes2188 := (<-this.Authenticate(url, messageType))
+            ccxt.PanicOnError(retRes2188)
         
             rawOrders:= (<-this.RequestPrivate(url, this.Extend(request, requestParams), channel))
             ccxt.PanicOnError(rawOrders)
@@ -305,8 +306,8 @@ func  (this *GateCore) CancelOrderWs(id interface{}, optionalArgs ...interface{}
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes2358 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2358)
+            retRes2368 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2368)
             var market interface{} = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(symbol, nil))), nil, this.Market(symbol))
             var trigger interface{} = this.SafeValueN(params, []interface{}{"is_stop_order", "stop", "trigger"}, false)
             params = this.Omit(params, []interface{}{"is_stop_order", "stop", "trigger"})
@@ -320,8 +321,8 @@ func  (this *GateCore) CancelOrderWs(id interface{}, optionalArgs ...interface{}
             var channel interface{} = ccxt.Add(messageType, ".order_cancel")
             var url interface{} = this.GetUrlByMarket(market)
         
-            retRes2448 := (<-this.Authenticate(url, messageType))
-            ccxt.PanicOnError(retRes2448)
+            retRes2458 := (<-this.Authenticate(url, messageType))
+            ccxt.PanicOnError(retRes2458)
             ccxt.AddElementToObject(request, "order_id", ccxt.ToString(id))
         
             res:= (<-this.RequestPrivate(url, this.Extend(request, requestParams), channel))
@@ -360,16 +361,16 @@ func  (this *GateCore) EditOrderWs(id interface{}, symbol interface{}, typeVar i
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes2668 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2668)
+            retRes2678 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2678)
             var market interface{} = this.Market(symbol)
             var extendedRequest interface{} = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
             var messageType interface{} = this.GetTypeByMarket(market)
             var channel interface{} = ccxt.Add(messageType, ".order_amend")
             var url interface{} = this.GetUrlByMarket(market)
         
-            retRes2728 := (<-this.Authenticate(url, messageType))
-            ccxt.PanicOnError(retRes2728)
+            retRes2738 := (<-this.Authenticate(url, messageType))
+            ccxt.PanicOnError(retRes2738)
         
             rawOrder:= (<-this.RequestPrivate(url, extendedRequest, channel))
             ccxt.PanicOnError(rawOrder)
@@ -405,8 +406,8 @@ func  (this *GateCore) FetchOrderWs(id interface{}, optionalArgs ...interface{})
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes2938 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2938)
+            retRes2948 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2948)
             var market interface{} = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(symbol, nil))), nil, this.Market(symbol))
             requestrequestParamsVariable := this.FetchOrderRequest(id, symbol, params)
             request := ccxt.GetValue(requestrequestParamsVariable,0)
@@ -415,8 +416,8 @@ func  (this *GateCore) FetchOrderWs(id interface{}, optionalArgs ...interface{})
             var channel interface{} = ccxt.Add(messageType, ".order_status")
             var url interface{} = this.GetUrlByMarket(market)
         
-            retRes2998 := (<-this.Authenticate(url, messageType))
-            ccxt.PanicOnError(retRes2998)
+            retRes3008 := (<-this.Authenticate(url, messageType))
+            ccxt.PanicOnError(retRes3008)
         
             rawOrder:= (<-this.RequestPrivate(url, this.Extend(request, requestParams), channel))
             ccxt.PanicOnError(rawOrder)
@@ -452,9 +453,9 @@ func  (this *GateCore) FetchOpenOrdersWs(optionalArgs ...interface{}) <- chan in
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-                retRes31615 :=  (<-this.FetchOrdersByStatusWs("open", symbol, since, limit, params))
-                ccxt.PanicOnError(retRes31615)
-                ch <- retRes31615
+                retRes31715 :=  (<-this.FetchOrdersByStatusWs("open", symbol, since, limit, params))
+                ccxt.PanicOnError(retRes31715)
+                ch <- retRes31715
                 return nil
         
             }()
@@ -485,9 +486,9 @@ func  (this *GateCore) FetchClosedOrdersWs(optionalArgs ...interface{}) <- chan 
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-                retRes33115 :=  (<-this.FetchOrdersByStatusWs("finished", symbol, since, limit, params))
-                ccxt.PanicOnError(retRes33115)
-                ch <- retRes33115
+                retRes33215 :=  (<-this.FetchOrdersByStatusWs("finished", symbol, since, limit, params))
+                ccxt.PanicOnError(retRes33215)
+                ch <- retRes33215
                 return nil
         
             }()
@@ -521,8 +522,8 @@ func  (this *GateCore) FetchOrdersByStatusWs(status interface{}, optionalArgs ..
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes3498 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3498)
+            retRes3508 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes3508)
             var market interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -539,8 +540,8 @@ func  (this *GateCore) FetchOrdersByStatusWs(status interface{}, optionalArgs ..
             var channel interface{} = ccxt.Add(messageType, ".order_list")
             var url interface{} = this.GetUrlByMarket(market)
         
-            retRes3638 := (<-this.Authenticate(url, messageType))
-            ccxt.PanicOnError(retRes3638)
+            retRes3648 := (<-this.Authenticate(url, messageType))
+            ccxt.PanicOnError(retRes3648)
         
             rawOrders:= (<-this.RequestPrivate(url, this.Extend(newRequest, requestParams), channel))
             ccxt.PanicOnError(rawOrders)
@@ -561,6 +562,7 @@ func  (this *GateCore) FetchOrdersByStatusWs(status interface{}, optionalArgs ..
  * @see https://www.gate.com/docs/developers/futures/ws/en/#order-book-api
  * @see https://www.gate.com/docs/developers/futures/ws/en/#order-book-v2-api
  * @see https://www.gate.com/docs/developers/delivery/ws/en/#order-book-api
+ * @see https://www.gate.com/docs/developers/options/ws/en/#order-book-channel
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -576,8 +578,8 @@ func  (this *GateCore) WatchOrderBook(symbol interface{}, optionalArgs ...interf
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes3848 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3848)
+            retRes3868 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes3868)
             var market interface{} = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var marketId interface{} = ccxt.GetValue(market, "id")
@@ -591,6 +593,9 @@ func  (this *GateCore) WatchOrderBook(symbol interface{}, optionalArgs ...interf
             var payload interface{} = []interface{}{marketId, interval}
             if ccxt.IsTrue(ccxt.IsEqual(limit, nil)) {
                 limit = 100 // max 100 atm
+                if ccxt.IsTrue(ccxt.IsEqual(messageType, "options")) {
+                    limit = 50 // max 50 for options
+                }
             }
             if ccxt.IsTrue(ccxt.GetValue(market, "contract")) {
                 var stringLimit interface{} = ccxt.ToString(limit)
@@ -626,8 +631,8 @@ func  (this *GateCore) UnWatchOrderBook(symbol interface{}, optionalArgs ...inte
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes4188 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4188)
+            retRes4238 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes4238)
             var market interface{} = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var marketId interface{} = ccxt.GetValue(market, "id")
@@ -647,9 +652,9 @@ func  (this *GateCore) UnWatchOrderBook(symbol interface{}, optionalArgs ...inte
                 ccxt.AppendToArray(&payload, stringLimit)
             }
         
-                retRes43515 :=  (<-this.UnSubscribePublicMultiple(url, "orderbook", []interface{}{symbol}, []interface{}{messageHash}, []interface{}{subMessageHash}, payload, channel, params))
-                ccxt.PanicOnError(retRes43515)
-                ch <- retRes43515
+                retRes44015 :=  (<-this.UnSubscribePublicMultiple(url, "orderbook", []interface{}{symbol}, []interface{}{messageHash}, []interface{}{subMessageHash}, payload, channel, params))
+                ccxt.PanicOnError(retRes44015)
+                ch <- retRes44015
                 return nil
         
             }()
@@ -802,6 +807,8 @@ func  (this *GateCore) HandleDelta(orderbook interface{}, delta interface{})  {
  * @method
  * @name gate#watchTicker
  * @see https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel
+ * @see https://www.gate.com/docs/developers/futures/ws/en/#tickers-api
+ * @see https://www.gate.com/docs/developers/delivery/ws/en/#tickers-api
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -815,8 +822,8 @@ func  (this *GateCore) WatchTicker(symbol interface{}, optionalArgs ...interface
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes5968 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes5968)
+            retRes6038 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6038)
             var market interface{} = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             ccxt.AddElementToObject(params, "callerMethodName", "watchTicker")
@@ -834,6 +841,8 @@ func  (this *GateCore) WatchTicker(symbol interface{}, optionalArgs ...interface
  * @method
  * @name gate#watchTickers
  * @see https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel
+ * @see https://www.gate.com/docs/developers/futures/ws/en/#tickers-api
+ * @see https://www.gate.com/docs/developers/delivery/ws/en/#tickers-api
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -849,11 +858,11 @@ func  (this *GateCore) WatchTickers(optionalArgs ...interface{}) <- chan interfa
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-                retRes61415 :=  (<-this.SubscribeWatchTickersAndBidsAsks(symbols, "watchTickers", this.Extend(map[string]interface{} {
+                retRes62315 :=  (<-this.SubscribeWatchTickersAndBidsAsks(symbols, "watchTickers", this.Extend(map[string]interface{} {
                 "method": "tickers",
             }, params)))
-                ccxt.PanicOnError(retRes61415)
-                ch <- retRes61415
+                ccxt.PanicOnError(retRes62315)
+                ch <- retRes62315
                 return nil
         
             }()
@@ -885,6 +894,7 @@ func  (this *GateCore) HandleTicker(client interface{}, message interface{})  {
  * @name gate#watchBidsAsks
  * @see https://www.gate.io/docs/developers/apiv4/ws/en/#best-bid-or-ask-price
  * @see https://www.gate.io/docs/developers/apiv4/ws/en/#order-book-channel
+ * @see https://www.gate.com/docs/developers/options/ws/en/#best-bid-or-ask-price
  * @description watches best bid & ask for symbols
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -900,11 +910,11 @@ func  (this *GateCore) WatchBidsAsks(optionalArgs ...interface{}) <- chan interf
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-                retRes65015 :=  (<-this.SubscribeWatchTickersAndBidsAsks(symbols, "watchBidsAsks", this.Extend(map[string]interface{} {
+                retRes66015 :=  (<-this.SubscribeWatchTickersAndBidsAsks(symbols, "watchBidsAsks", this.Extend(map[string]interface{} {
                 "method": "book_ticker",
             }, params)))
-                ccxt.PanicOnError(retRes65015)
-                ch <- retRes65015
+                ccxt.PanicOnError(retRes66015)
+                ch <- retRes66015
                 return nil
         
             }()
@@ -942,8 +952,8 @@ func  (this *GateCore) SubscribeWatchTickersAndBidsAsks(optionalArgs ...interfac
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes6758 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6758)
+            retRes6858 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6858)
             callerMethodNameparamsVariable := this.HandleParamString(params, "callerMethodName", callerMethodName)
             callerMethodName = ccxt.GetValue(callerMethodNameparamsVariable,0)
             params = ccxt.GetValue(callerMethodNameparamsVariable,1)
@@ -1014,6 +1024,10 @@ func  (this *GateCore) HandleTickerAndBidAsk(objectName interface{}, client inte
 /**
  * @method
  * @name gate#watchTrades
+ * @see https://www.gate.com/docs/developers/apiv4/ws/en/#public-trades-channel
+ * @see https://www.gate.com/docs/developers/futures/ws/en/#trades-api
+ * @see https://www.gate.com/docs/developers/delivery/ws/en/#trades-api
+ * @see https://www.gate.com/docs/developers/options/ws/en/#public-contract-trades-channel
  * @description get the list of most recent trades for a particular symbol
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -1033,9 +1047,9 @@ func  (this *GateCore) WatchTrades(symbol interface{}, optionalArgs ...interface
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-                retRes74315 :=  (<-this.WatchTradesForSymbols([]interface{}{symbol}, since, limit, params))
-                ccxt.PanicOnError(retRes74315)
-                ch <- retRes74315
+                retRes75715 :=  (<-this.WatchTradesForSymbols([]interface{}{symbol}, since, limit, params))
+                ccxt.PanicOnError(retRes75715)
+                ch <- retRes75715
                 return nil
         
             }()
@@ -1044,6 +1058,10 @@ func  (this *GateCore) WatchTrades(symbol interface{}, optionalArgs ...interface
 /**
  * @method
  * @name gate#watchTradesForSymbols
+ * @see https://www.gate.com/docs/developers/apiv4/ws/en/#public-trades-channel
+ * @see https://www.gate.com/docs/developers/futures/ws/en/#trades-api
+ * @see https://www.gate.com/docs/developers/delivery/ws/en/#trades-api
+ * @see https://www.gate.com/docs/developers/options/ws/en/#public-contract-trades-channel
  * @description get the list of most recent trades for a particular symbol
  * @param {string[]} symbols unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -1063,8 +1081,8 @@ func  (this *GateCore) WatchTradesForSymbols(symbols interface{}, optionalArgs .
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes7578 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7578)
+            retRes7758 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes7758)
             symbols = this.MarketSymbols(symbols)
             var marketIds interface{} = this.MarketIds(symbols)
             var market interface{} = this.Market(ccxt.GetValue(symbols, 0))
@@ -1107,8 +1125,8 @@ func  (this *GateCore) UnWatchTradesForSymbols(symbols interface{}, optionalArgs
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes7878 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7878)
+            retRes8058 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes8058)
             symbols = this.MarketSymbols(symbols)
             var marketIds interface{} = this.MarketIds(symbols)
             var market interface{} = this.Market(ccxt.GetValue(symbols, 0))
@@ -1123,9 +1141,9 @@ func  (this *GateCore) UnWatchTradesForSymbols(symbols interface{}, optionalArgs
             }
             var url interface{} = this.GetUrlByMarket(market)
         
-                retRes80115 :=  (<-this.UnSubscribePublicMultiple(url, "trades", symbols, messageHashes, subMessageHashes, marketIds, channel, params))
-                ccxt.PanicOnError(retRes80115)
-                ch <- retRes80115
+                retRes81915 :=  (<-this.UnSubscribePublicMultiple(url, "trades", symbols, messageHashes, subMessageHashes, marketIds, channel, params))
+                ccxt.PanicOnError(retRes81915)
+                ch <- retRes81915
                 return nil
         
             }()
@@ -1147,9 +1165,9 @@ func  (this *GateCore) UnWatchTrades(symbol interface{}, optionalArgs ...interfa
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes81315 :=  (<-this.UnWatchTradesForSymbols([]interface{}{symbol}, params))
-                ccxt.PanicOnError(retRes81315)
-                ch <- retRes81315
+                retRes83115 :=  (<-this.UnWatchTradesForSymbols([]interface{}{symbol}, params))
+                ccxt.PanicOnError(retRes83115)
+                ch <- retRes83115
                 return nil
         
             }()
@@ -1194,6 +1212,9 @@ func  (this *GateCore) HandleTrades(client interface{}, message interface{})  {
 /**
  * @method
  * @name gate#watchOHLCV
+ * @see https://www.gate.com/docs/developers/apiv4/ws/en/#candlesticks-channel
+ * @see https://www.gate.com/docs/developers/futures/ws/en/#candlesticks-api
+ * @see https://www.gate.com/docs/developers/delivery/ws/en/#candlesticks-api
  * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
  * @param {string} timeframe the length of time each candle represents
@@ -1216,8 +1237,9 @@ func  (this *GateCore) WatchOHLCV(symbol interface{}, optionalArgs ...interface{
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes8658 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes8658)
+            retRes8868 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes8868)
+            // todo add options support
             var market interface{} = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var marketId interface{} = ccxt.GetValue(market, "id")
@@ -1299,6 +1321,10 @@ func  (this *GateCore) HandleOHLCV(client interface{}, message interface{})  {
 /**
  * @method
  * @name gate#watchMyTrades
+ * @see https://www.gate.com/docs/developers/apiv4/ws/en/#user-trades-channel
+ * @see https://www.gate.com/docs/developers/futures/ws/en/#user-trades-api
+ * @see https://www.gate.com/docs/developers/delivery/ws/en/#user-trades-api
+ * @see https://www.gate.com/docs/developers/options/ws/en/#user-trades-channel
  * @description watches information on multiple trades made by the user
  * @param {string} symbol unified market symbol of the market trades were made in
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1320,8 +1346,8 @@ func  (this *GateCore) WatchMyTrades(optionalArgs ...interface{}) <- chan interf
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes9508 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes9508)
+            retRes9768 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes9768)
             var subType interface{} = nil
             var typeVar interface{} = nil
             var marketId interface{} = ccxt.Add("!", "all")
@@ -1417,6 +1443,10 @@ func  (this *GateCore) HandleMyTrades(client interface{}, message interface{})  
 /**
  * @method
  * @name gate#watchBalance
+ * @see https://www.gate.com/docs/developers/apiv4/ws/en/#spot-balance-channel
+ * @see https://www.gate.com/docs/developers/futures/ws/en/#balances-api
+ * @see https://www.gate.com/docs/developers/delivery/ws/en/#balances-api
+ * @see https://www.gate.com/docs/developers/options/ws/en/#balances-channel
  * @description watch balance and get the amount of funds available for trading or funds locked in orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -1429,8 +1459,8 @@ func  (this *GateCore) WatchBalance(optionalArgs ...interface{}) <- chan interfa
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes10428 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes10428)
+            retRes10728 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes10728)
             var typeVar interface{} = nil
             var subType interface{} = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
@@ -1449,12 +1479,13 @@ func  (this *GateCore) WatchBalance(optionalArgs ...interface{}) <- chan interfa
                 "swap": "futures",
                 "option": "options",
             })
+            // todo: add correct margin support
             var channel interface{} = ccxt.Add(channelType, ".balances")
             var messageHash interface{} = ccxt.Add(typeVar, ".balance")
         
-                retRes105915 :=  (<-this.SubscribePrivate(url, messageHash, nil, channel, params, requiresUid))
-                ccxt.PanicOnError(retRes105915)
-                ch <- retRes105915
+                retRes109015 :=  (<-this.SubscribePrivate(url, messageHash, nil, channel, params, requiresUid))
+                ccxt.PanicOnError(retRes109015)
+                ch <- retRes109015
                 return nil
         
             }()
@@ -1574,8 +1605,8 @@ func  (this *GateCore) WatchPositions(optionalArgs ...interface{}) <- chan inter
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes11648 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes11648)
+            retRes11958 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes11958)
             var market interface{} = nil
             symbols = this.MarketSymbols(symbols)
             var payload interface{} = []interface{}{ccxt.Add("!", "all")}
@@ -1613,9 +1644,9 @@ func  (this *GateCore) WatchPositions(optionalArgs ...interface{}) <- chan inter
             var cache interface{} = this.SafeValue(this.Positions, typeVar)
             if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(fetchPositionsSnapshot) && ccxt.IsTrue(awaitPositionsSnapshot)) && ccxt.IsTrue(ccxt.IsEqual(cache, nil))) {
         
-                    retRes119719 :=  (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchPositionsSnapshot")))
-                    ccxt.PanicOnError(retRes119719)
-                    ch <- retRes119719
+                    retRes122819 :=  (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchPositionsSnapshot")))
+                    ccxt.PanicOnError(retRes122819)
+                    ch <- retRes122819
                     return nil
             }
         
@@ -1763,6 +1794,10 @@ func  (this *GateCore) HandlePositions(client interface{}, message interface{}) 
 /**
  * @method
  * @name gate#watchOrders
+ * @see https://www.gate.com/docs/developers/apiv4/ws/en/#orders-channel
+ * @see https://www.gate.com/docs/developers/futures/ws/en/#orders-api
+ * @see https://www.gate.com/docs/developers/delivery/ws/en/#orders-api
+ * @see https://www.gate.com/docs/developers/options/ws/en/#orders-channel
  * @description watches information on multiple orders made by the user
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
@@ -1786,8 +1821,8 @@ func  (this *GateCore) WatchOrders(optionalArgs ...interface{}) <- chan interfac
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes13368 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes13368)
+            retRes13718 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes13718)
             var market interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -1959,8 +1994,8 @@ func  (this *GateCore) WatchMyLiquidationsForSymbols(symbols interface{}, option
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes14748 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes14748)
+            retRes15098 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes15098)
             symbols = this.MarketSymbols(symbols, nil, true, true)
             var market interface{} = this.GetMarketFromSymbols(symbols)
             var typeVar interface{} = nil
@@ -2240,6 +2275,7 @@ func  (this *GateCore) HandleSubscriptionStatus(client interface{}, message inte
         "balance": this.HandleBalanceSubscription,
         "spot.order_book_update": this.HandleOrderBookSubscription,
         "futures.order_book_update": this.HandleOrderBookSubscription,
+        "options.order_book_update": this.HandleOrderBookSubscription,
     }
     var id interface{} = this.SafeString(message, "id")
     if ccxt.IsTrue(ccxt.InOp(methods, channel)) {
@@ -2510,9 +2546,9 @@ func  (this *GateCore) SubscribePublic(url interface{}, messageHash interface{},
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes199415 :=  (<-this.Watch(url, messageHash, message, messageHash, subscription))
-                ccxt.PanicOnError(retRes199415)
-                ch <- retRes199415
+                retRes203015 :=  (<-this.Watch(url, messageHash, message, messageHash, subscription))
+                ccxt.PanicOnError(retRes203015)
+                ch <- retRes203015
                 return nil
         
             }()
@@ -2536,9 +2572,9 @@ func  (this *GateCore) SubscribePublicMultiple(url interface{}, messageHashes in
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes200815 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
-                ccxt.PanicOnError(retRes200815)
-                ch <- retRes200815
+                retRes204415 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
+                ccxt.PanicOnError(retRes204415)
+                ch <- retRes204415
                 return nil
         
             }()
@@ -2570,9 +2606,9 @@ func  (this *GateCore) UnSubscribePublicMultiple(url interface{}, topic interfac
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes203015 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes, sub))
-                ccxt.PanicOnError(retRes203015)
-                ch <- retRes203015
+                retRes206615 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes, sub))
+                ccxt.PanicOnError(retRes206615)
+                ch <- retRes206615
                 return nil
         
             }()
@@ -2590,9 +2626,9 @@ func  (this *GateCore) Authenticate(url interface{}, messageType interface{}) <-
             var authenticated interface{} = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
             if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
         
-                    retRes204019 :=  (<-this.RequestPrivate(url, map[string]interface{} {}, channel, messageHash))
-                    ccxt.PanicOnError(retRes204019)
-                    ch <- retRes204019
+                    retRes207619 :=  (<-this.RequestPrivate(url, map[string]interface{} {}, channel, messageHash))
+                    ccxt.PanicOnError(retRes207619)
+                    ch <- retRes207619
                     return nil
             }
         
@@ -2646,9 +2682,9 @@ func  (this *GateCore) RequestPrivate(url interface{}, reqParams interface{}, ch
                 "payload": payload,
             }
         
-                retRes208315 :=  (<-this.Watch(url, messageHash, request, messageHash, requestId))
-                ccxt.PanicOnError(retRes208315)
-                ch <- retRes208315
+                retRes211915 :=  (<-this.Watch(url, messageHash, request, messageHash, requestId))
+                ccxt.PanicOnError(retRes211915)
+                ch <- retRes211915
                 return nil
         
             }()
@@ -2702,9 +2738,9 @@ func  (this *GateCore) SubscribePrivate(url interface{}, messageHash interface{}
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes212715 :=  (<-this.Watch(url, messageHash, message, messageHash, messageHash))
-                ccxt.PanicOnError(retRes212715)
-                ch <- retRes212715
+                retRes216315 :=  (<-this.Watch(url, messageHash, message, messageHash, messageHash))
+                ccxt.PanicOnError(retRes216315)
+                ch <- retRes216315
                 return nil
         
             }()

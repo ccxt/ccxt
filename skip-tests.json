@@ -23,6 +23,8 @@
         "skipWs": "private endpoints, todo"
     },
     "arkham": {
+        "skip": "exchange closed",
+        "skipWs": "same",
         "preferredSpotSymbol": "ETH/USDT",
         "preferredSwapSymbol": "ETH/USDT:USDT",
         "skipMethods": {
@@ -525,6 +527,8 @@
         }
     },
     "bitteam": {
+        "skip": "api says technical maintenance, lets wait 2 weeks",
+        "until": "2026-03-30",
         "skipMethods": {
             "loadMarkets": {
                 "taker": "is undefined",
@@ -559,13 +563,6 @@
             },
             "orderBook": {
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4685"
-            }
-        }
-    },
-    "blofin": {
-        "skipMethods": {
-            "fetchTickers": {
-                "checkActiveSymbols": "todo https://github.com/ccxt/ccxt/actions/runs/22588349073/job/65440134952?pr=28035#step:10:231"
             }
         }
     },
@@ -861,7 +858,9 @@
                 "compareOHLC": "todo"
             },
             "fetchOHLCV": "cant be tested because of additional required param",
-            "watchOHLCV": "does not work for 1min"
+            "watchOHLCV": "does not work for 1min",
+            "watchTicker": "private endpoint",
+            "watchOrderBook": "private endpoint"
         }
     },
     "coinex": {
@@ -973,7 +972,6 @@
         }
     },
     "defx": {
-        "skipWs": true,
         "skipMethods": {
             "ohlcv": {
                 "1": "distorted open: https://github.com/ccxt/ccxt/actions/runs/14648217027/job/41107795879?pr=25786#step:9:458"
@@ -1197,7 +1195,13 @@
             },
             "fetchTradingFees": "sandbox does not have this endpoint",
             "fetchDeposits": "sandbox does not have this endpoint",
-            "fetchWithdrawals": "sandbox does not have this endpoint"
+            "fetchWithdrawals": "sandbox does not have this endpoint",
+            "watchTrades": {
+                "timestampSort": "order is messed"
+            },
+            "watchTradesForSymbols": {
+                "timestampSort": "same"
+            }
         }
     },
     "gemini": {
@@ -1228,6 +1232,29 @@
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
+            }
+        }
+    },
+    "grvt": {
+        "skipMethods": {
+            "loadMarkets": {
+                "taker": "undef",
+                "maker": "undef",
+                "active": "undef",
+                "contractSize": "undef",
+                "precisionAmountAbnormal": "abnormal precision"
+            },
+            "fetchCurrencies": {
+                "withdraw": "undef",
+                "deposit": "undef",
+                "networks": "undef",
+                "activeMajorCurrencies": "undef"
+            },
+            "ticker": {
+                "timestamp": "todo"
+            },
+            "orderBook": {
+                "timestamp": "todo"
             }
         }
     },
@@ -1490,25 +1517,49 @@
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
+            },
+            "watchOrderBook": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269407124#L3464"
+            },
+            "watchOrderBookForSymbols": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269407124#L3464"
+            },
+            "fetchPositions": {
+                "percentage": "percentage is not provided"
             }
         }
     },
     "kucoinfutures": {
         "skipMethods":{
+            "fetchCurrencies": {
+                "depositForNonCrypto": "not provided",
+                "withdrawForNonCrypto": "not provided",
+                "limits": "is not provided",
+                "currencyIdAndCode": "messed https://app.travis-ci.com/github/ccxt/ccxt/builds/271028497#L5338",
+                "maxInactiveCurrenciesPercentage": 60
+            },
             "loadMarkets": {
+                "taker": "temporary, until NFT-TRX appears in https://api.kucoin.com/api/v1/market/allTickers",
+                "maker": "same",
                 "currencyIdAndCode": "messed"
             },
-            "fetchPositions": {
-                "percentage": "percentage is not provided"
+            "ticker": {
+                "bid":"messed bid-ask",
+                "compareQuoteVolumeBaseVolume": "quoteVolume <= baseVolume * high https://app.travis-ci.com/github/ccxt/ccxt/builds/263304041#L2190",
+                "maxIncrease": "todo",
+                "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16059129227/job/45320923643?pr=26334#step:9:317"
             },
             "fetchTickers": {
-                "compareQuoteVolumeBaseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269634788#L1898"
+                "checkActiveSymbols": "todo"
             },
             "watchOrderBook": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269407124#L3464"
             },
-            "ticker": {
-                "compareOHLC": "todo: fix implementation"
+            "watchOrderBookForSymbols": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269407124#L3464"
+            },
+            "fetchPositions": {
+                "percentage": "percentage is not provided"
             }
         }
     },

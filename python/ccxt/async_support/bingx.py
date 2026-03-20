@@ -793,6 +793,7 @@ class bingx(Exchange, ImplicitAPI):
                     },
                 },
             },
+            'rollingWindowSize': 2000.0,  # Some endpoints have a 10s window, some have a 5s window, a more complicated rate limiter is needed to accomodate for self
         })
 
     async def fetch_time(self, params={}) -> Int:

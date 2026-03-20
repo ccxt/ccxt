@@ -517,6 +517,7 @@ class kraken extends Exchange {
                 ),
             ),
             'precisionMode' => TICK_SIZE,
+            'rollingWindowSize' => 10000.0,  // https://docs.kraken.com/api/docs/guides/custody-rest-ratelimits
             'exceptions' => array(
                 'exact' => array(
                     'EQuery:Invalid asset pair' => '\\ccxt\\BadSymbol', // array("error":["EQuery:Invalid asset pair"])

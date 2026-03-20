@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.42'
+__version__ = '4.5.44'
 
 # ----------------------------------------------------------------------------
 
@@ -57,6 +57,7 @@ from ccxt.base.errors import UnsubscribeError                         # noqa: F4
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 # DO_NOT_REMOVE__ERROR_IMPORTS_END
 
+from ccxt.pro.aftermath import aftermath                                  # noqa: F401
 from ccxt.pro.alpaca import alpaca                                        # noqa: F401
 from ccxt.pro.apex import apex                                            # noqa: F401
 from ccxt.pro.arkham import arkham                                        # noqa: F401
@@ -95,7 +96,6 @@ from ccxt.pro.coinex import coinex                                        # noqa
 from ccxt.pro.coinone import coinone                                      # noqa: F401
 from ccxt.pro.cryptocom import cryptocom                                  # noqa: F401
 from ccxt.pro.deepcoin import deepcoin                                    # noqa: F401
-from ccxt.pro.defx import defx                                            # noqa: F401
 from ccxt.pro.deribit import deribit                                      # noqa: F401
 from ccxt.pro.derive import derive                                        # noqa: F401
 from ccxt.pro.dydx import dydx                                            # noqa: F401
@@ -103,6 +103,7 @@ from ccxt.pro.exmo import exmo                                            # noqa
 from ccxt.pro.gate import gate                                            # noqa: F401
 from ccxt.pro.gateio import gateio                                        # noqa: F401
 from ccxt.pro.gemini import gemini                                        # noqa: F401
+from ccxt.pro.grvt import grvt                                            # noqa: F401
 from ccxt.pro.hashkey import hashkey                                      # noqa: F401
 from ccxt.pro.hitbtc import hitbtc                                        # noqa: F401
 from ccxt.pro.hollaex import hollaex                                      # noqa: F401
@@ -137,6 +138,7 @@ from ccxt.pro.woofipro import woofipro                                    # noqa
 from ccxt.pro.xt import xt                                                # noqa: F401
 
 exchanges = [
+    'aftermath',
     'alpaca',
     'apex',
     'arkham',
@@ -175,7 +177,6 @@ exchanges = [
     'coinone',
     'cryptocom',
     'deepcoin',
-    'defx',
     'deribit',
     'derive',
     'dydx',
@@ -183,6 +184,7 @@ exchanges = [
     'gate',
     'gateio',
     'gemini',
+    'grvt',
     'hashkey',
     'hitbtc',
     'hollaex',

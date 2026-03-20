@@ -197,9 +197,10 @@ class independentreserve(Exchange, ImplicitAPI):
                         'takeProfitPrice': False,
                         'attachedStopLossTakeProfit': None,
                         'timeInForce': {
-                            'IOC': False,
-                            'FOK': False,
-                            'PO': False,
+                            'GTC': True,
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
                             'GTD': False,
                         },
                         'hedged': False,
@@ -597,7 +598,7 @@ class independentreserve(Exchange, ImplicitAPI):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': orderType,
-            'timeInForce': None,
+            'timeInForce': self.parse_time_in_force(self.safe_string(order, 'TimeInForce')),
             'postOnly': None,
             'side': side,
             'price': self.safe_string(order, 'Price'),
@@ -625,8 +626,18 @@ class independentreserve(Exchange, ImplicitAPI):
             'Cancelled': 'canceled',
             'PartiallyFilledAndExpired': 'canceled',
             'Expired': 'canceled',
+            'Failed': 'canceled',
         }
         return self.safe_string(statuses, status, status)
+
+    def parse_time_in_force(self, timeInForce: Str):
+        timeInForces: dict = {
+            'Gtc': 'GTC',
+            'Moc': 'PO',
+            'Fok': 'FOK',
+            'Ioc': 'IOC',
+        }
+        return self.safe_string(timeInForces, timeInForce, timeInForce)
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """

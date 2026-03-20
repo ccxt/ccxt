@@ -245,6 +245,7 @@ class cex extends cex$1["default"] {
                     'Get deposit address for main account is not allowed': errors.PermissionDenied,
                     'Market Trigger orders are not allowed': errors.BadRequest,
                     'key not passed or incorrect': errors.AuthenticationError,
+                    'API rate limit reached': errors.RateLimitExceeded, // {"error":"API rate limit reached"}
                 },
             },
             'timeframes': {

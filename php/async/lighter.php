@@ -385,14 +385,41 @@ class lighter extends Exchange {
         }) ();
     }
 
+    public function pre_load_lighter_library($params = array ()) {
+        return Async\async(function () use ($params) {
+            /**
+             * if the required credentials are available in options, it will pre-load the lighter Signer to avoid delaying sensitive calls like createOrder the first time they're executed
+             * @param $params
+             * @return {boolean} true if the $signer was loaded, false otherwise
+             */
+            $signer = $this->safe_dict($this->options, 'signer');
+            if ($signer !== null) {
+                return true;
+            }
+            $libraryPath = null;
+            list($libraryPath, $params) = $this->handle_option_and_params($params, 'loadAccount', 'libraryPath');
+            $apiKeyIndex = null;
+            list($apiKeyIndex, $params) = $this->handle_option_and_params_2($params, 'loadAccount', 'apiKeyIndex', 'api_key_index');
+            $accountIndex = null;
+            list($accountIndex, $params) = $this->handle_option_and_params_2($params, 'loadAccount', 'accountIndex', 'account_index');
+            $privateKeyIsSet = ($this->privateKey !== null) && ($this->privateKey !== '');
+            if ($privateKeyIsSet && ($libraryPath !== null) && ($apiKeyIndex !== null) && ($accountIndex !== null)) {
+                $signer = Async\await($this->load_lighter_library($libraryPath, $this->options['chainId'], $this->privateKey, $apiKeyIndex, $accountIndex));
+                $this->options['signer'] = $signer;
+                return true;
+            }
+            return false;
+        }) ();
+    }
+
     public function handle_account_index(array $params, string $methodName1, string $optionName1, string $optionName2, $defaultValue = null) {
         return Async\async(function () use ($params, $methodName1, $optionName1, $optionName2, $defaultValue) {
             $accountIndex = null;
             list($accountIndex, $params) = $this->handle_option_and_params_2($params, $methodName1, $optionName1, $optionName2, $defaultValue);
             if ($accountIndex === null) {
                 $walletAddress = $this->walletAddress;
-                if ($walletAddress === null) {
-                    throw new ArgumentsRequired($this->id . ' ' . $methodName1 . '() requires an ' . $optionName1 . ' or ' . $optionName2 . ' parameter or $walletAddress to fetch accountIndex');
+                if ($walletAddress === null || $walletAddress === '') {
+                    throw new ArgumentsRequired($this->id . ' ' . $methodName1 . '() requires an ' . $optionName1 . '/' . $optionName2 . ' parameter or $walletAddress to fetch accountIndex');
                 }
                 $res = Async\await($this->publicGetAccountsByL1Address (array( 'l1_address' => $walletAddress )));
                 //
@@ -428,7 +455,7 @@ class lighter extends Exchange {
                     $this->options['accountIndex'] = $accountIndex;
                 }
             }
-            return array( $accountIndex, $params );
+            return array( $this->parse_to_int($accountIndex), $params );
         }) ();
     }
 
@@ -540,7 +567,7 @@ class lighter extends Exchange {
         list($orderExpiry, $params) = $this->handle_option_and_params($params, 'createOrder', 'orderExpiry', 0);
         $request['nonce'] = $nonce;
         $request['api_key_index'] = $apiKeyIndex;
-        $request['account_index'] = $accountIndex;
+        $request['account_index'] = $this->parse_to_int($accountIndex);
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $stopLossPrice = $this->safe_value($params, 'stopLossPrice', $triggerPrice);
         $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
@@ -996,6 +1023,7 @@ class lighter extends Exchange {
              * @return {array} an associative dictionary of currencies
              */
             $response = Async\await($this->publicGetAssetDetails ($params));
+            Async\await($this->pre_load_lighter_library());
             //
             //     {
             //         "code" => 200,
@@ -2200,8 +2228,14 @@ class lighter extends Exchange {
              * @param {int} [$limit] the maximum number of  transfers structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->accountIndex] account index
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
              */
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_cursor('fetchTransfers', $code, $since, $limit, $params, 'cursor', 'cursor', null, 50));
+            }
             $accountIndex = null;
             list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'fetchTransfers', 'accountIndex', 'account_index'));
             $request = array(
@@ -2242,6 +2276,11 @@ class lighter extends Exchange {
             //     }
             //
             $rows = $this->safe_list($response, 'transfers', array());
+            $cursor = $this->safe_string($response, 'cursor');
+            $first = $this->safe_dict($rows, 0);
+            if (($first !== null) && ($cursor !== null)) {
+                $rows[0]['cursor'] = $cursor;
+            }
             return $this->parse_transfers($rows, $currency, $since, $limit, $params);
         }) ();
     }
@@ -2295,8 +2334,14 @@ class lighter extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->accountIndex] account index
              * @param {string} [$params->address] l1_address
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_cursor('fetchDeposits', $code, $since, $limit, $params, 'cursor', 'cursor', null, 50));
+            }
             $address = null;
             list($address, $params) = $this->handle_option_and_params_2($params, 'fetchDeposits', 'address', 'l1_address');
             if ($address === null) {
@@ -2338,6 +2383,11 @@ class lighter extends Exchange {
             //     }
             //
             $data = $this->safe_list($response, 'deposits', array());
+            $cursor = $this->safe_string($response, 'cursor');
+            $first = $this->safe_dict($data, 0);
+            if (($first !== null) && ($cursor !== null)) {
+                $data[0]['cursor'] = $cursor;
+            }
             return $this->parse_transactions($data, $currency, $since, $limit);
         }) ();
     }
@@ -2354,11 +2404,17 @@ class lighter extends Exchange {
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->accountIndex] account index
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
-            Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_cursor('fetchWithdrawals', $code, $since, $limit, $params, 'cursor', 'cursor', null, 50));
+            }
             $accountIndex = null;
             list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'fetchWithdrawals', 'accountIndex', 'account_index'));
+            Async\await($this->load_markets());
             $request = array(
                 'account_index' => $accountIndex,
             );
@@ -2392,6 +2448,11 @@ class lighter extends Exchange {
             //     }
             //
             $data = $this->safe_list($response, 'withdraws', array());
+            $cursor = $this->safe_string($response, 'cursor');
+            $first = $this->safe_dict($data, 0);
+            if (($first !== null) && ($cursor !== null)) {
+                $data[0]['cursor'] = $cursor;
+            }
             return $this->parse_transactions($data, $currency, $since, $limit);
         }) ();
     }
@@ -2524,9 +2585,16 @@ class lighter extends Exchange {
              * @param {int} [$limit] the maximum number of trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->accountIndex] account index
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {int} [$params->until] timestamp in ms of the latest trade to fetch
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_cursor('fetchMyTrades', $symbol, $since, $limit, $params, 'next_cursor', 'cursor', null, 50));
+            }
             $accountIndex = null;
             list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'fetchMyTrades', 'accountIndex', 'account_index'));
             $apiKeyIndex = null;
@@ -2536,12 +2604,17 @@ class lighter extends Exchange {
             }
             Async\await($this->load_account($this->options['chainId'], $this->privateKey, $apiKeyIndex, $accountIndex, $params));
             $request = array(
-                'sort_by' => 'block_height',
+                'sort_by' => 'timestamp',
                 'limit' => 100,
                 'account_index' => $accountIndex,
             );
             if ($limit !== null) {
                 $request['limit'] = min ($limit, 100);
+            }
+            $until = null;
+            list($until, $params) = $this->handle_option_and_params_2($params, 'fetchMyTrades', 'until', 'from');
+            if ($until !== null) {
+                $request['from'] = $until;
             }
             $market = null;
             if ($symbol !== null) {
@@ -2583,6 +2656,11 @@ class lighter extends Exchange {
             $data = $this->safe_list($response, 'trades', array());
             for ($i = 0; $i < count($data); $i++) {
                 $data[$i]['account_index'] = $accountIndex;
+            }
+            $nextCursor = $this->safe_string($response, 'next_cursor');
+            $first = $this->safe_dict($data, 0);
+            if (($first !== null) && ($nextCursor !== null)) {
+                $data[0]['next_cursor'] = $nextCursor;
             }
             return $this->parse_trades($data, $market, $since, $limit, $params);
         }) ();

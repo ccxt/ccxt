@@ -304,6 +304,7 @@ class gemini extends gemini$1["default"] {
                     'webApiRetries': 5,
                     'webApiMuteFailure': true,
                 },
+                // fetchticker should use v1, confirmed that v2 is buggy ( https://github.com/ccxt/ccxt/issues/28077 )
                 'fetchTickerMethod': 'fetchTickerV1',
                 'networks': {
                     'BTC': 'bitcoin',

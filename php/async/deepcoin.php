@@ -944,7 +944,7 @@ class deepcoin extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            $marketType = 'spot';
+            $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params, $marketType);
             $request = array(
                 'instType' => $this->convert_to_instrument_type($marketType),

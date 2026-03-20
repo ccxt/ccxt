@@ -358,6 +358,43 @@ public partial class lighter : Exchange
         return signer;
     }
 
+    /**
+     * @method
+     * @name lighter#preLoadLighterLibrary
+     * @description if the required credentials are available in options, it will pre-load the lighter Signer to avoid delaying sensitive calls like createOrder the first time they're executed
+     * @param params
+     * @returns {boolean} true if the signer was loaded, false otherwise
+     */
+    public async virtual Task<object> preLoadLighterLibrary(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object signer = this.safeDict(this.options, "signer");
+        if (isTrue(!isEqual(signer, null)))
+        {
+            return true;
+        }
+        object libraryPath = null;
+        var libraryPathparametersVariable = this.handleOptionAndParams(parameters, "loadAccount", "libraryPath");
+        libraryPath = ((IList<object>)libraryPathparametersVariable)[0];
+        parameters = ((IList<object>)libraryPathparametersVariable)[1];
+        object apiKeyIndex = null;
+        var apiKeyIndexparametersVariable = this.handleOptionAndParams2(parameters, "loadAccount", "apiKeyIndex", "api_key_index");
+        apiKeyIndex = ((IList<object>)apiKeyIndexparametersVariable)[0];
+        parameters = ((IList<object>)apiKeyIndexparametersVariable)[1];
+        object accountIndex = null;
+        var accountIndexparametersVariable = this.handleOptionAndParams2(parameters, "loadAccount", "accountIndex", "account_index");
+        accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
+        parameters = ((IList<object>)accountIndexparametersVariable)[1];
+        object privateKeyIsSet = isTrue((!isEqual(this.privateKey, null))) && isTrue((!isEqual(this.privateKey, "")));
+        if (isTrue(isTrue(isTrue(isTrue(privateKeyIsSet) && isTrue((!isEqual(libraryPath, null)))) && isTrue((!isEqual(apiKeyIndex, null)))) && isTrue((!isEqual(accountIndex, null)))))
+        {
+            signer = await this.loadLighterLibrary(libraryPath, getValue(this.options, "chainId"), this.privateKey, apiKeyIndex, accountIndex);
+            ((IDictionary<string,object>)this.options)["signer"] = signer;
+            return true;
+        }
+        return false;
+    }
+
     public async virtual Task<object> handleAccountIndex(object parameters, object methodName1, object optionName1, object optionName2, object defaultValue = null)
     {
         object accountIndex = null;
@@ -367,9 +404,9 @@ public partial class lighter : Exchange
         if (isTrue(isEqual(accountIndex, null)))
         {
             object walletAddress = this.walletAddress;
-            if (isTrue(isEqual(walletAddress, null)))
+            if (isTrue(isTrue(isEqual(walletAddress, null)) || isTrue(isEqual(walletAddress, ""))))
             {
-                throw new ArgumentsRequired ((string)add(add(add(add(add(add(add(this.id, " "), methodName1), "() requires an "), optionName1), " or "), optionName2), " parameter or walletAddress to fetch accountIndex")) ;
+                throw new ArgumentsRequired ((string)add(add(add(add(add(add(add(this.id, " "), methodName1), "() requires an "), optionName1), "/"), optionName2), " parameter or walletAddress to fetch accountIndex")) ;
             }
             object res = await this.publicGetAccountsByL1Address(new Dictionary<string, object>() {
                 { "l1_address", walletAddress },
@@ -409,7 +446,7 @@ public partial class lighter : Exchange
                 ((IDictionary<string,object>)this.options)["accountIndex"] = accountIndex;
             }
         }
-        return new List<object>() {accountIndex, parameters};
+        return new List<object> {this.parseToInt(accountIndex), parameters};
     }
 
     public async override Task<object> createSubAccount(object name, object parameters = null)
@@ -551,7 +588,7 @@ public partial class lighter : Exchange
         parameters = ((IList<object>)orderExpiryparametersVariable)[1];
         ((IDictionary<string,object>)request)["nonce"] = nonce;
         ((IDictionary<string,object>)request)["api_key_index"] = apiKeyIndex;
-        ((IDictionary<string,object>)request)["account_index"] = accountIndex;
+        ((IDictionary<string,object>)request)["account_index"] = this.parseToInt(accountIndex);
         object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object stopLossPrice = this.safeValue(parameters, "stopLossPrice", triggerPrice);
         object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice");
@@ -1064,6 +1101,7 @@ public partial class lighter : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetAssetDetails(parameters);
+        await this.preLoadLighterLibrary();
         //
         //     {
         //         "code": 200,
@@ -2332,11 +2370,20 @@ public partial class lighter : Exchange
      * @param {int} [limit] the maximum number of  transfers structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountIndex] account index
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, parameters, "cursor", "cursor", null, 50);
+        }
         object accountIndex = null;
         var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "fetchTransfers", "accountIndex", "account_index");
         accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
@@ -2383,6 +2430,12 @@ public partial class lighter : Exchange
         //     }
         //
         object rows = this.safeList(response, "transfers", new List<object>() {});
+        object cursor = this.safeString(response, "cursor");
+        object first = this.safeDict(rows, 0);
+        if (isTrue(isTrue((!isEqual(first, null))) && isTrue((!isEqual(cursor, null)))))
+        {
+            ((IDictionary<string,object>)getValue(rows, 0))["cursor"] = cursor;
+        }
         return this.parseTransfers(rows, currency, since, limit, parameters);
     }
 
@@ -2434,11 +2487,20 @@ public partial class lighter : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountIndex] account index
      * @param {string} [params.address] l1_address
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, parameters, "cursor", "cursor", null, 50);
+        }
         object address = null;
         var addressparametersVariable = this.handleOptionAndParams2(parameters, "fetchDeposits", "address", "l1_address");
         address = ((IList<object>)addressparametersVariable)[0];
@@ -2489,6 +2551,12 @@ public partial class lighter : Exchange
         //     }
         //
         object data = this.safeList(response, "deposits", new List<object>() {});
+        object cursor = this.safeString(response, "cursor");
+        object first = this.safeDict(data, 0);
+        if (isTrue(isTrue((!isEqual(first, null))) && isTrue((!isEqual(cursor, null)))))
+        {
+            ((IDictionary<string,object>)getValue(data, 0))["cursor"] = cursor;
+        }
         return this.parseTransactions(data, currency, since, limit);
     }
 
@@ -2502,16 +2570,25 @@ public partial class lighter : Exchange
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountIndex] account index
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, parameters, "cursor", "cursor", null, 50);
+        }
         object accountIndex = null;
         var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "fetchWithdrawals", "accountIndex", "account_index");
         accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
         parameters = ((IList<object>)accountIndexparametersVariable)[1];
+        await this.loadMarkets();
         object request = new Dictionary<string, object>() {
             { "account_index", accountIndex },
         };
@@ -2549,6 +2626,12 @@ public partial class lighter : Exchange
         //     }
         //
         object data = this.safeList(response, "withdraws", new List<object>() {});
+        object cursor = this.safeString(response, "cursor");
+        object first = this.safeDict(data, 0);
+        if (isTrue(isTrue((!isEqual(first, null))) && isTrue((!isEqual(cursor, null)))))
+        {
+            ((IDictionary<string,object>)getValue(data, 0))["cursor"] = cursor;
+        }
         return this.parseTransactions(data, currency, since, limit);
     }
 
@@ -2694,12 +2777,22 @@ public partial class lighter : Exchange
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountIndex] account index
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {int} [params.until] timestamp in ms of the latest trade to fetch
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "next_cursor", "cursor", null, 50);
+        }
         object accountIndex = null;
         var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "fetchMyTrades", "accountIndex", "account_index");
         accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
@@ -2714,13 +2807,21 @@ public partial class lighter : Exchange
         }
         await this.loadAccount(getValue(this.options, "chainId"), this.privateKey, apiKeyIndex, accountIndex, parameters);
         object request = new Dictionary<string, object>() {
-            { "sort_by", "block_height" },
+            { "sort_by", "timestamp" },
             { "limit", 100 },
             { "account_index", accountIndex },
         };
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100);
+        }
+        object until = null;
+        var untilparametersVariable = this.handleOptionAndParams2(parameters, "fetchMyTrades", "until", "from");
+        until = ((IList<object>)untilparametersVariable)[0];
+        parameters = ((IList<object>)untilparametersVariable)[1];
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["from"] = until;
         }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -2764,6 +2865,12 @@ public partial class lighter : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             ((IDictionary<string,object>)getValue(data, i))["account_index"] = accountIndex;
+        }
+        object nextCursor = this.safeString(response, "next_cursor");
+        object first = this.safeDict(data, 0);
+        if (isTrue(isTrue((!isEqual(first, null))) && isTrue((!isEqual(nextCursor, null)))))
+        {
+            ((IDictionary<string,object>)getValue(data, 0))["next_cursor"] = nextCursor;
         }
         return this.parseTrades(data, market, since, limit, parameters);
     }

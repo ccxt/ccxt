@@ -769,6 +769,7 @@ public partial class bingx : Exchange
                     } },
                 } },
             } },
+            { "rollingWindowSize", 2000 },
         });
     }
 

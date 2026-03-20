@@ -524,6 +524,7 @@ class kraken extends kraken$1["default"] {
                 },
             },
             'precisionMode': number.TICK_SIZE,
+            'rollingWindowSize': 10000.0,
             'exceptions': {
                 'exact': {
                     'EQuery:Invalid asset pair': errors.BadSymbol,

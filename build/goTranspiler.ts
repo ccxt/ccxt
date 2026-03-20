@@ -166,6 +166,7 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     "safeCurrencyCode": false,
     "parseConversion": false,
     "sign": false,
+    "signIn": true,
     // ws methods
     'cancelAllOrdersWs': true,
     'cancelOrdersWs': true,
@@ -462,7 +463,7 @@ class NewTranspiler {
     oldTranspiler = new OldTranspiler();
     private _extendedExchanges: { [key: string]: string } | null = null;
     futuresExchanges = new Set<string>([  // futures exchanges that extend a spot exchange class
-        'kucoinfutures'
+        // 'kucoinfutures'
     ]);
 
     constructor(isWs: boolean = false) {

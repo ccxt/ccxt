@@ -284,7 +284,7 @@ class paradex extends paradex$1["default"] {
             },
         };
         const messageHashes = [];
-        if (Array.isArray(symbols)) {
+        if (symbols !== undefined && Array.isArray(symbols)) {
             for (let i = 0; i < symbols.length; i++) {
                 const messageHash = channel + '.' + symbols[i];
                 messageHashes.push(messageHash);
@@ -293,10 +293,10 @@ class paradex extends paradex$1["default"] {
         else {
             messageHashes.push(channel);
         }
-        const newTickers = await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), messageHashes);
+        const newTicker = await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), messageHashes);
         if (this.newUpdates) {
             const result = {};
-            result[newTickers['symbol']] = newTickers;
+            result[newTicker['symbol']] = newTicker;
             return result;
         }
         return this.filterByArray(this.tickers, 'symbol', symbols);

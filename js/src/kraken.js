@@ -525,6 +525,7 @@ export default class kraken extends Exchange {
                 },
             },
             'precisionMode': TICK_SIZE,
+            'rollingWindowSize': 10000.0,
             'exceptions': {
                 'exact': {
                     'EQuery:Invalid asset pair': BadSymbol,

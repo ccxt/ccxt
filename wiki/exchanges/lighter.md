@@ -5,6 +5,7 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
+* [preLoadLighterLibrary](#preloadlighterlibrary)
 * [createOrder](#createorder)
 * [editOrder](#editorder)
 * [fetchStatus](#fetchstatus)
@@ -47,7 +48,28 @@
 * [unWatchMarkPrices](#unwatchmarkprices)
 * [watchTrades](#watchtrades)
 * [unWatchTrades](#unwatchtrades)
+* [watchMyTrades](#watchmytrades)
+* [unWatchMyTrades](#unwatchmytrades)
 * [watchLiquidations](#watchliquidations)
+
+<a name="preLoadLighterLibrary" id="preloadlighterlibrary"></a>
+
+### preLoadLighterLibrary{docsify-ignore}
+if the required credentials are available in options, it will pre-load the lighter Signer to avoid delaying sensitive calls like createOrder the first time they're executed
+
+**Kind**: instance method of [<code>lighter</code>](#lighter)  
+**Returns**: <code>boolean</code> - true if the signer was loaded, false otherwise
+
+
+| Param |
+| --- |
+| params | 
+
+
+```javascript
+lighter.preLoadLighterLibrary (params, [undefined])
+```
+
 
 <a name="createOrder" id="createorder"></a>
 
@@ -458,6 +480,7 @@ fetch a history of internal transfers made on an account
 | limit | <code>int</code> | No | the maximum number of  transfers structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.accountIndex | <code>string</code> | No | account index |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript
@@ -483,6 +506,7 @@ fetch all deposits made to an account
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.accountIndex | <code>string</code> | No | account index |
 | params.address | <code>string</code> | No | l1_address |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript
@@ -507,6 +531,7 @@ fetch all withdrawals made from an account
 | limit | <code>int</code> | No | the maximum number of withdrawals structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.accountIndex | <code>string</code> | No | account index |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript
@@ -557,6 +582,8 @@ fetch all trades made by the user
 | limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.accountIndex | <code>string</code> | No | account index |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.until | <code>int</code> | No | timestamp in ms of the latest trade to fetch |
 
 
 ```javascript
@@ -995,6 +1022,50 @@ unsubscribe from the trades channel
 
 ```javascript
 lighter.unWatchTrades (symbol[, params])
+```
+
+
+<a name="watchMyTrades" id="watchmytrades"></a>
+
+### watchMyTrades{docsify-ignore}
+subscribe to recent trades of an account.
+
+**Kind**: instance method of [<code>lighter</code>](#lighter)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+
+**See**: https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+lighter.watchMyTrades ([symbol, since, limit, params])
+```
+
+
+<a name="unWatchMyTrades" id="unwatchmytrades"></a>
+
+### unWatchMyTrades{docsify-ignore}
+unsubscribe from the account trades channel
+
+**Kind**: instance method of [<code>lighter</code>](#lighter)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+
+**See**: https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+lighter.unWatchMyTrades ([symbol, params])
 ```
 
 

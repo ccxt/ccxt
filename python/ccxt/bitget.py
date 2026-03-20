@@ -8331,52 +8331,86 @@ class bitget(Exchange, ImplicitAPI):
         self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
+        uta = None
+        uta, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'uta', False)
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
         if paginate:
+            if uta:
+                return self.fetch_paginated_call_cursor('fetchFundingHistory', symbol, since, limit, params, 'cursor', 'cursor')
             return self.fetch_paginated_call_cursor('fetchFundingHistory', symbol, since, limit, params, 'endId', 'idLessThan')
         market = self.market(symbol)
         if not market['swap']:
             raise BadSymbol(self.id + ' fetchFundingHistory() supports swap contracts only')
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        request: dict = {
-            'symbol': market['id'],
-            'marginCoin': market['settleId'],
-            'businessType': 'contract_settle_fee',
-            'productType': productType,
-        }
+        request: dict = {}
         request, params = self.handle_until_option('endTime', request, params)
         if since is not None:
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        response = self.privateMixGetV2MixAccountBill(self.extend(request, params))
-        #
-        #     {
-        #         "code": "00000",
-        #         "msg": "success",
-        #         "requestTime": 1700795977890,
-        #         "data": {
-        #             "bills": [
-        #                 {
-        #                     "billId": "1111499428100472833",
-        #                     "symbol": "BTCUSDT",
-        #                     "amount": "-0.004992",
-        #                     "fee": "0",
-        #                     "feeByCoupon": "",
-        #                     "businessType": "contract_settle_fee",
-        #                     "coin": "USDT",
-        #                     "cTime": "1700728034996"
-        #                 },
-        #             ],
-        #             "endId": "1098396773329305606"
-        #         }
-        #     }
-        #
+        response = None
+        if uta:
+            request['coin'] = market['settleId']
+            request['category'] = productType
+            response = self.privateUtaGetV3AccountFinancialRecords(self.extend(request, params))
+            #
+            # {
+            #     "code": "00000",
+            #     "msg": "success",
+            #     "requestTime": 1750135478641,
+            #     "data": {
+            #         "list": [
+            #             {
+            #                 "category": "Margin",
+            #                 "id": "13111111111111111",
+            #                 "symbol": "BTCUSDT",
+            #                 "coin": "BTC",
+            #                 "type": "ORDER_DEALT_IN",
+            #                 "amount": "0.00531168",
+            #                 "fee": "-0.00000531",
+            #                 "balance": "55.10017801",
+            #                 "ts": "1745853486185"
+            #             }
+            #         ],
+            #         "cursor": "122222222222222222"
+            #     }
+            # }
+            #
+        else:
+            request['symbol'] = market['id']
+            request['marginCoin'] = market['settleId']
+            request['businessType'] = 'contract_settle_fee'
+            request['productType'] = productType
+            response = self.privateMixGetV2MixAccountBill(self.extend(request, params))
+            #
+            #     {
+            #         "code": "00000",
+            #         "msg": "success",
+            #         "requestTime": 1700795977890,
+            #         "data": {
+            #             "bills": [
+            #                 {
+            #                     "billId": "1111499428100472833",
+            #                     "symbol": "BTCUSDT",
+            #                     "amount": "-0.004992",
+            #                     "fee": "0",
+            #                     "feeByCoupon": "",
+            #                     "businessType": "contract_settle_fee",
+            #                     "coin": "USDT",
+            #                     "cTime": "1700728034996"
+            #                 },
+            #             ],
+            #             "endId": "1098396773329305606"
+            #         }
+            #     }
+            #
         data = self.safe_value(response, 'data', {})
-        result = self.safe_value(data, 'bills', [])
-        return self.parse_funding_histories(result, market, since, limit)
+        bills = self.safe_list_2(data, 'bills', 'list', [])
+        if uta:
+            bills = self.filter_by_array(bills, 'type', ['CONTRACT_MAIN_SETTLE_FEE_USER_IN', 'CONTRACT_MAIN_SETTLE_FEE_USER_OUT'], False)
+        return self.parse_funding_histories(bills, market, since, limit)
 
     def parse_funding_history(self, contract, market: Market = None):
         #
@@ -8391,9 +8425,21 @@ class bitget(Exchange, ImplicitAPI):
         #         "cTime": "1700728034996"
         #     }
         #
+        #     {
+        #         "category": "Margin",
+        #         "id": "13111111111111111",
+        #         "symbol": "BTCUSDT",
+        #         "coin": "BTC",
+        #         "type": "ORDER_DEALT_IN",
+        #         "amount": "0.00531168",
+        #         "fee": "-0.00000531",
+        #         "balance": "55.10017801",
+        #         "ts": "1745853486185"
+        #     }
+        #
         marketId = self.safe_string(contract, 'symbol')
         currencyId = self.safe_string(contract, 'coin')
-        timestamp = self.safe_integer(contract, 'cTime')
+        timestamp = self.safe_integer_2(contract, 'cTime', 'ts')
         return {
             'info': contract,
             'symbol': self.safe_symbol(marketId, market, None, 'swap'),
@@ -8401,16 +8447,18 @@ class bitget(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'code': self.safe_currency_code(currencyId),
             'amount': self.safe_number(contract, 'amount'),
-            'id': self.safe_string(contract, 'billId'),
+            'id': self.safe_string_2(contract, 'billId', 'id'),
         }
 
     def parse_funding_histories(self, contracts, market=None, since: Int = None, limit: Int = None) -> List[FundingHistory]:
         result = []
         for i in range(0, len(contracts)):
             contract = contracts[i]
-            business = self.safe_string(contract, 'businessType')
-            if business != 'contract_settle_fee':
-                continue
+            # for non-uta, we've set bussinessType in request payload. Not sure why self existed.
+            # business = self.safe_string(contract, 'businessType')
+            # if business != 'contract_settle_fee':
+            #     continue
+            # }
             result.append(self.parse_funding_history(contract, market))
         sorted = self.sort_by(result, 'timestamp')
         symbol = None

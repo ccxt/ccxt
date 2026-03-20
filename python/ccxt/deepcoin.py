@@ -899,7 +899,7 @@ class deepcoin(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.load_markets()
-        marketType = 'spot'
+        marketType = None
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params, marketType)
         request: dict = {
             'instType': self.convert_to_instrument_type(marketType),

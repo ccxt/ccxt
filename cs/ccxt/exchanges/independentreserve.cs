@@ -146,9 +146,10 @@ public partial class independentreserve : Exchange
                         { "takeProfitPrice", false },
                         { "attachedStopLossTakeProfit", null },
                         { "timeInForce", new Dictionary<string, object>() {
-                            { "IOC", false },
-                            { "FOK", false },
-                            { "PO", false },
+                            { "GTC", true },
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
                             { "GTD", false },
                         } },
                         { "hedged", false },
@@ -598,7 +599,7 @@ public partial class independentreserve : Exchange
             { "lastTradeTimestamp", null },
             { "symbol", symbol },
             { "type", orderType },
-            { "timeInForce", null },
+            { "timeInForce", this.parseTimeInForce(this.safeString(order, "TimeInForce")) },
             { "postOnly", null },
             { "side", side },
             { "price", this.safeString(order, "Price") },
@@ -628,8 +629,20 @@ public partial class independentreserve : Exchange
             { "Cancelled", "canceled" },
             { "PartiallyFilledAndExpired", "canceled" },
             { "Expired", "canceled" },
+            { "Failed", "canceled" },
         };
         return this.safeString(statuses, status, status);
+    }
+
+    public virtual object parseTimeInForce(object timeInForce)
+    {
+        object timeInForces = new Dictionary<string, object>() {
+            { "Gtc", "GTC" },
+            { "Moc", "PO" },
+            { "Fok", "FOK" },
+            { "Ioc", "IOC" },
+        };
+        return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
     /**

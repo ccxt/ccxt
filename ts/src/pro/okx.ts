@@ -1567,6 +1567,7 @@ export default class okx extends okxRest {
     /**
      * @method
      * @name okx#watchBalance
+     * @see https://www.okx.com/docs-v5/en/#trading-account-websocket-account-channel
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -1584,55 +1585,99 @@ export default class okx extends okxRest {
     handleBalance (client: Client, message) {
         //
         //     {
-        //         "arg": { channel: "account" },
-        //         "data": [
+        //         arg: {
+        //             channel: 'account',
+        //             uid: '158635852459810816'
+        //         },
+        //         eventType: 'snapshot',
+        //         curPage: 1,
+        //         lastPage: true,
+        //         data: [
         //             {
-        //                 "adjEq": '',
-        //                 "details": [
+        //                 adjEq: '100942.13298468884',
+        //                 availEq: '98461.99074635761',
+        //                 borrowFroz: '409.3702076072169',
+        //                 delta: '',
+        //                 deltaLever: '',
+        //                 deltaNeutralStatus: '',
+        //                 details: [
         //                     {
-        //                         "availBal": '',
-        //                         "availEq": "8.21009913",
-        //                         "cashBal": "8.21009913",
-        //                         "ccy": "USDT",
-        //                         "coinUsdPrice": "0.99994",
-        //                         "crossLiab": '',
-        //                         "disEq": "8.2096065240522",
-        //                         "eq": "8.21009913",
-        //                         "eqUsd": "8.2096065240522",
-        //                         "frozenBal": "0",
-        //                         "interest": '',
-        //                         "isoEq": "0",
-        //                         "isoLiab": '',
-        //                         "liab": '',
-        //                         "maxLoan": '',
-        //                         "mgnRatio": '',
-        //                         "notionalLever": "0",
-        //                         "ordFrozen": "0",
-        //                         "twap": "0",
-        //                         "uTime": "1621927314996",
-        //                         "upl": "0"
-        //                     },
+        //                         accAvgPx: '',
+        //                         autoLendAmt: '0',
+        //                         autoLendMtAmt: '0',
+        //                         autoLendStatus: 'unsupported',
+        //                         autoStakingStatus: 'unsupported',
+        //                         availBal: '2900',
+        //                         availEq: '2900',
+        //                         borrowFroz: '0',
+        //                         cashBal: '2900',
+        //                         ccy: 'TUSD',
+        //                         clSpotInUseAmt: '',
+        //                         coinUsdPrice: '200.026',
+        //                         colBorrAutoConversion: '0',
+        //                         colRes: '0',
+        //                         collateralEnabled: false,
+        //                         collateralRestrict: false,
+        //                         crossLiab: '0',
+        //                         disEq: '0',
+        //                         eq: '2900',
+        //                         eqUsd: '580075.4',
+        //                         fixedBal: '0',
+        //                         frozenBal: '0',
+        //                         frpType: '0',
+        //                         imr: '',
+        //                         interest: '0',
+        //                         isoEq: '0',
+        //                         isoLiab: '0',
+        //                         isoUpl: '0',
+        //                         liab: '0',
+        //                         maxLoan: '0',
+        //                         maxSpotInUseAmt: '',
+        //                         mgnRatio: '',
+        //                         mmr: '',
+        //                         notionalLever: '',
+        //                         openAvgPx: '',
+        //                         ordFrozen: '0',
+        //                         rewardBal: '',
+        //                         smtSyncEq: '0',
+        //                         spotBal: '',
+        //                         spotCopyTradingEq: '0',
+        //                         spotInUseAmt: '',
+        //                         spotIsoBal: '0',
+        //                         spotUpl: '',
+        //                         spotUplRatio: '',
+        //                         stgyEq: '0',
+        //                         totalPnl: '',
+        //                         totalPnlRatio: '',
+        //                         twap: '0',
+        //                         uTime: '1752243427083',
+        //                         upl: '0',
+        //                         uplLiab: '0'
+        //                     }
         //                 ],
-        //                 "imr": '',
-        //                 "isoEq": "0",
-        //                 "mgnRatio": '',
-        //                 "mmr": '',
-        //                 "notionalUsd": '',
-        //                 "ordFroz": '',
-        //                 "totalEq": "22.1930992296832",
-        //                 "uTime": "1626692120916"
+        //                 imr: '2480.1422383312265',
+        //                 isoEq: '0',
+        //                 mgnRatio: '1814.5924297007082',
+        //                 mmr: '52.196024182958055',
+        //                 notionalUsd: '4634.0971302081125',
+        //                 notionalUsdForBorrow: '2046.8510380360844',
+        //                 notionalUsdForFutures: '101.11322817202809',
+        //                 notionalUsdForOption: '0',
+        //                 notionalUsdForSwap: '2486.1328640000006',
+        //                 ordFroz: '1208.3566666666668',
+        //                 totalEq: '711018.8951315446',
+        //                 uTime: '1773837554158',
+        //                 upl: '9.244336372701904'
         //             }
         //         ]
         //     }
         //
         const arg = this.safeValue (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
-        const type = 'spot';
         const balance = this.parseTradingBalance (message);
-        const oldBalance = this.safeValue (this.balance, type, {});
-        const newBalance = this.deepExtend (oldBalance, balance);
-        this.balance[type] = this.safeBalance (newBalance);
-        client.resolve (this.balance[type], channel);
+        const newBalance = this.deepExtend (this.balance, balance);
+        this.balance = this.safeBalance (newBalance);
+        client.resolve (this.balance, channel);
     }
 
     orderToTrade (order, market = undefined) {

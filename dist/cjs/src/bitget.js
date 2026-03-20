@@ -8868,9 +8868,14 @@ class bitget extends bitget$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingHistory() requires a symbol argument');
         }
+        let uta = undefined;
+        [uta, params] = this.handleOptionAndParams(params, 'fetchFundingHistory', 'uta', false);
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingHistory', 'paginate');
         if (paginate) {
+            if (uta) {
+                return await this.fetchPaginatedCallCursor('fetchFundingHistory', symbol, since, limit, params, 'cursor', 'cursor');
+            }
             return await this.fetchPaginatedCallCursor('fetchFundingHistory', symbol, since, limit, params, 'endId', 'idLessThan');
         }
         const market = this.market(symbol);
@@ -8879,12 +8884,7 @@ class bitget extends bitget$1["default"] {
         }
         let productType = undefined;
         [productType, params] = this.handleProductTypeAndParams(market, params);
-        let request = {
-            'symbol': market['id'],
-            'marginCoin': market['settleId'],
-            'businessType': 'contract_settle_fee',
-            'productType': productType,
-        };
+        let request = {};
         [request, params] = this.handleUntilOption('endTime', request, params);
         if (since !== undefined) {
             request['startTime'] = since;
@@ -8892,32 +8892,70 @@ class bitget extends bitget$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateMixGetV2MixAccountBill(this.extend(request, params));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700795977890,
-        //         "data": {
-        //             "bills": [
-        //                 {
-        //                     "billId": "1111499428100472833",
-        //                     "symbol": "BTCUSDT",
-        //                     "amount": "-0.004992",
-        //                     "fee": "0",
-        //                     "feeByCoupon": "",
-        //                     "businessType": "contract_settle_fee",
-        //                     "coin": "USDT",
-        //                     "cTime": "1700728034996"
-        //                 },
-        //             ],
-        //             "endId": "1098396773329305606"
-        //         }
-        //     }
-        //
+        let response = undefined;
+        if (uta) {
+            request['coin'] = market['settleId'];
+            request['category'] = productType;
+            response = await this.privateUtaGetV3AccountFinancialRecords(this.extend(request, params));
+            //
+            // {
+            //     "code": "00000",
+            //     "msg": "success",
+            //     "requestTime": 1750135478641,
+            //     "data": {
+            //         "list": [
+            //             {
+            //                 "category": "Margin",
+            //                 "id": "13111111111111111",
+            //                 "symbol": "BTCUSDT",
+            //                 "coin": "BTC",
+            //                 "type": "ORDER_DEALT_IN",
+            //                 "amount": "0.00531168",
+            //                 "fee": "-0.00000531",
+            //                 "balance": "55.10017801",
+            //                 "ts": "1745853486185"
+            //             }
+            //         ],
+            //         "cursor": "122222222222222222"
+            //     }
+            // }
+            //
+        }
+        else {
+            request['symbol'] = market['id'];
+            request['marginCoin'] = market['settleId'];
+            request['businessType'] = 'contract_settle_fee';
+            request['productType'] = productType;
+            response = await this.privateMixGetV2MixAccountBill(this.extend(request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1700795977890,
+            //         "data": {
+            //             "bills": [
+            //                 {
+            //                     "billId": "1111499428100472833",
+            //                     "symbol": "BTCUSDT",
+            //                     "amount": "-0.004992",
+            //                     "fee": "0",
+            //                     "feeByCoupon": "",
+            //                     "businessType": "contract_settle_fee",
+            //                     "coin": "USDT",
+            //                     "cTime": "1700728034996"
+            //                 },
+            //             ],
+            //             "endId": "1098396773329305606"
+            //         }
+            //     }
+            //
+        }
         const data = this.safeValue(response, 'data', {});
-        const result = this.safeValue(data, 'bills', []);
-        return this.parseFundingHistories(result, market, since, limit);
+        let bills = this.safeList2(data, 'bills', 'list', []);
+        if (uta) {
+            bills = this.filterByArray(bills, 'type', ['CONTRACT_MAIN_SETTLE_FEE_USER_IN', 'CONTRACT_MAIN_SETTLE_FEE_USER_OUT'], false);
+        }
+        return this.parseFundingHistories(bills, market, since, limit);
     }
     parseFundingHistory(contract, market = undefined) {
         //
@@ -8932,9 +8970,21 @@ class bitget extends bitget$1["default"] {
         //         "cTime": "1700728034996"
         //     }
         //
+        //     {
+        //         "category": "Margin",
+        //         "id": "13111111111111111",
+        //         "symbol": "BTCUSDT",
+        //         "coin": "BTC",
+        //         "type": "ORDER_DEALT_IN",
+        //         "amount": "0.00531168",
+        //         "fee": "-0.00000531",
+        //         "balance": "55.10017801",
+        //         "ts": "1745853486185"
+        //     }
+        //
         const marketId = this.safeString(contract, 'symbol');
         const currencyId = this.safeString(contract, 'coin');
-        const timestamp = this.safeInteger(contract, 'cTime');
+        const timestamp = this.safeInteger2(contract, 'cTime', 'ts');
         return {
             'info': contract,
             'symbol': this.safeSymbol(marketId, market, undefined, 'swap'),
@@ -8942,17 +8992,18 @@ class bitget extends bitget$1["default"] {
             'datetime': this.iso8601(timestamp),
             'code': this.safeCurrencyCode(currencyId),
             'amount': this.safeNumber(contract, 'amount'),
-            'id': this.safeString(contract, 'billId'),
+            'id': this.safeString2(contract, 'billId', 'id'),
         };
     }
     parseFundingHistories(contracts, market = undefined, since = undefined, limit = undefined) {
         const result = [];
         for (let i = 0; i < contracts.length; i++) {
             const contract = contracts[i];
-            const business = this.safeString(contract, 'businessType');
-            if (business !== 'contract_settle_fee') {
-                continue;
-            }
+            // for non-uta, we've set bussinessType in request payload. Not sure why this existed.
+            // const business = this.safeString (contract, 'businessType');
+            // if (business !== 'contract_settle_fee') {
+            //     continue;
+            // }
             result.push(this.parseFundingHistory(contract, market));
         }
         const sorted = this.sortBy(result, 'timestamp');

@@ -59,7 +59,7 @@ public partial class whitebit : Exchange
                 { "fetchFundingHistory", true },
                 { "fetchFundingLimits", true },
                 { "fetchFundingRate", true },
-                { "fetchFundingRateHistory", false },
+                { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", true },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
@@ -154,7 +154,7 @@ public partial class whitebit : Exchange
                 } },
                 { "v4", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"assets", "collateral/markets", "fee", "orderbook/depth/{market}", "orderbook/{market}", "ticker", "trades/{market}", "time", "ping", "markets", "futures", "platform/status", "mining-pool"} },
+                        { "get", new List<object>() {"assets", "collateral/markets", "fee", "funding-history/{market}", "orderbook/depth/{market}", "orderbook/{market}", "ticker", "trades/{market}", "time", "ping", "markets", "futures", "platform/status", "mining-pool"} },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "post", new List<object>() {"collateral-account/balance", "collateral-account/balance-summary", "collateral-account/positions/history", "collateral-account/leverage", "collateral-account/positions/open", "collateral-account/summary", "collateral-account/funding-history", "main-account/address", "main-account/balance", "main-account/create-new-address", "main-account/codes", "main-account/codes/apply", "main-account/codes/my", "main-account/codes/history", "main-account/fiat-deposit-url", "main-account/history", "main-account/withdraw", "main-account/withdraw-pay", "main-account/transfer", "main-account/smart/plans", "main-account/smart/investment", "main-account/smart/investment/close", "main-account/smart/investments", "main-account/fee", "main-account/smart/interest-payment-history", "trade-account/balance", "trade-account/executed-history", "trade-account/order/history", "trade-account/order", "order/collateral/limit", "order/collateral/market", "order/collateral/stop-limit", "order/collateral/trigger-market", "order/collateral/bulk", "order/new", "order/market", "order/stock_market", "order/stop_limit", "order/stop_market", "order/cancel", "order/cancel/all", "order/kill-switch", "order/kill-switch/status", "order/bulk", "order/modify", "order/conditional-cancel", "orders", "oco-orders", "order/collateral/oco", "order/oco-cancel", "order/oto-cancel", "profile/websocket_token", "convert/estimate", "convert/confirm", "convert/history", "sub-account/create", "sub-account/delete", "sub-account/edit", "sub-account/list", "sub-account/transfer", "sub-account/block", "sub-account/unblock", "sub-account/balances", "sub-account/transfer/history", "sub-account/api-key/create", "sub-account/api-key/edit", "sub-account/api-key/delete", "sub-account/api-key/list", "sub-account/api-key/reset", "sub-account/api-key/ip-address/list", "sub-account/api-key/ip-address/create", "sub-account/api-key/ip-address/delete", "mining/rewards", "market/fee", "conditional-orders"} },
@@ -4225,6 +4225,79 @@ public partial class whitebit : Exchange
     {
         object fiatCurrencies = this.safeValue(this.options, "fiatCurrencies", new List<object>() {});
         return this.inArray(currency, fiatCurrencies);
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://docs.whitebit.com/api-reference/market-data/funding-history
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch (default 100, max 1000)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+     */
+    public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+        }
+        object maxLimit = 1000;
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, maxLimit);
+        }
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "market", getValue(market, "id") },
+        };
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startDate"] = Math.Round(Convert.ToDouble(divide(since, 1000)));
+        }
+        var requestparametersVariable = this.handleUntilOption("until_timestamp", request, parameters, 0.001);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object response = await this.v4PublicGetFundingHistoryMarket(this.extend(request, parameters));
+        //
+        //     [
+        //         {
+        //             "fundingTime": "1773648000",
+        //             "fundingRate": "-0.00004593",
+        //             "market": "ETH_PERP",
+        //             "settlementPrice": "2248.47",
+        //             "rateCalculatedTime": "1773619200"
+        //         }
+        //     ]
+        //
+        return this.parseFundingRateHistories(response, market, since, limit);
+    }
+
+    public override object parseFundingRateHistory(object info, object market = null)
+    {
+        object marketId = this.safeString(info, "market");
+        market = this.safeMarket(marketId, market);
+        object timestamp = this.safeTimestamp(info, "fundingTime");
+        return new Dictionary<string, object>() {
+            { "info", info },
+            { "symbol", getValue(market, "symbol") },
+            { "fundingRate", this.safeNumber(info, "fundingRate") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+        };
     }
 
     public override object nonce()
