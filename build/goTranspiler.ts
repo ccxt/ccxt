@@ -202,6 +202,7 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     'fetchOrdersByStatusWs': true,
     'fetchOrdersWs': true,
     'fetchOrderWs': true,
+    'fetchOpenInterests': true,
     'fetchPositionsForSymbolWs': true,
     'fetchPositionsWs': true,
     'fetchPositionWs': true,

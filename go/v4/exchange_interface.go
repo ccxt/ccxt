@@ -413,6 +413,8 @@ type IDerivedExchange interface {
 	ParseWsTrade(trade interface{}, optionalArgs ...interface{}) interface{}
 	FetchPositionsADLRank(optionalArgs ...interface{}) <-chan interface{}
 	ParseADLRank(info interface{}, optionalArgs ...interface{}) interface{}
+	FetchOpenInterest(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchOpenInterests(optionalArgs ...interface{}) <-chan interface{}
 }
 
 type Describer interface {
