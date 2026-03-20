@@ -64,7 +64,7 @@ function test_currency($exchange, $skipped_properties, $method, $entry) {
     } catch(\Throwable $e) {
         $message = $exchange->exception_message($e);
         // check structure if key is numeric, not string
-        if (mb_strpos($message, '"id" key') !== false) {
+        if (in_array('"id" key', $message)) {
             // @ts-ignore
             $format['id'] = 123;
             assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);

@@ -32,6 +32,7 @@ include_once __DIR__ . '/test_group_by.php';
 include_once __DIR__ . '/test_index_by.php';
 include_once __DIR__ . '/test_filter_by.php';
 include_once __DIR__ . '/test_uuid.php';
+include_once __DIR__ . '/test_is_empty.php';
 include_once __DIR__ . '/test_precision_from_string.php';
 include_once __DIR__ . '/test_urlencode_base64.php';
 include_once __DIR__ . '/test_after_constructor.php';
@@ -72,6 +73,7 @@ function base_tests_init() {
         test_filter_by();
         test_handle_methods();
         test_remove_repeated_elements_from_array();
+        test_is_empty();
         test_parse_precision();
         test_precision_from_string();
         test_extract_params();

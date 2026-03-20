@@ -828,7 +828,16 @@ class Exchange {
     }
 
     public static function is_empty($object) {
-        return empty($object) || (is_countable($object) && count($object) === 0);
+        if ($object === null) {
+            return true;
+        }
+        if (is_countable($object)) {
+            return count($object) === 0;
+        }
+        if (is_object($object)) {
+            return count(get_object_vars($object)) === 0;
+        }
+        return false;
     }
 
     public static function keysort($array) {
