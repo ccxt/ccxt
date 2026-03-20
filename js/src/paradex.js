@@ -1388,7 +1388,7 @@ export default class paradex extends Exchange {
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeString(params, 'stopLossPrice');
         const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
-        const isMarket = orderType === 'MARKET';
+        const isMarket = orderType.includes('MARKET');
         const isTakeProfitOrder = (takeProfitPrice !== undefined);
         const isStopLossOrder = (stopLossPrice !== undefined);
         const isStopOrder = (triggerPrice !== undefined) || isTakeProfitOrder || isStopLossOrder;
