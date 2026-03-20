@@ -816,7 +816,7 @@ public partial class Exchange
         this.throttler = new Throttler(this.tokenBucket);
     }
 
-    public bool IsEmpty(object a)
+    public bool isEmpty(object a)
     {
         if (a == null)
             return true;
