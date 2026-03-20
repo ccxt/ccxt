@@ -1802,10 +1802,7 @@
                 "url": "https://api.gateio.ws/api/v4/margin/cross/loans",
                 "input": [
                     "USDT",
-                    1,
-                    {
-                        "unifiedAccount": false
-                    }
+                    1
                 ],
                 "output": "{\"currency\":\"USDT\",\"amount\":\"1\"}"
             },
@@ -1815,7 +1812,10 @@
                 "url": "https://api.gateio.ws/api/v4/unified/loans",
                 "input": [
                   "USDT",
-                  5
+                  5,
+                  {
+                    "unifiedAccount": true
+                  }
                 ],
                 "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"type\":\"borrow\"}"
             }
