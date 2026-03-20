@@ -64,6 +64,7 @@ import bingx from  './src/bingx.js'
 import bit2c from  './src/bit2c.js'
 import bitbank from  './src/bitbank.js'
 import bitbns from  './src/bitbns.js'
+import bitdelta from  './src/bitdelta.js'
 import bitfinex from  './src/bitfinex.js'
 import bitflyer from  './src/bitflyer.js'
 import bitget from  './src/bitget.js'
@@ -259,6 +260,7 @@ const exchanges = {
     'bit2c':                  bit2c,
     'bitbank':                bitbank,
     'bitbns':                 bitbns,
+    'bitdelta':               bitdelta,
     'bitfinex':               bitfinex,
     'bitflyer':               bitflyer,
     'bitget':                 bitget,
@@ -597,6 +599,7 @@ export {
     bit2c,
     bitbank,
     bitbns,
+    bitdelta,
     bitfinex,
     bitflyer,
     bitget,

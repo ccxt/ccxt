@@ -1,0 +1,541 @@
+{
+    "exchange": "bitdelta",
+    "skipKeys": [],
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetch all markets",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": {
+                    "statusCode": 200,
+                    "data": [
+                        {
+                            "id": 38,
+                            "symbol": "BTCUSDT",
+                            "order": 1,
+                            "currency1": "BTC",
+                            "currency2": "USDT",
+                            "status": "trading",
+                            "tags": ["btc", "usdt"],
+                            "mfee": 0.15,
+                            "tfee": 0.15,
+                            "group_precision": 2,
+                            "total_precision": 5,
+                            "c2_precision": 7,
+                            "bamount": 5,
+                            "minBuyTradeAmt": 0.0001412,
+                            "minSellTradeAmt": 0.0001412
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "BTCUSDT",
+                        "symbol": "BTC/USDT",
+                        "base": "BTC",
+                        "quote": "USDT",
+                        "baseId": "BTC",
+                        "quoteId": "USDT",
+                        "settle": null,
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 1e-5,
+                            "price": 0.01
+                        },
+                        "limits": {
+                            "leverage": { "min": null, "max": null },
+                            "amount": { "min": 0.0001412, "max": null },
+                            "price": { "min": null, "max": null },
+                            "cost": { "min": null, "max": null }
+                        },
+                        "created": null,
+                        "maker": 0.0015,
+                        "taker": 0.0015,
+                        "info": {
+                            "id": 38,
+                            "symbol": "BTCUSDT",
+                            "order": 1,
+                            "currency1": "BTC",
+                            "currency2": "USDT",
+                            "status": "trading",
+                            "tags": ["btc", "usdt"],
+                            "mfee": 0.15,
+                            "tfee": 0.15,
+                            "group_precision": 2,
+                            "total_precision": 5,
+                            "c2_precision": 7,
+                            "bamount": 5,
+                            "minBuyTradeAmt": 0.0001412,
+                            "minSellTradeAmt": 0.0001412
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetch ticker for BTC/USDT",
+                "method": "fetchTicker",
+                "input": ["BTC/USDT"],
+                "httpResponse": {
+                    "statusCode": 200,
+                    "data": [
+                        {
+                            "symbol": "BTCUSDT",
+                            "currency1": "BTC",
+                            "currency2": "USDT",
+                            "open": 35000,
+                            "high": 36000,
+                            "low": 34000,
+                            "last": 35500,
+                            "volume": 1000,
+                            "quote_volume": 35250000,
+                            "change": 1.43
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": 36000,
+                    "low": 34000,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": 35250,
+                    "open": 35000,
+                    "close": 35500,
+                    "last": 35500,
+                    "previousClose": null,
+                    "change": 500,
+                    "percentage": 1.43,
+                    "average": 35250,
+                    "baseVolume": 1000,
+                    "quoteVolume": 35250000,
+                    "info": {
+                        "symbol": "BTCUSDT",
+                        "currency1": "BTC",
+                        "currency2": "USDT",
+                        "open": 35000,
+                        "high": 36000,
+                        "low": 34000,
+                        "last": 35500,
+                        "volume": 1000,
+                        "quote_volume": 35250000,
+                        "change": 1.43
+                    }
+                }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetch order book for BTC/USDT",
+                "method": "fetchOrderBook",
+                "input": ["BTC/USDT"],
+                "httpResponse": {
+                    "timestamp": 1700000000000,
+                    "bids": [
+                        ["35000.50", "1.5"],
+                        ["34999.00", "2.0"]
+                    ],
+                    "asks": [
+                        ["35001.00", "0.8"],
+                        ["35002.50", "1.2"]
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "nonce": null,
+                    "bids": [
+                        [35000.5, 1.5],
+                        [34999, 2]
+                    ],
+                    "asks": [
+                        [35001, 0.8],
+                        [35002.5, 1.2]
+                    ]
+                }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch public trades for BTC/USDT",
+                "method": "fetchTrades",
+                "input": ["BTC/USDT"],
+                "httpResponse": [
+                    {
+                        "trade_id": "100000001",
+                        "price": "35000.50",
+                        "base_volume": "0.1",
+                        "quote_volume": "3500.05",
+                        "timestamp": "1700000000000",
+                        "type": "Buy"
+                    },
+                    {
+                        "trade_id": "100000002",
+                        "price": "35001.00",
+                        "base_volume": "0.05",
+                        "quote_volume": "1750.05",
+                        "timestamp": "1700000001000",
+                        "type": "Sell"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "100000001",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 35000.5,
+                        "amount": 0.1,
+                        "cost": 3500.05,
+                        "fee": null,
+                        "info": {
+                            "trade_id": "100000001",
+                            "price": "35000.50",
+                            "base_volume": "0.1",
+                            "quote_volume": "3500.05",
+                            "timestamp": "1700000000000",
+                            "type": "Buy"
+                        }
+                    },
+                    {
+                        "id": "100000002",
+                        "timestamp": 1700000001000,
+                        "datetime": "2023-11-14T22:13:21.000Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 35001,
+                        "amount": 0.05,
+                        "cost": 1750.05,
+                        "fee": null,
+                        "info": {
+                            "trade_id": "100000002",
+                            "price": "35001.00",
+                            "base_volume": "0.05",
+                            "quote_volume": "1750.05",
+                            "timestamp": "1700000001000",
+                            "type": "Sell"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch OHLCV for BTC/USDT 1h",
+                "method": "fetchOHLCV",
+                "input": ["BTC/USDT", "1h", 1700000000000, 5],
+                "httpResponse": {
+                    "s": "ok",
+                    "t": ["1700013600", "1700017200"],
+                    "o": [35464.51, 35480.61],
+                    "h": [35480.72, 35503.62],
+                    "l": [35399.45, 35381.99],
+                    "c": [35480.61, 35381.99],
+                    "v": [147.50295, 151.07343]
+                },
+                "parsedResponse": [
+                    [1700013600000, 35464.51, 35480.72, 35399.45, 35480.61, 147.50295],
+                    [1700017200000, 35480.61, 35503.62, 35381.99, 35381.99, 151.07343]
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetch balance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "statusCode": 200,
+                    "data": [
+                        {
+                            "currency": "BTC",
+                            "amount": "1.5",
+                            "inorder": "0.5"
+                        },
+                        {
+                            "currency": "USDT",
+                            "amount": "10000",
+                            "inorder": "2000"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC": {
+                        "free": 1,
+                        "used": 0.5,
+                        "total": 1.5
+                    },
+                    "USDT": {
+                        "free": 8000,
+                        "used": 2000,
+                        "total": 10000
+                    }
+                }
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "create limit buy order",
+                "method": "createOrder",
+                "input": ["BTC/USDT", "limit", "buy", 1, 50000],
+                "httpResponse": {
+                    "statusCode": 200,
+                    "data": {
+                        "order_id": "2267993162"
+                    }
+                },
+                "parsedResponse": {
+                    "id": "2267993162",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "BTC/USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "trades": null,
+                    "fee": null,
+                    "average": null,
+                    "info": {
+                        "order_id": "2267993162"
+                    }
+                }
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetch open orders",
+                "method": "fetchOpenOrders",
+                "input": ["BTC/USDT"],
+                "httpResponse": {
+                    "statusCode": 200,
+                    "data": {
+                        "result": [
+                            {
+                                "id": "47321330932",
+                                "symbol": "BTCUSDT",
+                                "mfee": 0.15,
+                                "tfee": 0.15,
+                                "timestamp": "2023-06-06T09:59:06.206Z",
+                                "p": "26000",
+                                "q": 0.00124,
+                                "oq": 0.00124,
+                                "type": "l",
+                                "s": 1,
+                                "total": "32.24 USDT",
+                                "status": "Pending",
+                                "avgprice": "26000",
+                                "filled": 0,
+                                "filled_amount": 0
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "47321330932",
+                        "clientOrderId": null,
+                        "timestamp": 1686045546206,
+                        "datetime": "2023-06-06T09:59:06.206Z",
+                        "lastTradeTimestamp": null,
+                        "status": "open",
+                        "symbol": "BTC/USDT",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "sell",
+                        "price": 26000,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "cost": null,
+                        "amount": 0.00124,
+                        "filled": 0,
+                        "remaining": 0.00124,
+                        "trades": null,
+                        "fee": null,
+                        "average": 26000,
+                        "info": {
+                            "id": "47321330932",
+                            "symbol": "BTCUSDT",
+                            "mfee": 0.15,
+                            "tfee": 0.15,
+                            "timestamp": "2023-06-06T09:59:06.206Z",
+                            "p": "26000",
+                            "q": 0.00124,
+                            "oq": 0.00124,
+                            "type": "l",
+                            "s": 1,
+                            "total": "32.24 USDT",
+                            "status": "Pending",
+                            "avgprice": "26000",
+                            "filled": 0,
+                            "filled_amount": 0
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetch my trades",
+                "method": "fetchMyTrades",
+                "input": ["BTC/USDT"],
+                "httpResponse": {
+                    "statusCode": 200,
+                    "data": {
+                        "result": [
+                            {
+                                "id": "403223533",
+                                "tradeid": "47232424615",
+                                "ordertype": "m",
+                                "feecoin": "BTC",
+                                "p": 26408.55,
+                                "q": 0.0005,
+                                "fee": "0.0000006",
+                                "s": 1,
+                                "symbol": "BTCUSDT",
+                                "currency1": "BTC",
+                                "currency2": "USDT",
+                                "timestamp": "2023-05-25T14:47:29.764Z"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "403223533",
+                        "timestamp": 1685022449764,
+                        "datetime": "2023-05-25T14:47:29.764Z",
+                        "symbol": "BTC/USDT",
+                        "order": "47232424615",
+                        "type": "market",
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 26408.55,
+                        "amount": 0.0005,
+                        "cost": null,
+                        "fee": {
+                            "cost": "0.0000006",
+                            "currency": "BTC"
+                        },
+                        "info": {
+                            "id": "403223533",
+                            "tradeid": "47232424615",
+                            "ordertype": "m",
+                            "feecoin": "BTC",
+                            "p": 26408.55,
+                            "q": 0.0005,
+                            "fee": "0.0000006",
+                            "s": 1,
+                            "symbol": "BTCUSDT",
+                            "currency1": "BTC",
+                            "currency2": "USDT",
+                            "timestamp": "2023-05-25T14:47:29.764Z"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetch deposits",
+                "method": "fetchDeposits",
+                "input": [],
+                "httpResponse": {
+                    "statusCode": 200,
+                    "data": {
+                        "result": [
+                            {
+                                "id": 12158,
+                                "coin": "USDT",
+                                "amount": "50",
+                                "type": "deposit",
+                                "status": "Completed",
+                                "txhash": "0xabc123",
+                                "txid": "0xabc123",
+                                "timestamp": "2023-05-01T13:29:52.923Z",
+                                "fee": 0
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "12158",
+                        "txid": "0xabc123",
+                        "timestamp": 1682946592923,
+                        "datetime": "2023-05-01T13:29:52.923Z",
+                        "network": null,
+                        "addressFrom": null,
+                        "addressTo": null,
+                        "address": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "tag": null,
+                        "type": "deposit",
+                        "amount": 50,
+                        "currency": "USDT",
+                        "status": "ok",
+                        "updated": null,
+                        "internal": null,
+                        "comment": null,
+                        "fee": {
+                            "cost": 0,
+                            "currency": "USDT"
+                        },
+                        "info": {
+                            "id": 12158,
+                            "coin": "USDT",
+                            "amount": "50",
+                            "type": "deposit",
+                            "status": "Completed",
+                            "txhash": "0xabc123",
+                            "txid": "0xabc123",
+                            "timestamp": "2023-05-01T13:29:52.923Z",
+                            "fee": 0
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}
