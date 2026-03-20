@@ -12,6 +12,38 @@
     "options": {
     },
     "methods": {
+        "fetchOpenInterest": [
+            {
+                "description": "fetch open interest",
+                "method": "fetchOpenInterest",
+                "url": "https://api.kucoin.com/api/ua/v1/market/open-interest?symbol=ETHUSDTM",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "fetch open interests without symbols",
+                "method": "fetchOpenInterests",
+                "url": "https://api.kucoin.com/api/ua/v1/market/open-interest",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "fetch open interests for swap markets",
+                "method": "fetchOpenInterests",
+                "url": "https://api.kucoin.com/api/ua/v1/market/open-interest?symbol=ETHUSDTM,XBTUSDTM",
+                "input": [
+                    [
+                        "ETH/USDT:USDT",
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            }
+        ],
         "fetchLeverageTiers": [
             {
                 "description": "fetch leverage tiers",
