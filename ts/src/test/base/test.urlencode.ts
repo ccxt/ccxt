@@ -18,6 +18,8 @@ function testUrlencode () {
     const expected1 = 'a=1&c=3&b=2&e=';
     assert (exchange.urlencode (dict1) === expected1, 'testUrlencode: expected ' + expected1 + ' but got ' + exchange.urlencode (dict1));
 
+    // todo:
+    //
     // const dict2 = {
     //     'a': 1,
     //     'b': {
