@@ -1269,7 +1269,7 @@ export default class aftermath extends Exchange {
         };
         const tx = await this.privatePostBuildSetLeverage (txRequest);
         const request = this.signTxEd25519 (tx);
-        const response = await this.privatePostSubmitSetLeverage (request) as Dict;
+        const response = await this.privatePostSubmitSetLeverage (request);
         //
         // {
         //     "id": "0xyydsxxxxxxxxyydsxxxxxxx:141",

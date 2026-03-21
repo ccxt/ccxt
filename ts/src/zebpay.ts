@@ -1772,21 +1772,6 @@ export default class zebpay extends Exchange {
         };
     }
 
-    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
-        const marketId = this.safeString (leverage, 'symbol');
-        const info = this.safeDict (leverage, 'info');
-        const leverageValue = this.safeInteger (leverage, 'longLeverage');
-        const leverageValueShort = this.safeInteger (leverage, 'shortLeverage');
-        const marginMode = this.safeString (leverage, 'marginMode');
-        return {
-            'info': info,
-            'symbol': marketId,
-            'marginMode': marginMode,
-            'longLeverage': leverageValue,
-            'shortLeverage': leverageValueShort,
-        } as Leverage;
-    }
-
     parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
         const marketId = this.safeString (fee, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
