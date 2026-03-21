@@ -1760,10 +1760,6 @@ class Barrett implements IReduction {
     // Barrett.prototype.reduce = barrettReduce;
     // x = x mod m (HAC 14.42)
     public reduce(x:BigInteger) {
-        // Normalize negative inputs to avoid infinite loop (CVE-2023-25653)
-        if (x.s < 0) {
-            x.addTo(this.m, x);
-        }
         x.drShiftTo(this.m.t - 1, this.r2);
         if (x.t > this.m.t + 1) {
             x.t = this.m.t + 1;
