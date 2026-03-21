@@ -30,19 +30,23 @@ public partial class BaseTest
             testOmit();
             testGroupBy();
             testIndexBy();
+            testInArray();
             testFilterBy();
             testHandleMethods();
             testRemoveRepeatedElementsFromArray();
             testParsePrecision();
             testPrecisionFromString();
+            testStrip();
             testExtractParams();
             testArraysConcat();
             testUuid();
             await testSetMarketsFromExchange();
             testEthMethods();
             testKeysort();
+            testImplodeParams();
             testUnique();
             await testSleep();
             testIo();
+            testIsJsonEncodedObject();
         }
 }

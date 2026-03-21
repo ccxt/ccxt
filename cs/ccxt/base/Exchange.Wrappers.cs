@@ -315,6 +315,20 @@ public partial class Exchange
         var res = await this.fetchOHLCV(symbol, timeframe, since, limit, parameters);
         return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
+    public async Task<List<OHLCV>> FetchSpotOHLCV(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchSpotOHLCV(symbol, timeframe, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
+    }
+    public async Task<List<OHLCV>> FetchContractOHLCV(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchContractOHLCV(symbol, timeframe, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
+    }
     public async Task<List<OHLCV>> FetchOHLCVWs(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -557,6 +571,16 @@ public partial class Exchange
         var res = await this.fetchTickers(symbols, parameters);
         return new Tickers(res);
     }
+    public async Task<Tickers> FetchSpotTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchSpotTickers(symbols, parameters);
+        return new Tickers(res);
+    }
+    public async Task<Tickers> FetchContractTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchContractTickers(symbols, parameters);
+        return new Tickers(res);
+    }
     public async Task<Tickers> FetchMarkPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkPrices(symbols, parameters);
@@ -772,6 +796,16 @@ public partial class Exchange
         var res = await this.createOrders(orders, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
+    public async Task<List<Order>> CreateSpotOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createSpotOrders(orders, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    public async Task<List<Order>> CreateContractOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createContractOrders(orders, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
     public async Task<List<Order>> EditOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = await this.editOrders(orders, parameters);
@@ -786,6 +820,16 @@ public partial class Exchange
     public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
+        return new Order(res);
+    }
+    public async Task<Order> CancelSpotOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelSpotOrder(id, symbol, parameters);
+        return new Order(res);
+    }
+    public async Task<Order> CancelContractOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelContractOrder(id, symbol, parameters);
         return new Order(res);
     }
     public async Task<Order> CancelOrderWithClientOrderId(string clientOrderId, string symbol = null, Dictionary<string, object> parameters = null)
@@ -816,6 +860,16 @@ public partial class Exchange
     public async Task<List<Order>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    public async Task<List<Order>> CancelAllSpotOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelAllSpotOrders(symbol, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    public async Task<List<Order>> CancelAllContractOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelAllContractOrders(symbol, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     public async Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
@@ -1027,6 +1081,11 @@ public partial class Exchange
     public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
+        return new DepositAddress(res);
+    }
+    public async Task<DepositAddress> FetchContractDepositAddress(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchContractDepositAddress(code, parameters);
         return new DepositAddress(res);
     }
     public MarketInterface CreateExpiredOptionMarket(string symbol)

@@ -12,7 +12,7 @@ import qs from '../../static_dependencies/qs/index.js'
 const json =  (data: any, params = undefined) => JSON.stringify (data)
     , isJsonEncodedObject = (object: any) => (
         (typeof object === 'string') &&
-        (object.length >= 2) &&
+        // (object.length >= 2) && // commented: https://github.com/ccxt/ccxt/pull/28193
         ((object[0] === '{') || (object[0] === '['))
     )
     , binaryToString = utf8.encode

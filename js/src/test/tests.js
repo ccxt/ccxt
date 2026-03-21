@@ -1349,22 +1349,22 @@ class testMainClass {
         const globalOptions = exchange.safeDict(exchangeData, 'options', {});
         // read apiKey/secret from the test file
         const apiKey = exchange.safeString(exchangeData, 'apiKey');
-        if (exchange.nonEmptyString(apiKey)) {
+        if (!exchange.isEmptyString(apiKey)) {
             // c# to string requirement
             exchange.apiKey = apiKey.toString();
         }
         const secret = exchange.safeString(exchangeData, 'secret');
-        if (exchange.nonEmptyString(secret)) {
+        if (!exchange.isEmptyString(secret)) {
             // c# to string requirement
             exchange.secret = secret.toString();
         }
         const privateKey = exchange.safeString(exchangeData, 'privateKey');
-        if (exchange.nonEmptyString(privateKey)) {
+        if (!exchange.isEmptyString(privateKey)) {
             // c# to string requirement
             exchange.privateKey = privateKey.toString();
         }
         const walletAddress = exchange.safeString(exchangeData, 'walletAddress');
-        if (exchange.nonEmptyString(walletAddress)) {
+        if (!exchange.isEmptyString(walletAddress)) {
             // c# to string requirement
             exchange.walletAddress = walletAddress.toString();
         }
@@ -1422,22 +1422,22 @@ class testMainClass {
         const exchange = this.initOfflineExchange(exchangeName);
         // read apiKey/secret from the test file
         const apiKey = exchange.safeString(exchangeData, 'apiKey');
-        if (exchange.nonEmptyString(apiKey)) {
+        if (!exchange.isEmptyString(apiKey)) {
             // c# to string requirement
             exchange.apiKey = apiKey.toString();
         }
         const secret = exchange.safeString(exchangeData, 'secret');
-        if (exchange.nonEmptyString(secret)) {
+        if (!exchange.isEmptyString(secret)) {
             // c# to string requirement
             exchange.secret = secret.toString();
         }
         const privateKey = exchange.safeString(exchangeData, 'privateKey');
-        if (exchange.nonEmptyString(privateKey)) {
+        if (!exchange.isEmptyString(privateKey)) {
             // c# to string requirement
             exchange.privateKey = privateKey.toString();
         }
         const walletAddress = exchange.safeString(exchangeData, 'walletAddress');
-        if (exchange.nonEmptyString(walletAddress)) {
+        if (!exchange.isEmptyString(walletAddress)) {
             // c# to string requirement
             exchange.walletAddress = walletAddress.toString();
         }

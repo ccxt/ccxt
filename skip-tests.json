@@ -1,7 +1,5 @@
 {
     "alp": {
-        "skip": "needs api1 to api3 update",
-        "until": "2026-04-01",
         "skipMethods": {
             "fetchCurrencies": {
                 "activeMajorCurrencies": "todo"
@@ -568,13 +566,6 @@
             }
         }
     },
-    "blofin": {
-        "skipMethods": {
-            "fetchTickers": {
-                "checkActiveSymbols": "todo https://github.com/ccxt/ccxt/actions/runs/22588349073/job/65440134952?pr=28035#step:10:231"
-            }
-        }
-    },
     "blockchaincom": {
         "skipMethods": {
             "loadMarkets": {
@@ -591,8 +582,6 @@
         }
     },
     "btcbox": {
-        "skip": "internal maintenance",
-        "until": "2026-03-29",
         "skipMethods": {
             "loadMarkets": {
                 "precision":"is undefined"
@@ -983,7 +972,6 @@
         }
     },
     "defx": {
-        "skipWs": true,
         "skipMethods": {
             "ohlcv": {
                 "1": "distorted open: https://github.com/ccxt/ccxt/actions/runs/14648217027/job/41107795879?pr=25786#step:9:458"
@@ -1529,25 +1517,49 @@
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
+            },
+            "watchOrderBook": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269407124#L3464"
+            },
+            "watchOrderBookForSymbols": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269407124#L3464"
+            },
+            "fetchPositions": {
+                "percentage": "percentage is not provided"
             }
         }
     },
     "kucoinfutures": {
         "skipMethods":{
+            "fetchCurrencies": {
+                "depositForNonCrypto": "not provided",
+                "withdrawForNonCrypto": "not provided",
+                "limits": "is not provided",
+                "currencyIdAndCode": "messed https://app.travis-ci.com/github/ccxt/ccxt/builds/271028497#L5338",
+                "maxInactiveCurrenciesPercentage": 60
+            },
             "loadMarkets": {
+                "taker": "temporary, until NFT-TRX appears in https://api.kucoin.com/api/v1/market/allTickers",
+                "maker": "same",
                 "currencyIdAndCode": "messed"
             },
-            "fetchPositions": {
-                "percentage": "percentage is not provided"
+            "ticker": {
+                "bid":"messed bid-ask",
+                "compareQuoteVolumeBaseVolume": "quoteVolume <= baseVolume * high https://app.travis-ci.com/github/ccxt/ccxt/builds/263304041#L2190",
+                "maxIncrease": "todo",
+                "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16059129227/job/45320923643?pr=26334#step:9:317"
             },
             "fetchTickers": {
-                "compareQuoteVolumeBaseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269634788#L1898"
+                "checkActiveSymbols": "todo"
             },
             "watchOrderBook": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269407124#L3464"
             },
-            "ticker": {
-                "compareOHLC": "todo: fix implementation"
+            "watchOrderBookForSymbols": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269407124#L3464"
+            },
+            "fetchPositions": {
+                "percentage": "percentage is not provided"
             }
         }
     },
@@ -1595,7 +1607,6 @@
         }
     },
     "lbank": {
-        "httpsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes"
@@ -2242,29 +2253,6 @@
         }
     },
     "lighter": {
-        "skipMethods":{
-            "loadMarkets": {
-                "currencyIdAndCode": "messed"
-            },
-            "fetchOrderBook": {
-                "timestamp": "not provided",
-                "spread": "bid-ask crossing",
-                "compareToNextItem": "tmp"
-
-            },
-            "fetchCurrencies": {
-                "withdraw": "not provided",
-                "deposit": "not provided",
-                "activeMajorCurrencies": "todo",
-                "networks": "not provided"
-            },
-            "orderBook": {
-                "spread":"bids[0][0] is not < asks[0][0]",
-                "timestamp": "not provided"
-            }
-        }
-    },
-    "aftermath": {
         "skipMethods":{
             "loadMarkets": {
                 "currencyIdAndCode": "messed"

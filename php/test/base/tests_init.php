@@ -32,19 +32,23 @@ include_once __DIR__ . '/test_group_by.php';
 include_once __DIR__ . '/test_index_by.php';
 include_once __DIR__ . '/test_filter_by.php';
 include_once __DIR__ . '/test_uuid.php';
+include_once __DIR__ . '/test_in_array.php';
 include_once __DIR__ . '/test_precision_from_string.php';
 include_once __DIR__ . '/test_urlencode_base64.php';
 include_once __DIR__ . '/test_after_constructor.php';
 include_once __DIR__ . '/test_handle_methods.php';
 include_once __DIR__ . '/test_remove_repeated_elements_from_array.php';
 include_once __DIR__ . '/test_parse_precision.php';
+include_once __DIR__ . '/test_strip.php';
 include_once __DIR__ . '/test_arrays_concat.php';
 include_once __DIR__ . '/test_set_markets_from_exchange.php';
 include_once __DIR__ . '/test_sleep.php';
 include_once __DIR__ . '/test_eth_methods.php';
 include_once __DIR__ . '/test_keysort.php';
+include_once __DIR__ . '/test_implode_params.php';
 include_once __DIR__ . '/test_capitalize.php';
 include_once __DIR__ . '/test_constants.php';
+include_once __DIR__ . '/test_is_json_encoded_object.php';
 
 function base_tests_init() {
     return Async\async(function () {
@@ -69,19 +73,23 @@ function base_tests_init() {
         test_omit();
         test_group_by();
         test_index_by();
+        test_in_array();
         test_filter_by();
         test_handle_methods();
         test_remove_repeated_elements_from_array();
         test_parse_precision();
         test_precision_from_string();
+        test_strip();
         test_extract_params();
         test_arrays_concat();
         test_uuid();
         Async\await(test_set_markets_from_exchange());
         test_eth_methods();
         test_keysort();
+        test_implode_params();
         test_unique();
         Async\await(test_sleep());
         test_io();
+        test_is_json_encoded_object();
     }) ();
 }
