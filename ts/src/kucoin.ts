@@ -90,7 +90,7 @@ export default class kucoin extends Exchange {
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
-                'fetchOpenInterestHistory': false,
+                'fetchOpenInterestHistory': true,
                 'fetchOpenInterests': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -9474,6 +9474,63 @@ export default class kucoin extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'info': interest,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name kucoin#fetchOpenInterestHistory
+     * @description Retrieves the open interest history of a currency
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-futures-open-interset
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {string} timeframe '5m', '15m', '30m', '1h', '4h' or '1d'
+     * @param {int} [since] the time(ms) of the earliest record to retrieve as a unix timestamp
+     * @param {int} [limit] default 30，max 200
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    async fetchOpenInterestHistory (symbol: string, timeframe = '5m', since: Int = undefined, limit: Int = undefined, params = {}) {
+        const timeframes: Dict = {
+            '5m': '5min',
+            '15m': '15min',
+            '30m': '30min',
+            '1h': '1hour',
+            '4h': '4hour',
+            '1d': '1day',
+            '5min': '5min',
+            '15min': '15min',
+            '30min': '30min',
+            '1hour': '1hour',
+            '4hour': '4hour',
+            '1day': '1day',
+        };
+        const interval = this.safeString (timeframes, timeframe);
+        if (interval === undefined) {
+            throw new BadRequest (this.id + ' fetchOpenInterestHistory() invalid timeframe, supported are 5m, 15m, 30m, 1h, 4h, 1d');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const maxLimit = 200;
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenInterestHistory', 'paginate', paginate);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, maxLimit);
+        }
+        let request: Dict = {
+            'symbol': market['id'],
+            'interval': interval,
+        };
+        if (since !== undefined) {
+            request['startAt'] = since;
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        [ request, params ] = this.handleUntilOption ('endAt', request, params);
+        const response = await this.utaGetMarketOpenInterest (this.extend (request, params));
+        const data = this.safeList (response, 'data');
+        return this.parseOpenInterestsHistory (data, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
