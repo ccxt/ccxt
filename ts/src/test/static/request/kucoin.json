@@ -1192,6 +1192,17 @@
         ],
         "fetchBalance": [
             {
+                "description": "fetch uta balance",
+                "method": "fetchBalance",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/account/balance",
+                "input": [
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "fetch margin balance",
                 "method": "fetchBalance",
                 "url": "https://api.kucoin.com/api/v1/margin/account",
