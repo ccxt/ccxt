@@ -6,7 +6,7 @@ import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, B
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { ADL, Account, Balances, Bool, BorrowInterest, Currency, Currencies, DepositAddress, Dict, FundingHistory, FundingRate, Int, int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, OpenInterests, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry } from './base/types.js';
+import type { ADL, Account, Balances, Bool, BorrowInterest, Currency, Currencies, DepositAddress, Dict, FundingHistory, FundingRate, Int, int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, OpenInterest, OpenInterests, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -631,6 +631,7 @@ export default class kucoin extends Exchange {
                     '503': ExchangeNotAvailable,
                     '101030': PermissionDenied, // {"code":"101030","msg":"You haven't yet enabled the margin trading"}
                     '103000': InvalidOrder, // {"code":"103000","msg":"Exceed the borrowing limit, the remaining borrowable amount is: 0USDT"}
+                    '112010': PermissionDenied, // {"msg":"Invalid Unified Account user.","code":"112010"}
                     '130101': BadRequest, // Parameter error
                     '130102': ExchangeError, // Maximum subscription amount has been exceeded.
                     '130103': OrderNotFound, // Subscription order does not exist.
@@ -1065,6 +1066,8 @@ export default class kucoin extends Exchange {
                     'mining': 'pool',
                     'hf': 'trade_hf',
                     'contract': 'contract',
+                    'uta': 'unified',
+                    'unified': 'unified',
                 },
                 'networks': {
                     'BRC20': 'btc',
@@ -6833,14 +6836,18 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-cross-margin
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-isolated-margin
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-futures
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-uta
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {object} [params.marginMode] 'cross' or 'isolated', margin type for fetching margin balance
      * @param {object} [params.type] extra parameters specific to the exchange API endpoint
      * @param {object} [params.hf] *default if false* if true, the result includes the balance of the high frequency account
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
+        let response = undefined;
+        const request: Dict = {};
         const code = this.safeString (params, 'code');
         let currency = undefined;
         if (code !== undefined) {
@@ -6859,24 +6866,28 @@ export default class kucoin extends Exchange {
         if (hf && (type !== 'main')) {
             type = 'trade_hf';
         }
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
-        let response = undefined;
-        const request: Dict = {};
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
         const isolated = (marginMode === 'isolated') || (type === 'isolated');
         const cross = (marginMode === 'cross') || (type === 'margin');
-        if (isolated) {
+        let uta = false;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'uta', uta);
+        if (uta) {
+            request['accountMode'] = 'unified';
+            response = await this.utaPrivateGetAccountModeAccountBalance (this.extend (request, params));
+        } else if (isolated) {
             if (currency !== undefined) {
                 request['balanceCurrency'] = currency['id'];
             }
-            response = await this.privateGetIsolatedAccounts (this.extend (request, query));
+            response = await this.privateGetIsolatedAccounts (this.extend (request, params));
         } else if (cross) {
-            response = await this.privateGetMarginAccount (this.extend (request, query));
+            response = await this.privateGetMarginAccount (this.extend (request, params));
         } else {
             if (currency !== undefined) {
                 request['currency'] = currency['id'];
             }
             request['type'] = type;
-            response = await this.privateGetAccounts (this.extend (request, query));
+            response = await this.privateGetAccounts (this.extend (request, params));
         }
         //
         // Spot
@@ -6955,13 +6966,58 @@ export default class kucoin extends Exchange {
         //        }
         //    }
         //
+        // uta
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "accountType": "UNIFIED",
+        //             "ts": 1764731696945,
+        //             "accounts": [
+        //                 {
+        //                     "currencies": [
+        //                         {
+        //                             "currency": "USDT",
+        //                             "equity": "97.9936711985",
+        //                             "hold": "0.0000000000",
+        //                             "balance": "97.9936711985",
+        //                             "available": "97.9936711985",
+        //                             "liability": "0.0000000000"
+        //                         },
+        //                         {
+        //                             "currency": "BTC",
+        //                             "equity": "0.0000216000",
+        //                             "hold": "0.0000000000",
+        //                             "balance": "0.0000216000",
+        //                             "available": "0.0000216000",
+        //                             "liability": "0.0000000000"
+        //                         }
+        //                     ]
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
         let data = undefined;
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
         };
-        if (isolated) {
+        if (uta) {
+            data = this.safeDict (response, 'data', {});
+            const timestamp = this.safeInteger (data, 'ts');
+            result['timestamp'] = timestamp;
+            result['datetime'] = this.iso8601 (timestamp);
+            const accounts = this.safeList (data, 'accounts', []);
+            for (let i = 0; i < accounts.length; i++) {
+                const account = this.safeDict (accounts, i);
+                const currencyId = this.safeString (account, 'currency');
+                const codeInner = this.safeCurrencyCode (currencyId);
+                if (codeInner !== code) {
+                    result[codeInner] = this.parseBalanceHelper (account);
+                }
+            }
+        } else if (isolated) {
             data = this.safeDict (response, 'data', {});
             const assets = this.safeValue (data, 'assets', data);
             for (let i = 0; i < assets.length; i++) {
@@ -9515,7 +9571,7 @@ export default class kucoin extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenInterestHistory', 'paginate', paginate);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, maxLimit);
+            return await this.fetchPaginatedCallDeterministic ('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, maxLimit) as OpenInterest[];
         }
         let request: Dict = {
             'symbol': market['id'],
