@@ -415,9 +415,12 @@
                     "success": true
                 },
                 "parsedResponse": {
-                    "info": {},
-                    "symbol": "ETH/USDC:USDC",
-                    "marginMode": null
+                    "info": {
+                        "code": "200",
+                        "message": "success",
+                        "success": true
+                    },
+                    "hedged": true
                 }
             }
         ],
@@ -528,9 +531,9 @@
                     "success": true
                 },
                 "parsedResponse": {
-                    "code": "200",
-                    "message": "success",
-                    "success": true
+                    "info": {},
+                    "symbol": "ETH/USDC:USDC",
+                    "marginMode": null
                 }
             }
         ],

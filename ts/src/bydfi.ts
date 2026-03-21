@@ -2388,7 +2388,11 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        return await this.privatePostV1SwapUserDataPositionSideDual (this.extend (request, params));
+        const response = await this.privatePostV1SwapUserDataPositionSideDual (this.extend (request, params));
+        return {
+            'info': response,
+            'hedged': hedged,
+        };
     }
 
     /**
