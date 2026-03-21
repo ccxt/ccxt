@@ -764,7 +764,8 @@ export default class grvt extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        const response = await this.publicMarketPostFullV1Currency (params);
+        const request = { '': '' }; // workaround for php [] empty arr
+        const response = await this.publicMarketPostFullV1Currency (request);
         //
         //    {
         //        "result": [
