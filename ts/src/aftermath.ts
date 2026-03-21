@@ -1,6 +1,6 @@
 import Exchange from './abstract/aftermath.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Account, Balances, Currencies, Currency, Market, Dict, int, Int, Strings, OHLCV, Order, OrderBook, OrderRequest, Str, Ticker, Trade, TradingFeeInterface, MarginModification, TransferEntry, Position, Transaction, OrderType, OrderSide, Num } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, Leverage, Market, Dict, int, Int, Strings, OHLCV, Order, OrderBook, OrderRequest, Str, Ticker, Trade, TradingFeeInterface, MarginModification, TransferEntry, Position, Transaction, OrderType, OrderSide, Num } from './base/types.js';
 import { eddsa } from './base/functions/crypto.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { ArgumentsRequired, NotSupported, ExchangeError } from './base/errors.js';
@@ -1251,7 +1251,7 @@ export default class aftermath extends Exchange {
      * @param {Account} [params.account] account id to use, required
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -1269,7 +1269,7 @@ export default class aftermath extends Exchange {
         };
         const tx = await this.privatePostBuildSetLeverage (txRequest);
         const request = this.signTxEd25519 (tx);
-        const response = await this.privatePostSubmitSetLeverage (request);
+        const response = await this.privatePostSubmitSetLeverage (request) as Dict;
         //
         // {
         //     "id": "0xyydsxxxxxxxxyydsxxxxxxx:141",
@@ -1291,7 +1291,19 @@ export default class aftermath extends Exchange {
         //     "liquidationPrice": -3.71625538227e-7
         // }
         //
-        return response;
+        return this.parseLeverage (response, market);
+    }
+
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        const marketId = this.safeString (leverage, 'symbol');
+        const leverageValue = this.safeNumber (leverage, 'leverage');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': this.safeStringLower (leverage, 'marginMode'),
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        } as Leverage;
     }
 
     /**

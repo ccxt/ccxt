@@ -6980,14 +6980,6 @@ export default class bybit extends Exchange {
         return this.parseMarginMode (response, market);
     }
 
-    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
-        return {
-            'info': marginMode,
-            'symbol': this.safeSymbol (undefined, market),
-            'marginMode': undefined,
-        } as MarginMode;
-    }
-
     /**
      * @method
      * @name bybit#setLeverage

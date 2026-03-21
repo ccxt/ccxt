@@ -9147,7 +9147,7 @@ export default class kucoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<MarginMode> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
@@ -9172,7 +9172,7 @@ export default class kucoin extends Exchange {
         //    }
         //
         const data = this.safeDict (response, 'data', {});
-        return this.parseMarginMode (data, market) as any;
+        return this.parseMarginMode (data, market);
     }
 
     /**

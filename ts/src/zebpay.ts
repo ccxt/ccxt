@@ -1417,7 +1417,7 @@ export default class zebpay extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -1431,7 +1431,19 @@ export default class zebpay extends Exchange {
         // { data: { "symbol", "longLeverage": 10, "shortLeverage": 1, "marginMode": "isolated" }
         //
         const response = await this.privateSwapPostV1TradeUpdateUserLeverage (this.extend (request, params));
-        return response;
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
+    }
+
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        const marketId = this.safeString (leverage, 'symbol');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': this.safeStringLower (leverage, 'marginMode'),
+            'longLeverage': this.safeInteger (leverage, 'longLeverage'),
+            'shortLeverage': this.safeInteger (leverage, 'shortLeverage'),
+        } as Leverage;
     }
 
     /**
