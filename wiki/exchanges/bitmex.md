@@ -34,7 +34,10 @@
 * [setMarginMode](#setmarginmode)
 * [fetchDepositAddress](#fetchdepositaddress)
 * [fetchDepositWithdrawFees](#fetchdepositwithdrawfees)
+* [fetchOpenInterests](#fetchopeninterests)
 * [fetchLiquidations](#fetchliquidations)
+* [fetchPositionsADLRank](#fetchpositionsadlrank)
+* [fetchSettlementHistory](#fetchsettlementhistory)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
 * [watchLiquidations](#watchliquidations)
@@ -254,7 +257,7 @@ bitmex.fetchMyTrades (symbol[, since, limit, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory  
 
@@ -701,6 +704,27 @@ bitmex.fetchDepositWithdrawFees (codes[, params])
 ```
 
 
+<a name="fetchOpenInterests" id="fetchopeninterests"></a>
+
+### fetchOpenInterests{docsify-ignore}
+Retrieves the open interest for a list of symbols
+
+**Kind**: instance method of [<code>bitmex</code>](#bitmex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [open interest structures](https://docs.ccxt.com/?id=open-interest-structure)
+
+**See**: https://docs.bitmex.com/api-explorer/get-stats  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified CCXT market symbols |
+| params | <code>object</code> | No | exchange specific parameters |
+
+
+```javascript
+bitmex.fetchOpenInterests ([symbols, params])
+```
+
+
 <a name="fetchLiquidations" id="fetchliquidations"></a>
 
 ### fetchLiquidations{docsify-ignore}
@@ -723,6 +747,55 @@ retrieves the public liquidations of a trading pair
 
 ```javascript
 bitmex.fetchLiquidations (symbol[, since, limit, params])
+```
+
+
+<a name="fetchPositionsADLRank" id="fetchpositionsadlrank"></a>
+
+### fetchPositionsADLRank{docsify-ignore}
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+**Kind**: instance method of [<code>bitmex</code>](#bitmex)  
+**Returns**: <code>Array&lt;object&gt;</code> - an [auto de leverage structure](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+**See**: https://www.bitmex.com/api/explorer/#!/Position/Position_get  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitmex.fetchPositionsADLRank ([symbols, params])
+```
+
+
+<a name="fetchSettlementHistory" id="fetchsettlementhistory"></a>
+
+### fetchSettlementHistory{docsify-ignore}
+fetches historical settlement records
+
+**Kind**: instance method of [<code>bitmex</code>](#bitmex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [settlement history objects](https://docs.ccxt.com/?id=settlement-history-structure)
+
+**See**: https://docs.bitmex.com/api-explorer/get-settlements  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the settlement history |
+| since | <code>int</code> | No | timestamp in ms |
+| limit | <code>int</code> | No | number of records |
+| params | <code>object</code> | No | exchange specific params |
+| params.until | <code>int</code> | No | timestamp in ms EXCHANGE SPECIFIC PARAMETERS |
+| params.filter | <code>string</code> | No | generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the timestamp docs for more details, default value = {} |
+| params.columns | <code>string</code> | No | array of column names to fetch, if omitted, will return all columns, note that this method will always return item keys, even when not specified, so you may receive more columns that you expect |
+| params.start | <code>int</code> | No | possible values are >= 0 starting point for results, default value = 0 |
+| params.reverse | <code>boolean</code> | No | if true, will sort results newest first, default value = false |
+
+
+```javascript
+bitmex.fetchSettlementHistory (symbol[, since, limit, params])
 ```
 
 

@@ -17,9 +17,9 @@ from ccxt.base.decimal_to_precision import ROUND_UP  # noqa E402
 from ccxt.base.decimal_to_precision import ROUND_DOWN  # noqa E402
 import ccxt.async_support as ccxt  # noqa: F402
 
-def test_datetime():
+def test_iso8601():
     exchange = ccxt.Exchange({
-        'id': 'regirock',
+        'id': 'sampleexchange',
     })
     assert exchange.iso8601(514862627000) == '1986-04-26T01:23:47.000Z'
     assert exchange.iso8601(514862627559) == '1986-04-26T01:23:47.559Z'
@@ -32,7 +32,12 @@ def test_datetime():
     assert exchange.iso8601('') is None
     assert exchange.iso8601('a') is None
     assert exchange.iso8601({}) is None
-    # ----------------------------------------------------------------------------
+
+
+def test_parse8601():
+    exchange = ccxt.Exchange({
+        'id': 'sampleexchange',
+    })
     assert exchange.parse8601('1986-04-26T01:23:47.000Z') == 514862627000
     assert exchange.parse8601('1986-04-26T01:23:47.559Z') == 514862627559
     assert exchange.parse8601('1986-04-26T01:23:47.062Z') == 514862627062
@@ -48,16 +53,21 @@ def test_datetime():
     assert exchange.parse8601(None) is None
     assert exchange.parse8601({}) is None
     assert exchange.parse8601(33) is None
-    # ----------------------------------------------------------------------------
+
+
+def test_parse_date():
+    exchange = ccxt.Exchange({
+        'id': 'sampleexchange',
+    })
     assert exchange.parse_date('1986-04-26 00:00:00') == 514857600000
     assert exchange.parse_date('1986-04-26T01:23:47.000Z') == 514862627000
     assert exchange.parse_date('1986-13-13 00:00:00') is None
-    # GMT formats (todo: bugs in php)
-    # assert (exchange.parseDate ('Mon, 29 Apr 2024 14:00:17 GMT') === 1714399217000);
-    # assert (exchange.parseDate ('Mon, 29 Apr 2024 14:09:17 GMT') === 1714399757000);
-    # assert (exchange.parseDate ('Sun, 29 Dec 2024 01:01:10 GMT') === 1735434070000);
-    # assert (exchange.parseDate ('Sun, 29 Dec 2024 02:11:10 GMT') === 1735438270000);
-    # assert (exchange.parseDate ('Sun, 08 Dec 2024 02:03:04 GMT') === 1733623384000);
+
+
+def test_round_timeframe():
+    exchange = ccxt.Exchange({
+        'id': 'sampleexchange',
+    })
     assert exchange.round_timeframe('5m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_DOWN) == exchange.parse8601('2019-08-12 13:20:00')
     assert exchange.round_timeframe('10m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_DOWN) == exchange.parse8601('2019-08-12 13:20:00')
     assert exchange.round_timeframe('30m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_DOWN) == exchange.parse8601('2019-08-12 13:00:00')
@@ -67,3 +77,43 @@ def test_datetime():
     assert exchange.round_timeframe('30m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_UP) == exchange.parse8601('2019-08-12 13:30:00')
     assert exchange.round_timeframe('1h', exchange.parse8601('2019-08-12 13:22:08'), ROUND_UP) == exchange.parse8601('2019-08-12 14:00:00')
     assert exchange.round_timeframe('1d', exchange.parse8601('2019-08-12 13:22:08'), ROUND_UP) == exchange.parse8601('2019-08-13 00:00:00')
+
+
+def test_microseconds():
+    exchange = ccxt.Exchange({
+        'id': 'sampleexchange',
+    })
+    value = exchange.microseconds()
+    value_string = str(value)
+    assert value > 0
+    assert len(value_string) == 16
+
+
+def test_milliseconds():
+    exchange = ccxt.Exchange({
+        'id': 'sampleexchange',
+    })
+    value = exchange.milliseconds()
+    value_string = str(value)
+    assert value > 0
+    assert len(value_string) == 13
+
+
+def test_seconds():
+    exchange = ccxt.Exchange({
+        'id': 'sampleexchange',
+    })
+    value = exchange.seconds()
+    value_string = str(value)
+    assert value > 0
+    assert len(value_string) == 10
+
+
+def test_datetime():
+    test_iso8601()
+    test_parse8601()
+    test_parse_date()
+    test_round_timeframe()
+    test_microseconds()
+    test_milliseconds()
+    test_seconds()

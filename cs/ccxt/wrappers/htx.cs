@@ -489,6 +489,7 @@ public partial class htx
     /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-account-information"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-account-information"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -497,9 +498,21 @@ public partial class htx
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.unified</term>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : linear or future
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
     /// <description>
     /// bool : provide this parameter if you have a recent account with unified cross+isolated margin account
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.multiAssetMode</term>
+    /// <description>
+    /// bool : set to true if you are using multi-asset mode for USDT-margined contracts
     /// </description>
     /// </item>
     /// </list>
@@ -1608,7 +1621,7 @@ public partial class htx
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}.</returns>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}.</returns>
     public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1881,5 +1894,28 @@ public partial class htx
     {
         var res = await this.setPositionMode(hedged, symbol, parameters);
         return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetches the auto deleveraging rank and risk percentage for a list of symbols
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb81b5a-77b5-11ed-9966-0242ac110003"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb81c49-77b5-11ed-9966-0242ac110003"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=28c2f164-77ae-11ed-9966-0242ac110003"/>  <br/>
+    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=5d518648-77b6-11ed-9966-0242ac110003"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}.</returns>
+    public async Task<List<ADL>> FetchPositionsADLRank(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionsADLRank(symbols, parameters);
+        return ((IList<object>)res).Select(item => new ADL(item)).ToList<ADL>();
     }
 }

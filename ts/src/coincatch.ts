@@ -313,8 +313,8 @@ export default class coincatch extends Exchange {
                     'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
                     'BEP20': 'BEP20',
-                    'ARB': 'ArbitrumOne',
-                    'OPTIMISM': 'Optimism',
+                    'ARBONE': 'ArbitrumOne',
+                    'OP': 'Optimism',
                     'LTC': 'LTC',
                     'BCH': 'BCH',
                     'ETC': 'ETC',
@@ -347,7 +347,7 @@ export default class coincatch extends Exchange {
                     'CFX': 'CFX',
                     'STRAT': 'StratisEVM',
                     'TIA': 'Celestia',
-                    'ChilizChain': 'ChilizChain',
+                    'CHZ': 'ChilizChain',
                     'APT': 'Aptos',
                     'ONT': 'Ontology',
                     'ICP': 'ICP',
@@ -362,18 +362,6 @@ export default class coincatch extends Exchange {
                 'networksById': {
                     'TRC20': 'TRC20',
                     'TRX(TRC20)': 'TRC20',
-                    'ArbitrumOne': 'ARB', // todo check
-                    'THORChain': 'RUNE', // todo check
-                    'Solar': 'SXP', // todo check
-                    'C-Chain': 'AVAX', // todo check
-                    'CAP20': 'CAP20', // todo check
-                    'CFXeSpace': 'CFX', // todo check
-                    'CFX': 'CFX',
-                    'StratisEVM': 'STRAT', // todo check
-                    'ChilizChain': 'ChilizChain', // todo check
-                    'StellarLumens': 'XLM', // todo check
-                    'CronosChain': 'CRO', // todo check
-                    'Optimism': 'Optimism',
                 },
             },
             'features': {
@@ -4888,7 +4876,7 @@ export default class coincatch extends Exchange {
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         params['methodName'] = 'reduceMargin';
@@ -4904,7 +4892,7 @@ export default class coincatch extends Exchange {
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         params['methodName'] = 'addMargin';
@@ -5187,7 +5175,7 @@ export default class coincatch extends Exchange {
      * @param {string} [params.business] *swap only*
      * @param {string} [params.lastEndId] *swap only*
      * @param {bool} [params.next] *swap only*
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const methodName = 'fetchLedger';

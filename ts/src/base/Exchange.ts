@@ -1,12 +1,12 @@
 // ----------------------------------------------------------------------------
 
 import * as functions from './functions.js';
-import {
-    keys as keysFunc,
-    values as valuesFunc,
-    // inArray as inArrayFunc,
-    vwap as vwapFunc,
-} from './functions.js';
+// import {
+//     // keys as keysFunc,
+//     // values as valuesFunc,
+//     // inArray as inArrayFunc,
+//     // vwap as vwapFunc,
+// } from './functions.js';
 // import exceptions from "./errors.js"
 import { // eslint-disable-line object-curly-newline
     ExchangeError,
@@ -39,13 +39,15 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook
 //
 import { axolotl } from './functions/crypto.js';
 // import types
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL } from './types.js';
 // ----------------------------------------------------------------------------
 // move this elsewhere.
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 import { totp } from './functions/totp.js';
 import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
+import { secp256k1 } from '../static_dependencies/noble-curves/secp256k1.js';
+import { keccak_256 } from '../static_dependencies/noble-hashes/sha3.js';
 import { SecureRandom } from '../static_dependencies/jsencrypt/lib/jsbn/rng.js';
 import { getStarkKey, ethSigToPrivate, sign as starknetCurveSign } from '../static_dependencies/scure-starknet/index.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
@@ -61,7 +63,6 @@ const {
     deepExtend,
     extend,
     clone,
-    flatten,
     unique,
     indexBy,
     sortBy,
@@ -94,7 +95,6 @@ const {
     implodeParams,
     extractParams,
     json,
-    merge,
     binaryConcat,
     hash,
     // ecdsa,
@@ -112,8 +112,6 @@ const {
     safeStringUpper,
     safeTimestamp,
     binaryConcatArray,
-    uuidv1,
-    numberToLE,
     ymdhms,
     stringToBase64,
     decode,
@@ -130,7 +128,6 @@ const {
     sort,
     inArray,
     isEmpty,
-    ordered,
     filterBy,
     uuid16,
     safeFloat,
@@ -163,11 +160,12 @@ const {
     TICK_SIZE,
     SIGNIFICANT_DIGITS,
     sleep,
+    readFile, writeFile, existsFile, getTempDir,
 } = functions;
 
 // export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory} from './types.js'
 // import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
-export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio } from './types.js';
+export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio, ADL } from './types.js';
 // ----------------------------------------------------------------------------
 let protobufMexc = undefined;
 let encodeAsAny = undefined;
@@ -177,13 +175,6 @@ let TxBody = undefined;
 let TxRaw = undefined;
 let SignDoc = undefined;
 let SignMode = undefined;
-(async () => {
-    try {
-        protobufMexc = await import ('../protobuf/mexc/compiled.cjs');
-    } catch (e) {
-        // TODO: handle error
-    }
-}) ();
 
 // -----------------------------------------------------------------------------
 /**
@@ -275,7 +266,7 @@ export default class Exchange {
     token: string;  // reserved for HTTP auth in some cases
 
     balance: any = {};
-    liquidations: Dictionary<Liquidation> = {};
+    liquidations: any = undefined;
     orderbooks: Dictionary<Ob> = {};
     tickers: Dictionary<Ticker> = {};
     fundingRates: Dictionary<FundingRate> = {};
@@ -285,7 +276,7 @@ export default class Exchange {
     trades: Dictionary<ArrayCache>;
     transactions: Dictionary<Transaction> = {};
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>;
-    myLiquidations: Dictionary<Liquidation> = {};
+    myLiquidations: any = undefined;
     myTrades: ArrayCache;
     positions: any;
     urls: {
@@ -432,11 +423,8 @@ export default class Exchange {
     deepExtend = deepExtend;
     deepExtendSafe = deepExtend;
     isNode = isNode;
-    keys = keysFunc;
-    values = valuesFunc;
     extend = extend;
     clone = clone;
-    flatten = flatten;
     unique = unique;
     indexBy = indexBy;
     indexBySafe = indexBy;
@@ -471,8 +459,6 @@ export default class Exchange {
     implodeParams = implodeParams;
     extractParams = extractParams;
     json = json;
-    vwap = vwapFunc;
-    merge = merge;
     binaryConcat = binaryConcat;
     hash = hash;
     arrayConcat = arrayConcat;
@@ -488,8 +474,6 @@ export default class Exchange {
     safeStringUpper = safeStringUpper;
     safeTimestamp = safeTimestamp;
     binaryConcatArray = binaryConcatArray;
-    uuidv1 = uuidv1;
-    numberToLE = numberToLE;
     ymdhms = ymdhms;
     yymmdd = yymmdd;
     stringToBase64 = stringToBase64;
@@ -508,7 +492,6 @@ export default class Exchange {
     safeStringLower2 = safeStringLower2;
     safeStringUpper2 = safeStringUpper2;
     isEmpty = isEmpty;
-    ordered = ordered;
     filterBy = filterBy;
     uuid16 = uuid16;
     urlencodeWithArrayRepeat = urlencodeWithArrayRepeat;
@@ -531,6 +514,11 @@ export default class Exchange {
     crc32 = crc32;
     packb = packb;
     urlencodeBase64 = urlencodeBase64;
+    // io
+    readFile = readFile;
+    writeFile = writeFile;
+    existsFile = existsFile;
+    getTempDir = getTempDir;
 
     constructor (userConfig: ConstructorArgs = {}) {
         Object.assign (this, functions);
@@ -579,12 +567,12 @@ export default class Exchange {
         this.bidsasks = {};
         this.orderbooks = {};
         this.tickers = {};
-        this.liquidations = {};
+        this.liquidations = undefined;
         this.orders = undefined;
         this.trades = {};
         this.transactions = {};
         this.ohlcvs = {};
-        this.myLiquidations = {};
+        this.myLiquidations = undefined;
         this.myTrades = undefined;
         this.positions = undefined;
         // web3 and cryptography flags
@@ -646,6 +634,18 @@ export default class Exchange {
         this.afterConstruct ();
         if (this.safeBool (userConfig, 'sandbox') || this.safeBool (userConfig, 'testnet')) {
             this.setSandboxMode (true);
+        }
+        // exchange specific libs
+        this.loadExchangeSpecificFiles ();
+    }
+
+    async loadExchangeSpecificFiles () {
+        if (this.id === 'mexc') {
+            try {
+                protobufMexc = await import ('../protobuf/mexc/compiled.cjs');
+            } catch (e) {
+                // TODO: handle error
+            }
         }
     }
 
@@ -866,12 +866,16 @@ export default class Exchange {
     }
 
     isBinaryMessage (msg) {
-        return msg instanceof Uint8Array;
+        return msg instanceof Uint8Array || msg instanceof ArrayBuffer;
     }
 
     decodeProtoMsg (data) {
         if (!protobufMexc) {
             throw new NotSupported (this.id + ' requires protobuf to decode messages, please install it with `npm install protobufjs`');
+        }
+        if (data instanceof ArrayBuffer) {
+            // browser case
+            data = new Uint8Array (data);
         }
         if (data instanceof Uint8Array) {
             const decoded = (protobufMexc.default as any).PushDataV3ApiWrapper.decode (data);
@@ -945,6 +949,29 @@ export default class Exchange {
         }
         // set final headers
         headers = this.setHeaders (headers);
+        // multipart/form-data
+        const headersKeys = Object.keys (headers);
+        for (let i = 0; i < headersKeys.length; i++) {
+            const key = headersKeys[i];
+            if (key.toLowerCase () === 'content-type') {
+                let value = headers[key];
+                if (value === 'multipart/form-data') {
+                    const bodyKeys = Object.keys (body);
+                    const boundary = '--------------------------' + this.randomBytes (12);
+                    const eol = '\r\n';
+                    let newBody = '';
+                    for (let j = 0; j < bodyKeys.length; j++) {
+                        const bodyKey = bodyKeys[j];
+                        newBody += '--' + boundary + eol + 'Content-Disposition: form-data; name="' + bodyKey + '"' + eol + eol + body[bodyKey] + eol;
+                    }
+                    newBody += '--' + boundary + '--' + eol;
+                    value += '; boundary=' + boundary;
+                    headers[key] = value;
+                    body = newBody;
+                    break;
+                }
+            }
+        }
         // log
         if (this.verbose) {
             this.log ('fetch Request:\n', this.id, method, url, '\nRequestHeaders:\n', headers, '\nRequestBody:\n', body, '\n');
@@ -1012,6 +1039,10 @@ export default class Exchange {
             }
             throw e;
         }
+    }
+
+    jsonStringifyWithNull (obj) {
+        return JSON.stringify (obj, (_, v) => (v === undefined ? null : v));
     }
 
     parseJson (jsonString) {
@@ -1574,6 +1605,12 @@ export default class Exchange {
         obj[property] = defaultValue;
     }
 
+    exceptionMessage (exc, includeStack: boolean = true) {
+        const message = '[' + exc.constructor.name + '] ' + (!includeStack ? exc.message : exc.stack);
+        const length = Math.min (100000, message.length);
+        return message.slice (0, length);
+    }
+
     axolotl (payload, hexKey, ed25519) {
         return axolotl (payload, hexKey, ed25519);
     }
@@ -1596,6 +1633,24 @@ export default class Exchange {
 
     ethEncodeStructuredData (domain, messageTypes, messageData) {
         return this.base16ToBinary (TypedDataEncoder.encode (domain, messageTypes, messageData).slice (-132));
+    }
+
+    ethGetAddressFromPrivateKey (privateKey: string): string {
+        // Accepts a "0x"-prefixed hexstring private key and returns the corresponding Ethereum address
+        // Removes the "0x" prefix if present
+        const cleanPrivateKey = this.remove0xPrefix (privateKey);
+        // Get the public key from the private key using secp256k1 curve
+        const publicKeyBytes = secp256k1.getPublicKey (cleanPrivateKey);
+        // For Ethereum, we need to use the uncompressed public key (without the first byte which indicates compression)
+        // secp256k1.getPublicKey returns compressed key, we need uncompressed
+        const publicKeyUncompressed = secp256k1.ProjectivePoint.fromHex (publicKeyBytes).toRawBytes (false).slice (1); // Remove 0x04 prefix
+        // Hash the public key with Keccak256
+        const publicKeyHash = keccak_256 (publicKeyUncompressed);
+        // Take the last 20 bytes (40 hex chars)
+        const addressBytes = publicKeyHash.slice (-20);
+        // Convert to hex and add 0x prefix
+        const addressHex = '0x' + this.binaryToBase16 (addressBytes);
+        return addressHex;
     }
 
     retrieveStarkAccount (signature, accountClassHash, accountProxyClassHash) {
@@ -1896,6 +1951,200 @@ export default class Exchange {
         return undefined;  // c# stub
     }
 
+    async loadLighterLibrary (libraryPath, chainId, privateKey, apiKeyIndex, accountIndex) {
+        // wasmExecPathExample: '/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js';
+        // libraryPath eg: '/Users/cjg/Git/lighter-go/lighter.wasm';
+        if (libraryPath === undefined || libraryPath === '') {
+            throw new Error ('loadLighterLibrary() requires "libraryPath" that should point to "lighter.wasm".\nYou can build it from source using the official Ligher SDK or download it here https://github.com/ccxt/lighter-wasm.\nExample: exchanges.options["libraryPath"] = "/user/cjg/Git/lighter-wasm/lighter.wasm"');
+        }
+        if (!isNode) {
+            throw new NotSupported (this.id + ' loadLighterLibrary() is only supported in node environment.');
+        }
+        await functions.initFileSystem ();
+        const wasmExecPath = this.safeString (this.options, 'wasmExecPath');
+        if (wasmExecPath === undefined || wasmExecPath === '') {
+            throw new Error ('loadLighterLibrary() requires "wasmExecPath" that should point to `wasm_exec.js`. You can check the location of the file locally if you have GO installed or download it here https://github.com/ccxt/lighter-wasm.\nExample: exchanges.options["wasmExecPath"] = "/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js"');
+        }
+        await import (wasmExecPath);
+        const go = new (globalThis as any).Go ();
+        // read wasm from disks
+        const bytes = new Uint8Array (readFile (libraryPath, null) as Buffer); // it should point to lighter.wasm
+        const { instance } = await WebAssembly.instantiate (bytes, go.importObject);
+        go.run (instance);
+        // createCLient
+        const url = this.implodeHostname (this.urls['api']['public']);
+        const res = globalThis.CreateClient (url, privateKey, chainId, apiKeyIndex, accountIndex);
+        this.checkLighterSignedError (res);
+        return {}; // empty object we will read it from globalThis
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignCreateGroupedOrders (signer, request): any[] {
+        const orders = request['orders'];
+        const ordersArr = [];
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            ordersArr.push ({
+                'MarketIndex': parseInt (order['market_index']),
+                'ClientOrderIndex': order['client_order_index'],
+                'BaseAmount': order['base_amount'],
+                'Price': order['avg_execution_price'],
+                'IsAsk': order['is_ask'],
+                'Type': order['order_type'],
+                'TimeInForce': order['time_in_force'],
+                'ReduceOnly': order['reduce_only'],
+                'TriggerPrice': order['trigger_price'],
+                'OrderExpiry': order['order_expiry'],
+            });
+        }
+        const res = globalThis.SignCreateGroupedOrders (request['grouping_type'], ordersArr, orders.length, request['nonce'], request['api_key_index'], request['account_index']);
+        this.checkLighterSignedError (res);
+        return [ res.txType, res.txInfo ];
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignCreateOrder (signer, request): any[] {
+        const res = (globalThis.SignCreateOrder (
+            parseInt (request['market_index']),
+            request['client_order_index'],
+            request['base_amount'],
+            request['avg_execution_price'],
+            request['is_ask'],
+            request['order_type'],
+            request['time_in_force'],
+            request['reduce_only'],
+            request['trigger_price'],
+            request['order_expiry'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index']
+        ));
+        this.checkLighterSignedError (res);
+        return [ res.txType, res.txInfo ];
+    }
+
+    checkLighterSignedError (result) {
+        if ('error' in result) {
+            throw new Error ('Lighter signing error: ' + result.error);
+        }
+    }
+
+    lighterSignCancelOrder (signer, request): any[] {
+        const res = (globalThis.SignCancelOrder (
+            request['market_index'],
+            request['order_index'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index']
+        ));
+        this.checkLighterSignedError (res);
+        return [ res.txType, res.txInfo ];
+    }
+
+    lighterSignWithdraw (signer, request): any[] {
+        const res = (globalThis.SignWithdraw (
+            request['asset_index'],
+            request['route_type'],
+            request['amount'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index']
+        ));
+        this.checkLighterSignedError (res);
+        return [ res.txType, res.txInfo ];
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignCreateSubAccount (signer, request): any[] {
+        const res = (globalThis.SignCreateSubAccount (
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index']
+        ));
+        this.checkLighterSignedError (res);
+        return [ res.txType, res.txInfo ];
+    }
+
+    lighterSignCancelAllOrders (signer, request): any[] {
+        const res = (globalThis.SignCancelAllOrders (
+            request['time_in_force'],
+            request['time'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index']
+        ));
+        this.checkLighterSignedError (res);
+        return [ res.txType, res.txInfo ];
+    }
+
+    lighterSignModifyOrder (signer, request): any[] {
+        const res = (globalThis.SignModifyOrder (
+            request['market_index'],
+            request['index'],
+            request['base_amount'],
+            request['price'],
+            request['trigger_price'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index']
+        ));
+        this.checkLighterSignedError (res);
+        return [ res.txType, res.txInfo ];
+    }
+
+    lighterSignTransfer (signer, request): any[] {
+        const res = globalThis.SignTransfer (
+            request['to_account_index'],
+            request['asset_index'],
+            request['from_route_type'],
+            request['to_route_type'],
+            request['amount'],
+            request['usdc_fee'],
+            request['memo'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index']
+        );
+        this.checkLighterSignedError (res);
+        return [ res.txType, res.txInfo ];
+    }
+
+    lighterSignUpdateLeverage (signer, request): any[] {
+        const res = (globalThis.SignUpdateLeverage (
+            request['market_index'],
+            request['initial_margin_fraction'],
+            request['margin_mode'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index']
+        ));
+        this.checkLighterSignedError (res);
+        return [ res.txType, res.txInfo ];
+    }
+
+    lighterCreateAuthToken (signer, request): string {
+        const res = globalThis.CreateAuthToken (
+            request['deadline'],
+            request['api_key_index'],
+            request['account_index']
+        );
+        this.checkLighterSignedError (res);
+        return res.authToken;
+    }
+
+    lighterSignUpdateMargin (signer, request): any[] {
+        const res = globalThis.SignUpdateMargin (
+            request['market_index'],
+            request['usdc_amount'],
+            request['direction'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index']
+        );
+        this.checkLighterSignedError (res);
+        return [ res.txType, res.txInfo ];
+    }
+
     /* eslint-enable */
     // ------------------------------------------------------------------------
 
@@ -2025,6 +2274,7 @@ export default class Exchange {
                 'editOrders': undefined,
                 'editOrderWs': undefined,
                 'fetchAccounts': undefined,
+                'fetchADLRank': undefined,
                 'fetchBalance': true,
                 'fetchBalanceWs': undefined,
                 'fetchBidsAsks': undefined,
@@ -2110,6 +2360,8 @@ export default class Exchange {
                 'fetchOrderTrades': undefined,
                 'fetchOrderWs': undefined,
                 'fetchPosition': undefined,
+                'fetchPositionADLRank': undefined,
+                'fetchPositionsADLRank': undefined,
                 'fetchPositionHistory': undefined,
                 'fetchPositionsHistory': undefined,
                 'fetchPositionWs': undefined,
@@ -2307,7 +2559,11 @@ export default class Exchange {
          * @description safely extract boolean value from dictionary or list
          * @returns {bool | undefined}
          */
-        return this.safeBoolN (dictionary, [ key ], defaultValue);
+        const value = this.safeValue (dictionary, key, defaultValue);
+        if (typeof value === 'boolean') {
+            return value;
+        }
+        return defaultValue;
     }
 
     safeDictN (dictionaryOrList, keys: IndexType[], defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
@@ -2334,7 +2590,14 @@ export default class Exchange {
          * @description safely extract a dictionary from dictionary or list
          * @returns {object | undefined}
          */
-        return this.safeDictN (dictionary, [ key ], defaultValue);
+        const value = this.safeValue (dictionary, key, defaultValue);
+        if (value === undefined) {
+            return defaultValue;
+        }
+        if ((typeof value === 'object') && !Array.isArray (value)) {
+            return value;
+        }
+        return defaultValue;
     }
 
     safeDict2 (dictionary, key1: IndexType, key2: string, defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
@@ -2381,7 +2644,14 @@ export default class Exchange {
          * @description safely extract an Array from dictionary or list
          * @returns {Array | undefined}
          */
-        return this.safeListN (dictionaryOrList, [ key ], defaultValue);
+        const value = this.safeValue (dictionaryOrList, key, defaultValue);
+        if (value === undefined) {
+            return defaultValue;
+        }
+        if (Array.isArray (value)) {
+            return value;
+        }
+        return defaultValue;
     }
 
     handleDeltas (orderbook, deltas) {
@@ -3002,8 +3272,12 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchFundingRate() is not supported yet');
     }
 
-    async watchFundingRates (symbols: string[], params = {}): Promise<FundingRates> {
+    async watchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         throw new NotSupported (this.id + ' watchFundingRates() is not supported yet');
+    }
+
+    async unWatchFundingRates (symbols: Strings = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' unWatchFundingRates() is not supported yet');
     }
 
     async watchFundingRatesForSymbols (symbols: string[], params = {}): Promise<{}> {
@@ -3091,7 +3365,12 @@ export default class Exchange {
     }
 
     async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
-        throw new NotSupported (this.id + ' fetchOpenInterest() is not supported yet');
+        if (this.has['fetchOpenInterests']) {
+            const openInterests = await this.fetchOpenInterests ([ symbol ], params);
+            return this.safeDict (openInterests, symbol) as OpenInterest;
+        } else {
+            throw new NotSupported (this.id + ' fetchOpenInterest() is not supported yet');
+        }
     }
 
     async fetchOpenInterests (symbols: Strings = undefined, params = {}): Promise<OpenInterests> {
@@ -3131,6 +3410,10 @@ export default class Exchange {
         // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
         const res = this.parseToNumeric ((value % 1));
         return res === 0;
+    }
+
+    nonEmptyString (value) {
+        return this.valueIsDefined (value) && value !== '';
     }
 
     safeNumberOmitZero (obj: object, key: IndexType, defaultValue: Num = undefined): Num {
@@ -4548,6 +4831,14 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet' + message);
     }
 
+    async fetchSpotOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        throw new NotSupported (this.id + ' fetchSpotOHLCV() is not supported yet');
+    }
+
+    async fetchContractOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        throw new NotSupported (this.id + ' fetchContractOHLCV() is not supported yet');
+    }
+
     async fetchOHLCVWs (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         let message = '';
         if (this.has['fetchTradesWs']) {
@@ -5062,6 +5353,21 @@ export default class Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
+    parseADLRank (info: Dict, market: Market = undefined): ADL {
+        throw new NotSupported (this.id + ' parseADLRank() is not supported yet');
+    }
+
+    parseADLRanks (ranks: any[], symbols: string[] = undefined, params = {}): ADL[] {
+        symbols = this.marketSymbols (symbols);
+        ranks = this.toArray (ranks);
+        const result = [];
+        for (let i = 0; i < ranks.length; i++) {
+            const rank = this.extend (this.parseADLRank (ranks[i], undefined), params);
+            result.push (rank);
+        }
+        return this.filterByArrayPositions (result, 'symbol', symbols, false);
+    }
+
     parseAccounts (accounts: any[], params = {}): Account[] {
         accounts = this.toArray (accounts);
         const result = [];
@@ -5437,7 +5743,8 @@ export default class Exchange {
     }
 
     async editOrderWithClientOrderId (clientOrderId: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
-        return await this.editOrder ('', symbol, type, side, amount, price, this.extend ({ 'clientOrderId': clientOrderId }, params));
+        const extendedParams = this.extend (params, { 'clientOrderId': clientOrderId });
+        return await this.editOrder ('', symbol, type, side, amount, price, extendedParams);
     }
 
     async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
@@ -5943,12 +6250,20 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchTickers() is not supported yet');
     }
 
+    async fetchSpotTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        throw new NotSupported (this.id + ' fetchSpotTickers() is not supported yet');
+    }
+
+    async fetchContractTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        throw new NotSupported (this.id + ' fetchContractTickers() is not supported yet');
+    }
+
     async fetchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         throw new NotSupported (this.id + ' fetchMarkPrices() is not supported yet');
     }
 
     async fetchTickersWs (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        throw new NotSupported (this.id + ' fetchTickers() is not supported yet');
+        throw new NotSupported (this.id + ' fetchTickersWs() is not supported yet');
     }
 
     async fetchOrderBooks (symbols: Strings = undefined, limit: Int = undefined, params = {}): Promise<OrderBooks> {
@@ -5965,6 +6280,10 @@ export default class Exchange {
 
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' unWatchTickers() is not supported yet');
+    }
+
+    async unWatchFundingRate (symbol: string, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' unWatchFundingRate() is not supported yet');
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
@@ -6004,6 +6323,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createOrder() is not supported yet');
     }
 
+    async createTwapOrder (symbol: string, side: OrderSide, amount: number, duration: number, params = {}): Promise<Order> {
+        throw new NotSupported (this.id + ' createTwapOrder() is not supported yet');
+    }
+
     async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
         throw new NotSupported (this.id + ' createConvertTrade() is not supported yet');
     }
@@ -6018,6 +6341,31 @@ export default class Exchange {
 
     async fetchPositionMode (symbol: Str = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' fetchPositionMode() is not supported yet');
+    }
+
+    async fetchADLRank (symbol: string, params = {}): Promise<ADL> {
+        throw new NotSupported (this.id + ' fetchADLRank() is not supported yet');
+    }
+
+    async fetchPositionsADLRank (symbols: Strings = undefined, params = {}): Promise<ADL[]> {
+        throw new NotSupported (this.id + ' fetchPositionsADLRank() is not supported yet');
+    }
+
+    async fetchPositionADLRank (symbol: string, params = {}): Promise<ADL> {
+        if (this.has['fetchPositionsADLRank']) {
+            await this.loadMarkets ();
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+            const ranks = await this.fetchPositionsADLRank ([ symbol ], params);
+            const rank = this.safeDict (ranks, 0);
+            if (rank === undefined) {
+                throw new NullResponse (this.id + ' fetchPositionsADLRank() could not find a rank for ' + symbol);
+            } else {
+                return rank as ADL;
+            }
+        } else {
+            throw new NotSupported (this.id + ' fetchPositionsADLRank() is not supported yet');
+        }
     }
 
     async createTrailingAmountOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingAmount: Num = undefined, trailingTriggerPrice: Num = undefined, params = {}): Promise<Order> {
@@ -6456,6 +6804,14 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createOrders() is not supported yet');
     }
 
+    async createSpotOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
+        throw new NotSupported (this.id + ' createSpotOrders() is not supported yet');
+    }
+
+    async createContractOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
+        throw new NotSupported (this.id + ' createContractOrders() is not supported yet');
+    }
+
     async editOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
         throw new NotSupported (this.id + ' editOrders() is not supported yet');
     }
@@ -6466,6 +6822,14 @@ export default class Exchange {
 
     async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' cancelOrder() is not supported yet');
+    }
+
+    async cancelSpotOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        throw new NotSupported (this.id + ' cancelSpotOrder() is not supported yet');
+    }
+
+    async cancelContractOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        throw new NotSupported (this.id + ' cancelContractOrder() is not supported yet');
     }
 
     /**
@@ -6510,6 +6874,14 @@ export default class Exchange {
 
     async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
         throw new NotSupported (this.id + ' cancelAllOrders() is not supported yet');
+    }
+
+    async cancelAllSpotOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
+        throw new NotSupported (this.id + ' cancelAllSpotOrders() is not supported yet');
+    }
+
+    async cancelAllContractOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
+        throw new NotSupported (this.id + ' cancelAllContractOrders() is not supported yet');
     }
 
     async cancelAllOrdersAfter (timeout: Int, params = {}): Promise<{}> {
@@ -6569,6 +6941,10 @@ export default class Exchange {
             return this.filterBy (orders, 'status', 'closed') as Order[];
         }
         throw new NotSupported (this.id + ' fetchClosedOrders() is not supported yet');
+    }
+
+    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        throw new NotSupported (this.id + ' fetchCanceledOrders() is not supported yet');
     }
 
     async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -6700,6 +7076,10 @@ export default class Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchDepositAddress() is not supported yet');
         }
+    }
+
+    async fetchContractDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+        throw new NotSupported (this.id + ' fetchContractDepositAddress() is not supported yet');
     }
 
     account (): BalanceAccount {
@@ -7805,6 +8185,15 @@ export default class Exchange {
         return this.filterByArray (objects, key, values, indexed) as Dictionary<Ticker>;
     }
 
+    filterByArrayADLRanks (objects, key: IndexType, values = undefined, indexed = true): ADL[] {
+        /**
+         * @ignore
+         * @method
+         * @description Typed wrapper for filterByArray that returns a list of ADL Ranks
+         */
+        return this.filterByArray (objects, key, values, indexed) as ADL[];
+    }
+
     createOHLCVObject (symbol: string, timeframe: string, data): Dictionary<Dictionary<OHLCV[]>> {
         const res = {};
         res[symbol] = {};
@@ -7907,7 +8296,8 @@ export default class Exchange {
             uniqueResults = this.removeRepeatedElementsFromArray (result);
         }
         const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
-        return this.filterBySinceLimit (uniqueResults, since, limit, key);
+        const sortedRes = this.sortBy (uniqueResults, key);
+        return this.filterBySinceLimit (sortedRes, since, limit, key);
     }
 
     async safeDeterministicCall (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params = {}) {
@@ -8417,6 +8807,10 @@ export default class Exchange {
         }
     }
 
+    async loadMarketsAndSignIn () {
+        await Promise.all ([ this.loadMarkets (), this.signIn () ]);
+    }
+
     async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
@@ -8678,6 +9072,33 @@ export default class Exchange {
                 }
             }
         }
+    }
+
+    timeframeFromMilliseconds (ms: number): string {
+        if (ms <= 0) {
+            return '';
+        }
+        const second = 1000;
+        const minute = 60 * second;
+        const hour = 60 * minute;
+        const day = 24 * hour;
+        const week = 7 * day;
+        if (ms % week === 0) {
+            return (ms / week) + 'w';
+        }
+        if (ms % day === 0) {
+            return (ms / day) + 'd';
+        }
+        if (ms % hour === 0) {
+            return (ms / hour) + 'h';
+        }
+        if (ms % minute === 0) {
+            return (ms / minute) + 'm';
+        }
+        if (ms % second === 0) {
+            return (ms / second) + 's';
+        }
+        return '';
     }
 }
 

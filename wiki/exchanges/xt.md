@@ -752,7 +752,7 @@ xt.setLeverage (leverage, symbol, params[])
 add margin to a position
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://doc.xt.com/#futures_useradjustMargin  
 
@@ -775,7 +775,7 @@ xt.addMargin (symbol, amount, params[])
 remove margin from a position
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://doc.xt.com/#futures_useradjustMargin  
 

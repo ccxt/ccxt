@@ -82,6 +82,9 @@ abstract class whitebit extends \ccxt\Exchange {
     public function v4_public_get_fee($params = array()) {
         return $this->request('fee', array('v4', 'public'), 'GET', $params, null, null, array());
     }
+    public function v4_public_get_funding_history_market($params = array()) {
+        return $this->request('funding-history/{market}', array('v4', 'public'), 'GET', $params, null, null, array());
+    }
     public function v4_public_get_orderbook_depth_market($params = array()) {
         return $this->request('orderbook/depth/{market}', array('v4', 'public'), 'GET', $params, null, null, array());
     }
@@ -411,6 +414,9 @@ abstract class whitebit extends \ccxt\Exchange {
     }
     public function v4PublicGetFee($params = array()) {
         return $this->request('fee', array('v4', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v4PublicGetFundingHistoryMarket($params = array()) {
+        return $this->request('funding-history/{market}', array('v4', 'public'), 'GET', $params, null, null, array());
     }
     public function v4PublicGetOrderbookDepthMarket($params = array()) {
         return $this->request('orderbook/depth/{market}', array('v4', 'public'), 'GET', $params, null, null, array());

@@ -26,6 +26,8 @@ def test_ohlcv(exchange, skipped_properties, method, entry, symbol, now):
         test_shared_methods.assert_round_minute_timestamp(exchange, skipped_properties, method, entry, 0)
     high = exchange.safe_string(entry, 2)
     low = exchange.safe_string(entry, 3)
+    if 'compareOHLCV' in skipped_properties:
+        return
     test_shared_methods.assert_less_or_equal(exchange, skipped_properties, method, entry, '1', high)
     test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, '1', low)
     test_shared_methods.assert_less_or_equal(exchange, skipped_properties, method, entry, '4', high)

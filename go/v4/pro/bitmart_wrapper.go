@@ -689,6 +689,65 @@ func (this *Bitmart) UnWatchOrderBookForSymbols(symbols []string, options ...ccx
     }
     return res, nil
 }
+/**
+ * @method
+ * @name bitmart#watchFundingRate
+ * @description watch the current funding rate
+ * @see https://developer-pro.bitmart.com/en/futuresv2/#public-funding-rate-channel
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+ */
+func (this *Bitmart) WatchFundingRate(symbol string, options ...ccxt.WatchFundingRateOptions) (ccxt.FundingRate, error) {
+
+    opts := ccxt.WatchFundingRateOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.WatchFundingRate(symbol, params)
+    if ccxt.IsError(res) {
+        return ccxt.FundingRate{}, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewFundingRate(res), nil
+}
+/**
+ * @method
+ * @name bitmart#watchFundingRates
+ * @description watch the funding rate for multiple markets
+ * @see https://developer-pro.bitmart.com/en/futuresv2/#public-funding-rate-channel
+ * @param {string[]} symbols a list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market symbols
+ */
+func (this *Bitmart) WatchFundingRates(options ...ccxt.WatchFundingRatesOptions) (ccxt.FundingRates, error) {
+
+    opts := ccxt.WatchFundingRatesOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbols interface{} = nil
+    if opts.Symbols != nil {
+        symbols = *opts.Symbols
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.WatchFundingRates(symbols, params)
+    if ccxt.IsError(res) {
+        return ccxt.FundingRates{}, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewFundingRates(res), nil
+}
 // missing typed methods from base
 //nolint
 func (this *Bitmart) LoadMarkets(params ...interface{}) (map[string]ccxt.MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }

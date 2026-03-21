@@ -193,9 +193,15 @@ public partial class whitebit
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'spot' or 'swap' - default is 'spot'. If type is 'swap', it will call v4PublicGetFutures
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.method</term>
     /// <description>
-    /// string : either v2PublicGetTicker or v4PublicGetTicker default is v4PublicGetTicker
+    /// string : either v2PublicGetTicker or v4PublicGetTicker or v4PublicGetFutures - default is v4PublicGetTicker for spot and mixed markets, and v4PublicGetFutures for swap
     /// </description>
     /// </item>
     /// </list>
@@ -1412,5 +1418,45 @@ public partial class whitebit
     {
         var res = await this.fetchCrossBorrowRate(code, parameters);
         return new CrossBorrowRate(res);
+    }
+    /// <summary>
+    /// fetches historical funding rate prices
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.whitebit.com/api-reference/market-data/funding-history"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest funding rate to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch (default 100, max 1000)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest funding rate
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}.</returns>
+    public async Task<List<FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchFundingRateHistory(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new FundingRateHistory(item)).ToList<FundingRateHistory>();
     }
 }

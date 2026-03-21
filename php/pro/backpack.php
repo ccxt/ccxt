@@ -680,7 +680,8 @@ class backpack extends \ccxt\async\backpack {
                 $tradeSymbol = $this->safe_string($first, 'symbol');
                 $limit = $trades->getLimit ($tradeSymbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            $result = $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            return $this->sort_by($result, 'timestamp'); // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
         }) ();
     }
 

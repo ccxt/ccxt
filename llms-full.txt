@@ -1,0 +1,960 @@
+# CCXT – CryptoCurrency eXchange Trading Library (Full Reference)
+
+> Unified cryptocurrency trading API for 100+ exchanges.
+> JavaScript/TypeScript, Python, PHP, C#, Go. REST and WebSocket.
+
+CCXT provides a single, consistent API to interact with cryptocurrency exchanges for market data, trading, and account management. The same code structure works across all supported languages and exchanges.
+
+## Docs
+
+- [REST API Manual](https://github.com/ccxt/ccxt/wiki/Manual): Complete REST API reference
+- [WebSocket Manual](https://github.com/ccxt/ccxt/wiki/ccxt.pro.manual): Real-time WebSocket API
+- [Examples](https://github.com/ccxt/ccxt/tree/master/examples): Working code examples in all languages
+- [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ): Frequently asked questions
+
+## AI Assistant Skills
+
+Install comprehensive language-specific skills for AI coding assistants (Claude Code, Cursor, Copilot, Windsurf, Codex, and 30+ others):
+
+```bash
+npx skills add ccxt/ccxt
+```
+
+---
+
+## Install
+
+### JavaScript / TypeScript
+```bash
+npm install ccxt
+```
+
+### Python
+```bash
+pip install ccxt
+
+# Optional performance enhancements
+pip install orjson      # Faster JSON parsing
+pip install coincurve   # Faster ECDSA signing (45ms -> 0.05ms)
+```
+
+### PHP
+```bash
+composer require ccxt/ccxt
+```
+Required PHP extensions: `curl`, `iconv`, `mbstring`, `pcre`, `json`.
+
+### C# / .NET
+```bash
+dotnet add package ccxt
+```
+
+### Go
+```bash
+go get github.com/ccxt/ccxt/go/v4
+```
+
+Both REST and WebSocket APIs are included in the same package for all languages.
+
+---
+
+## Key Concepts
+
+- **Exchange**: An instance representing a crypto exchange (e.g., `new ccxt.binance()`). Each exchange has the same unified API.
+- **Market / Symbol**: Trading pairs use `BASE/QUOTE` format (e.g., `BTC/USDT`). Futures use `BTC/USDT:USDT`. Options use `BTC/USDT:USDT-250630-100000-C`.
+- **Unified API**: All exchanges share the same method signatures. Write once, trade on any exchange.
+- **Public vs Private**: Public methods (market data) need no auth. Private methods (trading, balance) require API keys.
+- **REST vs WebSocket**: REST methods use `fetch*` prefix (one-time queries). WebSocket methods use `watch*` prefix (real-time streams).
+- **Rate Limiting**: Always enable with `enableRateLimit: true` to avoid getting banned.
+- **exchange.has**: Dictionary/map indicating which methods an exchange supports. Always check before calling.
+
+---
+
+## Quick Start — All Languages
+
+### JavaScript / TypeScript (REST)
+
+```typescript
+import ccxt from 'ccxt'
+
+const exchange = new ccxt.binance({ enableRateLimit: true })
+await exchange.loadMarkets()
+const ticker = await exchange.fetchTicker('BTC/USDT')
+console.log(ticker.last)
+```
+
+```javascript
+// CommonJS
+const ccxt = require('ccxt')
+const exchange = new ccxt.binance({ enableRateLimit: true })
+```
+
+### JavaScript / TypeScript (WebSocket)
+
+```typescript
+import ccxt from 'ccxt'
+
+const exchange = new ccxt.pro.binance()
+while (true) {
+    const ticker = await exchange.watchTicker('BTC/USDT')
+    console.log(ticker.last)  // Live updates!
+}
+await exchange.close()
+```
+
+### Python (REST — Synchronous)
+
+```python
+import ccxt
+
+exchange = ccxt.binance({'enableRateLimit': True})
+exchange.load_markets()
+ticker = exchange.fetch_ticker('BTC/USDT')
+print(ticker['last'])
+```
+
+### Python (REST — Asynchronous)
+
+```python
+import asyncio
+import ccxt.async_support as ccxt
+
+async def main():
+    exchange = ccxt.binance({'enableRateLimit': True})
+    await exchange.load_markets()
+    ticker = await exchange.fetch_ticker('BTC/USDT')
+    print(ticker['last'])
+    await exchange.close()  # Important!
+
+asyncio.run(main())
+```
+
+### Python (WebSocket)
+
+```python
+import asyncio
+import ccxt.pro as ccxtpro
+
+async def main():
+    exchange = ccxtpro.binance()
+    while True:
+        ticker = await exchange.watch_ticker('BTC/USDT')
+        print(ticker)  # Live updates!
+    await exchange.close()
+
+asyncio.run(main())
+```
+
+### PHP (REST — Synchronous)
+
+```php
+require_once 'vendor/autoload.php';
+
+$exchange = new \ccxt\binance(['enableRateLimit' => true]);
+$exchange->load_markets();
+$ticker = $exchange->fetch_ticker('BTC/USDT');
+echo $ticker['last'];
+```
+
+### PHP (REST — Asynchronous with ReactPHP)
+
+```php
+require_once 'vendor/autoload.php';
+
+$exchange = new \ccxt\async\binance(['enableRateLimit' => true]);
+$exchange->load_markets()->then(function() use ($exchange) {
+    return $exchange->fetch_ticker('BTC/USDT');
+})->then(function($ticker) {
+    echo $ticker['last'];
+});
+```
+
+### PHP (WebSocket)
+
+```php
+require_once 'vendor/autoload.php';
+
+$exchange = new \ccxt\pro\binance();
+while (true) {
+    $ticker = $exchange->watch_ticker('BTC/USDT');
+    echo $ticker['last'] . "\n";
+}
+$exchange->close();
+```
+
+### C# (REST)
+
+```csharp
+using ccxt;
+
+var exchange = new ccxt.binance(new Dictionary<string, object> {
+    { "enableRateLimit", true }
+});
+await exchange.LoadMarkets();
+var ticker = await exchange.FetchTicker("BTC/USDT");
+Console.WriteLine(ticker.last);
+```
+
+### C# (WebSocket)
+
+```csharp
+using ccxt.pro;
+
+var exchange = new ccxt.pro.binance();
+while (true) {
+    var ticker = await exchange.WatchTicker("BTC/USDT");
+    Console.WriteLine(ticker.last);
+}
+await exchange.Close();
+```
+
+### Go (REST)
+
+```go
+package main
+
+import (
+    "fmt"
+    ccxt "github.com/ccxt/ccxt/go/v4"
+)
+
+func main() {
+    exchange := ccxt.NewBinance(map[string]interface{}{
+        "enableRateLimit": true,
+    })
+    exchange.LoadMarkets()
+    ticker, _ := exchange.FetchTicker("BTC/USDT", nil)
+    fmt.Println(ticker.Last)
+}
+```
+
+### Go (WebSocket)
+
+```go
+package main
+
+import (
+    "fmt"
+    ccxtpro "github.com/ccxt/ccxt/go/v4/pro"
+)
+
+func main() {
+    exchange := ccxtpro.NewBinance(nil)
+    for {
+        ticker, _ := exchange.WatchTicker("BTC/USDT", nil)
+        fmt.Println(ticker.Last)
+    }
+    exchange.Close()
+}
+```
+
+---
+
+## REST vs WebSocket
+
+| Feature | REST API | WebSocket API |
+|---------|----------|---------------|
+| **Use for** | One-time queries, placing orders | Real-time monitoring, live price feeds |
+| **Method prefix** | `fetch*` / `fetch_*` / `Fetch*` | `watch*` / `watch_*` / `Watch*` |
+| **Speed** | Slower (HTTP request/response) | Faster (persistent connection) |
+| **Rate limits** | Strict (1-2 req/sec) | More lenient (continuous stream) |
+| **Best for** | Trading, account management | Price monitoring, arbitrage detection |
+
+**When to use REST:** Placing orders, fetching account balance, one-time data queries, order management.
+
+**When to use WebSocket:** Real-time price monitoring, live orderbook updates, arbitrage detection, portfolio tracking.
+
+### Language-specific imports for WebSocket:
+
+| Language | REST Import | WebSocket Import |
+|----------|-------------|-----------------|
+| JS/TS | `ccxt.binance()` | `ccxt.pro.binance()` |
+| Python sync | `import ccxt` | N/A (WebSocket requires async) |
+| Python async | `import ccxt.async_support as ccxt` | `import ccxt.pro as ccxtpro` |
+| PHP sync | `new \ccxt\binance()` | N/A (WebSocket requires async) |
+| PHP async | `new \ccxt\async\binance()` | `new \ccxt\pro\binance()` |
+| C# | `new ccxt.binance()` | `new ccxt.pro.binance()` |
+| Go | `ccxt.NewBinance()` | `ccxtpro.NewBinance()` |
+
+---
+
+## Creating Exchange Instances
+
+### Public API (no authentication)
+```javascript
+// JS/TS
+const exchange = new ccxt.binance({ enableRateLimit: true })
+```
+```python
+# Python
+exchange = ccxt.binance({'enableRateLimit': True})
+```
+```php
+// PHP
+$exchange = new \ccxt\binance(['enableRateLimit' => true]);
+```
+```csharp
+// C#
+var exchange = new ccxt.binance(new Dictionary<string, object> { { "enableRateLimit", true } });
+```
+```go
+// Go
+exchange := ccxt.NewBinance(map[string]interface{}{"enableRateLimit": true})
+```
+
+### Private API (with authentication)
+```javascript
+// JS/TS
+const exchange = new ccxt.binance({
+    apiKey: process.env.BINANCE_API_KEY,
+    secret: process.env.BINANCE_SECRET,
+    enableRateLimit: true
+})
+```
+```python
+# Python
+import os
+exchange = ccxt.binance({
+    'apiKey': os.environ.get('BINANCE_API_KEY'),
+    'secret': os.environ.get('BINANCE_SECRET'),
+    'enableRateLimit': True
+})
+```
+
+---
+
+## Common REST Operations
+
+### Loading Markets
+```javascript
+// JS/TS
+await exchange.loadMarkets()
+const btcMarket = exchange.market('BTC/USDT')
+console.log(btcMarket.limits.amount.min)
+```
+```python
+# Python
+exchange.load_markets()
+btc_market = exchange.market('BTC/USDT')
+print(btc_market['limits']['amount']['min'])
+```
+
+### Fetching Ticker
+```javascript
+// JS/TS
+const ticker = await exchange.fetchTicker('BTC/USDT')
+console.log(ticker.last, ticker.bid, ticker.ask, ticker.volume)
+
+const tickers = await exchange.fetchTickers(['BTC/USDT', 'ETH/USDT'])
+```
+```python
+# Python
+ticker = exchange.fetch_ticker('BTC/USDT')
+print(ticker['last'], ticker['bid'], ticker['ask'], ticker['volume'])
+
+tickers = exchange.fetch_tickers(['BTC/USDT', 'ETH/USDT'])
+```
+
+### Fetching Order Book
+```javascript
+// JS/TS
+const orderbook = await exchange.fetchOrderBook('BTC/USDT')
+console.log(orderbook.bids[0])  // [price, amount]
+console.log(orderbook.asks[0])  // [price, amount]
+
+const orderbook = await exchange.fetchOrderBook('BTC/USDT', 5)  // Top 5 levels
+```
+```python
+# Python
+orderbook = exchange.fetch_order_book('BTC/USDT')
+print(orderbook['bids'][0])  # [price, amount]
+print(orderbook['asks'][0])  # [price, amount]
+```
+
+### Fetching OHLCV (Candlesticks)
+```javascript
+// JS/TS
+const candles = await exchange.fetchOHLCV('BTC/USDT', '1h', undefined, 100)
+// Each candle: [timestamp, open, high, low, close, volume]
+```
+```python
+# Python
+candles = exchange.fetch_ohlcv('BTC/USDT', '1h', limit=100)
+```
+
+### Creating Orders
+
+#### Limit Order
+```javascript
+// JS/TS
+const order = await exchange.createLimitBuyOrder('BTC/USDT', 0.01, 50000)
+const order = await exchange.createLimitSellOrder('BTC/USDT', 0.01, 60000)
+const order = await exchange.createOrder('BTC/USDT', 'limit', 'buy', 0.01, 50000)
+```
+```python
+# Python
+order = exchange.create_limit_buy_order('BTC/USDT', 0.01, 50000)
+order = exchange.create_limit_sell_order('BTC/USDT', 0.01, 60000)
+order = exchange.create_order('BTC/USDT', 'limit', 'buy', 0.01, 50000)
+```
+
+#### Market Order
+```javascript
+// JS/TS
+const order = await exchange.createMarketBuyOrder('BTC/USDT', 0.01)
+const order = await exchange.createMarketSellOrder('BTC/USDT', 0.01)
+```
+```python
+# Python
+order = exchange.create_market_buy_order('BTC/USDT', 0.01)
+order = exchange.create_market_sell_order('BTC/USDT', 0.01)
+```
+
+### Fetching Balance
+```javascript
+// JS/TS
+const balance = await exchange.fetchBalance()
+console.log(balance.BTC.free)   // Available balance
+console.log(balance.BTC.used)   // Balance in orders
+console.log(balance.BTC.total)  // Total balance
+```
+```python
+# Python
+balance = exchange.fetch_balance()
+print(balance['BTC']['free'])
+print(balance['BTC']['used'])
+print(balance['BTC']['total'])
+```
+
+### Fetching and Managing Orders
+```javascript
+// JS/TS
+const openOrders = await exchange.fetchOpenOrders('BTC/USDT')
+const closedOrders = await exchange.fetchClosedOrders('BTC/USDT')
+const order = await exchange.fetchOrder(orderId, 'BTC/USDT')
+await exchange.cancelOrder(orderId, 'BTC/USDT')
+await exchange.cancelAllOrders('BTC/USDT')
+```
+```python
+# Python
+open_orders = exchange.fetch_open_orders('BTC/USDT')
+closed_orders = exchange.fetch_closed_orders('BTC/USDT')
+order = exchange.fetch_order(order_id, 'BTC/USDT')
+exchange.cancel_order(order_id, 'BTC/USDT')
+exchange.cancel_all_orders('BTC/USDT')
+```
+
+---
+
+## WebSocket Operations (Real-time)
+
+### Watching Ticker
+```javascript
+// JS/TS
+const exchange = new ccxt.pro.binance()
+while (true) {
+    const ticker = await exchange.watchTicker('BTC/USDT')
+    console.log(ticker.last, ticker.timestamp)
+}
+await exchange.close()
+```
+```python
+# Python
+exchange = ccxtpro.binance()
+while True:
+    ticker = await exchange.watch_ticker('BTC/USDT')
+    print(ticker['last'], ticker['timestamp'])
+await exchange.close()
+```
+
+### Watching Order Book
+```javascript
+// JS/TS
+const exchange = new ccxt.pro.binance()
+while (true) {
+    const orderbook = await exchange.watchOrderBook('BTC/USDT')
+    console.log('Best bid:', orderbook.bids[0])
+    console.log('Best ask:', orderbook.asks[0])
+}
+await exchange.close()
+```
+
+### Watching Trades
+```javascript
+// JS/TS
+const exchange = new ccxt.pro.binance()
+while (true) {
+    const trades = await exchange.watchTrades('BTC/USDT')
+    for (const trade of trades) {
+        console.log(trade.price, trade.amount, trade.side)
+    }
+}
+await exchange.close()
+```
+
+### Watching Your Orders (auth required)
+```javascript
+// JS/TS
+const exchange = new ccxt.pro.binance({ apiKey: 'KEY', secret: 'SECRET' })
+while (true) {
+    const orders = await exchange.watchOrders('BTC/USDT')
+    for (const order of orders) {
+        console.log(order.id, order.status, order.filled)
+    }
+}
+await exchange.close()
+```
+
+### Watching Multiple Symbols
+```javascript
+// JS/TS
+const exchange = new ccxt.pro.binance()
+while (true) {
+    const tickers = await exchange.watchTickers(['BTC/USDT', 'ETH/USDT', 'SOL/USDT'])
+    for (const symbol in tickers) {
+        console.log(symbol, tickers[symbol].last)
+    }
+}
+await exchange.close()
+```
+
+---
+
+## Complete Method Reference
+
+### Market Data Methods
+
+#### Tickers & Prices
+- `fetchTicker(symbol)` – fetch ticker for one symbol
+- `fetchTickers([symbols])` – fetch multiple tickers at once
+- `fetchBidsAsks([symbols])` – fetch best bid/ask for multiple symbols
+- `fetchLastPrices([symbols])` – fetch last prices
+- `fetchMarkPrices([symbols])` – fetch mark prices (derivatives)
+
+#### Order Books
+- `fetchOrderBook(symbol, limit)` – fetch order book
+- `fetchOrderBooks([symbols])` – fetch multiple order books
+- `fetchL2OrderBook(symbol)` – fetch level 2 order book
+- `fetchL3OrderBook(symbol)` – fetch level 3 order book (if supported)
+
+#### Trades
+- `fetchTrades(symbol, since, limit)` – fetch public trades
+- `fetchMyTrades(symbol, since, limit)` – fetch your trades (auth required)
+- `fetchOrderTrades(orderId, symbol)` – fetch trades for specific order
+
+#### OHLCV (Candlesticks)
+- `fetchOHLCV(symbol, timeframe, since, limit)` – fetch candlestick data
+- `fetchIndexOHLCV(symbol, timeframe)` – fetch index price OHLCV
+- `fetchMarkOHLCV(symbol, timeframe)` – fetch mark price OHLCV
+
+### Account & Balance
+
+- `fetchBalance()` – fetch account balance (auth required)
+- `fetchAccounts()` – fetch sub-accounts
+- `fetchLedger(code, since, limit)` – fetch ledger history
+- `fetchTransactions(code, since, limit)` – fetch transactions
+- `fetchDeposits(code, since, limit)` – fetch deposit history
+- `fetchWithdrawals(code, since, limit)` – fetch withdrawal history
+
+### Trading Methods
+
+#### Creating Orders
+- `createOrder(symbol, type, side, amount, price, params)` – create order (generic)
+- `createLimitOrder(symbol, side, amount, price)` – create limit order
+- `createMarketOrder(symbol, side, amount)` – create market order
+- `createLimitBuyOrder(symbol, amount, price)` – buy limit order
+- `createLimitSellOrder(symbol, amount, price)` – sell limit order
+- `createMarketBuyOrder(symbol, amount)` – buy market order
+- `createMarketSellOrder(symbol, amount)` – sell market order
+- `createMarketBuyOrderWithCost(symbol, cost)` – buy with specific cost
+- `createStopLimitOrder(symbol, side, amount, price, stopPrice)` – stop-limit order
+- `createStopMarketOrder(symbol, side, amount, stopPrice)` – stop-market order
+- `createStopLossOrder(symbol, side, amount, stopPrice)` – stop-loss order
+- `createTakeProfitOrder(symbol, side, amount, takeProfitPrice)` – take-profit order
+- `createTrailingAmountOrder(symbol, side, amount, trailingAmount)` – trailing stop
+- `createTrailingPercentOrder(symbol, side, amount, trailingPercent)` – trailing stop %
+- `createTriggerOrder(symbol, side, amount, triggerPrice)` – trigger order
+- `createPostOnlyOrder(symbol, side, amount, price)` – post-only order
+- `createReduceOnlyOrder(symbol, side, amount, price)` – reduce-only order
+- `createOrders([orders])` – create multiple orders at once
+- `createOrderWithTakeProfitAndStopLoss(symbol, type, side, amount, price, tpPrice, slPrice)` – OCO order
+
+#### Managing Orders
+- `fetchOrder(orderId, symbol)` – fetch single order
+- `fetchOrders(symbol, since, limit)` – fetch all orders
+- `fetchOpenOrders(symbol, since, limit)` – fetch open orders
+- `fetchClosedOrders(symbol, since, limit)` – fetch closed orders
+- `fetchCanceledOrders(symbol, since, limit)` – fetch canceled orders
+- `cancelOrder(orderId, symbol)` – cancel single order
+- `cancelOrders([orderIds], symbol)` – cancel multiple orders
+- `cancelAllOrders(symbol)` – cancel all orders for symbol
+- `editOrder(orderId, symbol, type, side, amount, price)` – modify order
+
+### Margin & Leverage
+
+- `fetchBorrowRate(code)` – fetch borrow rate for margin
+- `fetchBorrowRates([codes])` – fetch multiple borrow rates
+- `borrowMargin(code, amount, symbol)` – borrow margin
+- `repayMargin(code, amount, symbol)` – repay margin
+- `fetchLeverage(symbol)` – fetch leverage
+- `setLeverage(leverage, symbol)` – set leverage
+- `fetchLeverageTiers(symbols)` – fetch leverage tiers
+- `setMarginMode(marginMode, symbol)` – set margin mode (cross/isolated)
+- `fetchMarginMode(symbol)` – fetch margin mode
+
+### Derivatives & Futures
+
+#### Positions
+- `fetchPosition(symbol)` – fetch single position
+- `fetchPositions([symbols])` – fetch all positions
+- `fetchPositionHistory(symbol, since, limit)` – position history
+- `fetchPositionMode(symbol)` – fetch position mode (one-way/hedge)
+- `setPositionMode(hedged, symbol)` – set position mode
+- `closePosition(symbol, side)` – close position
+- `closeAllPositions()` – close all positions
+
+#### Funding & Settlement
+- `fetchFundingRate(symbol)` – current funding rate
+- `fetchFundingRates([symbols])` – multiple funding rates
+- `fetchFundingRateHistory(symbol, since, limit)` – funding rate history
+- `fetchFundingHistory(symbol, since, limit)` – your funding payments
+- `fetchSettlementHistory(symbol, since, limit)` – settlement history
+
+#### Open Interest & Liquidations
+- `fetchOpenInterest(symbol)` – open interest for symbol
+- `fetchOpenInterestHistory(symbol, timeframe, since, limit)` – OI history
+- `fetchLiquidations(symbol, since, limit)` – public liquidations
+- `fetchMyLiquidations(symbol, since, limit)` – your liquidations
+
+#### Options
+- `fetchOption(symbol)` – fetch option info
+- `fetchOptionChain(code)` – fetch option chain
+- `fetchGreeks(symbol)` – fetch option greeks
+- `fetchVolatilityHistory(code, since, limit)` – volatility history
+
+### Fees & Limits
+
+- `fetchTradingFee(symbol)` – trading fee for symbol
+- `fetchTradingFees([symbols])` – trading fees for multiple symbols
+- `fetchTradingLimits([symbols])` – trading limits
+- `fetchDepositWithdrawFee(code)` – deposit/withdrawal fee
+- `fetchDepositWithdrawFees([codes])` – multiple deposit/withdraw fees
+
+### Deposits & Withdrawals
+
+- `fetchDepositAddress(code, params)` – get deposit address
+- `fetchDepositAddresses([codes])` – multiple deposit addresses
+- `createDepositAddress(code, params)` – create new deposit address
+- `withdraw(code, amount, address, tag, params)` – withdraw funds
+
+### Transfer & Convert
+
+- `transfer(code, amount, fromAccount, toAccount)` – internal transfer
+- `fetchTransfers(code, since, limit)` – fetch transfer history
+- `fetchConvertQuote(fromCode, toCode, amount)` – get conversion quote
+- `createConvertTrade(fromCode, toCode, amount)` – execute conversion
+
+### Market Info
+
+- `fetchMarkets()` – fetch all markets
+- `fetchCurrencies()` – fetch all currencies
+- `fetchTime()` – fetch exchange server time
+- `fetchStatus()` – fetch exchange status
+
+### WebSocket Methods (real-time)
+
+#### Real-time Market Data
+- `watchTicker(symbol)` – watch single ticker
+- `watchTickers([symbols])` – watch multiple tickers
+- `watchOrderBook(symbol)` – watch order book updates
+- `watchOrderBookForSymbols([symbols])` – watch multiple order books
+- `watchTrades(symbol)` – watch public trades
+- `watchOHLCV(symbol, timeframe)` – watch candlestick updates
+- `watchBidsAsks([symbols])` – watch best bid/ask
+
+#### Real-time Account Data (auth required)
+- `watchBalance()` – watch balance updates
+- `watchOrders(symbol)` – watch your order updates
+- `watchMyTrades(symbol)` – watch your trade updates
+- `watchPositions([symbols])` – watch position updates
+
+#### WebSocket Trading (faster than REST, not all exchanges)
+- `createOrderWs` – create order via WebSocket
+- `cancelOrderWs` – cancel order via WebSocket
+- `editOrderWs` – edit order via WebSocket
+- `fetchBalanceWs` – fetch balance via WebSocket
+- `fetchOrderWs` / `fetchOpenOrdersWs` – fetch orders via WebSocket
+
+### Authentication Required
+
+Methods requiring API credentials:
+- All `create*` methods (creating orders, addresses)
+- All `cancel*` methods (canceling orders)
+- All `edit*` methods (modifying orders)
+- All `fetchMy*` methods (your trades, orders)
+- `fetchBalance`, `fetchLedger`, `fetchAccounts`
+- `withdraw`, `transfer`, `deposit`
+- Margin/leverage methods
+- Position methods
+- `watchBalance`, `watchOrders`, `watchMyTrades`, `watchPositions`
+
+### Checking Method Availability
+
+Not all exchanges support all methods:
+```javascript
+// JS/TS
+if (exchange.has['fetchOHLCV']) {
+    const candles = await exchange.fetchOHLCV('BTC/USDT', '1h')
+}
+```
+```python
+# Python
+if exchange.has['fetchOHLCV']:
+    candles = exchange.fetch_ohlcv('BTC/USDT', '1h')
+```
+
+---
+
+## Method Naming Convention
+
+| Prefix | Meaning | Example |
+|--------|---------|---------|
+| `fetch*` | REST API method (HTTP) | `fetchTicker`, `fetchBalance` |
+| `watch*` | WebSocket method (real-time) | `watchTicker`, `watchBalance` |
+| `create*` | Create new resource | `createOrder`, `createDepositAddress` |
+| `cancel*` | Cancel existing resource | `cancelOrder`, `cancelAllOrders` |
+| `edit*` | Modify existing resource | `editOrder` |
+| `set*` | Configure settings | `setLeverage`, `setMarginMode` |
+| `*Ws` | WebSocket variant (faster) | `createOrderWs`, `cancelOrderWs` |
+
+### Language-specific naming:
+
+| JavaScript/TypeScript | Python | PHP | C# | Go |
+|----------------------|--------|-----|-----|-----|
+| `fetchTicker` | `fetch_ticker` | `fetch_ticker` | `FetchTicker` | `FetchTicker` |
+| `createOrder` | `create_order` | `create_order` | `CreateOrder` | `CreateOrder` |
+| `watchOrderBook` | `watch_order_book` | `watch_order_book` | `WatchOrderBook` | `WatchOrderBook` |
+| `loadMarkets` | `load_markets` | `load_markets` | `LoadMarkets` | `LoadMarkets` |
+
+---
+
+## Proxy Configuration
+
+```javascript
+// HTTP Proxy
+exchange.httpProxy = 'http://your-proxy-host:port'
+// HTTPS Proxy
+exchange.httpsProxy = 'https://your-proxy-host:port'
+// SOCKS Proxy
+exchange.socksProxy = 'socks://your-proxy-host:port'
+// With authentication
+exchange.httpProxy = 'http://user:pass@proxy-host:port'
+```
+
+---
+
+## Authentication
+
+### Setting API Keys
+```javascript
+// JS/TS — during instantiation (recommended: use env vars)
+const exchange = new ccxt.binance({
+    apiKey: process.env.BINANCE_API_KEY,
+    secret: process.env.BINANCE_SECRET,
+    enableRateLimit: true
+})
+```
+```python
+# Python
+import os
+exchange = ccxt.binance({
+    'apiKey': os.environ.get('BINANCE_API_KEY'),
+    'secret': os.environ.get('BINANCE_SECRET'),
+    'enableRateLimit': True
+})
+```
+```csharp
+// C#
+var exchange = new ccxt.binance(new Dictionary<string, object> {
+    { "apiKey", Environment.GetEnvironmentVariable("BINANCE_API_KEY") },
+    { "secret", Environment.GetEnvironmentVariable("BINANCE_SECRET") },
+    { "enableRateLimit", true }
+});
+```
+
+### Testing Authentication
+```javascript
+// JS/TS
+try {
+    const balance = await exchange.fetchBalance()
+    console.log('Authentication successful!')
+} catch (error) {
+    if (error instanceof ccxt.AuthenticationError) {
+        console.error('Invalid API credentials')
+    }
+}
+```
+
+---
+
+## Error Handling
+
+### Exception Hierarchy
+```
+BaseError
+├─ NetworkError (recoverable — retry with backoff)
+│  ├─ RequestTimeout
+│  ├─ ExchangeNotAvailable
+│  ├─ RateLimitExceeded
+│  └─ DDoSProtection
+└─ ExchangeError (non-recoverable — don't retry)
+   ├─ AuthenticationError
+   ├─ InsufficientFunds
+   ├─ InvalidOrder
+   └─ NotSupported
+```
+
+### JavaScript/TypeScript
+```typescript
+try {
+    const order = await exchange.createOrder('BTC/USDT', 'limit', 'buy', 0.01, 50000)
+} catch (error) {
+    if (error instanceof ccxt.InsufficientFunds) {
+        console.error('Not enough balance')
+    } else if (error instanceof ccxt.InvalidOrder) {
+        console.error('Invalid order parameters')
+    } else if (error instanceof ccxt.RateLimitExceeded) {
+        console.error('Rate limit hit — wait before retrying')
+        await exchange.sleep(1000)
+    } else if (error instanceof ccxt.NetworkError) {
+        console.error('Network error — retry:', error.message)
+    } else if (error instanceof ccxt.ExchangeError) {
+        console.error('Exchange error — do not retry:', error.message)
+    }
+}
+```
+
+### Python
+```python
+try:
+    order = exchange.create_order('BTC/USDT', 'limit', 'buy', 0.01, 50000)
+except ccxt.InsufficientFunds:
+    print('Not enough balance')
+except ccxt.InvalidOrder:
+    print('Invalid order parameters')
+except ccxt.RateLimitExceeded:
+    print('Rate limit hit')
+    exchange.sleep(1000)
+except ccxt.NetworkError as e:
+    print(f'Network error — retry: {e}')
+except ccxt.ExchangeError as e:
+    print(f'Exchange error — do not retry: {e}')
+```
+
+### Retry Logic
+```javascript
+// JS/TS
+async function fetchWithRetry(maxRetries = 3) {
+    for (let i = 0; i < maxRetries; i++) {
+        try {
+            return await exchange.fetchTicker('BTC/USDT')
+        } catch (error) {
+            if (error instanceof ccxt.NetworkError && i < maxRetries - 1) {
+                await exchange.sleep(1000 * (i + 1))  // Exponential backoff
+            } else {
+                throw error
+            }
+        }
+    }
+}
+```
+
+---
+
+## Rate Limiting
+
+### Built-in Rate Limiter (Recommended)
+```javascript
+// JS/TS
+const exchange = new ccxt.binance({ enableRateLimit: true })
+```
+```python
+# Python
+exchange = ccxt.binance({'enableRateLimit': True})
+```
+
+### Manual Delays
+```javascript
+// JS/TS
+await exchange.fetchTicker('BTC/USDT')
+await exchange.sleep(1000)  // Wait 1 second
+await exchange.fetchTicker('ETH/USDT')
+```
+
+---
+
+## Common Pitfalls
+
+### All Languages
+1. **Not enabling rate limiter** — always set `enableRateLimit: true`
+2. **Multiple instances with same API keys** — causes nonce conflicts, reuse one instance
+3. **Using REST for real-time monitoring** — use WebSocket (`watch*`) instead of polling `fetch*`
+4. **Not closing WebSocket connections** — memory leak, always call `close()`
+5. **Not checking method availability** — check `exchange.has['methodName']` first
+
+### JavaScript/TypeScript
+6. **Forgetting `await`** — `exchange.fetchTicker()` returns a Promise, not data
+7. **Not closing async exchange** — call `await exchange.close()` when done
+
+### Python
+6. **Mixing sync and async** — don't use sync `ccxt` methods in async code
+7. **Forgetting `await exchange.close()`** — required for `ccxt.async_support` and `ccxt.pro`
+8. **Using `asyncio.run()` in Jupyter** — use `await` directly or `nest_asyncio`
+
+### PHP
+6. **Missing extensions** — ensure `curl`, `iconv`, `mbstring`, `pcre` are installed
+7. **Timezone issues** — set `date.timezone` in php.ini
+
+### C#
+6. **Not using `await`** — all methods return `Task<T>`, must be awaited
+7. **PascalCase** — methods use PascalCase: `FetchTicker`, not `fetchTicker`
+
+### Go
+6. **Ignoring error returns** — always check the error return value
+7. **PascalCase** — exported methods use PascalCase: `FetchTicker`
+
+---
+
+## Troubleshooting
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `RateLimitExceeded` | Too many requests | Enable rate limiter: `enableRateLimit: true` |
+| `AuthenticationError` | Invalid API credentials | Check API key/secret, verify permissions on exchange |
+| `InvalidNonce` | Clock desync or multiple instances | Sync system clock (NTP), use single instance per API key |
+| `InsufficientFunds` | Not enough balance | Check `balance.BTC.free`, account for trading fees |
+| `ExchangeNotAvailable` | Exchange maintenance | Retry after delay, check exchange status page |
+| `NotSupported` | Method not available | Check `exchange.has['methodName']` |
+| WebSocket drops | Network instability | Implement reconnection with try-catch around `watch*` |
+
+### Debugging
+```javascript
+// Enable verbose logging
+exchange.verbose = true
+
+// Check exchange capabilities
+console.log(exchange.has)
+
+// Check market information
+console.log(exchange.markets['BTC/USDT'])
+```
+
+---
+
+## Learn More
+
+- [CCXT Manual](https://docs.ccxt.com/)
+- [CCXT Pro Documentation](https://docs.ccxt.com/en/latest/ccxt.pro.html)
+- [Supported Exchanges](https://github.com/ccxt/ccxt#supported-cryptocurrency-exchange-markets)
+- [GitHub Repository](https://github.com/ccxt/ccxt)
+- [Examples](https://github.com/ccxt/ccxt/tree/master/examples)

@@ -899,7 +899,7 @@ class deepcoin(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.load_markets()
-        marketType = 'spot'
+        marketType = None
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params, marketType)
         request: dict = {
             'instType': self.convert_to_instrument_type(marketType),
@@ -1198,7 +1198,7 @@ class deepcoin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest ledger entry
         :param str [params.type]: 'spot' or 'swap', the market type for the ledger(default 'spot')
-        :returns dict[]: a list of `ledger structures <https://docs.ccxt.com/?id=ledger>`
+        :returns dict[]: a list of `ledger structures <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         self.load_markets()
         marketType = 'spot'

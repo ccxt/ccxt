@@ -1521,9 +1521,11 @@ class bybit extends bybit$1["default"] {
             }
         }
         // don't remove the future from the .futures cache
-        const future = client.futures[messageHash];
-        future.resolve(cache);
-        client.resolve(cache, 'position');
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve(cache);
+            client.resolve(cache, 'position');
+        }
     }
     handlePositions(client, message) {
         //
@@ -1631,7 +1633,7 @@ class bybit extends bybit$1["default"] {
      * @method
      * @name bybit#watchLiquidations
      * @description watch the public liquidations of a trading pair
-     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/liquidation
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/all-liquidation
      * @param {string} symbol unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -1646,7 +1648,7 @@ class bybit extends bybit$1["default"] {
         const url = await this.getUrlByMarketType(symbol, false, 'watchLiquidations', params);
         params = this.cleanParams(params);
         let method = undefined;
-        [method, params] = this.handleOptionAndParams(params, 'watchLiquidations', 'method', 'liquidation');
+        [method, params] = this.handleOptionAndParams(params, 'watchLiquidations', 'method', 'allLiquidation');
         const messageHash = 'liquidations::' + symbol;
         const topic = method + '.' + market['id'];
         const newLiquidation = await this.watchTopics(url, [messageHash], [topic], params);
@@ -1693,13 +1695,12 @@ class bybit extends bybit$1["default"] {
                 const market = this.safeMarket(marketId, undefined, '', 'contract');
                 const symbol = market['symbol'];
                 const liquidation = this.parseWsLiquidation(rawLiquidation, market);
-                let liquidations = this.safeValue(this.liquidations, symbol);
-                if (liquidations === undefined) {
+                if (this.liquidations === undefined) {
                     const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
-                    liquidations = new Cache.ArrayCache(limit);
+                    this.liquidations = new Cache.ArrayCache(limit);
                 }
-                liquidations.append(liquidation);
-                this.liquidations[symbol] = liquidations;
+                const cache = this.liquidations;
+                cache.append(liquidation);
                 client.resolve([liquidation], 'liquidations');
                 client.resolve([liquidation], 'liquidations::' + symbol);
             }
@@ -1710,13 +1711,12 @@ class bybit extends bybit$1["default"] {
             const market = this.safeMarket(marketId, undefined, '', 'contract');
             const symbol = market['symbol'];
             const liquidation = this.parseWsLiquidation(rawLiquidation, market);
-            let liquidations = this.safeValue(this.liquidations, symbol);
-            if (liquidations === undefined) {
+            if (this.liquidations === undefined) {
                 const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
-                liquidations = new Cache.ArrayCache(limit);
+                this.liquidations = new Cache.ArrayCache(limit);
             }
-            liquidations.append(liquidation);
-            this.liquidations[symbol] = liquidations;
+            const cache = this.liquidations;
+            cache.append(liquidation);
             client.resolve([liquidation], 'liquidations');
             client.resolve([liquidation], 'liquidations::' + symbol);
         }
@@ -2478,7 +2478,7 @@ class bybit extends bybit$1["default"] {
         //       "conn_id": "d266o6hqo29sqmnq4vk0-1yus1"
         //   }
         //
-        client.lastPong = this.safeInteger(message, 'pong');
+        client.lastPong = this.safeInteger(message, 'pong', this.milliseconds());
         return message;
     }
     handleAuthenticate(client, message) {

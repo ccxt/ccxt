@@ -630,9 +630,11 @@ export default class xt extends xtRest {
             }
         }
         // don't remove the future from the .futures cache
-        const future = client.futures[messageHash];
-        future.resolve (cache);
-        client.resolve (cache, 'position::contract');
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve (cache);
+            client.resolve (cache, 'position::contract');
+        }
     }
 
     handlePosition (client, message) {

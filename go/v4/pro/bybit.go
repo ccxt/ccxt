@@ -1981,9 +1981,11 @@ func  (this *BybitCore) LoadPositionsSnapshot(client interface{}, messageHash in
                 }
             }
             // don't remove the future from the .futures cache
-            var future interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
-            future.(*ccxt.Future).Resolve(cache)
-            client.(ccxt.ClientInterface).Resolve(cache, "position")
+            if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+                var future interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+                future.(*ccxt.Future).Resolve(cache)
+                client.(ccxt.ClientInterface).Resolve(cache, "position")
+            }
                 return nil
             }()
             return ch
@@ -2086,8 +2088,8 @@ func  (this *BybitCore) UnWatchPositions(optionalArgs ...interface{}) <- chan in
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes16448 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes16448)
+            retRes16468 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes16468)
             var method interface{} = "watchPositions"
             var messageHash interface{} = "unsubscribe:positions"
             var subHash interface{} = "positions"
@@ -2098,13 +2100,13 @@ func  (this *BybitCore) UnWatchPositions(optionalArgs ...interface{}) <- chan in
             url:= (<-this.GetUrlByMarketType(nil, true, method, params))
             ccxt.PanicOnError(url)
         
-            retRes16528 := (<-this.Authenticate(url))
-            ccxt.PanicOnError(retRes16528)
+            retRes16548 := (<-this.Authenticate(url))
+            ccxt.PanicOnError(retRes16548)
             var topics interface{} = []interface{}{"position"}
         
-                retRes165415 :=  (<-this.UnWatchTopics(url, "positions", symbols, []interface{}{messageHash}, []interface{}{subHash}, topics, params))
-                ccxt.PanicOnError(retRes165415)
-                ch <- retRes165415
+                retRes165615 :=  (<-this.UnWatchTopics(url, "positions", symbols, []interface{}{messageHash}, []interface{}{subHash}, topics, params))
+                ccxt.PanicOnError(retRes165615)
+                ch <- retRes165615
                 return nil
         
             }()
@@ -2114,7 +2116,7 @@ func  (this *BybitCore) UnWatchPositions(optionalArgs ...interface{}) <- chan in
  * @method
  * @name bybit#watchLiquidations
  * @description watch the public liquidations of a trading pair
- * @see https://bybit-exchange.github.io/docs/v5/websocket/public/liquidation
+ * @see https://bybit-exchange.github.io/docs/v5/websocket/public/all-liquidation
  * @param {string} symbol unified CCXT market symbol
  * @param {int} [since] the earliest time in ms to fetch liquidations for
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -2134,8 +2136,8 @@ func  (this *BybitCore) WatchLiquidations(symbol interface{}, optionalArgs ...in
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes16708 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes16708)
+            retRes16728 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes16728)
             var market interface{} = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
         
@@ -2143,7 +2145,7 @@ func  (this *BybitCore) WatchLiquidations(symbol interface{}, optionalArgs ...in
             ccxt.PanicOnError(url)
             params = this.CleanParams(params)
             var method interface{} = nil
-            methodparamsVariable := this.HandleOptionAndParams(params, "watchLiquidations", "method", "liquidation")
+            methodparamsVariable := this.HandleOptionAndParams(params, "watchLiquidations", "method", "allLiquidation")
             method = ccxt.GetValue(methodparamsVariable,0)
             params = ccxt.GetValue(methodparamsVariable,1)
             var messageHash interface{} = ccxt.Add("liquidations::", symbol)
@@ -2201,13 +2203,12 @@ func  (this *BybitCore) HandleLiquidation(client interface{}, message interface{
             var market interface{} = this.SafeMarket(marketId, nil, "", "contract")
             var symbol interface{} = ccxt.GetValue(market, "symbol")
             var liquidation interface{} = this.ParseWsLiquidation(rawLiquidation, market)
-            var liquidations interface{} = this.SafeValue(this.Liquidations, symbol)
-            if ccxt.IsTrue(ccxt.IsEqual(liquidations, nil)) {
+            if ccxt.IsTrue(ccxt.IsEqual(this.Liquidations, nil)) {
                 var limit interface{} = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
-                liquidations = ccxt.NewArrayCache(limit)
+                this.Liquidations = ccxt.NewArrayCache(limit)
             }
-            liquidations.(ccxt.Appender).Append(liquidation)
-            ccxt.AddElementToObject(this.Liquidations, symbol, liquidations)
+            var cache interface{} = this.Liquidations
+            cache.(ccxt.Appender).Append(liquidation)
             client.(ccxt.ClientInterface).Resolve([]interface{}{liquidation}, "liquidations")
             client.(ccxt.ClientInterface).Resolve([]interface{}{liquidation}, ccxt.Add("liquidations::", symbol))
         }
@@ -2217,13 +2218,12 @@ func  (this *BybitCore) HandleLiquidation(client interface{}, message interface{
         var market interface{} = this.SafeMarket(marketId, nil, "", "contract")
         var symbol interface{} = ccxt.GetValue(market, "symbol")
         var liquidation interface{} = this.ParseWsLiquidation(rawLiquidation, market)
-        var liquidations interface{} = this.SafeValue(this.Liquidations, symbol)
-        if ccxt.IsTrue(ccxt.IsEqual(liquidations, nil)) {
+        if ccxt.IsTrue(ccxt.IsEqual(this.Liquidations, nil)) {
             var limit interface{} = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
-            liquidations = ccxt.NewArrayCache(limit)
+            this.Liquidations = ccxt.NewArrayCache(limit)
         }
-        liquidations.(ccxt.Appender).Append(liquidation)
-        ccxt.AddElementToObject(this.Liquidations, symbol, liquidations)
+        var cache interface{} = this.Liquidations
+        cache.(ccxt.Appender).Append(liquidation)
         client.(ccxt.ClientInterface).Resolve([]interface{}{liquidation}, "liquidations")
         client.(ccxt.ClientInterface).Resolve([]interface{}{liquidation}, ccxt.Add("liquidations::", symbol))
     }
@@ -3110,7 +3110,7 @@ func  (this *BybitCore) HandlePong(client interface{}, message interface{}) inte
     //       "conn_id": "d266o6hqo29sqmnq4vk0-1yus1"
     //   }
     //
-    client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(message, "pong"))
+    client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(message, "pong", this.Milliseconds()))
     return message
 }
 func  (this *BybitCore) HandleAuthenticate(client interface{}, message interface{}) interface{}  {

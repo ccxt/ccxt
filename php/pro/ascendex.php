@@ -1018,7 +1018,7 @@ class ascendex extends \ccxt\async\ascendex {
             try {
                 Async\await($client->send (array( 'op' => 'pong', 'hp' => $this->safe_integer($message, 'hp') )));
             } catch (Exception $e) {
-                $error = new NetworkError ($this->id . ' handlePing failed with $error ' . $this->json($e));
+                $error = new NetworkError ($this->id . ' handlePing failed with $error ' . $this->exception_message($e));
                 $client->reset ($error);
             }
         }) ();

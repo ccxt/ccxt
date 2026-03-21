@@ -508,9 +508,9 @@ class dydx(Exchange, ImplicitAPI):
         marketId = self.safe_string(market, 'ticker')
         parts = marketId.split('-')
         baseName = self.safe_string(parts, 0)
-        base = self.safe_currency_code(baseName)
+        baseId = self.safe_string(market, 'baseId', baseName)  # idk where 'baseId' comes from, but leaving
+        base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        baseId = self.safe_string(market, 'baseId')
         settleId = 'USDC'
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote + ':' + settle
@@ -540,11 +540,11 @@ class dydx(Exchange, ImplicitAPI):
             'option': False,
             'active': active,
             'contract': contract,
+            'contractSize': self.parse_number('1'),  # trades seem in absolute size
             'linear': True,
             'inverse': False,
             'taker': None,
             'maker': None,
-            'contractSize': None,
             'expiry': None,
             'expiryDatetime': None,
             'strike': None,
@@ -1717,7 +1717,7 @@ class dydx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.address]: wallet address that made trades
         :param str [params.subAccountNumber]: sub account number
-        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         await self.load_markets()
         currency = None

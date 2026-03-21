@@ -722,7 +722,8 @@ public partial class backpack : ccxt.backpack
             object tradeSymbol = this.safeString(first, "symbol");
             limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        object result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        return this.sortBy(result, "timestamp");  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
     }
 
     /**

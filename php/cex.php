@@ -240,6 +240,7 @@ class cex extends Exchange {
                     'Get deposit address for main account is not allowed' => '\\ccxt\\PermissionDenied',
                     'Market Trigger orders are not allowed' => '\\ccxt\\BadRequest', // for some reason, triggerPrice does not work for market orders
                     'key not passed or incorrect' => '\\ccxt\\AuthenticationError',
+                    'API rate limit reached' => '\\ccxt\\RateLimitExceeded', // array("error":"API rate limit reached")
                 ),
             ),
             'timeframes' => array(
@@ -1404,7 +1405,7 @@ class cex extends Exchange {
          * @param {int} [$limit] max number of ledger entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest ledger entry
-         * @return {array} a ~@link https://docs.ccxt.com/?id=ledger ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
          */
         $this->load_markets();
         $currency = null;

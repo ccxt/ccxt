@@ -2,6 +2,73 @@
   "exchange": "xt",
   "skipKeys": [],
   "methods": {
+    "fetchTicker": [
+      {
+        "description": "fetch swap ticker",
+        "method": "fetchTicker",
+        "input": [
+          "RIVER/USDT:USDT"
+        ],
+        "httpResponse": {
+          "returnCode": "0",
+          "msgInfo": "success",
+          "error": null,
+          "result": {
+            "t": "1769443268599",
+            "s": "river_usdt",
+            "c": "75.771",
+            "h": "85.541",
+            "l": "62.955",
+            "a": "672310",
+            "v": "50625249.838",
+            "o": "63.605",
+            "r": "0.1912",
+            "i": "83.14349664",
+            "m": "76.273",
+            "bp": "75.578",
+            "ap": "75.94"
+          }
+        },
+        "parsedResponse": {
+          "symbol": "RIVER/USDT:USDT",
+          "timestamp": 1769443268599,
+          "datetime": "2026-01-26T16:01:08.599Z",
+          "high": 85.541,
+          "low": 62.955,
+          "bid": 75.578,
+          "bidVolume": null,
+          "ask": 75.94,
+          "askVolume": null,
+          "vwap": 75.30045639362794,
+          "open": 63.605,
+          "close": 75.771,
+          "last": 75.771,
+          "previousClose": null,
+          "change": 12.166,
+          "percentage": 19.12,
+          "average": 69.688,
+          "baseVolume": 672310,
+          "quoteVolume": 50625249.838,
+          "info": {
+            "t": "1769443268599",
+            "s": "river_usdt",
+            "c": "75.771",
+            "h": "85.541",
+            "l": "62.955",
+            "a": "672310",
+            "v": "50625249.838",
+            "o": "63.605",
+            "r": "0.1912",
+            "i": "83.14349664",
+            "m": "76.273",
+            "bp": "75.578",
+            "ap": "75.94"
+          },
+          "indexPrice": null,
+          "markPrice": null
+        }
+      }
+    ],
     "fetchOpenOrders": [
       {
         "description": "swap open orders no symbol",

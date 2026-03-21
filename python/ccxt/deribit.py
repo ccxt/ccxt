@@ -40,7 +40,7 @@ class deribit(Exchange, ImplicitAPI):
             'pro': True,
             'has': {
                 'CORS': True,
-                'spot': False,
+                'spot': True,
                 'margin': False,
                 'swap': True,
                 'future': True,

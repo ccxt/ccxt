@@ -41,6 +41,7 @@
 * [fetchConvertQuote](#fetchconvertquote)
 * [createConvertTrade](#createconverttrade)
 * [fetchConvertTradeHistory](#fetchconverttradehistory)
+* [fetchPositionADLRank](#fetchpositionadlrank)
 * [watchBalance](#watchbalance)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
@@ -617,7 +618,7 @@ phemex.fetchFundingRate (symbol[, params])
 Either adds or reduces margin in an isolated position in order to set the margin to a specific value
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>object</code> - A [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
+**Returns**: <code>object</code> - A [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#assign-position-balance-in-isolated-marign-mode  
 
@@ -915,6 +916,34 @@ fetch the users history of conversion trades
 
 ```javascript
 phemex.fetchConvertTradeHistory ([code, since, limit, params])
+```
+
+
+<a name="fetchPositionADLRank" id="fetchpositionadlrank"></a>
+
+### fetchPositionADLRank{docsify-ignore}
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+**Kind**: instance method of [<code>phemex</code>](#phemex)  
+**Returns**: <code>object</code> - an array of [auto de leverage structures](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+**See**
+
+- https://phemex-docs.github.io/#query-account-positions
+- https://phemex-docs.github.io/#query-trading-account-and-positions
+- https://phemex-docs.github.io/#query-account-positions-with-unrealized-pnl
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.code | <code>string</code> | No | the currency code to fetch ranks for, USD, BTC or USDT, USDT is the default |
+| params.method | <code>string</code> | No | *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions' |
+
+
+```javascript
+phemex.fetchPositionADLRank ([symbols, params])
 ```
 
 

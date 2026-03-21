@@ -191,9 +191,10 @@ class independentreserve extends Exchange {
                         'takeProfitPrice' => false,
                         'attachedStopLossTakeProfit' => null,
                         'timeInForce' => array(
-                            'IOC' => false,
-                            'FOK' => false,
-                            'PO' => false,
+                            'GTC' => true,
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
                             'GTD' => false,
                         ),
                         'hedged' => false,
@@ -607,7 +608,7 @@ class independentreserve extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $orderType,
-            'timeInForce' => null,
+            'timeInForce' => $this->parse_time_in_force($this->safe_string($order, 'TimeInForce')),
             'postOnly' => null,
             'side' => $side,
             'price' => $this->safe_string($order, 'Price'),
@@ -636,8 +637,19 @@ class independentreserve extends Exchange {
             'Cancelled' => 'canceled',
             'PartiallyFilledAndExpired' => 'canceled',
             'Expired' => 'canceled',
+            'Failed' => 'canceled',
         );
         return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_time_in_force(?string $timeInForce) {
+        $timeInForces = array(
+            'Gtc' => 'GTC',
+            'Moc' => 'PO',
+            'Fok' => 'FOK',
+            'Ioc' => 'IOC',
+        );
+        return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -669,7 +681,7 @@ class independentreserve extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
-        $request = $this->ordered(array());
+        $request = array();
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -696,7 +708,7 @@ class independentreserve extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
-        $request = $this->ordered(array());
+        $request = array();
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -727,10 +739,10 @@ class independentreserve extends Exchange {
         if ($limit === null) {
             $limit = 50;
         }
-        $request = $this->ordered(array(
+        $request = array(
             'pageIndex' => $pageIndex,
             'pageSize' => $limit,
-        ));
+        );
         $response = $this->privatePostGetTrades ($this->extend($request, $params));
         $market = null;
         if ($symbol !== null) {
@@ -860,11 +872,11 @@ class independentreserve extends Exchange {
         $market = $this->market($symbol);
         $orderType = $this->capitalize($type);
         $orderType .= ($side === 'sell') ? 'Offer' : 'Bid';
-        $request = $this->ordered(array(
+        $request = array(
             'primaryCurrencyCode' => $market['baseId'],
             'secondaryCurrencyCode' => $market['quoteId'],
             'orderType' => $orderType,
-        ));
+        );
         $response = null;
         $request['volume'] = $amount;
         if ($type === 'limit') {
@@ -1088,7 +1100,7 @@ class independentreserve extends Exchange {
             }
             $message = implode(',', $auth);
             $signature = $this->hmac($this->encode($message), $this->encode($this->secret), 'sha256');
-            $query = $this->ordered(array());
+            $query = array();
             $query['apiKey'] = $this->apiKey;
             $query['nonce'] = $nonce;
             $query['signature'] = strtoupper($signature);

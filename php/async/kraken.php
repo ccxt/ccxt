@@ -528,6 +528,7 @@ class kraken extends Exchange {
                 ),
             ),
             'precisionMode' => TICK_SIZE,
+            'rollingWindowSize' => 10000.0,  // https://docs.kraken.com/api/docs/guides/custody-rest-ratelimits
             'exceptions' => array(
                 'exact' => array(
                     'EQuery:Invalid asset pair' => '\\ccxt\\BadSymbol', // array("error":["EQuery:Invalid asset pair"])
@@ -1307,7 +1308,7 @@ class kraken extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest $ledger entry
              * @param {int} [$params->end] timestamp in seconds of the latest $ledger entry
-             * @return {array} a ~@link https://docs.ccxt.com/?id=$ledger ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=$ledger-entry-structure $ledger structure~
              */
             // https://www.kraken.com/features/api#get-ledgers-info
             Async\await($this->load_markets());
@@ -1732,7 +1733,7 @@ class kraken extends Exchange {
             $result = $this->safe_dict($response, 'result');
             $result['usingCost'] = $isUsingCost;
             // it's impossible to know if the order was created using cost or base currency
-            // becuase kraken only returns something like this => array( order => 'buy 10.00000000 LTCUSD @ market' )
+            // because kraken only returns something like this => array( order => 'buy 10.00000000 LTCUSD @ market' )
             // this usingCost flag is used to help the parsing but omited from the order
             return $this->parse_order($result);
         }) ();

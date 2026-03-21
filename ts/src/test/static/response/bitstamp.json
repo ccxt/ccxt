@@ -2,6 +2,94 @@
     "exchange": "bitstamp",
     "skipKeys": [],
     "methods": {
+        "fetchFundingRateHistory": [
+            {
+                "description": "+limit +since",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "ETH/USD:USD",
+                    1770000000000,
+                    2
+                ],
+                "httpResponse": {
+                    "market": "ETH/USD-PERP",
+                    "funding_rate_history": [
+                        {
+                            "funding_rate": "-0.000103",
+                            "timestamp": "1771257600"
+                        },
+                        {
+                            "funding_rate": "-0.000045",
+                            "timestamp": "1771286400"
+                        }
+                    ]
+                },
+                "parsedResponse": []
+            },
+            {
+                "description": "+limit +since",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "ETH/USD:USD",
+                    1770000000000,
+                    2
+                ],
+                "httpResponse": {
+                    "market": "ETH/USD-PERP",
+                    "funding_rate_history": [
+                        {
+                            "funding_rate": "-0.00011",
+                            "timestamp": "1771228800"
+                        },
+                        {
+                            "funding_rate": "-0.000103",
+                            "timestamp": "1771257600"
+                        }
+                    ]
+                },
+                "parsedResponse": []
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "default",
+                "method": "fetchFundingRate",
+                "input": [
+                    "ETH/USD:USD"
+                ],
+                "httpResponse": {
+                    "funding_rate": "-0.000083",
+                    "timestamp": "1771273982",
+                    "market": "ETH/USD-PERP",
+                    "next_funding_time": "1771286400"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "funding_rate": "-0.000083",
+                        "timestamp": "1771273982",
+                        "market": "ETH/USD-PERP",
+                        "next_funding_time": "1771286400"
+                    },
+                    "symbol": "ETH/USD:USD",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": 1771273982000,
+                    "datetime": "2026-02-16T20:33:02.000Z",
+                    "previousFundingRate": null,
+                    "nextFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "nextFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "nextFundingDatetime": null,
+                    "fundingRate": -0.000083,
+                    "fundingTimestamp": 1771286400000,
+                    "fundingDatetime": "2026-02-17T00:00:00.000Z",
+                    "interval": null
+                }
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "public spot trades",

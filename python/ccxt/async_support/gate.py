@@ -41,7 +41,7 @@ class gate(Exchange, ImplicitAPI):
             'pro': True,
             'urls': {
                 'logo': 'https://github.com/user-attachments/assets/64f988c5-07b6-4652-b5c1-679a6bf67c85',
-                'doc': 'https://www.gate.com/docs/developers/apiv4/en/',
+                'doc': 'https://www.gate.com/docs/developers/apiv4/en',
                 'www': 'https://gate.com',
                 'api': {
                     'public': {
@@ -68,6 +68,7 @@ class gate(Exchange, ImplicitAPI):
                         'earn': 'https://api.gateio.ws/api/v4',
                         'account': 'https://api.gateio.ws/api/v4',
                         'loan': 'https://api.gateio.ws/api/v4',
+                        'otc': 'https://api.gateio.ws/api/v4',
                     },
                 },
                 'test': {
@@ -492,6 +493,7 @@ class gate(Exchange, ImplicitAPI):
                             '{settle}/account_book': 1,
                             '{settle}/positions': 1,
                             '{settle}/positions/{contract}': 1,
+                            '{settle}/get_leverage/{contract}': 1,
                             '{settle}/dual_comp/positions/{contract}': 1,
                             '{settle}/orders': 1,
                             '{settle}/orders_timerange': 1,
@@ -509,10 +511,12 @@ class gate(Exchange, ImplicitAPI):
                         'post': {
                             '{settle}/positions/{contract}/margin': 1,
                             '{settle}/positions/{contract}/leverage': 1,
+                            '{settle}/positions/{contract}/set_leverage': 1,
                             '{settle}/positions/{contract}/risk_limit': 1,
                             '{settle}/positions/cross_mode': 1,
                             '{settle}/dual_comp/positions/cross_mode': 1,
                             '{settle}/dual_mode': 1,
+                            '{settle}/set_position_mode': 1,
                             '{settle}/dual_comp/positions/{contract}/margin': 1,
                             '{settle}/dual_comp/positions/{contract}/leverage': 1,
                             '{settle}/dual_comp/positions/{contract}/risk_limit': 1,
@@ -599,6 +603,7 @@ class gate(Exchange, ImplicitAPI):
                             'uni/rate': 20 / 15,
                             'staking/eth2/rate_records': 20 / 15,
                             'dual/orders': 20 / 15,
+                            'dual/balance': 20 / 15,
                             'structured/orders': 20 / 15,
                             'staking/coins': 20 / 15,
                             'staking/order_list': 20 / 15,
@@ -679,6 +684,21 @@ class gate(Exchange, ImplicitAPI):
                             'broker/transaction_history': 20 / 15,
                             'user/info': 20 / 15,
                             'user/sub_relation': 20 / 15,
+                        },
+                    },
+                    'otc': {
+                        'get': {
+                            'get_user_def_bank': 1,
+                            'order/list': 1,
+                            'stable_coin/order/list': 1,
+                            'order/detail': 1,
+                        },
+                        'post': {
+                            'quote': 1,
+                            'order/create': 1,
+                            'stable_coin/order/create': 1,
+                            'order/paid': 1,
+                            'order/cancel': 1,
                         },
                     },
                 },
@@ -1056,7 +1076,7 @@ class gate(Exchange, ImplicitAPI):
             # https://www.gate.com/docs/developers/apiv4/en/#label-list
             'exceptions': {
                 'exact': {
-                    'INVALID_PARAM_VALUE': BadRequest,
+                    'INVALID_PARAM_VALUE': BadRequest,  # {"label":"INVALID_PARAM_VALUE","message":"Your order size 0.003749448 USDT is too small. The minimum is 3 USDT"} or {"label":"INVALID_PARAM_VALUE","message":"Candlestick too long ago. Maximum 10000 points ago are allowed"}
                     'INVALID_PROTOCOL': BadRequest,
                     'INVALID_ARGUMENT': BadRequest,
                     'INVALID_REQUEST_BODY': BadRequest,
@@ -1152,9 +1172,13 @@ class gate(Exchange, ImplicitAPI):
                     'POSITION_HOLDING': BadRequest,
                     'USER_LOAN_EXCEEDED': BadRequest,  # {"label":"USER_LOAN_EXCEEDED","message":"Max loan amount per user would be exceeded"}
                     'NO_CHANGE': InvalidOrder,  # {"label":"NO_CHANGE","message":"No change is made"}
+                    'PRICE_THRESHOLD_EXCEEDED': InvalidOrder,  # {"label":"PRICE_THRESHOLD_EXCEEDED","message":": 0.45288"}
                 },
-                'broad': {},
+                'broad': {
+                    'Your order size': InvalidOrder,  # {"label":"INVALID_PARAM_VALUE","message":"Your order size 0.003749448 USDT is too small. The minimum is 3 USDT"}
+                },
             },
+            'rollingWindowSize': 5000.0,
         })
 
     def set_sandbox_mode(self, enable: bool):
@@ -1166,7 +1190,7 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         returns unifiedAccount so the user can check if the unified account is enabled
 
-        https://www.gate.com/docs/developers/apiv4/#get-account-detail
+        https://www.gate.com/docs/developers/apiv4/#retrieve-user-account-information
 
         :returns boolean: True or False if the enabled unified account is enabled or not and sets the unifiedAccount option if it is None
         """
@@ -1201,7 +1225,7 @@ class gate(Exchange, ImplicitAPI):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
-        https://www.gate.com/docs/developers/apiv4/en/#get-server-current-time
+        https://www.gate.com/docs/developers/apiv4/#get-server-current-time
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
@@ -1288,11 +1312,11 @@ class gate(Exchange, ImplicitAPI):
         """
         retrieves data on all markets for gate
 
-        https://www.gate.com/docs/developers/apiv4/en/#list-all-currency-pairs-supported                                     # spot
+        https://www.gate.com/docs/developers/apiv4/#query-all-supported-currency-pairs                                       # spot
         https://www.gate.com/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading         # margin
-        https://www.gate.com/docs/developers/apiv4/en/#list-all-futures-contracts                                            # swap
-        https://www.gate.com/docs/developers/apiv4/en/#list-all-futures-contracts-2                                          # future
-        https://www.gate.com/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time  # option
+        https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts                                           # swap
+        https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts-2                                         # future
+        https://www.gate.com/docs/developers/apiv4/en/#list-all-contracts-for-specified-underlying-and-expiration-date       # option
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
@@ -1879,7 +1903,7 @@ class gate(Exchange, ImplicitAPI):
         """
         fetches all available currencies on an exchange
 
-        https://www.gate.com/docs/developers/apiv4/en/#list-all-currencies-details
+        https://www.gate.com/docs/developers/apiv4/en/#query-all-currency-information
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
@@ -1980,7 +2004,7 @@ class gate(Exchange, ImplicitAPI):
         """
         fetch the current funding rate
 
-        https://www.gate.com/docs/developers/apiv4/en/#get-a-single-contract
+        https://www.gate.com/docs/developers/apiv4/en/#query-single-contract-information
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2042,7 +2066,7 @@ class gate(Exchange, ImplicitAPI):
         """
         fetch the funding rate for multiple markets
 
-        https://www.gate.com/docs/developers/apiv4/en/#list-all-futures-contracts
+        https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts
 
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2225,6 +2249,9 @@ class gate(Exchange, ImplicitAPI):
     async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
         """
         fetch a dictionary of addresses for a currency, indexed by network
+
+        https://www.gate.com/docs/developers/apiv4/en/#generate-currency-deposit-address
+
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the api endpoint
         :returns dict: a dictionary of `address structures <https://docs.ccxt.com/?id=address-structure>` indexed by the network
@@ -2283,7 +2310,7 @@ class gate(Exchange, ImplicitAPI):
         """
         fetch the trading fees for a market
 
-        https://www.gate.com/docs/developers/apiv4/en/#retrieve-personal-trading-fee
+        https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-fees
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2315,7 +2342,7 @@ class gate(Exchange, ImplicitAPI):
         """
         fetch the trading fees for multiple markets
 
-        https://www.gate.com/docs/developers/apiv4/en/#retrieve-personal-trading-fee
+        https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-fees
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
@@ -2381,7 +2408,7 @@ class gate(Exchange, ImplicitAPI):
  @deprecated
         please use fetchDepositWithdrawFees instead
 
-        https://www.gate.com/docs/developers/apiv4/en/#retrieve-withdrawal-status
+        https://www.gate.com/docs/developers/apiv4/en/#query-withdrawal-status
 
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2435,7 +2462,7 @@ class gate(Exchange, ImplicitAPI):
         """
         fetch deposit and withdraw fees
 
-        https://www.gate.com/docs/developers/apiv4/en/#retrieve-withdrawal-status
+        https://www.gate.com/docs/developers/apiv4/en/#query-withdrawal-status
 
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2516,8 +2543,8 @@ class gate(Exchange, ImplicitAPI):
         """
         fetch the history of funding payments paid and received on self account
 
-        https://www.gate.com/docs/developers/apiv4/en/#query-account-book-2
-        https://www.gate.com/docs/developers/apiv4/en/#query-account-book-3
+        https://www.gate.com/docs/developers/apiv4/en/#query-futures-account-change-history
+        https://www.gate.com/docs/developers/apiv4/en/#query-futures-account-change-history-2
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch funding history for
@@ -2596,10 +2623,10 @@ class gate(Exchange, ImplicitAPI):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://www.gate.com/docs/developers/apiv4/en/#retrieve-order-book
-        https://www.gate.com/docs/developers/apiv4/en/#futures-order-book
-        https://www.gate.com/docs/developers/apiv4/en/#futures-order-book-2
-        https://www.gate.com/docs/developers/apiv4/en/#options-order-book
+        https://www.gate.com/docs/developers/apiv4/en/#get-market-depth-information
+        https://www.gate.com/docs/developers/apiv4/en/#query-futures-market-depth-information
+        https://www.gate.com/docs/developers/apiv4/en/#query-futures-market-depth-information-2
+        https://www.gate.com/docs/developers/apiv4/en/#query-options-contract-order-book
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -2713,10 +2740,10 @@ class gate(Exchange, ImplicitAPI):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://www.gate.com/docs/developers/apiv4/en/#get-details-of-a-specifc-order
-        https://www.gate.com/docs/developers/apiv4/en/#list-futures-tickers
-        https://www.gate.com/docs/developers/apiv4/en/#list-futures-tickers-2
-        https://www.gate.com/docs/developers/apiv4/en/#list-tickers-of-options-contracts
+        https://www.gate.com/docs/developers/apiv4/en/#get-currency-pair-ticker-information
+        https://www.gate.com/docs/developers/apiv4/en/#get-all-futures-trading-statistics
+        https://www.gate.com/docs/developers/apiv4/en/#get-all-futures-trading-statistics-2
+        https://www.gate.com/docs/developers/apiv4/en/#query-options-market-ticker-information
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2866,10 +2893,10 @@ class gate(Exchange, ImplicitAPI):
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
-        https://www.gate.com/docs/developers/apiv4/en/#get-details-of-a-specifc-order
-        https://www.gate.com/docs/developers/apiv4/en/#list-futures-tickers
-        https://www.gate.com/docs/developers/apiv4/en/#list-futures-tickers-2
-        https://www.gate.com/docs/developers/apiv4/en/#list-tickers-of-options-contracts
+        https://www.gate.com/docs/developers/apiv4/en/#get-currency-pair-ticker-information
+        https://www.gate.com/docs/developers/apiv4/en/#get-all-futures-trading-statistics
+        https://www.gate.com/docs/developers/apiv4/en/#get-all-futures-trading-statistics-2
+        https://www.gate.com/docs/developers/apiv4/en/#query-options-market-ticker-information
 
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2913,9 +2940,10 @@ class gate(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
 
-        https://www.gate.com/docs/developers/apiv4/en/#margin-account-list
         https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information
         https://www.gate.com/docs/developers/apiv4/en/#list-spot-trading-accounts
+        https://www.gate.com/docs/developers/apiv4/en/#margin-account-list
+        https://www.gate.com/docs/developers/apiv4/en/#funding-account-list
         https://www.gate.com/docs/developers/apiv4/en/#get-futures-account
         https://www.gate.com/docs/developers/apiv4/en/#get-futures-account-2
         https://www.gate.com/docs/developers/apiv4/en/#query-account-information
@@ -3197,10 +3225,10 @@ class gate(Exchange, ImplicitAPI):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://www.gate.com/docs/developers/apiv4/en/#market-candlesticks       # spot
-        https://www.gate.com/docs/developers/apiv4/en/#get-futures-candlesticks  # swap
-        https://www.gate.com/docs/developers/apiv4/en/#market-candlesticks       # future
-        https://www.gate.com/docs/developers/apiv4/en/#get-options-candlesticks  # option
+        https://www.gate.com/docs/developers/apiv4/en/#market-k-line-chart                       # spot
+        https://www.gate.com/docs/developers/apiv4/en/#futures-market-k-line-chart               # swap
+        https://www.gate.com/docs/developers/apiv4/en/#futures-market-k-line-chart-2             # future
+        https://www.gate.com/docs/developers/apiv4/en/#options-contract-market-candlestick-chart  # option
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -3274,7 +3302,7 @@ class gate(Exchange, ImplicitAPI):
         """
         fetches historical funding rate prices
 
-        https://www.gate.com/docs/developers/apiv4/en/#funding-rate-history
+        https://www.gate.com/docs/developers/apiv4/en/#get-all-futures-trading-statistics
 
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
@@ -3374,10 +3402,10 @@ class gate(Exchange, ImplicitAPI):
         """
         get the list of most recent trades for a particular symbol
 
-        https://www.gate.com/docs/developers/apiv4/en/#retrieve-market-trades
-        https://www.gate.com/docs/developers/apiv4/en/#futures-trading-history
-        https://www.gate.com/docs/developers/apiv4/en/#futures-trading-history-2
-        https://www.gate.com/docs/developers/apiv4/en/#options-trade-history
+        https://www.gate.com/docs/developers/apiv4/en/#query-market-transaction-records
+        https://www.gate.com/docs/developers/apiv4/en/#futures-market-transaction-records
+        https://www.gate.com/docs/developers/apiv4/en/#futures-market-transaction-records-2
+        https://www.gate.com/docs/developers/apiv4/en/#market-trade-records
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -3480,10 +3508,10 @@ class gate(Exchange, ImplicitAPI):
         """
         fetch all the trades made from a single order
 
-        https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history
-        https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-2
-        https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-3
-        https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-4
+        https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records
+        https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-by-time-range
+        https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-3
+        https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-4
 
         :param str id: order id
         :param str symbol: unified market symbol
@@ -3521,10 +3549,10 @@ class gate(Exchange, ImplicitAPI):
         """
         Fetch personal trading history
 
-        https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history
-        https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-2
-        https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-3
-        https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-4
+        https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records
+        https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-by-time-range
+        https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-3
+        https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-4
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -3814,7 +3842,7 @@ class gate(Exchange, ImplicitAPI):
         """
         fetch all deposits made to an account
 
-        https://www.gate.com/docs/developers/apiv4/en/#retrieve-deposit-records
+        https://www.gate.com/docs/developers/apiv4/en/#get-deposit-records
 
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
@@ -3848,7 +3876,7 @@ class gate(Exchange, ImplicitAPI):
         """
         fetch all withdrawals made from an account
 
-        https://www.gate.com/docs/developers/apiv4/en/#retrieve-withdrawal-records
+        https://www.gate.com/docs/developers/apiv4/en/#get-withdrawal-records
 
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
@@ -4057,11 +4085,11 @@ class gate(Exchange, ImplicitAPI):
         Create an order on the exchange
 
         https://www.gate.com/docs/developers/apiv4/en/#create-an-order
-        https://www.gate.com/docs/developers/apiv4/en/#create-a-price-triggered-order
-        https://www.gate.com/docs/developers/apiv4/en/#create-a-futures-order
-        https://www.gate.com/docs/developers/apiv4/en/#create-a-price-triggered-order-2
-        https://www.gate.com/docs/developers/apiv4/en/#create-a-futures-order-2
-        https://www.gate.com/docs/developers/apiv4/en/#create-a-price-triggered-order-3
+        https://www.gate.com/docs/developers/apiv4/en/#create-price-triggered-order
+        https://www.gate.com/docs/developers/apiv4/en/#place-futures-order
+        https://www.gate.com/docs/developers/apiv4/en/#create-price-triggered-order-2
+        https://www.gate.com/docs/developers/apiv4/en/#place-futures-order-2
+        https://www.gate.com/docs/developers/apiv4/en/#create-price-triggered-order-3
         https://www.gate.com/docs/developers/apiv4/en/#create-an-options-order
 
         :param str symbol: Unified CCXT market symbol
@@ -4086,6 +4114,7 @@ class gate(Exchange, ImplicitAPI):
         :param int [params.price_type]: *contract only* 0 latest deal price, 1 mark price, 2 index price
         :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
         :param bool [params.unifiedAccount]: set to True for creating an order in the unified account
+        :param str [params.clientOrderId]: the clientOrderId of the order
         :returns dict|None: `An order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
@@ -4218,9 +4247,8 @@ class gate(Exchange, ImplicitAPI):
         """
         create a list of trade orders
 
-        https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order-2
-        https://www.gate.com/docs/developers/apiv4/en/#create-a-batch-of-orders
-        https://www.gate.com/docs/developers/apiv4/en/#create-a-batch-of-futures-orders
+        https://www.gate.com/docs/developers/apiv4/en/#batch-place-orders
+        https://www.gate.com/docs/developers/apiv4/en/#place-batch-futures-orders
 
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4259,7 +4287,8 @@ class gate(Exchange, ImplicitAPI):
             timeInForce = 'poc'
         # we only omit the unified params here
         # self is because the other params will get extended into the request
-        params = self.omit(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly'])
+        clientOrderId = self.safe_string_2(params, 'text', 'clientOrderId')
+        params = self.omit(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly', 'clientOrderId'])
         isLimitOrder = (type == 'limit')
         isMarketOrder = (type == 'market')
         if isLimitOrder and price is None:
@@ -4347,7 +4376,6 @@ class gate(Exchange, ImplicitAPI):
                     request['price'] = self.price_to_precision(symbol, price)
                 if timeInForce is not None:
                     request['time_in_force'] = timeInForce
-            clientOrderId = self.safe_string_2(params, 'text', 'clientOrderId')
             textIsRequired = self.safe_bool(params, 'textIsRequired', False)
             if clientOrderId is not None:
                 # user-defined, must follow the rules if not empty
@@ -4356,7 +4384,7 @@ class gate(Exchange, ImplicitAPI):
                 #     can only include 0-9, A-Z, a-z, underscores(_), hyphens(-) or dots(.)
                 if len(clientOrderId) > 28:
                     raise BadRequest(self.id + ' createOrder() clientOrderId or text param must be up to 28 characters')
-                params = self.omit(params, ['text', 'clientOrderId', 'textIsRequired'])
+                params = self.omit(params, 'textIsRequired')
                 if clientOrderId[0] != 't':
                     clientOrderId = 't-' + clientOrderId
                 request['text'] = clientOrderId
@@ -4411,6 +4439,8 @@ class gate(Exchange, ImplicitAPI):
                     request['initial']['reduce_only'] = reduceOnly
                 if timeInForce is not None:
                     request['initial']['tif'] = timeInForce
+                if clientOrderId is not None:
+                    request['initial']['text'] = clientOrderId
             else:
                 # spot conditional order
                 options = self.safe_value(self.options, 'createOrder', {})
@@ -4447,6 +4477,8 @@ class gate(Exchange, ImplicitAPI):
                         'rule': rule,  # >= triggered when market price larger than or equal to price field, <= triggered when market price less than or equal to price field
                         'expiration': expiration,  # required, how long(in seconds) to wait for the condition to be triggered before cancelling the order
                     }
+                    if clientOrderId is not None:
+                        request['trigger']['text'] = clientOrderId
         return self.extend(request, params)
 
     async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
@@ -4466,7 +4498,7 @@ class gate(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
-        params['createMarketBuyOrderRequiresPrice'] = False
+        params = self.extend(params, {'createMarketBuyOrderRequiresPrice': False})
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
     def edit_order_request(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
@@ -4506,8 +4538,8 @@ class gate(Exchange, ImplicitAPI):
         """
         edit a trade order, gate currently only supports the modification of the price or amount fields
 
-        https://www.gate.com/docs/developers/apiv4/en/#amend-an-order
-        https://www.gate.com/docs/developers/apiv4/en/#amend-an-order-2
+        https://www.gate.com/docs/developers/apiv4/en/#amend-single-order
+        https://www.gate.com/docs/developers/apiv4/en/#amend-single-order-2
 
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
@@ -4721,6 +4753,24 @@ class gate(Exchange, ImplicitAPI):
         #
         #  {"user_id":10406147,"id":"id","succeeded":false,"message":"INVALID_PROTOCOL","label":"INVALID_PROTOCOL"}
         #
+        # cancel trigger order returns timestamps in ms
+        #   id: '2007047737421336576',
+        #   id_string: '2007047737421336576',
+        #   trigger_time: '0',
+        #   trade_id: '0',
+        #   trade_id_string: '',
+        #   status: 'finished',
+        #   finish_as: 'cancelled',
+        #   reason: '',
+        #   create_time: '1767352444402496'
+        #   finish_time: '1767352509535790',
+        #   is_stop_order: False,
+        #   stop_trigger: {rule: '0', trigger_price: '', order_price: ''},
+        #   me_order_id: '0',
+        #   me_order_id_string: '',
+        #   order_type: '',
+        #   in_dual_mode: False,
+        #   parent_id: '0',
         succeeded = self.safe_bool(order, 'succeeded', True)
         if not succeeded:
             # cancelOrders response
@@ -4759,12 +4809,26 @@ class gate(Exchange, ImplicitAPI):
             type = 'market' if isMarketOrder else 'limit'
             side = 'buy' if Precise.string_gt(amount, '0') else 'sell'
         rawStatus = self.safe_string_n(order, ['finish_as', 'status', 'open'])
-        timestamp = self.safe_integer(order, 'create_time_ms')
-        if timestamp is None:
-            timestamp = self.safe_timestamp_2(order, 'create_time', 'ctime')
-        lastTradeTimestamp = self.safe_integer(order, 'update_time_ms')
-        if lastTradeTimestamp is None:
-            lastTradeTimestamp = self.safe_timestamp_2(order, 'update_time', 'finish_time')
+        timestampStr = self.safe_string(order, 'create_time_ms')
+        if timestampStr is None:
+            timestampStr = self.safe_string_2(order, 'create_time', 'ctime')
+            if timestampStr is not None:
+                if len(timestampStr) == 10 or timestampStr.find('.') >= 0:
+                    # ts in seconds, multiply to ms
+                    timestampStr = Precise.string_mul(timestampStr, '1000')
+                elif len(timestampStr) == 16:
+                    # ts in microseconds, divide to ms
+                    timestampStr = Precise.string_div(timestampStr, '1000')
+        lastTradeTimestampStr = self.safe_string(order, 'update_time_ms')
+        if lastTradeTimestampStr is None:
+            lastTradeTimestampStr = self.safe_string_2(order, 'update_time', 'finish_time')
+            if lastTradeTimestampStr is not None:
+                if len(lastTradeTimestampStr) == 10 or lastTradeTimestampStr.find('.') >= 0:
+                    # ts in seconds, multiply to ms
+                    lastTradeTimestampStr = Precise.string_mul(lastTradeTimestampStr, '1000')
+                elif len(lastTradeTimestampStr) == 16:
+                    # ts in microseconds, divide to ms
+                    lastTradeTimestampStr = Precise.string_div(lastTradeTimestampStr, '1000')
         marketType = 'contract'
         if ('currency_pair' in order) or ('market' in order):
             marketType = 'spot'
@@ -4804,9 +4868,24 @@ class gate(Exchange, ImplicitAPI):
                 price = None  # arrives
                 cost = amount
                 amount = Precise.string_div(amount, averageString)
+        timestamp = None
+        lastTradeTimestamp = None
+        if timestampStr is not None:
+            timestamp = self.parse_to_int(timestampStr)
+        if lastTradeTimestampStr is not None:
+            lastTradeTimestamp = self.parse_to_int(lastTradeTimestampStr)
+        initial = self.safe_dict(order, 'initial', {})
+        reduceOnlyInitial = self.safe_bool(initial, 'is_reduce_only')
+        reduceOnly = self.safe_bool(order, 'is_reduce_only', reduceOnlyInitial)
+        clientOrderId = self.safe_string(order, 'text')
+        if clientOrderId is None:
+            if 'initial' in order:
+                clientOrderId = self.safe_string(order['initial'], 'text')
+            elif 'trigger' in order:
+                clientOrderId = self.safe_string(order['trigger'], 'text')
         return self.safe_order({
             'id': self.safe_string(order, 'id'),
-            'clientOrderId': self.safe_string(order, 'text'),
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -4815,7 +4894,7 @@ class gate(Exchange, ImplicitAPI):
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
-            'reduceOnly': self.safe_value(order, 'is_reduce_only'),
+            'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
             'triggerPrice': triggerPrice,
@@ -4851,10 +4930,13 @@ class gate(Exchange, ImplicitAPI):
         """
         Retrieves information on an order
 
-        https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order
-        https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order-2
-        https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order-3
-        https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order-4
+        https://www.gate.com/docs/developers/apiv4/en/#query-single-order-details
+        https://www.gate.com/docs/developers/apiv4/en/#query-single-auto-order-details
+        https://www.gate.com/docs/developers/apiv4/en/#query-single-order-details-2
+        https://www.gate.com/docs/developers/apiv4/en/#query-single-auto-order-details-2
+        https://www.gate.com/docs/developers/apiv4/en/#query-single-order-details-3
+        https://www.gate.com/docs/developers/apiv4/en/#query-single-auto-order-details-3
+        https://www.gate.com/docs/developers/apiv4/en/#query-single-order-details-4
 
         :param str id: Order id
         :param str symbol: Unified market symbol, *required for spot and margin*
@@ -4900,7 +4982,6 @@ class gate(Exchange, ImplicitAPI):
         fetch all unfilled currently open orders
 
         https://www.gate.com/docs/developers/apiv4/en/#list-all-open-orders
-        https://www.gate.com/docs/developers/apiv4/en/#retrieve-running-auto-order-list
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -4918,14 +4999,14 @@ class gate(Exchange, ImplicitAPI):
         """
         fetches information on multiple closed orders made by the user
 
-        https://www.gate.com/docs/developers/apiv4/en/#list-orders
-        https://www.gate.com/docs/developers/apiv4/en/#retrieve-running-auto-order-list
-        https://www.gate.com/docs/developers/apiv4/en/#list-futures-orders
-        https://www.gate.com/docs/developers/apiv4/en/#list-all-auto-orders
-        https://www.gate.com/docs/developers/apiv4/en/#list-futures-orders-2
-        https://www.gate.com/docs/developers/apiv4/en/#list-all-auto-orders-2
+        https://www.gate.com/en-eu/docs/developers/apiv4/#list-orders
+        https://www.gate.com/en-eu/docs/developers/apiv4/#retrieve-running-auto-order-list
+        https://www.gate.com/docs/developers/apiv4/en/#query-futures-order-list
+        https://www.gate.com/docs/developers/apiv4/en/#query-auto-order-list
+        https://www.gate.com/docs/developers/apiv4/en/#query-futures-order-list-2
+        https://www.gate.com/docs/developers/apiv4/en/#query-auto-order-list-2
         https://www.gate.com/docs/developers/apiv4/en/#list-options-orders
-        https://www.gate.com/docs/developers/apiv4/en/#list-futures-orders-by-time-range
+        https://www.gate.com/docs/developers/apiv4/en/#query-futures-order-list-by-time-range
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -5192,10 +5273,13 @@ class gate(Exchange, ImplicitAPI):
         """
         Cancels an open order
 
-        https://www.gate.com/docs/developers/apiv4/en/#cancel-a-single-order
-        https://www.gate.com/docs/developers/apiv4/en/#cancel-a-single-order-2
-        https://www.gate.com/docs/developers/apiv4/en/#cancel-a-single-order-3
-        https://www.gate.com/docs/developers/apiv4/en/#cancel-a-single-order-4
+        https://www.gate.com/docs/developers/apiv4/en/#cancel-single-order
+        https://www.gate.com/docs/developers/apiv4/en/#cancel-single-auto-order
+        https://www.gate.com/docs/developers/apiv4/en/#cancel-single-order-2
+        https://www.gate.com/docs/developers/apiv4/en/#cancel-single-auto-order-2
+        https://www.gate.com/docs/developers/apiv4/en/#cancel-single-order-3
+        https://www.gate.com/docs/developers/apiv4/en/#cancel-single-auto-order-3
+        https://www.gate.com/docs/developers/apiv4/en/#cancel-single-order-4
 
         :param str id: Order id
         :param str symbol: Unified market symbol
@@ -5319,8 +5403,8 @@ class gate(Exchange, ImplicitAPI):
         """
         cancel multiple orders
 
-        https://www.gate.com/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list
-        https://www.gate.com/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list-2
+        https://www.gate.com/docs/developers/apiv4/en/#cancel-batch-orders-by-specified-id-list
+        https://www.gate.com/docs/developers/apiv4/en/#cancel-batch-orders-by-specified-id-list-2
 
         :param str[] ids: order ids
         :param str symbol: unified symbol of the market the order was made in
@@ -5363,7 +5447,7 @@ class gate(Exchange, ImplicitAPI):
         """
         cancel multiple orders for multiple symbols
 
-        https://www.gate.com/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list
+        https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-a-batch-of-orders-with-an-id-list
 
         :param CancellationRequest[] orders: list of order ids with symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -5402,9 +5486,12 @@ class gate(Exchange, ImplicitAPI):
         cancel all open orders
 
         https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-in-specified-currency-pair
-        https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-matched
-        https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-matched-2
-        https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-matched-3
+        https://www.gate.com/docs/developers/apiv4/en/#cancel-all-auto-orders
+        https://www.gate.com/docs/developers/apiv4/en/#cancel-all-orders-with-open-status
+        https://www.gate.com/docs/developers/apiv4/en/#cancel-all-auto-orders-2
+        https://www.gate.com/docs/developers/apiv4/en/#cancel-all-orders-with-open-status-2
+        https://www.gate.com/docs/developers/apiv4/en/#cancel-all-auto-orders-3
+        https://www.gate.com/docs/developers/apiv4/en/#cancel-all-orders-with-open-status-3
 
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -5754,8 +5841,8 @@ class gate(Exchange, ImplicitAPI):
         """
         fetch data on an open contract position
 
-        https://www.gate.com/docs/developers/apiv4/en/#get-single-position
-        https://www.gate.com/docs/developers/apiv4/en/#get-single-position-2
+        https://www.gate.com/docs/developers/apiv4/en/#get-single-position-information
+        https://www.gate.com/docs/developers/apiv4/en/#get-single-position-information-2
         https://www.gate.com/docs/developers/apiv4/en/#get-specified-contract-position
 
         :param str symbol: unified market symbol of the market the position is held in
@@ -5838,8 +5925,8 @@ class gate(Exchange, ImplicitAPI):
         """
         fetch all open positions
 
-        https://www.gate.com/docs/developers/apiv4/en/#list-all-positions-of-a-user
-        https://www.gate.com/docs/developers/apiv4/en/#list-all-positions-of-a-user-2
+        https://www.gate.com/docs/developers/apiv4/en/#get-user-position-list
+        https://www.gate.com/docs/developers/apiv4/en/#get-user-position-list-2
         https://www.gate.com/docs/developers/apiv4/en/#list-user-s-positions-of-specified-underlying
 
         :param str[]|None symbols: Not used by gate, but parsed internally by CCXT
@@ -5940,8 +6027,8 @@ class gate(Exchange, ImplicitAPI):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
 
-        https://www.gate.com/docs/developers/apiv4/en/#list-all-futures-contracts
-        https://www.gate.com/docs/developers/apiv4/en/#list-all-futures-contracts-2
+        https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts
+        https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts-2
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -6057,7 +6144,8 @@ class gate(Exchange, ImplicitAPI):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
 
-        https://www.gate.com/docs/developers/apiv4/en/#list-risk-limit-tiers
+        https://www.gate.com/docs/developers/apiv4/en/#query-risk-limit-tiers
+        https://www.gate.com/docs/developers/apiv4/en/#query-risk-limit-tiers-2
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -6069,18 +6157,22 @@ class gate(Exchange, ImplicitAPI):
         request, requestParams = self.prepare_request(market, type, query)
         if type != 'future' and type != 'swap':
             raise BadRequest(self.id + ' fetchMarketLeverageTiers only supports swap and future')
-        response = await self.publicFuturesGetSettleRiskLimitTiers(self.extend(request, requestParams))
-        #
-        #     [
-        #         {
-        #             "maintenance_rate": "0.004",
-        #             "tier": 1,
-        #             "initial_rate": "0.008",
-        #             "leverage_max": "125",
-        #             "risk_limit": "1000000"
-        #         }
-        #     ]
-        #
+        response = None
+        if type == 'swap':
+            #
+            #     [
+            #         {
+            #             "maintenance_rate": "0.004",
+            #             "tier": 1,
+            #             "initial_rate": "0.008",
+            #             "leverage_max": "125",
+            #             "risk_limit": "1000000"
+            #         }
+            #     ]
+            #
+            response = await self.publicFuturesGetSettleRiskLimitTiers(self.extend(request, requestParams))
+        else:
+            response = await self.publicDeliveryGetSettleRiskLimitTiers(self.extend(request, requestParams))
         return self.parse_market_leverage_tiers(response, market)
 
     def parse_emulated_leverage_tiers(self, info, market=None) -> List[LeverageTier]:
@@ -6147,7 +6239,7 @@ class gate(Exchange, ImplicitAPI):
         """
         repay borrowed margin and interest
 
-        https://www.gate.com/docs/apiv4/en/#repay-a-loan
+        https://www.gate.com/docs/developers/apiv4/en/#borrow-or-repay-2
 
         :param str symbol: unified market symbol
         :param str code: unified currency code of the currency to repay
@@ -6176,7 +6268,6 @@ class gate(Exchange, ImplicitAPI):
         """
         repay cross margin borrowed margin and interest
 
-        https://www.gate.com/docs/developers/apiv4/en/#cross-margin-repayments
         https://www.gate.com/docs/developers/apiv4/en/#borrow-or-repay
 
         :param str code: unified currency code of the currency to repay
@@ -6201,7 +6292,7 @@ class gate(Exchange, ImplicitAPI):
             request['type'] = 'repay'
             response = await self.privateUnifiedPostLoans(self.extend(request, params))
         else:
-            response = await self.privateMarginPostCrossRepayments(self.extend(request, params))
+            response = await self.privateMarginPostCrossRepayments(self.extend(request, params))  # todo: check - not present in the docs
             response = self.safe_dict(response, 0)
             #
             #     [
@@ -6225,7 +6316,7 @@ class gate(Exchange, ImplicitAPI):
         """
         create a loan to borrow margin
 
-        https://www.gate.com/docs/developers/apiv4/en/#marginuni
+        https://www.gate.com/docs/developers/apiv4/en/#borrow-or-repay-2
 
         :param str symbol: unified market symbol, required for isolated margin
         :param str code: unified currency code of the currency to borrow
@@ -6270,7 +6361,6 @@ class gate(Exchange, ImplicitAPI):
         """
         create a loan to borrow margin
 
-        https://www.gate.com/docs/apiv4/en/#create-a-cross-margin-borrow-loan
         https://www.gate.com/docs/developers/apiv4/en/#borrow-or-repay
 
         :param str code: unified currency code of the currency to borrow
@@ -6294,7 +6384,7 @@ class gate(Exchange, ImplicitAPI):
             request['type'] = 'borrow'
             response = await self.privateUnifiedPostLoans(self.extend(request, params))
         else:
-            response = await self.privateMarginPostCrossLoans(self.extend(request, params))
+            response = await self.privateMarginPostCrossLoans(self.extend(request, params))  # todo: check - not present in the docs
             #
             #     {
             #         "id": "17",
@@ -6368,9 +6458,8 @@ class gate(Exchange, ImplicitAPI):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
 
-        https://www.gate.com/docs/developers/apiv4/en/#list-interest-records
-        https://www.gate.com/docs/developers/apiv4/en/#interest-records-for-the-cross-margin-account
-        https://www.gate.com/docs/developers/apiv4/en/#list-interest-records-2
+        https://www.gate.com/docs/developers/apiv4/en/#query-interest-deduction-records
+        https://www.gate.com/docs/developers/apiv4/en/#query-interest-deduction-records-2
 
         :param str [code]: unified currency code
         :param str [symbol]: unified market symbol when fetching interest in isolated markets
@@ -6407,7 +6496,7 @@ class gate(Exchange, ImplicitAPI):
                 request['currency_pair'] = market['id']
             response = await self.privateMarginGetUniInterestRecords(self.extend(request, params))
         elif marginMode == 'cross':
-            response = await self.privateMarginGetCrossInterestRecords(self.extend(request, params))
+            response = await self.privateMarginGetCrossInterestRecords(self.extend(request, params))  # todo: check - not present in the docs
         interest = self.parse_borrow_interests(response, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
@@ -6470,6 +6559,7 @@ class gate(Exchange, ImplicitAPI):
         else:
             self.check_required_credentials()
             queryString = ''
+            rawQueryString = ''
             requiresURLEncoding = False
             if ((type == 'futures') or (type == 'delivery')) and method == 'POST':
                 pathParts = path.split('/')
@@ -6477,6 +6567,8 @@ class gate(Exchange, ImplicitAPI):
                 requiresURLEncoding = (secondPart.find('dual') >= 0) or (secondPart.find('positions') >= 0)
             if (method == 'GET') or (method == 'DELETE') or requiresURLEncoding or (method == 'PATCH'):
                 if query:
+                    # https://github.com/ccxt/ccxt/issues/27663
+                    rawQueryString = self.rawencode(query)
                     queryString = self.urlencode(query)
                     # https://github.com/ccxt/ccxt/issues/25570
                     if queryString.find('currencies=') >= 0 and queryString.find('%2C') >= 0:
@@ -6497,7 +6589,7 @@ class gate(Exchange, ImplicitAPI):
             timestamp = self.parse_to_int(nonce / 1000)
             timestampString = str(timestamp)
             signaturePath = '/api/' + self.version + entirePath
-            payloadArray = [method.upper(), signaturePath, queryString, bodySignature, timestampString]
+            payloadArray = [method.upper(), signaturePath, rawQueryString, bodySignature, timestampString]
             # eslint-disable-next-line quotes
             payload = "\n".join(payloadArray)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha512)
@@ -6577,7 +6669,7 @@ class gate(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=reduce-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         return await self.modify_margin_helper(symbol, -amount, params)
 
@@ -6591,7 +6683,7 @@ class gate(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         return await self.modify_margin_helper(symbol, amount, params)
 
@@ -6599,7 +6691,7 @@ class gate(Exchange, ImplicitAPI):
         """
         Retrieves the open interest of a currency
 
-        https://www.gate.com/docs/developers/apiv4/en/#futures-stats
+        https://www.gate.com/docs/developers/apiv4/en/#futures-statistics
 
         :param str symbol: Unified CCXT market symbol
         :param str timeframe: "5m", "15m", "30m", "1h", "4h", "1d"
@@ -6683,7 +6775,7 @@ class gate(Exchange, ImplicitAPI):
         """
         fetches historical settlement records
 
-        https://www.gate.com/docs/developers/apiv4/en/#list-settlement-history-2
+        https://www.gate.com/docs/developers/apiv4/en/#list-settlement-history
 
         :param str symbol: unified market symbol of the settlement history, required on gate
         :param int [since]: timestamp in ms
@@ -6699,6 +6791,7 @@ class gate(Exchange, ImplicitAPI):
         type, params = self.handle_market_type_and_params('fetchSettlementHistory', market, params)
         if type != 'option':
             raise NotSupported(self.id + ' fetchSettlementHistory() supports option markets only')
+        # todo: add futures support
         marketId = market['id']
         optionParts = marketId.split('-')
         request: dict = {
@@ -6729,7 +6822,7 @@ class gate(Exchange, ImplicitAPI):
         """
         fetches historical settlement records of the user
 
-        https://www.gate.com/docs/developers/apiv4/en/#list-my-options-settlements
+        https://www.gate.com/docs/developers/apiv4/en/#query-personal-settlement-records
 
         :param str symbol: unified market symbol of the settlement history
         :param int [since]: timestamp in ms
@@ -6854,11 +6947,11 @@ class gate(Exchange, ImplicitAPI):
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
-        https://www.gate.com/docs/developers/apiv4/en/#query-account-book
-        https://www.gate.com/docs/developers/apiv4/en/#list-margin-account-balance-change-history
-        https://www.gate.com/docs/developers/apiv4/en/#query-account-book-2
-        https://www.gate.com/docs/developers/apiv4/en/#query-account-book-3
-        https://www.gate.com/docs/developers/apiv4/en/#list-account-changing-history
+        https://www.gate.com/docs/developers/apiv4/en/#query-spot-account-transaction-history
+        https://www.gate.com/docs/developers/apiv4/en/#query-margin-account-balance-change-history
+        https://www.gate.com/docs/developers/apiv4/en/#query-futures-account-change-history
+        https://www.gate.com/docs/developers/apiv4/en/#query-futures-account-change-history-2
+        https://www.gate.com/docs/developers/apiv4/en/#query-account-change-history
 
         :param str [code]: unified currency code
         :param int [since]: timestamp in ms of the earliest ledger entry
@@ -6866,7 +6959,7 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: end time in ms
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         await self.load_markets()
         paginate = False
@@ -7085,7 +7178,7 @@ class gate(Exchange, ImplicitAPI):
         """
         set dual/hedged mode to True or False for a swap market, make sure all positions are closed and no orders are open before setting dual mode
 
-        https://www.gate.com/docs/developers/apiv4/en/#enable-or-disable-dual-mode
+        https://www.gate.com/docs/developers/apiv4/en/#set-position-mode
 
         :param bool hedged: set to True to enable dual mode
         :param str|None symbol: if passed, dual mode is set for all markets with the same settle currency
@@ -7102,7 +7195,7 @@ class gate(Exchange, ImplicitAPI):
         """
         fetches the market ids of underlying assets for a specific contract market type
 
-        https://www.gate.com/docs/developers/apiv4/en/#list-all-underlyings
+        https://www.gate.com/docs/developers/apiv4/en/#list-all-underlying-assets
 
         :param dict [params]: exchange specific params
         :param str [params.type]: the contract market type, 'option', 'swap' or 'future', the default is 'option'
@@ -7137,7 +7230,7 @@ class gate(Exchange, ImplicitAPI):
         """
         retrieves the public liquidations of a trading pair
 
-        https://www.gate.com/docs/developers/apiv4/en/#retrieve-liquidation-history
+        https://www.gate.com/docs/developers/apiv4/en/#query-liquidation-order-history
 
         :param str symbol: unified CCXT market symbol
         :param int [since]: the earliest time in ms to fetch liquidations for
@@ -7178,8 +7271,8 @@ class gate(Exchange, ImplicitAPI):
         """
         retrieves the users liquidated positions
 
-        https://www.gate.com/docs/developers/apiv4/en/#list-liquidation-history
-        https://www.gate.com/docs/developers/apiv4/en/#list-liquidation-history-2
+        https://www.gate.com/docs/developers/apiv4/en/#query-liquidation-history
+        https://www.gate.com/docs/developers/apiv4/en/#query-liquidation-history-2
         https://www.gate.com/docs/developers/apiv4/en/#list-user-s-liquidation-history-of-specified-underlying
 
         :param str symbol: unified CCXT market symbol
@@ -7330,7 +7423,7 @@ class gate(Exchange, ImplicitAPI):
         """
         fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
-        https://www.gate.com/docs/developers/apiv4/en/#list-tickers-of-options-contracts
+        https://www.gate.com/docs/developers/apiv4/en/#query-options-market-ticker-information
 
         :param str symbol: unified symbol of the market to fetch greeks for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -7421,8 +7514,8 @@ class gate(Exchange, ImplicitAPI):
         """
         closes open positions for a market
 
-        https://www.gate.com/docs/developers/apiv4/en/#create-a-futures-order
-        https://www.gate.com/docs/developers/apiv4/en/#create-a-futures-order-2
+        https://www.gate.com/docs/developers/apiv4/en/#place-futures-order
+        https://www.gate.com/docs/developers/apiv4/en/#place-futures-order-2
         https://www.gate.com/docs/developers/apiv4/en/#create-an-options-order
 
         :param str symbol: Unified CCXT market symbol
@@ -7443,8 +7536,7 @@ class gate(Exchange, ImplicitAPI):
         fetch the set leverage for a market
 
         https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information
-        https://www.gate.com/docs/developers/apiv4/en/#get-detail-of-lending-market
-        https://www.gate.com/docs/developers/apiv4/en/#query-one-single-margin-currency-pair-deprecated
+        https://www.gate.com/docs/developers/apiv4/en/#get-lending-market-details
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -7473,7 +7565,7 @@ class gate(Exchange, ImplicitAPI):
                 #     }
                 #
             else:
-                response = await self.publicMarginGetCurrencyPairsCurrencyPair(self.extend(request, params))
+                response = await self.publicMarginGetCurrencyPairsCurrencyPair(self.extend(request, params))  # deprecated
                 #
                 #     {
                 #         "id": "BTC_USDT",
@@ -7547,7 +7639,6 @@ class gate(Exchange, ImplicitAPI):
         fetch the set leverage for all leverage markets, only spot margin is supported on gate
 
         https://www.gate.com/docs/developers/apiv4/en/#list-lending-markets
-        https://www.gate.com/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading-deprecated
 
         :param str[] symbols: a list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -7574,7 +7665,7 @@ class gate(Exchange, ImplicitAPI):
             #     ]
             #
         else:
-            response = await self.publicMarginGetCurrencyPairs(params)
+            response = await self.publicMarginGetCurrencyPairs(params)  # deprecated
             #
             #     [
             #         {
@@ -7606,7 +7697,7 @@ class gate(Exchange, ImplicitAPI):
         """
         fetches option data that is commonly found in an option chain
 
-        https://www.gate.com/docs/developers/apiv4/en/#query-specified-contract-detail
+        https://www.gate.com/docs/developers/apiv4/en/#query-specified-contract-details
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -7664,7 +7755,7 @@ class gate(Exchange, ImplicitAPI):
         """
         fetches data for an underlying asset that is commonly found in an option chain
 
-        https://www.gate.com/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time
+        https://www.gate.com/docs/developers/apiv4/en/#list-all-contracts-for-specified-underlying-and-expiration-date
 
         :param str code: base currency to fetch an option chain for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -7790,8 +7881,8 @@ class gate(Exchange, ImplicitAPI):
         """
         fetches historical positions
 
-        https://www.gate.com/docs/developers/apiv4/#list-position-close-history
-        https://www.gate.com/docs/developers/apiv4/#list-position-close-history-2
+        https://www.gate.com/docs/developers/apiv4/#query-position-close-history
+        https://www.gate.com/docs/developers/apiv4/#query-position-close-history-2
 
         :param str[] symbols: unified conract symbols, must all have the same settle currency and the same market type
         :param int [since]: the earliest time in ms to fetch positions for

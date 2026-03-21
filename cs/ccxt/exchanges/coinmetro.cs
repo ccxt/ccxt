@@ -373,7 +373,7 @@ public partial class coinmetro : Exchange
             object code = this.safeCurrencyCode(id);
             object typeRaw = this.safeString(currency, "type");
             object type = null;
-            if (isTrue(isTrue(isTrue(isEqual(typeRaw, "coin")) || isTrue(isEqual(typeRaw, "token"))) || isTrue(isEqual(typeRaw, "erc20"))))
+            if (isTrue(isTrue(isTrue(isTrue(isEqual(typeRaw, "coin")) || isTrue(isEqual(typeRaw, "token"))) || isTrue(isEqual(typeRaw, "erc20"))) || isTrue(isEqual(typeRaw, "crypto"))))
             {
                 type = "crypto";
             } else if (isTrue(isEqual(typeRaw, "fiat")))
@@ -1178,7 +1178,7 @@ public partial class coinmetro : Exchange
      * @param {int} [limit] max number of ledger entries to return (default 200, max 500)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {

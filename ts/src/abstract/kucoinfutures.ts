@@ -33,6 +33,7 @@ interface kucoin {
     publicGetConvertCurrencies (params?: {}): Promise<implicitReturnType>;
     publicPostBulletPublic (params?: {}): Promise<implicitReturnType>;
     privateGetUserInfo (params?: {}): Promise<implicitReturnType>;
+    privateGetUserApiKey (params?: {}): Promise<implicitReturnType>;
     privateGetAccounts (params?: {}): Promise<implicitReturnType>;
     privateGetAccountsAccountId (params?: {}): Promise<implicitReturnType>;
     privateGetAccountsLedgers (params?: {}): Promise<implicitReturnType>;
@@ -111,6 +112,7 @@ interface kucoin {
     privateGetConvertLimitOrderDetail (params?: {}): Promise<implicitReturnType>;
     privateGetConvertLimitOrders (params?: {}): Promise<implicitReturnType>;
     privateGetAffiliateInviterStatistics (params?: {}): Promise<implicitReturnType>;
+    privateGetEarnRedeemPreview (params?: {}): Promise<implicitReturnType>;
     privatePostSubUserCreated (params?: {}): Promise<implicitReturnType>;
     privatePostSubApiKey (params?: {}): Promise<implicitReturnType>;
     privatePostSubApiKeyUpdate (params?: {}): Promise<implicitReturnType>;
@@ -293,15 +295,47 @@ interface kucoin {
     earnDeleteEarnOrders (params?: {}): Promise<implicitReturnType>;
     utaGetMarketAnnouncement (params?: {}): Promise<implicitReturnType>;
     utaGetMarketCurrency (params?: {}): Promise<implicitReturnType>;
+    utaGetMarketCurrencies (params?: {}): Promise<implicitReturnType>;
     utaGetMarketInstrument (params?: {}): Promise<implicitReturnType>;
     utaGetMarketTicker (params?: {}): Promise<implicitReturnType>;
-    utaGetMarketOrderbook (params?: {}): Promise<implicitReturnType>;
     utaGetMarketTrade (params?: {}): Promise<implicitReturnType>;
     utaGetMarketKline (params?: {}): Promise<implicitReturnType>;
     utaGetMarketFundingRate (params?: {}): Promise<implicitReturnType>;
     utaGetMarketFundingRateHistory (params?: {}): Promise<implicitReturnType>;
     utaGetMarketCrossConfig (params?: {}): Promise<implicitReturnType>;
+    utaGetMarketCollateralDiscountRatio (params?: {}): Promise<implicitReturnType>;
+    utaGetMarketIndexPrice (params?: {}): Promise<implicitReturnType>;
+    utaGetMarketPositionTiers (params?: {}): Promise<implicitReturnType>;
+    utaGetMarketOpenInterest (params?: {}): Promise<implicitReturnType>;
     utaGetServerStatus (params?: {}): Promise<implicitReturnType>;
+    utaPrivateGetMarketOrderbook (params?: {}): Promise<implicitReturnType>;
+    utaPrivateGetAccountBalance (params?: {}): Promise<implicitReturnType>;
+    utaPrivateGetAccountTransferQuota (params?: {}): Promise<implicitReturnType>;
+    utaPrivateGetAccountMode (params?: {}): Promise<implicitReturnType>;
+    utaPrivateGetAccountLedger (params?: {}): Promise<implicitReturnType>;
+    utaPrivateGetAccountInterestHistory (params?: {}): Promise<implicitReturnType>;
+    utaPrivateGetAccountDepositAddress (params?: {}): Promise<implicitReturnType>;
+    utaPrivateGetAccountModeAccountBalance (params?: {}): Promise<implicitReturnType>;
+    utaPrivateGetAccountModeAccountOverview (params?: {}): Promise<implicitReturnType>;
+    utaPrivateGetAccountModeOrderDetail (params?: {}): Promise<implicitReturnType>;
+    utaPrivateGetAccountModeOrderOpenList (params?: {}): Promise<implicitReturnType>;
+    utaPrivateGetAccountModeOrderHistory (params?: {}): Promise<implicitReturnType>;
+    utaPrivateGetAccountModeOrderExecution (params?: {}): Promise<implicitReturnType>;
+    utaPrivateGetAccountModePositionOpenList (params?: {}): Promise<implicitReturnType>;
+    utaPrivateGetAccountModePositionHistory (params?: {}): Promise<implicitReturnType>;
+    utaPrivateGetAccountModePositionTiers (params?: {}): Promise<implicitReturnType>;
+    utaPrivateGetSubAccountBalance (params?: {}): Promise<implicitReturnType>;
+    utaPrivateGetUserFeeRate (params?: {}): Promise<implicitReturnType>;
+    utaPrivateGetDcpQuery (params?: {}): Promise<implicitReturnType>;
+    utaPrivatePostAccountTransfer (params?: {}): Promise<implicitReturnType>;
+    utaPrivatePostAccountMode (params?: {}): Promise<implicitReturnType>;
+    utaPrivatePostAccountModeAccountModifyLeverage (params?: {}): Promise<implicitReturnType>;
+    utaPrivatePostAccountModeOrderPlace (params?: {}): Promise<implicitReturnType>;
+    utaPrivatePostAccountModeOrderPlaceBatch (params?: {}): Promise<implicitReturnType>;
+    utaPrivatePostAccountModeOrderCancel (params?: {}): Promise<implicitReturnType>;
+    utaPrivatePostAccountModeOrderCancelBatch (params?: {}): Promise<implicitReturnType>;
+    utaPrivatePostSubAccountCanTransferOut (params?: {}): Promise<implicitReturnType>;
+    utaPrivatePostDcpSet (params?: {}): Promise<implicitReturnType>;
 }
 abstract class kucoin extends _kucoin {}
 

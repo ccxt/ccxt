@@ -2203,7 +2203,7 @@ export default class lbank extends Exchange {
         //              },
         //          ],
         //          "error_code":0,
-        //          "ts":1648506641469
+        //          "ts":1648506641468
         //      }
         //
         const data = this.safeList(response, 'data', []);

@@ -9,6 +9,7 @@ require('../functions/encode.js');
 require('../functions/crypto.js');
 var time = require('../functions/time.js');
 var misc = require('../functions/misc.js');
+require('../functions/io.js');
 var Future = require('./Future.js');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
@@ -49,6 +50,7 @@ class WsClient extends Client["default"] {
         }
         else {
             this.connection = new WebSocketPlatform(this.url, this.protocols);
+            this.connection.binaryType = "arraybuffer"; // for browsers not to use blob by default
         }
         this.connection.onopen = this.onOpen.bind(this);
         this.connection.onmessage = this.onMessage.bind(this);

@@ -266,6 +266,16 @@
                   "BTC/USDT:USDT-240329-65000-P"
                 ]
             }
+        ],
+        "fetchPositionADLRank": [
+            {
+                "description": "linear swap fetchPositionADLRank",
+                "method": "fetchPositionADLRank",
+                "url": "https://testnet-api.delta.exchange/v2/positions/margined",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }

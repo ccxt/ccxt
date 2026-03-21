@@ -561,7 +561,7 @@ public partial class bybit
     /// watch the public liquidations of a trading pair
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bybit-exchange.github.io/docs/v5/websocket/public/liquidation"/>  <br/>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/websocket/public/all-liquidation"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

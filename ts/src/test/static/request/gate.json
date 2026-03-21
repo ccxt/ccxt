@@ -69,6 +69,35 @@
         ],
         "createOrder": [
             {
+                "description": "trigger order with custom clientOrderId",
+                "method": "createOrder",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/price_orders",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "sell",
+                    1,
+                    51,
+                    {
+                        "stopLossPrice": 50,
+                        "clientOrderId": "myCustomId"
+                    }
+                ],
+                "output": "{\"initial\":{\"contract\":\"LTC_USDT\",\"size\":-1,\"price\":\"51\",\"text\":\"myCustomId\"},\"trigger\":{\"price_type\":0,\"price\":\"50\",\"rule\":2}}"
+            },
+            {
+                "description": "order with non ascii symbol",
+                "method": "createOrder",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/orders",
+                "input": [
+                    "人生K线/USDT:USDT",
+                    "market",
+                    "buy",
+                    100
+                ],
+                "output": "{\"contract\":\"人生K线_USDT\",\"size\":100,\"price\":\"0\",\"tif\":\"ioc\"}"
+            },
+            {
                 "description": "Spot limit buy order",
                 "method": "createOrder",
                 "url": "https://api.gateio.ws/api/v4/spot/orders",
@@ -569,6 +598,15 @@
             }
         ],
         "fetchClosedOrders": [
+            {
+                "description": "request with non ascii symbol",
+                "method": "fetchClosedOrders",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/orders?contract=%E4%BA%BA%E7%94%9FK%E7%BA%BF_USDT&status=finished",
+                "input": [
+                    "人生K线/USDT:USDT"
+                ],
+                "output": null
+            },
             {
                 "description": "Spot closed orders",
                 "method": "fetchClosedOrders",
@@ -1557,6 +1595,19 @@
         ],
         "cancelOrder": [
             {
+                "description": "cancel trigger swap order",
+                "method": "cancelOrder",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/price_orders/2007048638370418688?contract=LTC_USDT",
+                "input": [
+                    "2007048638370418688",
+                    "LTC/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Cancel Order - spot",
                 "method": "cancelOrder",
                 "url": "https://api.gateio.ws/api/v4/spot/orders/d82cc6af-b131-4398-b269-ddbafa760a19?account=spot&currency_pair=BTC_USDT",
@@ -1824,6 +1875,15 @@
             }
         ],
         "fetchMarketLeverageTiers": [
+            {
+                "description": "fetch market leverage tiers for future",
+                "method": "fetchMarketLeverageTiers",
+                "url": "https://api.gateio.ws/api/v4/delivery/usdt/risk_limit_tiers?contract=BTC_USDT_20260626",
+                "input": [
+                    "BTC/USDT:USDT-260626"
+                ],
+                "output": null
+            },
             {
                 "description": "fetchMarketLeverageTiers",
                 "method": "fetchMarketLeverageTiers",

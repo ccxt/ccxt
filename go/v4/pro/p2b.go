@@ -614,7 +614,7 @@ func  (this *P2bCore) HandlePong(client interface{}, message interface{}) interf
     //        id: 1706539608030
     //    }
     //
-    client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(message, "id"))
+    client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(message, "id", this.Milliseconds()))
     return message
 }
 func  (this *P2bCore) OnError(client interface{}, error interface{})  {

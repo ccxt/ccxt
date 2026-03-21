@@ -943,9 +943,11 @@ func  (this *HashkeyCore) LoadBalanceSnapshot(client interface{}, messageHash in
             ccxt.PanicOnError(response)
             ccxt.AddElementToObject(this.Balance, typeVar, this.Extend(response, this.SafeValue(this.Balance, typeVar, map[string]interface{} {})))
             // don't remove the future from the .futures cache
-            var future interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
-            future.(*ccxt.Future).Resolve()
-            client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), ccxt.Add("balance:", typeVar))
+            if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+                var future interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+                future.(*ccxt.Future).Resolve()
+                client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), ccxt.Add("balance:", typeVar))
+            }
                 return nil
             }()
             return ch
@@ -1055,8 +1057,8 @@ func  (this *HashkeyCore) KeepAliveListenKey(listenKey interface{}, optionalArgs
                         }()
             		    // try block:
                         
-                    retRes82512 := (<-this.PrivatePutApiV1UserDataStream(this.Extend(request, params)))
-                    ccxt.PanicOnError(retRes82512)
+                    retRes82712 := (<-this.PrivatePutApiV1UserDataStream(this.Extend(request, params)))
+                    ccxt.PanicOnError(retRes82712)
                     var listenKeyRefreshRate interface{} = this.SafeInteger(this.Options, "listenKeyRefreshRate", 1200000)
                     this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, listenKey, params)
             		    return nil

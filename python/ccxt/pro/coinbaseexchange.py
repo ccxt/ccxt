@@ -14,6 +14,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
+from ccxt.base.precise import Precise
 
 
 class coinbaseexchange(ccxt.async_support.coinbaseexchange):
@@ -443,10 +444,10 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         if 'maker_fee_rate' in trade:
             isMaker = True
             parsed['takerOrMaker'] = 'maker'
-            feeRate = self.safe_number(trade, 'maker_fee_rate')
+            feeRate = self.safe_string(trade, 'maker_fee_rate')
         else:
             parsed['takerOrMaker'] = 'taker'
-            feeRate = self.safe_number(trade, 'taker_fee_rate')
+            feeRate = self.safe_string(trade, 'taker_fee_rate')
             # side always represents the maker side of the trade
             # so if we're taker, we invert it
             currentSide = parsed['side']
@@ -460,11 +461,11 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         feeCurrency = market['quote']
         feeCost = None
         if (parsed['cost'] is not None) and (feeRate is not None):
-            cost = self.safe_number(parsed, 'cost')
-            feeCost = cost * feeRate
+            cost = self.safe_string(parsed, 'cost')
+            feeCost = Precise.string_mul(cost, feeRate)
         parsed['fee'] = {
-            'rate': feeRate,
-            'cost': feeCost,
+            'rate': self.parse_number(feeRate),
+            'cost': self.parse_number(feeCost),
             'currency': feeCurrency,
         }
         return parsed
@@ -588,20 +589,21 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
                             previousOrder['trades'] = []
                         previousOrder['trades'].append(trade)
                         previousOrder['lastTradeTimestamp'] = trade['timestamp']
-                        totalCost = 0
-                        totalAmount = 0
+                        totalCost = '0'
+                        totalAmount = '0'
                         trades = previousOrder['trades']
                         for i in range(0, len(trades)):
                             tradeEntry = trades[i]
-                            totalCost = self.sum(totalCost, tradeEntry['cost'])
-                            totalAmount = self.sum(totalAmount, tradeEntry['amount'])
-                        if totalAmount > 0:
-                            previousOrder['average'] = totalCost / totalAmount
-                        previousOrder['cost'] = totalCost
-                        if previousOrder['filled'] is not None:
-                            previousOrder['filled'] += trade['amount']
+                            totalCost = self.safe_string(tradeEntry, 'cost', '0')
+                            totalAmount = self.safe_string(tradeEntry, 'amount', '0')
+                        if not Precise.string_eq(totalAmount, '0'):
+                            previousOrder['average'] = self.parse_number(Precise.string_div(totalCost, totalAmount))
+                        previousOrder['cost'] = self.parse_number(totalCost)
+                        previousOrderFilled = self.safe_string(previousOrder, 'filled')
+                        if previousOrderFilled is not None:
+                            previousOrder['filled'] = self.parse_number(Precise.string_add(previousOrderFilled, self.safe_string(trade, 'amount')))
                             if previousOrder['amount'] is not None:
-                                previousOrder['remaining'] = previousOrder['amount'] - previousOrder['filled']
+                                previousOrder['remaining'] = self.parse_number(Precise.string_sub(self.safe_string(previousOrder, 'amount'), self.safe_string(previousOrder, 'filled')))
                         if previousOrder['fee'] is None:
                             previousOrder['fee'] = {
                                 'cost': 0,
@@ -609,6 +611,9 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
                             }
                         if (previousOrder['fee']['cost'] is not None) and (trade['fee']['cost'] is not None):
                             previousOrder['fee']['cost'] = self.sum(previousOrder['fee']['cost'], trade['fee']['cost'])
+                            previousOrderFee = self.safe_dict(previousOrder, 'fee')
+                            tradeFee = self.safe_dict(trade, 'fee')
+                            previousOrder['fee']['cost'] = self.parse_number(Precise.string_add(self.safe_string(previousOrderFee, 'cost'), self.safe_string(tradeFee, 'cost')))
                         # update the newUpdates count
                         orders.append(previousOrder)
                         client.resolve(orders, messageHash)
@@ -632,21 +637,21 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         symbol = self.safe_symbol(marketId)
         side = self.safe_string(order, 'side')
         price = self.safe_number(order, 'price')
-        amount = self.safe_number_2(order, 'size', 'funds')
+        amount = self.safe_string_2(order, 'size', 'funds')
         time = self.safe_string(order, 'time')
         timestamp = self.parse8601(time)
         reason = self.safe_string(order, 'reason')
         status = self.parse_ws_order_status(reason)
         orderType = self.safe_string(order, 'order_type')
-        remaining = self.safe_number(order, 'remaining_size')
+        remaining = self.safe_string(order, 'remaining_size')
         type = self.safe_string(order, 'type')
         filled = None
         if (amount is not None) and (remaining is not None):
-            filled = amount - remaining
+            filled = Precise.string_sub(amount, remaining)
         elif type == 'received':
-            filled = 0
+            filled = '0'
             if amount is not None:
-                remaining = amount - filled
+                remaining = Precise.string_sub(amount, filled)
         return self.safe_order({
             'info': order,
             'symbol': symbol,
@@ -662,11 +667,11 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             'price': price,
             'stopPrice': None,
             'triggerPrice': None,
-            'amount': amount,
+            'amount': self.parse_number(amount),
             'cost': None,
             'average': None,
-            'filled': filled,
-            'remaining': remaining,
+            'filled': self.parse_number(filled),
+            'remaining': self.parse_number(remaining),
             'status': status,
             'fee': None,
             'trades': None,

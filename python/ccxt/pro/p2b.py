@@ -473,7 +473,7 @@ class p2b(ccxt.async_support.p2b):
         #        id: 1706539608030
         #    }
         #
-        client.lastPong = self.safe_integer(message, 'id')
+        client.lastPong = self.safe_integer(message, 'id', self.milliseconds())
         return message
 
     def on_error(self, client: Client, error):

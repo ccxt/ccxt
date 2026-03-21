@@ -30,6 +30,9 @@ def test_safe_methods():
         'dict': {
             'a': 1,
         },
+        'listOfDicts': [{
+    'a': 1,
+}],
         'str': 'heLlo',
         'strNumber': '3',
         'zeroNumeric': 0,
@@ -38,6 +41,7 @@ def test_safe_methods():
         'emptyString': '',
         'floatNumeric': 0.123,
         'floatString': '0.123',
+        'longInt': 123456789012345,
     }
     input_list = ['Hi', 2]
     compare_dict = {
@@ -99,6 +103,10 @@ def test_safe_methods():
     assert equals(dict_object, compare_dict)
     assert exchange.safe_list(input_dict, 'dict') is None
     assert exchange.safe_list(input_list, 1) is None
+    array_of_dicts = exchange.safe_list(input_dict, 'listOfDicts')
+    assert(equals(array_of_dicts[0], {
+        'a': 1,
+    }))
     # safeList2
     list_object = exchange.safe_list_2(input_dict, 'a', 'list')
     assert equals(dict_object, compare_dict)
@@ -190,6 +198,7 @@ def test_safe_methods():
     assert exchange.safe_integer_product(input_dict, 'f', factor) == 1  # NB the result is 1
     assert exchange.safe_integer_product(input_dict, 'strNumber', factor) == 30
     assert exchange.safe_integer_product(input_list, 1, factor) == 20
+    assert exchange.safe_integer_product(input_dict, 'longInt', 0.000001) == 123456789
     # safeIntegerProduct2
     assert exchange.safe_integer_product_2(input_dict, 'a', 'i', factor) == 10
     assert exchange.safe_integer_product_2(input_dict, 'a', 'f', factor) == 1  # NB the result is 1

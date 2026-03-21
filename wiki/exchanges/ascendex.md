@@ -39,6 +39,7 @@
 * [fetchFundingHistory](#fetchfundinghistory)
 * [fetchMarginModes](#fetchmarginmodes)
 * [fetchLeverages](#fetchleverages)
+* [fetchOpenInterests](#fetchopeninterests)
 * [watchOHLCV](#watchohlcv)
 * [watchTrades](#watchtrades)
 * [watchTradesForSymbols](#watchtradesforsymbols)
@@ -611,7 +612,7 @@ ascendex.fetchFundingRates (symbols[, params])
 remove margin from a position
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 
 | Param | Type | Required | Description |
@@ -632,7 +633,7 @@ ascendex.reduceMargin (symbol, amount[, params])
 add margin
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 
 | Param | Type | Required | Description |
@@ -818,6 +819,27 @@ fetch the set leverage for all contract markets
 
 ```javascript
 ascendex.fetchLeverages ([symbols, params])
+```
+
+
+<a name="fetchOpenInterests" id="fetchopeninterests"></a>
+
+### fetchOpenInterests{docsify-ignore}
+Retrieves the open interest for a list of symbols
+
+**Kind**: instance method of [<code>ascendex</code>](#ascendex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [open interest structures](https://docs.ccxt.com/?id=open-interest-structure)
+
+**See**: https://ascendex.github.io/ascendex-futures-pro-api-v2/#futures-pricing-data  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified CCXT market symbols |
+| params | <code>object</code> | No | exchange specific parameters |
+
+
+```javascript
+ascendex.fetchOpenInterests ([symbols, params])
 ```
 
 

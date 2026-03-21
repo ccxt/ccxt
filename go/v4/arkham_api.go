@@ -7,458 +7,458 @@
 
 package ccxt
 
-func (this *ArkhamCore) V1PublicGetAlerts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicGetAlerts", args...)
+func (this *ArkhamCore) V1PublicGetAlerts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetAlerts", args...)
 }
 
-func (this *ArkhamCore) V1PublicGetAnnouncements (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicGetAnnouncements", args...)
+func (this *ArkhamCore) V1PublicGetAnnouncements(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetAnnouncements", args...)
 }
 
-func (this *ArkhamCore) V1PublicGetAssets (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicGetAssets", args...)
+func (this *ArkhamCore) V1PublicGetAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetAssets", args...)
 }
 
-func (this *ArkhamCore) V1PublicGetBook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicGetBook", args...)
+func (this *ArkhamCore) V1PublicGetBook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetBook", args...)
 }
 
-func (this *ArkhamCore) V1PublicGetCandles (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicGetCandles", args...)
+func (this *ArkhamCore) V1PublicGetCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetCandles", args...)
 }
 
-func (this *ArkhamCore) V1PublicGetChains (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicGetChains", args...)
+func (this *ArkhamCore) V1PublicGetChains(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetChains", args...)
 }
 
-func (this *ArkhamCore) V1PublicGetContracts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicGetContracts", args...)
+func (this *ArkhamCore) V1PublicGetContracts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetContracts", args...)
 }
 
-func (this *ArkhamCore) V1PublicGetIndexPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicGetIndexPrice", args...)
+func (this *ArkhamCore) V1PublicGetIndexPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetIndexPrice", args...)
 }
 
-func (this *ArkhamCore) V1PublicGetIndexPrices (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicGetIndexPrices", args...)
+func (this *ArkhamCore) V1PublicGetIndexPrices(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetIndexPrices", args...)
 }
 
-func (this *ArkhamCore) V1PublicGetMarginSchedules (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicGetMarginSchedules", args...)
+func (this *ArkhamCore) V1PublicGetMarginSchedules(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetMarginSchedules", args...)
 }
 
-func (this *ArkhamCore) V1PublicGetMarketcapchart (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicGetMarketcapchart", args...)
+func (this *ArkhamCore) V1PublicGetMarketcapchart(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetMarketcapchart", args...)
 }
 
-func (this *ArkhamCore) V1PublicGetMarketcaps (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicGetMarketcaps", args...)
+func (this *ArkhamCore) V1PublicGetMarketcaps(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetMarketcaps", args...)
 }
 
-func (this *ArkhamCore) V1PublicGetPair (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicGetPair", args...)
+func (this *ArkhamCore) V1PublicGetPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetPair", args...)
 }
 
-func (this *ArkhamCore) V1PublicGetPairs (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicGetPairs", args...)
+func (this *ArkhamCore) V1PublicGetPairs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetPairs", args...)
 }
 
-func (this *ArkhamCore) V1PublicGetServerTime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicGetServerTime", args...)
+func (this *ArkhamCore) V1PublicGetServerTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetServerTime", args...)
 }
 
-func (this *ArkhamCore) V1PublicGetTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicGetTicker", args...)
+func (this *ArkhamCore) V1PublicGetTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetTicker", args...)
 }
 
-func (this *ArkhamCore) V1PublicGetTickers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicGetTickers", args...)
+func (this *ArkhamCore) V1PublicGetTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetTickers", args...)
 }
 
-func (this *ArkhamCore) V1PublicGetTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicGetTrades", args...)
+func (this *ArkhamCore) V1PublicGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetTrades", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetUser (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetUser", args...)
+func (this *ArkhamCore) V1PrivateGetUser(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetUser", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetOrders", args...)
+func (this *ArkhamCore) V1PrivateGetOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetOrders", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetOrdersByClientOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetOrdersByClientOrderId", args...)
+func (this *ArkhamCore) V1PrivateGetOrdersByClientOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetOrdersByClientOrderId", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetOrdersHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetOrdersHistory", args...)
+func (this *ArkhamCore) V1PrivateGetOrdersHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetOrdersHistory", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetOrdersHistoryByClientOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetOrdersHistoryByClientOrderId", args...)
+func (this *ArkhamCore) V1PrivateGetOrdersHistoryByClientOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetOrdersHistoryByClientOrderId", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetOrdersHistoryOffset (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetOrdersHistoryOffset", args...)
+func (this *ArkhamCore) V1PrivateGetOrdersHistoryOffset(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetOrdersHistoryOffset", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetOrdersId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetOrdersId", args...)
+func (this *ArkhamCore) V1PrivateGetOrdersId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetOrdersId", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetTrades", args...)
+func (this *ArkhamCore) V1PrivateGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetTrades", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetTradesHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetTradesHistory", args...)
+func (this *ArkhamCore) V1PrivateGetTradesHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetTradesHistory", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetTradesTime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetTradesTime", args...)
+func (this *ArkhamCore) V1PrivateGetTradesTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetTradesTime", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetTriggerOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetTriggerOrders", args...)
+func (this *ArkhamCore) V1PrivateGetTriggerOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetTriggerOrders", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountAirdrops (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountAirdrops", args...)
+func (this *ArkhamCore) V1PrivateGetAccountAirdrops(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountAirdrops", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountBalanceUpdates (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountBalanceUpdates", args...)
+func (this *ArkhamCore) V1PrivateGetAccountBalanceUpdates(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountBalanceUpdates", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountBalances (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountBalances", args...)
+func (this *ArkhamCore) V1PrivateGetAccountBalances(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountBalances", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountBalancesLl (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountBalancesLl", args...)
+func (this *ArkhamCore) V1PrivateGetAccountBalancesLl(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountBalancesLl", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountBalancesHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountBalancesHistory", args...)
+func (this *ArkhamCore) V1PrivateGetAccountBalancesHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountBalancesHistory", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountBalancesCommissions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountBalancesCommissions", args...)
+func (this *ArkhamCore) V1PrivateGetAccountBalancesCommissions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountBalancesCommissions", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountDepositAddresses (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountDepositAddresses", args...)
+func (this *ArkhamCore) V1PrivateGetAccountDepositAddresses(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountDepositAddresses", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountDeposits (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountDeposits", args...)
+func (this *ArkhamCore) V1PrivateGetAccountDeposits(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountDeposits", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountFees (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountFees", args...)
+func (this *ArkhamCore) V1PrivateGetAccountFees(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountFees", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountFundingRatePayments (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountFundingRatePayments", args...)
+func (this *ArkhamCore) V1PrivateGetAccountFundingRatePayments(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountFundingRatePayments", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountLeverage", args...)
+func (this *ArkhamCore) V1PrivateGetAccountLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountLeverage", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountLspAssignments (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountLspAssignments", args...)
+func (this *ArkhamCore) V1PrivateGetAccountLspAssignments(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountLspAssignments", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountMargin", args...)
+func (this *ArkhamCore) V1PrivateGetAccountMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountMargin", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountMarginAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountMarginAll", args...)
+func (this *ArkhamCore) V1PrivateGetAccountMarginAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountMarginAll", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountNotifications (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountNotifications", args...)
+func (this *ArkhamCore) V1PrivateGetAccountNotifications(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountNotifications", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountPositionUpdates (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountPositionUpdates", args...)
+func (this *ArkhamCore) V1PrivateGetAccountPositionUpdates(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountPositionUpdates", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountPositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountPositions", args...)
+func (this *ArkhamCore) V1PrivateGetAccountPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountPositions", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountRealizedPnl (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountRealizedPnl", args...)
+func (this *ArkhamCore) V1PrivateGetAccountRealizedPnl(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountRealizedPnl", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountRebates (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountRebates", args...)
+func (this *ArkhamCore) V1PrivateGetAccountRebates(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountRebates", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountReferralLinks (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountReferralLinks", args...)
+func (this *ArkhamCore) V1PrivateGetAccountReferralLinks(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountReferralLinks", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountSessions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountSessions", args...)
+func (this *ArkhamCore) V1PrivateGetAccountSessions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountSessions", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountSettings (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountSettings", args...)
+func (this *ArkhamCore) V1PrivateGetAccountSettings(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountSettings", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountSettingsPriceAlert (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountSettingsPriceAlert", args...)
+func (this *ArkhamCore) V1PrivateGetAccountSettingsPriceAlert(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountSettingsPriceAlert", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountTransfers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountTransfers", args...)
+func (this *ArkhamCore) V1PrivateGetAccountTransfers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountTransfers", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountUnsubscribe (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountUnsubscribe", args...)
+func (this *ArkhamCore) V1PrivateGetAccountUnsubscribe(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountUnsubscribe", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountWatchlist (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountWatchlist", args...)
+func (this *ArkhamCore) V1PrivateGetAccountWatchlist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountWatchlist", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountWithdrawalAddresses (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountWithdrawalAddresses", args...)
+func (this *ArkhamCore) V1PrivateGetAccountWithdrawalAddresses(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountWithdrawalAddresses", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountWithdrawalAddressesId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountWithdrawalAddressesId", args...)
+func (this *ArkhamCore) V1PrivateGetAccountWithdrawalAddressesId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountWithdrawalAddressesId", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAccountWithdrawals (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAccountWithdrawals", args...)
+func (this *ArkhamCore) V1PrivateGetAccountWithdrawals(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAccountWithdrawals", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetSubaccounts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetSubaccounts", args...)
+func (this *ArkhamCore) V1PrivateGetSubaccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetSubaccounts", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAirdrop (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAirdrop", args...)
+func (this *ArkhamCore) V1PrivateGetAirdrop(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAirdrop", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAirdropClaim (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAirdropClaim", args...)
+func (this *ArkhamCore) V1PrivateGetAirdropClaim(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAirdropClaim", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAffiliateDashboardCommissionEarned (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAffiliateDashboardCommissionEarned", args...)
+func (this *ArkhamCore) V1PrivateGetAffiliateDashboardCommissionEarned(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAffiliateDashboardCommissionEarned", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAffiliateDashboardMinArkmLast30d (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAffiliateDashboardMinArkmLast30d", args...)
+func (this *ArkhamCore) V1PrivateGetAffiliateDashboardMinArkmLast30d(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAffiliateDashboardMinArkmLast30d", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAffiliateDashboardPoints (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAffiliateDashboardPoints", args...)
+func (this *ArkhamCore) V1PrivateGetAffiliateDashboardPoints(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAffiliateDashboardPoints", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAffiliateDashboardPointsSeason1 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAffiliateDashboardPointsSeason1", args...)
+func (this *ArkhamCore) V1PrivateGetAffiliateDashboardPointsSeason1(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAffiliateDashboardPointsSeason1", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAffiliateDashboardPointsSeason2 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAffiliateDashboardPointsSeason2", args...)
+func (this *ArkhamCore) V1PrivateGetAffiliateDashboardPointsSeason2(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAffiliateDashboardPointsSeason2", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAffiliateDashboardRealizedPnl (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAffiliateDashboardRealizedPnl", args...)
+func (this *ArkhamCore) V1PrivateGetAffiliateDashboardRealizedPnl(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAffiliateDashboardRealizedPnl", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAffiliateDashboardRebateBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAffiliateDashboardRebateBalance", args...)
+func (this *ArkhamCore) V1PrivateGetAffiliateDashboardRebateBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAffiliateDashboardRebateBalance", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAffiliateDashboardReferralCount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAffiliateDashboardReferralCount", args...)
+func (this *ArkhamCore) V1PrivateGetAffiliateDashboardReferralCount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAffiliateDashboardReferralCount", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAffiliateDashboardReferralsSeason1 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAffiliateDashboardReferralsSeason1", args...)
+func (this *ArkhamCore) V1PrivateGetAffiliateDashboardReferralsSeason1(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAffiliateDashboardReferralsSeason1", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAffiliateDashboardReferralsSeason2 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAffiliateDashboardReferralsSeason2", args...)
+func (this *ArkhamCore) V1PrivateGetAffiliateDashboardReferralsSeason2(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAffiliateDashboardReferralsSeason2", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAffiliateDashboardTradingVolumeStats (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAffiliateDashboardTradingVolumeStats", args...)
+func (this *ArkhamCore) V1PrivateGetAffiliateDashboardTradingVolumeStats(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAffiliateDashboardTradingVolumeStats", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAffiliateDashboardVolumeSeason1 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAffiliateDashboardVolumeSeason1", args...)
+func (this *ArkhamCore) V1PrivateGetAffiliateDashboardVolumeSeason1(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAffiliateDashboardVolumeSeason1", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAffiliateDashboardVolumeSeason2 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAffiliateDashboardVolumeSeason2", args...)
+func (this *ArkhamCore) V1PrivateGetAffiliateDashboardVolumeSeason2(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAffiliateDashboardVolumeSeason2", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetAffiliateDashboardApiKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetAffiliateDashboardApiKey", args...)
+func (this *ArkhamCore) V1PrivateGetAffiliateDashboardApiKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetAffiliateDashboardApiKey", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetCompetitionsOptInStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetCompetitionsOptInStatus", args...)
+func (this *ArkhamCore) V1PrivateGetCompetitionsOptInStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetCompetitionsOptInStatus", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetRewardsInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetRewardsInfo", args...)
+func (this *ArkhamCore) V1PrivateGetRewardsInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetRewardsInfo", args...)
 }
 
-func (this *ArkhamCore) V1PrivateGetRewardsVouchers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateGetRewardsVouchers", args...)
+func (this *ArkhamCore) V1PrivateGetRewardsVouchers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateGetRewardsVouchers", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePostOrdersNew (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostOrdersNew", args...)
+func (this *ArkhamCore) V1PrivatePostOrdersNew(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostOrdersNew", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePostTriggerOrdersNew (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostTriggerOrdersNew", args...)
+func (this *ArkhamCore) V1PrivatePostTriggerOrdersNew(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostTriggerOrdersNew", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePostOrdersCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostOrdersCancel", args...)
+func (this *ArkhamCore) V1PrivatePostOrdersCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostOrdersCancel", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePostTriggerOrdersCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostTriggerOrdersCancel", args...)
+func (this *ArkhamCore) V1PrivatePostTriggerOrdersCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostTriggerOrdersCancel", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePostOrdersCancelAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostOrdersCancelAll", args...)
+func (this *ArkhamCore) V1PrivatePostOrdersCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostOrdersCancelAll", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePostTriggerOrdersCancelAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostTriggerOrdersCancelAll", args...)
+func (this *ArkhamCore) V1PrivatePostTriggerOrdersCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostTriggerOrdersCancelAll", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePostOrdersNewSimple (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostOrdersNewSimple", args...)
+func (this *ArkhamCore) V1PrivatePostOrdersNewSimple(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostOrdersNewSimple", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePostAccountDepositAddressesNew (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostAccountDepositAddressesNew", args...)
+func (this *ArkhamCore) V1PrivatePostAccountDepositAddressesNew(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostAccountDepositAddressesNew", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePostAccountLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostAccountLeverage", args...)
+func (this *ArkhamCore) V1PrivatePostAccountLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostAccountLeverage", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePostAccountNotificationsRead (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostAccountNotificationsRead", args...)
+func (this *ArkhamCore) V1PrivatePostAccountNotificationsRead(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostAccountNotificationsRead", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePostAccountReferralLinks (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostAccountReferralLinks", args...)
+func (this *ArkhamCore) V1PrivatePostAccountReferralLinks(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostAccountReferralLinks", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePostAccountSessionsDelete (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostAccountSessionsDelete", args...)
+func (this *ArkhamCore) V1PrivatePostAccountSessionsDelete(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostAccountSessionsDelete", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePostAccountSessionsTerminateAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostAccountSessionsTerminateAll", args...)
+func (this *ArkhamCore) V1PrivatePostAccountSessionsTerminateAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostAccountSessionsTerminateAll", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePostAccountSettingsUpdate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostAccountSettingsUpdate", args...)
+func (this *ArkhamCore) V1PrivatePostAccountSettingsUpdate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostAccountSettingsUpdate", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePostAccountWatchlistAdd (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostAccountWatchlistAdd", args...)
+func (this *ArkhamCore) V1PrivatePostAccountWatchlistAdd(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostAccountWatchlistAdd", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePostAccountWatchlistRemove (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostAccountWatchlistRemove", args...)
+func (this *ArkhamCore) V1PrivatePostAccountWatchlistRemove(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostAccountWatchlistRemove", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePostAccountWithdraw (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostAccountWithdraw", args...)
+func (this *ArkhamCore) V1PrivatePostAccountWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostAccountWithdraw", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePostAccountWithdrawalAddressesConfirm (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostAccountWithdrawalAddressesConfirm", args...)
+func (this *ArkhamCore) V1PrivatePostAccountWithdrawalAddressesConfirm(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostAccountWithdrawalAddressesConfirm", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePostSubaccounts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostSubaccounts", args...)
+func (this *ArkhamCore) V1PrivatePostSubaccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostSubaccounts", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePostSubaccountsTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostSubaccountsTransfer", args...)
+func (this *ArkhamCore) V1PrivatePostSubaccountsTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostSubaccountsTransfer", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePostSubaccountsPerpTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostSubaccountsPerpTransfer", args...)
+func (this *ArkhamCore) V1PrivatePostSubaccountsPerpTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostSubaccountsPerpTransfer", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePostSubaccountsUpdateSettings (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostSubaccountsUpdateSettings", args...)
+func (this *ArkhamCore) V1PrivatePostSubaccountsUpdateSettings(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostSubaccountsUpdateSettings", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePostAirdrop (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostAirdrop", args...)
+func (this *ArkhamCore) V1PrivatePostAirdrop(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostAirdrop", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePostApiKeyCreate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostApiKeyCreate", args...)
+func (this *ArkhamCore) V1PrivatePostApiKeyCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostApiKeyCreate", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePostAuthenticate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostAuthenticate", args...)
+func (this *ArkhamCore) V1PrivatePostAuthenticate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostAuthenticate", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePostCompetitionsOptIn (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostCompetitionsOptIn", args...)
+func (this *ArkhamCore) V1PrivatePostCompetitionsOptIn(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostCompetitionsOptIn", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePostRewardsVouchersClaim (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostRewardsVouchersClaim", args...)
+func (this *ArkhamCore) V1PrivatePostRewardsVouchersClaim(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostRewardsVouchersClaim", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePutAccountReferralLinksIdSlug (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePutAccountReferralLinksIdSlug", args...)
+func (this *ArkhamCore) V1PrivatePutAccountReferralLinksIdSlug(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePutAccountReferralLinksIdSlug", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePutAccountSettingsPriceAlert (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePutAccountSettingsPriceAlert", args...)
+func (this *ArkhamCore) V1PrivatePutAccountSettingsPriceAlert(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePutAccountSettingsPriceAlert", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePutAccountWithdrawalAddressesId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePutAccountWithdrawalAddressesId", args...)
+func (this *ArkhamCore) V1PrivatePutAccountWithdrawalAddressesId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePutAccountWithdrawalAddressesId", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePutSubaccounts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePutSubaccounts", args...)
+func (this *ArkhamCore) V1PrivatePutSubaccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePutSubaccounts", args...)
 }
 
-func (this *ArkhamCore) V1PrivatePutApiKeyUpdateId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePutApiKeyUpdateId", args...)
+func (this *ArkhamCore) V1PrivatePutApiKeyUpdateId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePutApiKeyUpdateId", args...)
 }
 
-func (this *ArkhamCore) V1PrivateDeleteAccountSettingsPriceAlert (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateDeleteAccountSettingsPriceAlert", args...)
+func (this *ArkhamCore) V1PrivateDeleteAccountSettingsPriceAlert(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateDeleteAccountSettingsPriceAlert", args...)
 }
 
-func (this *ArkhamCore) V1PrivateDeleteAccountWithdrawalAddressesId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateDeleteAccountWithdrawalAddressesId", args...)
+func (this *ArkhamCore) V1PrivateDeleteAccountWithdrawalAddressesId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateDeleteAccountWithdrawalAddressesId", args...)
 }
 
-func (this *ArkhamCore) V1PrivateDeleteSubaccountsSubaccountId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateDeleteSubaccountsSubaccountId", args...)
+func (this *ArkhamCore) V1PrivateDeleteSubaccountsSubaccountId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateDeleteSubaccountsSubaccountId", args...)
 }
 
-func (this *ArkhamCore) V1PrivateDeleteApiKeyId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivateDeleteApiKeyId", args...)
+func (this *ArkhamCore) V1PrivateDeleteApiKeyId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivateDeleteApiKeyId", args...)
 }

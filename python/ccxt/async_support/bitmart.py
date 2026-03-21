@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitmart import ImplicitAPI
+import asyncio
 import hashlib
 from ccxt.base.types import Any, Balances, BorrowInterest, Currencies, Currency, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, MarketInterface, TransferEntry
 from typing import List
@@ -1191,8 +1192,9 @@ class bitmart(Exchange, ImplicitAPI):
         """
         if self.options['adjustForTimeDifference']:
             await self.load_time_difference()
-        spot = await self.fetch_spot_markets(params)
-        contract = await self.fetch_contract_markets(params)
+        spotPromise = self.fetch_spot_markets(params)
+        contractPromise = self.fetch_contract_markets(params)
+        spot, contract = await asyncio.gather(*[spotPromise, contractPromise])
         return self.array_concat(spot, contract)
 
     async def fetch_currencies(self, params={}) -> Currencies:
@@ -4599,9 +4601,23 @@ class bitmart(Exchange, ImplicitAPI):
         #         "timestamp": 1761291544336
         #     }
         #
+        # watchFundingRates
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "fundingRate": "0.0000561",
+        #         "fundingTime": 1770978448000,
+        #         "nextFundingRate": "-0.0000195",
+        #         "nextFundingTime": 1770998400000,
+        #         "funding_upper_limit": "0.0375",
+        #         "funding_lower_limit": "-0.0375",
+        #         "ts": 1770978448970
+        #     }
+        #
         marketId = self.safe_string(contract, 'symbol')
-        timestamp = self.safe_integer(contract, 'timestamp')
-        fundingTimestamp = self.safe_integer(contract, 'funding_time')
+        timestamp = self.safe_integer_2(contract, 'timestamp', 'ts')
+        fundingTimestamp = self.safe_integer_2(contract, 'funding_time', 'fundingTime')
+        nextFundingTimestamp = self.safe_integer(contract, 'nextFundingTime')
         return {
             'info': contract,
             'symbol': self.safe_symbol(marketId, market),
@@ -4611,12 +4627,12 @@ class bitmart(Exchange, ImplicitAPI):
             'estimatedSettlePrice': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'fundingRate': self.safe_number(contract, 'expected_rate'),
+            'fundingRate': self.safe_number_2(contract, 'expected_rate', 'fundingRate'),
             'fundingTimestamp': fundingTimestamp,
             'fundingDatetime': self.iso8601(fundingTimestamp),
-            'nextFundingRate': None,
-            'nextFundingTimestamp': None,
-            'nextFundingDatetime': None,
+            'nextFundingRate': self.safe_number(contract, 'nextFundingRate'),
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
             'previousFundingRate': self.safe_number(contract, 'rate_value'),
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
@@ -5023,7 +5039,7 @@ class bitmart(Exchange, ImplicitAPI):
         :param int [limit]: max number of ledger entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest ledger entry
-        :returns dict[]: a list of `ledger structures <https://docs.ccxt.com/?id=ledger>`
+        :returns dict[]: a list of `ledger structures <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         await self.load_markets()
         currency = None

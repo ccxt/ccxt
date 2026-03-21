@@ -829,7 +829,7 @@ export default class bitteam extends Exchange {
         const response = await this.publicGetTradeApiCmcOrderbookPair(this.extend(request, params));
         //
         //     {
-        //         "timestamp": 1701166703285,
+        //         "timestamp": 1701166703284,
         //         "bids": [
         //             [
         //                 2019.334988,

@@ -490,7 +490,7 @@
       "type": "FT",
       "nominalValue": null,
       "fullName": "Tether",
-      "logo": "https://a.static-global.com/1/currency/a69203ab-eb6b-40a0-b541-ff65e953c91c-1732260204481.png",
+      "logo": "https://a.static-global.com/1/currency/ff7c2588-6ee2-4bca-8a3c-08f1e728accb-1758424102515.png",
       "cmcLink": "https://coinmarketcap.com/currencies/tether/",
       "weight": "99997",
       "maxPrecision": "8",
@@ -500,10 +500,81 @@
       "transferEnabled": "1",
       "isChainExist": "1",
       "plates": [
-        251
+        251,
+        283
       ],
       "isListing": "1",
-      "withdrawCloseReason": null
+      "withdrawCloseReason": null,
+      "chainRelation": [
+        {
+          "chainId": "73",
+          "contract": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+        },
+        {
+          "chainId": "5",
+          "contract": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+        },
+        {
+          "chainId": "715",
+          "contract": "0x55d398326f99059ff775485246999027b3197955"
+        },
+        {
+          "chainId": "844",
+          "contract": "0xa71edc38d189767582c38a3145b5873052c3e47a"
+        },
+        {
+          "chainId": "698",
+          "contract": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f"
+        },
+        {
+          "chainId": "1455",
+          "contract": "0xbB06DCA3AE6887fAbF931640f67cab3e3a16F4dC"
+        },
+        {
+          "chainId": "1464",
+          "contract": "0x0BbFb5508E3c3caC6cd65D91D328c23f99E1ACf0"
+        },
+        {
+          "chainId": "1105",
+          "contract": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+        },
+        {
+          "chainId": "1063",
+          "contract": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7"
+        },
+        {
+          "chainId": "1664",
+          "contract": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9"
+        },
+        {
+          "chainId": "1769",
+          "contract": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58"
+        },
+        {
+          "chainId": "941",
+          "contract": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+        },
+        {
+          "chainId": "2262",
+          "contract": "0x4151ab5072198d0843cd2999590ef292f49d6c66"
+        },
+        {
+          "chainId": "2197",
+          "contract": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"
+        },
+        {
+          "chainId": "2275",
+          "contract": "0x9e5aac1ba1a2e6aed6b32689dfcf62a509ca96f3"
+        },
+        {
+          "chainId": "2225",
+          "contract": "0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA"
+        },
+        {
+          "chainId": "2155",
+          "contract": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b"
+        }
+      ]
     },
     "id": "usdt",
     "numericId": null,
@@ -631,23 +702,23 @@
           }
         }
       },
-      "MATIC": {
+      "Polygon POS": {
         "info": {
-          "chain": "Polygon",
+          "chain": "Polygon POS",
           "depositEnabled": true,
           "withdrawEnabled": true,
           "contract": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
           "depositMinAmount": "0.1",
           "depositFeeRate": "0",
-          "depositConfirmations": "500",
+          "depositConfirmations": "450",
           "withdrawMinAmount": "1E+1",
           "withdrawPrecision": "6",
           "withdrawFeeAmount": "0.020000000000000000",
           "withdrawFeeCurrency": "usdt",
           "withdrawFeeCurrencyId": "11"
         },
-        "id": "Polygon",
-        "network": "MATIC",
+        "id": "Polygon POS",
+        "network": "Polygon POS",
         "name": null,
         "active": true,
         "fee": 0.02,
@@ -745,9 +816,9 @@
           }
         }
       },
-      "ARB": {
+      "Arbitrum One": {
         "info": {
-          "chain": "ARB",
+          "chain": "Arbitrum One",
           "depositEnabled": true,
           "withdrawEnabled": true,
           "contract": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
@@ -760,8 +831,8 @@
           "withdrawFeeCurrency": "usdt",
           "withdrawFeeCurrencyId": "11"
         },
-        "id": "ARB",
-        "network": "ARB",
+        "id": "Arbitrum One",
+        "network": "Arbitrum One",
         "name": null,
         "active": true,
         "fee": 2,
@@ -783,9 +854,9 @@
           }
         }
       },
-      "OP": {
+      "Optimism": {
         "info": {
-          "chain": "OPT",
+          "chain": "Optimism",
           "depositEnabled": true,
           "withdrawEnabled": true,
           "contract": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
@@ -798,8 +869,8 @@
           "withdrawFeeCurrency": "usdt",
           "withdrawFeeCurrencyId": "11"
         },
-        "id": "OPT",
-        "network": "OP",
+        "id": "Optimism",
+        "network": "Optimism",
         "name": null,
         "active": true,
         "fee": 1,
@@ -821,9 +892,9 @@
           }
         }
       },
-      "SOL": {
+      "Solana": {
         "info": {
-          "chain": "SOL-SOL",
+          "chain": "Solana",
           "depositEnabled": true,
           "withdrawEnabled": true,
           "contract": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
@@ -836,8 +907,8 @@
           "withdrawFeeCurrency": "usdt",
           "withdrawFeeCurrencyId": "11"
         },
-        "id": "SOL-SOL",
-        "network": "SOL",
+        "id": "Solana",
+        "network": "Solana",
         "name": null,
         "active": true,
         "fee": 1,
@@ -897,9 +968,9 @@
           }
         }
       },
-      "TON": {
+      "The Open Network": {
         "info": {
-          "chain": "TON",
+          "chain": "The Open Network",
           "depositEnabled": true,
           "withdrawEnabled": true,
           "contract": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
@@ -912,8 +983,8 @@
           "withdrawFeeCurrency": "usdt",
           "withdrawFeeCurrencyId": "11"
         },
-        "id": "TON",
-        "network": "TON",
+        "id": "The Open Network",
+        "network": "The Open Network",
         "name": null,
         "active": true,
         "fee": 1,
@@ -935,47 +1006,9 @@
           }
         }
       },
-      "OPBNB": {
+      "Aptos": {
         "info": {
-          "chain": "OPBNB",
-          "depositEnabled": true,
-          "withdrawEnabled": true,
-          "contract": "0x9e5aac1ba1a2e6aed6b32689dfcf62a509ca96f3",
-          "depositMinAmount": "0.1",
-          "depositFeeRate": "0",
-          "depositConfirmations": "60",
-          "withdrawMinAmount": "10",
-          "withdrawPrecision": "8",
-          "withdrawFeeAmount": "0.500000000000000000",
-          "withdrawFeeCurrency": "usdt",
-          "withdrawFeeCurrencyId": "11"
-        },
-        "id": "OPBNB",
-        "network": "OPBNB",
-        "name": null,
-        "active": true,
-        "fee": 0.5,
-        "precision": null,
-        "deposit": true,
-        "withdraw": true,
-        "limits": {
-          "amount": {
-            "min": null,
-            "max": null
-          },
-          "withdraw": {
-            "min": 10,
-            "max": null
-          },
-          "deposit": {
-            "min": null,
-            "max": null
-          }
-        }
-      },
-      "APT": {
-        "info": {
-          "chain": "APT",
+          "chain": "Aptos",
           "depositEnabled": true,
           "withdrawEnabled": true,
           "contract": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b",
@@ -988,8 +1021,8 @@
           "withdrawFeeCurrency": "usdt",
           "withdrawFeeCurrencyId": "11"
         },
-        "id": "APT",
-        "network": "APT",
+        "id": "Aptos",
+        "network": "Aptos",
         "name": null,
         "active": true,
         "fee": 0.01,
@@ -1715,6 +1748,102 @@
       },
       "withdraw": {
         "min": 14,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "RIVER": {
+    "info": {
+      "id": "4561",
+      "currency": "river",
+      "displayName": "RIVER",
+      "type": "FT",
+      "nominalValue": null,
+      "fullName": "RIVER",
+      "logo": "https://a.static-global.com/1/currency/1a944e18-1051-4155-962d-51621243e9b8-1753599153466.png",
+      "cmcLink": null,
+      "weight": "1000",
+      "maxPrecision": "8",
+      "depositStatus": "1",
+      "withdrawStatus": "1",
+      "convertEnabled": "1",
+      "transferEnabled": "1",
+      "isChainExist": "1",
+      "plates": [
+        3,
+        153
+      ],
+      "isListing": "1",
+      "withdrawCloseReason": null,
+      "chainRelation": [
+        {
+          "chainId": "715",
+          "contract": "0xdA7AD9dea9397cffdDAE2F8a052B82f1484252B3"
+        }
+      ]
+    },
+    "id": "river",
+    "numericId": null,
+    "code": "RIVER",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": "RIVER",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.01,
+    "fees": {},
+    "networks": {
+      "BEP20": {
+        "info": {
+          "chain": "BNB Smart Chain",
+          "depositEnabled": true,
+          "withdrawEnabled": true,
+          "contract": "0xdA7AD9dea9397cffdDAE2F8a052B82f1484252B3",
+          "depositMinAmount": "0",
+          "depositFeeRate": "0",
+          "depositConfirmations": "15",
+          "withdrawMinAmount": "0.12",
+          "withdrawPrecision": "8",
+          "withdrawFeeAmount": "0.010000000000000000",
+          "withdrawFeeCurrency": "river",
+          "withdrawFeeCurrencyId": "4561"
+        },
+        "id": "BNB Smart Chain",
+        "network": "BEP20",
+        "name": null,
+        "active": true,
+        "fee": 0.01,
+        "precision": null,
+        "deposit": true,
+        "withdraw": true,
+        "limits": {
+          "amount": {
+            "min": null,
+            "max": null
+          },
+          "withdraw": {
+            "min": 0.12,
+            "max": null
+          },
+          "deposit": {
+            "min": null,
+            "max": null
+          }
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": 0.12,
         "max": null
       },
       "deposit": {

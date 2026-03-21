@@ -26,6 +26,7 @@ class apex(ccxt.async_support.apex):
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchOrderBook': True,
+                'watchOrderBookForSymbols': True,
                 'watchOrders': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': False,
@@ -33,6 +34,7 @@ class apex(ccxt.async_support.apex):
                 'watchMyTrades': True,
                 'watchBalance': False,
                 'watchOHLCV': True,
+                'watchOHLCVForSymbols': True,
             },
             'urls': {
                 'logo': 'https://omni.apex.exchange/assets/logo_content-CY9uyFbz.svg',
@@ -446,7 +448,7 @@ class apex(ccxt.async_support.apex):
             unfiedTimeframe = self.safe_string(data, 1, '1')
             timeframeId = self.safe_string(self.timeframes, unfiedTimeframe, unfiedTimeframe)
             rawHashes.append('candle.' + timeframeId + '.' + symbolString)
-            messageHashes.append('ohlcv::' + symbolString + '::' + unfiedTimeframe)
+            messageHashes.append('ohlcv::' + market['symbol'] + '::' + unfiedTimeframe)
         symbol, timeframe, stored = await self.watch_topics(url, messageHashes, rawHashes, params)
         if self.newUpdates:
             limit = stored.getLimit(symbol, limit)
@@ -487,10 +489,9 @@ class apex(ccxt.async_support.apex):
         marketType = 'spot' if isSpot else 'contract'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
-        ohlcvsByTimeframe = self.safe_value(self.ohlcvs, symbol)
-        if ohlcvsByTimeframe is None:
+        if not (symbol in self.ohlcvs):
             self.ohlcvs[symbol] = {}
-        if self.safe_value(ohlcvsByTimeframe, timeframe) is None:
+        if not (timeframe in self.ohlcvs[symbol]):
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             self.ohlcvs[symbol][timeframe] = ArrayCacheByTimestamp(limit)
         stored = self.ohlcvs[symbol][timeframe]
@@ -719,9 +720,10 @@ class apex(ccxt.async_support.apex):
                 position = positions[ii]
                 cache.append(position)
         # don't remove the future from the .futures cache
-        future = client.futures[messageHash]
-        future.resolve(cache)
-        client.resolve(cache, 'positions')
+        if messageHash in client.futures:
+            future = client.futures[messageHash]
+            future.resolve(cache)
+            client.resolve(cache, 'positions')
 
     def handle_positions(self, client, lists):
         #
@@ -932,7 +934,7 @@ class apex(ccxt.async_support.apex):
         try:
             await client.send({'args': [str(timeStamp)], 'op': 'pong'})
         except Exception as e:
-            error = NetworkError(self.id + ' handlePing failed with error ' + self.json(e))
+            error = NetworkError(self.id + ' handlePing failed with error ' + self.exception_message(e))
             client.reset(error)
 
     def handle_pong(self, client: Client, message):
@@ -946,7 +948,7 @@ class apex(ccxt.async_support.apex):
         #
         #   {pong: 1653296711335}
         #
-        client.lastPong = self.safe_integer(message, 'pong')
+        client.lastPong = self.safe_integer(message, 'pong', self.milliseconds())
         return message
 
     def handle_ping(self, client: Client, message):

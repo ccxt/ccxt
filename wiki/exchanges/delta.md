@@ -39,6 +39,7 @@
 * [closeAllPositions](#closeallpositions)
 * [fetchMarginMode](#fetchmarginmode)
 * [fetchOption](#fetchoption)
+* [fetchPositionsADLRank](#fetchpositionsadlrank)
 
 <a name="fetchTime" id="fetchtime"></a>
 
@@ -489,7 +490,7 @@ delta.fetchMyTrades (symbol[, since, limit, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://docs.delta.exchange/#get-wallet-transactions  
 
@@ -575,7 +576,7 @@ delta.fetchFundingRates (symbols[, params])
 add margin
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://docs.delta.exchange/#add-remove-position-margin  
 
@@ -597,7 +598,7 @@ delta.addMargin (symbol, amount[, params])
 remove margin from a position
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://docs.delta.exchange/#add-remove-position-margin  
 
@@ -781,5 +782,26 @@ fetches option data that is commonly found in an option chain
 
 ```javascript
 delta.fetchOption (symbol[, params])
+```
+
+
+<a name="fetchPositionsADLRank" id="fetchpositionsadlrank"></a>
+
+### fetchPositionsADLRank{docsify-ignore}
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+**Kind**: instance method of [<code>delta</code>](#delta)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [auto de leverage structures](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+**See**: https://docs.delta.exchange/#get-margined-positions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+delta.fetchPositionsADLRank ([symbols, params])
 ```
 

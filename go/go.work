@@ -1,9 +1,7 @@
 go 1.24.4
 
 use (
-	./cli
 	./tests
 	./tests/base
 	./v4
-	./v4/pro
 )

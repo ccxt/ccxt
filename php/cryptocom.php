@@ -170,6 +170,7 @@ class cryptocom extends Exchange {
                             'public/get-valuations' => 1,
                             'public/get-expired-settlement-price' => 10 / 3,
                             'public/get-insurance' => 1,
+                            'public/get-announcements' => 1,
                             'public/get-risk-parameters' => 1,
                         ),
                         'post' => array(
@@ -224,6 +225,8 @@ class cryptocom extends Exchange {
                             'private/staking/convert' => 2,
                             'private/staking/get-open-convert' => 2,
                             'private/staking/get-convert-history' => 2,
+                            'private/create-isolated-margin-transfer' => 10 / 3,
+                            'private/change-isolated-margin-leverage' => 10 / 3,
                         ),
                     ),
                 ),
@@ -476,6 +479,7 @@ class cryptocom extends Exchange {
                     '219' => '\\ccxt\\InvalidOrder',
                     '306' => '\\ccxt\\InsufficientFunds', // array( "id" : 1753xxx, "method" : "private/amend-order", "code" : 306, "message" : "INSUFFICIENT_AVAILABLE_BALANCE", "result" : array( "client_oid" : "1753xxx", "order_id" : "6530xxx" ) )
                     '314' => '\\ccxt\\InvalidOrder', // array( "id" : 1700xxx, "method" : "private/create-order", "code" : 314, "message" : "EXCEEDS_MAX_ORDER_SIZE", "result" : array( "client_oid" : "1700xxx", "order_id" : "6530xxx" ) )
+                    '315' => '\\ccxt\\InvalidOrder', // array( "id" : 1769xxx, "method" : "private/create-order", "code" : 315, "message" : "FAR_AWAY_LIMIT_PRICE", "result" : array( "client_oid" : "1769xxx", "order_id" : "6530xxx" ) )
                     '325' => '\\ccxt\\InvalidOrder', // array( "id" : 1741xxx, "method" : "private/create-order", "code" : 325, "message" : "EXCEED_DAILY_VOL_LIMIT", "result" : array( "client_oid" : "1741xxx", "order_id" : "6530xxx" ) )
                     '415' => '\\ccxt\\InvalidOrder', // array( "id" : 1741xxx, "method" : "private/create-order", "code" : 415, "message" : "BELOW_MIN_ORDER_SIZE", "result" : array( "client_oid" : "1741xxx", "order_id" : "6530xxx" ) )
                     '10001' => '\\ccxt\\ExchangeError',
@@ -2695,7 +2699,7 @@ class cryptocom extends Exchange {
          * @param {int} [$limit] max number of $ledger entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
-         * @return {array} a ~@link https://docs.ccxt.com/?id=$ledger ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ledger-entry-structure $ledger structure~
          */
         $this->load_markets();
         $request = array();

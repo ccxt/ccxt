@@ -153,8 +153,8 @@ export default class mexc extends Exchange {
                         'private': 'https://www.mexc.com/open/api/v2',
                     },
                     'contract': {
-                        'public': 'https://contract.mexc.com/api/v1/contract',
-                        'private': 'https://contract.mexc.com/api/v1/private',
+                        'public': 'https://api.mexc.com/api/v1/contract',
+                        'private': 'https://api.mexc.com/api/v1/private',
                     },
                     'broker': {
                         'private': 'https://api.mexc.com/api/v3/broker',
@@ -4266,7 +4266,7 @@ export default class mexc extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async reduceMargin(symbol, amount, params = {}) {
         return await this.modifyMarginHelper(symbol, amount, 'SUB', params);
@@ -4279,7 +4279,7 @@ export default class mexc extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async addMargin(symbol, amount, params = {}) {
         return await this.modifyMarginHelper(symbol, amount, 'ADD', params);
@@ -4408,7 +4408,15 @@ export default class mexc extends Exchange {
         //         "timestamp": 1643240373359
         //     }
         //
-        const nextFundingRate = this.safeNumber(contract, 'fundingRate');
+        // watchFundingRate
+        //
+        //     {
+        //         "symbol": "BTC_USDT",
+        //         "rate": -0.000021,
+        //         "nextSettleTime": 1771084800000
+        //     }
+        //
+        const nextFundingRate = this.safeNumber2(contract, 'fundingRate', 'rate');
         const nextFundingTimestamp = this.safeInteger(contract, 'nextSettleTime');
         const marketId = this.safeString(contract, 'symbol');
         const symbol = this.safeSymbol(marketId, market, undefined, 'contract');
@@ -4708,7 +4716,6 @@ export default class mexc extends Exchange {
         const address = this.safeString(depositAddress, 'address');
         const currencyId = this.safeString(depositAddress, 'coin');
         const networkId = this.safeString(depositAddress, 'netWork');
-        this.checkAddress(address);
         return {
             'info': depositAddress,
             'currency': this.safeCurrencyCode(currencyId, currency),

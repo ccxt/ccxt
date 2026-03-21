@@ -1377,7 +1377,7 @@ public partial class btcmarkets : Exchange
         await this.loadMarkets();
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
-            { "currency_id", getValue(currency, "id") },
+            { "assetName", getValue(currency, "id") },
             { "amount", this.currencyToPrecision(code, amount) },
         };
         if (isTrue(!isEqual(code, "AUD")))

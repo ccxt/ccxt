@@ -47,3 +47,8 @@ try
 1
 trrigger!
 go!!!
+build
+!
+go
+.
+!!

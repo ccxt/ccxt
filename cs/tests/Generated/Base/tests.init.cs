@@ -9,13 +9,16 @@ public partial class BaseTest
 {
         async public Task baseTestsInit()
         {
-            testLanguageSpecific();
+            await testLanguageSpecific();
+            testConstants();
             testAfterConstructor();
             testExtend();
             testDeepExtend();
             testCryptography();
+            testBinaryToBase64();
             testDatetime();
             testDecimalToPrecision();
+            testCapitalize();
             testNumberToString();
             testPrecise();
             testSafeMethods();
@@ -23,13 +26,26 @@ public partial class BaseTest
             testJson();
             testSortBy();
             testSum();
+            testUrlencodeBase64();
             testOmit();
             testGroupBy();
+            testIndexBy();
+            testInArray();
             testFilterBy();
             testHandleMethods();
             testRemoveRepeatedElementsFromArray();
             testParsePrecision();
+            testPrecisionFromString();
+            testExtractParams();
             testArraysConcat();
+            testUuid();
+            await testSetMarketsFromExchange();
+            testEthMethods();
+            testKeysort();
+            testImplodeParams();
+            testUnique();
             await testSleep();
+            testIo();
+            testIsJsonEncodedObject();
         }
 }

@@ -896,7 +896,7 @@ public partial class foxbit : Exchange
         return await this.fetchOrdersByStatus("FILLED", symbol, since, limit, parameters);
     }
 
-    public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.fetchOrdersByStatus("CANCELED", symbol, since, limit, parameters);
@@ -1676,7 +1676,7 @@ public partial class foxbit : Exchange
         }
         object response = await this.v3PrivatePostWithdrawals(this.extend(request, parameters));
         // {
-        //     "amount": "1",
+        //     "amount": "2",
         //     "currency_symbol": "xrp",
         //     "network_code": "ripple",
         //     "destination_address": "0x1234567890123456789012345678",

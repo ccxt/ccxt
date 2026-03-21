@@ -4,7 +4,7 @@
     "methods": {
         "fetchCurrencies": [
             {
-                "description": "fetchCurrencies",
+                "description": "default",
                 "method": "fetchCurrencies",
                 "input": [],
                 "httpResponse": {
@@ -65,7 +65,7 @@
                                     "rechargeable": "true",
                                     "shortName": "TRX",
                                     "withdrawConfirm": "1",
-                                    "withdrawFee": "1",
+                                    "withdrawFee": "2",
                                     "withdrawable": "true"
                                 },
                                 {
@@ -153,7 +153,7 @@
                                     "rechargeable": "true",
                                     "shortName": "ETH",
                                     "withdrawConfirm": "64",
-                                    "withdrawFee": "0.00081",
+                                    "withdrawFee": "0.00051",
                                     "withdrawable": "true"
                                 },
                                 {
@@ -169,7 +169,7 @@
                                     "rechargeable": "true",
                                     "shortName": "OPTIMISM",
                                     "withdrawConfirm": "50",
-                                    "withdrawFee": "0.00025",
+                                    "withdrawFee": "0.00016",
                                     "withdrawable": "false"
                                 },
                                 {
@@ -196,7 +196,7 @@
                         }
                     ],
                     "msg": "success",
-                    "requestTime": "1747505313087"
+                    "requestTime": "1761048060633"
                 },
                 "parsedResponse": {
                     "BTC": {
@@ -315,7 +315,7 @@
                                     "rechargeable": "true",
                                     "shortName": "TRX",
                                     "withdrawConfirm": "1",
-                                    "withdrawFee": "1",
+                                    "withdrawFee": "2",
                                     "withdrawable": "true"
                                 },
                                 {
@@ -451,7 +451,7 @@
                                 "active": true,
                                 "deposit": true,
                                 "withdraw": true,
-                                "fee": 1,
+                                "fee": 2,
                                 "precision": null,
                                 "info": {
                                     "browserUrl": "https://tronscan.org/#/transaction/",
@@ -466,7 +466,7 @@
                                     "rechargeable": "true",
                                     "shortName": "TRX",
                                     "withdrawConfirm": "1",
-                                    "withdrawFee": "1",
+                                    "withdrawFee": "2",
                                     "withdrawable": "true"
                                 }
                             },
@@ -505,9 +505,9 @@
                                     "withdrawable": "true"
                                 }
                             },
-                            "ARB": {
+                            "ARBONE": {
                                 "id": "ArbitrumOne",
-                                "network": "ARB",
+                                "network": "ARBONE",
                                 "limits": {
                                     "deposit": {
                                         "min": 0.1,
@@ -638,7 +638,7 @@
                                     "rechargeable": "true",
                                     "shortName": "ETH",
                                     "withdrawConfirm": "64",
-                                    "withdrawFee": "0.00081",
+                                    "withdrawFee": "0.00051",
                                     "withdrawable": "true"
                                 },
                                 {
@@ -654,7 +654,7 @@
                                     "rechargeable": "true",
                                     "shortName": "OPTIMISM",
                                     "withdrawConfirm": "50",
-                                    "withdrawFee": "0.00025",
+                                    "withdrawFee": "0.00016",
                                     "withdrawable": "false"
                                 },
                                 {
@@ -707,7 +707,7 @@
                                 "active": true,
                                 "deposit": true,
                                 "withdraw": true,
-                                "fee": 0.00081,
+                                "fee": 0.00051,
                                 "precision": null,
                                 "info": {
                                     "browserUrl": "https://etherscan.io/tx/",
@@ -722,13 +722,13 @@
                                     "rechargeable": "true",
                                     "shortName": "ETH",
                                     "withdrawConfirm": "64",
-                                    "withdrawFee": "0.00081",
+                                    "withdrawFee": "0.00051",
                                     "withdrawable": "true"
                                 }
                             },
-                            "Optimism": {
+                            "OP": {
                                 "id": "Optimism",
-                                "network": "Optimism",
+                                "network": "OP",
                                 "limits": {
                                     "deposit": {
                                         "min": 0.0001,
@@ -742,7 +742,7 @@
                                 "active": false,
                                 "deposit": true,
                                 "withdraw": false,
-                                "fee": 0.00025,
+                                "fee": 0.00016,
                                 "precision": null,
                                 "info": {
                                     "browserUrl": "https://optimistic.etherscan.io/tx/",
@@ -757,7 +757,7 @@
                                     "rechargeable": "true",
                                     "shortName": "OPTIMISM",
                                     "withdrawConfirm": "50",
-                                    "withdrawFee": "0.00025",
+                                    "withdrawFee": "0.00016",
                                     "withdrawable": "false"
                                 }
                             },

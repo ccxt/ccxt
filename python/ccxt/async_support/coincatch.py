@@ -328,8 +328,8 @@ class coincatch(Exchange, ImplicitAPI):
                     'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
                     'BEP20': 'BEP20',
-                    'ARB': 'ArbitrumOne',
-                    'OPTIMISM': 'Optimism',
+                    'ARBONE': 'ArbitrumOne',
+                    'OP': 'Optimism',
                     'LTC': 'LTC',
                     'BCH': 'BCH',
                     'ETC': 'ETC',
@@ -362,7 +362,7 @@ class coincatch(Exchange, ImplicitAPI):
                     'CFX': 'CFX',
                     'STRAT': 'StratisEVM',
                     'TIA': 'Celestia',
-                    'ChilizChain': 'ChilizChain',
+                    'CHZ': 'ChilizChain',
                     'APT': 'Aptos',
                     'ONT': 'Ontology',
                     'ICP': 'ICP',
@@ -377,18 +377,6 @@ class coincatch(Exchange, ImplicitAPI):
                 'networksById': {
                     'TRC20': 'TRC20',
                     'TRX(TRC20)': 'TRC20',
-                    'ArbitrumOne': 'ARB',  # todo check
-                    'THORChain': 'RUNE',  # todo check
-                    'Solar': 'SXP',  # todo check
-                    'C-Chain': 'AVAX',  # todo check
-                    'CAP20': 'CAP20',  # todo check
-                    'CFXeSpace': 'CFX',  # todo check
-                    'CFX': 'CFX',
-                    'StratisEVM': 'STRAT',  # todo check
-                    'ChilizChain': 'ChilizChain',  # todo check
-                    'StellarLumens': 'XLM',  # todo check
-                    'CronosChain': 'CRO',  # todo check
-                    'Optimism': 'Optimism',
                 },
             },
             'features': {
@@ -4613,7 +4601,7 @@ class coincatch(Exchange, ImplicitAPI):
         :param float amount: the amount of margin to remove
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.side]: *for isolated margin mode with hedged position mode only* 'long' or 'short'
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=reduce-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         params['methodName'] = 'reduceMargin'
         return await self.modify_margin_helper(symbol, -amount, 'reduce', params)
@@ -4628,7 +4616,7 @@ class coincatch(Exchange, ImplicitAPI):
         :param float amount: amount of margin to add
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.side]: *for isolated margin mode with hedged position mode only* 'long' or 'short'
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         params['methodName'] = 'addMargin'
         return await self.modify_margin_helper(symbol, amount, 'add', params)
@@ -4892,7 +4880,7 @@ class coincatch(Exchange, ImplicitAPI):
         :param str [params.business]: *swap only*
         :param str [params.lastEndId]: *swap only*
         :param bool [params.next]: *swap only*
-        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         methodName = 'fetchLedger'
         await self.load_markets()

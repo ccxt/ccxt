@@ -147,8 +147,8 @@ class mexc extends Exchange {
                         'private' => 'https://www.mexc.com/open/api/v2',
                     ),
                     'contract' => array(
-                        'public' => 'https://contract.mexc.com/api/v1/contract',
-                        'private' => 'https://contract.mexc.com/api/v1/private',
+                        'public' => 'https://api.mexc.com/api/v1/contract',
+                        'private' => 'https://api.mexc.com/api/v1/private',
                     ),
                     'broker' => array(
                         'private' => 'https://api.mexc.com/api/v3/broker',
@@ -4244,7 +4244,7 @@ class mexc extends Exchange {
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount the $amount of margin to remove
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=reduce-margin-structure margin structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
          */
         return $this->modify_margin_helper($symbol, $amount, 'SUB', $params);
     }
@@ -4258,7 +4258,7 @@ class mexc extends Exchange {
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount amount of margin to add
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
          */
         return $this->modify_margin_helper($symbol, $amount, 'ADD', $params);
     }
@@ -4387,7 +4387,15 @@ class mexc extends Exchange {
         //         "timestamp" => 1643240373359
         //     }
         //
-        $nextFundingRate = $this->safe_number($contract, 'fundingRate');
+        // watchFundingRate
+        //
+        //     {
+        //         "symbol" => "BTC_USDT",
+        //         "rate" => -0.000021,
+        //         "nextSettleTime" => 1771084800000
+        //     }
+        //
+        $nextFundingRate = $this->safe_number_2($contract, 'fundingRate', 'rate');
         $nextFundingTimestamp = $this->safe_integer($contract, 'nextSettleTime');
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, null, 'contract');
@@ -4693,7 +4701,6 @@ class mexc extends Exchange {
         $address = $this->safe_string($depositAddress, 'address');
         $currencyId = $this->safe_string($depositAddress, 'coin');
         $networkId = $this->safe_string($depositAddress, 'netWork');
-        $this->check_address($address);
         return array(
             'info' => $depositAddress,
             'currency' => $this->safe_currency_code($currencyId, $currency),

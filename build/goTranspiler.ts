@@ -166,6 +166,7 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     "safeCurrencyCode": false,
     "parseConversion": false,
     "sign": false,
+    "signIn": true,
     // ws methods
     'cancelAllOrdersWs': true,
     'cancelOrdersWs': true,
@@ -235,6 +236,8 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     'watchTradesForSymbols': true,
     'withdrawWs': true,
     "parseLastPrice": false,
+    'fetchPositionsADLRank': true,
+    'parseADLRank': false
     // 'fetchCurrenciesWs': true,
     // 'fetchMarketsWs': true,
 }
@@ -460,7 +463,7 @@ class NewTranspiler {
     oldTranspiler = new OldTranspiler();
     private _extendedExchanges: { [key: string]: string } | null = null;
     futuresExchanges = new Set<string>([  // futures exchanges that extend a spot exchange class
-        'kucoinfutures'
+        // 'kucoinfutures'
     ]);
 
     constructor(isWs: boolean = false) {
@@ -2056,6 +2059,8 @@ ${caseStatements.join('\n')}
             'PAD_WITH_ZERO',
             'TRUNCATE',
             'ROUND',
+            'ROUND_UP',
+            'ROUND_DOWN',
             'toFixed',
             'throwDynamicException',
             'NewArrayCache',
@@ -2374,7 +2379,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         for (const testName of baseFunctionTests) {
             const tsFile = `${baseFolders.ts}/${testName}.ts`;
             const tsContent = fs.readFileSync(tsFile).toString();
-            if (!tsContent.includes ('// AUTO_TRANSPILE_ENABLED')) {
+            if (tsContent.includes ('// NO_AUTO_TRANSPILE')) {
                 continue;
             }
 
@@ -2551,7 +2556,9 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 [/(interface{}\sfunc\sEquals.+\n.*\n.+\n.+|func Equals\(.+\n.*\n.*\n.*\})/gm, ''], // remove equals
                 // Fix infinite loop bug in WebSocket tests - move now = exchange.Milliseconds() outside success check
                 [/(\s+)(if IsTrue\(IsEqual\(success, true\)\) \{\s*\n[\s\S]*?)(\s+now = exchange\.Milliseconds\(\)\s*\n\s*\})/gm, '$1$2$1now = exchange.Milliseconds()$3'],
-
+                // apply 'getPreTranspilationRegexes' here, bcz in GO we don't have pre-transpilation regexes
+                [/exchange.JsonStringifyWithNull/g, 'JsonStringify'],
+                
 
 
                 // [ /object exchange(?=[,)])/g, 'Exchange exchange' ],

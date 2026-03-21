@@ -48,6 +48,8 @@ jobs:
       with:
         node-version: '20'
         cache: 'npm'
+    - name: Debug binary FILES [REMOVE]
+      run: git ls-files | grep binaries
     - name: Install npm dependencies
       run: npm ci --include=dev
     - name: Debug files changes

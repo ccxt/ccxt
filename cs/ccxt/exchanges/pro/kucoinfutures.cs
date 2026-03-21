@@ -441,9 +441,12 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         object cache = this.positions;
         callDynamically(cache, "append", new object[] {position});
         // don't remove the future from the .futures cache
-        var future = getValue(client.futures, messageHash);
-        (future as Future).resolve(cache);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {position, add("position:", symbol)});
+        if (isTrue(inOp(client.futures, messageHash)))
+        {
+            var future = getValue(client.futures, messageHash);
+            (future as Future).resolve(cache);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {position, add("position:", symbol)});
+        }
     }
 
     public virtual void handlePosition(WebSocketClient client, object message)
@@ -775,7 +778,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         object symbol = this.safeSymbol(marketId);
         object messageHash = add(add(add("ohlcv::", symbol), "_"), timeframe);
         object ohlcv = this.safeList(data, "candles");
-        object parsed = new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 6)};
+        object parsed = new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 6)};
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         if (!isTrue((inOp(getValue(this.ohlcvs, symbol), timeframe))))
         {
