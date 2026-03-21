@@ -12,6 +12,17 @@
     "options": {
     },
     "methods": {
+        "fetchOpenInterestHistory": [
+            {
+                "description": "fetch open interest history",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://api.kucoin.com/api/ua/v1/market/open-interest?symbol=ETHUSDTM&interval=5min",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "fetchOpenInterest": [
             {
                 "description": "fetch open interest",
