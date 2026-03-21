@@ -1248,8 +1248,18 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchMyLiquidationsForSymbols() is not supported yet');
     }
 
+    public function get_ws_method_not_supported_message(string $methodName) {
+        $message = $this->id . ' ' . $methodName . '() is not supported yet';
+        $hasProExchangeClass = ($this->safe_bool($this, 'pro', false) === true);
+        $isRestOnlyInstance = !$this->safe_bool($this->has, 'ws', false);
+        if ($hasProExchangeClass && $isRestOnlyInstance) {
+            $message .= '. This instance is the REST exchange class. To use WebSocket methods, try the Pro/WS exchange class instead, for example: ccxt.pro.' . $this->id . '.';
+        }
+        return $message;
+    }
+
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
-        throw new NotSupported($this->id . ' watchTrades() is not supported yet');
+        throw new NotSupported($this->get_ws_method_not_supported_message('watchTrades'));
     }
 
     public function un_watch_orders(?string $symbol = null, $params = array ()) {
@@ -1261,7 +1271,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
-        throw new NotSupported($this->id . ' watchTradesForSymbols() is not supported yet');
+        throw new NotSupported($this->get_ws_method_not_supported_message('watchTradesForSymbols'));
     }
 
     public function un_watch_trades_for_symbols(array $symbols, $params = array ()) {
@@ -1269,15 +1279,15 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function watch_my_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
-        throw new NotSupported($this->id . ' watchMyTradesForSymbols() is not supported yet');
+        throw new NotSupported($this->get_ws_method_not_supported_message('watchMyTradesForSymbols'));
     }
 
     public function watch_orders_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
-        throw new NotSupported($this->id . ' watchOrdersForSymbols() is not supported yet');
+        throw new NotSupported($this->get_ws_method_not_supported_message('watchOrdersForSymbols'));
     }
 
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array ()) {
-        throw new NotSupported($this->id . ' watchOHLCVForSymbols() is not supported yet');
+        throw new NotSupported($this->get_ws_method_not_supported_message('watchOHLCVForSymbols'));
     }
 
     public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array ()) {
@@ -1285,7 +1295,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()) {
-        throw new NotSupported($this->id . ' watchOrderBookForSymbols() is not supported yet');
+        throw new NotSupported($this->get_ws_method_not_supported_message('watchOrderBookForSymbols'));
     }
 
     public function un_watch_order_book_for_symbols(array $symbols, $params = array ()) {
@@ -1353,7 +1363,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
-        throw new NotSupported($this->id . ' watchOrderBook() is not supported yet');
+        throw new NotSupported($this->get_ws_method_not_supported_message('watchOrderBook'));
     }
 
     public function un_watch_order_book(string $symbol, $params = array ()) {
@@ -3062,7 +3072,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
-        throw new NotSupported($this->id . ' watchOHLCV() is not supported yet');
+        throw new NotSupported($this->get_ws_method_not_supported_message('watchOHLCV'));
     }
 
     public function convert_trading_view_to_ohlcv(array $ohlcvs, $timestamp = 't', $open = 'o', $high = 'h', $low = 'l', $close = 'c', $volume = 'v', $ms = false) {
@@ -4178,7 +4188,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function watch_balance($params = array ()) {
-        throw new NotSupported($this->id . ' watchBalance() is not supported yet');
+        throw new NotSupported($this->get_ws_method_not_supported_message('watchBalance'));
     }
 
     public function fetch_partial_balance($part, $params = array ()) {
@@ -4493,7 +4503,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function watch_ticker(string $symbol, $params = array ()) {
-        throw new NotSupported($this->id . ' watchTicker() is not supported yet');
+        throw new NotSupported($this->get_ws_method_not_supported_message('watchTicker'));
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
@@ -5172,7 +5182,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
-        throw new NotSupported($this->id . ' watchOrders() is not supported yet');
+        throw new NotSupported($this->get_ws_method_not_supported_message('watchOrders'));
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {

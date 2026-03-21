@@ -3037,8 +3037,18 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchMyLiquidationsForSymbols() is not supported yet');
     }
 
+    getWsMethodNotSupportedMessage (methodName: string): string {
+        let message = this.id + ' ' + methodName + '() is not supported yet';
+        const hasProExchangeClass = (this.safeBool (this, 'pro', false) === true);
+        const isRestOnlyInstance = !this.safeBool (this.has, 'ws', false);
+        if (hasProExchangeClass && isRestOnlyInstance) {
+            message += '. This instance is the REST exchange class. To use WebSocket methods, try the Pro/WS exchange class instead, for example: ccxt.pro.' + this.id + '.';
+        }
+        return message;
+    }
+
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        throw new NotSupported (this.id + ' watchTrades() is not supported yet');
+        throw new NotSupported (this.getWsMethodNotSupportedMessage ('watchTrades'));
     }
 
     async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
@@ -3050,7 +3060,7 @@ export default class Exchange {
     }
 
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        throw new NotSupported (this.id + ' watchTradesForSymbols() is not supported yet');
+        throw new NotSupported (this.getWsMethodNotSupportedMessage ('watchTradesForSymbols'));
     }
 
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
@@ -3058,15 +3068,15 @@ export default class Exchange {
     }
 
     async watchMyTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        throw new NotSupported (this.id + ' watchMyTradesForSymbols() is not supported yet');
+        throw new NotSupported (this.getWsMethodNotSupportedMessage ('watchMyTradesForSymbols'));
     }
 
     async watchOrdersForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        throw new NotSupported (this.id + ' watchOrdersForSymbols() is not supported yet');
+        throw new NotSupported (this.getWsMethodNotSupportedMessage ('watchOrdersForSymbols'));
     }
 
     async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dictionary<Dictionary<OHLCV[]>>> {
-        throw new NotSupported (this.id + ' watchOHLCVForSymbols() is not supported yet');
+        throw new NotSupported (this.getWsMethodNotSupportedMessage ('watchOHLCVForSymbols'));
     }
 
     async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
@@ -3074,7 +3084,7 @@ export default class Exchange {
     }
 
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        throw new NotSupported (this.id + ' watchOrderBookForSymbols() is not supported yet');
+        throw new NotSupported (this.getWsMethodNotSupportedMessage ('watchOrderBookForSymbols'));
     }
 
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
@@ -3138,7 +3148,7 @@ export default class Exchange {
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        throw new NotSupported (this.id + ' watchOrderBook() is not supported yet');
+        throw new NotSupported (this.getWsMethodNotSupportedMessage ('watchOrderBook'));
     }
 
     async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
@@ -4848,7 +4858,7 @@ export default class Exchange {
     }
 
     async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        throw new NotSupported (this.id + ' watchOHLCV() is not supported yet');
+        throw new NotSupported (this.getWsMethodNotSupportedMessage ('watchOHLCV'));
     }
 
     convertTradingViewToOHLCV (ohlcvs: number[][], timestamp = 't', open = 'o', high = 'h', low = 'l', close = 'c', volume = 'v', ms = false) {
@@ -5947,7 +5957,7 @@ export default class Exchange {
     }
 
     async watchBalance (params = {}): Promise<Balances> {
-        throw new NotSupported (this.id + ' watchBalance() is not supported yet');
+        throw new NotSupported (this.getWsMethodNotSupportedMessage ('watchBalance'));
     }
 
     async fetchPartialBalance (part, params = {}): Promise<Balance> {
@@ -6243,7 +6253,7 @@ export default class Exchange {
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        throw new NotSupported (this.id + ' watchTicker() is not supported yet');
+        throw new NotSupported (this.getWsMethodNotSupportedMessage ('watchTicker'));
     }
 
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -6916,7 +6926,7 @@ export default class Exchange {
     }
 
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        throw new NotSupported (this.id + ' watchOrders() is not supported yet');
+        throw new NotSupported (this.getWsMethodNotSupportedMessage ('watchOrders'));
     }
 
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
