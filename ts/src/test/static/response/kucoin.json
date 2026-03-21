@@ -4991,25 +4991,6 @@
                     "marginMode": null,
                     "longLeverage": null,
                     "shortLeverage": null
-                    "data": {
-                        "tradeType": "SPOT",
-                        "serverStatus": "open",
-                        "msg": ""
-                    }
-                },
-                "parsedResponse": {
-                    "status": "ok",
-                    "updated": null,
-                    "eta": null,
-                    "url": null,
-                    "info": {
-                        "code": "200000",
-                        "data": {
-                            "tradeType": "SPOT",
-                            "serverStatus": "open",
-                            "msg": ""
-                        }
-                    }
                 }
             }
         ]
