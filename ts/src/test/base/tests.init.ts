@@ -30,6 +30,7 @@ import testAfterConstructor from './test.afterConstructor.js';
 import testHandleMethods from './test.handleMethods.js';
 import testRemoveRepeatedElementsFromArray from './test.removeRepeatedElementsFromArray.js';
 import testParsePrecision from './test.parsePrecision.js';
+import testStrip from './test.strip.js';
 import testArraysConcat from './test.arraysConcat.js';
 import testSetMarketsFromExchange from './test.setMarketsFromExchange.js';
 import testSleep from './test.sleep.js';
@@ -68,6 +69,7 @@ async function baseTestsInit () {
     testRemoveRepeatedElementsFromArray ();
     testParsePrecision ();
     testPrecisionFromString ();
+    testStrip ();
     testExtractParams ();
     testArraysConcat ();
     testUuid ();
