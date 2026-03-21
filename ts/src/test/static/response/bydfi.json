@@ -415,9 +415,9 @@
                     "success": true
                 },
                 "parsedResponse": {
-                    "code": "200",
-                    "message": "success",
-                    "success": true
+                    "info": {},
+                    "symbol": "ETH/USDC:USDC",
+                    "marginMode": null
                 }
             }
         ],
@@ -906,9 +906,15 @@
                     "success": true
                 },
                 "parsedResponse": {
-                    "symbol": "ETH-USDC",
-                    "leverage": "2",
-                    "maxNotionalValue": "60000000"
+                    "info": {
+                        "symbol": "ETH-USDC",
+                        "leverage": "2",
+                        "maxNotionalValue": "60000000"
+                    },
+                    "symbol": "ETH/USDC:USDC",
+                    "marginMode": null,
+                    "longLeverage": 2,
+                    "shortLeverage": 2
                 }
             }
         ],
