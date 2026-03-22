@@ -1116,7 +1116,7 @@ export default class hyperliquid extends Exchange {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
         let isUnifiedEnabled = undefined;
-        [ isUnifiedEnabled, params ] = await this.isUnifiedEnabled ('fetchBalance', params);
+        [ isUnifiedEnabled, params ] = await this.isUnifiedEnabled ('fetchBalance', userAddress, params);
         const dex = this.safeString (params, 'dex');
         const isSpot = ((type === 'spot') || isUnifiedEnabled) && (dex === undefined);
         const request: Dict = {
@@ -1874,12 +1874,17 @@ export default class hyperliquid extends Exchange {
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-abstraction-state
      * @description returns enableUnifiedMargin so the user can check if unified account is enabled
      * @param {string} method the method for which we want to check if unified margin is enabled, this is used to check options for specific methods (e.g. fetchBalance can have a specific option to enable unified margin)
+     * @param address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {bool} enableUnifiedMargin
      */
-    async isUnifiedEnabled (method: string, params = {}) {
+    async isUnifiedEnabled (method: string, address: Str = undefined, params = {}) {
         let userAddress = undefined;
-        [ userAddress, params ] = this.handlePublicAddress ('isUnifiedEnabled', params);
+        if (address !== undefined) {
+            userAddress = address;
+        } else {
+            [ userAddress, params ] = this.handlePublicAddress ('isUnifiedEnabled', params);
+        }
         let enableUnifiedMargin = undefined;
         [ enableUnifiedMargin, params ] = this.handleOptionAndParams (params, method, 'enableUnifiedMargin');
         if (enableUnifiedMargin === undefined) {
