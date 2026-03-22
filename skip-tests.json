@@ -1,5 +1,17 @@
 {
+    "aftermath": {
+        "skipWs": "temporary websocket 404s",
+        "skipMethods": {
+            "fetchCurrencies": {
+                "activeMajorCurrencies": "exchange reports major currencies with deposit/withdraw disabled"
+            },
+            "fetchTrades.cs": "temporary csharp null reference",
+            "fetchTrades.go": "temporary live test instability"
+        }
+    },
     "alp": {
+        "skip": "api returns 404 on /pairs",
+        "until": "2026-03-28",
         "skipMethods": {
             "fetchCurrencies": {
                 "activeMajorCurrencies": "todo"
@@ -48,6 +60,7 @@
         }
     },
     "apex": {
+        "skipCSharp": "temporary csharp build contention in live tests",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed",
@@ -74,6 +87,7 @@
         }
     },
     "ascendex": {
+        "skipCSharp": "temporary csharp build contention in live tests",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
@@ -166,6 +180,9 @@
     },
     "binanceus": {
         "skipMethods": {
+            "fetchStatus.cs": "temporary csharp live-test api-key format failure",
+            "watchOrderBook.go": "temporary go checksum instability",
+            "watchOrderBookForSymbols.go": "same",
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing, https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
             },
@@ -207,6 +224,7 @@
         }
     },
     "bingx": {
+        "skipCSharp": "temporary csharp websocket compression issue",
         "skipMethods": {
             "loadMarkets": {
                 "taker": "is undefined",
@@ -271,6 +289,7 @@
     },
     "bitbns": {
         "skipMethods": {
+            "fetchCurrencies.go": "exchange returned no currencies in go live test",
             "loadMarkets": {
                 "limits": "market limits have min>max ",
                 "currencyIdAndCode": "broken"
@@ -361,6 +380,10 @@
     },
     "bitmart": {
         "skipMethods": {
+            "watchOrderBook.go": {
+                "timestamp": "not provided",
+                "datetime": "not provided"
+            },
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies",
                 "taker": "missing",
@@ -567,6 +590,7 @@
         }
     },
     "blockchaincom": {
+        "skipWs": "temporary websocket handshake and timeout issues",
         "skipMethods": {
             "loadMarkets": {
                 "taker":"not provided",
@@ -582,6 +606,8 @@
         }
     },
     "btcbox": {
+        "skip": "trading is temporarily suspended by the exchange",
+        "until": "2026-03-28",
         "skipMethods": {
             "loadMarkets": {
                 "precision":"is undefined"
@@ -622,6 +648,7 @@
     "bybit": {
         "httpsProxy": "http://188.245.226.105:8911",
         "wsProxy": "http://188.245.226.105:8911",
+        "skipCSharp": "temporary csharp websocket collection modification issue",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "temp skip"
@@ -717,6 +744,9 @@
             "watchOrderBookForSymbols": {
                 "spread": "broken bid-ask: https://github.com/ccxt/ccxt/actions/runs/14995105728/job/42127573821?pr=25943#step:9:382"
             },
+            "ticker": {
+                "compareOHLC": "ws low/high can lag the last price"
+            },
             "watchTickers": "closes connection",
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
@@ -746,6 +776,7 @@
     },
     "coinbaseinternational": {
         "skipMethods": {
+            "fetchOHLCV.cs": "temporary csharp bad request in live test",
             "loadMarkets": {
                 "currencyIdAndCode": "i.e. coinbase does not have currency code TIA",
                 "max": "zero values"
@@ -845,6 +876,8 @@
     "cex": {
         "preferredSpotSymbol": "BTC/USD",
         "skipMethods": {
+            "fetchTicker.go": "temporary rate limit in go live test",
+            "fetchTickers.cs": "temporary rate limit in csharp live test",
             "proxies": "probably they do not permit our proxy location",
             "loadMarkets": {
                 "taker":"unavailable",
@@ -1068,6 +1101,7 @@
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes"
             },
+            "fetchCurrencies.php": "php async fetchCurrencies structure mismatch",
             "fetchCurrencies": {
                 "precision": "messed",
                 "type": "todo"
@@ -1236,6 +1270,11 @@
         }
     },
     "grvt": {
+        "skip": "temporary auth and api instability in live tests",
+        "skipWs": "same",
+        "skipPhpAsync": "temporary async loadMarkets failure",
+        "skipPythonAsync": "temporary async loadMarkets failure",
+        "until": "2026-03-28",
         "skipMethods": {
             "loadMarkets": {
                 "taker": "undef",
@@ -1278,6 +1317,8 @@
         }
     },
     "hibachi": {
+        "skip": "temporary loadMarkets validation issue in go live test",
+        "until": "2026-03-28",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "only have USDT"
@@ -1361,6 +1402,7 @@
     },
     "htx": {
         "skipMethods": {
+            "watchOrderBook.go": "temporary go nonce sync instability",
             "loadMarkets": {
                 "limits":"messed",
                 "currencyIdAndCode": "messed codes"
@@ -1607,6 +1649,9 @@
         }
     },
     "lbank": {
+        "skip": "temporary api/network instability",
+        "skipWs": "temporary api/network instability",
+        "until": "2026-03-28",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes"
@@ -1781,6 +1826,7 @@
     "okx": {
         "skipCSharp": true,
         "skipMethods": {
+            "fetchStatus.go": "temporary rate limit in go live test",
             "loadMarkets": {
                 "currencyIdAndCode": "messed",
                 "contractSize": "broken for some markets"
@@ -1890,6 +1936,7 @@
                 "taker": "not provided",
                 "maker": "same"
             },
+            "fetchCurrencies.php": "php async fetchCurrencies structure mismatch",
             "fetchCurrencies": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269956260#L4357",
                 "withdraw": "undefined",
@@ -2196,6 +2243,7 @@
         }
     },
     "deepcoin": {
+        "skipWs": "temporary websocket instability in live tests",
         "skipMethods": {
             "loadMarkets": {
                 "limits": "some market limits have min>max "
@@ -2253,7 +2301,11 @@
         }
     },
     "lighter": {
+        "skipWs": "temporary websocket geo-restriction and timeout issues",
         "skipMethods":{
+            "watchTicker.php": "php async ws is geo-restricted",
+            "watchTickers.php": "php async ws is geo-restricted",
+            "watchTrades.php": "php async ws is geo-restricted",
             "loadMarkets": {
                 "currencyIdAndCode": "messed"
             },
@@ -2268,6 +2320,9 @@
                 "deposit": "not provided",
                 "activeMajorCurrencies": "todo",
                 "networks": "not provided"
+            },
+            "ticker": {
+                "compareOHLC": "open can lag low in live ticker feed"
             },
             "orderBook": {
                 "spread":"bids[0][0] is not < asks[0][0]",

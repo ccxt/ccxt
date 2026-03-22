@@ -70,6 +70,10 @@ for (const arg of args) {
     else                                     { exchanges.push (arg) }
 }
 
+if (langKeys['--csharp']) {
+    maxConcurrency = 1
+}
+
 const wsFlag = exchangeSpecificFlags['--ws'] ? 'WS': '';
 
 // for REST exchange test, we might need to wait for 200+ seconds for some exchanges
