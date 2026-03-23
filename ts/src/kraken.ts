@@ -3567,7 +3567,7 @@ export default class kraken extends Exchange {
         if (api === 'public') {
             if (Object.keys (params).length) {
                 // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
-                url += '?' + this.rawencode (params);
+                url += '?' + this.urlencodeNested (params);
             }
         } else if (api === 'private') {
             const price = this.safeString (params, 'price');
@@ -3583,7 +3583,7 @@ export default class kraken extends Exchange {
                 body = this.json (this.extend ({ 'nonce': nonce }, params));
             } else {
                 // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
-                body = this.rawencode (this.extend ({ 'nonce': nonce }, params));
+                body = this.urlencodeNested (this.extend ({ 'nonce': nonce }, params));
             }
             const auth = this.encode (nonce + body);
             const hash = this.hash (auth, sha256, 'binary');

@@ -29,7 +29,7 @@ const json =  (data: any, params = undefined) => JSON.stringify (data)
     , binaryConcatArray = (arr: any[]) => concatBytes (...arr)
 
     , urlencode = (object: object, sort = false) => qs.stringify (object)
-    , urlencodeNested =  (object: object) => qs.stringify (object) // implemented only in python
+    , urlencodeNested =  (object: object) => qs.stringify (object, { encodeValuesOnly: true }) // implemented only in python
     , urlencodeWithArrayRepeat = (object: object) => qs.stringify (object, { arrayFormat: 'repeat' })
     , rawencode = (object: object, sort = false) => qs.stringify (object, { encode: false })
     , encode = utf8.decode // lol
