@@ -73,8 +73,8 @@ export default class pacifica extends pacificaRest {
         if (key !== undefined) {
             headers['PF-API-KEY'] = key;
         } else {
-            if (this.apiKey !== undefined) {
-                headers['PF-API-KEY'] = this.apiKey;
+            if (this.handleOption ('setupApiKeyHeaders', 'apiKey', undefined) !== undefined) {
+                headers['PF-API-KEY'] = this.options['apiKey'];
             }
         }
         this.options['ws']['options']['headers'] = headers;
@@ -602,7 +602,7 @@ export default class pacifica extends pacificaRest {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
+     * @param {string|undefined} [params.account] will default to options' walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -639,7 +639,7 @@ export default class pacifica extends pacificaRest {
      * @see https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/account-trades
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
+     * @param {string|undefined} [params.account] will default to options' walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
@@ -1053,7 +1053,7 @@ export default class pacifica extends pacificaRest {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
+     * @param {string|undefined} [params.account] will default to options' walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1092,7 +1092,7 @@ export default class pacifica extends pacificaRest {
      * @see https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/account-order-updates
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
+     * @param {string|undefined} [params.account] will default to options' walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
