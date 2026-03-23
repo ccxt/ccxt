@@ -3421,10 +3421,12 @@ export default class kucoin extends Exchange {
      * @name kucoin#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
      * @see https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-deposit-address
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] the blockchain network name
-     * @param {string} [params.accountType] 'main' or 'contract' (default is 'main')
+     * @param {string} [params.accountType] 'main', 'contract' or 'uta' (default is 'main')
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
@@ -3433,8 +3435,12 @@ export default class kucoin extends Exchange {
         [ accountType, params ] = this.handleOptionAndParams (params, 'fetchDepositAddress', 'accountType', accountType);
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         accountType = this.safeString (accountsByType, accountType, accountType);
+        let uta = false;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchDepositAddress', 'uta', false);
         if (accountType === 'contract') {
             return await this.fetchContractDepositAddress (code, params);
+        } else if (uta || (accountType === 'uta')) {
+            return await super.fetchDepositAddress (code, this.extend (params, { 'uta': true }));
         }
         const currency = this.currency (code);
         const request: Dict = {
@@ -3529,9 +3535,11 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchDepositAddressesByNetwork
      * @see https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-deposit-address
      * @description fetch the deposit address for a currency associated with this account
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
      * @returns {object} an array of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
@@ -3540,25 +3548,55 @@ export default class kucoin extends Exchange {
         const request: Dict = {
             'currency': currency['id'],
         };
-        const version = this.options['versions']['private']['GET']['deposit-addresses'];
-        this.options['versions']['private']['GET']['deposit-addresses'] = 'v2';
-        const response = await this.privateGetDepositAddresses (this.extend (request, params));
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": [
-        //             {
-        //                 "address": "fr1qvus7d4d5fgxj5e7zvqe6yhxd7txm95h2and69r",
-        //                 "memo": "",
-        //                 "chain": "BTC-Segwit",
-        //                 "contractAddress": ""
-        //             },
-        //             {"address":"37icNMEWbiF8ZkwUMxmfzMxi2A1MQ44bMn","memo":"","chain":"BTC","contractAddress":""},
-        //             {"address":"Deposit temporarily blocked","memo":"","chain":"TRC20","contractAddress":""}
-        //         ]
-        //     }
-        //
-        this.options['versions']['private']['GET']['deposit-addresses'] = version;
+        let uta = false;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchDepositAddressesByNetwork', 'uta', uta);
+        let response = undefined;
+        if (uta) {
+            let networkCode = undefined;
+            [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+            if (networkCode !== undefined) {
+                request['chain'] = this.networkCodeToId (networkCode).toLowerCase ();
+            }
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": [
+            //             {
+            //                 "address": "0xf30a9b6968183668dbce515bd6449438ab3252b3",
+            //                 "memo": "",
+            //                 "remark": "",
+            //                 "chainId": "eth",
+            //                 "to": "FUNDING",
+            //                 "expirationDate": 0,
+            //                 "currency": "USDT",
+            //                 "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+            //                 "chainName": "ERC20"
+            //             }
+            //         ]
+            //     }
+            //
+            response = await this.utaPrivateGetAssetDepositAddress (this.extend (request, params));
+        } else {
+            const version = this.options['versions']['private']['GET']['deposit-addresses'];
+            this.options['versions']['private']['GET']['deposit-addresses'] = 'v2';
+            response = await this.privateGetDepositAddresses (this.extend (request, params));
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": [
+            //             {
+            //                 "address": "fr1qvus7d4d5fgxj5e7zvqe6yhxd7txm95h2and69r",
+            //                 "memo": "",
+            //                 "chain": "BTC-Segwit",
+            //                 "contractAddress": ""
+            //             },
+            //             {"address":"37icNMEWbiF8ZkwUMxmfzMxi2A1MQ44bMn","memo":"","chain":"BTC","contractAddress":""},
+            //             {"address":"Deposit temporarily blocked","memo":"","chain":"TRC20","contractAddress":""}
+            //         ]
+            //     }
+            //
+            this.options['versions']['private']['GET']['deposit-addresses'] = version;
+        }
         const chains = this.safeList (response, 'data', []);
         const parsed = this.parseDepositAddresses (chains, [ currency['code'] ], false, {
             'currency': currency['code'],
