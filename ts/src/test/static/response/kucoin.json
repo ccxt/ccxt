@@ -1565,6 +1565,71 @@
         ],
         "fetchLedger": [
             {
+                "description": "fetch uta ledger for uta account",
+                "method": "fetchLedger",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "uta": true,
+                        "type": "unified"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "lastId": 30000000001200350,
+                        "items": [
+                            {
+                                "accountType": "UNIFIED",
+                                "id": "30000000001200350",
+                                "currency": "USDT",
+                                "direction": "IN",
+                                "businessType": "TRANSFER",
+                                "amount": "30",
+                                "balance": "30",
+                                "fee": "0",
+                                "tax": "0",
+                                "remark": "Funding Account",
+                                "ts": 1774241648267000000
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "30000000001200350",
+                        "timestamp": 1774241648267,
+                        "datetime": "2026-03-23T04:54:08.267Z",
+                        "direction": "in",
+                        "account": "UNIFIED",
+                        "referenceId": null,
+                        "referenceAccount": "UNIFIED",
+                        "type": "transfer",
+                        "currency": "USDT",
+                        "amount": 30,
+                        "before": 0,
+                        "after": 30,
+                        "status": null,
+                        "fee": null,
+                        "info": {
+                            "accountType": "UNIFIED",
+                            "id": "30000000001200350",
+                            "currency": "USDT",
+                            "direction": "IN",
+                            "businessType": "TRANSFER",
+                            "amount": "30",
+                            "balance": "30",
+                            "fee": "0",
+                            "tax": "0",
+                            "remark": "Funding Account",
+                            "ts": 1774241648267000000
+                        }
+                    }
+                ]
+            },
+            {
                 "description": "fetch contract ledger",
                 "method": "fetchLedger",
                 "input": [
@@ -1614,7 +1679,7 @@
                         "account": "CONTRACT",
                         "referenceId": null,
                         "referenceAccount": "CONTRACT",
-                        "type": null,
+                        "type": "transfer",
                         "currency": "USDT",
                         "amount": 10,
                         "before": null,
@@ -1641,7 +1706,7 @@
                         "account": "CONTRACT",
                         "referenceId": null,
                         "referenceAccount": "CONTRACT",
-                        "type": null,
+                        "type": "transfer",
                         "currency": "USDT",
                         "amount": 10,
                         "before": null,
