@@ -29,6 +29,7 @@ import testUrlencodeBase64 from './test.urlencodeBase64.js';
 import testAfterConstructor from './test.afterConstructor.js';
 import testHandleMethods from './test.handleMethods.js';
 import testRemoveRepeatedElementsFromArray from './test.removeRepeatedElementsFromArray.js';
+import testUrlencodeWithArrayRepeat from './test.urlencodeWithArrayRepeat.js';
 import testParsePrecision from './test.parsePrecision.js';
 import testStrip from './test.strip.js';
 import testArraysConcat from './test.arraysConcat.js';
@@ -67,6 +68,7 @@ async function baseTestsInit () {
     testFilterBy ();
     testHandleMethods ();
     testRemoveRepeatedElementsFromArray ();
+    testUrlencodeWithArrayRepeat ();
     testParsePrecision ();
     testPrecisionFromString ();
     testStrip ();
