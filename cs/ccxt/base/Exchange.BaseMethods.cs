@@ -994,10 +994,22 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " watchMyLiquidationsForSymbols() is not supported yet")) ;
     }
 
+    public virtual object getWsMethodNotSupportedMessage(object methodName)
+    {
+        object message = add(add(add(this.id, " "), methodName), "() is not supported yet");
+        object hasProExchangeClass = (isEqual(this.safeBool(this, "pro", false), true));
+        object isRestOnlyInstance = !isTrue(this.safeBool(this.has, "ws", false));
+        if (isTrue(isTrue(hasProExchangeClass) && isTrue(isRestOnlyInstance)))
+        {
+            message = add(message, add(add(". This instance is the REST exchange class. To use WebSocket methods, try the Pro/WS exchange class instead, for example: ccxt.pro.", this.id), "."));
+        }
+        return message;
+    }
+
     public async virtual Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " watchTrades() is not supported yet")) ;
+        throw new NotSupported ((string)this.getWsMethodNotSupportedMessage("watchTrades")) ;
     }
 
     public async virtual Task<object> unWatchOrders(object symbol = null, object parameters = null)
@@ -1015,7 +1027,7 @@ public partial class Exchange
     public async virtual Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " watchTradesForSymbols() is not supported yet")) ;
+        throw new NotSupported ((string)this.getWsMethodNotSupportedMessage("watchTradesForSymbols")) ;
     }
 
     public async virtual Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
@@ -1027,19 +1039,19 @@ public partial class Exchange
     public async virtual Task<object> watchMyTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " watchMyTradesForSymbols() is not supported yet")) ;
+        throw new NotSupported ((string)this.getWsMethodNotSupportedMessage("watchMyTradesForSymbols")) ;
     }
 
     public async virtual Task<object> watchOrdersForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " watchOrdersForSymbols() is not supported yet")) ;
+        throw new NotSupported ((string)this.getWsMethodNotSupportedMessage("watchOrdersForSymbols")) ;
     }
 
     public async virtual Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " watchOHLCVForSymbols() is not supported yet")) ;
+        throw new NotSupported ((string)this.getWsMethodNotSupportedMessage("watchOHLCVForSymbols")) ;
     }
 
     public async virtual Task<object> unWatchOHLCVForSymbols(object symbolsAndTimeframes, object parameters = null)
@@ -1051,7 +1063,7 @@ public partial class Exchange
     public async virtual Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " watchOrderBookForSymbols() is not supported yet")) ;
+        throw new NotSupported ((string)this.getWsMethodNotSupportedMessage("watchOrderBookForSymbols")) ;
     }
 
     public async virtual Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
@@ -1145,7 +1157,7 @@ public partial class Exchange
     public async virtual Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " watchOrderBook() is not supported yet")) ;
+        throw new NotSupported ((string)this.getWsMethodNotSupportedMessage("watchOrderBook")) ;
     }
 
     public async virtual Task<object> unWatchOrderBook(object symbol, object parameters = null)
@@ -3234,7 +3246,7 @@ public partial class Exchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " watchOHLCV() is not supported yet")) ;
+        throw new NotSupported ((string)this.getWsMethodNotSupportedMessage("watchOHLCV")) ;
     }
 
     public virtual object convertTradingViewToOHLCV(object ohlcvs, object timestamp = null, object open = null, object high = null, object low = null, object close = null, object volume = null, object ms = null)
@@ -4635,7 +4647,7 @@ public partial class Exchange
     public async virtual Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " watchBalance() is not supported yet")) ;
+        throw new NotSupported ((string)this.getWsMethodNotSupportedMessage("watchBalance")) ;
     }
 
     public async virtual Task<object> fetchPartialBalance(object part, object parameters = null)
@@ -5028,7 +5040,7 @@ public partial class Exchange
     public async virtual Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " watchTicker() is not supported yet")) ;
+        throw new NotSupported ((string)this.getWsMethodNotSupportedMessage("watchTicker")) ;
     }
 
     public async virtual Task<object> fetchTickers(object symbols = null, object parameters = null)
@@ -5883,7 +5895,7 @@ public partial class Exchange
     public async virtual Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " watchOrders() is not supported yet")) ;
+        throw new NotSupported ((string)this.getWsMethodNotSupportedMessage("watchOrders")) ;
     }
 
     public async virtual Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)

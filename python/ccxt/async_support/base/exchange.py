@@ -700,7 +700,7 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' watchMyLiquidationsForSymbols() is not supported yet')
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
-        raise NotSupported(self.id + ' watchTrades() is not supported yet')
+        raise NotSupported(self.get_ws_method_not_supported_message('watchTrades'))
 
     async def un_watch_orders(self, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' unWatchOrders() is not supported yet')
@@ -709,25 +709,25 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' unWatchTrades() is not supported yet')
 
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
-        raise NotSupported(self.id + ' watchTradesForSymbols() is not supported yet')
+        raise NotSupported(self.get_ws_method_not_supported_message('watchTradesForSymbols'))
 
     async def un_watch_trades_for_symbols(self, symbols: List[str], params={}):
         raise NotSupported(self.id + ' unWatchTradesForSymbols() is not supported yet')
 
     async def watch_my_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
-        raise NotSupported(self.id + ' watchMyTradesForSymbols() is not supported yet')
+        raise NotSupported(self.get_ws_method_not_supported_message('watchMyTradesForSymbols'))
 
     async def watch_orders_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
-        raise NotSupported(self.id + ' watchOrdersForSymbols() is not supported yet')
+        raise NotSupported(self.get_ws_method_not_supported_message('watchOrdersForSymbols'))
 
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
-        raise NotSupported(self.id + ' watchOHLCVForSymbols() is not supported yet')
+        raise NotSupported(self.get_ws_method_not_supported_message('watchOHLCVForSymbols'))
 
     async def un_watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], params={}):
         raise NotSupported(self.id + ' unWatchOHLCVForSymbols() is not supported yet')
 
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}):
-        raise NotSupported(self.id + ' watchOrderBookForSymbols() is not supported yet')
+        raise NotSupported(self.get_ws_method_not_supported_message('watchOrderBookForSymbols'))
 
     async def un_watch_order_book_for_symbols(self, symbols: List[str], params={}):
         raise NotSupported(self.id + ' unWatchOrderBookForSymbols() is not supported yet')
@@ -775,7 +775,7 @@ class Exchange(BaseExchange):
         return None
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
-        raise NotSupported(self.id + ' watchOrderBook() is not supported yet')
+        raise NotSupported(self.get_ws_method_not_supported_message('watchOrderBook'))
 
     async def un_watch_order_book(self, symbol: str, params={}):
         raise NotSupported(self.id + ' unWatchOrderBook() is not supported yet')
@@ -930,7 +930,7 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' fetchOHLCVWs() is not supported yet. Try using fetchOHLCV instead.' + message)
 
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
-        raise NotSupported(self.id + ' watchOHLCV() is not supported yet')
+        raise NotSupported(self.get_ws_method_not_supported_message('watchOHLCV'))
 
     async def fetch_web_endpoint(self, method, endpointMethod, returnAsJson, startRegex=None, endRegex=None):
         errorMessage = ''
@@ -1120,7 +1120,7 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' fetchBalanceWs() is not supported yet')
 
     async def watch_balance(self, params={}):
-        raise NotSupported(self.id + ' watchBalance() is not supported yet')
+        raise NotSupported(self.get_ws_method_not_supported_message('watchBalance'))
 
     async def fetch_partial_balance(self, part, params={}):
         balance = await self.fetch_balance(params)
@@ -1218,7 +1218,7 @@ class Exchange(BaseExchange):
             raise NotSupported(self.id + ' fetchTickerWs() is not supported yet')
 
     async def watch_ticker(self, symbol: str, params={}):
-        raise NotSupported(self.id + ' watchTicker() is not supported yet')
+        raise NotSupported(self.get_ws_method_not_supported_message('watchTicker'))
 
     async def fetch_tickers(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchTickers() is not supported yet')
@@ -1706,7 +1706,7 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' fetchOrderTrades() is not supported yet')
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        raise NotSupported(self.id + ' watchOrders() is not supported yet')
+        raise NotSupported(self.get_ws_method_not_supported_message('watchOrders'))
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         if self.has['fetchOrders']:
