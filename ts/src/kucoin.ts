@@ -6360,17 +6360,47 @@ export default class kucoin extends Exchange {
      * @description fetch the trading fees for a market
      * @see https://www.kucoin.com/docs-new/rest/account-info/trade-fee/get-actual-fee-spot-margin
      * @see https://www.kucoin.com/docs-new/rest/account-info/trade-fee/get-actual-fee-futures
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-actual-fee
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        let uta = false;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchTradingFee', 'uta', uta);
         const request: Dict = {};
         let response = undefined;
         let entry: Dict = undefined;
-        if (market['spot']) {
+        if (uta) {
+            if (market['spot']) {
+                request['tradeType'] = 'SPOT';
+            } else {
+                request['tradeType'] = 'FUTURES';
+            }
+            request['symbol'] = market['id'];
+            response = await this.utaPrivateGetUserFeeRate (this.extend (request, params));
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": {
+            //             "tradeType": "SPOT",
+            //             "list": [
+            //                 {
+            //                     "symbol": "ETH-USDT",
+            //                     "takerFeeRate": "0.001",
+            //                     "makerFeeRate": "0.001"
+            //                 }
+            //             ]
+            //         }
+            //     }
+            //
+            const data = this.safeDict (response, 'data', {});
+            const list = this.safeList (data, 'list', []);
+            entry = this.safeDict (list, 0);
+        } else if (market['spot']) {
             request['symbols'] = market['id'];
             response = await this.privateGetTradeFees (this.extend (request, params));
             //
