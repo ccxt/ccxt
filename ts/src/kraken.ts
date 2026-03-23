@@ -3566,8 +3566,8 @@ export default class kraken extends Exchange {
         let url = '/' + this.version + '/' + api + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {
-                // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
-                url += '?' + this.urlencodeNested (params);
+                // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
+                url += '?' + this.rawencode (params);
             }
         } else if (api === 'private') {
             const price = this.safeString (params, 'price');
@@ -3579,11 +3579,11 @@ export default class kraken extends Exchange {
             const isBatchOrder = (path === 'AddOrderBatch');
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
-            // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
             if (isCancelOrderBatch || isTriggerPercent || isBatchOrder) {
                 body = this.json (this.extend ({ 'nonce': nonce }, params));
             } else {
-                body = this.urlencodeNested (this.extend ({ 'nonce': nonce }, params));
+                // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
+                body = this.rawencode (this.extend ({ 'nonce': nonce }, params));
             }
             const auth = this.encode (nonce + body);
             const hash = this.hash (auth, sha256, 'binary');

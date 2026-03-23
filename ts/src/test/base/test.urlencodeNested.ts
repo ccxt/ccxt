@@ -18,7 +18,7 @@ function testUrlencodeNested () {
     };
     const expected2 = 'a=1&b[c]=2&d=1&d=2';
 
-    assert (exchange.urlencodeNested (dict2) === expected2, 'urlencodeNested: expected ' + expected2 + ' but got ' + exchange.urlencodeNested (dict2));
+    assert (exchange.rawencode (dict2) === expected2, 'rawencode: expected ' + expected2 + ' but got ' + exchange.rawencode (dict2));
 }
 
 export default testUrlencodeNested;
