@@ -7457,6 +7457,26 @@ export default class kucoin extends Exchange {
             // 'Redemption of Voting': 'Redemption of Voting', // Redemption of Voting on Pool-X
             // 'Voting': 'Voting', // Voting on Pool-X
             // 'Convert to KCS': 'Convert to KCS', // Convert to KCS
+            'RealisedPNL': 'trade',
+            'TransferIn': 'transfer',
+            'TransferOut': 'transfer',
+            'TRADE_EXCHANGE': 'trade',
+            'TRANSFER': 'transfer',
+            'SUB_TRANSFER': 'transfer',
+            'RETURNED_FEES': 'fee',
+            'DEDUCTION_FEES': 'fee',
+            'OTHER': 'other',
+            'SUB_TO_SUB_TRANSFER': 'transfer',
+            'SPOT_EXCHANGE': 'trade',
+            'SPOT_EXCHANGE_REBATE': 'rebate',
+            'FUTURES_EXCHANGE_OPEN': 'trade',
+            'FUTURES_EXCHANGE_CLOSE': 'trade',
+            'FUTURES_EXCHANGE_REBATE': 'rebate',
+            'FUNDING_FEE': 'fee',
+            'LIABILITY_INTEREST': 'fee',
+            'KCS_DEDUCTION_FEES': 'fee',
+            'KCS_RETURNED_FEES': 'fee',
+            'AUTO_EXCHANGE_USER': 'trade',
         };
         return this.safeString (types, type, type);
     }
@@ -7467,6 +7487,8 @@ export default class kucoin extends Exchange {
             'out': 'out',
             'TransferIn': 'in',
             'TransferOut': 'out',
+            'IN': 'in',
+            'OUT': 'out',
         };
         return this.safeString (directions, direction, direction);
     }
@@ -7507,14 +7529,28 @@ export default class kucoin extends Exchange {
         //         "currency": "USDT"
         //     }
         //
+        // ledger entry from UTA API
+        //     {
+        //         "accountType": "UNIFIED",
+        //         "id": "30000000001200350",
+        //         "currency": "USDT",
+        //         "direction": "IN",
+        //         "businessType": "TRANSFER",
+        //         "amount": "30",
+        //         "balance": "30",
+        //         "fee": "0",
+        //         "tax": "0",
+        //         "remark": "Funding Account",
+        //         "ts": 1774241648267000000
+        //     }
+        //
         const id = this.safeString (item, 'id');
         const currencyId = this.safeString (item, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         currency = this.safeCurrency (currencyId, currency);
         const amount = this.safeString (item, 'amount');
-        const balanceAfter = undefined;
-        // const balanceAfter = this.safeNumber (item, 'balance'); only returns zero string
-        const bizType = this.safeString (item, 'bizType');
+        const balanceAfter = this.safeNumberOmitZero (item, 'balance');
+        const bizType = this.safeStringN (item, [ 'bizType', 'businessType', 'type' ]);
         const type = this.parseLedgerEntryType (bizType);
         const direction = this.safeString2 (item, 'direction', 'type');
         let account = this.safeString (item, 'accountType'); // MAIN, TRADE, MARGIN, or CONTRACT
@@ -7523,6 +7559,8 @@ export default class kucoin extends Exchange {
             timestamp = this.safeInteger (item, 'time');
             if (timestamp !== undefined) {
                 account = 'CONTRACT'; // contract ledger entries do not have an accountType field, so we set it to CONTRACT if the time field is present
+            } else {
+                timestamp = this.safeIntegerProduct (item, 'ts', 0.000001); // for UTA API
             }
         }
         const datetime = this.iso8601 (timestamp);
@@ -7591,6 +7629,7 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-tradehf
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-marginhf
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-futures
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-account-ledger
      * @param {string} [code] unified currency code, default is undefined
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -7598,18 +7637,47 @@ export default class kucoin extends Exchange {
      * @param {object} [params.type] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.hf] default false, when true will fetch ledger entries for the high frequency trading account
      * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {boolean} [params.uta] default false, when true will fetch ledger entries for the unified trading account (UTA) instead of the regular accounts endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
+        let uta = false;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'uta');
         let hf = undefined;
         [ hf, params ] = this.handleHfAndParams (params);
+        let requestedType = undefined;
+        [ requestedType, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLedger', params);
+        if (uta && (requestedType === 'margin')) {
+            marginMode = (marginMode === undefined) ? 'cross' : marginMode; // default to cross margin for UTA if margin is requested but marginMode is not specified
+            requestedType = marginMode;
+        }
+        let accountsByType = this.safeDict (this.options, 'accountsByType');
+        if (uta) {
+            accountsByType = this.safeDict (this.options, 'utaAccountsByType');
+        }
+        let type = undefined;
+        type = this.safeString (accountsByType, requestedType, requestedType);
+        let maxLimit = 500; // for spot non-uta and margin
+        if (hf) {
+            maxLimit = 200;
+        } else if (type === 'contract') {
+            maxLimit = 50;
+        } else if (uta) {
+            if ((type === 'UNIFIED') || (type === 'SPOT')) {
+                maxLimit = 200;
+            } else if (type === 'FUTURES') {
+                maxLimit = 100;
+            }
+        }
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params) as LedgerEntry[];
+            return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params, maxLimit) as LedgerEntry[];
         }
         let request: Dict = {
             // 'currency': currency['id'], // can choose up to 10, if not provided returns for all currencies by default
@@ -7628,14 +7696,20 @@ export default class kucoin extends Exchange {
             request['currency'] = currency['id'];
         }
         [ request, params ] = this.handleUntilOption ('endAt', request, params);
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLedger', params);
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
-        const accountsByType = this.safeDict (this.options, 'accountsByType');
-        type = this.safeString (accountsByType, type, type);
+        if (limit !== undefined) {
+            if (type === 'contract') {
+                request['maxCount'] = limit;
+            } else if (hf) {
+                request['limit'] = limit;
+            } else {
+                request['pageSize'] = limit;
+            }
+        }
         let response = undefined;
-        if (hf) {
+        if (uta) {
+            request['accountType'] = type;
+            response = await this.utaPrivateGetAccountLedger (this.extend (request, params));
+        } else if (hf) {
             if (marginMode !== undefined) {
                 response = await this.privateGetHfMarginAccountLedgers (this.extend (request, params));
             } else {
