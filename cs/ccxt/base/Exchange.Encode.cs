@@ -303,33 +303,40 @@ public partial class Exchange
 
     public string urlencodeNested(object paramaters)
     {
-        // stub check this out
-        var queryString = System.Web.HttpUtility.ParseQueryString(string.Empty);
-        var keys = new List<string>(((dict)paramaters).Keys);
-        foreach (string key in keys)
-        {
-            var value = ((dict)paramaters)[key];
-            if (value != null && value.GetType() == typeof(dict))
-            {
-                var keys2 = new List<string>(((dict)value).Keys);
-                foreach (string key2 in keys2)
-                {
-                    var value2 = ((dict)value)[key2];
-                    var finalValue = value2.ToString();
-                    if (value2.GetType() == typeof(bool))
-                    {
-                        finalValue = finalValue.ToLower(); // c# uses "True" and "False" instead of "true" and "false" $:(
+        var outList = new List<string>();
+        urlencodeNestedRecursive(string.Empty, paramaters, outList);
+        return string.Join("&", outList);
+    }
 
-                    }
-                    queryString.Add(key + "[" + key2 + "]", finalValue);
-                }
-            }
-            else
+    private void urlencodeNestedRecursive(string prefix, object value, List<string> outList)
+    {
+        if (value != null && value.GetType() == typeof(dict))
+        {
+            foreach (var key in ((dict)value).Keys)
             {
-                queryString.Add(key, value.ToString());
+                var val = ((dict)value)[key];
+                var nextPrefix = string.IsNullOrEmpty(prefix) ? System.Web.HttpUtility.UrlEncode(key) : prefix + "[" + System.Web.HttpUtility.UrlEncode(key) + "]";
+                urlencodeNestedRecursive(nextPrefix, val, outList);
             }
         }
-        return queryString.ToString();
+        else if (value is IList<object> listValue)
+        {
+            for (int i = 0; i < listValue.Count; i++)
+            {
+                var val = listValue[i];
+                var nextPrefix = string.IsNullOrEmpty(prefix) ? i.ToString() : prefix + "[" + i + "]";
+                urlencodeNestedRecursive(nextPrefix, val, outList);
+            }
+        }
+        else if (value != null)
+        {
+            var valStr = value.ToString();
+            if (value is bool)
+            {
+                valStr = valStr.ToLower();
+            }
+            outList.Add(prefix + "=" + System.Web.HttpUtility.UrlEncode(valStr));
+        }
     }
 
     public string urlencode(object parameters2, bool sort = false)
