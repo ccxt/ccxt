@@ -6369,8 +6369,8 @@ export default class kucoin extends Exchange {
     async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let uta = false;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchTradingFee', 'uta', uta);
+        let uta = undefined;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchTradingFee', 'uta', false);
         const request: Dict = {};
         let response = undefined;
         let entry: Dict = undefined;
@@ -6398,8 +6398,8 @@ export default class kucoin extends Exchange {
             //     }
             //
             const data = this.safeDict (response, 'data', {});
-            const list = this.safeList (data, 'list', []);
-            entry = this.safeDict (list, 0);
+            const dataList = this.safeList (data, 'list', []);
+            entry = this.safeDict (dataList, 0);
         } else if (market['spot']) {
             request['symbols'] = market['id'];
             response = await this.privateGetTradeFees (this.extend (request, params));
