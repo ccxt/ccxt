@@ -1936,6 +1936,17 @@
         ],
         "fetchAccounts": [
             {
+                "description": "fetch accounts with uta",
+                "method": "fetchAccounts",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/account/overview",
+                "input": [
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "fetch accounts",
                 "method": "fetchAccounts",
                 "url": "https://api.kucoin.com/api/v1/accounts",
