@@ -7948,12 +7948,14 @@ export default class kucoin extends Exchange {
         // Cross
         //
         //     {
-        //         "currency": "1INCH",
-        //         "total": "0",
-        //         "available": "0",
+        //         "currency": "DOGE",
+        //         "total": "119.99995308",
+        //         "available": "119.99995308",
         //         "hold": "0",
-        //         "liability": "0",
-        //         "maxBorrowSize": "0",
+        //         "liability": "10.00004692",
+        //         "liabilityPrincipal": "10",
+        //         "liabilityInterest": "0.00004692",
+        //         "maxBorrowSize": "1140",
         //         "borrowEnabled": true,
         //         "transferInEnabled": true
         //     }
@@ -7961,30 +7963,32 @@ export default class kucoin extends Exchange {
         // Isolated
         //
         //     {
-        //         "symbol": "MANA-USDT",
-        //         "debtRatio": "0",
-        //         "status": "BORROW",
+        //         "symbol": "DOGE-USDT",
+        //         "status": "EFFECTIVE",
+        //         "debtRatio": "0.0822",
         //         "baseAsset": {
-        //             "currency": "MANA",
+        //             "currency": "DOGE",
         //             "borrowEnabled": true,
-        //             "repayEnabled": true,
-        //             "transferEnabled": true,
-        //             "borrowed": "0",
-        //             "totalAsset": "0",
-        //             "available": "0",
+        //             "transferInEnabled": true,
+        //             "liability": "10.00009385",
+        //             "liabilityPrincipal": "10.00004692",
+        //             "liabilityInterest": "0.00004693",
+        //             "total": "10",
+        //             "available": "10",
         //             "hold": "0",
-        //             "maxBorrowSize": "1000"
+        //             "maxBorrowSize": "990"
         //         },
         //         "quoteAsset": {
         //             "currency": "USDT",
         //             "borrowEnabled": true,
-        //             "repayEnabled": true,
-        //             "transferEnabled": true,
-        //             "borrowed": "0",
-        //             "totalAsset": "0",
-        //             "available": "0",
+        //             "transferInEnabled": true,
+        //             "liability": "0",
+        //             "liabilityPrincipal": "0",
+        //             "liabilityInterest": "0",
+        //             "total": "10",
+        //             "available": "10",
         //             "hold": "0",
-        //             "maxBorrowSize": "50000"
+        //             "maxBorrowSize": "89"
         //         }
         //     }
         //
@@ -7992,18 +7996,17 @@ export default class kucoin extends Exchange {
         const marginMode = (marketId === undefined) ? 'cross' : 'isolated';
         market = this.safeMarket (marketId, market);
         const symbol = this.safeString (market, 'symbol');
-        const timestamp = this.safeInteger (info, 'createdAt');
         const isolatedBase = this.safeDict (info, 'baseAsset', {});
         let amountBorrowed = undefined;
         let interest = undefined;
         let currencyId = undefined;
         if (marginMode === 'isolated') {
-            amountBorrowed = this.safeNumber (isolatedBase, 'liability');
-            interest = this.safeNumber (isolatedBase, 'interest');
+            amountBorrowed = this.safeNumber (isolatedBase, 'liabilityPrincipal');
+            interest = this.safeNumber (isolatedBase, 'liabilityInterest');
             currencyId = this.safeString (isolatedBase, 'currency');
         } else {
-            amountBorrowed = this.safeNumber (info, 'liability');
-            interest = this.safeNumber (info, 'accruedInterest');
+            amountBorrowed = this.safeNumber (info, 'liabilityPrincipal');
+            interest = this.safeNumber (info, 'liabilityInterest');
             currencyId = this.safeString (info, 'currency');
         }
         return {
@@ -8014,8 +8017,8 @@ export default class kucoin extends Exchange {
             'interestRate': this.safeNumber (info, 'dailyIntRate'),
             'amountBorrowed': amountBorrowed,
             'marginMode': marginMode,
-            'timestamp': timestamp,  // create time
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         } as BorrowInterest;
     }
 
