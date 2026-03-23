@@ -1192,9 +1192,69 @@
         ],
         "fetchBalance": [
             {
-                "description": "fetch uta balance",
+                "description": "fetch funding balance with uta endpoint",
+                "method": "fetchBalance",
+                "url": "https://api.kucoin.com/api/ua/v1/account/balance?accountType=FUNDING",
+                "input": [
+                    {
+                        "uta": true,
+                        "type": "funding"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch isolated balance with uta endpoint",
+                "method": "fetchBalance",
+                "url": "https://api.kucoin.com/api/ua/v1/account/balance?accountType=ISOLATED",
+                "input": [
+                    {
+                        "uta": true,
+                        "type": "isolated"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch swap balance with uta endpoint",
+                "method": "fetchBalance",
+                "url": "https://api.kucoin.com/api/ua/v1/account/balance?accountType=FUTURES",
+                "input": [
+                    {
+                        "uta": true,
+                        "type": "swap"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch cross balance with uta endpoint",
+                "method": "fetchBalance",
+                "url": "https://api.kucoin.com/api/ua/v1/account/balance?accountType=CROSS",
+                "input": [
+                    {
+                        "uta": true,
+                        "type": "cross"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch uta balance with uta endpoint",
                 "method": "fetchBalance",
                 "url": "https://api.kucoin.com/api/ua/v1/unified/account/balance",
+                "input": [
+                    {
+                        "uta": true,
+                        "type": "uta"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch spot balance with uta endpoint",
+                "method": "fetchBalance",
+                "url": "https://api.kucoin.com/api/ua/v1/account/balance?accountType=SPOT",
                 "input": [
                     {
                         "uta": true
