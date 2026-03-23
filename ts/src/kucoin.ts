@@ -2328,41 +2328,67 @@ export default class kucoin extends Exchange {
      * @description fetch all the accounts associated with a profile
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-list-spot
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     async fetchAccounts (params = {}): Promise<Account[]> {
-        const response = await this.privateGetAccounts (params);
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": [
-        //             {
-        //                 "balance": "0.00009788",
-        //                 "available": "0.00009788",
-        //                 "holds": "0",
-        //                 "currency": "BTC",
-        //                 "id": "5c6a4fd399a1d81c4f9cc4d0",
-        //                 "type": "trade"
-        //             },
-        //             {
-        //                 "balance": "0.00000001",
-        //                 "available": "0.00000001",
-        //                 "holds": "0",
-        //                 "currency": "ETH",
-        //                 "id": "5c6a49ec99a1d819392e8e9f",
-        //                 "type": "trade"
-        //             }
-        //         ]
-        //     }
-        //
-        const data = this.safeList (response, 'data', []);
+        let uta = false;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchAccounts', 'uta', uta);
+        let response = undefined;
+        let data = [];
+        if (uta) {
+            response = await this.utaPrivateGetAccountModeAccountOverview (this.extend (params, { 'accountMode': 'unified' }));
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": {
+            //             "accountType": "UNIFIED",
+            //             "riskRatio": "0.0000000000",
+            //             "equity": "30.0000000000",
+            //             "liability": "0.0000000000",
+            //             "availableMargin": "30.0000000000",
+            //             "adjustedEquity": "30.0000000000",
+            //             "im": "0.0000000000",
+            //             "mm": "0.0000000000"
+            //         }
+            //     }
+            //
+            const dataDict = this.safeDict (response, 'data', {});
+            data = [ dataDict ];
+        } else {
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": [
+            //             {
+            //                 "balance": "0.00009788",
+            //                 "available": "0.00009788",
+            //                 "holds": "0",
+            //                 "currency": "BTC",
+            //                 "id": "5c6a4fd399a1d81c4f9cc4d0",
+            //                 "type": "trade"
+            //             },
+            //             {
+            //                 "balance": "0.00000001",
+            //                 "available": "0.00000001",
+            //                 "holds": "0",
+            //                 "currency": "ETH",
+            //                 "id": "5c6a49ec99a1d819392e8e9f",
+            //                 "type": "trade"
+            //             }
+            //         ]
+            //     }
+            //
+            response = await this.privateGetAccounts (params);
+            data = this.safeList (response, 'data', []);
+        }
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const account = data[i];
             const accountId = this.safeString (account, 'id');
             const currencyId = this.safeString (account, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            const type = this.safeString (account, 'type');  // main or trade
+            const type = this.safeStringLower2 (account, 'type', 'accountType');  // main or trade or unified
             result.push ({
                 'id': accountId,
                 'type': type,
@@ -3439,7 +3465,7 @@ export default class kucoin extends Exchange {
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchDepositAddress', 'uta', false);
         if (accountType === 'contract') {
             return await this.fetchContractDepositAddress (code, params);
-        } else if (uta || (accountType === 'uta')) {
+        } else if (uta || (accountType === 'uta') || (accountType === 'unified')) {
             return await super.fetchDepositAddress (code, this.extend (params, { 'uta': true }));
         }
         const currency = this.currency (code);
