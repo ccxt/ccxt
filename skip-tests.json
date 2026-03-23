@@ -468,6 +468,8 @@
         }
     },
     "bitrue": {
+        "skip": "temporary 2 day skip to allow BTC deposit/withdraw to return back",
+        "until": "2026-03-25",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies",
