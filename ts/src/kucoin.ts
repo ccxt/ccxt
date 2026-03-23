@@ -7102,7 +7102,9 @@ export default class kucoin extends Exchange {
         [ requestedType, params ] = this.handleMarketTypeAndParams ('fetchUtaBalance', undefined, params);
         if (requestedType === 'margin') {
             // assume cross margin if margin is specified but marginMode is not specified
-            [ requestedType, params ] = this.handleMarginModeAndParams ('fetchUtaBalance', params, 'cross');
+            let marginMode = 'cross';
+            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchUtaBalance', params, marginMode);
+            requestedType = marginMode;
         }
         const utaAccountsByType = this.safeDict (this.options, 'utaAccountsByType', {});
         let type = undefined;
