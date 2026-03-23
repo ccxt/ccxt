@@ -125,8 +125,8 @@ public class Tests
         }
       } catch (Exception ex)
       {
-        testMainClass.dump("[TEST_FAILURE]"); // tell the wrapper this is failure
-        Helper.Red(ex.ToString());
+        testMainClass.dump("[TEST_FAILURE] " + ex.ToString()); // tell the wrapper this is failure
+        testMainClass.exitScript(1);
       }
     }
 
