@@ -532,6 +532,49 @@
         ],
         "fetchTradingFee": [
             {
+                "description": "fetch spot trading fee with uta",
+                "method": "fetchTradingFee",
+                "input": [
+                    "ETH/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "tradeType": "FUTURES",
+                        "list": [
+                            {
+                                "symbol": "ETHUSDTM",
+                                "takerFeeRate": "0.0006",
+                                "makerFeeRate": "0.0002"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "200000",
+                        "data": {
+                            "tradeType": "FUTURES",
+                            "list": [
+                                {
+                                    "symbol": "ETHUSDTM",
+                                    "takerFeeRate": "0.0006",
+                                    "makerFeeRate": "0.0002"
+                                }
+                            ]
+                        }
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "maker": 0.0002,
+                    "taker": 0.0006,
+                    "percentage": true,
+                    "tierBased": true
+                }
+            },
+            {
                 "description": "fetch trading fee for spot market",
                 "method": "fetchTradingFee",
                 "input": [
