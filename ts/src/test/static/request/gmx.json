@@ -1,0 +1,53 @@
+{
+    "exchange": "gmx",
+    "skipKeys": [
+        "id"
+    ],
+    "outputType": "json",
+    "options": {
+        "bridgeUrl": "https://bridge.example.com/"
+    },
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets bridge request",
+                "method": "fetchMarkets",
+                "url": "https://bridge.example.com/call",
+                "input": [],
+                "output": {
+                    "id": "dynamic",
+                    "method": "fetch_markets",
+                    "args": [],
+                    "kwargs": {
+                        "params": {}
+                    }
+                }
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker bridge request",
+                "method": "fetchTicker",
+                "url": "https://bridge.example.com/call",
+                "input": [
+                    "BTC/USD:USDC",
+                    {
+                        "testMode": true
+                    }
+                ],
+                "output": {
+                    "id": "dynamic",
+                    "method": "fetch_ticker",
+                    "args": [
+                        "BTC/USD:USDC"
+                    ],
+                    "kwargs": {
+                        "params": {
+                            "testMode": true
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

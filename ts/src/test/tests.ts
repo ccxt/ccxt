@@ -1662,6 +1662,7 @@ class testMainClass {
             this.testOxfun (),
             this.testXT (),
             this.testParadex (),
+            this.testGmx (),
             this.testHashkey (),
             this.testCoincatch (),
             this.testCryptomus (),
@@ -2189,6 +2190,47 @@ class testMainClass {
         assert (reqHeaders['PARADEX-PARTNER'] === id, 'paradex - id: ' + id + ' not in headers');
         if (!isSync ()) {
             await close (exchange);
+        }
+        return true;
+    }
+
+    async testGmx () {
+        const exchange = this.initOfflineExchange ('gmx') as any;
+        exchange.options['bridgeUrl'] = 'https://bridge.example.com/';
+        exchange.options['authToken'] = 'option-token';
+        exchange.bridgeUrl = 'https://bridge-instance.example.com///';
+        exchange.token = 'instance-token';
+        let requestHeaders = undefined;
+        let requestBody = undefined;
+        try {
+            await exchange.fetchTicker ('BTC/USD:USDC', { 'testMode': true });
+        } catch (e) {
+            requestHeaders = exchange.last_request_headers;
+            requestBody = jsonParse (exchange.last_request_body);
+        }
+        assert (exchange.last_request_url === 'https://bridge-instance.example.com/call', 'gmx - bridgeUrl instance override was not applied');
+        assert (requestHeaders['Authorization'] === 'Bearer instance-token', 'gmx - token instance override was not applied');
+        assert (requestBody['method'] === 'fetch_ticker', 'gmx - method name was not converted to snake_case');
+        assert (requestBody['args'][0] === 'BTC/USD:USDC', 'gmx - symbol argument was not forwarded');
+        assert (requestBody['kwargs']['params']['testMode'] === true, 'gmx - params were not forwarded');
+        const authError = exchange.bridgeErrorToException ({ 'type': 'AuthenticationError', 'message': 'denied' });
+        assert (authError instanceof AuthenticationError, 'gmx - bridge errors were not mapped to CCXT exceptions');
+
+        const optionsOnlyExchange = this.initOfflineExchange ('gmx') as any;
+        optionsOnlyExchange.options['bridgeUrl'] = 'https://bridge-options.example.com////';
+        optionsOnlyExchange.token = undefined;
+        optionsOnlyExchange.authToken = undefined;
+        let optionsOnlyHeaders = undefined;
+        try {
+            await optionsOnlyExchange.fetchMarkets ();
+        } catch (e) {
+            optionsOnlyHeaders = optionsOnlyExchange.last_request_headers;
+        }
+        assert (optionsOnlyExchange.last_request_url === 'https://bridge-options.example.com/call', 'gmx - options bridgeUrl was not normalised');
+        assert (optionsOnlyHeaders['Authorization'] === undefined, 'gmx - auth header should be omitted when token is undefined');
+        if (!isSync ()) {
+            await close (exchange);
+            await close (optionsOnlyExchange);
         }
         return true;
     }
