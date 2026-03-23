@@ -12,6 +12,20 @@
     "options": {
     },
     "methods": {
+        "fetchDepositAddress": [
+            {
+                "description": "fetch deposit address with uta",
+                "method": "fetchDepositAddress",
+                "url": "https://api.kucoin.com/api/ua/v1/asset/deposit/address?currency=USDT",
+                "input": [
+                    "USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            }
+        ],
         "fetchOpenInterestHistory": [
             {
                 "description": "fetch open interest history",
