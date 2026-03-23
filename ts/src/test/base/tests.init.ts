@@ -37,6 +37,7 @@ import testSleep from './test.sleep.js';
 import testEthMethods from './test.ethMethods.js';
 import testKeysort from './test.keysort.js';
 import testImplodeParams from './test.implodeParams.js';
+import testUrlencodeNested from './test.urlencodeNested.js';
 import testCapitalize from './test.capitalize.js';
 import testConstants from './test.constants.js';
 import testIsJsonEncodedObject from './test.isJsonEncodedObject.js';
@@ -78,6 +79,7 @@ async function baseTestsInit () {
     testKeysort ();
     testImplodeParams ();
     testUnique ();
+    testUrlencodeNested ();
     await testSleep ();
     testIo ();
     testIsJsonEncodedObject ();
