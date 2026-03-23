@@ -6633,7 +6633,8 @@ class gate extends Exchange {
             $request['type'] = 'repay';
             $response = $this->privateUnifiedPostLoans ($this->extend($request, $params));
         } else {
-            $response = $this->privateMarginPostCrossRepayments ($this->extend($request, $params)); // todo => check - not present in the docs
+            // deprecated and not present in the exchange's docs but still works
+            $response = $this->privateMarginPostCrossRepayments ($this->extend($request, $params));
             $response = $this->safe_dict($response, 0);
             //
             //     array(
@@ -6711,7 +6712,7 @@ class gate extends Exchange {
          * @param {float} $amount the $amount to borrow
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->rate] '0.0002' or '0.002' extra parameter required for isolated margin
-         * @param {boolean} [$params->unifiedAccount] set to true for borrowing in the unified account
+         * @param {boolean} [$params->unifiedAccount] default true (set to false to use deprecated privateMarginPostCrossLoans method)
          * @return {array} a ~@link https://docs.ccxt.com/?id=margin-loan-structure margin loan structure~
          */
         $this->load_markets();
@@ -6728,7 +6729,9 @@ class gate extends Exchange {
             $request['type'] = 'borrow';
             $response = $this->privateUnifiedPostLoans ($this->extend($request, $params));
         } else {
-            $response = $this->privateMarginPostCrossLoans ($this->extend($request, $params)); // todo => check - not present in the docs
+            // deprecated and not present in the exchange's docs
+            // returns array("label":"REQUEST_FORBIDDEN","message":"Request is forbidden")
+            $response = $this->privateMarginPostCrossLoans ($this->extend($request, $params));
             //
             //     {
             //         "id" => "17",
@@ -6849,7 +6852,8 @@ class gate extends Exchange {
             }
             $response = $this->privateMarginGetUniInterestRecords ($this->extend($request, $params));
         } elseif ($marginMode === 'cross') {
-            $response = $this->privateMarginGetCrossInterestRecords ($this->extend($request, $params)); // todo => check - not present in the docs
+            // deprecated and not present in the exchange's docs but still works
+            $response = $this->privateMarginGetCrossInterestRecords ($this->extend($request, $params));
         }
         $interest = $this->parse_borrow_interests($response, $market);
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
@@ -7174,7 +7178,6 @@ class gate extends Exchange {
         if ($type !== 'option') {
             throw new NotSupported($this->id . ' fetchSettlementHistory() supports option markets only');
         }
-        // todo => add futures support
         $marketId = $market['id'];
         $optionParts = explode('-', $marketId);
         $request = array(
@@ -7208,7 +7211,8 @@ class gate extends Exchange {
         /**
          * fetches historical settlement records of the user
          *
-         * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-settlement-records
+         * @see https://www.gate.com/docs/developers/apiv4/en/#$query-personal-settlement-records
+         * @see https://www.gate.com/docs/developers/apiv4/en/#$query-settlement-records
          *
          * @param {string} $symbol unified $market $symbol of the settlement history
          * @param {int} [$since] timestamp in ms
@@ -7216,49 +7220,77 @@ class gate extends Exchange {
          * @param {array} [$params] exchange specific $params
          * @return {array[]} a list of [settlement history objects]
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMySettlementHistory() requires a $symbol argument');
-        }
         $this->load_markets();
-        $market = $this->market($symbol);
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+        }
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchMySettlementHistory', $market, $params);
-        if ($type !== 'option') {
-            throw new NotSupported($this->id . ' fetchMySettlementHistory() supports option markets only');
+        $isOption = $type === 'option';
+        $isFuture = $type === 'future';
+        if (!$isOption && !$isFuture) {
+            throw new NotSupported($this->id . ' fetchMySettlementHistory() supports option and future markets only');
         }
-        $marketId = $market['id'];
-        $optionParts = explode('-', $marketId);
-        $request = array(
-            'underlying' => $this->safe_string($optionParts, 0),
-            'contract' => $marketId,
-        );
-        if ($since !== null) {
-            $request['from'] = $since;
-        }
+        list($request, $query) = $this->prepare_request($market, $type, $params);
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateOptionsGetMySettlements ($this->extend($request, $params));
-        //
-        //     array(
-        //         {
-        //             "size" => -1,
-        //             "settle_profit" => "0",
-        //             "contract" => "BTC_USDT-20220624-26000-C",
-        //             "strike_price" => "26000",
-        //             "time" => 1656057600,
-        //             "settle_price" => "20917.461281337048",
-        //             "underlying" => "BTC_USDT",
-        //             "realised_pnl" => "-0.00116042",
-        //             "fee" => "0"
-        //         }
-        //     )
-        //
+        $response = null;
+        if ($isFuture) {
+            //
+            //     array(
+            //         {
+            //             "time" => 1548654951,
+            //             "contract" => "BTC_USDT",
+            //             "size" => 600,
+            //             "leverage" => "25",
+            //             "margin" => "0.006705256878",
+            //             "entry_price" => "3536.123",
+            //             "settle_price" => "3421.54",
+            //             "profit" => "-6.87498",
+            //             "fee" => "0.03079386"
+            //         }
+            //     )
+            //
+            $response = $this->privateDeliveryGetSettleSettlements ($this->extend($request, $query));
+        } else {
+            if ($since !== null) {
+                $request['from'] = $since;
+            }
+            if ($market === null) {
+                $underlying = $this->safe_string($params, 'underlying');
+                if ($underlying === null) {
+                    throw new ArgumentsRequired($this->id . ' fetchMySettlementHistory() requires a $symbol argument or an $underlying parameter in params');
+                }
+            } else {
+                $marketId = $market['id'];
+                $optionParts = explode('-', $marketId);
+                $request['underlying'] = $this->safe_string($optionParts, 0);
+            }
+            //
+            //     array(
+            //         {
+            //             "size" => -1,
+            //             "settle_profit" => "0",
+            //             "contract" => "BTC_USDT-20220624-26000-C",
+            //             "strike_price" => "26000",
+            //             "time" => 1656057600,
+            //             "settle_price" => "20917.461281337048",
+            //             "underlying" => "BTC_USDT",
+            //             "realised_pnl" => "-0.00116042",
+            //             "fee" => "0"
+            //         }
+            //     )
+            //
+            $response = $this->privateOptionsGetMySettlements ($this->extend($request, $params));
+        }
         $result = $this->safe_value($response, 'result', array());
         $data = $this->safe_value($result, 'list', array());
         $settlements = $this->parse_settlements($data, $market);
         $sorted = $this->sort_by($settlements, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
     public function parse_settlement($settlement, $market) {
@@ -7274,7 +7306,7 @@ class gate extends Exchange {
         //         "strike_price" => "25000"
         //     }
         //
-        // fetchMySettlementHistory
+        // fetchMySettlementHistory option
         //
         //     {
         //         "size" => -1,
@@ -7286,6 +7318,19 @@ class gate extends Exchange {
         //         "underlying" => "BTC_USDT",
         //         "realised_pnl" => "-0.00116042",
         //         "fee" => "0"
+        //     }
+        //
+        // fetchMySettlementHistory future
+        //     {
+        //         "time" => 1548654951,
+        //         "contract" => "BTC_USDT",
+        //         "size" => 600,
+        //         "leverage" => "25",
+        //         "margin" => "0.006705256878",
+        //         "entry_price" => "3536.123",
+        //         "settle_price" => "3421.54",
+        //         "profit" => "-6.87498",
+        //         "fee" => "0.03079386"
         //     }
         //
         $timestamp = $this->safe_timestamp($settlement, 'time');

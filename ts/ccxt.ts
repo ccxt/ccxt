@@ -47,7 +47,6 @@ const version = '4.5.44';
 //-----------------------------------------------------------------------------
 
 import aftermath from  './src/aftermath.js'
-import alp from  './src/alp.js'
 import alpaca from  './src/alpaca.js'
 import apex from  './src/apex.js'
 import arkham from  './src/arkham.js'
@@ -242,7 +241,6 @@ import xtPro from  './src/pro/xt.js'
 
 const exchanges = {
     'aftermath':              aftermath,
-    'alp':                    alp,
     'alpaca':                 alpaca,
     'apex':                   apex,
     'arkham':                 arkham,
@@ -580,7 +578,6 @@ export {
     CrossBorrowRates,
     LeverageTiers,
     aftermath,
-    alp,
     alpaca,
     apex,
     arkham,

@@ -46,10 +46,10 @@
 * [fetchPositions](#fetchpositions)
 * [fetchLeverageTiers](#fetchleveragetiers)
 * [fetchMarketLeverageTiers](#fetchmarketleveragetiers)
-* [repayMargin](#repaymargin)
+* [repayIsolatedMargin](#repayisolatedmargin)
 * [repayCrossMargin](#repaycrossmargin)
 * [borrowIsolatedMargin](#borrowisolatedmargin)
-* [borrowMargin](#borrowmargin)
+* [borrowCrossMargin](#borrowcrossmargin)
 * [fetchBorrowInterest](#fetchborrowinterest)
 * [reduceMargin](#reducemargin)
 * [addMargin](#addmargin)
@@ -1192,9 +1192,9 @@ gate.fetchMarketLeverageTiers (symbol[, params])
 ```
 
 
-<a name="repayMargin" id="repaymargin"></a>
+<a name="repayIsolatedMargin" id="repayisolatedmargin"></a>
 
-### repayMargin{docsify-ignore}
+### repayIsolatedMargin{docsify-ignore}
 repay borrowed margin and interest
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
@@ -1213,7 +1213,7 @@ repay borrowed margin and interest
 
 
 ```javascript
-gate.repayMargin (symbol, code, amount[, params])
+gate.repayIsolatedMargin (symbol, code, amount[, params])
 ```
 
 
@@ -1266,9 +1266,9 @@ gate.borrowIsolatedMargin (symbol, code, amount[, params])
 ```
 
 
-<a name="borrowMargin" id="borrowmargin"></a>
+<a name="borrowCrossMargin" id="borrowcrossmargin"></a>
 
-### borrowMargin{docsify-ignore}
+### borrowCrossMargin{docsify-ignore}
 create a loan to borrow margin
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
@@ -1282,11 +1282,11 @@ create a loan to borrow margin
 | amount | <code>float</code> | Yes | the amount to borrow |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.rate | <code>string</code> | No | '0.0002' or '0.002' extra parameter required for isolated margin |
-| params.unifiedAccount | <code>boolean</code> | No | set to true for borrowing in the unified account |
+| params.unifiedAccount | <code>boolean</code> | No | default true (set to false to use deprecated privateMarginPostCrossLoans method) |
 
 
 ```javascript
-gate.borrowMargin (code, amount[, params])
+gate.borrowCrossMargin (code, amount[, params])
 ```
 
 
@@ -1427,7 +1427,11 @@ fetches historical settlement records of the user
 **Kind**: instance method of [<code>gate</code>](#gate)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [settlement history objects]
 
-**See**: https://www.gate.com/docs/developers/apiv4/en/#query-personal-settlement-records  
+**See**
+
+- https://www.gate.com/docs/developers/apiv4/en/#query-personal-settlement-records
+- https://www.gate.com/docs/developers/apiv4/en/#query-settlement-records
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

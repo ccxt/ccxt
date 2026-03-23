@@ -34,6 +34,7 @@ public partial class BaseTest
             testFilterBy();
             testHandleMethods();
             testRemoveRepeatedElementsFromArray();
+            testUrlencodeWithArrayRepeat();
             testParsePrecision();
             testPrecisionFromString();
             testStrip();

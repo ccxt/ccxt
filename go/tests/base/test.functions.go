@@ -42,6 +42,7 @@ var FunctionsMap = map[string]interface{}{
 	"sum":                             TestSum,
 	"unique":                          TestUnique,
 	"urlencodeBase64":                 TestUrlencodeBase64,
+	"urlencodeWithArrayRepeat":        TestUrlencodeWithArrayRepeat,
 	"uuid":                            TestUuid,
 	"account":                         TestAccount,
 	"balance":                         TestBalance,
