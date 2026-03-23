@@ -1069,6 +1069,19 @@ export default class kucoin extends Exchange {
                     'uta': 'unified',
                     'unified': 'unified',
                 },
+                'utaAccountsByType': {
+                    'spot': 'SPOT',
+                    'margin': 'CROSS',
+                    'cross': 'CROSS',
+                    'isolated': 'ISOLATED',
+                    'main': 'FUNDING',
+                    'funding': 'FUNDING',
+                    'future': 'FUTURES',
+                    'swap': 'FUTURES',
+                    'contract': 'FUTURES',
+                    'uta': 'unified',
+                    'unified': 'unified',
+                },
                 'networks': {
                     'BRC20': 'btc',
                     'BTCNATIVESEGWIT': 'bech32',
@@ -6837,15 +6850,21 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-isolated-margin
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-futures
      * @see https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-uta
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-classic
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {object} [params.marginMode] 'cross' or 'isolated', margin type for fetching margin balance
      * @param {object} [params.type] extra parameters specific to the exchange API endpoint
      * @param {object} [params.hf] *default if false* if true, the result includes the balance of the high frequency account
-     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
+        let uta = false;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'uta', uta);
+        if (uta) {
+            return await this.fetchUtaBalance (params);
+        }
         let response = undefined;
         const request: Dict = {};
         const code = this.safeString (params, 'code');
@@ -6870,12 +6889,7 @@ export default class kucoin extends Exchange {
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
         const isolated = (marginMode === 'isolated') || (type === 'isolated');
         const cross = (marginMode === 'cross') || (type === 'margin');
-        let uta = false;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'uta', uta);
-        if (uta) {
-            request['accountMode'] = 'unified';
-            response = await this.utaPrivateGetAccountModeAccountBalance (this.extend (request, params));
-        } else if (isolated) {
+        if (isolated) {
             if (currency !== undefined) {
                 request['balanceCurrency'] = currency['id'];
             }
@@ -6966,58 +6980,13 @@ export default class kucoin extends Exchange {
         //        }
         //    }
         //
-        // uta
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //             "accountType": "UNIFIED",
-        //             "ts": 1764731696945,
-        //             "accounts": [
-        //                 {
-        //                     "currencies": [
-        //                         {
-        //                             "currency": "USDT",
-        //                             "equity": "97.9936711985",
-        //                             "hold": "0.0000000000",
-        //                             "balance": "97.9936711985",
-        //                             "available": "97.9936711985",
-        //                             "liability": "0.0000000000"
-        //                         },
-        //                         {
-        //                             "currency": "BTC",
-        //                             "equity": "0.0000216000",
-        //                             "hold": "0.0000000000",
-        //                             "balance": "0.0000216000",
-        //                             "available": "0.0000216000",
-        //                             "liability": "0.0000000000"
-        //                         }
-        //                     ]
-        //                 }
-        //             ]
-        //         }
-        //     }
-        //
         let data = undefined;
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
         };
-        if (uta) {
-            data = this.safeDict (response, 'data', {});
-            const timestamp = this.safeInteger (data, 'ts');
-            result['timestamp'] = timestamp;
-            result['datetime'] = this.iso8601 (timestamp);
-            const accounts = this.safeList (data, 'accounts', []);
-            for (let i = 0; i < accounts.length; i++) {
-                const account = this.safeDict (accounts, i);
-                const currencyId = this.safeString (account, 'currency');
-                const codeInner = this.safeCurrencyCode (currencyId);
-                if (codeInner !== code) {
-                    result[codeInner] = this.parseBalanceHelper (account);
-                }
-            }
-        } else if (isolated) {
+        if (isolated) {
             data = this.safeDict (response, 'data', {});
             const assets = this.safeValue (data, 'assets', data);
             for (let i = 0; i < assets.length; i++) {
@@ -7114,6 +7083,141 @@ export default class kucoin extends Exchange {
         account['total'] = this.safeString (data, 'accountEquity');
         result[currencyCode] = account;
         return this.safeBalance (result);
+    }
+
+    /**
+     * @method
+     * @name kucoin#fetchUtaBalance
+     * @description helper method for fetching balance with unified trading account (uta) endpoint
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-uta
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-classic
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot', 'unified', 'funding', 'cross', 'isolated' or 'swap' (default is 'spot')
+     * @param {string} [params.marginMode] 'cross' or 'isolated', margin type for fetching margin balance, only applicable if type is margin (default is cross)
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    async fetchUtaBalance (params = {}): Promise<Balances> {
+        await this.loadMarkets ();
+        let requestedType = undefined;
+        [ requestedType, params ] = this.handleMarketTypeAndParams ('fetchUtaBalance', undefined, params);
+        if (requestedType === 'margin') {
+            // assume cross margin if margin is specified but marginMode is not specified
+            [ requestedType, params ] = this.handleMarginModeAndParams ('fetchUtaBalance', params, 'cross');
+        }
+        const utaAccountsByType = this.safeDict (this.options, 'utaAccountsByType', {});
+        let type = undefined;
+        type = this.safeString (utaAccountsByType, requestedType, type);
+        const isIsolated = (type === 'ISOLATED');
+        const request: Dict = {};
+        let response = undefined;
+        if (type === 'unified') {
+            request['accountMode'] = type;
+            // uta
+            //     {
+            //         "code": "200000",
+            //         "data": {
+            //             "accountType": "UNIFIED",
+            //             "ts": 1764731696945,
+            //             "accounts": [
+            //                 {
+            //                     "currencies": [
+            //                         {
+            //                             "currency": "USDT",
+            //                             "equity": "97.9936711985",
+            //                             "hold": "0.0000000000",
+            //                             "balance": "97.9936711985",
+            //                             "available": "97.9936711985",
+            //                             "liability": "0.0000000000"
+            //                         },
+            //                         {
+            //                             "currency": "BTC",
+            //                             "equity": "0.0000216000",
+            //                             "hold": "0.0000000000",
+            //                             "balance": "0.0000216000",
+            //                             "available": "0.0000216000",
+            //                             "liability": "0.0000000000"
+            //                         }
+            //                     ]
+            //                 }
+            //             ]
+            //         }
+            //     }
+            //
+            response = await this.utaPrivateGetAccountModeAccountBalance (this.extend (request, params));
+        } else {
+            request['accountType'] = type;
+            //
+            // isolated
+            //     {
+            //         "code": "200000",
+            //         "data": {
+            //             "accountType": "ISOLATED",
+            //             "ts": 1774244660519,
+            //             "accounts": [
+            //                 {
+            //                     "accountSubtype": "LTC-USDT",
+            //                     "riskRatio": "0",
+            //                     "currencies": [
+            //                         {
+            //                             "currency": "LTC",
+            //                             "hold": "0",
+            //                             "available": "0",
+            //                             "liability": "0",
+            //                             "balance": "0",
+            //                             "equity": "0"},{
+            //                             "currency": "USDT",
+            //                             "hold": "0",
+            //                             "available": "6",
+            //                             "liability": "0",
+            //                             "balance": "6",
+            //                             "equity": "6"
+            //                         }
+            //                     ]
+            //                 }
+            //             ]
+            //         }
+            //     }
+            //
+            response = await this.utaPrivateGetAccountBalance (this.extend (request, params));
+        }
+        const data = this.safeDict (response, 'data', {});
+        const timestamp = this.safeInteger (data, 'ts');
+        const result: Dict = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        const accounts = this.safeList (data, 'accounts', []);
+        if (isIsolated) {
+            for (let i = 0; i < accounts.length; i++) {
+                const entry = accounts[i];
+                const marketId = this.safeString (entry, 'accountSubtype');
+                const symbol = this.safeSymbol (marketId, undefined, '-');
+                const subResult: Dict = {};
+                const currencies = this.safeList (entry, 'currencies', []);
+                for (let j = 0; j < currencies.length; j++) {
+                    const currencyEntry = this.safeDict (currencies, j, {});
+                    const currencyId = this.safeString (currencyEntry, 'currency');
+                    const currencyCode = this.safeCurrencyCode (currencyId);
+                    subResult[currencyCode] = this.parseBalanceHelper (currencyEntry);
+                }
+                result[symbol] = this.safeBalance (subResult);
+            }
+        } else {
+            const firstAccount = this.safeDict (accounts, 0, {});
+            const currencies = this.safeList (firstAccount, 'currencies', []);
+            for (let i = 0; i < currencies.length; i++) {
+                const currencyEntry = this.safeDict (currencies, i, {});
+                const currencyId = this.safeString (currencyEntry, 'currency');
+                const currencyCode = this.safeCurrencyCode (currencyId);
+                result[currencyCode] = this.parseBalanceHelper (currencyEntry);
+            }
+        }
+        let returnType = result;
+        if (!isIsolated) {
+            returnType = this.safeBalance (result);
+        }
+        return returnType as Balances;
     }
 
     /**
