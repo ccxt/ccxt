@@ -106,9 +106,9 @@ function testYymmdd () {
     const testMs = 1750123456789; //  17 June 2025
     const value = exchange.yymmdd (testMs, '_');
     assert (value === '25_06_17');
-    const value2 = exchange.yymmdd (exchange.milliseconds ());
+    const value2: string = exchange.yymmdd (exchange.milliseconds ());
     assert (value2.length === 6);
-    const intNum  = exchange.parseToInt ((value2.replace ('-', '')).replace ('-', ''));
+    const intNum  = exchange.parseToInt (value2);
     assert (intNum > 260000 && intNum < 360000); // date between 2026 and 2036
 }
 
@@ -119,7 +119,7 @@ function testYyyymmdd () {
     const testMs = 1750123456789; //  17 June 2025
     const value = exchange.yyyymmdd (testMs, '_');
     assert (value === '2025_06_17');
-    const value2 = exchange.yyyymmdd (exchange.milliseconds ());
+    const value2: string = exchange.yyyymmdd (exchange.milliseconds ());
     assert (value2.length === 10);
     const intNum  = exchange.parseToInt ((value2.replace ('-', '')).replace ('-', ''));
     assert (intNum > 20260000 && intNum < 20360000); // date between 2026 and 2036
