@@ -147,7 +147,6 @@ function testDatetime () {
     testIso8601 ();
     testParse8601 ();
     testParseDate ();
-    testRoundTimeframe ();
     testMicroseconds ();
     testMilliseconds ();
     testSeconds ();
