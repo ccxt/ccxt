@@ -92,6 +92,7 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     "fetchAccounts": true,
     "fetchBalance": true,
     "fetchClosedOrders": true,
+    "fetchDepositAddressesByNetwork": true,
     "fetchDeposits": true,
     "fetchDepositsWithdrawals": true,
     "fetchDepositWithdrawFees": true,
