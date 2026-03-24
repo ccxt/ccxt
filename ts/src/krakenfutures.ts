@@ -1516,6 +1516,7 @@ export default class krakenfutures extends Exchange {
      * @param {int} [since] Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
      * @param {int} [limit] How many orders to return. (Not used by kraken api but filtered internally by CCXT)
      * @param {object} [params] Exchange specific parameters
+     * @param {bool} [params.fillData] set to true to add fill data from a separate endpoint to the response
      * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1524,94 +1525,101 @@ export default class krakenfutures extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const promises = [ this.privateGetOrdersStatus (params), this.privateGetFills (params) ];
-        //
-        // orders
-        //
-        //     {
-        //         "result": "success",
-        //         "serverTime": "2026-03-20T02:51:04.339Z",
-        //         "orders": [
-        //             {
-        //                 "order": {
-        //                     "type": "ORDER",
-        //                     "orderId": "a1579359-3533-4b14-b263-870bba6f5ff7",
-        //                     "cliOrdId": null,
-        //                     "symbol": "PF_XBTUSD",
-        //                     "side": "buy",
-        //                     "quantity": 0,
-        //                     "filled": 0.001,
-        //                     "limitPrice": 71075.000,
-        //                     "reduceOnly": false,
-        //                     "timestamp": "2026-03-20T02:51:03.237Z",
-        //                     "lastUpdateTimestamp": "2026-03-20T02:51:03.237Z"
-        //                 },
-        //                 "status": "FULLY_EXECUTED",
-        //                 "updateReason": null,
-        //                 "error": null
-        //             }
-        //         ]
-        //     }
-        //
-        // fills
-        //
-        //    {
-        //        "result": "success",
-        //        "serverTime": "2016-02-25T09:45:53.818Z",
-        //        "fills": [
-        //            {
-        //                "fillTime": "2016-02-25T09:47:01.000Z",
-        //                "order_id": "c18f0c17-9971-40e6-8e5b-10df05d422f0",
-        //                "fill_id": "522d4e08-96e7-4b44-9694-bfaea8fe215e",
-        //                "cliOrdId": "d427f920-ec55-4c18-ba95-5fe241513b30", // EXTRA
-        //                "symbol": "fi_xbtusd_180615",
-        //                "side": "buy",
-        //                "size": 2000,
-        //                "price": 4255,
-        //                "fillType": "maker"
-        //            },
-        //            ...
-        //        ]
-        //    }
-        //
-        const responses = await Promise.all (promises);
-        const ordersResponse = responses[0];
-        const filledResponse = responses[1];
-        const orders = this.safeList (ordersResponse, 'orders', []);
         const result = [];
-        for (let i = 0; i < orders.length; i++) {
-            const entry = orders[i];
-            const entryOrder = this.safeDict (entry, 'order', {});
-            const orderId = this.safeString (entryOrder, 'orderId');
-            const filled = this.safeString (entryOrder, 'filled', '0');
-            if (!Precise.stringEq (filled, '0')) {
-                const fills = this.safeList (filledResponse, 'fills', []);
-                let tradePrice = undefined;
-                let cost = undefined;
-                for (let j = 0; j < fills.length; j++) {
-                    const trade = fills[j];
-                    const filledOrderId = this.safeString (trade, 'order_id');
-                    const marketId = this.safeString (trade, 'symbol');
-                    market = this.safeMarket (marketId, market);
-                    if (filledOrderId === orderId) {
-                        tradePrice = this.safeString (trade, 'price');
-                        const contractSize = this.safeString (market, 'contractSize');
-                        const filledTimesContractSize = Precise.stringMul (filled, contractSize);
-                        if ((tradePrice !== undefined) && (market !== undefined)) {
-                            if (market['linear']) {
-                                cost = Precise.stringMul (filledTimesContractSize, tradePrice);
-                            } else {
-                                cost = Precise.stringDiv (filledTimesContractSize, tradePrice);
+        const fillData = this.safeBool (params, 'fillData', false);
+        if (fillData) {
+            const promises = [ this.privateGetOrdersStatus (params), this.privateGetFills (params) ];
+            //
+            // orders
+            //
+            //     {
+            //         "result": "success",
+            //         "serverTime": "2026-03-20T02:51:04.339Z",
+            //         "orders": [
+            //             {
+            //                 "order": {
+            //                     "type": "ORDER",
+            //                     "orderId": "a1579359-3533-4b14-b263-870bba6f5ff7",
+            //                     "cliOrdId": null,
+            //                     "symbol": "PF_XBTUSD",
+            //                     "side": "buy",
+            //                     "quantity": 0,
+            //                     "filled": 0.001,
+            //                     "limitPrice": 71075.000,
+            //                     "reduceOnly": false,
+            //                     "timestamp": "2026-03-20T02:51:03.237Z",
+            //                     "lastUpdateTimestamp": "2026-03-20T02:51:03.237Z"
+            //                 },
+            //                 "status": "FULLY_EXECUTED",
+            //                 "updateReason": null,
+            //                 "error": null
+            //             }
+            //         ]
+            //     }
+            //
+            // fills
+            //
+            //    {
+            //        "result": "success",
+            //        "serverTime": "2016-02-25T09:45:53.818Z",
+            //        "fills": [
+            //            {
+            //                "fillTime": "2016-02-25T09:47:01.000Z",
+            //                "order_id": "c18f0c17-9971-40e6-8e5b-10df05d422f0",
+            //                "fill_id": "522d4e08-96e7-4b44-9694-bfaea8fe215e",
+            //                "cliOrdId": "d427f920-ec55-4c18-ba95-5fe241513b30", // EXTRA
+            //                "symbol": "fi_xbtusd_180615",
+            //                "side": "buy",
+            //                "size": 2000,
+            //                "price": 4255,
+            //                "fillType": "maker"
+            //            },
+            //            ...
+            //        ]
+            //    }
+            //
+            const responses = await Promise.all (promises);
+            const ordersResponse = responses[0];
+            const filledResponse = responses[1];
+            const orders = this.safeList (ordersResponse, 'orders', []);
+            for (let i = 0; i < orders.length; i++) {
+                const entry = orders[i];
+                const entryOrder = this.safeDict (entry, 'order', {});
+                const orderId = this.safeString (entryOrder, 'orderId');
+                const filled = this.safeString (entryOrder, 'filled', '0');
+                if (!Precise.stringEq (filled, '0')) {
+                    const fills = this.safeList (filledResponse, 'fills', []);
+                    let tradePrice = undefined;
+                    let cost = undefined;
+                    for (let j = 0; j < fills.length; j++) {
+                        const trade = fills[j];
+                        const filledOrderId = this.safeString (trade, 'order_id');
+                        const marketId = this.safeString (trade, 'symbol');
+                        market = this.safeMarket (marketId, market);
+                        if (filledOrderId === orderId) {
+                            tradePrice = this.safeString (trade, 'price');
+                            const contractSize = this.safeString (market, 'contractSize');
+                            const filledTimesContractSize = Precise.stringMul (filled, contractSize);
+                            if ((tradePrice !== undefined) && (market !== undefined)) {
+                                if (market['linear']) {
+                                    cost = Precise.stringMul (filledTimesContractSize, tradePrice);
+                                } else {
+                                    cost = Precise.stringDiv (filledTimesContractSize, tradePrice);
+                                }
                             }
                         }
                     }
+                    entry['order']['price'] = tradePrice;
+                    entry['order']['cost'] = cost;
+                    result.push (entry);
+                } else {
+                    result.push (entry);
                 }
-                entry['order']['price'] = tradePrice;
-                entry['order']['cost'] = cost;
-                result.push (entry);
-            } else {
-                result.push (entry);
             }
+        } else {
+            const response = await this.privateGetOrdersStatus (params);
+            const orders = this.safeList (response, 'orders', []);
+            return this.parseOrders (orders, market, since, limit);
         }
         return this.parseOrders (result, market, since, limit);
     }
@@ -2136,10 +2144,6 @@ export default class krakenfutures extends Exchange {
             //
             const datetime = this.safeString (orderDictFromFetchOrder, 'timestamp');
             const innerStatus = this.safeString (order, 'status');
-            let filledOrder = this.safeString (orderDictFromFetchOrder, 'filled', '0');
-            if ((filledOrder === '0') || (filledOrder === '0.0')) {
-                filledOrder = undefined;
-            }
             const fetchOrderPriceTriggerOptions = this.safeDict (orderDictFromFetchOrder, 'priceTriggerOptions', {});
             const fetchOrderTriggerPrice = this.safeString (fetchOrderPriceTriggerOptions, 'triggerPrice');
             return this.safeOrder ({
@@ -2162,7 +2166,7 @@ export default class krakenfutures extends Exchange {
                 'amount': this.safeString (orderDictFromFetchOrder, 'quantity'),
                 'cost': this.safeString (orderDictFromFetchOrder, 'cost'), // using appended cost from fetchOrders
                 'average': undefined,
-                'filled': filledOrder,
+                'filled': this.safeString (orderDictFromFetchOrder, 'filled'),
                 'remaining': undefined,
                 'status': this.parseOrderStatus (innerStatus),
                 'fee': undefined,
