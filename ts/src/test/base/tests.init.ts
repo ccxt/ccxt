@@ -36,6 +36,7 @@ import testArraysConcat from './test.arraysConcat.js';
 import testSetMarketsFromExchange from './test.setMarketsFromExchange.js';
 import testSleep from './test.sleep.js';
 import testEthMethods from './test.ethMethods.js';
+import testTimeframes from './test.timeframes.js';
 import testKeysort from './test.keysort.js';
 import testImplodeParams from './test.implodeParams.js';
 import testCapitalize from './test.capitalize.js';
@@ -71,6 +72,7 @@ async function baseTestsInit () {
     testUrlencodeWithArrayRepeat ();
     testParsePrecision ();
     testPrecisionFromString ();
+    testTimeframes ();
     testStrip ();
     testExtractParams ();
     testArraysConcat ();
