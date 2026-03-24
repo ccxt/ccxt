@@ -30,12 +30,16 @@ public partial class BaseTest
             testOmit();
             testGroupBy();
             testIndexBy();
+            testInArray();
             testFilterBy();
             testHandleMethods();
             testRemoveRepeatedElementsFromArray();
+            testUrlencodeWithArrayRepeat();
             testParsePrecision();
             testPrecisionFromString();
+            testStrip();
             testExtractParams();
+            testArrayConcat();
             testArraysConcat();
             testUuid();
             await testSetMarketsFromExchange();
@@ -45,5 +49,6 @@ public partial class BaseTest
             testUnique();
             await testSleep();
             testIo();
+            testIsJsonEncodedObject();
         }
 }

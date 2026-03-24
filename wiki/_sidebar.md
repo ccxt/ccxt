@@ -12,7 +12,6 @@
 - [Awesome](Awesome.md)
 - API Spec by Exchange
 	- [fetchCurrencies](exchanges/fetchCurrencies.md)
-	- [alp](exchanges/alp.md)
 	- [alpaca](exchanges/alpaca.md)
 	- [apex](exchanges/apex.md)
 	- [arkham](exchanges/arkham.md)

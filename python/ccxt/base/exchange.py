@@ -1233,7 +1233,7 @@ class Exchange(object):
         if isinstance(params, dict):
             for key in params:
                 _encode_params(params[key], key)
-        return _urlencode.urlencode(result, quote_via=_urlencode.quote)
+        return _urlencode.urlencode(result, safe='[]', quote_via=_urlencode.quote)
 
     @staticmethod
     def rawencode(params={}, sort=False):
@@ -3497,8 +3497,8 @@ class Exchange(object):
         res = self.parse_to_numeric((value % 1))
         return res == 0
 
-    def non_empty_string(self, value):
-        return self.value_is_defined(value) and value != ''
+    def is_empty_string(self, value):
+        return not self.value_is_defined(value) or value == ''
 
     def safe_number_omit_zero(self, obj: object, key: IndexType, defaultValue: Num = None):
         value = self.safe_string(obj, key)

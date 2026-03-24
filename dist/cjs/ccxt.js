@@ -9,7 +9,6 @@ var Precise = require('./src/base/Precise.js');
 var functions = require('./src/base/functions.js');
 var errors = require('./src/base/errors.js');
 var aftermath = require('./src/aftermath.js');
-var alp = require('./src/alp.js');
 var alpaca = require('./src/alpaca.js');
 var apex = require('./src/apex.js');
 var arkham = require('./src/arkham.js');
@@ -205,7 +204,6 @@ const version = '4.5.44';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'aftermath': aftermath["default"],
-    'alp': alp["default"],
     'alpaca': alpaca["default"],
     'apex': apex["default"],
     'arkham': arkham["default"],
@@ -449,7 +447,6 @@ exports.RestrictedLocation = errors.RestrictedLocation;
 exports.UnsubscribeError = errors.UnsubscribeError;
 exports.errors = errors;
 exports.aftermath = aftermath["default"];
-exports.alp = alp["default"];
 exports.alpaca = alpaca["default"];
 exports.apex = apex["default"];
 exports.arkham = arkham["default"];

@@ -61,6 +61,7 @@ create a loan to borrow margin
 * [bitget](/exchanges/bitget.md#borrowcrossmargin)
 * [bybit](/exchanges/bybit.md#borrowcrossmargin)
 * [coinmetro](/exchanges/coinmetro.md#borrowcrossmargin)
+* [gate](/exchanges/gate.md#borrowcrossmargin)
 * [htx](/exchanges/htx.md#borrowcrossmargin)
 * [kucoin](/exchanges/kucoin.md#borrowcrossmargin)
 * [okx](/exchanges/okx.md#borrowcrossmargin)
@@ -91,28 +92,6 @@ create a loan to borrow margin
 * [gate](/exchanges/gate.md#borrowisolatedmargin)
 * [htx](/exchanges/htx.md#borrowisolatedmargin)
 * [kucoin](/exchanges/kucoin.md#borrowisolatedmargin)
-
----
-
-<a name="borrowMargin" id="borrowmargin"></a>
-
-## borrowMargin
-create a loan to borrow margin
-
-**Kind**: instance   
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code of the currency to borrow |
-| amount | <code>float</code> | Yes | the amount to borrow |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.rate | <code>string</code> | No | '0.0002' or '0.002' extra parameter required for isolated margin |
-| params.unifiedAccount | <code>boolean</code> | No | set to true for borrowing in the unified account |
-
-##### Supported exchanges
-* [gate](/exchanges/gate.md#borrowmargin)
 
 ---
 
@@ -350,7 +329,6 @@ cancels an open order
 
 ##### Supported exchanges
 * [aftermath](/exchanges/aftermath.md#cancelorder)
-* [alp](/exchanges/alp.md#cancelorder)
 * [alpaca](/exchanges/alpaca.md#cancelorder)
 * [apex](/exchanges/apex.md#cancelorder)
 * [arkham](/exchanges/arkham.md#cancelorder)
@@ -1037,7 +1015,6 @@ create a trade order
 
 ##### Supported exchanges
 * [aftermath](/exchanges/aftermath.md#createorder)
-* [alp](/exchanges/alp.md#createorder)
 * [alpaca](/exchanges/alpaca.md#createorder)
 * [apex](/exchanges/apex.md#createorder)
 * [arkham](/exchanges/arkham.md#createorder)
@@ -1811,7 +1788,6 @@ query for balance and get the amount of funds available for trading or funds loc
 
 ##### Supported exchanges
 * [aftermath](/exchanges/aftermath.md#fetchbalance)
-* [alp](/exchanges/alp.md#fetchbalance)
 * [alpaca](/exchanges/alpaca.md#fetchbalance)
 * [apex](/exchanges/apex.md#fetchbalance)
 * [arkham](/exchanges/arkham.md#fetchbalance)
@@ -2160,9 +2136,9 @@ fetches information on multiple closed orders made by the user
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch orders for |
 
 ##### Supported exchanges
-* [alp](/exchanges/alp.md#fetchclosedorders)
 * [alpaca](/exchanges/alpaca.md#fetchclosedorders)
 * [arkham](/exchanges/arkham.md#fetchclosedorders)
 * [ascendex](/exchanges/ascendex.md#fetchclosedorders)
@@ -2915,13 +2891,12 @@ fetch all deposits made to an account
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code |
+| code | <code>string</code> | No | unified currency code |
 | since | <code>int</code> | No | the earliest time in ms to fetch deposits for |
-| limit | <code>int</code> | No | the maximum number of deposits structures to retrieve |
+| limit | <code>int</code> | No | the maximum number of deposit structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [alp](/exchanges/alp.md#fetchdeposits)
 * [alpaca](/exchanges/alpaca.md#fetchdeposits)
 * [arkham](/exchanges/arkham.md#fetchdeposits)
 * [ascendex](/exchanges/ascendex.md#fetchdeposits)
@@ -3865,7 +3840,6 @@ retrieves data on all markets for woo
 
 ##### Supported exchanges
 * [aftermath](/exchanges/aftermath.md#fetchmarkets)
-* [alp](/exchanges/alp.md#fetchmarkets)
 * [alpaca](/exchanges/alpaca.md#fetchmarkets)
 * [apex](/exchanges/apex.md#fetchmarkets)
 * [arkham](/exchanges/arkham.md#fetchmarkets)
@@ -4117,13 +4091,14 @@ fetch all trades made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
+| symbol | <code>string</code> | No | unified market symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch trades for |
-| limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
+| limit | <code>int</code> | No | the maximum number of trade structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch trades for |
+| params.page_token | <code>string</code> | No | page_token - used for paging |
 
 ##### Supported exchanges
-* [alp](/exchanges/alp.md#fetchmytrades)
 * [alpaca](/exchanges/alpaca.md#fetchmytrades)
 * [apex](/exchanges/apex.md#fetchmytrades)
 * [arkham](/exchanges/arkham.md#fetchmytrades)
@@ -4258,7 +4233,6 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 ##### Supported exchanges
 * [aftermath](/exchanges/aftermath.md#fetchohlcv)
-* [alp](/exchanges/alp.md#fetchohlcv)
 * [alpaca](/exchanges/alpaca.md#fetchohlcv)
 * [apex](/exchanges/apex.md#fetchohlcv)
 * [arkham](/exchanges/arkham.md#fetchohlcv)
@@ -4508,7 +4482,6 @@ fetch all unfilled currently open orders
 
 ##### Supported exchanges
 * [aftermath](/exchanges/aftermath.md#fetchopenorders)
-* [alp](/exchanges/alp.md#fetchopenorders)
 * [alpaca](/exchanges/alpaca.md#fetchopenorders)
 * [apex](/exchanges/apex.md#fetchopenorders)
 * [arkham](/exchanges/arkham.md#fetchopenorders)
@@ -4709,11 +4682,10 @@ fetches information on an order made by the user
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | the order id |
-| symbol | <code>string</code> | Yes | not used by alp fetchOrder |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [alp](/exchanges/alp.md#fetchorder)
 * [alpaca](/exchanges/alpaca.md#fetchorder)
 * [apex](/exchanges/apex.md#fetchorder)
 * [arkmm](/exchanges/arkmm.md#fetchorder)
@@ -4817,7 +4789,6 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 ##### Supported exchanges
 * [aftermath](/exchanges/aftermath.md#fetchorderbook)
-* [alp](/exchanges/alp.md#fetchorderbook)
 * [alpaca](/exchanges/alpaca.md#fetchorderbook)
 * [apex](/exchanges/apex.md#fetchorderbook)
 * [arkham](/exchanges/arkham.md#fetchorderbook)
@@ -5073,9 +5044,9 @@ fetches information on multiple orders made by the user
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch orders for |
 
 ##### Supported exchanges
-* [alp](/exchanges/alp.md#fetchorders)
 * [alpaca](/exchanges/alpaca.md#fetchorders)
 * [apex](/exchanges/apex.md#fetchorders)
 * [aster](/exchanges/aster.md#fetchorders)
@@ -5781,7 +5752,6 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 ##### Supported exchanges
 * [aftermath](/exchanges/aftermath.md#fetchticker)
-* [alp](/exchanges/alp.md#fetchticker)
 * [alpaca](/exchanges/alpaca.md#fetchticker)
 * [apex](/exchanges/apex.md#fetchticker)
 * [arkham](/exchanges/arkham.md#fetchticker)
@@ -5906,11 +5876,11 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbols of the markets to fetch tickers for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.loc | <code>string</code> | No | crypto location, default: us |
 
 ##### Supported exchanges
-* [alp](/exchanges/alp.md#fetchtickers)
 * [alpaca](/exchanges/alpaca.md#fetchtickers)
 * [apex](/exchanges/apex.md#fetchtickers)
 * [ascendex](/exchanges/ascendex.md#fetchtickers)
@@ -6081,7 +6051,6 @@ get the list of most recent trades for a particular symbol
 
 ##### Supported exchanges
 * [aftermath](/exchanges/aftermath.md#fetchtrades)
-* [alp](/exchanges/alp.md#fetchtrades)
 * [alpaca](/exchanges/alpaca.md#fetchtrades)
 * [apex](/exchanges/apex.md#fetchtrades)
 * [arkham](/exchanges/arkham.md#fetchtrades)
@@ -6561,13 +6530,12 @@ fetch all withdrawals made from an account
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code |
+| code | <code>string</code> | No | unified currency code |
 | since | <code>int</code> | No | the earliest time in ms to fetch withdrawals for |
-| limit | <code>int</code> | No | the maximum number of withdrawals structures to retrieve |
+| limit | <code>int</code> | No | the maximum number of withdrawal structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [alp](/exchanges/alp.md#fetchwithdrawals)
 * [alpaca](/exchanges/alpaca.md#fetchwithdrawals)
 * [ascendex](/exchanges/ascendex.md#fetchwithdrawals)
 * [backpack](/exchanges/backpack.md#fetchwithdrawals)
@@ -6861,6 +6829,7 @@ repay borrowed margin and interest
 * [bitget](/exchanges/bitget.md#repayisolatedmargin)
 * [bitmart](/exchanges/bitmart.md#repayisolatedmargin)
 * [coinex](/exchanges/coinex.md#repayisolatedmargin)
+* [gate](/exchanges/gate.md#repayisolatedmargin)
 * [htx](/exchanges/htx.md#repayisolatedmargin)
 * [kucoin](/exchanges/kucoin.md#repayisolatedmargin)
 
@@ -6877,15 +6846,12 @@ repay borrowed margin and interest
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
 | code | <code>string</code> | Yes | unified currency code of the currency to repay |
 | amount | <code>float</code> | Yes | the amount to repay |
+| symbol | <code>string</code> | Yes | not used by woo.repayMargin () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.mode | <code>string</code> | No | 'all' or 'partial' payment mode, extra parameter required for isolated margin |
-| params.id | <code>string</code> | No | '34267567' loan id, extra parameter required for isolated margin |
 
 ##### Supported exchanges
-* [gate](/exchanges/gate.md#repaymargin)
 * [woo](/exchanges/woo.md#repaymargin)
 
 ---

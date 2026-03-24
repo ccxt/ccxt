@@ -368,6 +368,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                     },
                 },
             },
+            'rollingWindowSize': 0.0,
         })
 
     def set_sandbox_mode(self, enabled):
@@ -1065,6 +1066,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param boolean [params.enableUnifiedMargin]: enable unified margin, CCXT tries to auto-detects self value but you can override it
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
+        # if user provides a different address in params and does not provide the enableUnifiedMargin we assume we need to request the info again
+        shouldRefresh = (self.safe_string_2(params, 'user', 'address') is not None) and self.safe_bool(params, 'enableUnifiedMargin') is None
         userAddress = None
         userAddress, params = self.handle_public_address('fetchBalance', params)
         type = None
@@ -1072,7 +1075,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
         isUnifiedEnabled = None
-        isUnifiedEnabled, params = self.is_unified_enabled('fetchBalance', params)
+        isUnifiedEnabled, params = self.is_unified_enabled('fetchBalance', userAddress, shouldRefresh, params)
         dex = self.safe_string(params, 'dex')
         isSpot = ((type == 'spot') or isUnifiedEnabled) and (dex is None)
         request: dict = {
@@ -1752,7 +1755,7 @@ class hyperliquid(Exchange, ImplicitAPI):
 
     def initialize_client(self):
         try:
-            [self.handle_builder_fee_approval(), self.set_ref(), self.is_unified_enabled('fetchBalance', {})]  # for now only fetchBalance requires the unified knowledge, but we can self.extend self to other methods
+            [self.handle_builder_fee_approval(), self.set_ref(), self.is_unified_enabled('fetchBalance', None, False, {})]  # for now only fetchBalance requires the unified knowledge, but we can self.extend self to other methods
         except Exception as e:
             return False
         return True
@@ -1773,21 +1776,26 @@ class hyperliquid(Exchange, ImplicitAPI):
             self.options['builderFee'] = False  # disable builder fee if an error occurs
         return True
 
-    def is_unified_enabled(self, method: str, params={}):
+    def is_unified_enabled(self, method: str, address: Str = None, shouldRefresh=False, params={}):
         """
 
         https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-abstraction-state
 
         returns enableUnifiedMargin so the user can check if unified account is enabled
         :param str method: the method for which we want to check if unified margin is enabled, self is used to check options for specific methods(e.g. fetchBalance can have a specific option to enable unified margin)
+ @param address
+ @param shouldRefresh
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns bool: enableUnifiedMargin
         """
         userAddress = None
-        userAddress, params = self.handle_public_address('isUnifiedEnabled', params)
+        if address is not None:
+            userAddress = address
+        else:
+            userAddress, params = self.handle_public_address('isUnifiedEnabled', params)
         enableUnifiedMargin = None
         enableUnifiedMargin, params = self.handle_option_and_params(params, method, 'enableUnifiedMargin')
-        if enableUnifiedMargin is None:
+        if enableUnifiedMargin is None or shouldRefresh:
             request: dict = {
                 'type': 'userAbstraction',
                 'user': userAddress,
@@ -1801,6 +1809,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             # "unifiedAccount" | "portfolioMargin" | "disabled" | "default" | "dexAbstraction"
             #
             enableUnifiedMargin = response == '"unifiedAccount"'
+            # don't cache self result if self is a different addresss
             self.options['enableUnifiedMargin'] = enableUnifiedMargin  # cache self for future calls
         return [enableUnifiedMargin, params]
 

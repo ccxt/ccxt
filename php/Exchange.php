@@ -343,7 +343,6 @@ class Exchange {
 
     public static $exchanges = array(
         'aftermath',
-        'alp',
         'alpaca',
         'apex',
         'arkham',
@@ -948,10 +947,7 @@ class Exchange {
     }
 
     public function urlencode_nested($array) {
-        // we don't have to implement this method in PHP
-        // https://github.com/ccxt/ccxt/issues/12872
-        // https://github.com/ccxt/ccxt/issues/12900
-        return $this->urlencode($array);
+        return str_replace(array('%5B', '%5D'), array('[', ']'), $this->urlencode($array));
     }
 
     public function urlencode_with_array_repeat($array) {
@@ -3913,8 +3909,8 @@ class Exchange {
         return $res === 0;
     }
 
-    public function non_empty_string($value) {
-        return $this->value_is_defined($value) && $value !== '';
+    public function is_empty_string($value) {
+        return !$this->value_is_defined($value) || $value === '';
     }
 
     public function safe_number_omit_zero(array $obj, int|string $key, ?float $defaultValue = null) {

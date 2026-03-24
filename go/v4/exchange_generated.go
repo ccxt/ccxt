@@ -1932,8 +1932,8 @@ func (this *Exchange) IsRoundNumber(value interface{}) interface{} {
 	var res interface{} = this.ParseToNumeric((Mod(value, 1)))
 	return IsEqual(res, 0)
 }
-func (this *Exchange) NonEmptyString(value interface{}) interface{} {
-	return IsTrue(this.ValueIsDefined(value)) && IsTrue(!IsEqual(value, ""))
+func (this *Exchange) IsEmptyString(value interface{}) interface{} {
+	return !IsTrue(this.ValueIsDefined(value)) || IsTrue(IsEqual(value, ""))
 }
 func (this *Exchange) SafeNumberOmitZero(obj interface{}, key interface{}, optionalArgs ...interface{}) interface{} {
 	defaultValue := GetArg(optionalArgs, 0, nil)

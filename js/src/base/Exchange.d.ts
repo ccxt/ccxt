@@ -551,7 +551,7 @@ export default class Exchange {
     parseToInt(number: any): number;
     parseToNumeric(number: any): number;
     isRoundNumber(value: number): boolean;
-    nonEmptyString(value: any): boolean;
+    isEmptyString(value: any): boolean;
     safeNumberOmitZero(obj: object, key: IndexType, defaultValue?: Num): Num;
     safeIntegerOmitZero(obj: object, key: IndexType, defaultValue?: Int): Int;
     afterConstruct(): void;
