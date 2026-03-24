@@ -368,6 +368,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                     },
                 },
             },
+            'rollingWindowSize': 0.0,
         })
 
     def set_sandbox_mode(self, enabled):

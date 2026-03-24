@@ -4205,7 +4205,7 @@ func (this *KrakenCore) Sign(path interface{}, optionalArgs ...interface{}) inte
 	var url interface{} = Add(Add(Add(Add(Add("/", this.Version), "/"), api), "/"), path)
 	if IsTrue(IsEqual(api, "public")) {
 		if IsTrue(GetArrayLength(ObjectKeys(params))) {
-			// urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
+			// rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
 			url = Add(url, Add("?", this.UrlencodeNested(params)))
 		}
 	} else if IsTrue(IsEqual(api, "private")) {
@@ -4218,12 +4218,12 @@ func (this *KrakenCore) Sign(path interface{}, optionalArgs ...interface{}) inte
 		var isBatchOrder interface{} = (IsEqual(path, "AddOrderBatch"))
 		this.CheckRequiredCredentials()
 		var nonce interface{} = ToString(this.Nonce())
-		// urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
 		if IsTrue(IsTrue(IsTrue(isCancelOrderBatch) || IsTrue(isTriggerPercent)) || IsTrue(isBatchOrder)) {
 			body = this.Json(this.Extend(map[string]interface{}{
 				"nonce": nonce,
 			}, params))
 		} else {
+			// rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
 			body = this.UrlencodeNested(this.Extend(map[string]interface{}{
 				"nonce": nonce,
 			}, params))

@@ -353,6 +353,7 @@ class hyperliquid extends Exchange {
                     ),
                 ),
             ),
+            'rollingWindowSize' => 0.0,
         ));
     }
 

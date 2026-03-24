@@ -358,6 +358,7 @@ class hyperliquid extends hyperliquid$1["default"] {
                     },
                 },
             },
+            'rollingWindowSize': 0.0,
         });
     }
     setSandboxMode(enabled) {

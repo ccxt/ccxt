@@ -85,7 +85,6 @@ from ccxt.base.errors import UnsubscribeError                         # noqa: F4
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
 from ccxt.aftermath import aftermath                                  # noqa: F401
-from ccxt.alp import alp                                              # noqa: F401
 from ccxt.alpaca import alpaca                                        # noqa: F401
 from ccxt.apex import apex                                            # noqa: F401
 from ccxt.arkham import arkham                                        # noqa: F401
@@ -198,7 +197,6 @@ from ccxt.zonda import zonda                                          # noqa: F4
 
 exchanges = [
     'aftermath',
-    'alp',
     'alpaca',
     'apex',
     'arkham',

@@ -54,21 +54,6 @@ public partial class BaseTest
             Assert(isEqual(exchange.parseDate("1986-04-26T01:23:47.000Z"), 514862627000));
             Assert(isEqual(exchange.parseDate("1986-13-13 00:00:00"), null));
         }
-        public void testRoundTimeframe()
-        {
-            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
-                { "id", "sampleexchange" },
-            });
-            Assert(isEqual(exchange.roundTimeframe("5m", exchange.parse8601("2019-08-12 13:22:08"), ROUND_DOWN), exchange.parse8601("2019-08-12 13:20:00")));
-            Assert(isEqual(exchange.roundTimeframe("10m", exchange.parse8601("2019-08-12 13:22:08"), ROUND_DOWN), exchange.parse8601("2019-08-12 13:20:00")));
-            Assert(isEqual(exchange.roundTimeframe("30m", exchange.parse8601("2019-08-12 13:22:08"), ROUND_DOWN), exchange.parse8601("2019-08-12 13:00:00")));
-            Assert(isEqual(exchange.roundTimeframe("1d", exchange.parse8601("2019-08-12 13:22:08"), ROUND_DOWN), exchange.parse8601("2019-08-12 00:00:00")));
-            Assert(isEqual(exchange.roundTimeframe("5m", exchange.parse8601("2019-08-12 13:22:08"), ROUND_UP), exchange.parse8601("2019-08-12 13:25:00")));
-            Assert(isEqual(exchange.roundTimeframe("10m", exchange.parse8601("2019-08-12 13:22:08"), ROUND_UP), exchange.parse8601("2019-08-12 13:30:00")));
-            Assert(isEqual(exchange.roundTimeframe("30m", exchange.parse8601("2019-08-12 13:22:08"), ROUND_UP), exchange.parse8601("2019-08-12 13:30:00")));
-            Assert(isEqual(exchange.roundTimeframe("1h", exchange.parse8601("2019-08-12 13:22:08"), ROUND_UP), exchange.parse8601("2019-08-12 14:00:00")));
-            Assert(isEqual(exchange.roundTimeframe("1d", exchange.parse8601("2019-08-12 13:22:08"), ROUND_UP), exchange.parse8601("2019-08-13 00:00:00")));
-        }
         public void testMicroseconds()
         {
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
@@ -99,14 +84,63 @@ public partial class BaseTest
             Assert(isGreaterThan(value, 0));
             Assert(isEqual(((string)valueString).Length, 10));
         }
+        public void testYymmdd()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleexchange" },
+            });
+            object testMs = 1750123456789; // 17 June 2025
+            object value = exchange.yymmdd(testMs, "_");
+            Assert(isEqual(value, "25_06_17"));
+            object value2 = exchange.yymmdd(exchange.milliseconds());
+            Assert(isEqual(((string)value2).Length, 6));
+            object intNum = exchange.parseToInt(value2);
+            Assert(isTrue(isGreaterThan(intNum, 260000)) && isTrue(isLessThan(intNum, 360000))); // date between 2026 and 2036
+        }
+        public void testYyyymmdd()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleexchange" },
+            });
+            object testMs = 1750123456789; // 17 June 2025
+            object value = exchange.yyyymmdd(testMs, "_");
+            Assert(isEqual(value, "2025_06_17"));
+            object value2 = exchange.yyyymmdd(exchange.milliseconds());
+            Assert(isEqual(((string)value2).Length, 10));
+            object intNum = exchange.parseToInt(((string)(((string)value2).Replace((string)"-", (string)""))).Replace((string)"-", (string)""));
+            Assert(isTrue(isGreaterThan(intNum, 20260000)) && isTrue(isLessThan(intNum, 20360000))); // date between 2026 and 2036
+        }
+        public void testYmd()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleexchange" },
+            });
+            object testMs = 1750123456789; // 17 June 2025
+            object value = exchange.ymd(testMs, "_");
+            Assert(isEqual(value, "2025_06_17"));
+        }
+        public void testYmdhms()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleexchange" },
+            });
+            object testMs = 1750123456789; // 17 June 2025
+            object value = exchange.ymdhms(testMs, "_");
+            Assert(isTrue(isEqual(value, "2025-06-17_01:24:16")) || isTrue(isEqual(value, "2025-06-17_01:24:17"))); // todo: php/py rounds up to 17
+        }
         public void testDatetime()
         {
             testIso8601();
             testParse8601();
             testParseDate();
-            testRoundTimeframe();
             testMicroseconds();
             testMilliseconds();
             testSeconds();
+            testYymmdd();
+            testYyyymmdd();
+            Assert("GO_SKIP_START");
+            testYmd();
+            testYmdhms();
+            Assert("GO_SKIP_END");
         }
 }

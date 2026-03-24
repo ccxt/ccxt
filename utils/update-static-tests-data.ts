@@ -68,6 +68,7 @@ async function ccxtClass () {
     let ccxtRef = undefined;
     try {
         // if this script is running from tsx (cli.ts), import untranspiled ccxt
+        // @ts-ignore
         ccxtRef = await import ('../ts/ccxt.ts');
     } catch (e) {
         ccxtRef = ccxt;
@@ -101,7 +102,7 @@ function add_static_result (requestOrResponse, exchangeId, method, entry, spaces
     const filePath = rootDir + `/ts/src/test/static/${requestOrResponse}/${exchangeId}.json`;
     const defaultStructure = {"exchange":exchangeId, "skipKeys": [], "options": {}, "methods": {}};
     if (requestOrResponse === 'request') {
-        defaultStructure.outputType = 'both';
+        (defaultStructure as any).outputType = 'both';
     }
     const fileContent = readFileInit (filePath, jsonStringify(defaultStructure));
     // auto-detect 2 or 4 spaces used (just for backward compatibility)
@@ -111,7 +112,7 @@ function add_static_result (requestOrResponse, exchangeId, method, entry, spaces
         const jsonFull = JSON.parse (fileContent);
         const jsonMethods = jsonFull['methods']
         const orderedMap = new Map(Object.entries(jsonMethods));
-        let methodArray = orderedMap.get(method);
+        let methodArray = orderedMap.get(method) as any;
         if (methodArray === undefined) {
             methodArray = [];
         }

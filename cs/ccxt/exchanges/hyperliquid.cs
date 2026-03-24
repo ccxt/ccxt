@@ -346,6 +346,7 @@ public partial class hyperliquid : Exchange
                     } },
                 } },
             } },
+            { "rollingWindowSize", 0 },
         });
     }
 

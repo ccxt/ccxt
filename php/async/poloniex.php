@@ -3746,7 +3746,7 @@ class poloniex extends Exchange {
         if ($this->in_array($api, array( 'swapPublic', 'swapPrivate' ))) {
             $url = $this->urls['api']['swap'];
         }
-        if (is_array($params) && array_key_exists('symbol', $params)) {
+        if ($method === 'GET' && (is_array($params) && array_key_exists('symbol', $params))) {
             $params['symbol'] = $this->encode_uri_component($params['symbol']); // handle symbols like 索拉拉/USDT'
         }
         $query = $this->omit($params, $this->extract_params($path));

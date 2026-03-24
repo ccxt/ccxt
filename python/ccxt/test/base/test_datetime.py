@@ -12,9 +12,6 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-from ccxt.base.decimal_to_precision import ROUND  # noqa E402
-from ccxt.base.decimal_to_precision import ROUND_UP  # noqa E402
-from ccxt.base.decimal_to_precision import ROUND_DOWN  # noqa E402
 import ccxt.async_support as ccxt  # noqa: F402
 
 def test_iso8601():
@@ -64,21 +61,6 @@ def test_parse_date():
     assert exchange.parse_date('1986-13-13 00:00:00') is None
 
 
-def test_round_timeframe():
-    exchange = ccxt.Exchange({
-        'id': 'sampleexchange',
-    })
-    assert exchange.round_timeframe('5m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_DOWN) == exchange.parse8601('2019-08-12 13:20:00')
-    assert exchange.round_timeframe('10m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_DOWN) == exchange.parse8601('2019-08-12 13:20:00')
-    assert exchange.round_timeframe('30m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_DOWN) == exchange.parse8601('2019-08-12 13:00:00')
-    assert exchange.round_timeframe('1d', exchange.parse8601('2019-08-12 13:22:08'), ROUND_DOWN) == exchange.parse8601('2019-08-12 00:00:00')
-    assert exchange.round_timeframe('5m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_UP) == exchange.parse8601('2019-08-12 13:25:00')
-    assert exchange.round_timeframe('10m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_UP) == exchange.parse8601('2019-08-12 13:30:00')
-    assert exchange.round_timeframe('30m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_UP) == exchange.parse8601('2019-08-12 13:30:00')
-    assert exchange.round_timeframe('1h', exchange.parse8601('2019-08-12 13:22:08'), ROUND_UP) == exchange.parse8601('2019-08-12 14:00:00')
-    assert exchange.round_timeframe('1d', exchange.parse8601('2019-08-12 13:22:08'), ROUND_UP) == exchange.parse8601('2019-08-13 00:00:00')
-
-
 def test_microseconds():
     exchange = ccxt.Exchange({
         'id': 'sampleexchange',
@@ -109,11 +91,60 @@ def test_seconds():
     assert len(value_string) == 10
 
 
+def test_yymmdd():
+    exchange = ccxt.Exchange({
+        'id': 'sampleexchange',
+    })
+    test_ms = 1750123456789  # 17 June 2025
+    value = exchange.yymmdd(test_ms, '_')
+    assert value == '25_06_17'
+    value2 = exchange.yymmdd(exchange.milliseconds())
+    assert len(value2) == 6
+    int_num = exchange.parse_to_int(value2)
+    assert int_num > 260000 and int_num < 360000  # date between 2026 and 2036
+
+
+def test_yyyymmdd():
+    exchange = ccxt.Exchange({
+        'id': 'sampleexchange',
+    })
+    test_ms = 1750123456789  # 17 June 2025
+    value = exchange.yyyymmdd(test_ms, '_')
+    assert value == '2025_06_17'
+    value2 = exchange.yyyymmdd(exchange.milliseconds())
+    assert len(value2) == 10
+    int_num = exchange.parse_to_int((value2.replace('-', '')).replace('-', ''))
+    assert int_num > 20260000 and int_num < 20360000  # date between 2026 and 2036
+
+
+def test_ymd():
+    exchange = ccxt.Exchange({
+        'id': 'sampleexchange',
+    })
+    test_ms = 1750123456789  # 17 June 2025
+    value = exchange.ymd(test_ms, '_')
+    assert value == '2025_06_17'
+
+
+def test_ymdhms():
+    exchange = ccxt.Exchange({
+        'id': 'sampleexchange',
+    })
+    test_ms = 1750123456789  # 17 June 2025
+    value = exchange.ymdhms(test_ms, '_')
+    assert value == '2025-06-17_01:24:16' or value == '2025-06-17_01:24:17'  # todo: php/py rounds up to 17
+
+
 def test_datetime():
     test_iso8601()
     test_parse8601()
     test_parse_date()
-    test_round_timeframe()
     test_microseconds()
     test_milliseconds()
     test_seconds()
+    test_yymmdd()
+    test_yyyymmdd()
+    assert 'GO_SKIP_START'
+    test_ymd()
+    test_ymdhms()
+    assert 'GO_SKIP_END'

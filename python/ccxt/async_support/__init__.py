@@ -65,7 +65,6 @@ from ccxt.base.errors import error_hierarchy                          # noqa: F4
 
 
 from ccxt.async_support.aftermath import aftermath                              # noqa: F401
-from ccxt.async_support.alp import alp                                          # noqa: F401
 from ccxt.async_support.alpaca import alpaca                                    # noqa: F401
 from ccxt.async_support.apex import apex                                        # noqa: F401
 from ccxt.async_support.arkham import arkham                                    # noqa: F401
@@ -178,7 +177,6 @@ from ccxt.async_support.zonda import zonda                                      
 
 exchanges = [
     'aftermath',
-    'alp',
     'alpaca',
     'apex',
     'arkham',
