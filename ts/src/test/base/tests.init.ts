@@ -32,6 +32,7 @@ import testRemoveRepeatedElementsFromArray from './test.removeRepeatedElementsFr
 import testUrlencodeWithArrayRepeat from './test.urlencodeWithArrayRepeat.js';
 import testParsePrecision from './test.parsePrecision.js';
 import testStrip from './test.strip.js';
+import testArrayConcat from './test.arrayConcat.js';
 import testArraysConcat from './test.arraysConcat.js';
 import testSetMarketsFromExchange from './test.setMarketsFromExchange.js';
 import testSleep from './test.sleep.js';
@@ -73,6 +74,7 @@ async function baseTestsInit () {
     testPrecisionFromString ();
     testStrip ();
     testExtractParams ();
+    testArrayConcat ();
     testArraysConcat ();
     testUuid ();
     await testSetMarketsFromExchange ();
