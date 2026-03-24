@@ -9,27 +9,27 @@ function testAggregate () {
     });
 
     const bids = [
-        [ 789.1, 111.01 ],
-        [ 789.100, 111.01 ],
+        [ 789.1, 111.05 ],
+        [ 789.100, 111.05 ],
         [ 123.3, 456.2 ],
-        [ 784.20, 111.01 ],
-        [ 789.10, 111.01 ],
+        [ 784.20, 111.05 ],
+        [ 789.10, 111.05 ],
     ];
     const expectedBids = [
         [ 123.3, 456.2 ],
-        [ 784.20, 111.01 ],
-        [ 789.1, 333.03 ],
+        [ 784.20, 111.05 ],
+        [ 789.1, 333.15 ],
     ];
     testSharedMethods.assertDeepEqual (exchange, undefined, 'aggregate', exchange.aggregate (exchange.sortBy (bids, 0)), expectedBids);
 
     const asks = [
         [ 123.2, 456.2 ],
-        [ 784.20, 111.01 ],
+        [ 784.20, 222.44 ],
         [ 789.10, 111.01 ],
     ];
     const expectedAsks = [
         [ 123.2, 456.2 ],
-        [ 784.20, 111.01 ],
+        [ 784.20, 222.44 ],
         [ 789.10, 111.01 ],
     ];
     testSharedMethods.assertDeepEqual (exchange, undefined, 'aggregate', exchange.aggregate (exchange.sortBy (asks, 0)), expectedAsks);
