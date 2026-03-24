@@ -103,7 +103,7 @@ function testYymmdd () {
     const exchange = new ccxt.Exchange ({
         'id': 'sampleexchange',
     });
-    const testMs = 1750123456789; //  17 June 2025
+    const testMs = 1750123456789; // 17 June 2025
     const value = exchange.yymmdd (testMs, '_');
     assert (value === '25_06_17');
     const value2: string = exchange.yymmdd (exchange.milliseconds ());
@@ -116,7 +116,7 @@ function testYyyymmdd () {
     const exchange = new ccxt.Exchange ({
         'id': 'sampleexchange',
     });
-    const testMs = 1750123456789; //  17 June 2025
+    const testMs = 1750123456789; // 17 June 2025
     const value = exchange.yyyymmdd (testMs, '_');
     assert (value === '2025_06_17');
     const value2: string = exchange.yyyymmdd (exchange.milliseconds ());
@@ -129,7 +129,7 @@ function testYmd () {
     const exchange = new ccxt.Exchange ({
         'id': 'sampleexchange',
     });
-    const testMs = 1750123456789; //  17 June 2025
+    const testMs = 1750123456789; // 17 June 2025
     const value = exchange.ymd (testMs, '_');
     assert (value === '2025_06_17');
 }
@@ -138,7 +138,7 @@ function testYmdhms () {
     const exchange = new ccxt.Exchange ({
         'id': 'sampleexchange',
     });
-    const testMs = 1750123456789; //  17 June 2025
+    const testMs = 1750123456789; // 17 June 2025
     const value = exchange.ymdhms (testMs, '_');
     assert (value === '2025-06-17_01:24:16');
 }
