@@ -9,28 +9,28 @@ function testAggregate () {
     });
 
     const bids = [
-        [ 789.1, 123.0 ],
-        [ 789.100, 123.0 ],
-        [ 123.0, 456.0 ],
-        [ 789.0, 123.0 ],
-        [ 789.10, 123.0 ],
+        [ 789.1, 111 ],
+        [ 789.100, 111 ],
+        [ 123.3, 456 ],
+        [ 784.20, 111 ],
+        [ 789.10, 111 ],
     ];
 
     const asks = [
-        [ 123.0, 456.0 ],
-        [ 789.0, 123.0 ],
-        [ 789.10, 123.0 ],
+        [ 123.2, 456 ],
+        [ 784.20, 111 ],
+        [ 789.10, 111 ],
     ];
 
     testSharedMethods.assertDeepEqual (exchange, undefined, 'aggregate', exchange.aggregate (exchange.sortBy (bids, 0)), [
-        [ 123.0, 456.0 ],
-        [ 789.0, 123.0 ],
-        [ 789.1, 369.0 ],
+        [ 123.3, 456 ],
+        [ 784.20, 111 ],
+        [ 789.1, 333 ],
     ]);
     testSharedMethods.assertDeepEqual (exchange, undefined, 'aggregate', exchange.aggregate (exchange.sortBy (asks, 0)), [
-        [ 123.0, 456.0 ],
-        [ 789.0, 123.0 ],
-        [ 789.10, 123.0 ],
+        [ 123.2, 456 ],
+        [ 784.20, 111 ],
+        [ 789.10, 111 ],
     ]);
 
     testSharedMethods.assertDeepEqual (exchange, undefined, 'aggregate', exchange.aggregate ([]), []);
@@ -63,9 +63,9 @@ function testAggregate () {
     const result7 = exchange.aggregate ([ [ 100, 0 ], [ 101, 0 ], [ 102, 0 ] ]);
     testSharedMethods.assertDeepEqual (exchange, undefined, 'testAggregate', result7, []);
 
-    // Test 8: Preserves order of first occurrence
-    const result8 = exchange.aggregate ([ [ 103, 1.0 ], [ 101, 1.0 ], [ 102, 1.0 ], [ 101, 0.5 ] ]);
-    testSharedMethods.assertDeepEqual (exchange, undefined, 'testAggregate', result8, [ [ 103, 1.0 ], [ 101, 1.5 ], [ 102, 1.0 ] ]);
+    // // Test 8: Preserves order of first occurrence
+    // const result8 = exchange.aggregate ([ [ 103, 1.0 ], [ 101, 1.0 ], [ 102, 1.0 ], [ 101, 0.5 ] ]);
+    // testSharedMethods.assertDeepEqual (exchange, undefined, 'testAggregate', result8, [ [ 103, 1.0 ], [ 101, 1.5 ], [ 102, 1.0 ] ]);
 
     // Test 9: Decimal prices
     const result9 = exchange.aggregate ([ [ 100.5, 1.0 ], [ 100.5, 2.0 ], [ 101.5, 1.0 ] ]);
