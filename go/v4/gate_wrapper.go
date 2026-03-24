@@ -1761,6 +1761,7 @@ func (this *Gate) FetchSettlementHistory(options ...FetchSettlementHistoryOption
  * @name gate#fetchMySettlementHistory
  * @description fetches historical settlement records of the user
  * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-settlement-records
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-settlement-records
  * @param {string} symbol unified market symbol of the settlement history
  * @param {int} [since] timestamp in ms
  * @param {int} [limit] number of records

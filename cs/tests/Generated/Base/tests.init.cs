@@ -34,10 +34,12 @@ public partial class BaseTest
             testFilterBy();
             testHandleMethods();
             testRemoveRepeatedElementsFromArray();
+            testUrlencodeWithArrayRepeat();
             testParsePrecision();
             testPrecisionFromString();
             testStrip();
             testExtractParams();
+            testArrayConcat();
             testArraysConcat();
             testUuid();
             await testSetMarketsFromExchange();
@@ -45,6 +47,7 @@ public partial class BaseTest
             testKeysort();
             testImplodeParams();
             testUnique();
+            testUrlencodeNested();
             await testSleep();
             testIo();
             testIsJsonEncodedObject();

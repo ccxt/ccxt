@@ -6292,7 +6292,8 @@ class gate(Exchange, ImplicitAPI):
             request['type'] = 'repay'
             response = await self.privateUnifiedPostLoans(self.extend(request, params))
         else:
-            response = await self.privateMarginPostCrossRepayments(self.extend(request, params))  # todo: check - not present in the docs
+            # deprecated and not present in the exchange's docs but still works
+            response = await self.privateMarginPostCrossRepayments(self.extend(request, params))
             response = self.safe_dict(response, 0)
             #
             #     [
@@ -6367,7 +6368,7 @@ class gate(Exchange, ImplicitAPI):
         :param float amount: the amount to borrow
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.rate]: '0.0002' or '0.002' extra parameter required for isolated margin
-        :param boolean [params.unifiedAccount]: set to True for borrowing in the unified account
+        :param boolean [params.unifiedAccount]: default True(set to False to use deprecated privateMarginPostCrossLoans method)
         :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
         await self.load_markets()
@@ -6384,7 +6385,9 @@ class gate(Exchange, ImplicitAPI):
             request['type'] = 'borrow'
             response = await self.privateUnifiedPostLoans(self.extend(request, params))
         else:
-            response = await self.privateMarginPostCrossLoans(self.extend(request, params))  # todo: check - not present in the docs
+            # deprecated and not present in the exchange's docs
+            # returns {"label":"REQUEST_FORBIDDEN","message":"Request is forbidden"}
+            response = await self.privateMarginPostCrossLoans(self.extend(request, params))
             #
             #     {
             #         "id": "17",
@@ -6496,7 +6499,8 @@ class gate(Exchange, ImplicitAPI):
                 request['currency_pair'] = market['id']
             response = await self.privateMarginGetUniInterestRecords(self.extend(request, params))
         elif marginMode == 'cross':
-            response = await self.privateMarginGetCrossInterestRecords(self.extend(request, params))  # todo: check - not present in the docs
+            # deprecated and not present in the exchange's docs but still works
+            response = await self.privateMarginGetCrossInterestRecords(self.extend(request, params))
         interest = self.parse_borrow_interests(response, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
@@ -6791,7 +6795,6 @@ class gate(Exchange, ImplicitAPI):
         type, params = self.handle_market_type_and_params('fetchSettlementHistory', market, params)
         if type != 'option':
             raise NotSupported(self.id + ' fetchSettlementHistory() supports option markets only')
-        # todo: add futures support
         marketId = market['id']
         optionParts = marketId.split('-')
         request: dict = {
@@ -6823,6 +6826,7 @@ class gate(Exchange, ImplicitAPI):
         fetches historical settlement records of the user
 
         https://www.gate.com/docs/developers/apiv4/en/#query-personal-settlement-records
+        https://www.gate.com/docs/developers/apiv4/en/#query-settlement-records
 
         :param str symbol: unified market symbol of the settlement history
         :param int [since]: timestamp in ms
@@ -6830,45 +6834,70 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: exchange specific params
         :returns dict[]: a list of [settlement history objects]
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMySettlementHistory() requires a symbol argument')
         await self.load_markets()
-        market = self.market(symbol)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
         type = None
         type, params = self.handle_market_type_and_params('fetchMySettlementHistory', market, params)
-        if type != 'option':
-            raise NotSupported(self.id + ' fetchMySettlementHistory() supports option markets only')
-        marketId = market['id']
-        optionParts = marketId.split('-')
-        request: dict = {
-            'underlying': self.safe_string(optionParts, 0),
-            'contract': marketId,
-        }
-        if since is not None:
-            request['from'] = since
+        isOption = type == 'option'
+        isFuture = type == 'future'
+        if not isOption and not isFuture:
+            raise NotSupported(self.id + ' fetchMySettlementHistory() supports option and future markets only')
+        request, query = self.prepare_request(market, type, params)
         if limit is not None:
             request['limit'] = limit
-        response = await self.privateOptionsGetMySettlements(self.extend(request, params))
-        #
-        #     [
-        #         {
-        #             "size": -1,
-        #             "settle_profit": "0",
-        #             "contract": "BTC_USDT-20220624-26000-C",
-        #             "strike_price": "26000",
-        #             "time": 1656057600,
-        #             "settle_price": "20917.461281337048",
-        #             "underlying": "BTC_USDT",
-        #             "realised_pnl": "-0.00116042",
-        #             "fee": "0"
-        #         }
-        #     ]
-        #
+        response = None
+        if isFuture:
+            #
+            #     [
+            #         {
+            #             "time": 1548654951,
+            #             "contract": "BTC_USDT",
+            #             "size": 600,
+            #             "leverage": "25",
+            #             "margin": "0.006705256878",
+            #             "entry_price": "3536.123",
+            #             "settle_price": "3421.54",
+            #             "profit": "-6.87498",
+            #             "fee": "0.03079386"
+            #         }
+            #     ]
+            #
+            response = await self.privateDeliveryGetSettleSettlements(self.extend(request, query))
+        else:
+            if since is not None:
+                request['from'] = since
+            if market is None:
+                underlying = self.safe_string(params, 'underlying')
+                if underlying is None:
+                    raise ArgumentsRequired(self.id + ' fetchMySettlementHistory() requires a symbol argument or an underlying parameter in params')
+            else:
+                marketId = market['id']
+                optionParts = marketId.split('-')
+                request['underlying'] = self.safe_string(optionParts, 0)
+            #
+            #     [
+            #         {
+            #             "size": -1,
+            #             "settle_profit": "0",
+            #             "contract": "BTC_USDT-20220624-26000-C",
+            #             "strike_price": "26000",
+            #             "time": 1656057600,
+            #             "settle_price": "20917.461281337048",
+            #             "underlying": "BTC_USDT",
+            #             "realised_pnl": "-0.00116042",
+            #             "fee": "0"
+            #         }
+            #     ]
+            #
+            response = await self.privateOptionsGetMySettlements(self.extend(request, params))
         result = self.safe_value(response, 'result', {})
         data = self.safe_value(result, 'list', [])
         settlements = self.parse_settlements(data, market)
         sorted = self.sort_by(settlements, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     def parse_settlement(self, settlement, market):
         #
@@ -6883,7 +6912,7 @@ class gate(Exchange, ImplicitAPI):
         #         "strike_price": "25000"
         #     }
         #
-        # fetchMySettlementHistory
+        # fetchMySettlementHistory option
         #
         #     {
         #         "size": -1,
@@ -6895,6 +6924,19 @@ class gate(Exchange, ImplicitAPI):
         #         "underlying": "BTC_USDT",
         #         "realised_pnl": "-0.00116042",
         #         "fee": "0"
+        #     }
+        #
+        # fetchMySettlementHistory future
+        #     {
+        #         "time": 1548654951,
+        #         "contract": "BTC_USDT",
+        #         "size": 600,
+        #         "leverage": "25",
+        #         "margin": "0.006705256878",
+        #         "entry_price": "3536.123",
+        #         "settle_price": "3421.54",
+        #         "profit": "-6.87498",
+        #         "fee": "0.03079386"
         #     }
         #
         timestamp = self.safe_timestamp(settlement, 'time')

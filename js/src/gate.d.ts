@@ -723,7 +723,7 @@ export default class gate extends Exchange {
     parseMarketLeverageTiers(info: any, market?: Market): LeverageTier[];
     /**
      * @method
-     * @name gate#repayMargin
+     * @name gate#repayIsolatedMargin
      * @description repay borrowed margin and interest
      * @see https://www.gate.com/docs/developers/apiv4/en/#borrow-or-repay-2
      * @param {string} symbol unified market symbol
@@ -788,14 +788,14 @@ export default class gate extends Exchange {
     }>;
     /**
      * @method
-     * @name gate#borrowMargin
+     * @name gate#borrowCrossMargin
      * @description create a loan to borrow margin
      * @see https://www.gate.com/docs/developers/apiv4/en/#borrow-or-repay
      * @param {string} code unified currency code of the currency to borrow
      * @param {float} amount the amount to borrow
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.rate] '0.0002' or '0.002' extra parameter required for isolated margin
-     * @param {boolean} [params.unifiedAccount] set to true for borrowing in the unified account
+     * @param {boolean} [params.unifiedAccount] default true (set to false to use deprecated privateMarginPostCrossLoans method)
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     borrowCrossMargin(code: string, amount: number, params?: {}): Promise<{
@@ -904,6 +904,7 @@ export default class gate extends Exchange {
      * @name gate#fetchMySettlementHistory
      * @description fetches historical settlement records of the user
      * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-settlement-records
+     * @see https://www.gate.com/docs/developers/apiv4/en/#query-settlement-records
      * @param {string} symbol unified market symbol of the settlement history
      * @param {int} [since] timestamp in ms
      * @param {int} [limit] number of records

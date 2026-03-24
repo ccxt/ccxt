@@ -390,7 +390,7 @@
                 "method": "fetchCurrencies",
                 "url": "https://market-data.grvt.io/full/v1/currency",
                 "input": [],
-                "output": "{}"
+                "output": "{\"\":\"\"}"
             }
         ]
     }
