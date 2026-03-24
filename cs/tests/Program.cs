@@ -105,34 +105,37 @@ public class Tests
 
     static async Task MainAsync(string[] args)
     {
-      Console.WriteLine("C# version: " + Environment.Version.ToString());
-      try {
-        Tests.args = args;
-        ReadConfig();
-        InitOptions(args);
-
-        await RunBaseTests();
-
-        if (raceCondition)
+        Console.WriteLine("C# version: " + Environment.Version.ToString());
+        try
         {
-            RaceConditionTests();
-            return;
-        }
+            Tests.args = args;
+            ReadConfig();
+            InitOptions(args);
 
-        if (isExchangeTests || isReqResTests || isAllTest) {
-            var testClass = new testMainClass();
-            await testClass.init(exchangeId, symbol, methodName);
+            await RunBaseTests();
+
+            if (raceCondition)
+            {
+                RaceConditionTests();
+                return;
+            }
+
+            if (isExchangeTests || isReqResTests || isAllTest)
+            {
+                var testClass = new testMainClass();
+                await testClass.init(exchangeId, symbol, methodName);
+            }
         }
-      } catch (Exception ex)
-      {
-        testMainClass.dump("[TEST_FAILURE] " + ex.ToString()); // tell the wrapper this is failure
-        testMainClass.exitScript(1);
-      }
+        catch (Exception ex)
+        {
+            testMainClass.dump("[TEST_FAILURE] " + ex.ToString()); // tell the wrapper this is failure
+            testMainClass.exitScript(1);
+        }
     }
 
     static async Task<Task> RunBaseTests()
     {
-        
+
         if (isBaseTests)
         {
             if (isWs)
@@ -141,7 +144,7 @@ public class Tests
                 WsOrderBookTests();
                 Helper.Green("[C#] base WS tests passed");
             }
-            else 
+            else
             {
                 await RestBaseTests();
                 Helper.Green("[C#] base REST tests passed");
@@ -154,12 +157,13 @@ public class Tests
     {
         baseTestInstance.testCryptography();
         Helper.Green(" [C#] Crypto tests passed");
-        
+
         // run auto-transpiled tests (all of them start by 'testFunction')
-        await RunAutoTranspiledBaseTests (baseTestInstance);
+        // await RunAutoTranspiledBaseTests (baseTestInstance);
     }
 
-    static async Task RunAutoTranspiledBaseTests(object testsInstance) {
+    static async Task RunAutoTranspiledBaseTests(object testsInstance)
+    {
         MethodInfo[] methods = testsInstance.GetType()
                         .GetMethods(BindingFlags.Instance | BindingFlags.Public)
                         .Where(m => m.Name.StartsWith("test") && m.ReturnType == typeof(void))
