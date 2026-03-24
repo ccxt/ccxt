@@ -23,6 +23,7 @@ public partial class BaseTest
             testPrecise();
             testSafeMethods();
             testSafeTicker();
+            testToArray();
             testJson();
             testSortBy();
             testSum();
@@ -34,9 +35,11 @@ public partial class BaseTest
             testFilterBy();
             testHandleMethods();
             testRemoveRepeatedElementsFromArray();
+            testIsEmpty();
             testUrlencodeWithArrayRepeat();
             testParsePrecision();
             testPrecisionFromString();
+            testTimeframes();
             testStrip();
             testExtractParams();
             testArrayConcat();

@@ -2112,11 +2112,6 @@ public partial class krakenfutures : Exchange
             //
             object datetime = this.safeString(orderDictFromFetchOrder, "timestamp");
             object innerStatus = this.safeString(order, "status");
-            object filledOrder = this.safeString(orderDictFromFetchOrder, "filled", "0");
-            if (isTrue(isTrue((isEqual(filledOrder, "0"))) || isTrue((isEqual(filledOrder, "0.0")))))
-            {
-                filledOrder = null;
-            }
             object fetchOrderPriceTriggerOptions = this.safeDict(orderDictFromFetchOrder, "priceTriggerOptions", new Dictionary<string, object>() {});
             object fetchOrderTriggerPrice = this.safeString(fetchOrderPriceTriggerOptions, "triggerPrice");
             return this.safeOrder(new Dictionary<string, object>() {
@@ -2139,7 +2134,7 @@ public partial class krakenfutures : Exchange
                 { "amount", this.safeString(orderDictFromFetchOrder, "quantity") },
                 { "cost", null },
                 { "average", null },
-                { "filled", filledOrder },
+                { "filled", this.safeString(orderDictFromFetchOrder, "filled") },
                 { "remaining", null },
                 { "status", this.parseOrderStatus(innerStatus) },
                 { "fee", null },
