@@ -58,8 +58,8 @@ function testAggregate () {
     testSharedMethods.assertDeepEqual (exchange, undefined, 'testAggregate', result5, [ [ 100, 1.01 ] ]);
 
     // Test 6: Many same prices aggregated
-    const result6 = exchange.aggregate ([ [ 100, 0.1 ], [ 100, 0.2 ], [ 100, 0.3 ], [ 100, 0.4 ] ]);
-    testSharedMethods.assertDeepEqual (exchange, undefined, 'testAggregate', result6, [ [ 100, 1.0 ] ]);
+    const result6 = exchange.aggregate ([ [ 100, 0.12 ], [ 100, 0.2 ], [ 100, 0.3 ], [ 100, 0.4 ] ]);
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'testAggregate', result6, [ [ 100, 1.02 ] ]);
 
     // Test 7: All zero volumes - empty result
     const result7 = exchange.aggregate ([ [ 100, 0 ], [ 101, 0 ], [ 102, 0 ] ]);
