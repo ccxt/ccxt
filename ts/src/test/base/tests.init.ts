@@ -29,7 +29,7 @@ import testInArray from './test.inArray.js';
 import testPrecisionFromString from './test.precisionFromString.js';
 import testUrlencodeBase64 from './test.urlencodeBase64.js';
 import testAfterConstructor from './test.afterConstructor.js';
-import testRawEncode from './test.rawEncode.js';
+import testRawencode from './test.rawencode.js';
 import testHandleMethods from './test.handleMethods.js';
 import testRemoveRepeatedElementsFromArray from './test.removeRepeatedElementsFromArray.js';
 import testUrlencodeWithArrayRepeat from './test.urlencodeWithArrayRepeat.js';
@@ -81,7 +81,7 @@ async function baseTestsInit () {
     testPrecisionFromString ();
     testTimeframes ();
     testStrip ();
-    testRawEncode ();
+    testRawencode ();
     testExtractParams ();
     testArrayConcat ();
     testArraysConcat ();

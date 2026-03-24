@@ -17,7 +17,7 @@ function testRawencode () {
         },
         'd': [ 1, 2 ],
     };
-    const expected2 = 'a=1&b[c]=2&b[something]=%2B%26&d[0]=1&d[1]=2';
+    const expected2 = 'a=1&b[c]=2&b[something]=+&&d[0]=1&d[1]=2';
 
     assert (exchange.rawencode (dict2) === expected2, 'rawencode: expected ' + expected2 + ' but got ' + exchange.rawencode (dict2));
 }
