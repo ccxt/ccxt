@@ -2047,10 +2047,6 @@ export default class krakenfutures extends Exchange {
             //
             const datetime = this.safeString (orderDictFromFetchOrder, 'timestamp');
             const innerStatus = this.safeString (order, 'status');
-            let filledOrder = this.safeString (orderDictFromFetchOrder, 'filled', '0');
-            if ((filledOrder === '0') || (filledOrder === '0.0')) {
-                filledOrder = undefined;
-            }
             const fetchOrderPriceTriggerOptions = this.safeDict (orderDictFromFetchOrder, 'priceTriggerOptions', {});
             const fetchOrderTriggerPrice = this.safeString (fetchOrderPriceTriggerOptions, 'triggerPrice');
             return this.safeOrder ({
@@ -2073,7 +2069,7 @@ export default class krakenfutures extends Exchange {
                 'amount': this.safeString (orderDictFromFetchOrder, 'quantity'),
                 'cost': undefined,
                 'average': undefined,
-                'filled': filledOrder,
+                'filled': this.safeString (orderDictFromFetchOrder, 'filled'),
                 'remaining': undefined,
                 'status': this.parseOrderStatus (innerStatus),
                 'fee': undefined,
