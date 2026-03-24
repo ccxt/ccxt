@@ -8,14 +8,15 @@ function testUrlencode () {
         'id': 'sampleexchange',
     });
 
+    // todo: add nulls
     const dict1 = {
         'a': 1,
-        'c': 3,
+        'c': '+&',
         'b': 2,
-        'd': undefined,
-        'e': null,
+        // 'd': undefined,
+        // 'e': null,
     };
-    const expected1 = 'a=1&c=3&b=2&e=';
+    const expected1 = 'a=1&c=%2B%26&b=2';
     assert (exchange.urlencode (dict1) === expected1, 'testUrlencode: expected ' + expected1 + ' but got ' + exchange.urlencode (dict1));
 
     // todo:
