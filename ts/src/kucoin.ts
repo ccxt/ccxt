@@ -47,11 +47,14 @@ export default class kucoin extends Exchange {
                 'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createOrders': true,
+                'createOrderWithTakeProfitAndStopLoss': true,
                 'createPostOnlyOrder': true,
                 'createStopLimitOrder': true,
+                'createStopLossOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'createTriggerOrder': true,
+                'createTakeProfitOrder': true,
                 'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
@@ -1311,7 +1314,7 @@ export default class kucoin extends Exchange {
                         'marginMode': true,
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
-                        'triggerDirection': false,
+                        'triggerDirection': false, // true for uta
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': undefined, // not supported
@@ -1381,7 +1384,11 @@ export default class kucoin extends Exchange {
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': {
-                            'triggerPriceType': undefined,
+                            'triggerPriceType': {
+                                'last': true,
+                                'mark': true,
+                                'index': true,
+                            },
                             'price': true,
                         },
                         'timeInForce': {
@@ -1390,7 +1397,7 @@ export default class kucoin extends Exchange {
                             'PO': true,
                             'GTD': false,
                         },
-                        'hedged': false,
+                        'hedged': false, // true for uta
                         'trailing': false,
                         'leverage': true, // todo implement
                         'marketBuyByCost': true,
@@ -4214,13 +4221,18 @@ export default class kucoin extends Exchange {
      * @param {string} [params.timeInForce] GTC, GTD, IOC, FOK or PO
      * @param {bool} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK (default is false)
      * @param {bool} [params.reduceOnly] *contract markets only* A mark to reduce the position size only. Set to false by default
+     * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {string} [params.triggerDirection] 'ascending' or 'descending', the direction the triggerPrice is triggered from, requires triggerPrice
+     * @param {string} [params.triggerPriceType] *contract markets only* "last", "mark", "index" - defaults to "mark"
+     * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
+     * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
      * @param {string} [params.marginMode] 'cross' or 'isolated', (default is 'cross' for margin orders, default is 'isolated' for contract orders)
      *
      * Exchange-specific parameters -------------------------------------------------
      * @param {string} [params.accountMode] 'unified' or 'classic', default is 'unified'
      * @param {string} [params.stp] '', // self trade prevention, CN, CO, CB or DC
-     * @param {string} [params.tags] - Order Tags, max length 20
      * @param {int} [params.cancelAfter] - Cancel After N Seconds (Calculated from the time of entering the matching engine), only effective when timeInForce is GTD
+     * @param {string} [params.sizeUnit] *contracts only* 'BASECCY' (amount of base currency) or 'UNIT' (number of contracts), default is 'UNIT'
      *
      * Classic account parameters
      * @param {bool} [params.autoBorrow] *classic margin orders only*
@@ -4234,6 +4246,15 @@ export default class kucoin extends Exchange {
         const request = this.createUtaOrderRequest (symbol, type, side, amount, price, params);
         const response = await this.utaPrivatePostAccountModeOrderPlace (request);
         //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "orderId": "426319129738321920",
+        //             "tradeType": "SPOT",
+        //             "ts": 1774455603216000000,
+        //             "clientOid": "b896c118-a674-4863-baf4-a9ea3cd696c5"
+        //         }
+        //     }
         //
         const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data);
@@ -4253,22 +4274,12 @@ export default class kucoin extends Exchange {
         if (isSpotMargin && isUnified) {
             throw new NotSupported (this.id + ' createOrder() does not support spot margin orders with unified accountMode');
         }
-        let tradeType = undefined;
-        if (accountMode !== 'unified') {
-            accountMode = 'classic';
-            if (isContract) {
-                tradeType = 'FUTURES';
-            } else if (marginModeDefined) {
-                tradeType = marginMode.toUpperCase ();
-            } else {
-                tradeType = 'SPOT';
-            }
-        }
+        const tradeType = this.handleTradeType (isContract, marginMode, params);
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId', this.uuid ());
         params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
         const request: Dict = {
             'accountMode': accountMode, // 'unified' or 'classic',
-            // 'tradeType' - 'SPOT', 'FUTURES', 'ISOLATED', 'CROSS' (required for classic account)
+            'tradeType': tradeType, // 'SPOT', 'FUTURES', 'ISOLATED' or 'CROSS'
             'clientOid': clientOrderId,
             'symbol': market['id'],
             // 'triggerDirection'- 'UP' or 'DOWN (required for trigger orders, supported for classic-FUTURES and unified-SPOT and unified-FUTURES)
@@ -4303,19 +4314,18 @@ export default class kucoin extends Exchange {
         const cost = this.safeString (params, 'cost');
         if (cost !== undefined) {
             params = this.omit (params, 'cost');
-            if (isSpot) {
-                if (isMarketOrder) {
-                    request['sizeUnit'] = 'QUOTECCY';
-                    request['size'] = this.marketOrderAmountToPrecision (symbol, cost);
-                } else {
-                    throw new NotSupported (this.id + ' createOrder() with cost is not supported for spot limit orders');
-                }
+            if (isSpot && isMarketOrder) {
+                request['sizeUnit'] = 'QUOTECCY';
+                request['size'] = this.marketOrderAmountToPrecision (symbol, cost);
             } else {
-                request['sizeUnit'] = 'UNIT';
-                request['size'] = this.costToPrecision (symbol, cost);
+                throw new NotSupported (this.id + ' createOrder() with cost is supported for spot market orders only');
             }
         } else {
-            request['sizeUnit'] = 'BASECCY';
+            let sizeUnit = 'BASECCY';
+            if (isContract) {
+                [ sizeUnit, params ] = this.handleOptionAndParams (params, 'createOrder', 'sizeUnit', 'UNIT');
+            }
+            request['sizeUnit'] = sizeUnit;
             request['size'] = this.amountToPrecision (symbol, amount);
         }
         if (!isMarketOrder) {
@@ -4354,7 +4364,58 @@ export default class kucoin extends Exchange {
                 }
             }
         }
-        // todo handle with conditional orders
+        // handling with coinditional orders
+        const [ triggerPrice, stopLossPrice, takeProfitPrice ] = this.handleTriggerPrices (params);
+        const stopLoss = this.safeDict (params, 'stopLoss');
+        const takeProfit = this.safeDict (params, 'takeProfit');
+        const hasStopLoss = stopLoss !== undefined;
+        const hasTakeProfit = takeProfit !== undefined;
+        const triggerPriceTypes: Dict = {
+            'mark': 'MP',
+            'last': 'TP',
+            'index': 'IP',
+        };
+        if (triggerPrice) {
+            const triggerDirection = this.safeString (params, 'triggerDirection');
+            if (triggerDirection === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerDirection parameter for trigger orders. Provide params.tringgerDirection or use params.stopLossPrice or params.takeProfitPrice instead of params.triggerPrice');
+            }
+            request['triggerDirection'] = (triggerDirection === 'ascending') ? 'UP' : 'DOWN';
+            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+        } else if (hasStopLoss || hasTakeProfit) {
+            if (!isContract) {
+                throw new NotSupported (this.id + ' createOrder() stopLoss and takeProfit parameters are only supported for contract orders');
+            }
+            if (hasStopLoss) {
+                const slTriggerPrice = this.safeString2 (stopLoss, 'triggerPrice', 'stopPrice');
+                const slTriggerPriceType = this.safeString (stopLoss, 'triggerPriceType', 'mark');
+                request['slTriggerPrice'] = this.priceToPrecision (symbol, slTriggerPrice);
+                request['slTriggerPriceType'] = this.safeString (triggerPriceTypes, slTriggerPriceType, slTriggerPriceType);
+            }
+            if (hasTakeProfit) {
+                const tpTriggerPrice = this.safeString2 (takeProfit, 'triggerPrice', 'takeProfitPrice');
+                const tpTriggerPriceType = this.safeString (takeProfit, 'triggerPriceType', 'mark');
+                request['tpTriggerPrice'] = this.priceToPrecision (symbol, tpTriggerPrice);
+                request['tpTriggerPriceType'] = this.safeString (triggerPriceTypes, tpTriggerPriceType, tpTriggerPriceType);
+            }
+        } else if (stopLossPrice || takeProfitPrice) {
+            if (stopLossPrice) {
+                request['triggerDirection'] = (side === 'buy') ? 'UP' : 'DOWN';
+                request['triggerPrice'] = this.priceToPrecision (symbol, stopLossPrice);
+                if (isContract) {
+                    const stopLossPriceType = this.safeString2 (params, 'stopLossPriceType', 'triggerPriceType', 'mark');
+                    request['triggerPriceType'] = this.safeString (triggerPriceTypes, stopLossPriceType, stopLossPriceType);
+                }
+            } else {
+                request['triggerDirection'] = (side === 'buy') ? 'DOWN' : 'UP';
+                request['triggerPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
+                if (isContract) {
+                    const takeProfitPriceType = this.safeString2 (params, 'takeProfitPriceType', 'triggerPriceType', 'mark');
+                    request['triggerPriceType'] = this.safeString (triggerPriceTypes, takeProfitPriceType, takeProfitPriceType);
+                }
+            }
+        }
+        params = this.omit (params, [ 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPriceType', 'stopLossPriceType', 'takeProfitPriceType', 'triggerPriceType', 'triggerDirection', 'stopLoss', 'takeProfit', 'hedged' ]);
         return this.extend (request, params);
     }
 
@@ -4648,16 +4709,23 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-clientoid
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-orderld
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-clientoid
+     * @see https://www.kucoin.com/docs-new/rest/ua/cancel-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
      * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated'
+     * @param {boolean} [params.uta] true for cancelling order with unified account endpoint (default is false)
      * Check cancelSpotOrder() and cancelContractOrder() for more details on the extra parameters that can be used in params
      * @returns Response from the exchange
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
+        let uta = false;
+        [ uta, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'uta', uta);
+        if (uta) {
+            return await this.cancelUtaOrder (id, symbol, params);
+        }
         let marketType = undefined;
         let market = undefined;
         if (symbol !== undefined) {
@@ -4866,6 +4934,61 @@ export default class kucoin extends Exchange {
 
     /**
      * @method
+     * @name kucoin#cancelUtaOrder
+     * @description helper method for cancelling uta orders
+     * @see https://www.kucoin.com/docs-new/rest/ua/cancel-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountMode] 'unified' or 'classic' (default is 'unified')
+     * @param {string} [params.clientOrderId] client order id, required if id is not provided
+     * @param {string} [params.marginMode] 'cross' or 'isolated', required if fetching a margin order
+     * @returns Response from the exchange
+     */
+    async cancelUtaOrder (id: string, symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument for uta endpoint');
+        }
+        await this.loadMarkets ();
+        const request: Dict = {};
+        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientOid'] = clientOrderId;
+            params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
+        } else {
+            if (id === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOrder() requires an id argument or clientOrderId parameter');
+            }
+            request['orderId'] = id;
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        request['symbol'] = market['id'];
+        let accountMode = 'unified';
+        [ accountMode, params ] = this.handleOptionAndParams (params, 'fetchOrder', 'accountMode', accountMode);
+        request['accountMode'] = accountMode;
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrder', params);
+        const tradeType = this.handleTradeType (market['contract'], marginMode, params);
+        request['tradeType'] = tradeType;
+        const response = await this.utaPrivatePostAccountModeOrderCancel (this.extend (request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "orderId": "426319129738321920",
+        //             "tradeType": "SPOT",
+        //             "ts": 1774457628105000000,
+        //             "clientOid": "b896c118-a674-4863-baf4-a9ea3cd696c5"
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseOrder (data, market);
+    }
+
+    /**
+     * @method
      * @name kucoin#cancelAllOrders
      * @description cancel all open orders
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders-by-symbol
@@ -4875,14 +4998,22 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/batch-cancel-stop-orders
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-orders
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-stop-orders
+     * @see https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-symbol
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
      * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated'
+     * @param {boolean} [params.uta] true for cancelling orders with unified account endpoint (default is false)
+     * Check cancelAllSpotOrders(), cancelAllContractOrders() and cancelAllUtaOrders() for more details on the extra parameters that can be used in params
      * @returns Response from the exchange
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
+        let uta = false;
+        [ uta, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'uta', uta);
+        if (uta) {
+            return await this.cancelAllUtaOrders (symbol, params);
+        }
         let marketType = undefined;
         let market = undefined;
         if (symbol !== undefined) {
@@ -4995,6 +5126,54 @@ export default class kucoin extends Exchange {
 
     /**
      * @method
+     * @name kucoin#cancelAllUtaOrders
+     * @description helper method for cancelling all uta orders
+     * @see https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-symbol
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.trigger] true if cancelling all stop orders
+     * @param {string} [params.marginMode] 'CROSS' or 'ISOLATED'
+     * @returns Response from the exchange
+     */
+    async cancelAllUtaOrders (symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument for uta endpoint');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const isContract = market['contract'];
+        const tradeType = isContract ? 'FUTURES' : 'SPOT';
+        let trigger = false;
+        [ trigger, params ] = this.handleParamBool (params, 'trigger', trigger);
+        const orderFilter = trigger ? 'ADVANCED' : 'NORMAL';
+        const request: Dict = {
+            'accountMode': 'unified', // only unified account is supported for batch cancelling orders
+            'symbol': market['id'],
+            'tradeType': tradeType,
+            'orderFilter': orderFilter,
+        };
+        const response = await this.utaPrivatePostAccountModeOrderCancelAll (this.extend (request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "tradeType": "SPOT",
+        //             "ts": 1774458644140000000,
+        //             "items": [
+        //                 {
+        //                     "orderId": "426328635071352832"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const orders = this.safeList (data, 'items', []);
+        return this.parseOrders (orders, market, undefined, undefined, { 'status': 'canceled' });
+    }
+
+    /**
+     * @method
      * @name kucoin#fetchOrdersByStatus
      * @description fetches a list of orders placed on the exchange
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-open-orders
@@ -5005,6 +5184,8 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-open-order-list
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-order-history
      * @param {string} status 'active' or 'closed', only 'active' is valid for stop orders
      * @param {string} symbol unified symbol for the market to retrieve orders from
      * @param {int} [since] timestamp in ms of the earliest order to retrieve
@@ -5310,7 +5491,6 @@ export default class kucoin extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest order to retrieve
      * @param {int} [limit] The maximum number of orders to retrieve
      * @param {object} [params] exchange specific parameters
-     * @param {bool} [params.trigger] set to true for conditional orders (default is false)
      * @param {int} [params.until] End time in ms
      * @param {string} [params.side] *closed orders only* 'BUY' or 'SELL'
      * @param {string} [params.accountMode] 'unified' or 'classic' (default is unified)
@@ -5348,11 +5528,6 @@ export default class kucoin extends Exchange {
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrdersByStatus', params);
         const tradeType = this.handleTradeType (isContract, marginMode, params);
         params['tradeType'] = tradeType;
-        const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
-        params = this.omit (params, [ 'stop', 'trigger' ]);
-        if (trigger) {
-            request['orderFilter'] = 'CONDITION';
-        }
         if (since !== undefined) {
             request['startAt'] = since;
         }
@@ -5368,6 +5543,54 @@ export default class kucoin extends Exchange {
         }
         let response = undefined;
         if (lowercaseStatus === 'active') {
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": {
+            //             "pageNumber": 1,
+            //             "pageSize": 50,
+            //             "totalNum": 1,
+            //             "totalPage": 1,
+            //             "items": [
+            //                 {
+            //                     "orderId": "426328635071352832",
+            //                     "symbol": "ETH-USDT",
+            //                     "orderType": "LIMIT",
+            //                     "side": "BUY",
+            //                     "size": "0.001",
+            //                     "price": "1000",
+            //                     "timeInForce": "GTC",
+            //                     "tags": "partner:ccxt",
+            //                     "orderTime": 1774457869404794617,
+            //                     "stp": "",
+            //                     "cancelAfter": null,
+            //                     "postOnly": false,
+            //                     "reduceOnly": false,
+            //                     "triggerDirection": "",
+            //                     "triggerPrice": "",
+            //                     "triggerPriceType": "",
+            //                     "tpTriggerPrice": "",
+            //                     "tpTriggerPriceType": "",
+            //                     "slTriggerPrice": "",
+            //                     "slTriggerPriceType": "",
+            //                     "filledSize": "0",
+            //                     "avgPrice": "0",
+            //                     "fee": "0",
+            //                     "feeCurrency": "USDT",
+            //                     "tax": "0",
+            //                     "updatedTime": 1774457869469028819,
+            //                     "triggerOrderId": "",
+            //                     "cancelReason": "",
+            //                     "cancelSize": "0",
+            //                     "clientOid": "708987d5-c346-487a-a70c-ea267377b0ca",
+            //                     "sizeUnit": "BASECCY",
+            //                     "status": 2
+            //                 }
+            //             ],
+            //             "tradeType": "SPOT"
+            //         }
+            //     }
+            //
             response = await this.utaPrivateGetAccountModeOrderOpenList (this.extend (request, params));
         } else {
             response = await this.utaPrivateGetAccountModeOrderHistory (this.extend (request, params));
@@ -5387,6 +5610,7 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-order-history
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -5421,6 +5645,7 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-open-order-list
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -5697,6 +5922,47 @@ export default class kucoin extends Exchange {
         const tradeType = this.handleTradeType (market['contract'], marginMode, params);
         request['tradeType'] = tradeType;
         const response = await this.utaPrivateGetAccountModeOrderDetail (this.extend (request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "orderId": "426319129738321920",
+        //             "symbol": "ETH-USDT",
+        //             "orderType": "LIMIT",
+        //             "side": "BUY",
+        //             "size": "0.001",
+        //             "price": "1000",
+        //             "timeInForce": "GTC",
+        //             "tags": "partner:ccxt",
+        //             "orderTime": 1774455603156417582,
+        //             "stp": "",
+        //             "cancelAfter": null,
+        //             "postOnly": false,
+        //             "reduceOnly": false,
+        //             "triggerDirection": "",
+        //             "triggerPrice": "",
+        //             "triggerPriceType": "",
+        //             "tpTriggerPrice": "",
+        //             "tpTriggerPriceType": "",
+        //             "slTriggerPrice": "",
+        //             "slTriggerPriceType": "",
+        //             "filledSize": "0",
+        //             "avgPrice": "0",
+        //             "fee": "0",
+        //             "feeCurrency": "USDT",
+        //             "tax": "0",
+        //             "updatedTime": 1774455603371523690,
+        //             "triggerOrderId": "",
+        //             "cancelReason": "",
+        //             "cancelSize": "0",
+        //             "clientOid": "b896c118-a674-4863-baf4-a9ea3cd696c5",
+        //             "sizeUnit": "BASECCY",
+        //             "tradeType": "SPOT",
+        //             "tradeId": "",
+        //             "status": 2
+        //         }
+        //     }
+        //
         const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
@@ -5716,6 +5982,15 @@ export default class kucoin extends Exchange {
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
+        const tradeType = this.safeString (order, 'tradeType');
+        const utaTradeTypes = [ 'SPOT', 'CROSS', 'ISOLATED', 'FUTURES' ]; // tradeType specific for uta endpoint
+        let isUtaOrder = this.inArray (tradeType, utaTradeTypes);
+        if ('sizeUnit' in order) { // property specific for uta endpoint
+            isUtaOrder = true;
+        }
+        if (isUtaOrder) {
+            return this.parseUtaOrder (order, market);
+        }
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         if ((market !== undefined) && (market['contract'])) {
@@ -6037,6 +6312,130 @@ export default class kucoin extends Exchange {
             'average': this.safeString (order, 'avgDealPrice'),
             'trades': undefined,
         }, market);
+    }
+
+    parseUtaOrder (order: Dict, market: Market = undefined): Order {
+        //
+        // createOrder
+        //     {
+        //         "orderId": "426319129738321920",
+        //         "tradeType": "SPOT",
+        //         "ts": 1774455603216000000,
+        //         "clientOid": "b896c118-a674-4863-baf4-a9ea3cd696c5"
+        //     }
+        //
+        // fetchOrder
+        //     {
+        //         "orderId": "426319129738321920",
+        //         "symbol": "ETH-USDT",
+        //         "orderType": "LIMIT",
+        //         "side": "BUY",
+        //         "size": "0.001",
+        //         "price": "1000",
+        //         "timeInForce": "GTC",
+        //         "tags": "partner:ccxt",
+        //         "orderTime": 1774455603156417582,
+        //         "stp": "",
+        //         "cancelAfter": null,
+        //         "postOnly": false,
+        //         "reduceOnly": false,
+        //         "triggerDirection": "",
+        //         "triggerPrice": "",
+        //         "triggerPriceType": "",
+        //         "tpTriggerPrice": "",
+        //         "tpTriggerPriceType": "",
+        //         "slTriggerPrice": "",
+        //         "slTriggerPriceType": "",
+        //         "filledSize": "0",
+        //         "avgPrice": "0",
+        //         "fee": "0",
+        //         "feeCurrency": "USDT",
+        //         "tax": "0",
+        //         "updatedTime": 1774455603371523690,
+        //         "triggerOrderId": "",
+        //         "cancelReason": "",
+        //         "cancelSize": "0",
+        //         "clientOid": "b896c118-a674-4863-baf4-a9ea3cd696c5",
+        //         "sizeUnit": "BASECCY",
+        //         "tradeType": "SPOT",
+        //         "tradeId": "",
+        //         "status": 2
+        //     }
+        //
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const timestamp = this.safeIntegerProduct2 (order, 'orderTime', 'ts', 0.000001);
+        const lastUpdateTimestamp = this.safeIntegerProduct (order, 'updatedTime', 0.000001);
+        const rawTimeInForce = this.safeString (order, 'timeInForce');
+        let amount = undefined;
+        let cost = undefined;
+        const sizeUnit = this.safeString (order, 'sizeUnit');
+        const size = this.safeString (order, 'size');
+        const rawStatus = this.safeString (order, 'status');
+        const average = this.safeString (order, 'avgPrice');
+        let filled = this.safeString (order, 'filledSize'); // might be in base or quote, need to check sizeUnit
+        if ((sizeUnit === 'BASECCY') || (sizeUnit === 'UNIT')) {
+            amount = size;
+        } else {
+            cost = filled;
+            filled = Precise.stringDiv (filled, average);
+            filled = this.amountToPrecision (symbol, filled);
+        }
+        const fee = {
+            'currency': this.safeCurrencyCode (this.safeString (order, 'feeCurrency')),
+            'cost': this.safeString (order, 'fee'),
+        };
+        return this.safeOrder ({
+            'id': this.safeString (order, 'orderId'),
+            'clientOrderId': this.safeString (order, 'clientOid'),
+            'symbol': symbol,
+            'type': this.safeStringLower (order, 'orderType'),
+            'timeInForce': this.parseOrderTimeInForce (rawTimeInForce),
+            'postOnly': this.safeBool (order, 'postOnly'),
+            'reduceOnly': this.safeBool (order, 'reduceOnly'),
+            'side': this.safeStringLower (order, 'side'),
+            'amount': amount,
+            'price': this.safeString (order, 'price'),
+            'triggerPrice': this.safeString2 (order, 'stopPrice', 'triggerPrice'),
+            'cost': cost,
+            'filled': filled, // todo check if filledSize is in base or quote
+            'remaining': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': fee,
+            'status': this.parseOrderStatus (rawStatus),
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
+            'average': average,
+            'trades': undefined,
+            'stopLossPrice': this.safeString (order, 'slTriggerPrice'),
+            'takeProfitPrice': this.safeString (order, 'tpTriggerPrice'),
+            'info': order,
+        }, market);
+    }
+
+    parseOrderTimeInForce (timeInForce: Str): Str {
+        const timeInForces = {
+            'GTC': 'GTC',
+            'IOC': 'IOC',
+            'FOK': 'FOK',
+            'GTT': 'GTD',
+        };
+        return this.safeString (timeInForces, timeInForce, timeInForce);
+    }
+
+    parseOrderStatus (status: Str): Str {
+        const statuses = {
+            '0': 'open', // notTriggered
+            '1': 'open', // triggered
+            '2': 'open', // live
+            '3': 'closed', // filled
+            '4': 'open', // partial filled
+            '5': 'canceled', // canceled
+            '6': 'closed', // partial canceled
+        };
+        return this.safeString (statuses, status, status);
     }
 
     /**
@@ -9548,18 +9947,30 @@ export default class kucoin extends Exchange {
      * @name kucoin#cancelOrders
      * @description cancel multiple orders for contract markets
      * @see https://www.kucoin.com/docs-new/3470241e0
+     * @see https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-id
      * @param {string[]} ids order ids
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string[]} [params.clientOrderIds] client order ids
+     * @param {boolean} [params.uta] set to true to use the unified trading account (uta) endpoint, defaults to false for the contract orders
+     * @param {string} [params.accountMode] *for uta endpoint only* 'unified' or 'classic' (default is 'unified')
+     * @param {string} [params.marginMode] *for margin orders only* 'cross' or 'isolated'
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
-        // contract markets only
         await this.loadMarkets ();
+        let uta = false;
+        [ uta, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'uta', uta);
         let market = undefined;
+        let isContractMarket = true; // default to contract market orders if symbol is not provided, uta endpoint requires a symbol to be provided
         if (symbol !== undefined) {
             market = this.market (symbol);
+            isContractMarket = market['contract'];
+            if (!isContractMarket) {
+                uta = true; // spot market orders can only be cancelled via the uta endpoint
+            }
+        } else if (uta) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument for uta endpoint');
         }
         const ordersRequests = [];
         const clientOrderIds = this.safeList2 (params, 'clientOrderIds', 'clientOids', []);
@@ -9576,33 +9987,57 @@ export default class kucoin extends Exchange {
             });
         }
         for (let i = 0; i < ids.length; i++) {
-            ordersRequests.push (ids[i]);
+            const orderId = ids[i];
+            if (uta) {
+                ordersRequests.push ({
+                    'orderId': orderId,
+                    'symbol': market['id'],
+                });
+            } else {
+                ordersRequests.push (ids[i]);
+            }
         }
-        const requestKey = useClientorderId ? 'clientOidsList' : 'orderIdsList';
         const request: Dict = {};
-        request[requestKey] = ordersRequests;
-        const response = await this.futuresPrivateDeleteOrdersMultiCancel (this.extend (request, params));
-        //
-        //   {
-        //       "code": "200000",
-        //       "data":
-        //       [
-        //           {
-        //               "orderId": "80465574458560512",
-        //               "clientOid": null,
-        //               "code": "200",
-        //               "msg": "success"
-        //           },
-        //           {
-        //               "orderId": "80465575289094144",
-        //               "clientOid": null,
-        //               "code": "200",
-        //               "msg": "success"
-        //           }
-        //       ]
-        //   }
-        //
-        const orders = this.safeList (response, 'data', []);
+        let response = undefined;
+        let orders = [];
+        if (uta) {
+            let accountMode = 'unified';
+            [ accountMode, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'accountMode', accountMode);
+            request['accountMode'] = accountMode;
+            let marginMode = undefined;
+            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrder', params);
+            const tradeType = this.handleTradeType (isContractMarket, marginMode, params);
+            request['tradeType'] = tradeType;
+            request['cancelOrderList'] = ordersRequests;
+            response = await this.utaPrivatePostAccountModeOrderCancelBatch (this.extend (request, params));
+            const data = this.safeDict (response, 'data', {});
+            orders = this.safeList (data, 'items', []);
+        } else {
+            const requestKey = useClientorderId ? 'clientOidsList' : 'orderIdsList';
+            request[requestKey] = ordersRequests;
+            response = await this.futuresPrivateDeleteOrdersMultiCancel (this.extend (request, params));
+            //
+            //   {
+            //       "code": "200000",
+            //       "data":
+            //       [
+            //           {
+            //               "orderId": "80465574458560512",
+            //               "clientOid": null,
+            //               "code": "200",
+            //               "msg": "success"
+            //           },
+            //           {
+            //               "orderId": "80465575289094144",
+            //               "clientOid": null,
+            //               "code": "200",
+            //               "msg": "success"
+            //           }
+            //       ]
+            //   }
+            //
+            orders = this.safeList (response, 'data', []);
+        }
         return this.parseOrders (orders, market);
     }
 
