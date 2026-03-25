@@ -11,11 +11,15 @@ func TestRawencode() {
 	exchange.InitParent(map[string]interface{}{
 		"id": "sampleexchange",
 	}, map[string]interface{}{}, exchange)
+	// todo: add sort
+	// todo: add nulls
 	var dict2 map[string]interface{} = map[string]interface{}{
 		"a": 1,
 		"b": "+&",
-		"d": "x123",
 	}
-	var expected2 interface{} = "a=1&b=+&&d=x123"
-	assert(ccxt.IsEqual(exchange.Rawencode(dict2), expected2), ccxt.Add(ccxt.Add(ccxt.Add("rawencode: expected ", expected2), " but got "), exchange.Rawencode(dict2)))
+	// as key-order not preserved, expect mixed orde
+	var expected2a interface{} = "a=1&b=+&"
+	var expected2b interface{} = "b=+&&a=1"
+	var result2 interface{} = exchange.Rawencode(dict2)
+	assert(ccxt.IsTrue(ccxt.IsEqual(result2, expected2a)) || ccxt.IsTrue(ccxt.IsEqual(result2, expected2b)), ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("rawencode: expected ", expected2a), " or "), expected2b), " but got "), result2))
 }

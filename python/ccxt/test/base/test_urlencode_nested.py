@@ -18,13 +18,18 @@ def test_urlencode_nested():
     exchange = ccxt.Exchange({
         'id': 'sampleexchange',
     })
+    # todo: add nulls
+    # todo: add key sort (for different langs)
     dict2 = {
-        'a': 1,
         'b': {
             'c': 2,
             'target': '+&',
         },
         'd': [1, 2],
     }
-    expected2 = 'a=1&b[c]=2&b[target]=%2B%26&d[0]=1&d[1]=2'
-    assert exchange.urlencode_nested(dict2) == expected2, 'urlencodeNested: expected ' + expected2 + ' but got ' + exchange.urlencode_nested(dict2)
+    expected2a = 'b[c]=2&b[target]=%2B%26&d[0]=1&d[1]=2'
+    expected2c = 'b[target]=%2B%26&b[c]=2&d[0]=1&d[1]=2'
+    expected2b = 'd[0]=1&d[1]=2&b[c]=2&b[target]=%2B%26'
+    expected2d = 'd[0]=1&d[1]=2&b[target]=%2B%26&b[c]=2'
+    result2 = exchange.urlencode_nested(dict2)
+    assert result2 == expected2a or result2 == expected2b or result2 == expected2c or result2 == expected2d, 'urlencodeNested: expected ' + expected2a + ' or ' + expected2b + ' or ' + expected2c + ' or ' + expected2d + ' but got ' + result2
