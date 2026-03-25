@@ -1086,6 +1086,10 @@ class Exchange {
         return \base64_encode($binary);
     }
 
+    public static function string_to_base64($str) {
+        return \base64_encode($str);
+    }
+
     public static function base16_to_binary($data) {
         return hex2bin($data);
     }
