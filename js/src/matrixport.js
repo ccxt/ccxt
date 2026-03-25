@@ -1,26 +1,21 @@
-
 //  ---------------------------------------------------------------------------
-
 import Exchange from './abstract/matrixport.js';
 import { ExchangeError, AuthenticationError, BadRequest, ArgumentsRequired, InsufficientFunds, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Dict, Int, int, Market, Num, Order, OrderSide, OrderType, Str, Ticker, Transaction, LedgerEntry, DepositAddress } from './base/types.js';
-
 //  ---------------------------------------------------------------------------
-
 /**
  * @class matrixport
  * @augments Exchange
  * @description MatrixPort (bit.com) crypto financial services platform with RFQ-based trading and wallet APIs
  */
 export default class matrixport extends Exchange {
-    describe (): any {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'matrixport',
             'name': 'MatrixPort',
-            'countries': [ 'SG' ],
+            'countries': ['SG'],
             'rateLimit': 1000,
             'certified': false,
             'pro': false,
@@ -430,9 +425,9 @@ export default class matrixport extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    '14000103': AuthenticationError, // auth incorrect sign
-                    '14000104': AuthenticationError, // auth key not found
-                    '14000105': AuthenticationError, // auth timestamp expired
+                    '14000103': AuthenticationError,
+                    '14000104': AuthenticationError,
+                    '14000105': AuthenticationError,
                     '429': RateLimitExceeded,
                 },
                 'broad': {
@@ -444,7 +439,6 @@ export default class matrixport extends Exchange {
             },
         });
     }
-
     /**
      * @method
      * @name matrixport#fetchMarkets
@@ -453,36 +447,35 @@ export default class matrixport extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Market[]} an array of objects representing market data
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
-        const response = await this.tradeGetSymbolsInfo (params);
+    async fetchMarkets(params = {}) {
+        const response = await this.tradeGetSymbolsInfo(params);
         //
         // { "code": 0, "message": "success", "data": [ { "symbol": "BTC_USDT", ... } ] }
         //
-        const data = this.safeList (response, 'data', []);
-        const result: Market[] = [];
+        const data = this.safeList(response, 'data', []);
+        const result = [];
         for (let i = 0; i < data.length; i++) {
-            const market = this.parseMarket (data[i]);
-            result.push (market);
+            const market = this.parseMarket(data[i]);
+            result.push(market);
         }
         return result;
     }
-
-    parseMarket (market: Dict): Market {
+    parseMarket(market) {
         //
         // { "pair": "BTCUSDT", "base_currency": "BTC", "quote_currency": "USDT",
         //   "quote_precision": "2", "base_precision": "4",
         //   "base_min_amount": "0.0005", "base_max_amount": "33",
         //   "quote_min_amount": "20", "quote_max_amount": "2200000" }
         //
-        const id = this.safeString (market, 'pair');
-        const baseId = this.safeString (market, 'base_currency');
-        const quoteId = this.safeString (market, 'quote_currency');
-        const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
+        const id = this.safeString(market, 'pair');
+        const baseId = this.safeString(market, 'base_currency');
+        const quoteId = this.safeString(market, 'quote_currency');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
         const symbol = base + '/' + quote;
-        const basePrecision = this.safeString (market, 'base_precision');
-        const quotePrecision = this.safeString (market, 'quote_precision');
-        return this.safeMarketStructure ({
+        const basePrecision = this.safeString(market, 'base_precision');
+        const quotePrecision = this.safeString(market, 'quote_precision');
+        return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -507,8 +500,8 @@ export default class matrixport extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.parseNumber (this.parsePrecision (basePrecision)),
-                'price': this.parseNumber (this.parsePrecision (quotePrecision)),
+                'amount': this.parseNumber(this.parsePrecision(basePrecision)),
+                'price': this.parseNumber(this.parsePrecision(quotePrecision)),
             },
             'limits': {
                 'leverage': {
@@ -516,22 +509,21 @@ export default class matrixport extends Exchange {
                     'max': undefined,
                 },
                 'amount': {
-                    'min': this.safeNumber (market, 'base_min_amount'),
-                    'max': this.safeNumber (market, 'base_max_amount'),
+                    'min': this.safeNumber(market, 'base_min_amount'),
+                    'max': this.safeNumber(market, 'base_max_amount'),
                 },
                 'price': {
                     'min': undefined,
                     'max': undefined,
                 },
                 'cost': {
-                    'min': this.safeNumber (market, 'quote_min_amount'),
-                    'max': this.safeNumber (market, 'quote_max_amount'),
+                    'min': this.safeNumber(market, 'quote_min_amount'),
+                    'max': this.safeNumber(market, 'quote_max_amount'),
                 },
             },
             'info': market,
         });
     }
-
     /**
      * @method
      * @name matrixport#fetchCurrencies
@@ -540,8 +532,8 @@ export default class matrixport extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    async fetchCurrencies (params = {}): Promise<Currencies> {
-        const response = await this.walletGetCurrencies (params);
+    async fetchCurrencies(params = {}) {
+        const response = await this.walletGetCurrencies(params);
         //
         // { "code": "0", "data": { "currencies": [
         //   { "currency": "PAXG", "chains": ["ERC20"], "networks": [
@@ -549,21 +541,21 @@ export default class matrixport extends Exchange {
         //       "min_deposit_amount": "0.0001", "min_withdraw_amount": "0.0024",
         //       "withdraw_fee": "0.00050481", "decimal": "18" } ] } ] } }
         //
-        const data = this.safeDict (response, 'data', {});
-        const currencies = this.safeList (data, 'currencies', []);
-        const result: Dict = {};
+        const data = this.safeDict(response, 'data', {});
+        const currencies = this.safeList(data, 'currencies', []);
+        const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const entry = currencies[i];
-            const id = this.safeString (entry, 'currency');
-            const code = this.safeCurrencyCode (id);
-            const networksList = this.safeList (entry, 'networks', []);
-            const networks: Dict = {};
+            const id = this.safeString(entry, 'currency');
+            const code = this.safeCurrencyCode(id);
+            const networksList = this.safeList(entry, 'networks', []);
+            const networks = {};
             let active = false;
             for (let j = 0; j < networksList.length; j++) {
                 const network = networksList[j];
-                const networkId = this.safeString (network, 'chain');
-                const canDeposit = this.safeBool (network, 'can_deposit', false);
-                const canWithdraw = this.safeBool (network, 'can_withdraw', false);
+                const networkId = this.safeString(network, 'chain');
+                const canDeposit = this.safeBool(network, 'can_deposit', false);
+                const canWithdraw = this.safeBool(network, 'can_withdraw', false);
                 if (canDeposit || canWithdraw) {
                     active = true;
                 }
@@ -573,22 +565,22 @@ export default class matrixport extends Exchange {
                     'active': canDeposit || canWithdraw,
                     'deposit': canDeposit,
                     'withdraw': canWithdraw,
-                    'fee': this.safeNumber (network, 'withdraw_fee'),
+                    'fee': this.safeNumber(network, 'withdraw_fee'),
                     'precision': undefined,
                     'limits': {
                         'withdraw': {
-                            'min': this.safeNumber (network, 'min_withdraw_amount'),
+                            'min': this.safeNumber(network, 'min_withdraw_amount'),
                             'max': undefined,
                         },
                         'deposit': {
-                            'min': this.safeNumber (network, 'min_deposit_amount'),
+                            'min': this.safeNumber(network, 'min_deposit_amount'),
                             'max': undefined,
                         },
                     },
                     'info': network,
                 };
             }
-            result[code] = this.safeCurrencyStructure ({
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'code': code,
                 'name': code,
@@ -613,7 +605,6 @@ export default class matrixport extends Exchange {
         }
         return result;
     }
-
     /**
      * @method
      * @name matrixport#fetchTicker
@@ -623,41 +614,40 @@ export default class matrixport extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
+    async fetchTicker(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
             'symbol': market['id'],
             'side': 0,
-            'qty': this.safeString (market['limits']['amount'], 'min', '0.001'),
+            'qty': this.safeString(market['limits']['amount'], 'min', '0.001'),
         };
-        const response = await this.tradeGetRfqPrice (this.extend (request, params));
+        const response = await this.tradeGetRfqPrice(this.extend(request, params));
         //
         // { "code": "0", "data": { "symbol": "BTCUSDT", "price_id": "...",
         //   "price": "...", "expire_ts": ..., "qty": "...", "cash": "..." } }
         //
-        const data = this.safeDict (response, 'data', {});
-        return this.parseTicker (data, market);
+        const data = this.safeDict(response, 'data', {});
+        return this.parseTicker(data, market);
     }
-
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    parseTicker(ticker, market = undefined) {
         //
         // { "symbol": "BTCUSDT", "price_id": "...", "price": "68572.53",
         //   "expire_ts": "...", "countdown_ts": "5500", "qty": "0.0005", "cash": "34.28" }
         //
-        const marketId = this.safeString (ticker, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeString (ticker, 'price');
-        const expireTs = this.safeInteger (ticker, 'expire_ts');
-        const countdownMs = this.safeInteger (ticker, 'countdown_ts');
+        const marketId = this.safeString(ticker, 'symbol');
+        const symbol = this.safeSymbol(marketId, market);
+        const last = this.safeString(ticker, 'price');
+        const expireTs = this.safeInteger(ticker, 'expire_ts');
+        const countdownMs = this.safeInteger(ticker, 'countdown_ts');
         let timestamp = undefined;
         if (expireTs !== undefined && countdownMs !== undefined) {
             timestamp = expireTs - countdownMs;
         }
-        return this.safeTicker ({
+        return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'high': undefined,
             'low': undefined,
             'bid': last,
@@ -677,30 +667,28 @@ export default class matrixport extends Exchange {
             'info': ticker,
         }, market);
     }
-
-    parseBalance (response): Balances {
+    parseBalance(response) {
         //
         // { "code": "0", "data": { "items": [
         //   { "available_balance": "0", "balance": "0", "currency": "BTC",
         //     "frozen_balance": "0", "unconfirmed_balance": "0" }, ... ] } }
         //
-        const data = this.safeDict (response, 'data', {});
-        const items = this.safeList (data, 'items', []);
-        const result: Dict = { 'info': response };
+        const data = this.safeDict(response, 'data', {});
+        const items = this.safeList(data, 'items', []);
+        const result = { 'info': response };
         for (let i = 0; i < items.length; i++) {
             const entry = items[i];
-            const currencyId = this.safeString (entry, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (entry, 'available_balance');
-            account['used'] = this.safeString (entry, 'frozen_balance');
-            account['total'] = this.safeString (entry, 'balance');
+            const currencyId = this.safeString(entry, 'currency');
+            const code = this.safeCurrencyCode(currencyId);
+            const account = this.account();
+            account['free'] = this.safeString(entry, 'available_balance');
+            account['used'] = this.safeString(entry, 'frozen_balance');
+            account['total'] = this.safeString(entry, 'balance');
             result[code] = account;
         }
-        return this.safeBalance (result);
+        return this.safeBalance(result);
     }
-
-    parseBalancePlusBalance (response): Balances {
+    parseBalancePlusBalance(response) {
         //
         // { "code": 0, "message": "", "data": {
         //   "total_balance_amount": "0", "total_interest": "0",
@@ -708,43 +696,41 @@ export default class matrixport extends Exchange {
         //     "subject_type": "flexi_saving", "balance": "0",
         //     "deposit_apy": "0.08", "interest": "0" } ] } }
         //
-        const data = this.safeDict (response, 'data', {});
-        const currencies = this.safeList (data, 'currencies', []);
-        const result: Dict = { 'info': response };
+        const data = this.safeDict(response, 'data', {});
+        const currencies = this.safeList(data, 'currencies', []);
+        const result = { 'info': response };
         for (let i = 0; i < currencies.length; i++) {
             const entry = currencies[i];
-            const currencyId = this.safeString (entry, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['total'] = this.safeString (entry, 'balance');
+            const currencyId = this.safeString(entry, 'currency');
+            const code = this.safeCurrencyCode(currencyId);
+            const account = this.account();
+            account['total'] = this.safeString(entry, 'balance');
             result[code] = account;
         }
-        return this.safeBalance (result);
+        return this.safeBalance(result);
     }
-
-    parseStakingBalance (response): Balances {
+    parseStakingBalance(response) {
         //
         // { "code": 0, "data": { "count": 2, "items": [
         //   { "id": "...", "currency": "ETH", "amount_dec": "1.5",
         //     "order_status": 1, "hold_profit": "0.01", ... } ] } }
         //
-        const data = this.safeDict (response, 'data', {});
-        const items = this.safeList (data, 'items', []);
-        const result: Dict = { 'info': response };
+        const data = this.safeDict(response, 'data', {});
+        const items = this.safeList(data, 'items', []);
+        const result = { 'info': response };
         for (let i = 0; i < items.length; i++) {
             const entry = items[i];
-            const currencyId = this.safeString (entry, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
+            const currencyId = this.safeString(entry, 'currency');
+            const code = this.safeCurrencyCode(currencyId);
             if (!(code in result)) {
-                result[code] = this.account ();
+                result[code] = this.account();
                 result[code]['total'] = '0';
             }
-            const amount = this.safeString (entry, 'amount_dec');
-            result[code]['total'] = Precise.stringAdd (result[code]['total'], amount);
+            const amount = this.safeString(entry, 'amount_dec');
+            result[code]['total'] = Precise.stringAdd(result[code]['total'], amount);
         }
-        return this.safeBalance (result);
+        return this.safeBalance(result);
     }
-
     /**
      * @method
      * @name matrixport#fetchBalance
@@ -756,30 +742,30 @@ export default class matrixport extends Exchange {
      * @param {string} [params.type] the type of balance to fetch: 'wallet' (default), 'savings' for Balance+ flexible savings, or 'staking' for fixed staking balances
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+    async fetchBalance(params = {}) {
+        await this.loadMarkets();
         let type = undefined;
-        [ type, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'type', 'wallet');
+        [type, params] = this.handleOptionAndParams(params, 'fetchBalance', 'type', 'wallet');
         if (type === 'savings') {
-            const request: Dict = {
+            const request = {
                 'product_type': 'flexi_saving',
                 'subject_type': 'flexi_saving',
             };
-            const response = await this.balancePlusGetAppHomepage (this.extend (request, params));
-            return this.parseBalancePlusBalance (response);
-        } else if (type === 'staking') {
-            const request: Dict = {
+            const response = await this.balancePlusGetAppHomepage(this.extend(request, params));
+            return this.parseBalancePlusBalance(response);
+        }
+        else if (type === 'staking') {
+            const request = {
                 'status_category': 1,
                 'offset': 0,
                 'limit': 100,
             };
-            const response = await this.stakingGetOrders (this.extend (request, params));
-            return this.parseStakingBalance (response);
+            const response = await this.stakingGetOrders(this.extend(request, params));
+            return this.parseStakingBalance(response);
         }
-        const response = await this.walletGetBalance (params);
-        return this.parseBalance (response);
+        const response = await this.walletGetBalance(params);
+        return this.parseBalance(response);
     }
-
     /**
      * @method
      * @name matrixport#createOrder
@@ -793,88 +779,86 @@ export default class matrixport extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
+    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
         const sideValue = (side === 'buy') ? 0 : 1;
         // RFQ flow: caller must provide 'price_id' from a prior fetchTicker/rfq-price call
-        const priceId = this.safeString (params, 'price_id');
+        const priceId = this.safeString(params, 'price_id');
         if (priceId === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a price_id parameter from a prior rfq-price quote');
+            throw new ArgumentsRequired(this.id + ' createOrder() requires a price_id parameter from a prior rfq-price quote');
         }
-        const clientOrderId = this.safeString (params, 'client_order_id', this.uuid ());
-        const request: Dict = {
+        const clientOrderId = this.safeString(params, 'client_order_id', this.uuid());
+        const request = {
             'symbol': market['id'],
             'side': sideValue,
-            'qty': this.amountToPrecision (symbol, amount),
+            'qty': this.amountToPrecision(symbol, amount),
             'price_id': priceId,
             'client_order_id': clientOrderId,
         };
-        params = this.omit (params, [ 'price_id', 'client_order_id' ]);
-        const response = await this.tradePostRfqPlace (this.extend (request, params));
+        params = this.omit(params, ['price_id', 'client_order_id']);
+        const response = await this.tradePostRfqPlace(this.extend(request, params));
         //
         // { "code": "0", "data": { "order_id": "...", "client_order_id": "...",
         //   "status": ..., "filled_price": "...", "filled_qty": "...", "filled_cash": "..." } }
         //
-        const data = this.safeDict (response, 'data', {});
-        return this.parseOrder (data, market);
+        const data = this.safeDict(response, 'data', {});
+        return this.parseOrder(data, market);
     }
-
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    parseOrder(order, market = undefined) {
         //
         // { "order_id": "...", "client_order_id": "...", "create_ts": ...,
         //   "status": 3, "filled_price": "...", "filled_qty": "...", "filled_cash": "..." }
         //
-        const id = this.safeString (order, 'order_id');
-        const clientOrderId = this.safeString (order, 'client_order_id');
-        const symbolId = this.safeString (order, 'symbol');
-        market = this.safeMarket (symbolId, market);
-        const timestamp = this.safeInteger (order, 'create_ts');
-        const sideValue = this.safeInteger (order, 'side');
+        const id = this.safeString(order, 'order_id');
+        const clientOrderId = this.safeString(order, 'client_order_id');
+        const symbolId = this.safeString(order, 'symbol');
+        market = this.safeMarket(symbolId, market);
+        const timestamp = this.safeInteger(order, 'create_ts');
+        const sideValue = this.safeInteger(order, 'side');
         let side = undefined;
         if (sideValue === 0) {
             side = 'buy';
-        } else if (sideValue === 1) {
+        }
+        else if (sideValue === 1) {
             side = 'sell';
         }
-        const statusCode = this.safeString (order, 'status');
-        const status = this.parseOrderStatus (statusCode);
-        return this.safeOrder ({
+        const statusCode = this.safeString(order, 'status');
+        const status = this.parseOrderStatus(statusCode);
+        return this.safeOrder({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': market['symbol'],
             'type': 'market',
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
-            'price': this.safeString (order, 'filled_price'),
+            'price': this.safeString(order, 'filled_price'),
             'stopPrice': undefined,
             'triggerPrice': undefined,
-            'amount': this.safeString2 (order, 'qty', 'filled_qty'),
-            'cost': this.safeString (order, 'filled_cash'),
-            'average': this.safeString (order, 'filled_price'),
-            'filled': this.safeString (order, 'filled_qty'),
+            'amount': this.safeString2(order, 'qty', 'filled_qty'),
+            'cost': this.safeString(order, 'filled_cash'),
+            'average': this.safeString(order, 'filled_price'),
+            'filled': this.safeString(order, 'filled_qty'),
             'remaining': undefined,
             'status': status,
             'fee': undefined,
             'trades': undefined,
         }, market);
     }
-
-    parseOrderStatus (status) {
-        const statuses: Dict = {
+    parseOrderStatus(status) {
+        const statuses = {
             '101': 'open',
             '2': 'closed',
             '3': 'closed',
             '5': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString(statuses, status, status);
     }
-
     /**
      * @method
      * @name matrixport#fetchOrder
@@ -885,16 +869,15 @@ export default class matrixport extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
-        const request: Dict = {
+    async fetchOrder(id, symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        const request = {
             'order_id': id,
         };
-        const response = await this.tradeGetOrder (this.extend (request, params));
-        const data = this.safeDict (response, 'data', {});
-        return this.parseOrder (data);
+        const response = await this.tradeGetOrder(this.extend(request, params));
+        const data = this.safeDict(response, 'data', {});
+        return this.parseOrder(data);
     }
-
     /**
      * @method
      * @name matrixport#fetchOrders
@@ -906,34 +889,34 @@ export default class matrixport extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
+            throw new ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         // start_time and end_time are required by the API
-        const now = this.milliseconds ();
+        const now = this.milliseconds();
         if (since !== undefined) {
             request['start_time'] = since;
-        } else {
+        }
+        else {
             // default to 30 days ago
             request['start_time'] = now - 30 * 24 * 60 * 60 * 1000;
         }
-        if (this.safeInteger (params, 'end_time') === undefined) {
+        if (this.safeInteger(params, 'end_time') === undefined) {
             request['end_time'] = now;
         }
-        const response = await this.tradeGetOrders (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
-        return this.parseOrders (data, market, since, limit);
+        const response = await this.tradeGetOrders(this.extend(request, params));
+        const data = this.safeList(response, 'data', []);
+        return this.parseOrders(data, market, since, limit);
     }
-
     /**
      * @method
      * @name matrixport#fetchDepositAddress
@@ -943,39 +926,37 @@ export default class matrixport extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const chain = this.safeString (params, 'chain');
+    async fetchDepositAddress(code, params = {}) {
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const chain = this.safeString(params, 'chain');
         if (chain === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a chain parameter, e.g. { chain: "ERC20" }');
+            throw new ArgumentsRequired(this.id + ' fetchDepositAddress() requires a chain parameter, e.g. { chain: "ERC20" }');
         }
-        const request: Dict = {
+        const request = {
             'currency': currency['id'],
             'chain': chain,
         };
-        params = this.omit (params, [ 'chain' ]);
-        const response = await this.walletGetDepositAddress (this.extend (request, params));
-        const data = this.safeDict (response, 'data', {});
-        return this.parseDepositAddress (data, currency);
+        params = this.omit(params, ['chain']);
+        const response = await this.walletGetDepositAddress(this.extend(request, params));
+        const data = this.safeDict(response, 'data', {});
+        return this.parseDepositAddress(data, currency);
     }
-
-    parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
+    parseDepositAddress(depositAddress, currency = undefined) {
         //
         // { "address": "13KiFZsCgvJmQ3Cx2PNXpHpjoQMrQPsxkC", "tag": "" }
         //
-        const address = this.safeString (depositAddress, 'address');
-        const tag = this.safeString (depositAddress, 'tag');
-        const currencyId = this.safeString (depositAddress, 'currency');
+        const address = this.safeString(depositAddress, 'address');
+        const tag = this.safeString(depositAddress, 'tag');
+        const currencyId = this.safeString(depositAddress, 'currency');
         return {
             'info': depositAddress,
-            'currency': this.safeCurrencyCode (currencyId, currency),
+            'currency': this.safeCurrencyCode(currencyId, currency),
             'network': undefined,
             'address': address,
             'tag': (tag !== undefined && tag.length > 0) ? tag : undefined,
-        } as DepositAddress;
+        };
     }
-
     /**
      * @method
      * @name matrixport#withdraw
@@ -988,49 +969,48 @@ export default class matrixport extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        this.checkAddress (address);
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const chain = this.safeString (params, 'chain');
+    async withdraw(code, amount, address, tag = undefined, params = {}) {
+        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        this.checkAddress(address);
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const chain = this.safeString(params, 'chain');
         if (chain === undefined) {
-            throw new ArgumentsRequired (this.id + ' withdraw() requires a chain parameter, e.g. { chain: "ERC20" }');
+            throw new ArgumentsRequired(this.id + ' withdraw() requires a chain parameter, e.g. { chain: "ERC20" }');
         }
-        const request: Dict = {
+        const request = {
             'currency': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision(code, amount),
             'address': address,
             'chain': chain,
         };
         if (tag !== undefined) {
             request['memo'] = tag;
         }
-        params = this.omit (params, [ 'chain' ]);
-        const response = await this.walletPostWithdraw (this.extend (request, params));
-        const data = this.safeDict (response, 'data', {});
-        return this.parseTransaction (data, currency);
+        params = this.omit(params, ['chain']);
+        const response = await this.walletPostWithdraw(this.extend(request, params));
+        const data = this.safeDict(response, 'data', {});
+        return this.parseTransaction(data, currency);
     }
-
-    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
-        const id = this.safeString2 (transaction, 'withdrawal_id', 'deposit_id');
-        const txid = this.safeString (transaction, 'tx_id');
-        const currencyId = this.safeString (transaction, 'currency');
-        const code = this.safeCurrencyCode (currencyId, currency);
-        const timestamp = this.safeInteger (transaction, 'created_at');
-        const amount = this.safeNumber (transaction, 'amount');
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const address = this.safeString (transaction, 'address');
-        const tag = this.safeString (transaction, 'memo');
-        const fee = this.safeNumber (transaction, 'fee');
-        const type = this.safeString (transaction, 'type');
+    parseTransaction(transaction, currency = undefined) {
+        const id = this.safeString2(transaction, 'withdrawal_id', 'deposit_id');
+        const txid = this.safeString(transaction, 'tx_id');
+        const currencyId = this.safeString(transaction, 'currency');
+        const code = this.safeCurrencyCode(currencyId, currency);
+        const timestamp = this.safeInteger(transaction, 'created_at');
+        const amount = this.safeNumber(transaction, 'amount');
+        const status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
+        const address = this.safeString(transaction, 'address');
+        const tag = this.safeString(transaction, 'memo');
+        const fee = this.safeNumber(transaction, 'fee');
+        const type = this.safeString(transaction, 'type');
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'network': this.safeString (transaction, 'chain'),
+            'datetime': this.iso8601(timestamp),
+            'network': this.safeString(transaction, 'chain'),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -1049,19 +1029,17 @@ export default class matrixport extends Exchange {
                 'cost': fee,
                 'rate': undefined,
             },
-        } as Transaction;
+        };
     }
-
-    parseTransactionStatus (status: Str): Str {
-        const statuses: Dict = {
+    parseTransactionStatus(status) {
+        const statuses = {
             'completed': 'ok',
             'pending': 'pending',
             'failed': 'failed',
             'cancelled': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString(statuses, status, status);
     }
-
     /**
      * @method
      * @name matrixport#fetchDeposits
@@ -1073,23 +1051,22 @@ export default class matrixport extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a code argument');
+            throw new ArgumentsRequired(this.id + ' fetchDeposits() requires a code argument');
         }
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request: Dict = {
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const request = {
             'currency': currency['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.walletGetDeposits (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
-        return this.parseTransactions (data, currency, since, limit, { 'type': 'deposit' });
+        const response = await this.walletGetDeposits(this.extend(request, params));
+        const data = this.safeList(response, 'data', []);
+        return this.parseTransactions(data, currency, since, limit, { 'type': 'deposit' });
     }
-
     /**
      * @method
      * @name matrixport#fetchWithdrawals
@@ -1101,23 +1078,22 @@ export default class matrixport extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a code argument');
+            throw new ArgumentsRequired(this.id + ' fetchWithdrawals() requires a code argument');
         }
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request: Dict = {
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const request = {
             'currency': currency['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.walletGetWithdrawals (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
-        return this.parseTransactions (data, currency, since, limit, { 'type': 'withdrawal' });
+        const response = await this.walletGetWithdrawals(this.extend(request, params));
+        const data = this.safeList(response, 'data', []);
+        return this.parseTransactions(data, currency, since, limit, { 'type': 'withdrawal' });
     }
-
     /**
      * @method
      * @name matrixport#fetchLedger
@@ -1129,12 +1105,12 @@ export default class matrixport extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-structure}
      */
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
-        await this.loadMarkets ();
-        const request: Dict = {};
+    async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        const request = {};
         let currency = undefined;
         if (code !== undefined) {
-            currency = this.currency (code);
+            currency = this.currency(code);
             request['currency'] = currency['id'];
         }
         if (limit !== undefined) {
@@ -1143,24 +1119,23 @@ export default class matrixport extends Exchange {
         if (since !== undefined) {
             request['start_time'] = since;
         }
-        const response = await this.walletGetBills (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
-        return this.parseLedger (data, currency, since, limit);
+        const response = await this.walletGetBills(this.extend(request, params));
+        const data = this.safeList(response, 'data', []);
+        return this.parseLedger(data, currency, since, limit);
     }
-
-    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
-        const id = this.safeString (item, 'bill_id');
-        const currencyId = this.safeString (item, 'currency');
-        const code = this.safeCurrencyCode (currencyId, currency);
-        const amount = this.safeNumber (item, 'amount');
-        const timestamp = this.safeInteger (item, 'created_at');
-        const type = this.safeString (item, 'tx_type');
-        const balanceAfter = this.safeNumber (item, 'balance');
-        return this.safeLedgerEntry ({
+    parseLedgerEntry(item, currency = undefined) {
+        const id = this.safeString(item, 'bill_id');
+        const currencyId = this.safeString(item, 'currency');
+        const code = this.safeCurrencyCode(currencyId, currency);
+        const amount = this.safeNumber(item, 'amount');
+        const timestamp = this.safeInteger(item, 'created_at');
+        const type = this.safeString(item, 'tx_type');
+        const balanceAfter = this.safeNumber(item, 'balance');
+        return this.safeLedgerEntry({
             'id': id,
             'info': item,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'direction': undefined,
             'account': undefined,
             'referenceId': undefined,
@@ -1174,18 +1149,17 @@ export default class matrixport extends Exchange {
             'fee': undefined,
         }, currency);
     }
-
-    sign (path, api = 'wallet', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const baseUrl = this.urls['api'][api] as string;
-        const implodedPath = this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
-        this.checkRequiredCredentials ();
-        const timestamp = this.milliseconds ().toString ();
+    sign(path, api = 'wallet', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const baseUrl = this.urls['api'][api];
+        const implodedPath = this.implodeParams(path, params);
+        const query = this.omit(params, this.extractParams(path));
+        this.checkRequiredCredentials();
+        const timestamp = this.milliseconds().toString();
         // build the signing path by stripping the hostname from the base URL
         // e.g. 'https://mapi.matrixport.com/mapi/v1/wallet' -> '/mapi/v1/wallet'
-        const protocolEnd = baseUrl.indexOf ('://');
-        const hostEnd = baseUrl.indexOf ('/', protocolEnd + 3);
-        const basePath = (hostEnd >= 0) ? baseUrl.slice (hostEnd) : '';
+        const protocolEnd = baseUrl.indexOf('://');
+        const hostEnd = baseUrl.indexOf('/', protocolEnd + 3);
+        const basePath = (hostEnd >= 0) ? baseUrl.slice(hostEnd) : '';
         const urlPath = basePath + '/' + implodedPath;
         let url = baseUrl + '/' + implodedPath;
         // V2 auth (headers) for wallet/trade/dcp/dcpV2; V1 auth (query params) for all other APIs
@@ -1194,37 +1168,40 @@ export default class matrixport extends Exchange {
             // V1 auth: signature and timestamp as query params (GET) or body fields (POST)
             // prehash: api_path + '&' + sorted_params (including timestamp)
             query['timestamp'] = timestamp;
-            const sortedParams = this.urlencode (this.keysort (query));
+            const sortedParams = this.urlencode(this.keysort(query));
             const auth = urlPath + '&' + sortedParams;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             headers = {
                 'X-MatrixPort-Access-Key': this.apiKey,
             };
             if (method === 'GET') {
                 url += '?' + sortedParams + '&signature=' + signature;
-            } else {
+            }
+            else {
                 query['signature'] = signature;
-                body = this.json (query);
+                body = this.json(query);
                 headers['Content-Type'] = 'application/json';
             }
-        } else {
+        }
+        else {
             // V2 auth: signature in headers
             // prehash: timestamp + METHOD + /api/path + '&' + body
             let bodyStr = '';
             if (method === 'GET') {
-                if (Object.keys (query).length) {
-                    const queryString = this.urlencode (query);
+                if (Object.keys(query).length) {
+                    const queryString = this.urlencode(query);
                     url += '?' + queryString;
                     bodyStr = queryString;
                 }
-            } else {
-                if (Object.keys (query).length) {
-                    body = this.json (query);
+            }
+            else {
+                if (Object.keys(query).length) {
+                    body = this.json(query);
                     bodyStr = body;
                 }
             }
             const auth = timestamp + method + urlPath + '&' + bodyStr;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             headers = {
                 'X-MatrixPort-Access-Key': this.apiKey,
                 'X-Signature': signature,
@@ -1237,18 +1214,17 @@ export default class matrixport extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-
-    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }
-        const code = this.safeString (response, 'code');
+        const code = this.safeString(response, 'code');
         if (code !== undefined && code !== '0') {
-            const message = this.safeString (response, 'message', '');
+            const message = this.safeString(response, 'message', '');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-            throw new ExchangeError (feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
+            throw new ExchangeError(feedback);
         }
         return undefined;
     }
