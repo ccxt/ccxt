@@ -1907,7 +1907,7 @@ func (this *ZebpayCore) FetchPositions(optionalArgs ...interface{}) <-chan inter
  * @param {object} [params] extra parameters specific to the exchange API endpoint.
  * @param {string} [params.positionId] PositionId of the order to add margin.
  * @param {string} [params.timestamp] Tiemstamp.
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *ZebpayCore) AddMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1967,7 +1967,7 @@ func (this *ZebpayCore) AddMargin(symbol interface{}, amount interface{}, option
  * @param {object} [params] extra parameters specific to the exchange API endpoint.
  * @param {string} [params.positionId] PositionId of the order to add margin.
  * @param {string} [params.timestamp] Tiemstamp.
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *ZebpayCore) ReduceMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})

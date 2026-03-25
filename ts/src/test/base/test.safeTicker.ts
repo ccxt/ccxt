@@ -1,5 +1,5 @@
 
-// AUTO_TRANSPILE_ENABLED
+
 
 import assert from 'assert';
 import Precise from '../../base/Precise.js';

@@ -310,8 +310,8 @@ public partial class coincatch : Exchange
                     { "ERC20", "ERC20" },
                     { "TRC20", "TRC20" },
                     { "BEP20", "BEP20" },
-                    { "ARB", "ArbitrumOne" },
-                    { "OPTIMISM", "Optimism" },
+                    { "ARBONE", "ArbitrumOne" },
+                    { "OP", "Optimism" },
                     { "LTC", "LTC" },
                     { "BCH", "BCH" },
                     { "ETC", "ETC" },
@@ -344,7 +344,7 @@ public partial class coincatch : Exchange
                     { "CFX", "CFX" },
                     { "STRAT", "StratisEVM" },
                     { "TIA", "Celestia" },
-                    { "ChilizChain", "ChilizChain" },
+                    { "CHZ", "ChilizChain" },
                     { "APT", "Aptos" },
                     { "ONT", "Ontology" },
                     { "ICP", "ICP" },
@@ -359,18 +359,6 @@ public partial class coincatch : Exchange
                 { "networksById", new Dictionary<string, object>() {
                     { "TRC20", "TRC20" },
                     { "TRX(TRC20)", "TRC20" },
-                    { "ArbitrumOne", "ARB" },
-                    { "THORChain", "RUNE" },
-                    { "Solar", "SXP" },
-                    { "C-Chain", "AVAX" },
-                    { "CAP20", "CAP20" },
-                    { "CFXeSpace", "CFX" },
-                    { "CFX", "CFX" },
-                    { "StratisEVM", "STRAT" },
-                    { "ChilizChain", "ChilizChain" },
-                    { "StellarLumens", "XLM" },
-                    { "CronosChain", "CRO" },
-                    { "Optimism", "Optimism" },
                 } },
             } },
             { "features", new Dictionary<string, object>() {
@@ -5250,7 +5238,7 @@ public partial class coincatch : Exchange
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
@@ -5268,7 +5256,7 @@ public partial class coincatch : Exchange
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
@@ -5585,7 +5573,7 @@ public partial class coincatch : Exchange
      * @param {string} [params.business] *swap only*
      * @param {string} [params.lastEndId] *swap only*
      * @param {bool} [params.next] *swap only*
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {

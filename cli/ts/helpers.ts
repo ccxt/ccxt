@@ -12,7 +12,8 @@ const log = ololog.configure ({ 'locate': false }).unlimited;
 let add_static_result;
 
 try {
-    add_static_result = (await import ('../../utils/update-static-tests-data.js')).add_static_result;
+    // @ts-ignore
+    add_static_result = (await import ('../../utils/update-static-tests-data')).add_static_result;
 } catch (e) {
     // noop
 }

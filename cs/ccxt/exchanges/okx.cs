@@ -1307,6 +1307,7 @@ public partial class okx : Exchange
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "AE", "AET" },
             } },
+            { "rollingWindowSize", 0 },
         });
     }
 
@@ -1737,8 +1738,10 @@ public partial class okx : Exchange
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         object maxSpotCost = this.safeNumber(market, "maxMktSz");
         object status = this.safeString(market, "state");
+        object instIdCode = this.safeInteger(market, "instIdCode");
         return this.extend(fees, new Dictionary<string, object>() {
             { "id", id },
+            { "instIdCode", instIdCode },
             { "symbol", symbol },
             { "base", bs },
             { "quote", quote },
@@ -3077,20 +3080,29 @@ public partial class okx : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
+        object takeProfitPrice = this.safeValue2(parameters, "takeProfitPrice", "tpTriggerPx");
+        object stopLossPrice = this.safeValue2(parameters, "stopLossPrice", "slTriggerPx");
+        object conditional = isTrue(isTrue((!isEqual(stopLossPrice, null))) || isTrue((!isEqual(takeProfitPrice, null)))) || isTrue((isEqual(type, "conditional")));
         object request = new Dictionary<string, object>() {
             { "instId", getValue(market, "id") },
             { "side", side },
             { "ordType", type },
-            { "sz", this.amountToPrecision(symbol, amount) },
         };
+        object isConditionalOrOCO = isTrue(conditional) || isTrue((isEqual(type, "oco")));
+        object closeFraction = this.safeString(parameters, "closeFraction");
+        object shouldOmitSize = isTrue(isConditionalOrOCO) && isTrue(!isEqual(closeFraction, null));
+        if (!isTrue(shouldOmitSize))
+        {
+            ((IDictionary<string,object>)request)["sz"] = this.amountToPrecision(symbol, amount);
+        }
         object spot = getValue(market, "spot");
         object contract = getValue(market, "contract");
         object triggerPrice = this.safeValueN(parameters, new List<object>() {"triggerPrice", "stopPrice", "triggerPx"});
         object timeInForce = this.safeString(parameters, "timeInForce", "GTC");
-        object takeProfitPrice = this.safeValue2(parameters, "takeProfitPrice", "tpTriggerPx");
+        // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
         object tpOrdPx = this.safeValue(parameters, "tpOrdPx", price);
         object tpTriggerPxType = this.safeString(parameters, "tpTriggerPxType", "last");
-        object stopLossPrice = this.safeValue2(parameters, "stopLossPrice", "slTriggerPx");
+        // const stopLossPrice = this.safeValue2 (params, 'stopLossPrice', 'slTriggerPx');
         object slOrdPx = this.safeValue(parameters, "slOrdPx", price);
         object slTriggerPxType = this.safeString(parameters, "slTriggerPxType", "last");
         object clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
@@ -3103,7 +3115,7 @@ public partial class okx : Exchange
         object trailingPrice = this.safeString2(parameters, "trailingPrice", "callbackSpread");
         object isTrailingPriceOrder = !isEqual(trailingPrice, null);
         object trigger = isTrue((!isEqual(triggerPrice, null))) || isTrue((isEqual(type, "trigger")));
-        object isReduceOnly = this.safeValue(parameters, "reduceOnly", false);
+        object isReduceOnly = isTrue(this.safeValue(parameters, "reduceOnly", false)) || isTrue((!isEqual(closeFraction, null)));
         object defaultMarginMode = this.safeString2(this.options, "defaultMarginMode", "marginMode", "cross");
         object marginMode = this.safeString2(parameters, "marginMode", "tdMode"); // cross or isolated, tdMode not ommited so as to be extended into the request
         object margin = false;
@@ -3172,7 +3184,7 @@ public partial class okx : Exchange
         parameters = this.omit(parameters, new List<object>() {"currency", "ccy", "marginMode", "timeInForce", "stopPrice", "triggerPrice", "clientOrderId", "stopLossPrice", "takeProfitPrice", "slOrdPx", "tpOrdPx", "margin", "stopLoss", "takeProfit", "trailingPercent"});
         object ioc = isTrue((isEqual(timeInForce, "IOC"))) || isTrue((isEqual(type, "ioc")));
         object fok = isTrue((isEqual(timeInForce, "FOK"))) || isTrue((isEqual(type, "fok")));
-        object conditional = isTrue(isTrue((!isEqual(stopLossPrice, null))) || isTrue((!isEqual(takeProfitPrice, null)))) || isTrue((isEqual(type, "conditional")));
+        // const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
         object marketIOC = isTrue((isTrue(isMarketOrder) && isTrue(ioc))) || isTrue((isEqual(type, "optimal_limit_ioc")));
         object defaultTgtCcy = this.safeString(this.options, "tgtCcy", "base_ccy");
         object tgtCcy = this.safeString(parameters, "tgtCcy", defaultTgtCcy);
@@ -5187,7 +5199,7 @@ public partial class okx : Exchange
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -6462,7 +6474,13 @@ public partial class okx : Exchange
             initialMarginPercentage = this.parseNumber(Precise.stringDiv(initialMarginString, notionalString, 4));
         } else if (isTrue(isEqual(initialMarginString, null)))
         {
-            initialMarginString = Precise.stringMul(initialMarginPercentage, notionalString);
+            if (isTrue(getValue(market, "linear")))
+            {
+                initialMarginString = Precise.stringMul(initialMarginPercentage, notionalString);
+            } else
+            {
+                initialMarginString = Precise.stringDiv(Precise.stringDiv(Precise.stringMul(contractsAbs, contractSizeString), entryPriceString), leverageString);
+            }
         }
         object rounder = "0.00005"; // round to closest 0.01%
         object maintenanceMarginPercentage = this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4));
@@ -7088,6 +7106,16 @@ public partial class okx : Exchange
             object marketInner = this.safeMarket(instId);
             object currencyId = this.safeString(entry, "ccy");
             object code = this.safeCurrencyCode(currencyId);
+            object balanceChange = this.safeString(entry, "balChg");
+            object positionBalanceChange = this.safeString(entry, "posBalChg");
+            object amount = null;
+            if (isTrue(isTrue((!isEqual(balanceChange, null))) && isTrue((!isTrue(Precise.stringEq(balanceChange, "0"))))))
+            {
+                amount = balanceChange;
+            } else
+            {
+                amount = positionBalanceChange;
+            }
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", getValue(marketInner, "symbol") },
@@ -7095,7 +7123,7 @@ public partial class okx : Exchange
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
                 { "id", this.safeString(entry, "billId") },
-                { "amount", this.safeNumber(entry, "balChg") },
+                { "amount", this.parseNumber(amount) },
             });
         }
         object sorted = this.sortBy(result, "timestamp");
@@ -7650,7 +7678,7 @@ public partial class okx : Exchange
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
@@ -7666,7 +7694,7 @@ public partial class okx : Exchange
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {

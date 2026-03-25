@@ -57,6 +57,13 @@ public partial class testMainClass : BaseTest
                 return;
             }
         }
+        if (isTrue(inOp(skippedProperties, "skipNonActiveMarkets")))
+        {
+            if (isTrue(isTrue(isEqual(market, null)) || !isTrue(getValue(market, "active"))))
+            {
+                return;
+            }
+        }
         // only check "above zero" values if exchange is not supposed to have exotic index markets
         object isStandardMarket = (isTrue(!isEqual(market, null)) && isTrue(exchange.inArray(getValue(market, "type"), new List<object>() {"spot", "swap", "future", "option"})));
         object valuesShouldBePositive = isStandardMarket; // || (market === undefined) atm, no check for index markets

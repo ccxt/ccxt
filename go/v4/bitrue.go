@@ -738,7 +738,7 @@ func (this *BitrueCore) FetchCurrencies(optionalArgs ...interface{}) <-chan inte
 		//                 {
 		//                     "chain": "BEP20",
 		//                     "enableWithdraw": true,
-		//                     "enableDeposit": true,
+		//                     "enableDeposit": false,
 		//                     "withdrawFee": "0.2000",
 		//                     "minWithdraw": "5.0000",
 		//                     "maxWithdraw": "1000000000000000.0000",
@@ -2618,7 +2618,7 @@ func (this *BitrueCore) CancelOrder(id interface{}, optionalArgs ...interface{})
 		//         "code": "0",
 		//         "msg": "Success",
 		//         "data": {
-		//             "orderId": 1690615847831143159
+		//             "orderId": 1690615847831143154
 		//         }
 		//     }
 		//

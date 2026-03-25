@@ -159,7 +159,7 @@ class binance extends \ccxt\async\binance {
                     'name' => 'ticker', // ticker or miniTicker or ticker_<window_size>
                 ),
                 'watchTickers' => array(
-                    'name' => 'ticker', // ticker or miniTicker or ticker_<window_size>
+                    'name' => 'miniTicker', // miniTicker or ticker_<window_size>
                 ),
                 'watchOHLCV' => array(
                     'name' => 'kline', // or indexPriceKline or markPriceKline (coin-m futures)
@@ -237,6 +237,28 @@ class binance extends \ccxt\async\binance {
         return $stream;
     }
 
+    public function get_ws_url($type, $category) {
+        $baseUrl = $this->urls['api']['ws'][$type];
+        if ($type === 'future') {
+            return str_replace('/ws', '/' . $category . '/ws', $baseUrl);
+        }
+        return $baseUrl;
+    }
+
+    public function get_future_ws_category($channel) {
+        if ($channel === 'depth' || $channel === 'rpiDepth' || $channel === 'bookTicker' || $channel === 'trade' || $channel === 'aggTrade') {
+            return 'public';
+        }
+        return 'market';
+    }
+
+    public function get_private_ws_url($type, $listenKey) {
+        if ($type === 'future') {
+            return $this->get_ws_url($type, 'private') . '?$listenKey=' . $listenKey;
+        }
+        return $this->urls['api']['ws'][$type] . '/' . $listenKey;
+    }
+
     public function watch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
@@ -299,7 +321,7 @@ class binance extends \ccxt\async\binance {
                 $type = 'delivery';
             }
             $numSubscriptions = count($subscriptionHashes);
-            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, $streamHash, $numSubscriptions);
+            $url = $this->get_ws_url($type, $this->get_future_ws_category('forceOrder')) . '/' . $this->stream($type, $streamHash, $numSubscriptions);
             $requestId = $this->request_id($url);
             $request = array(
                 'method' => 'SUBSCRIBE',
@@ -362,13 +384,12 @@ class binance extends \ccxt\async\binance {
         $market = $this->safe_market($marketId, null, '', 'contract');
         $symbol = $market['symbol'];
         $liquidation = $this->parse_ws_liquidation($rawLiquidation, $market);
-        $liquidations = $this->safe_value($this->liquidations, $symbol);
-        if ($liquidations === null) {
+        if ($this->liquidations === null) {
             $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
-            $liquidations = new ArrayCache ($limit);
+            $this->liquidations = new ArrayCache ($limit);
         }
-        $liquidations->append ($liquidation);
-        $this->liquidations[$symbol] = $liquidations;
+        $cache = $this->liquidations;
+        $cache->append ($liquidation);
         $client->resolve (array( $liquidation ), 'liquidations');
         $client->resolve (array( $liquidation ), 'liquidations::' . $symbol);
     }
@@ -515,7 +536,8 @@ class binance extends \ccxt\async\binance {
                 $type = 'delivery';
             }
             Async\await($this->authenticate($params));
-            $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
+            $listenKey = $this->options[$type]['listenKey'];
+            $url = $this->get_private_ws_url($type, $listenKey);
             $message = null;
             $newLiquidations = Async\await($this->watch_multiple($url, $messageHashes, $message, array( $type )));
             if ($this->newUpdates) {
@@ -578,13 +600,13 @@ class binance extends \ccxt\async\binance {
         $market = $this->safe_market($marketId, null, null, 'swap');
         $symbol = $this->safe_symbol($marketId, $market);
         $liquidation = $this->parse_ws_liquidation($message, $market);
-        $myLiquidations = $this->safe_value($this->myLiquidations, $symbol);
-        if ($myLiquidations === null) {
+        $cache = $this->myLiquidations;
+        if ($cache === null) {
             $limit = $this->safe_integer($this->options, 'myLiquidationsLimit', 1000);
-            $myLiquidations = new ArrayCache ($limit);
+            $cache = new ArrayCache ($limit);
         }
-        $myLiquidations->append ($liquidation);
-        $this->myLiquidations[$symbol] = $myLiquidations;
+        $cache->append ($liquidation);
+        $this->myLiquidations = $cache;
         $client->resolve (array( $liquidation ), 'myLiquidations');
         $client->resolve (array( $liquidation ), 'myLiquidations::' . $symbol);
     }
@@ -702,7 +724,7 @@ class binance extends \ccxt\async\binance {
                 $subParams[] = $symbolHash;
             }
             $messageHashesLength = count($messageHashes);
-            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, $streamHash, $messageHashesLength);
+            $url = $this->get_ws_url($type, $this->get_future_ws_category($name)) . '/' . $this->stream($type, $streamHash, $messageHashesLength);
             $requestId = $this->request_id($url);
             $request = array(
                 'method' => 'SUBSCRIBE',
@@ -765,7 +787,7 @@ class binance extends \ccxt\async\binance {
                 $subParams[] = $symbolHash;
             }
             $messageHashesLength = count($subMessageHashes);
-            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, $streamHash, $messageHashesLength);
+            $url = $this->get_ws_url($type, $this->get_future_ws_category('depth')) . '/' . $this->stream($type, $streamHash, $messageHashesLength);
             $requestId = $this->request_id($url);
             $request = array(
                 'method' => 'UNSUBSCRIBE',
@@ -1158,7 +1180,7 @@ class binance extends \ccxt\async\binance {
             }
             $query = $this->omit($params, 'type');
             $subParamsLength = count($subParams);
-            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, $streamHash, $subParamsLength);
+            $url = $this->get_ws_url($type, $this->get_future_ws_category($name)) . '/' . $this->stream($type, $streamHash, $subParamsLength);
             $requestId = $this->request_id($url);
             $request = array(
                 'method' => 'SUBSCRIBE',
@@ -1224,7 +1246,7 @@ class binance extends \ccxt\async\binance {
             }
             $query = $this->omit($params, 'type');
             $subParamsLength = count($subParams);
-            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, $streamHash, $subParamsLength);
+            $url = $this->get_ws_url($type, $this->get_future_ws_category($name)) . '/' . $this->stream($type, $streamHash, $subParamsLength);
             $requestId = $this->request_id($url);
             $request = array(
                 'method' => 'UNSUBSCRIBE',
@@ -1543,7 +1565,7 @@ class binance extends \ccxt\async\binance {
                 $rawHashes[] = $marketId . '@' . $klineType . '_' . $interval . $utcSuffix;
                 $messageHashes[] = 'ohlcv::' . $market['symbol'] . '::' . $timeframeString;
             }
-            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, 'multipleOHLCV');
+            $url = $this->get_ws_url($type, $this->get_future_ws_category($klineType)) . '/' . $this->stream($type, 'multipleOHLCV');
             $requestId = $this->request_id($url);
             $request = array(
                 'method' => 'SUBSCRIBE',
@@ -1613,7 +1635,7 @@ class binance extends \ccxt\async\binance {
                 $subMessageHashes[] = 'ohlcv::' . $market['symbol'] . '::' . $timeframeString;
                 $messageHashes[] = 'unsubscribe::ohlcv::' . $market['symbol'] . '::' . $timeframeString;
             }
-            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, 'multipleOHLCV');
+            $url = $this->get_ws_url($type, $this->get_future_ws_category($klineType)) . '/' . $this->stream($type, 'multipleOHLCV');
             $requestId = $this->request_id($url);
             $request = array(
                 'method' => 'UNSUBSCRIBE',
@@ -1945,7 +1967,7 @@ class binance extends \ccxt\async\binance {
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             $channelName = null;
-            list($channelName, $params) = $this->handle_option_and_params($params, 'watchTickers', 'name', 'ticker');
+            list($channelName, $params) = $this->handle_option_and_params($params, 'watchTickers', 'name', 'miniTicker');
             if ($channelName === 'bookTicker') {
                 throw new BadRequest($this->id . ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead');
             }
@@ -2131,7 +2153,7 @@ class binance extends \ccxt\async\binance {
             if ($symbolsDefined) {
                 $streamHash = $channelName . '::' . implode(',', $symbols);
             }
-            $url = $this->urls['api']['ws'][$rawMarketType] . '/' . $this->stream($rawMarketType, $streamHash);
+            $url = $this->get_ws_url($rawMarketType, $this->get_future_ws_category($channelName)) . '/' . $this->stream($rawMarketType, $streamHash);
             $requestId = $this->request_id($url);
             $request = array(
                 'method' => $isUnsubscribe ? 'UNSUBSCRIBE' : 'SUBSCRIBE',
@@ -2515,6 +2537,101 @@ class binance extends \ccxt\async\binance {
         $client->resolve ($message, $messageHash);
     }
 
+    public function ensure_user_data_stream_ws_subscribe_listen_token(string $marketType = 'margin', $params = array ()) {
+        return Async\async(function () use ($marketType, $params) {
+            /**
+             * subscribes to user data stream using $listenToken (for margin)
+             * @param {string} $marketType - the market type (e.g., 'margin')
+             * @param {array} $params - extra parameters specific to the $request
+             * @param {string} [$params->symbol] - required for isolated margin
+             * @param {boolean} [$params->isIsolated] - whether it is isolated margin
+             * @param {number} [$params->validity] - $validity in milliseconds, default 24 hours, max 24 hours
+             *
+             * @see array(@link https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-api/user-data-stream Binance User Data Stream Documentation)
+             *
+             * @return Promise<void>
+             */
+            $url = $this->urls['api']['ws']['ws-api']['spot'];
+            $options = $this->safe_dict($this->options, $marketType, array());
+            $lastAuthenticatedTime = $this->safe_integer($options, 'lastAuthenticatedTime', 0);
+            $listenTokenRefreshRate = $this->safe_integer($this->options, 'listenTokenRefreshRate', 82800000); // 23 hours default
+            $time = $this->milliseconds();
+            $delay = $this->sum($listenTokenRefreshRate, 10000);
+            if ($time - $lastAuthenticatedTime > $delay) {
+                // Step 1 => Create $listenToken via REST API
+                $symbol = $this->safe_string($params, 'symbol');
+                $isIsolated = $this->safe_bool($params, 'isIsolated', false);
+                $validity = $this->safe_integer($params, 'validity');
+                $request = array();
+                if ($isIsolated) {
+                    if ($symbol === null) {
+                        throw new ArgumentsRequired($this->id . ' ensureUserDataStreamWsSubscribeListenToken() requires a $symbol argument for isolated margin mode');
+                    }
+                    $marketId = $this->market_id($symbol);
+                    $request['symbol'] = $marketId;
+                    $request['isIsolated'] = true;
+                }
+                if ($validity !== null) {
+                    $request['validity'] = $validity;
+                }
+                $response = Async\await($this->sapiPostUserListenToken ($request));
+                $listenToken = $this->safe_string($response, 'token');
+                $expirationTime = $this->safe_integer($response, 'expirationTime');
+                // Step 2 => Subscribe to user data stream via WebSocket API
+                $requestId = $this->request_id($url);
+                $messageHash = (string) $requestId;
+                $message = array(
+                    'id' => $messageHash,
+                    'method' => 'userDataStream.subscribe.listenToken',
+                    'params' => array(
+                        'listenToken' => $listenToken,
+                    ),
+                );
+                $subscription = array(
+                    'id' => $messageHash,
+                    'method' => array($this, 'handle_user_data_stream_subscribe'),
+                    'subscription' => $marketType,
+                );
+                $this->options[$marketType] = $this->extend($options, array(
+                    'listenToken' => $listenToken,
+                    'expirationTime' => $expirationTime,
+                    'lastAuthenticatedTime' => $time,
+                    'symbol' => $symbol,
+                    'isIsolated' => $isIsolated,
+                    'validity' => $validity,
+                ));
+                // Schedule token renewal before expiration
+                $renewalTime = $expirationTime - $time - 60000; // Renew 1 minute before expiration
+                if ($renewalTime > 0) {
+                    $extendedParams = $this->extend($params, array( 'type' => $marketType ));
+                    $this->delay($renewalTime, array($this, 'renew_listen_token'), $extendedParams);
+                }
+                Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
+            }
+        }) ();
+    }
+
+    public function renew_listen_token($params = array ()) {
+        return Async\async(function () use ($params) {
+            $type = $this->safe_string($params, 'type', 'margin');
+            $options = $this->safe_dict($this->options, $type, array());
+            $symbol = $this->safe_string($options, 'symbol');
+            $isIsolated = $this->safe_bool($options, 'isIsolated', false);
+            $validity = $this->safe_integer($options, 'validity');
+            $renewParams = array();
+            if ($symbol !== null) {
+                $renewParams['symbol'] = $symbol;
+            }
+            if ($isIsolated) {
+                $renewParams['isIsolated'] = $isIsolated;
+            }
+            if ($validity !== null) {
+                $renewParams['validity'] = $validity;
+            }
+            Async\await($this->ensure_user_data_stream_ws_subscribe_listen_token($type, $renewParams));
+        }) ();
+    }
+
     public function authenticate($params = array ()) {
         return Async\async(function () use ($params) {
             $time = $this->milliseconds();
@@ -2537,8 +2654,19 @@ class binance extends \ccxt\async\binance {
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('authenticate', $params);
             $isIsolatedMargin = ($marginMode === 'isolated');
-            $isCrossMargin = ($marginMode === 'cross') || ($marginMode === null);
             $symbol = $this->safe_string($params, 'symbol');
+            // For margin use WebSocket API listenToken subscription
+            if ($type === 'margin' || $isIsolatedMargin) {
+                $marginParams = array();
+                if ($symbol !== null) {
+                    $marginParams['symbol'] = $symbol;
+                }
+                if ($isIsolatedMargin) {
+                    $marginParams['isIsolated'] = true;
+                }
+                Async\await($this->ensure_user_data_stream_ws_subscribe_listen_token('margin', $marginParams));
+                return;
+            }
             $params = $this->omit($params, 'symbol');
             $options = $this->safe_value($this->options, $type, array());
             $lastAuthenticatedTime = $this->safe_integer($options, 'lastAuthenticatedTime', 0);
@@ -2553,15 +2681,6 @@ class binance extends \ccxt\async\binance {
                     $response = Async\await($this->fapiPrivatePostListenKey ($params));
                 } elseif ($type === 'delivery') {
                     $response = Async\await($this->dapiPrivatePostListenKey ($params));
-                } elseif ($type === 'margin' && $isCrossMargin) {
-                    $response = Async\await($this->sapiPostUserDataStream ($params));
-                } elseif ($isIsolatedMargin) {
-                    if ($symbol === null) {
-                        throw new ArgumentsRequired($this->id . ' authenticate() requires a $symbol argument for isolated margin mode');
-                    }
-                    $marketId = $this->market_id($symbol);
-                    $params = $this->extend($params, array( 'symbol' => $marketId ));
-                    $response = Async\await($this->sapiPostUserDataStreamIsolated ($params));
                 } else {
                     $response = Async\await($this->publicPostUserDataStream ($params));
                 }
@@ -2588,6 +2707,10 @@ class binance extends \ccxt\async\binance {
             } elseif ($this->isInverse ($type, $subType)) {
                 $type = 'delivery';
             }
+            // For margin, token renewal is handled by renewListenToken method
+            if ($type === 'margin') {
+                return;
+            }
             $options = $this->safe_value($this->options, $type, array());
             $listenKey = $this->safe_string($options, 'listenKey');
             if ($listenKey === null) {
@@ -2595,7 +2718,6 @@ class binance extends \ccxt\async\binance {
                 return;
             }
             $request = array();
-            $symbol = $this->safe_string($params, 'symbol');
             $params = $this->omit($params, array( 'type', 'symbol' ));
             $time = $this->milliseconds();
             try {
@@ -2608,19 +2730,15 @@ class binance extends \ccxt\async\binance {
                     Async\await($this->dapiPrivatePutListenKey ($this->extend($request, $params)));
                 } else {
                     $request['listenKey'] = $listenKey;
-                    if ($type === 'margin') {
-                        $request['symbol'] = $symbol;
-                        Async\await($this->sapiPutUserDataStream ($this->extend($request, $params)));
-                    } else {
-                        Async\await($this->publicPutUserDataStream ($this->extend($request, $params)));
-                    }
+                    Async\await($this->publicPutUserDataStream ($this->extend($request, $params)));
                 }
             } catch (Exception $error) {
                 $urlType = $type;
                 if ($isPortfolioMargin) {
                     $urlType = 'papi';
                 }
-                $url = $this->urls['api']['ws'][$urlType] . '/' . $this->options[$type]['listenKey'];
+                $cachedListenKey = $this->options[$type]['listenKey'];
+                $url = $this->get_private_ws_url($urlType, $cachedListenKey);
                 $client = $this->client($url);
                 $messageHashes = is_array($client->futures) ? array_keys($client->futures) : array();
                 for ($i = 0; $i < count($messageHashes); $i++) {
@@ -2844,6 +2962,11 @@ class binance extends \ccxt\async\binance {
                 }
             }
             $type = $this->get_market_type('fetchPositionsWs', $market, $params);
+            if ($symbols === null && ($type === 'spot')) {
+                // when $symbols aren't provide
+                // we shouldn't rely on the defaultType
+                $type = 'future';
+            }
             if ($type !== 'future' && $type !== 'delivery') {
                 throw new BadRequest($this->id . ' fetchPositionsWs only supports swap markets');
             }
@@ -2935,14 +3058,14 @@ class binance extends \ccxt\async\binance {
             }
             $url = '';
             $urlType = $type;
-            if ($type === 'spot') {
+            if ($type === 'spot' || $type === 'margin') {
                 // route to WebSocket API connection where the user data stream is subscribed
-                $url = $this->urls['api']['ws']['ws-api'][$type];
+                $url = $this->urls['api']['ws']['ws-api']['spot'];
             } else {
                 if ($isPortfolioMargin) {
                     $urlType = 'papi';
                 }
-                $url = $this->urls['api']['ws'][$urlType] . '/' . $this->options[$type]['listenKey'];
+                $url = $this->get_private_ws_url($urlType, $this->options[$type]['listenKey']);
             }
             $client = $this->client($url);
             $this->set_balance_cache($client, $type, $isPortfolioMargin);
@@ -3741,14 +3864,14 @@ class binance extends \ccxt\async\binance {
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'watchOrders', 'papi', 'portfolioMargin', false);
             $url = '';
-            if ($type === 'spot') {
+            if ($type === 'spot' || $type === 'margin') {
                 // route $orders to ws-api user data stream
-                $url = $this->urls['api']['ws']['ws-api'][$type];
+                $url = $this->urls['api']['ws']['ws-api']['spot'];
             } else {
                 if ($isPortfolioMargin) {
                     $urlType = 'papi';
                 }
-                $url = $this->urls['api']['ws'][$urlType] . '/' . $this->options[$type]['listenKey'];
+                $url = $this->get_private_ws_url($urlType, $this->options[$type]['listenKey']);
             }
             $client = $this->client($url);
             $this->set_balance_cache($client, $type, $isPortfolioMargin);
@@ -4102,7 +4225,7 @@ class binance extends \ccxt\async\binance {
             if ($isPortfolioMargin) {
                 $urlType = 'papi';
             }
-            $url = $this->urls['api']['ws'][$urlType] . '/' . $this->options[$type]['listenKey'];
+            $url = $this->get_private_ws_url($urlType, $this->options[$type]['listenKey']);
             $client = $this->client($url);
             $this->set_balance_cache($client, $type, $isPortfolioMargin);
             $this->set_positions_cache($client, $type, $symbols, $isPortfolioMargin);
@@ -4486,13 +4609,13 @@ class binance extends \ccxt\async\binance {
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'watchMyTrades', 'papi', 'portfolioMargin', false);
             $url = '';
-            if ($type === 'spot') {
-                $url = $this->urls['api']['ws']['ws-api'][$type];
+            if ($type === 'spot' || $type === 'margin') {
+                $url = $this->urls['api']['ws']['ws-api']['spot'];
             } else {
                 if ($isPortfolioMargin) {
                     $urlType = 'papi';
                 }
-                $url = $this->urls['api']['ws'][$urlType] . '/' . $this->options[$type]['listenKey'];
+                $url = $this->get_private_ws_url($urlType, $this->options[$type]['listenKey']);
             }
             $client = $this->client($url);
             $this->set_balance_cache($client, $type, $isPortfolioMargin);

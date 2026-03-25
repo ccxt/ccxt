@@ -36,7 +36,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                 'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'createMarketOrder': false,
+                'createMarketOrder': true,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
@@ -73,9 +73,9 @@ class krakenfutures extends krakenfutures$1["default"] {
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTickers': true,
@@ -133,6 +133,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                         'pnlpreferences',
                         'assignmentprogram/current',
                         'assignmentprogram/history',
+                        'orders/status',
                     ],
                     'post': [
                         'sendorder',
@@ -328,7 +329,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                         'symbolRequired': false,
                     },
                     'fetchOHLCV': {
-                        'limit': 5000,
+                        'limit': 2000,
                     },
                 },
                 'spot': undefined,
@@ -727,27 +728,27 @@ class krakenfutures extends krakenfutures$1["default"] {
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 5000);
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 2000);
         }
         const request = {
             'symbol': market['id'],
             'price_type': this.safeString(params, 'price', 'trade'),
-            'interval': this.timeframes[timeframe],
+            'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
         params = this.omit(params, 'price');
         if (since !== undefined) {
             const duration = this.parseTimeframe(timeframe);
             request['from'] = this.parseToInt(since / 1000);
             if (limit === undefined) {
-                limit = 5000;
+                limit = 2000;
             }
-            limit = Math.min(limit, 5000);
+            limit = Math.min(limit, 2000);
             const toTimestamp = this.sum(request['from'], limit * duration - 1);
             const currentTimestamp = this.seconds();
             request['to'] = Math.min(toTimestamp, currentTimestamp);
         }
         else if (limit !== undefined) {
-            limit = Math.min(limit, 5000);
+            limit = Math.min(limit, 2000);
             const duration = this.parseTimeframe(timeframe);
             request['to'] = this.seconds();
             request['from'] = this.parseToInt(request['to'] - (duration * limit));
@@ -1044,6 +1045,15 @@ class krakenfutures extends krakenfutures$1["default"] {
                 takerOrMaker = 'taker';
             }
         }
+        let fee = undefined;
+        if ((takerOrMaker !== undefined) && (cost !== undefined)) {
+            const feeRate = this.safeString(market, takerOrMaker);
+            fee = {
+                'cost': Precise["default"].stringMul(cost, feeRate),
+                'currency': this.safeString(market, 'quote'),
+                'rate': feeRate,
+            };
+        }
         return this.safeTrade({
             'info': trade,
             'id': id,
@@ -1057,7 +1067,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             'price': price,
             'amount': linear ? amount : undefined,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         });
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1179,6 +1189,41 @@ class krakenfutures extends krakenfutures$1["default"] {
         //        },
         //        "serverTime": "2022-02-28T19:32:17.122Z"
         //    }
+        //
+        // MARKET
+        //
+        //     {
+        //         "result": "success",
+        //         "serverTime": "2026-03-02T06:10:31.955Z",
+        //         "sendStatus": {
+        //             "status": "placed",
+        //             "order_id": "a133a4f9-254d-4806-8176-9acc936b6944",
+        //             "receivedTime": "2026-03-02T06:10:31.954Z",
+        //             "orderEvents": [
+        //                 {
+        //                     "type": "EXECUTION",
+        //                     "executionId": "403bf49f-dbbe-448b-8de7-fd3cf38cc5dd",
+        //                     "price": 66596.0,
+        //                     "amount": 0.001,
+        //                     "orderPriorEdit": null,
+        //                     "orderPriorExecution": {
+        //                         "orderId": "a133a4f9-254d-4806-8176-9acc936b6944",
+        //                         "cliOrdId": null,
+        //                         "type": "ioc",
+        //                         "symbol": "PF_XBTUSD",
+        //                         "side": "buy",
+        //                         "quantity": 0.001,
+        //                         "filled": 0,
+        //                         "limitPrice": 67261.000,
+        //                         "reduceOnly": false,
+        //                         "timestamp": "2026-03-02T06:10:31.954Z",
+        //                         "lastUpdateTimestamp": "2026-03-02T06:10:31.954Z"
+        //                     },
+        //                     "takerReducedQuantity": null
+        //                 }
+        //             ]
+        //         }
+        //     }
         //
         const sendStatus = this.safeValue(response, 'sendStatus');
         const status = this.safeString(sendStatus, 'status');
@@ -1460,6 +1505,49 @@ class krakenfutures extends krakenfutures$1["default"] {
     }
     /**
      * @method
+     * @name krakenfutures#fetchOrders
+     * @description Gets all orders for an account from the exchange api
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
+     * @param {string} symbol Unified market symbol
+     * @param {int} [since] Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
+     * @param {int} [limit] How many orders to return. (Not used by kraken api but filtered internally by CCXT)
+     * @param {object} [params] Exchange specific parameters
+     * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        const response = await this.privateGetOrdersStatus(params);
+        const orders = this.safeList(response, 'orders', []);
+        return this.parseOrders(orders, market, since, limit);
+    }
+    /**
+     * @method
+     * @name krakenfutures#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
+     * @param {string} id the order id
+     * @param {string} symbol unified market symbol that the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async fetchOrder(id, symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        const request = {
+            'orderIds': [id],
+        };
+        const orders = await this.fetchOrders(undefined, undefined, undefined, this.extend(request, params));
+        const order = this.safeDict(orders, 0);
+        if (order === undefined) {
+            throw new errors.OrderNotFound(this.id + ' fetchOrder could not find order id ' + id);
+        }
+        return order;
+    }
+    /**
+     * @method
      * @name krakenfutures#fetchClosedOrders
      * @see https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events
      * @description Gets all closed orders, including trigger orders, for an account from the exchange api
@@ -1467,6 +1555,7 @@ class krakenfutures extends krakenfutures$1["default"] {
      * @param {int} [since] Timestamp (ms) of earliest order.
      * @param {int} [limit] How many orders to return.
      * @param {object} [params] Exchange specific parameters
+     * @param {bool} [params.trigger] set to true if you wish to fetch only trigger orders
      * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1482,13 +1571,21 @@ class krakenfutures extends krakenfutures$1["default"] {
         if (since !== undefined) {
             request['from'] = since;
         }
-        const response = await this.historyGetOrders(this.extend(request, params));
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
+        let response = undefined;
+        if (isTrigger) {
+            params = this.omit(params, ['trigger', 'stop']);
+            response = await this.historyGetTriggers(this.extend(request, params));
+        }
+        else {
+            response = await this.historyGetOrders(this.extend(request, params));
+        }
         const allOrders = this.safeList(response, 'elements', []);
         const closedOrders = [];
         for (let i = 0; i < allOrders.length; i++) {
             const order = allOrders[i];
             const event = this.safeDict(order, 'event', {});
-            const orderPlaced = this.safeDict(event, 'OrderPlaced');
+            const orderPlaced = this.safeDict2(event, 'OrderPlaced', 'OrderTriggerActivated');
             if (orderPlaced !== undefined) {
                 const innerOrder = this.safeDict(orderPlaced, 'order', {});
                 const filled = this.safeString(innerOrder, 'filled');
@@ -1509,6 +1606,7 @@ class krakenfutures extends krakenfutures$1["default"] {
      * @param {int} [since] Timestamp (ms) of earliest order.
      * @param {int} [limit] How many orders to return.
      * @param {object} [params] Exchange specific parameters
+     * @param {bool} [params.trigger] set to true if you wish to fetch only trigger orders
      * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1524,17 +1622,26 @@ class krakenfutures extends krakenfutures$1["default"] {
         if (since !== undefined) {
             request['from'] = since;
         }
-        const response = await this.historyGetOrders(this.extend(request, params));
+        let response = undefined;
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
+        if (isTrigger) {
+            params = this.omit(params, ['trigger', 'stop']);
+            response = await this.historyGetTriggers(this.extend(request, params));
+        }
+        else {
+            response = await this.historyGetOrders(this.extend(request, params));
+        }
         const allOrders = this.safeList(response, 'elements', []);
         const canceledAndRejected = [];
         for (let i = 0; i < allOrders.length; i++) {
             const order = allOrders[i];
             const event = this.safeDict(order, 'event', {});
-            const orderPlaced = this.safeDict(event, 'OrderPlaced');
+            const isCancelledTriggerOrder = ('OrderTriggerCancelled' in event);
+            const orderPlaced = this.safeDict2(event, 'OrderPlaced', 'OrderTriggerCancelled');
             if (orderPlaced !== undefined) {
                 const innerOrder = this.safeDict(orderPlaced, 'order', {});
                 const filled = this.safeString(innerOrder, 'filled');
-                if (filled === '0') {
+                if (filled === '0' || isCancelledTriggerOrder) {
                     innerOrder['status'] = 'canceled'; // status not available in the response
                     canceledAndRejected.push(innerOrder);
                 }
@@ -1617,7 +1724,13 @@ class krakenfutures extends krakenfutures$1["default"] {
             'filled': 'closed',
             'notFound': 'rejected',
             'untouched': 'open',
-            'partiallyFilled': 'open', // the size of the order is partially but not entirely filled
+            'partiallyFilled': 'open',
+            'ENTERED_BOOK': 'open',
+            'FULLY_EXECUTED': 'closed',
+            'CANCELLED': 'canceled',
+            'TRIGGER_PLACED': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'UNTOUCHED': 'open',
         };
         return this.safeString(statuses, status, status);
     }
@@ -1651,6 +1764,37 @@ class krakenfutures extends krakenfutures$1["default"] {
         //            }
         //        ]
         //    }
+        //
+        // MARKET
+        //
+        //     {
+        //         "status": "placed",
+        //         "order_id": "a133a4f9-254d-4806-8176-9acc936b6944",
+        //         "receivedTime": "2026-03-02T06:10:31.954Z",
+        //         "orderEvents": [
+        //             {
+        //                 "type": "EXECUTION",
+        //                 "executionId": "403bf49f-dbbe-448b-8de7-fd3cf38cc5dd",
+        //                 "price": 66596.0,
+        //                 "amount": 0.001,
+        //                 "orderPriorEdit": null,
+        //                 "orderPriorExecution": {
+        //                     "orderId": "a133a4f9-254d-4806-8176-9acc936b6944",
+        //                     "cliOrdId": null,
+        //                     "type": "ioc",
+        //                     "symbol": "PF_XBTUSD",
+        //                     "side": "buy",
+        //                     "quantity": 0.001,
+        //                     "filled": 0,
+        //                     "limitPrice": 67261.000,
+        //                     "reduceOnly": false,
+        //                     "timestamp": "2026-03-02T06:10:31.954Z",
+        //                     "lastUpdateTimestamp": "2026-03-02T06:10:31.954Z"
+        //                 },
+        //                 "takerReducedQuantity": null
+        //             }
+        //         ]
+        //     }
         //
         // CONDITIONAL
         //
@@ -1856,6 +2000,75 @@ class krakenfutures extends krakenfutures$1["default"] {
         //     status: 'closed'
         //   }
         //
+        // order: {
+        //     type: 'ORDER',
+        //     orderId: 'a111f276-95fd-47fc-b77b-709c5ab2e9e1',
+        //     cliOrdId: null,
+        //     symbol: 'PF_LTCUSD',
+        //     side: 'buy',
+        //     quantity: '0.1',
+        //     filled: '0',
+        //     limitPrice: '40',
+        //     reduceOnly: false,
+        //     timestamp: '2026-02-13T12:09:03.738Z',
+        //     lastUpdateTimestamp: '2026-02-13T12:09:03.738Z'
+        // },
+        //     status: 'ENTERED_BOOK',
+        //     updateReason: null,
+        //     error: null
+        // }
+        //
+        const orderDictFromFetchOrder = this.safeDict(order, 'order');
+        if (orderDictFromFetchOrder !== undefined) {
+            // order: {
+            //     type: 'ORDER',
+            //     orderId: 'a111f276-95fd-47fc-b77b-709c5ab2e9e1',
+            //     cliOrdId: null,
+            //     symbol: 'PF_LTCUSD',
+            //     side: 'buy',
+            //     quantity: '0.1',
+            //     filled: '0',
+            //     limitPrice: '40',
+            //     reduceOnly: false,
+            //     timestamp: '2026-02-13T12:09:03.738Z',
+            //     lastUpdateTimestamp: '2026-02-13T12:09:03.738Z'
+            // },
+            //     status: 'ENTERED_BOOK',
+            //     updateReason: null,
+            //     error: null
+            //
+            const datetime = this.safeString(orderDictFromFetchOrder, 'timestamp');
+            const innerStatus = this.safeString(order, 'status');
+            const fetchOrderPriceTriggerOptions = this.safeDict(orderDictFromFetchOrder, 'priceTriggerOptions', {});
+            const fetchOrderTriggerPrice = this.safeString(fetchOrderPriceTriggerOptions, 'triggerPrice');
+            return this.safeOrder({
+                'info': order,
+                'id': this.safeString(orderDictFromFetchOrder, 'orderId'),
+                'clientOrderId': this.safeStringN(orderDictFromFetchOrder, ['cliOrdId']),
+                'timestamp': this.parse8601(datetime),
+                'datetime': datetime,
+                'lastTradeTimestamp': undefined,
+                'lastUpdateTimestamp': this.parse8601(this.safeString(orderDictFromFetchOrder, 'lastUpdateTimestamp')),
+                'symbol': this.safeSymbol(this.safeString(orderDictFromFetchOrder, 'symbol'), market),
+                'type': undefined,
+                'timeInForce': undefined,
+                'postOnly': undefined,
+                'reduceOnly': this.safeBool(orderDictFromFetchOrder, 'reduceOnly'),
+                'side': this.safeString(orderDictFromFetchOrder, 'side'),
+                'price': undefined,
+                'triggerPrice': fetchOrderTriggerPrice,
+                'stopPrice': fetchOrderTriggerPrice,
+                'amount': this.safeString(orderDictFromFetchOrder, 'quantity'),
+                'cost': undefined,
+                'average': undefined,
+                'filled': this.safeString(orderDictFromFetchOrder, 'filled'),
+                'remaining': undefined,
+                'status': this.parseOrderStatus(innerStatus),
+                'fee': undefined,
+                'fees': undefined,
+                'trades': undefined,
+            });
+        }
         const orderEvents = this.safeValue(order, 'orderEvents', []);
         const errorStatus = this.safeString(order, 'status');
         const orderEventsLength = orderEvents.length;
@@ -1885,9 +2098,15 @@ class krakenfutures extends krakenfutures$1["default"] {
                         fixed = true;
                     }
                     else if (!fixed) {
+                        const executedPrice = this.safeString(item, 'price');
                         const orderPriorExecution = this.safeValue(item, 'orderPriorExecution');
                         details = this.safeValue2(item, 'orderPriorExecution', 'orderPriorEdit');
-                        price = this.safeString(orderPriorExecution, 'limitPrice');
+                        if (executedPrice === undefined) {
+                            price = this.safeString(orderPriorExecution, 'limitPrice');
+                        }
+                        else {
+                            price = executedPrice;
+                        }
                         if (details !== undefined) {
                             isPrior = true;
                         }
@@ -1907,13 +2126,11 @@ class krakenfutures extends krakenfutures$1["default"] {
         // but will be fixed below
         let status = this.parseOrderStatus(statusId);
         let isClosed = this.inArray(status, ['canceled', 'rejected', 'closed']);
-        const marketId = this.safeString(details, 'symbol');
+        const marketId = this.safeString2(details, 'symbol', 'tradeable');
         market = this.safeMarket(marketId, market);
+        const symbol = this.safeString(market, 'symbol');
         const timestamp = this.parse8601(this.safeString2(details, 'timestamp', 'receivedTime'));
         const lastUpdateTimestamp = this.parse8601(this.safeString(details, 'lastUpdateTime'));
-        if (price === undefined) {
-            price = this.safeString(details, 'limitPrice');
-        }
         let amount = this.safeString(details, 'quantity');
         let filled = this.safeString2(details, 'filledSize', 'filled', '0.0');
         let remaining = this.safeString(details, 'unfilledSize');
@@ -1977,11 +2194,12 @@ class krakenfutures extends krakenfutures$1["default"] {
         if (type === 'ioc' || this.parseOrderType(type) === 'market') {
             timeInForce = 'ioc';
         }
-        let symbol = this.safeString(market, 'symbol');
-        if ('tradeable' in details) {
-            symbol = this.safeSymbol(this.safeString(details, 'tradeable'), market);
-        }
         const ts = this.safeInteger(details, 'timestamp', timestamp);
+        const priceTriggerOptions = this.safeDict(details, 'priceTriggerOptions', {});
+        let triggerPrice = this.safeString2(details, 'triggerPrice', 'stopPrice');
+        if (triggerPrice === undefined) {
+            triggerPrice = this.safeString(priceTriggerOptions, 'triggerPrice');
+        }
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -1997,7 +2215,8 @@ class krakenfutures extends krakenfutures$1["default"] {
             'reduceOnly': this.safeBool2(details, 'reduceOnly', 'reduce_only'),
             'side': this.safeStringLower2(details, 'side', 'direction'),
             'price': price,
-            'triggerPrice': this.safeString(details, 'triggerPrice'),
+            'triggerPrice': triggerPrice,
+            'stopPrice': triggerPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -2326,7 +2545,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         //         "fundingRate": -0.000000756414717067,
         //         "fundingRatePrediction": 0.000000195218676,
         //         "suspended": false,
-        //         "indexPrice": 0.043392,
+        //         "indexPrice": 0.043391,
         //         "postOnly": false,
         //         "change24h": -0.46
         //     }
@@ -2339,16 +2558,16 @@ class krakenfutures extends krakenfutures$1["default"] {
         let fundingRateResult = Precise["default"].stringDiv(fundingRateString, markPriceString);
         const nextFundingRateString = this.safeString(ticker, 'fundingRatePrediction');
         let nextFundingRateResult = Precise["default"].stringDiv(nextFundingRateString, markPriceString);
-        if (fundingRateResult > '0.25') {
+        if (Precise["default"].stringGt(fundingRateResult, '0.25')) {
             fundingRateResult = '0.25';
         }
-        else if (fundingRateResult > '-0.25') {
+        else if (Precise["default"].stringLt(fundingRateResult, '-0.25')) {
             fundingRateResult = '-0.25';
         }
-        if (nextFundingRateResult > '0.25') {
+        if (Precise["default"].stringGt(nextFundingRateResult, '0.25')) {
             nextFundingRateResult = '0.25';
         }
-        else if (nextFundingRateResult > '-0.25') {
+        else if (Precise["default"].stringLt(nextFundingRateResult, '-0.25')) {
             nextFundingRateResult = '-0.25';
         }
         return {
@@ -2629,7 +2848,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         for (let i = 0; i < marginLevels.length; i++) {
             const tier = marginLevels[i];
             const initialMargin = this.safeString(tier, 'initialMargin');
-            const minNotional = this.safeNumber(tier, 'numNonContractUnits');
+            const minNotional = this.safeNumber2(tier, 'numNonContractUnits', 'contracts');
             if (i !== 0) {
                 const tiersLength = tiers.length;
                 const previousTier = tiers[tiersLength - 1];
@@ -2892,7 +3111,12 @@ class krakenfutures extends krakenfutures$1["default"] {
             body = postData;
         }
         else if (Object.keys(params).length) {
-            postData = this.urlencode(params);
+            if ('orderIds' in params) {
+                postData = this.urlencodeWithArrayRepeat(params);
+            }
+            else {
+                postData = this.urlencode(params);
+            }
             query += '?' + postData;
         }
         const url = this.urls['api'][api] + query;

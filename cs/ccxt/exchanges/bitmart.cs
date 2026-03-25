@@ -1099,8 +1099,11 @@ public partial class bitmart : Exchange
         {
             await this.loadTimeDifference();
         }
-        object spot = await this.fetchSpotMarkets(parameters);
-        object contract = await this.fetchContractMarkets(parameters);
+        object spotPromise = this.fetchSpotMarkets(parameters);
+        object contractPromise = this.fetchContractMarkets(parameters);
+        var spotcontractVariable = await promiseAll(new List<object>() {spotPromise, contractPromise});
+        var spot = ((IList<object>) spotcontractVariable)[0];
+        var contract = ((IList<object>) spotcontractVariable)[1];
         return this.arrayConcat(spot, contract);
     }
 
@@ -5028,9 +5031,23 @@ public partial class bitmart : Exchange
         //         "timestamp": 1761291544336
         //     }
         //
+        // watchFundingRates
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "fundingRate": "0.0000561",
+        //         "fundingTime": 1770978448000,
+        //         "nextFundingRate": "-0.0000195",
+        //         "nextFundingTime": 1770998400000,
+        //         "funding_upper_limit": "0.0375",
+        //         "funding_lower_limit": "-0.0375",
+        //         "ts": 1770978448970
+        //     }
+        //
         object marketId = this.safeString(contract, "symbol");
-        object timestamp = this.safeInteger(contract, "timestamp");
-        object fundingTimestamp = this.safeInteger(contract, "funding_time");
+        object timestamp = this.safeInteger2(contract, "timestamp", "ts");
+        object fundingTimestamp = this.safeInteger2(contract, "funding_time", "fundingTime");
+        object nextFundingTimestamp = this.safeInteger(contract, "nextFundingTime");
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", this.safeSymbol(marketId, market) },
@@ -5040,12 +5057,12 @@ public partial class bitmart : Exchange
             { "estimatedSettlePrice", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "fundingRate", this.safeNumber(contract, "expected_rate") },
+            { "fundingRate", this.safeNumber2(contract, "expected_rate", "fundingRate") },
             { "fundingTimestamp", fundingTimestamp },
             { "fundingDatetime", this.iso8601(fundingTimestamp) },
-            { "nextFundingRate", null },
-            { "nextFundingTimestamp", null },
-            { "nextFundingDatetime", null },
+            { "nextFundingRate", this.safeNumber(contract, "nextFundingRate") },
+            { "nextFundingTimestamp", nextFundingTimestamp },
+            { "nextFundingDatetime", this.iso8601(nextFundingTimestamp) },
             { "previousFundingRate", this.safeNumber(contract, "rate_value") },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
@@ -5482,7 +5499,7 @@ public partial class bitmart : Exchange
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
-     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {

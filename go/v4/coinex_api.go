@@ -943,6 +943,14 @@ func (this *CoinexCore) V2PrivatePostFuturesBatchStopOrder(args ...interface{}) 
 	return this.callEndpointAsync("v2PrivatePostFuturesBatchStopOrder", args...)
 }
 
+func (this *CoinexCore) V2PrivatePostFuturesCancelPositionStopLoss(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostFuturesCancelPositionStopLoss", args...)
+}
+
+func (this *CoinexCore) V2PrivatePostFuturesCancelPositionTakeProfit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostFuturesCancelPositionTakeProfit", args...)
+}
+
 func (this *CoinexCore) V2PrivatePostFuturesModifyOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v2PrivatePostFuturesModifyOrder", args...)
 }

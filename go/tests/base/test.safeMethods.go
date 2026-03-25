@@ -19,6 +19,9 @@ func TestSafeMethods() {
 		"dict": map[string]interface{}{
 			"a": 1,
 		},
+		"listOfDicts": []interface{}{map[string]interface{}{
+			"a": 1,
+		}},
 		"str":          "heLlo",
 		"strNumber":    "3",
 		"zeroNumeric":  0,
@@ -27,6 +30,7 @@ func TestSafeMethods() {
 		"emptyString":  "",
 		"floatNumeric": 0.123,
 		"floatString":  "0.123",
+		"longInt":      123456789012345,
 	}
 	var inputList interface{} = []interface{}{"Hi", 2}
 	var compareDict map[string]interface{} = map[string]interface{}{
@@ -88,6 +92,10 @@ func TestSafeMethods() {
 	Assert(Equals(dictObject, compareDict))
 	Assert(ccxt.IsEqual(exchange.SafeList(inputDict, "dict"), nil))
 	Assert(ccxt.IsEqual(exchange.SafeList(inputList, 1), nil))
+	var arrayOfDicts interface{} = exchange.SafeList(inputDict, "listOfDicts")
+	Assert(Equals(ccxt.GetValue(arrayOfDicts, 0), map[string]interface{}{
+		"a": 1,
+	}))
 	// safeList2
 	listObject = exchange.SafeList2(inputDict, "a", "list")
 	Assert(Equals(dictObject, compareDict))
@@ -179,6 +187,7 @@ func TestSafeMethods() {
 	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct(inputDict, "f", factor), 1)) // NB the result is 1
 	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct(inputDict, "strNumber", factor), 30))
 	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct(inputList, 1, factor), 20))
+	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct(inputDict, "longInt", 0.000001), 123456789))
 	// safeIntegerProduct2
 	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct2(inputDict, "a", "i", factor), 10))
 	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct2(inputDict, "a", "f", factor), 1)) // NB the result is 1

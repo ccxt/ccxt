@@ -451,6 +451,11 @@ public partial class bingx : Exchange
         return await this.callAsync ("swapV2PrivateGetQuoteBookTicker",parameters);
     }
 
+    public async Task<object> swapV2PrivatePostTradeGetVst (object parameters = null)
+    {
+        return await this.callAsync ("swapV2PrivatePostTradeGetVst",parameters);
+    }
+
     public async Task<object> swapV2PrivatePostTradeOrder (object parameters = null)
     {
         return await this.callAsync ("swapV2PrivatePostTradeOrder",parameters);

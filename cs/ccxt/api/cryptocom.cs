@@ -61,6 +61,11 @@ public partial class cryptocom : Exchange
         return await this.callAsync ("v1PublicGetPublicGetInsurance",parameters);
     }
 
+    public async Task<object> v1PublicGetPublicGetAnnouncements (object parameters = null)
+    {
+        return await this.callAsync ("v1PublicGetPublicGetAnnouncements",parameters);
+    }
+
     public async Task<object> v1PublicGetPublicGetRiskParameters (object parameters = null)
     {
         return await this.callAsync ("v1PublicGetPublicGetRiskParameters",parameters);
@@ -299,6 +304,16 @@ public partial class cryptocom : Exchange
     public async Task<object> v1PrivatePostPrivateStakingGetConvertHistory (object parameters = null)
     {
         return await this.callAsync ("v1PrivatePostPrivateStakingGetConvertHistory",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateCreateIsolatedMarginTransfer (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateCreateIsolatedMarginTransfer",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateChangeIsolatedMarginLeverage (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateChangeIsolatedMarginLeverage",parameters);
     }
 
     public async Task<object> v2PublicGetPublicAuth (object parameters = null)

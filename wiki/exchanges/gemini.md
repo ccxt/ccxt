@@ -24,6 +24,7 @@
 * [fetchDepositAddressesByNetwork](#fetchdepositaddressesbynetwork)
 * [createDepositAddress](#createdepositaddress)
 * [fetchOHLCV](#fetchohlcv)
+* [fetchOpenInterest](#fetchopeninterest)
 * [watchTrades](#watchtrades)
 * [watchTradesForSymbols](#watchtradesforsymbols)
 * [watchOHLCV](#watchohlcv)
@@ -451,6 +452,27 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 ```javascript
 gemini.fetchOHLCV (symbol, timeframe[, since, limit, params])
+```
+
+
+<a name="fetchOpenInterest" id="fetchopeninterest"></a>
+
+### fetchOpenInterest{docsify-ignore}
+retrieves the open interest of a contract trading pair
+
+**Kind**: instance method of [<code>gemini</code>](#gemini)  
+**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/?id=open-interest-structure](https://docs.ccxt.com/?id=open-interest-structure)
+
+**See**: https://docs.gemini.com/rest/derivatives#get-risk-stats  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified CCXT market symbol |
+| params | <code>object</code> | No | exchange specific parameters |
+
+
+```javascript
+gemini.fetchOpenInterest (symbol[, params])
 ```
 
 

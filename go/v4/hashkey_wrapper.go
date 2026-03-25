@@ -601,7 +601,7 @@ func (this *Hashkey) FetchAccounts(params ...interface{}) ([]Account, error) {
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {int} [params.flowType] trade, fee, transfer, deposit, withdrawal
  * @param {int} [params.accountType] spot, swap, custody
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *Hashkey) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 

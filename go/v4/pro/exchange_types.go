@@ -61,6 +61,7 @@ type FundingRateHistory = ccxt.FundingRateHistory
 type Conversion = ccxt.Conversion
 type LeverageTiers = ccxt.LeverageTiers
 type LeverageTier = ccxt.LeverageTier
+type ADL = ccxt.ADL
 type OrderBooks = ccxt.OrderBooks
 type CancellationRequest = ccxt.CancellationRequest
 type DepositWithdrawFeeNetwork = ccxt.DepositWithdrawFeeNetwork

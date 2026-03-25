@@ -15,6 +15,7 @@ from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import NullResponse
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -252,6 +253,7 @@ class cex(Exchange, ImplicitAPI):
                     'Get deposit address for main account is not allowed': PermissionDenied,
                     'Market Trigger orders are not allowed': BadRequest,  # for some reason, triggerPrice does not work for market orders
                     'key not passed or incorrect': AuthenticationError,
+                    'API rate limit reached': RateLimitExceeded,  # {"error":"API rate limit reached"}
                 },
             },
             'timeframes': {
@@ -1358,7 +1360,7 @@ class cex(Exchange, ImplicitAPI):
         :param int [limit]: max number of ledger entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest ledger entry
-        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         await self.load_markets()
         currency = None

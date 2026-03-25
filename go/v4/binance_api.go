@@ -891,6 +891,10 @@ func (this *BinanceCore) SapiGetPortfolioEarnAssetBalance(args ...interface{}) <
 	return this.callEndpointAsync("sapiGetPortfolioEarnAssetBalance", args...)
 }
 
+func (this *BinanceCore) SapiGetPortfolioDeltaMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetPortfolioDeltaMode", args...)
+}
+
 func (this *BinanceCore) SapiGetStakingProductList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("sapiGetStakingProductList", args...)
 }
@@ -1035,6 +1039,18 @@ func (this *BinanceCore) SapiGetDciProductAccounts(args ...interface{}) <-chan i
 	return this.callEndpointAsync("sapiGetDciProductAccounts", args...)
 }
 
+func (this *BinanceCore) SapiGetAccumulatorProductList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAccumulatorProductList", args...)
+}
+
+func (this *BinanceCore) SapiGetAccumulatorProductPositionList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAccumulatorProductPositionList", args...)
+}
+
+func (this *BinanceCore) SapiGetAccumulatorProductSumHolding(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAccumulatorProductSumHolding", args...)
+}
+
 func (this *BinanceCore) SapiPostAssetDust(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("sapiPostAssetDust", args...)
 }
@@ -1177,6 +1193,10 @@ func (this *BinanceCore) SapiPostUserDataStream(args ...interface{}) <-chan inte
 
 func (this *BinanceCore) SapiPostUserDataStreamIsolated(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("sapiPostUserDataStreamIsolated", args...)
+}
+
+func (this *BinanceCore) SapiPostUserListenToken(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostUserListenToken", args...)
 }
 
 func (this *BinanceCore) SapiPostFuturesTransfer(args ...interface{}) <-chan interface{} {
@@ -1463,6 +1483,10 @@ func (this *BinanceCore) SapiPostPortfolioEarnAssetTransfer(args ...interface{})
 	return this.callEndpointAsync("sapiPostPortfolioEarnAssetTransfer", args...)
 }
 
+func (this *BinanceCore) SapiPostPortfolioDeltaMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostPortfolioDeltaMode", args...)
+}
+
 func (this *BinanceCore) SapiPostLendingAutoInvestPlanAdd(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("sapiPostLendingAutoInvestPlanAdd", args...)
 }
@@ -1517,6 +1541,10 @@ func (this *BinanceCore) SapiPostDciProductSubscribe(args ...interface{}) <-chan
 
 func (this *BinanceCore) SapiPostDciProductAutoCompoundEdit(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("sapiPostDciProductAutoCompoundEdit", args...)
+}
+
+func (this *BinanceCore) SapiPostAccumulatorProductSubscribe(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostAccumulatorProductSubscribe", args...)
 }
 
 func (this *BinanceCore) SapiPutUserDataStream(args ...interface{}) <-chan interface{} {
@@ -2471,6 +2499,10 @@ func (this *BinanceCore) EapiPrivateGetBlockTrades(args ...interface{}) <-chan i
 	return this.callEndpointAsync("eapiPrivateGetBlockTrades", args...)
 }
 
+func (this *BinanceCore) EapiPrivateGetComission(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivateGetComission", args...)
+}
+
 func (this *BinanceCore) EapiPrivatePostOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("eapiPrivatePostOrder", args...)
 }
@@ -2673,6 +2705,14 @@ func (this *BinanceCore) PrivatePostOrderListOto(args ...interface{}) <-chan int
 
 func (this *BinanceCore) PrivatePostOrderListOtoco(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostOrderListOtoco", args...)
+}
+
+func (this *BinanceCore) PrivatePostOrderListOpo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderListOpo", args...)
+}
+
+func (this *BinanceCore) PrivatePostOrderListOpoco(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderListOpoco", args...)
 }
 
 func (this *BinanceCore) PrivatePostSorOrder(args ...interface{}) <-chan interface{} {

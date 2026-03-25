@@ -12,7 +12,7 @@ AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, O
 // shared
 getCliArgValue, 
 //
-getRootDir, isSync, dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, getRootException, exceptionMessage, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFilesSync, getTestFiles, setFetchResponse, isNullValue, close, getEnvVars, getLang, getExt, } from './tests.helpers.js';
+getRootDir, isSync, dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, getRootException, exceptionMessage, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFilesSync, getTestFiles, setFetchResponse, isNullValue, close, getEnvVars, getLang, getExt, isWindows, isLinux, isAmd64, } from './tests.helpers.js';
 class testMainClass {
     constructor() {
         this.idTests = false;
@@ -1006,6 +1006,11 @@ class testMainClass {
             return true;
             // c# requirement
         }
+        // if needed convert stringified jsons to objects
+        if ((typeof storedOutput === 'string') && (typeof newOutput === 'string') && storedOutput.startsWith('{') && newOutput.startsWith('{')) {
+            storedOutput = jsonParse(storedOutput);
+            newOutput = jsonParse(newOutput);
+        }
         if ((typeof storedOutput === 'object') && (typeof newOutput === 'object')) {
             const storedOutputKeys = Object.keys(storedOutput);
             const newOutputKeys = Object.keys(newOutput);
@@ -1262,8 +1267,78 @@ class testMainClass {
     initOfflineExchange(exchangeName) {
         const markets = this.loadMarketsFromFile(exchangeName);
         const currencies = this.loadCurrenciesFromFile(exchangeName);
+        let wasmExecPath = undefined;
+        let libraryPath = undefined;
+        // const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
+        // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
+        // const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
+        // const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
         // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
-        const exchange = initExchange(exchangeName, { 'markets': markets, 'currencies': currencies, 'enableRateLimit': false, 'rateLimit': 1, 'httpProxy': 'http://fake:8080', 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'walletAddress': 'wallet', 'privateKey': '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771', 'uid': 'uid', 'token': 'token', 'login': 'login', 'accountId': '12345', 'accounts': [{ 'id': 'myAccount', 'code': 'USDT' }, { 'id': 'myAccount', 'code': 'USDC' }], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {} } });
+        const basePath = getRootDir() + 'ts/src/test/static/binaries/';
+        if (exchangeName === 'lighter') {
+            if (this.lang === 'JS') {
+                wasmExecPath = getRootDir() + '/src/test/static/binaries/wasm_exec.js';
+                libraryPath = basePath + 'lighter.wasm';
+            }
+            else {
+                if (isWindows()) {
+                    libraryPath = basePath + 'lighter-signer-windows-amd64.dll';
+                }
+                else if (isLinux()) {
+                    if (isAmd64()) {
+                        libraryPath = basePath + 'lighter-signer-linux-amd64.so';
+                    }
+                    else {
+                        libraryPath = basePath + 'lighter-signer-linux-arm64.so';
+                    }
+                }
+                else {
+                    // assume macos arm64
+                    libraryPath = basePath + 'lighter-signer-darwin-arm64.dylib';
+                }
+            }
+        }
+        const options = {
+            "markets": markets,
+            "currencies": currencies,
+            "enableRateLimit": false,
+            "rateLimit": 1,
+            "httpProxy": "http://fake:8080",
+            "httpsProxy": "http://fake:8080",
+            "apiKey": "key",
+            "secret": "secretsecret",
+            "password": "password",
+            "walletAddress": "wallet",
+            "privateKey": "0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771",
+            "uid": "uid",
+            "token": "token",
+            "login": "login",
+            "accountId": "12345",
+            "accounts": [
+                {
+                    "id": "myAccount",
+                    "code": "USDT"
+                },
+                {
+                    "id": "myAccount",
+                    "code": "USDC"
+                }
+            ],
+            "options": {
+                "enableUnifiedAccount": true,
+                "enableUnifiedMargin": false,
+                "accessToken": "token",
+                "expires": 999999999999999,
+                "leverageBrackets": {},
+                "libraryPath": libraryPath,
+                "wasmExecPath": wasmExecPath
+            }
+        };
+        if (exchangeName === 'grvt') {
+            options['apiKey'] = "";
+            options['secret'] = "";
+        }
+        const exchange = initExchange(exchangeName, options);
         exchange.currencies = currencies;
         // not working in python if assigned  in the config dict
         return exchange;
@@ -1274,22 +1349,22 @@ class testMainClass {
         const globalOptions = exchange.safeDict(exchangeData, 'options', {});
         // read apiKey/secret from the test file
         const apiKey = exchange.safeString(exchangeData, 'apiKey');
-        if (apiKey) {
+        if (!exchange.isEmptyString(apiKey)) {
             // c# to string requirement
             exchange.apiKey = apiKey.toString();
         }
         const secret = exchange.safeString(exchangeData, 'secret');
-        if (secret) {
+        if (!exchange.isEmptyString(secret)) {
             // c# to string requirement
             exchange.secret = secret.toString();
         }
         const privateKey = exchange.safeString(exchangeData, 'privateKey');
-        if (privateKey) {
+        if (!exchange.isEmptyString(privateKey)) {
             // c# to string requirement
             exchange.privateKey = privateKey.toString();
         }
         const walletAddress = exchange.safeString(exchangeData, 'walletAddress');
-        if (walletAddress) {
+        if (!exchange.isEmptyString(walletAddress)) {
             // c# to string requirement
             exchange.walletAddress = walletAddress.toString();
         }
@@ -1347,22 +1422,22 @@ class testMainClass {
         const exchange = this.initOfflineExchange(exchangeName);
         // read apiKey/secret from the test file
         const apiKey = exchange.safeString(exchangeData, 'apiKey');
-        if (apiKey) {
+        if (!exchange.isEmptyString(apiKey)) {
             // c# to string requirement
             exchange.apiKey = apiKey.toString();
         }
         const secret = exchange.safeString(exchangeData, 'secret');
-        if (secret) {
+        if (!exchange.isEmptyString(secret)) {
             // c# to string requirement
             exchange.secret = secret.toString();
         }
         const privateKey = exchange.safeString(exchangeData, 'privateKey');
-        if (privateKey) {
+        if (!exchange.isEmptyString(privateKey)) {
             // c# to string requirement
             exchange.privateKey = privateKey.toString();
         }
         const walletAddress = exchange.safeString(exchangeData, 'walletAddress');
-        if (walletAddress) {
+        if (!exchange.isEmptyString(walletAddress)) {
             // c# to string requirement
             exchange.walletAddress = walletAddress.toString();
         }
@@ -1546,11 +1621,11 @@ class testMainClass {
             this.testParadex(),
             this.testHashkey(),
             this.testCoincatch(),
-            this.testDefx(),
             this.testCryptomus(),
             this.testDerive(),
             this.testModeTrade(),
-            this.testBackpack()
+            this.testBackpack(),
+            this.testToobit()
         ];
         await Promise.all(promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -2115,23 +2190,6 @@ class testMainClass {
         }
         return true;
     }
-    async testDefx() {
-        const exchange = this.initOfflineExchange('defx');
-        let reqHeaders = undefined;
-        try {
-            await exchange.createOrder('DOGE/USDC:USDC', 'limit', 'buy', 100, 1);
-        }
-        catch (e) {
-            // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
-        }
-        const id = 'ccxt';
-        assert(reqHeaders['X-DEFX-SOURCE'] === id, 'defx - id: ' + id + ' not in headers.');
-        if (!isSync()) {
-            await close(exchange);
-        }
-        return true;
-    }
     async testCryptomus() {
         const exchange = this.initOfflineExchange('cryptomus');
         let request = undefined;
@@ -2205,6 +2263,23 @@ class testMainClass {
             reqHeaders = exchange.last_request_headers;
         }
         assert(reqHeaders['X-Broker-Id'] === id, 'backpack - id: ' + id + ' not in headers.');
+        if (!isSync()) {
+            await close(exchange);
+        }
+        return true;
+    }
+    async testToobit() {
+        const exchange = this.initOfflineExchange('toobit');
+        let reqHeaders = undefined;
+        const id = '177321641268789';
+        try {
+            await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert(reqHeaders['X-BB-API-PLATFORM'] === id, 'toobit - id: ' + id + ' not in headers.');
         if (!isSync()) {
             await close(exchange);
         }

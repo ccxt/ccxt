@@ -592,26 +592,18 @@ class bydfi(ccxt.async_support.bydfi):
         marketId = self.safe_string(rawOrder, 's')
         market = self.safe_market(marketId)
         symbol = market['symbol']
-        match = False
         messageHash = 'orders'
         symbolMessageHash = messageHash + '::' + symbol
-        messageHashes = self.find_message_hashes(client, messageHash)
-        for i in range(0, len(messageHashes)):
-            hash = messageHashes[i]
-            if hash == symbolMessageHash or hash == messageHash:
-                match = True
-                break
-        if match:
-            if self.orders is None:
-                limit = self.safe_integer(self.options, 'ordersLimit', 1000)
-                self.orders = ArrayCacheBySymbolById(limit)
-            orders = self.orders
-            order = self.parse_ws_order(rawOrder, market)
-            lastUpdateTimestamp = self.safe_integer(message, 'T')
-            order['lastUpdateTimestamp'] = lastUpdateTimestamp
-            orders.append(order)
-            client.resolve(orders, messageHash)
-            client.resolve(orders, symbolMessageHash)
+        if self.orders is None:
+            limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+            self.orders = ArrayCacheBySymbolById(limit)
+        orders = self.orders
+        order = self.parse_ws_order(rawOrder, market)
+        lastUpdateTimestamp = self.safe_integer(message, 'T')
+        order['lastUpdateTimestamp'] = lastUpdateTimestamp
+        orders.append(order)
+        client.resolve(orders, messageHash)
+        client.resolve(orders, symbolMessageHash)
 
     def parse_ws_order(self, order: dict, market: Market = None) -> Order:
         #
@@ -752,25 +744,16 @@ class bydfi(ccxt.async_support.bydfi):
         symbol = market['symbol']
         messageHash = 'positions'
         symbolMessageHash = messageHash + '::' + symbol
-        messageHashes = self.find_message_hashes(client, messageHash)
-        match = False
-        for i in range(0, len(messageHashes)):
-            hash = messageHashes[i]
-            if hash == symbolMessageHash or hash == messageHash:
-                match = True
-                break
-        if match:
-            if self.positions is None:
-                self.positions = ArrayCacheBySymbolBySide()
-            cache = self.positions
-            parsedPosition = self.parse_ws_position(rawPosition, market)
-            timestamp = self.safe_integer(message, 'T')
-            parsedPosition['timestamp'] = timestamp
-            parsedPosition['datetime'] = self.iso8601(timestamp)
-            cache.append(parsedPosition)
-            symbolSpecificMessageHash = messageHash + ':' + parsedPosition['symbol']
-            client.resolve([parsedPosition], messageHash)
-            client.resolve([parsedPosition], symbolSpecificMessageHash)
+        if self.positions is None:
+            self.positions = ArrayCacheBySymbolBySide()
+        cache = self.positions
+        parsedPosition = self.parse_ws_position(rawPosition, market)
+        timestamp = self.safe_integer(message, 'T')
+        parsedPosition['timestamp'] = timestamp
+        parsedPosition['datetime'] = self.iso8601(timestamp)
+        cache.append(parsedPosition)
+        client.resolve([parsedPosition], messageHash)
+        client.resolve([parsedPosition], symbolMessageHash)
 
     def parse_ws_position(self, position, market=None):
         #

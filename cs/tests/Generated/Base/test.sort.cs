@@ -9,12 +9,28 @@ public partial class BaseTest
 {
         public void testSort()
         {
-            // todo: other argument checks
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
             });
-            object arr = new List<object>() {"b", "a", "c", "d"};
-            object sortedArr = exchange.sort(arr);
-            AssertDeepEqual(exchange, null, "sort", sortedArr, new List<object>() {"a", "b", "c", "d"});
+            // empty array
+            AssertDeepEqual(exchange, null, "sort", exchange.sort(new List<object>() {}), new List<object>() {});
+            // single element
+            AssertDeepEqual(exchange, null, "sort", exchange.sort(new List<object>() {"a"}), new List<object>() {"a"});
+            // already sorted (idempotent)
+            AssertDeepEqual(exchange, null, "sort", exchange.sort(new List<object>() {"a", "b", "c"}), new List<object>() {"a", "b", "c"});
+            // duplicates
+            AssertDeepEqual(exchange, null, "sort", exchange.sort(new List<object>() {"b", "a", "b", "c"}), new List<object>() {"a", "b", "b", "c"});
+            AssertDeepEqual(exchange, null, "sort", exchange.sort(new List<object>() {"b", "a", "c", "d"}), new List<object>() {"a", "b", "c", "d"});
+            // integers (single-digit, safe for cross-language lexicographic/numeric consistency)
+            AssertDeepEqual(exchange, null, "sort", exchange.sort(new List<object>() {3, 1, 2}), new List<object>() {1, 2, 3});
+            AssertDeepEqual(exchange, null, "sort", exchange.sort(new List<object>() {5, 3, 1, 4, 2}), new List<object>() {1, 2, 3, 4, 5});
+            AssertDeepEqual(exchange, null, "sort", exchange.sort(new List<object>() {0, 3, 1, 2}), new List<object>() {0, 1, 2, 3});
+            // floats (values chosen so lexicographic order matches numeric order)
+            AssertDeepEqual(exchange, null, "sort", exchange.sort(new List<object>() {1.5, 0.5, 2.5}), new List<object>() {0.5, 1.5, 2.5});
+            AssertDeepEqual(exchange, null, "sort", exchange.sort(new List<object>() {3.3, 1.1, 2.2}), new List<object>() {1.1, 2.2, 3.3});
+            // immutability - original array should not be modified
+            object original = new List<object>() {"b", "a", "c"};
+            exchange.sort(original);
+            AssertDeepEqual(exchange, null, "sort", original, new List<object>() {"b", "a", "c"});
         }
 }

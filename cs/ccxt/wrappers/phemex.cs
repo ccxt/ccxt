@@ -703,7 +703,7 @@ public partial class phemex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}.</returns>
+    /// <returns> <term>object</term> A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}.</returns>
     public async Task<MarginModification> SetMargin(string symbol, double amount, Dictionary<string, object> parameters = null)
     {
         var res = await this.setMargin(symbol, amount, parameters);
@@ -1064,5 +1064,10 @@ public partial class phemex
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchConvertTradeHistory(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Conversion(item)).ToList<Conversion>();
+    }
+    public async Task<List<ADL>> FetchPositionsADLRank(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionsADLRank(symbols, parameters);
+        return ((IList<object>)res).Select(item => new ADL(item)).ToList<ADL>();
     }
 }

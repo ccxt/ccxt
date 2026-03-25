@@ -363,8 +363,11 @@ function checkPrecisionAccuracy(exchange, skippedProperties, method, entry, key)
     if (exchange.isTickPrecision()) {
         // TICK_SIZE should be above zero
         assertGreater(exchange, skippedProperties, method, entry, key, '0');
-        // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so their existence in our case indicates to incorrectly implemented tick-sizes, which might mistakenly be implemented with DECIMAL_PLACES, so we throw error
+        // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so in our case, such values probably indicate an incorrectly implemented tick-sizes calculation, so we throw error
         const decimalNumbers = ['2', '3', '4', '5', '6', '7', '8', '9', '11', '12', '13', '14', '15', '16'];
+        if (key === 'amount' && 'precisionAmountAbnormal' in skippedProperties) {
+            return;
+        }
         for (let i = 0; i < decimalNumbers.length; i++) {
             const num = decimalNumbers[i];
             const numStr = num;
@@ -589,12 +592,12 @@ function assertRoundMinuteTimestamp(exchange, skippedProperties, method, entry, 
     const ts = exchange.safeString(entry, key);
     assert(Precise.stringMod(ts, '60000') === '0', 'timestamp should be a multiple of 60 seconds (1 minute)' + logText);
 }
-function deepEqual(a, b) {
-    return JSON.stringify(a) === JSON.stringify(b);
+function deepEqual(exchange, a, b) {
+    return exchange.jsonStringifyWithNull(a) === exchange.jsonStringifyWithNull(b);
 }
 function assertDeepEqual(exchange, skippedProperties, method, a, b) {
     const logText = logTemplate(exchange, method, {});
-    assert(deepEqual(a, b), 'two dicts do not match: ' + JSON.stringify(a) + ' != ' + JSON.stringify(b) + logText);
+    assert(deepEqual(exchange, a, b), 'two dicts do not match: ' + exchange.jsonStringifyWithNull(a) + ' != ' + exchange.jsonStringifyWithNull(b) + logText);
 }
 export default {
     deepEqual,

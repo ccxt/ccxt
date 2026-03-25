@@ -156,7 +156,7 @@ class binance extends binance$1["default"] {
                     'name': 'ticker', // ticker or miniTicker or ticker_<window_size>
                 },
                 'watchTickers': {
-                    'name': 'ticker', // ticker or miniTicker or ticker_<window_size>
+                    'name': 'miniTicker', // miniTicker or ticker_<window_size>
                 },
                 'watchOHLCV': {
                     'name': 'kline', // or indexPriceKline or markPriceKline (coin-m futures)
@@ -230,6 +230,25 @@ class binance extends binance$1["default"] {
         }
         return stream;
     }
+    getWsUrl(type, category) {
+        const baseUrl = this.urls['api']['ws'][type];
+        if (type === 'future') {
+            return baseUrl.replace('/ws', '/' + category + '/ws');
+        }
+        return baseUrl;
+    }
+    getFutureWsCategory(channel) {
+        if (channel === 'depth' || channel === 'rpiDepth' || channel === 'bookTicker' || channel === 'trade' || channel === 'aggTrade') {
+            return 'public';
+        }
+        return 'market';
+    }
+    getPrivateWsUrl(type, listenKey) {
+        if (type === 'future') {
+            return this.getWsUrl(type, 'private') + '?listenKey=' + listenKey;
+        }
+        return this.urls['api']['ws'][type] + '/' + listenKey;
+    }
     /**
      * @method
      * @name binance#watchLiquidations
@@ -290,7 +309,7 @@ class binance extends binance$1["default"] {
             type = 'delivery';
         }
         const numSubscriptions = subscriptionHashes.length;
-        const url = this.urls['api']['ws'][type] + '/' + this.stream(type, streamHash, numSubscriptions);
+        const url = this.getWsUrl(type, this.getFutureWsCategory('forceOrder')) + '/' + this.stream(type, streamHash, numSubscriptions);
         const requestId = this.requestId(url);
         const request = {
             'method': 'SUBSCRIBE',
@@ -351,13 +370,12 @@ class binance extends binance$1["default"] {
         const market = this.safeMarket(marketId, undefined, '', 'contract');
         const symbol = market['symbol'];
         const liquidation = this.parseWsLiquidation(rawLiquidation, market);
-        let liquidations = this.safeValue(this.liquidations, symbol);
-        if (liquidations === undefined) {
+        if (this.liquidations === undefined) {
             const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
-            liquidations = new Cache.ArrayCache(limit);
+            this.liquidations = new Cache.ArrayCache(limit);
         }
-        liquidations.append(liquidation);
-        this.liquidations[symbol] = liquidations;
+        const cache = this.liquidations;
+        cache.append(liquidation);
         client.resolve([liquidation], 'liquidations');
         client.resolve([liquidation], 'liquidations::' + symbol);
     }
@@ -501,7 +519,8 @@ class binance extends binance$1["default"] {
             type = 'delivery';
         }
         await this.authenticate(params);
-        const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
+        const listenKey = this.options[type]['listenKey'];
+        const url = this.getPrivateWsUrl(type, listenKey);
         const message = undefined;
         const newLiquidations = await this.watchMultiple(url, messageHashes, message, [type]);
         if (this.newUpdates) {
@@ -562,13 +581,13 @@ class binance extends binance$1["default"] {
         const market = this.safeMarket(marketId, undefined, undefined, 'swap');
         const symbol = this.safeSymbol(marketId, market);
         const liquidation = this.parseWsLiquidation(message, market);
-        let myLiquidations = this.safeValue(this.myLiquidations, symbol);
-        if (myLiquidations === undefined) {
+        let cache = this.myLiquidations;
+        if (cache === undefined) {
             const limit = this.safeInteger(this.options, 'myLiquidationsLimit', 1000);
-            myLiquidations = new Cache.ArrayCache(limit);
+            cache = new Cache.ArrayCache(limit);
         }
-        myLiquidations.append(liquidation);
-        this.myLiquidations[symbol] = myLiquidations;
+        cache.append(liquidation);
+        this.myLiquidations = cache;
         client.resolve([liquidation], 'myLiquidations');
         client.resolve([liquidation], 'myLiquidations::' + symbol);
     }
@@ -681,7 +700,7 @@ class binance extends binance$1["default"] {
             subParams.push(symbolHash);
         }
         const messageHashesLength = messageHashes.length;
-        const url = this.urls['api']['ws'][type] + '/' + this.stream(type, streamHash, messageHashesLength);
+        const url = this.getWsUrl(type, this.getFutureWsCategory(name)) + '/' + this.stream(type, streamHash, messageHashesLength);
         const requestId = this.requestId(url);
         const request = {
             'method': 'SUBSCRIBE',
@@ -741,7 +760,7 @@ class binance extends binance$1["default"] {
             subParams.push(symbolHash);
         }
         const messageHashesLength = subMessageHashes.length;
-        const url = this.urls['api']['ws'][type] + '/' + this.stream(type, streamHash, messageHashesLength);
+        const url = this.getWsUrl(type, this.getFutureWsCategory('depth')) + '/' + this.stream(type, streamHash, messageHashesLength);
         const requestId = this.requestId(url);
         const request = {
             'method': 'UNSUBSCRIBE',
@@ -1122,7 +1141,7 @@ class binance extends binance$1["default"] {
         }
         const query = this.omit(params, 'type');
         const subParamsLength = subParams.length;
-        const url = this.urls['api']['ws'][type] + '/' + this.stream(type, streamHash, subParamsLength);
+        const url = this.getWsUrl(type, this.getFutureWsCategory(name)) + '/' + this.stream(type, streamHash, subParamsLength);
         const requestId = this.requestId(url);
         const request = {
             'method': 'SUBSCRIBE',
@@ -1185,7 +1204,7 @@ class binance extends binance$1["default"] {
         }
         const query = this.omit(params, 'type');
         const subParamsLength = subParams.length;
-        const url = this.urls['api']['ws'][type] + '/' + this.stream(type, streamHash, subParamsLength);
+        const url = this.getWsUrl(type, this.getFutureWsCategory(name)) + '/' + this.stream(type, streamHash, subParamsLength);
         const requestId = this.requestId(url);
         const request = {
             'method': 'UNSUBSCRIBE',
@@ -1490,7 +1509,7 @@ class binance extends binance$1["default"] {
             rawHashes.push(marketId + '@' + klineType + '_' + interval + utcSuffix);
             messageHashes.push('ohlcv::' + market['symbol'] + '::' + timeframeString);
         }
-        const url = this.urls['api']['ws'][type] + '/' + this.stream(type, 'multipleOHLCV');
+        const url = this.getWsUrl(type, this.getFutureWsCategory(klineType)) + '/' + this.stream(type, 'multipleOHLCV');
         const requestId = this.requestId(url);
         const request = {
             'method': 'SUBSCRIBE',
@@ -1557,7 +1576,7 @@ class binance extends binance$1["default"] {
             subMessageHashes.push('ohlcv::' + market['symbol'] + '::' + timeframeString);
             messageHashes.push('unsubscribe::ohlcv::' + market['symbol'] + '::' + timeframeString);
         }
-        const url = this.urls['api']['ws'][type] + '/' + this.stream(type, 'multipleOHLCV');
+        const url = this.getWsUrl(type, this.getFutureWsCategory(klineType)) + '/' + this.stream(type, 'multipleOHLCV');
         const requestId = this.requestId(url);
         const request = {
             'method': 'UNSUBSCRIBE',
@@ -1868,7 +1887,7 @@ class binance extends binance$1["default"] {
      */
     async watchTickers(symbols = undefined, params = {}) {
         let channelName = undefined;
-        [channelName, params] = this.handleOptionAndParams(params, 'watchTickers', 'name', 'ticker');
+        [channelName, params] = this.handleOptionAndParams(params, 'watchTickers', 'name', 'miniTicker');
         if (channelName === 'bookTicker') {
             throw new errors.BadRequest(this.id + ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead');
         }
@@ -2044,7 +2063,7 @@ class binance extends binance$1["default"] {
         if (symbolsDefined) {
             streamHash = channelName + '::' + symbols.join(',');
         }
-        const url = this.urls['api']['ws'][rawMarketType] + '/' + this.stream(rawMarketType, streamHash);
+        const url = this.getWsUrl(rawMarketType, this.getFutureWsCategory(channelName)) + '/' + this.stream(rawMarketType, streamHash);
         const requestId = this.requestId(url);
         const request = {
             'method': isUnsubscribe ? 'UNSUBSCRIBE' : 'SUBSCRIBE',
@@ -2422,6 +2441,94 @@ class binance extends binance$1["default"] {
         }
         client.resolve(message, messageHash);
     }
+    /**
+     * @name binance#ensureUserDataStreamWsSubscribeListenToken
+     * @description subscribes to user data stream using listenToken (for margin)
+     * @param {string} marketType - the market type (e.g., 'margin')
+     * @param {object} params - extra parameters specific to the request
+     * @param {string} [params.symbol] - required for isolated margin
+     * @param {boolean} [params.isIsolated] - whether it is isolated margin
+     * @param {number} [params.validity] - validity in milliseconds, default 24 hours, max 24 hours
+     * @see {@link https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-api/user-data-stream Binance User Data Stream Documentation}
+     * @returns Promise<void>
+     */
+    async ensureUserDataStreamWsSubscribeListenToken(marketType = 'margin', params = {}) {
+        const url = this.urls['api']['ws']['ws-api']['spot'];
+        const options = this.safeDict(this.options, marketType, {});
+        const lastAuthenticatedTime = this.safeInteger(options, 'lastAuthenticatedTime', 0);
+        const listenTokenRefreshRate = this.safeInteger(this.options, 'listenTokenRefreshRate', 82800000); // 23 hours default
+        const time = this.milliseconds();
+        const delay = this.sum(listenTokenRefreshRate, 10000);
+        if (time - lastAuthenticatedTime > delay) {
+            // Step 1: Create listenToken via REST API
+            const symbol = this.safeString(params, 'symbol');
+            const isIsolated = this.safeBool(params, 'isIsolated', false);
+            const validity = this.safeInteger(params, 'validity');
+            const request = {};
+            if (isIsolated) {
+                if (symbol === undefined) {
+                    throw new errors.ArgumentsRequired(this.id + ' ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode');
+                }
+                const marketId = this.marketId(symbol);
+                request['symbol'] = marketId;
+                request['isIsolated'] = true;
+            }
+            if (validity !== undefined) {
+                request['validity'] = validity;
+            }
+            const response = await this.sapiPostUserListenToken(request);
+            const listenToken = this.safeString(response, 'token');
+            const expirationTime = this.safeInteger(response, 'expirationTime');
+            // Step 2: Subscribe to user data stream via WebSocket API
+            const requestId = this.requestId(url);
+            const messageHash = requestId.toString();
+            const message = {
+                'id': messageHash,
+                'method': 'userDataStream.subscribe.listenToken',
+                'params': {
+                    'listenToken': listenToken,
+                },
+            };
+            const subscription = {
+                'id': messageHash,
+                'method': this.handleUserDataStreamSubscribe,
+                'subscription': marketType,
+            };
+            this.options[marketType] = this.extend(options, {
+                'listenToken': listenToken,
+                'expirationTime': expirationTime,
+                'lastAuthenticatedTime': time,
+                'symbol': symbol,
+                'isIsolated': isIsolated,
+                'validity': validity,
+            });
+            // Schedule token renewal before expiration
+            const renewalTime = expirationTime - time - 60000; // Renew 1 minute before expiration
+            if (renewalTime > 0) {
+                const extendedParams = this.extend(params, { 'type': marketType });
+                this.delay(renewalTime, this.renewListenToken, extendedParams);
+            }
+            await this.watch(url, messageHash, message, messageHash, subscription);
+        }
+    }
+    async renewListenToken(params = {}) {
+        const type = this.safeString(params, 'type', 'margin');
+        const options = this.safeDict(this.options, type, {});
+        const symbol = this.safeString(options, 'symbol');
+        const isIsolated = this.safeBool(options, 'isIsolated', false);
+        const validity = this.safeInteger(options, 'validity');
+        const renewParams = {};
+        if (symbol !== undefined) {
+            renewParams['symbol'] = symbol;
+        }
+        if (isIsolated) {
+            renewParams['isIsolated'] = isIsolated;
+        }
+        if (validity !== undefined) {
+            renewParams['validity'] = validity;
+        }
+        await this.ensureUserDataStreamWsSubscribeListenToken(type, renewParams);
+    }
     async authenticate(params = {}) {
         const time = this.milliseconds();
         let type = undefined;
@@ -2444,8 +2551,19 @@ class binance extends binance$1["default"] {
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('authenticate', params);
         const isIsolatedMargin = (marginMode === 'isolated');
-        const isCrossMargin = (marginMode === 'cross') || (marginMode === undefined);
         const symbol = this.safeString(params, 'symbol');
+        // For margin use WebSocket API listenToken subscription
+        if (type === 'margin' || isIsolatedMargin) {
+            const marginParams = {};
+            if (symbol !== undefined) {
+                marginParams['symbol'] = symbol;
+            }
+            if (isIsolatedMargin) {
+                marginParams['isIsolated'] = true;
+            }
+            await this.ensureUserDataStreamWsSubscribeListenToken('margin', marginParams);
+            return;
+        }
         params = this.omit(params, 'symbol');
         const options = this.safeValue(this.options, type, {});
         const lastAuthenticatedTime = this.safeInteger(options, 'lastAuthenticatedTime', 0);
@@ -2462,17 +2580,6 @@ class binance extends binance$1["default"] {
             }
             else if (type === 'delivery') {
                 response = await this.dapiPrivatePostListenKey(params);
-            }
-            else if (type === 'margin' && isCrossMargin) {
-                response = await this.sapiPostUserDataStream(params);
-            }
-            else if (isIsolatedMargin) {
-                if (symbol === undefined) {
-                    throw new errors.ArgumentsRequired(this.id + ' authenticate() requires a symbol argument for isolated margin mode');
-                }
-                const marketId = this.marketId(symbol);
-                params = this.extend(params, { 'symbol': marketId });
-                response = await this.sapiPostUserDataStreamIsolated(params);
             }
             else {
                 response = await this.publicPostUserDataStream(params);
@@ -2498,6 +2605,10 @@ class binance extends binance$1["default"] {
         else if (this.isInverse(type, subType)) {
             type = 'delivery';
         }
+        // For margin, token renewal is handled by renewListenToken method
+        if (type === 'margin') {
+            return;
+        }
         const options = this.safeValue(this.options, type, {});
         const listenKey = this.safeString(options, 'listenKey');
         if (listenKey === undefined) {
@@ -2505,7 +2616,6 @@ class binance extends binance$1["default"] {
             return;
         }
         const request = {};
-        const symbol = this.safeString(params, 'symbol');
         params = this.omit(params, ['type', 'symbol']);
         const time = this.milliseconds();
         try {
@@ -2521,13 +2631,7 @@ class binance extends binance$1["default"] {
             }
             else {
                 request['listenKey'] = listenKey;
-                if (type === 'margin') {
-                    request['symbol'] = symbol;
-                    await this.sapiPutUserDataStream(this.extend(request, params));
-                }
-                else {
-                    await this.publicPutUserDataStream(this.extend(request, params));
-                }
+                await this.publicPutUserDataStream(this.extend(request, params));
             }
         }
         catch (error) {
@@ -2535,7 +2639,8 @@ class binance extends binance$1["default"] {
             if (isPortfolioMargin) {
                 urlType = 'papi';
             }
-            const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
+            const cachedListenKey = this.options[type]['listenKey'];
+            const url = this.getPrivateWsUrl(urlType, cachedListenKey);
             const client = this.client(url);
             const messageHashes = Object.keys(client.futures);
             for (let i = 0; i < messageHashes.length; i++) {
@@ -2745,7 +2850,12 @@ class binance extends binance$1["default"] {
                 payload['symbol'] = market['id'];
             }
         }
-        const type = this.getMarketType('fetchPositionsWs', market, params);
+        let type = this.getMarketType('fetchPositionsWs', market, params);
+        if (symbols === undefined && (type === 'spot')) {
+            // when symbols aren't provide
+            // we shouldn't rely on the defaultType
+            type = 'future';
+        }
         if (type !== 'future' && type !== 'delivery') {
             throw new errors.BadRequest(this.id + ' fetchPositionsWs only supports swap markets');
         }
@@ -2836,15 +2946,15 @@ class binance extends binance$1["default"] {
         }
         let url = '';
         let urlType = type;
-        if (type === 'spot') {
+        if (type === 'spot' || type === 'margin') {
             // route to WebSocket API connection where the user data stream is subscribed
-            url = this.urls['api']['ws']['ws-api'][type];
+            url = this.urls['api']['ws']['ws-api']['spot'];
         }
         else {
             if (isPortfolioMargin) {
                 urlType = 'papi';
             }
-            url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
+            url = this.getPrivateWsUrl(urlType, this.options[type]['listenKey']);
         }
         const client = this.client(url);
         this.setBalanceCache(client, type, isPortfolioMargin);
@@ -3621,15 +3731,15 @@ class binance extends binance$1["default"] {
         let isPortfolioMargin = undefined;
         [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'watchOrders', 'papi', 'portfolioMargin', false);
         let url = '';
-        if (type === 'spot') {
+        if (type === 'spot' || type === 'margin') {
             // route orders to ws-api user data stream
-            url = this.urls['api']['ws']['ws-api'][type];
+            url = this.urls['api']['ws']['ws-api']['spot'];
         }
         else {
             if (isPortfolioMargin) {
                 urlType = 'papi';
             }
-            url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
+            url = this.getPrivateWsUrl(urlType, this.options[type]['listenKey']);
         }
         const client = this.client(url);
         this.setBalanceCache(client, type, isPortfolioMargin);
@@ -3982,7 +4092,7 @@ class binance extends binance$1["default"] {
         if (isPortfolioMargin) {
             urlType = 'papi';
         }
-        const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
+        const url = this.getPrivateWsUrl(urlType, this.options[type]['listenKey']);
         const client = this.client(url);
         this.setBalanceCache(client, type, isPortfolioMargin);
         this.setPositionsCache(client, type, symbols, isPortfolioMargin);
@@ -4355,14 +4465,14 @@ class binance extends binance$1["default"] {
         let isPortfolioMargin = undefined;
         [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'watchMyTrades', 'papi', 'portfolioMargin', false);
         let url = '';
-        if (type === 'spot') {
-            url = this.urls['api']['ws']['ws-api'][type];
+        if (type === 'spot' || type === 'margin') {
+            url = this.urls['api']['ws']['ws-api']['spot'];
         }
         else {
             if (isPortfolioMargin) {
                 urlType = 'papi';
             }
-            url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
+            url = this.getPrivateWsUrl(urlType, this.options[type]['listenKey']);
         }
         const client = this.client(url);
         this.setBalanceCache(client, type, isPortfolioMargin);

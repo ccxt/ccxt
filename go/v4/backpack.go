@@ -525,7 +525,7 @@ func (this *BackpackCore) FetchCurrencies(optionalArgs ...interface{}) <-chan in
 		//                     "depositEnabled": true,
 		//                     "displayName": "Jito",
 		//                     "maximumWithdrawal": null,
-		//                     "minimumDeposit": "0.29",
+		//                     "minimumDeposit": "0.28",
 		//                     "minimumWithdrawal": "0.58",
 		//                     "withdrawEnabled": true,
 		//                     "withdrawalFee": "0.29"
@@ -1413,12 +1413,12 @@ func (this *BackpackCore) ParseTrade(trade interface{}, optionalArgs ...interfac
 	//
 	// fetchTrades
 	//     {
-	//         "id": 8721564,
+	//         "id": 8721563,
 	//         "isBuyerMaker": false,
 	//         "price": "117427.6",
 	//         "quantity": "0.00016",
 	//         "quoteQuantity": "18.788416",
-	//         "timestamp": 1753123916818
+	//         "timestamp": 1753123916819
 	//     }
 	//
 	// fetchMyTrades

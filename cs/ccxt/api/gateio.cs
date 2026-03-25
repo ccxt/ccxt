@@ -956,6 +956,11 @@ public partial class gateio : gate
         return await this.callAsync ("privateFuturesGetSettlePositionsContract",parameters);
     }
 
+    public async Task<object> privateFuturesGetSettleGetLeverageContract (object parameters = null)
+    {
+        return await this.callAsync ("privateFuturesGetSettleGetLeverageContract",parameters);
+    }
+
     public async Task<object> privateFuturesGetSettleDualCompPositionsContract (object parameters = null)
     {
         return await this.callAsync ("privateFuturesGetSettleDualCompPositionsContract",parameters);
@@ -1031,6 +1036,11 @@ public partial class gateio : gate
         return await this.callAsync ("privateFuturesPostSettlePositionsContractLeverage",parameters);
     }
 
+    public async Task<object> privateFuturesPostSettlePositionsContractSetLeverage (object parameters = null)
+    {
+        return await this.callAsync ("privateFuturesPostSettlePositionsContractSetLeverage",parameters);
+    }
+
     public async Task<object> privateFuturesPostSettlePositionsContractRiskLimit (object parameters = null)
     {
         return await this.callAsync ("privateFuturesPostSettlePositionsContractRiskLimit",parameters);
@@ -1049,6 +1059,11 @@ public partial class gateio : gate
     public async Task<object> privateFuturesPostSettleDualMode (object parameters = null)
     {
         return await this.callAsync ("privateFuturesPostSettleDualMode",parameters);
+    }
+
+    public async Task<object> privateFuturesPostSettleSetPositionMode (object parameters = null)
+    {
+        return await this.callAsync ("privateFuturesPostSettleSetPositionMode",parameters);
     }
 
     public async Task<object> privateFuturesPostSettleDualCompPositionsContractMargin (object parameters = null)
@@ -1361,6 +1376,11 @@ public partial class gateio : gate
         return await this.callAsync ("privateEarnGetDualOrders",parameters);
     }
 
+    public async Task<object> privateEarnGetDualBalance (object parameters = null)
+    {
+        return await this.callAsync ("privateEarnGetDualBalance",parameters);
+    }
+
     public async Task<object> privateEarnGetStructuredOrders (object parameters = null)
     {
         return await this.callAsync ("privateEarnGetStructuredOrders",parameters);
@@ -1639,6 +1659,51 @@ public partial class gateio : gate
     public async Task<object> privateRebateGetUserSubRelation (object parameters = null)
     {
         return await this.callAsync ("privateRebateGetUserSubRelation",parameters);
+    }
+
+    public async Task<object> privateOtcGetGetUserDefBank (object parameters = null)
+    {
+        return await this.callAsync ("privateOtcGetGetUserDefBank",parameters);
+    }
+
+    public async Task<object> privateOtcGetOrderList (object parameters = null)
+    {
+        return await this.callAsync ("privateOtcGetOrderList",parameters);
+    }
+
+    public async Task<object> privateOtcGetStableCoinOrderList (object parameters = null)
+    {
+        return await this.callAsync ("privateOtcGetStableCoinOrderList",parameters);
+    }
+
+    public async Task<object> privateOtcGetOrderDetail (object parameters = null)
+    {
+        return await this.callAsync ("privateOtcGetOrderDetail",parameters);
+    }
+
+    public async Task<object> privateOtcPostQuote (object parameters = null)
+    {
+        return await this.callAsync ("privateOtcPostQuote",parameters);
+    }
+
+    public async Task<object> privateOtcPostOrderCreate (object parameters = null)
+    {
+        return await this.callAsync ("privateOtcPostOrderCreate",parameters);
+    }
+
+    public async Task<object> privateOtcPostStableCoinOrderCreate (object parameters = null)
+    {
+        return await this.callAsync ("privateOtcPostStableCoinOrderCreate",parameters);
+    }
+
+    public async Task<object> privateOtcPostOrderPaid (object parameters = null)
+    {
+        return await this.callAsync ("privateOtcPostOrderPaid",parameters);
+    }
+
+    public async Task<object> privateOtcPostOrderCancel (object parameters = null)
+    {
+        return await this.callAsync ("privateOtcPostOrderCancel",parameters);
     }
 
 }

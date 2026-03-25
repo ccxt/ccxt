@@ -672,30 +672,19 @@ class bydfi extends \ccxt\async\bydfi {
         $marketId = $this->safe_string($rawOrder, 's');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
-        $match = false;
         $messageHash = 'orders';
         $symbolMessageHash = $messageHash . '::' . $symbol;
-        $messageHashes = $this->find_message_hashes($client, $messageHash);
-        for ($i = 0; $i < count($messageHashes); $i++) {
-            $hash = $messageHashes[$i];
-            if ($hash === $symbolMessageHash || $hash === $messageHash) {
-                $match = true;
-                break;
-            }
+        if ($this->orders === null) {
+            $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+            $this->orders = new ArrayCacheBySymbolById ($limit);
         }
-        if ($match) {
-            if ($this->orders === null) {
-                $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-                $this->orders = new ArrayCacheBySymbolById ($limit);
-            }
-            $orders = $this->orders;
-            $order = $this->parse_ws_order($rawOrder, $market);
-            $lastUpdateTimestamp = $this->safe_integer($message, 'T');
-            $order['lastUpdateTimestamp'] = $lastUpdateTimestamp;
-            $orders->append ($order);
-            $client->resolve ($orders, $messageHash);
-            $client->resolve ($orders, $symbolMessageHash);
-        }
+        $orders = $this->orders;
+        $order = $this->parse_ws_order($rawOrder, $market);
+        $lastUpdateTimestamp = $this->safe_integer($message, 'T');
+        $order['lastUpdateTimestamp'] = $lastUpdateTimestamp;
+        $orders->append ($order);
+        $client->resolve ($orders, $messageHash);
+        $client->resolve ($orders, $symbolMessageHash);
     }
 
     public function parse_ws_order(array $order, ?array $market = null): array {
@@ -845,29 +834,17 @@ class bydfi extends \ccxt\async\bydfi {
         $symbol = $market['symbol'];
         $messageHash = 'positions';
         $symbolMessageHash = $messageHash . '::' . $symbol;
-        $messageHashes = $this->find_message_hashes($client, $messageHash);
-        $match = false;
-        for ($i = 0; $i < count($messageHashes); $i++) {
-            $hash = $messageHashes[$i];
-            if ($hash === $symbolMessageHash || $hash === $messageHash) {
-                $match = true;
-                break;
-            }
+        if ($this->positions === null) {
+            $this->positions = new ArrayCacheBySymbolBySide ();
         }
-        if ($match) {
-            if ($this->positions === null) {
-                $this->positions = new ArrayCacheBySymbolBySide ();
-            }
-            $cache = $this->positions;
-            $parsedPosition = $this->parse_ws_position($rawPosition, $market);
-            $timestamp = $this->safe_integer($message, 'T');
-            $parsedPosition['timestamp'] = $timestamp;
-            $parsedPosition['datetime'] = $this->iso8601($timestamp);
-            $cache->append ($parsedPosition);
-            $symbolSpecificMessageHash = $messageHash . ':' . $parsedPosition['symbol'];
-            $client->resolve (array( $parsedPosition ), $messageHash);
-            $client->resolve (array( $parsedPosition ), $symbolSpecificMessageHash);
-        }
+        $cache = $this->positions;
+        $parsedPosition = $this->parse_ws_position($rawPosition, $market);
+        $timestamp = $this->safe_integer($message, 'T');
+        $parsedPosition['timestamp'] = $timestamp;
+        $parsedPosition['datetime'] = $this->iso8601($timestamp);
+        $cache->append ($parsedPosition);
+        $client->resolve (array( $parsedPosition ), $messageHash);
+        $client->resolve (array( $parsedPosition ), $symbolMessageHash);
     }
 
     public function parse_ws_position($position, $market = null) {

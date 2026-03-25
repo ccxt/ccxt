@@ -1,5 +1,42 @@
 {
-    "USDC": null,
+    "USDC": {
+        "info": {
+            "name": "USDC",
+            "szDecimals": "8",
+            "weiDecimals": "8",
+            "index": "0",
+            "tokenId": "0x6d1e7cde53ba9467b783cb7c530ce054",
+            "isCanonical": true,
+            "evmContract": {
+                "address": "0x6b9e773128f453f5c2c60935ee2de2cbc5390a24",
+                "evm_extra_wei_decimals": "-2"
+            },
+            "fullName": null,
+            "deployerTradingFeeShare": "0.0"
+        },
+        "id": "0",
+        "numericId": null,
+        "code": "USDC",
+        "precision": "0.00000001",
+        "type": "crypto",
+        "name": "USDC",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": null,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
     "BTC": {
         "info": {
             "szDecimals": "5",
@@ -129,5 +166,6 @@
             }
         }
     },
-    "FLX-CRCL": null
+    "FLX-CRCL": null,
+    "XYZ-AAPL": null
 }

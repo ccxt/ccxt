@@ -922,7 +922,7 @@ class deepcoin extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->load_markets();
-        $marketType = 'spot';
+        $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params, $marketType);
         $request = array(
             'instType' => $this->convert_to_instrument_type($marketType),
@@ -1247,7 +1247,7 @@ class deepcoin extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest ledger entry
          * @param {string} [$params->type] 'spot' or 'swap', the market type for the ledger (default 'spot')
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=ledger ledger structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structures~
          */
         $this->load_markets();
         $marketType = 'spot';

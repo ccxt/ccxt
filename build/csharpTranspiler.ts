@@ -1219,7 +1219,7 @@ class NewTranspiler {
         for (const testName of baseFunctionTests) {
             const tsFile = baseFolders.ts + testName + '.ts';
             const tsContent = fs.readFileSync(tsFile).toString();
-            if (!tsContent.includes ('// AUTO_TRANSPILE_ENABLED')) {
+            if (tsContent.includes ('// NO_AUTO_TRANSPILE')) {
                 continue;
             }
 
@@ -1381,6 +1381,8 @@ class NewTranspiler {
                 [/testSharedMethods\.assertTimestampAndDatetime\(exchange, skippedProperties, method, orderbook\)/, '// testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook)'], // tmp disabling timestamp check on the orderbook
                 [ /void function/g, 'void'],
                 [/(\w+)\.spawn\(([^,]+),(.+)\)/gm, '$1.spawn($2, new object[] {$3})'],
+                // apply 'getPreTranspilationRegexes' here, bcz in CS we don't have pre-transpilation regexes
+                [/exchange.jsonStringifyWithNull/g, 'json'],
             ];
 
             if (isWs) {

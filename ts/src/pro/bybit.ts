@@ -1661,7 +1661,7 @@ export default class bybit extends bybitRest {
      * @method
      * @name bybit#watchLiquidations
      * @description watch the public liquidations of a trading pair
-     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/liquidation
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/all-liquidation
      * @param {string} symbol unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -1676,7 +1676,7 @@ export default class bybit extends bybitRest {
         const url = await this.getUrlByMarketType (symbol, false, 'watchLiquidations', params);
         params = this.cleanParams (params);
         let method = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'watchLiquidations', 'method', 'liquidation');
+        [ method, params ] = this.handleOptionAndParams (params, 'watchLiquidations', 'method', 'allLiquidation');
         const messageHash = 'liquidations::' + symbol;
         const topic = method + '.' + market['id'];
         const newLiquidation = await this.watchTopics (url, [ messageHash ], [ topic ], params);
@@ -1724,13 +1724,12 @@ export default class bybit extends bybitRest {
                 const market = this.safeMarket (marketId, undefined, '', 'contract');
                 const symbol = market['symbol'];
                 const liquidation = this.parseWsLiquidation (rawLiquidation, market);
-                let liquidations = this.safeValue (this.liquidations, symbol);
-                if (liquidations === undefined) {
+                if (this.liquidations === undefined) {
                     const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
-                    liquidations = new ArrayCache (limit);
+                    this.liquidations = new ArrayCache (limit);
                 }
-                liquidations.append (liquidation);
-                this.liquidations[symbol] = liquidations;
+                const cache = this.liquidations;
+                cache.append (liquidation);
                 client.resolve ([ liquidation ], 'liquidations');
                 client.resolve ([ liquidation ], 'liquidations::' + symbol);
             }
@@ -1740,13 +1739,12 @@ export default class bybit extends bybitRest {
             const market = this.safeMarket (marketId, undefined, '', 'contract');
             const symbol = market['symbol'];
             const liquidation = this.parseWsLiquidation (rawLiquidation, market);
-            let liquidations = this.safeValue (this.liquidations, symbol);
-            if (liquidations === undefined) {
+            if (this.liquidations === undefined) {
                 const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
-                liquidations = new ArrayCache (limit);
+                this.liquidations = new ArrayCache (limit);
             }
-            liquidations.append (liquidation);
-            this.liquidations[symbol] = liquidations;
+            const cache = this.liquidations;
+            cache.append (liquidation);
             client.resolve ([ liquidation ], 'liquidations');
             client.resolve ([ liquidation ], 'liquidations::' + symbol);
         }

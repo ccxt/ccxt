@@ -162,6 +162,7 @@ public partial class cryptocom : Exchange
                             { "public/get-valuations", 1 },
                             { "public/get-expired-settlement-price", divide(10, 3) },
                             { "public/get-insurance", 1 },
+                            { "public/get-announcements", 1 },
                             { "public/get-risk-parameters", 1 },
                         } },
                         { "post", new Dictionary<string, object>() {
@@ -216,6 +217,8 @@ public partial class cryptocom : Exchange
                             { "private/staking/convert", 2 },
                             { "private/staking/get-open-convert", 2 },
                             { "private/staking/get-convert-history", 2 },
+                            { "private/create-isolated-margin-transfer", divide(10, 3) },
+                            { "private/change-isolated-margin-leverage", divide(10, 3) },
                         } },
                     } },
                 } },
@@ -442,6 +445,7 @@ public partial class cryptocom : Exchange
                     { "219", typeof(InvalidOrder) },
                     { "306", typeof(InsufficientFunds) },
                     { "314", typeof(InvalidOrder) },
+                    { "315", typeof(InvalidOrder) },
                     { "325", typeof(InvalidOrder) },
                     { "415", typeof(InvalidOrder) },
                     { "10001", typeof(ExchangeError) },
@@ -2916,7 +2920,7 @@ public partial class cryptocom : Exchange
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {

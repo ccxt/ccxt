@@ -79,6 +79,10 @@ func (this *KrakenfuturesCore) PrivateGetAssignmentprogramHistory(args ...interf
 	return this.callEndpointAsync("privateGetAssignmentprogramHistory", args...)
 }
 
+func (this *KrakenfuturesCore) PrivateGetOrdersStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrdersStatus", args...)
+}
+
 func (this *KrakenfuturesCore) PrivatePostSendorder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostSendorder", args...)
 }

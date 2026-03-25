@@ -30,7 +30,7 @@ public partial class coinbaseinternational
     /// watch the funding rate for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -41,7 +41,7 @@ public partial class coinbaseinternational
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols.</returns>
-    public async Task<FundingRates> WatchFundingRates(List<string> symbols, Dictionary<string, object> parameters = null)
+    public async Task<FundingRates> WatchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchFundingRates(symbols, parameters);
         return new FundingRates(res);

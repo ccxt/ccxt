@@ -1263,7 +1263,7 @@ public partial class toobit : ccxt.toobit
                     this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
                 } catch(Exception e)
                 {
-                    var err = new AuthenticationError(add(add(this.id, " "), this.json(e)));
+                    var err = new AuthenticationError(add(add(this.id, " "), this.exceptionMessage(e)));
                     ((WebSocketClient)client).reject(err, messageHash);
                     if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
                     {
@@ -1305,7 +1305,7 @@ public partial class toobit : ccxt.toobit
             return;
         }
         // whether or not to schedule another listenKey keepAlive request
-        object listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 1200000);
+        object listenKeyRefreshRate = this.safeInteger(getValue(this.options, "ws"), "listenKeyRefreshRate", 1200000);
         this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
     }
 

@@ -339,6 +339,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->channel] 'webData2' or 'allMids', default is 'webData2'
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             $market = $this->market($symbol);
@@ -362,6 +363,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
              *
              * @param {string[]} $symbols unified symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->channel] 'webData2' or 'allMids', default is 'webData2'
              * @param {string} [$params->dex] for for hip3 tokens subscription, eg => 'xyz' or 'flx`, if $symbols are provided we will infer it from the first symbol's $market
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
@@ -369,10 +371,12 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             $symbols = $this->market_symbols($symbols, null, true);
             $messageHash = 'tickers';
             $url = $this->urls['api']['ws']['public'];
+            $channel = 'webData2';
+            list($channel, $params) = $this->handle_option_and_params($params, 'watchTickers', 'channel', $channel);
             $request = array(
                 'method' => 'subscribe',
                 'subscription' => array(
-                    'type' => 'webData2', // allMids
+                    'type' => $channel, // webData2 or allMids
                     'user' => '0x0000000000000000000000000000000000000000',
                 ),
             );
@@ -408,17 +412,20 @@ class hyperliquid extends \ccxt\async\hyperliquid {
              *
              * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->channel] 'webData2' or 'allMids', default is 'webData2'
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, true);
             $subMessageHash = 'tickers';
+            $channel = 'webData2';
+            list($channel, $params) = $this->handle_option_and_params($params, 'unWatchTickers', 'channel', $channel);
             $messageHash = 'unsubscribe:' . $subMessageHash;
             $url = $this->urls['api']['ws']['public'];
             $request = array(
                 'method' => 'unsubscribe',
                 'subscription' => array(
-                    'type' => 'webData2', // allMids
+                    'type' => $channel, // allMids
                     'user' => '0x0000000000000000000000000000000000000000',
                 ),
             );
@@ -574,7 +581,11 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                     ), $market);
                     $this->tickers[$symbol] = $ticker;
                 }
-                $messageHash = 'tickers:' . $this->safe_string($data, 'dex');
+                $messageHash = 'tickers';
+                $dexMessage = $this->safe_string($data, 'dex');
+                if ($dexMessage !== null) {
+                    $messageHash .= ':' . $dexMessage;
+                }
                 $client->resolve ($this->tickers, $messageHash);
                 return true;
             }

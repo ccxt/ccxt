@@ -38,6 +38,9 @@ public partial class cex : ccxt.cex
             } },
             { "options", new Dictionary<string, object>() {
                 { "orderbook", new Dictionary<string, object>() {} },
+                { "watchTrades", new Dictionary<string, object>() {
+                    { "symbol", null },
+                } },
             } },
             { "streaming", new Dictionary<string, object>() {} },
             { "exceptions", new Dictionary<string, object>() {} },
@@ -133,13 +136,18 @@ public partial class cex : ccxt.cex
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        object currentSymbol = this.safeString(getValue(this.options, "watchTrades"), "symbol");
+        if (isTrue(isTrue(!isEqual(currentSymbol, null)) && isTrue(!isEqual(currentSymbol, symbol))))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance")) ;
+        }
+        ((IDictionary<string,object>)getValue(this.options, "watchTrades"))["symbol"] = symbol;
         await this.loadMarkets();
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = "trades";
         object subscriptionHash = add("old:", symbol);
-        ((IDictionary<string,object>)this.options)["currentWatchTradeSymbol"] = symbol; // exchange supports only 1 symbol for this watchTrades channel
         var client = this.safeValue(this.clients, url);
         if (isTrue(!isEqual(client as WebSocketClient, null)))
         {
@@ -164,11 +172,6 @@ public partial class cex : ccxt.cex
         };
         object request = this.deepExtend(message, parameters);
         object trades = await this.watch(url, messageHash, request, subscriptionHash);
-        // assing symbol to the trades as message does not contain symbol information
-        for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
-        {
-            ((IDictionary<string,object>)getValue(trades, i))["symbol"] = symbol;
-        }
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
 
@@ -185,26 +188,7 @@ public partial class cex : ccxt.cex
         //         ]
         //     }
         //
-        object data = this.safeList(message, "data", new List<object>() {});
-        object limit = this.safeInteger(this.options, "tradesLimit", 1000);
-        var stored = new ArrayCache(limit);
-        object symbol = this.safeString(this.options, "currentWatchTradeSymbol");
-        if (isTrue(isEqual(symbol, null)))
-        {
-            return;
-        }
-        object market = this.market(symbol);
-        object dataLength = getArrayLength(data);
-        for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
-        {
-            object index = subtract(subtract(dataLength, 1), i);
-            object rawTrade = getValue(data, index);
-            object parsed = this.parseWsOldTrade(rawTrade, market);
-            callDynamically(stored, "append", new object[] {parsed});
-        }
-        object messageHash = "trades";
-        this.trades = ((object)stored); // trades don't have symbol
-        callDynamically(client as WebSocketClient, "resolve", new object[] {this.trades, messageHash});
+        this.handleTradesInner(client as WebSocketClient, message);
     }
 
     public virtual object parseWsOldTrade(object trade, object market = null)
@@ -212,6 +196,7 @@ public partial class cex : ccxt.cex
         //
         //  snapshot trade
         //    "sell:1665467367741:3888551:19058.8:14541219"
+        //
         //  update trade
         //    ['buy', '1665467516704', '98070', "19057.7", "14541220"]
         //
@@ -251,19 +236,31 @@ public partial class cex : ccxt.cex
         //         ]
         //     }
         //
-        object data = this.safeValue(message, "data", new List<object>() {});
-        object stored = ((object)this.trades); // to do fix this, this.trades is not meant to be used like this
+        this.handleTradesInner(client as WebSocketClient, message);
+    }
+
+    public virtual void handleTradesInner(WebSocketClient client, object message)
+    {
+        object data = this.safeList(message, "data", new List<object>() {});
+        object symbol = this.safeString(getValue(this.options, "watchTrades"), "symbol");
+        if (!isTrue((inOp(this.trades, symbol))))
+        {
+            object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            ((IDictionary<string,object>)this.trades)[(string)symbol] = new ArrayCache(limit);
+        }
+        object stored = getValue(this.trades, symbol);
+        object market = this.market(symbol);
         object dataLength = getArrayLength(data);
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object index = subtract(subtract(dataLength, 1), i);
             object rawTrade = getValue(data, index);
-            object parsed = this.parseWsOldTrade(rawTrade);
+            object parsed = this.parseWsOldTrade(rawTrade, market);
             callDynamically(stored, "append", new object[] {parsed});
         }
         object messageHash = "trades";
-        this.trades = stored;
-        callDynamically(client as WebSocketClient, "resolve", new object[] {this.trades, messageHash});
+        ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.trades, symbol), messageHash});
     }
 
     /**

@@ -874,7 +874,7 @@ func (this *Phemex) FetchFundingRate(symbol string, options ...FetchFundingRateO
  * @param {string} symbol unified market symbol of the market to set margin in
  * @param {float} amount the amount to set the margin to
  * @param {object} [params] parameters specific to the exchange API endpoint
- * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+ * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *Phemex) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 
@@ -1339,6 +1339,29 @@ func (this *Phemex) FetchConvertTradeHistory(options ...FetchConvertTradeHistory
 		return nil, CreateReturnError(res)
 	}
 	return NewConversionArray(res), nil
+}
+func (this *Phemex) FetchPositionsADLRank(options ...FetchPositionsADLRankOptions) ([]ADL, error) {
+
+	opts := FetchPositionsADLRankOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols interface{} = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchPositionsADLRank(symbols, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewADLArray(res), nil
 }
 
 // missing typed methods from base

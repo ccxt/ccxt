@@ -26,7 +26,7 @@ public partial class krakenfutures : Exchange
                 { "cancelAllOrdersAfter", true },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
-                { "createMarketOrder", false },
+                { "createMarketOrder", true },
                 { "createOrder", true },
                 { "createPostOnlyOrder", true },
                 { "createReduceOnlyOrder", true },
@@ -63,9 +63,9 @@ public partial class krakenfutures : Exchange
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
                 { "fetchOpenOrders", true },
-                { "fetchOrder", false },
+                { "fetchOrder", true },
                 { "fetchOrderBook", true },
-                { "fetchOrders", false },
+                { "fetchOrders", true },
                 { "fetchPositions", true },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTickers", true },
@@ -101,7 +101,7 @@ public partial class krakenfutures : Exchange
                     { "get", new List<object>() {"feeschedules", "instruments", "orderbook", "tickers", "history", "historicalfundingrates"} },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"feeschedules/volumes", "openpositions", "notifications", "accounts", "openorders", "recentorders", "fills", "transfers", "leveragepreferences", "pnlpreferences", "assignmentprogram/current", "assignmentprogram/history"} },
+                    { "get", new List<object>() {"feeschedules/volumes", "openpositions", "notifications", "accounts", "openorders", "recentorders", "fills", "transfers", "leveragepreferences", "pnlpreferences", "assignmentprogram/current", "assignmentprogram/history", "orders/status"} },
                     { "post", new List<object>() {"sendorder", "editorder", "cancelorder", "transfer", "batchorder", "cancelallorders", "cancelallordersafter", "withdrawal", "assignmentprogram/add", "assignmentprogram/delete"} },
                     { "put", new List<object>() {"leveragepreferences", "pnlpreferences"} },
                 } },
@@ -254,7 +254,7 @@ public partial class krakenfutures : Exchange
                         { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
-                        { "limit", 5000 },
+                        { "limit", 2000 },
                     } },
                 } },
                 { "spot", null },
@@ -679,12 +679,12 @@ public partial class krakenfutures : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 5000);
+            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 2000);
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "price_type", this.safeString(parameters, "price", "trade") },
-            { "interval", getValue(this.timeframes, timeframe) },
+            { "interval", this.safeString(this.timeframes, timeframe, timeframe) },
         };
         parameters = this.omit(parameters, "price");
         if (isTrue(!isEqual(since, null)))
@@ -693,15 +693,15 @@ public partial class krakenfutures : Exchange
             ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
             if (isTrue(isEqual(limit, null)))
             {
-                limit = 5000;
+                limit = 2000;
             }
-            limit = mathMin(limit, 5000);
+            limit = mathMin(limit, 2000);
             object toTimestamp = this.sum(getValue(request, "from"), subtract(multiply(limit, duration), 1));
             object currentTimestamp = this.seconds();
             ((IDictionary<string,object>)request)["to"] = mathMin(toTimestamp, currentTimestamp);
         } else if (isTrue(!isEqual(limit, null)))
         {
-            limit = mathMin(limit, 5000);
+            limit = mathMin(limit, 2000);
             object duration = this.parseTimeframe(timeframe);
             ((IDictionary<string,object>)request)["to"] = this.seconds();
             ((IDictionary<string,object>)request)["from"] = this.parseToInt(subtract(getValue(request, "to"), (multiply(duration, limit))));
@@ -1020,6 +1020,16 @@ public partial class krakenfutures : Exchange
                 takerOrMaker = "taker";
             }
         }
+        object fee = null;
+        if (isTrue(isTrue((!isEqual(takerOrMaker, null))) && isTrue((!isEqual(cost, null)))))
+        {
+            object feeRate = this.safeString(market, takerOrMaker);
+            fee = new Dictionary<string, object>() {
+                { "cost", Precise.stringMul(cost, feeRate) },
+                { "currency", this.safeString(market, "quote") },
+                { "rate", feeRate },
+            };
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", id },
@@ -1033,7 +1043,7 @@ public partial class krakenfutures : Exchange
             { "price", price },
             { "amount", ((bool) isTrue(linear)) ? amount : null },
             { "cost", cost },
-            { "fee", null },
+            { "fee", fee },
         });
     }
 
@@ -1170,6 +1180,41 @@ public partial class krakenfutures : Exchange
         //        },
         //        "serverTime": "2022-02-28T19:32:17.122Z"
         //    }
+        //
+        // MARKET
+        //
+        //     {
+        //         "result": "success",
+        //         "serverTime": "2026-03-02T06:10:31.955Z",
+        //         "sendStatus": {
+        //             "status": "placed",
+        //             "order_id": "a133a4f9-254d-4806-8176-9acc936b6944",
+        //             "receivedTime": "2026-03-02T06:10:31.954Z",
+        //             "orderEvents": [
+        //                 {
+        //                     "type": "EXECUTION",
+        //                     "executionId": "403bf49f-dbbe-448b-8de7-fd3cf38cc5dd",
+        //                     "price": 66596.0,
+        //                     "amount": 0.001,
+        //                     "orderPriorEdit": null,
+        //                     "orderPriorExecution": {
+        //                         "orderId": "a133a4f9-254d-4806-8176-9acc936b6944",
+        //                         "cliOrdId": null,
+        //                         "type": "ioc",
+        //                         "symbol": "PF_XBTUSD",
+        //                         "side": "buy",
+        //                         "quantity": 0.001,
+        //                         "filled": 0,
+        //                         "limitPrice": 67261.000,
+        //                         "reduceOnly": false,
+        //                         "timestamp": "2026-03-02T06:10:31.954Z",
+        //                         "lastUpdateTimestamp": "2026-03-02T06:10:31.954Z"
+        //                     },
+        //                     "takerReducedQuantity": null
+        //                 }
+        //             ]
+        //         }
+        //     }
         //
         object sendStatus = this.safeValue(response, "sendStatus");
         object status = this.safeString(sendStatus, "status");
@@ -1494,6 +1539,57 @@ public partial class krakenfutures : Exchange
 
     /**
      * @method
+     * @name krakenfutures#fetchOrders
+     * @description Gets all orders for an account from the exchange api
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
+     * @param {string} symbol Unified market symbol
+     * @param {int} [since] Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
+     * @param {int} [limit] How many orders to return. (Not used by kraken api but filtered internally by CCXT)
+     * @param {object} [params] Exchange specific parameters
+     * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        object response = await this.privateGetOrdersStatus(parameters);
+        object orders = this.safeList(response, "orders", new List<object>() {});
+        return this.parseOrders(orders, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name krakenfutures#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
+     * @param {string} id the order id
+     * @param {string} symbol unified market symbol that the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "orderIds", new List<object>() {id} },
+        };
+        object orders = await this.fetchOrders(null, null, null, this.extend(request, parameters));
+        object order = this.safeDict(orders, 0);
+        if (isTrue(isEqual(order, null)))
+        {
+            throw new OrderNotFound ((string)add(add(this.id, " fetchOrder could not find order id "), id)) ;
+        }
+        return order;
+    }
+
+    /**
+     * @method
      * @name krakenfutures#fetchClosedOrders
      * @see https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events
      * @description Gets all closed orders, including trigger orders, for an account from the exchange api
@@ -1501,6 +1597,7 @@ public partial class krakenfutures : Exchange
      * @param {int} [since] Timestamp (ms) of earliest order.
      * @param {int} [limit] How many orders to return.
      * @param {object} [params] Exchange specific parameters
+     * @param {bool} [params.trigger] set to true if you wish to fetch only trigger orders
      * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -1521,14 +1618,23 @@ public partial class krakenfutures : Exchange
         {
             ((IDictionary<string,object>)request)["from"] = since;
         }
-        object response = await this.historyGetOrders(this.extend(request, parameters));
+        object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+        object response = null;
+        if (isTrue(isTrigger))
+        {
+            parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
+            response = await this.historyGetTriggers(this.extend(request, parameters));
+        } else
+        {
+            response = await this.historyGetOrders(this.extend(request, parameters));
+        }
         object allOrders = this.safeList(response, "elements", new List<object>() {});
         object closedOrders = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(allOrders)); postFixIncrement(ref i))
         {
             object order = getValue(allOrders, i);
             object eventVar = this.safeDict(order, "event", new Dictionary<string, object>() {});
-            object orderPlaced = this.safeDict(eventVar, "OrderPlaced");
+            object orderPlaced = this.safeDict2(eventVar, "OrderPlaced", "OrderTriggerActivated");
             if (isTrue(!isEqual(orderPlaced, null)))
             {
                 object innerOrder = this.safeDict(orderPlaced, "order", new Dictionary<string, object>() {});
@@ -1552,6 +1658,7 @@ public partial class krakenfutures : Exchange
      * @param {int} [since] Timestamp (ms) of earliest order.
      * @param {int} [limit] How many orders to return.
      * @param {object} [params] Exchange specific parameters
+     * @param {bool} [params.trigger] set to true if you wish to fetch only trigger orders
      * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -1572,19 +1679,29 @@ public partial class krakenfutures : Exchange
         {
             ((IDictionary<string,object>)request)["from"] = since;
         }
-        object response = await this.historyGetOrders(this.extend(request, parameters));
+        object response = null;
+        object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+        if (isTrue(isTrigger))
+        {
+            parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
+            response = await this.historyGetTriggers(this.extend(request, parameters));
+        } else
+        {
+            response = await this.historyGetOrders(this.extend(request, parameters));
+        }
         object allOrders = this.safeList(response, "elements", new List<object>() {});
         object canceledAndRejected = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(allOrders)); postFixIncrement(ref i))
         {
             object order = getValue(allOrders, i);
             object eventVar = this.safeDict(order, "event", new Dictionary<string, object>() {});
-            object orderPlaced = this.safeDict(eventVar, "OrderPlaced");
+            object isCancelledTriggerOrder = (inOp(eventVar, "OrderTriggerCancelled"));
+            object orderPlaced = this.safeDict2(eventVar, "OrderPlaced", "OrderTriggerCancelled");
             if (isTrue(!isEqual(orderPlaced, null)))
             {
                 object innerOrder = this.safeDict(orderPlaced, "order", new Dictionary<string, object>() {});
                 object filled = this.safeString(innerOrder, "filled");
-                if (isTrue(isEqual(filled, "0")))
+                if (isTrue(isTrue(isEqual(filled, "0")) || isTrue(isCancelledTriggerOrder)))
                 {
                     ((IDictionary<string,object>)innerOrder)["status"] = "canceled"; // status not available in the response
                     ((IList<object>)canceledAndRejected).Add(innerOrder);
@@ -1678,6 +1795,12 @@ public partial class krakenfutures : Exchange
             { "notFound", "rejected" },
             { "untouched", "open" },
             { "partiallyFilled", "open" },
+            { "ENTERED_BOOK", "open" },
+            { "FULLY_EXECUTED", "closed" },
+            { "CANCELLED", "canceled" },
+            { "TRIGGER_PLACED", "open" },
+            { "PARTIALLY_FILLED", "open" },
+            { "UNTOUCHED", "open" },
         };
         return this.safeString(statuses, status, status);
     }
@@ -1713,6 +1836,37 @@ public partial class krakenfutures : Exchange
         //            }
         //        ]
         //    }
+        //
+        // MARKET
+        //
+        //     {
+        //         "status": "placed",
+        //         "order_id": "a133a4f9-254d-4806-8176-9acc936b6944",
+        //         "receivedTime": "2026-03-02T06:10:31.954Z",
+        //         "orderEvents": [
+        //             {
+        //                 "type": "EXECUTION",
+        //                 "executionId": "403bf49f-dbbe-448b-8de7-fd3cf38cc5dd",
+        //                 "price": 66596.0,
+        //                 "amount": 0.001,
+        //                 "orderPriorEdit": null,
+        //                 "orderPriorExecution": {
+        //                     "orderId": "a133a4f9-254d-4806-8176-9acc936b6944",
+        //                     "cliOrdId": null,
+        //                     "type": "ioc",
+        //                     "symbol": "PF_XBTUSD",
+        //                     "side": "buy",
+        //                     "quantity": 0.001,
+        //                     "filled": 0,
+        //                     "limitPrice": 67261.000,
+        //                     "reduceOnly": false,
+        //                     "timestamp": "2026-03-02T06:10:31.954Z",
+        //                     "lastUpdateTimestamp": "2026-03-02T06:10:31.954Z"
+        //                 },
+        //                 "takerReducedQuantity": null
+        //             }
+        //         ]
+        //     }
         //
         // CONDITIONAL
         //
@@ -1918,6 +2072,76 @@ public partial class krakenfutures : Exchange
         //     status: 'closed'
         //   }
         //
+        // order: {
+        //     type: 'ORDER',
+        //     orderId: 'a111f276-95fd-47fc-b77b-709c5ab2e9e1',
+        //     cliOrdId: null,
+        //     symbol: 'PF_LTCUSD',
+        //     side: 'buy',
+        //     quantity: '0.1',
+        //     filled: '0',
+        //     limitPrice: '40',
+        //     reduceOnly: false,
+        //     timestamp: '2026-02-13T12:09:03.738Z',
+        //     lastUpdateTimestamp: '2026-02-13T12:09:03.738Z'
+        // },
+        //     status: 'ENTERED_BOOK',
+        //     updateReason: null,
+        //     error: null
+        // }
+        //
+        object orderDictFromFetchOrder = this.safeDict(order, "order");
+        if (isTrue(!isEqual(orderDictFromFetchOrder, null)))
+        {
+            // order: {
+            //     type: 'ORDER',
+            //     orderId: 'a111f276-95fd-47fc-b77b-709c5ab2e9e1',
+            //     cliOrdId: null,
+            //     symbol: 'PF_LTCUSD',
+            //     side: 'buy',
+            //     quantity: '0.1',
+            //     filled: '0',
+            //     limitPrice: '40',
+            //     reduceOnly: false,
+            //     timestamp: '2026-02-13T12:09:03.738Z',
+            //     lastUpdateTimestamp: '2026-02-13T12:09:03.738Z'
+            // },
+            //     status: 'ENTERED_BOOK',
+            //     updateReason: null,
+            //     error: null
+            //
+            object datetime = this.safeString(orderDictFromFetchOrder, "timestamp");
+            object innerStatus = this.safeString(order, "status");
+            object fetchOrderPriceTriggerOptions = this.safeDict(orderDictFromFetchOrder, "priceTriggerOptions", new Dictionary<string, object>() {});
+            object fetchOrderTriggerPrice = this.safeString(fetchOrderPriceTriggerOptions, "triggerPrice");
+            return this.safeOrder(new Dictionary<string, object>() {
+                { "info", order },
+                { "id", this.safeString(orderDictFromFetchOrder, "orderId") },
+                { "clientOrderId", this.safeStringN(orderDictFromFetchOrder, new List<object>() {"cliOrdId"}) },
+                { "timestamp", this.parse8601(datetime) },
+                { "datetime", datetime },
+                { "lastTradeTimestamp", null },
+                { "lastUpdateTimestamp", this.parse8601(this.safeString(orderDictFromFetchOrder, "lastUpdateTimestamp")) },
+                { "symbol", this.safeSymbol(this.safeString(orderDictFromFetchOrder, "symbol"), market) },
+                { "type", null },
+                { "timeInForce", null },
+                { "postOnly", null },
+                { "reduceOnly", this.safeBool(orderDictFromFetchOrder, "reduceOnly") },
+                { "side", this.safeString(orderDictFromFetchOrder, "side") },
+                { "price", null },
+                { "triggerPrice", fetchOrderTriggerPrice },
+                { "stopPrice", fetchOrderTriggerPrice },
+                { "amount", this.safeString(orderDictFromFetchOrder, "quantity") },
+                { "cost", null },
+                { "average", null },
+                { "filled", this.safeString(orderDictFromFetchOrder, "filled") },
+                { "remaining", null },
+                { "status", this.parseOrderStatus(innerStatus) },
+                { "fee", null },
+                { "fees", null },
+                { "trades", null },
+            });
+        }
         object orderEvents = this.safeValue(order, "orderEvents", new List<object>() {});
         object errorStatus = this.safeString(order, "status");
         object orderEventsLength = getArrayLength(orderEvents);
@@ -1956,9 +2180,16 @@ public partial class krakenfutures : Exchange
                         fixedVar = true;
                     } else if (!isTrue(fixedVar))
                     {
+                        object executedPrice = this.safeString(item, "price");
                         object orderPriorExecution = this.safeValue(item, "orderPriorExecution");
                         details = this.safeValue2(item, "orderPriorExecution", "orderPriorEdit");
-                        price = this.safeString(orderPriorExecution, "limitPrice");
+                        if (isTrue(isEqual(executedPrice, null)))
+                        {
+                            price = this.safeString(orderPriorExecution, "limitPrice");
+                        } else
+                        {
+                            price = executedPrice;
+                        }
                         if (isTrue(!isEqual(details, null)))
                         {
                             isPrior = true;
@@ -1981,14 +2212,11 @@ public partial class krakenfutures : Exchange
         // but will be fixed below
         object status = this.parseOrderStatus(statusId);
         object isClosed = this.inArray(status, new List<object>() {"canceled", "rejected", "closed"});
-        object marketId = this.safeString(details, "symbol");
+        object marketId = this.safeString2(details, "symbol", "tradeable");
         market = this.safeMarket(marketId, market);
+        object symbol = this.safeString(market, "symbol");
         object timestamp = this.parse8601(this.safeString2(details, "timestamp", "receivedTime"));
         object lastUpdateTimestamp = this.parse8601(this.safeString(details, "lastUpdateTime"));
-        if (isTrue(isEqual(price, null)))
-        {
-            price = this.safeString(details, "limitPrice");
-        }
         object amount = this.safeString(details, "quantity");
         object filled = this.safeString2(details, "filledSize", "filled", "0.0");
         object remaining = this.safeString(details, "unfilledSize");
@@ -2065,12 +2293,13 @@ public partial class krakenfutures : Exchange
         {
             timeInForce = "ioc";
         }
-        object symbol = this.safeString(market, "symbol");
-        if (isTrue(inOp(details, "tradeable")))
-        {
-            symbol = this.safeSymbol(this.safeString(details, "tradeable"), market);
-        }
         object ts = this.safeInteger(details, "timestamp", timestamp);
+        object priceTriggerOptions = this.safeDict(details, "priceTriggerOptions", new Dictionary<string, object>() {});
+        object triggerPrice = this.safeString2(details, "triggerPrice", "stopPrice");
+        if (isTrue(isEqual(triggerPrice, null)))
+        {
+            triggerPrice = this.safeString(priceTriggerOptions, "triggerPrice");
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -2086,7 +2315,8 @@ public partial class krakenfutures : Exchange
             { "reduceOnly", this.safeBool2(details, "reduceOnly", "reduce_only") },
             { "side", this.safeStringLower2(details, "side", "direction") },
             { "price", price },
-            { "triggerPrice", this.safeString(details, "triggerPrice") },
+            { "triggerPrice", triggerPrice },
+            { "stopPrice", triggerPrice },
             { "amount", amount },
             { "cost", cost },
             { "average", average },
@@ -2439,7 +2669,7 @@ public partial class krakenfutures : Exchange
         //         "fundingRate": -0.000000756414717067,
         //         "fundingRatePrediction": 0.000000195218676,
         //         "suspended": false,
-        //         "indexPrice": 0.043392,
+        //         "indexPrice": 0.043391,
         //         "postOnly": false,
         //         "change24h": -0.46
         //     }
@@ -2452,17 +2682,17 @@ public partial class krakenfutures : Exchange
         object fundingRateResult = Precise.stringDiv(fundingRateString, markPriceString);
         object nextFundingRateString = this.safeString(ticker, "fundingRatePrediction");
         object nextFundingRateResult = Precise.stringDiv(nextFundingRateString, markPriceString);
-        if (isTrue(isGreaterThan(fundingRateResult, "0.25")))
+        if (isTrue(Precise.stringGt(fundingRateResult, "0.25")))
         {
             fundingRateResult = "0.25";
-        } else if (isTrue(isGreaterThan(fundingRateResult, "-0.25")))
+        } else if (isTrue(Precise.stringLt(fundingRateResult, "-0.25")))
         {
             fundingRateResult = "-0.25";
         }
-        if (isTrue(isGreaterThan(nextFundingRateResult, "0.25")))
+        if (isTrue(Precise.stringGt(nextFundingRateResult, "0.25")))
         {
             nextFundingRateResult = "0.25";
-        } else if (isTrue(isGreaterThan(nextFundingRateResult, "-0.25")))
+        } else if (isTrue(Precise.stringLt(nextFundingRateResult, "-0.25")))
         {
             nextFundingRateResult = "-0.25";
         }
@@ -2767,7 +2997,7 @@ public partial class krakenfutures : Exchange
         {
             object tier = getValue(marginLevels, i);
             object initialMargin = this.safeString(tier, "initialMargin");
-            object minNotional = this.safeNumber(tier, "numNonContractUnits");
+            object minNotional = this.safeNumber2(tier, "numNonContractUnits", "contracts");
             if (isTrue(!isEqual(i, 0)))
             {
                 object tiersLength = getArrayLength(tiers);
@@ -3071,7 +3301,13 @@ public partial class krakenfutures : Exchange
             body = postData;
         } else if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
         {
-            postData = this.urlencode(parameters);
+            if (isTrue(inOp(parameters, "orderIds")))
+            {
+                postData = this.urlencodeWithArrayRepeat(parameters);
+            } else
+            {
+                postData = this.urlencode(parameters);
+            }
             query = add(query, add("?", postData));
         }
         object url = add(getValue(getValue(this.urls, "api"), api), query);

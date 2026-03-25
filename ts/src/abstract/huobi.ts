@@ -336,6 +336,20 @@ interface htx {
     contractPrivateGetLinearSwapApiV3FixPositionMarginChangeRecord (params?: {}): Promise<implicitReturnType>;
     contractPrivateGetLinearSwapApiV3SwapUnifiedAccountType (params?: {}): Promise<implicitReturnType>;
     contractPrivateGetLinearSwapApiV3LinearSwapOverviewAccountInfo (params?: {}): Promise<implicitReturnType>;
+    contractPrivateGetV5AccountBalance (params?: {}): Promise<implicitReturnType>;
+    contractPrivateGetV5AccountAssetMode (params?: {}): Promise<implicitReturnType>;
+    contractPrivateGetV5TradePositionOpens (params?: {}): Promise<implicitReturnType>;
+    contractPrivateGetV5TradeOrderOpens (params?: {}): Promise<implicitReturnType>;
+    contractPrivateGetV5TradeOrderDetails (params?: {}): Promise<implicitReturnType>;
+    contractPrivateGetV5TradeOrderHistory (params?: {}): Promise<implicitReturnType>;
+    contractPrivateGetV5TradeOrder (params?: {}): Promise<implicitReturnType>;
+    contractPrivateGetV5PositionLever (params?: {}): Promise<implicitReturnType>;
+    contractPrivateGetV5PositionMode (params?: {}): Promise<implicitReturnType>;
+    contractPrivateGetV5PositionRiskLimit (params?: {}): Promise<implicitReturnType>;
+    contractPrivateGetV5PositionRiskLimitTier (params?: {}): Promise<implicitReturnType>;
+    contractPrivateGetV5MarketRiskLimit (params?: {}): Promise<implicitReturnType>;
+    contractPrivateGetV5MarketAssetsDeductionCurrency (params?: {}): Promise<implicitReturnType>;
+    contractPrivateGetV5MarketMultiAssetsMargin (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostApiV1ContractBalanceValuation (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostApiV1ContractAccountInfo (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostApiV1ContractPositionInfo (params?: {}): Promise<implicitReturnType>;
@@ -553,6 +567,17 @@ interface htx {
     contractPrivatePostLinearSwapApiV1SwapCrossTrackOpenorders (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostLinearSwapApiV1SwapTrackHisorders (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostLinearSwapApiV1SwapCrossTrackHisorders (params?: {}): Promise<implicitReturnType>;
+    contractPrivatePostV5AccountAssetMode (params?: {}): Promise<implicitReturnType>;
+    contractPrivatePostV5TradeOrder (params?: {}): Promise<implicitReturnType>;
+    contractPrivatePostV5TradeBatchOrders (params?: {}): Promise<implicitReturnType>;
+    contractPrivatePostV5TradeCancelOrder (params?: {}): Promise<implicitReturnType>;
+    contractPrivatePostV5TradeCancelBatchOrders (params?: {}): Promise<implicitReturnType>;
+    contractPrivatePostV5TradeCancelAllOrders (params?: {}): Promise<implicitReturnType>;
+    contractPrivatePostV5TradePosition (params?: {}): Promise<implicitReturnType>;
+    contractPrivatePostV5TradePositionAll (params?: {}): Promise<implicitReturnType>;
+    contractPrivatePostV5PositionLever (params?: {}): Promise<implicitReturnType>;
+    contractPrivatePostV5PositionMode (params?: {}): Promise<implicitReturnType>;
+    contractPrivatePostV5AccountFeeDeductionCurrency (params?: {}): Promise<implicitReturnType>;
 }
 abstract class htx extends _htx {}
 

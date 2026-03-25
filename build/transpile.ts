@@ -101,6 +101,14 @@ class Transpiler {
         return uncameled;
     }
 
+    getPreTranspilationRegexes () {
+        // here are regexes for common language functions, which might have uniform behavior across all other langs, except JS. so, we apply JS-specific modification, during pre-transpilation process
+        // by this way (to edit JS only behavior), we avoid the necessity of language-specific placeholder methods across different langs' base classes
+        return [
+            [ /exchange.jsonStringifyWithNull/g, 'JSON.stringify' ],
+        ];
+    }
+
     getCommonRegexes (): any[] {
 
         return [
@@ -119,6 +127,7 @@ class Transpiler {
             [ /\.safeList2/g, '.safe_list_2'],
             [ /\.safeIntegerProduct2/g, '.safe_integer_product_2'],
             [ /\.safeNumberOmitZero/g, '.safe_number_omit_zero'],
+            [ /\.exceptionMessage/g, '.exception_message'],
             [ /\.fetchOHLCVS/g, '.fetch_ohlcvs'],
             [ /\.fetchOHLCVWs/g, '.fetch_ohlcvws'],
             [ /\.parseOHLCVS/g, '.parse_ohlcvs'],
@@ -798,6 +807,7 @@ class Transpiler {
         const matchObject = {
             'Account': /-> (?:List\[)?Account/,
             'Any': /(?:->|:) (?:List\[)?Any/,
+            'ADL': /-> ADL:/,
             'BalanceAccount': /-> BalanceAccount:/,
             'Balances': /-> Balances:/,
             'BorrowInterest': /-> BorrowInterest:/,
@@ -1640,7 +1650,7 @@ class Transpiler {
                     'Dictionary<any>': 'array',
                     'Dict': 'array',
                 }
-                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|Position|BorrowInterest)( \| undefined)?$|\w+\[\]/
+                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|Position|BorrowInterest)( \| undefined)?$|\w+\[\]/
 
                 phpArgs = argsArray.map (x => {
                     const parts = x.split (':')
@@ -2165,7 +2175,7 @@ class Transpiler {
             const unCamelCasedFileName = this.uncamelcaseName(testName);
             const tsFile = baseFolders.ts + testName + '.ts';
             const tsContent = fs.readFileSync(tsFile).toString();
-            if (!tsContent.includes ('// AUTO_TRANSPILE_ENABLED')) {
+            if (tsContent.includes ('// NO_AUTO_TRANSPILE')) {
                 continue;
             }
             const test: any = {
@@ -2431,6 +2441,8 @@ class Transpiler {
             [ /function equals \([\S\s]+?return true;?\n}\n/g, '' ],
         ]));
 
+        allFiles = allFiles.map( file => this.regexAll(file, this.getPreTranspilationRegexes()));
+
         const flatResult = await this.webworkerTranspile (allFiles, fileConfig, parserConfig);
 
         const exchangeCamelCaseProps = (str: string) => {
@@ -2531,7 +2543,7 @@ class Transpiler {
                 phpHeaderAsync.push ('use React\\Promise;');
             }
 
-            phpAsync = phpAsync.replace ('\\ccxt\\Exchange', '\\ccxt\\async\\Exchange');
+            phpAsync = phpAsync.replace (/\\ccxt\\Exchange/g, '\\ccxt\\async\\Exchange');
 
             const decimalProps = [ 'DECIMAL_PLACES', 'TICK_SIZE', 'NO_PADDING', 'TRUNCATE', 'ROUND', 'ROUND_UP', 'ROUND_DOWN', 'SIGNIFICANT_DIGITS', 'PAD_WITH_ZERO', 'decimal_to_precision', 'number_to_string' ];
             for (const propName of decimalProps) {

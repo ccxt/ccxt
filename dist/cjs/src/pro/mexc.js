@@ -24,6 +24,8 @@ class mexc extends mexc$1["default"] {
                 'fetchOrderWs': false,
                 'fetchTradesWs': false,
                 'watchBalance': true,
+                'watchFundingRate': true,
+                'watchFundingRates': false,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
@@ -718,13 +720,19 @@ class mexc extends mexc$1["default"] {
         //       "amount":"366804.43",
         //       "windowEnd":"1754737980"
         //
+        let volume = this.safeNumber2(ohlcv, 'v', 'volume');
+        // MEXC swap websocket klines publish contracts volume in `q`,
+        // while spot/protobuf uses `v`/`volume`.
+        if ((market !== undefined) && (!this.safeBool(market, 'spot')) && (volume === undefined)) {
+            volume = this.safeNumber2(ohlcv, 'q', 'v');
+        }
         return [
             this.safeTimestamp2(ohlcv, 't', 'windowStart'),
             this.safeNumber2(ohlcv, 'o', 'openingPrice'),
             this.safeNumber2(ohlcv, 'h', 'highestPrice'),
             this.safeNumber2(ohlcv, 'l', 'lowestPrice'),
             this.safeNumber2(ohlcv, 'c', 'closingPrice'),
-            this.safeNumber2(ohlcv, 'v', 'volume'),
+            volume,
         ];
     }
     /**
@@ -1420,7 +1428,7 @@ class mexc extends mexc$1["default"] {
         //
         const timestamp = this.safeInteger(order, 'createTime');
         const side = this.safeString(order, 'tradeType');
-        const status = this.safeString(order, 'status');
+        const status = this.safeString2(order, 'status', 'state');
         const type = this.safeString(order, 'orderType');
         let fee = undefined;
         const feeCurrency = this.safeString(order, 'N');
@@ -1442,8 +1450,8 @@ class mexc extends mexc$1["default"] {
             'timeInForce': this.parseWsTimeInForce(type),
             'side': (side === '1') ? 'buy' : 'sell',
             'price': this.safeString(order, 'price'),
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'stopPrice': this.safeString2(order, 'triggerPrice', 'P'),
+            'triggerPrice': this.safeString2(order, 'triggerPrice', 'P'),
             'average': this.safeString(order, 'avgPrice'),
             'amount': this.safeString(order, 'quantity'),
             'cost': this.safeString(order, 'amount'),
@@ -1456,6 +1464,7 @@ class mexc extends mexc$1["default"] {
     }
     parseWsOrderStatus(status, market = undefined) {
         const statuses = {
+            '0': 'open',
             '1': 'open',
             '2': 'closed',
             '3': 'open',
@@ -1475,7 +1484,9 @@ class mexc extends mexc$1["default"] {
             '3': undefined,
             '4': undefined,
             '5': 'market',
-            '100': 'limit', // STOP_LIMIT
+            '100': 'limit',
+            '101': 'limit',
+            '102': 'limit', // OCO_LIMIT
         };
         return this.safeString(types, type);
     }
@@ -1486,7 +1497,9 @@ class mexc extends mexc$1["default"] {
             '3': 'IOC',
             '4': 'FOK',
             '5': 'GTC',
-            '100': 'GTC', // STOP_LIMIT
+            '100': 'GTC',
+            '101': 'GTC',
+            '102': 'GTC', // OCO_LIMIT
         };
         return this.safeString(timeInForceIds, timeInForce);
     }
@@ -1543,7 +1556,7 @@ class mexc extends mexc$1["default"] {
         //             "frozenBalance": 0,
         //             "positionMargin": 1.36945756
         //         },
-        //         "ts": 1680059188190
+        //         "ts": 1680059188191
         //     }
         //
         const channel = this.safeString(message, 'channel');
@@ -1566,6 +1579,69 @@ class mexc extends mexc$1["default"] {
         this.balance[type][code] = account;
         this.balance[type] = this.safeBalance(this.balance[type]);
         client.resolve(this.balance[type], messageHash);
+    }
+    /**
+     * @method
+     * @name mexc#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://www.mexc.com/api-docs/futures/websocket-api#funding-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async watchFundingRate(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const messageHash = 'fundingRate:' + market['symbol'];
+        const channel = 'sub.funding.rate';
+        const requestParams = {
+            'symbol': market['id'],
+        };
+        return await this.watchSwapPublic(channel, messageHash, requestParams, params);
+    }
+    /**
+     * @method
+     * @name mexc#unWatchFundingRate
+     * @description unWatches the current funding rate for a symbol
+     * @see https://www.mexc.com/api-docs/futures/websocket-api#funding-rate
+     * @param {string} symbol unified symbol of the market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async unWatchFundingRate(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const messageHash = 'unsubscribe:fundingRate:' + market['symbol'];
+        let url = undefined;
+        const channel = 'unsub.funding.rate';
+        const requestParams = {
+            'symbol': market['id'],
+        };
+        url = this.urls['api']['ws']['swap'];
+        this.watchSwapPublic(channel, messageHash, requestParams, params);
+        const client = this.client(url);
+        this.handleUnsubscriptions(client, [messageHash]);
+        return undefined;
+    }
+    handleFundingRate(client, message) {
+        //
+        //     {
+        //         "symbol": "BTC_USDT",
+        //         "data": {
+        //             "symbol": "BTC_USDT",
+        //             "rate": -0.000021,
+        //             "nextSettleTime": 1771084800000
+        //         },
+        //         "channel": "push.funding.rate",
+        //         "ts": 1771069020506
+        //     }
+        //
+        const data = this.safeDict(message, 'data', {});
+        const fundingRate = this.parseFundingRate(data);
+        const symbol = fundingRate['symbol'];
+        this.fundingRates[symbol] = fundingRate;
+        const messageHash = 'fundingRate:' + symbol;
+        client.resolve(fundingRate, messageHash);
     }
     /**
      * @method
@@ -1851,6 +1927,12 @@ class mexc extends mexc$1["default"] {
                     delete this.trades[symbol];
                 }
             }
+            else if (messageHash.indexOf('fundingRate') >= 0) {
+                const symbol = messageHash.replace('unsubscribe:fundingRate:', '');
+                if (symbol in this.fundingRates) {
+                    delete this.fundingRates[symbol];
+                }
+            }
         }
     }
     async authenticate(subscriptionHash, params = {}) {
@@ -2010,6 +2092,7 @@ class mexc extends mexc$1["default"] {
             'private.deals.v3.api': this.handleMyTrade,
             'push.personal.order.deal': this.handleMyTrade,
             'pong': this.handlePong,
+            'push.funding.rate': this.handleFundingRate,
         };
         if (channel in methods) {
             const method = methods[channel];

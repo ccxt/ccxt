@@ -11,8 +11,12 @@ import (
 // Utility functions for safe extraction from maps
 func SafeFloatTyped(m interface{}, key interface{}) *float64 {
 	res := SafeFloat(m, key, math.NaN())
+
 	if res != nil {
 		resFloat := res.(float64)
+		if math.IsNaN(resFloat) {
+			return nil
+		}
 		return &resFloat
 	}
 	return nil
@@ -2208,6 +2212,46 @@ func NewAccountArray(orders2 interface{}) []Account {
 			result = append(result, order)
 		}
 	}
+	return result
+}
+
+// ADL Type
+
+type ADL struct {
+	Info       map[string]interface{}
+	Symbol     *string
+	Rank       *int64
+	Rating     *string
+	Percentage *float64
+	Timestamp  *int64
+	Datetime   *string
+}
+
+func NewADL(adlObj2 interface{}) ADL {
+	adlObj := adlObj2.(map[string]interface{})
+	return ADL{
+		Info:       GetInfo(adlObj),
+		Symbol:     SafeStringTyped(adlObj, "symbol"),
+		Rank:       SafeInt64Typed(adlObj, "rank"),
+		Rating:     SafeStringTyped(adlObj, "rating"),
+		Percentage: SafeFloatTyped(adlObj, "percentage"),
+		Timestamp:  SafeInt64Typed(adlObj, "timestamp"),
+		Datetime:   SafeStringTyped(adlObj, "datetime"),
+	}
+}
+
+func NewADLArray(data2 interface{}) []ADL {
+	data := data2.([]interface{})
+	result := make([]ADL, 0, len(data))
+
+	for _, item := range data {
+		obj, ok := item.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		result = append(result, NewADL(obj))
+	}
+
 	return result
 }
 

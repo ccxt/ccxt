@@ -4,6 +4,7 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
+// NO_AUTO_TRANSPILE
 import assert from 'assert';
 import { sha256 } from '../../static_dependencies/noble-hashes/sha256.js';
 import { sha1 } from '../../static_dependencies/noble-hashes/sha1.js';

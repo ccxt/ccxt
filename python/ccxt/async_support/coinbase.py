@@ -674,11 +674,11 @@ class coinbase(Exchange, ImplicitAPI):
         #     }
         #
         accounts = self.safe_list(response, 'accounts', [])
-        length = len(accounts)
-        lastIndex = length - 1
-        last = self.safe_dict(accounts, lastIndex)
+        accountsLength = len(accounts)
         cursor = self.safe_string(response, 'cursor')
-        if (cursor is not None) and (cursor != ''):
+        if (accountsLength > 0) and (cursor is not None) and (cursor != ''):
+            lastIndex = accountsLength - 1
+            last = self.safe_dict(accounts, lastIndex)
             last['cursor'] = cursor
             accounts[lastIndex] = last
         return self.parse_accounts(accounts, params)
@@ -2159,7 +2159,8 @@ class coinbase(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'trades', [])
-        ticker = self.parse_ticker(data[0], market)
+        first = self.safe_dict(data, 0, {})
+        ticker = self.parse_ticker(first, market)
         ticker['bid'] = self.safe_number(response, 'best_bid')
         ticker['ask'] = self.safe_number(response, 'best_ask')
         return ticker
@@ -2456,7 +2457,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         await self.load_markets()
         paginate = False
@@ -2891,6 +2892,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param str [params.retail_portfolio_id]: portfolio uid
         :param boolean [params.is_max]: Used in conjunction with tradable_balance to indicate the user wants to use their entire tradable balance
         :param str [params.tradable_balance]: amount of tradable balance
+        :param float [params.reduceOnly]: set to True for closing a position or use closePosition
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
@@ -2901,6 +2903,11 @@ class coinbase(Exchange, ImplicitAPI):
             'product_id': market['id'],
             'side': side.upper(),
         }
+        reduceOnly = self.safe_bool(params, 'reduceOnly')
+        if reduceOnly:
+            params = self.omit(params, 'reduceOnly')
+            params['amount'] = amount
+            return await self.close_position(symbol, side, params)
         triggerPrice = self.safe_number_n(params, ['stopPrice', 'stop_price', 'triggerPrice'])
         stopLossPrice = self.safe_number(params, 'stopLossPrice')
         takeProfitPrice = self.safe_number(params, 'takeProfitPrice')
@@ -3918,19 +3925,27 @@ class coinbase(Exchange, ImplicitAPI):
         """
         make a withdrawal
 
-        https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#send-money
+        https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/send-crypto
 
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str [tag]: an optional tag for the withdrawal
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: the cryptocurrency network to use for the withdrawal using the lowercase name like bitcoin, ethereum, solana, etc.
+        :param dict [params.travel_rule_data]: some regions require travel rule information for crypto withdrawals, see the exchange docs for details https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/travel-rule
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
+        request: dict = {
+            'type': 'send',
+            'to': address,
+            'amount': self.number_to_string(amount),
+            'currency': currency['id'],
+        }
         accountId = self.safe_string_2(params, 'account_id', 'accountId')
         params = self.omit(params, ['account_id', 'accountId'])
         if accountId is None:
@@ -3939,13 +3954,9 @@ class coinbase(Exchange, ImplicitAPI):
             accountId = await self.find_account_id(code, params)
             if accountId is None:
                 raise ExchangeError(self.id + ' withdraw() could not find account id for ' + code)
-        request: dict = {
-            'account_id': accountId,
-            'type': 'send',
-            'to': address,
-            'amount': amount,
-            'currency': currency['id'],
-        }
+            request['account_id'] = accountId
+        else:
+            request['account_id'] = accountId
         if tag is not None:
             request['destination_tag'] = tag
         response = await self.v2PrivatePostAccountsAccountIdTransactions(self.extend(request, params))

@@ -883,7 +883,7 @@ func (this *BitteamCore) FetchOrderBook(symbol interface{}, optionalArgs ...inte
 		PanicOnError(response)
 		//
 		//     {
-		//         "timestamp": 1701166703285,
+		//         "timestamp": 1701166703284,
 		//         "bids": [
 		//             [
 		//                 2019.334988,

@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.30'
+__version__ = '4.5.45'
 
 # ----------------------------------------------------------------------------
 
@@ -84,10 +84,12 @@ from ccxt.base.errors import CancelPending                            # noqa: F4
 from ccxt.base.errors import UnsubscribeError                         # noqa: F401
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
+from ccxt.aftermath import aftermath                                  # noqa: F401
 from ccxt.alpaca import alpaca                                        # noqa: F401
 from ccxt.apex import apex                                            # noqa: F401
 from ccxt.arkham import arkham                                        # noqa: F401
 from ccxt.ascendex import ascendex                                    # noqa: F401
+from ccxt.aster import aster                                          # noqa: F401
 from ccxt.backpack import backpack                                    # noqa: F401
 from ccxt.bequant import bequant                                      # noqa: F401
 from ccxt.bigone import bigone                                        # noqa: F401
@@ -114,7 +116,6 @@ from ccxt.bittrade import bittrade                                    # noqa: F4
 from ccxt.bitvavo import bitvavo                                      # noqa: F401
 from ccxt.blockchaincom import blockchaincom                          # noqa: F401
 from ccxt.blofin import blofin                                        # noqa: F401
-from ccxt.btcalpha import btcalpha                                    # noqa: F401
 from ccxt.btcbox import btcbox                                        # noqa: F401
 from ccxt.btcmarkets import btcmarkets                                # noqa: F401
 from ccxt.btcturk import btcturk                                      # noqa: F401
@@ -137,7 +138,6 @@ from ccxt.coinspot import coinspot                                    # noqa: F4
 from ccxt.cryptocom import cryptocom                                  # noqa: F401
 from ccxt.cryptomus import cryptomus                                  # noqa: F401
 from ccxt.deepcoin import deepcoin                                    # noqa: F401
-from ccxt.defx import defx                                            # noqa: F401
 from ccxt.delta import delta                                          # noqa: F401
 from ccxt.deribit import deribit                                      # noqa: F401
 from ccxt.derive import derive                                        # noqa: F401
@@ -149,6 +149,7 @@ from ccxt.foxbit import foxbit                                        # noqa: F4
 from ccxt.gate import gate                                            # noqa: F401
 from ccxt.gateio import gateio                                        # noqa: F401
 from ccxt.gemini import gemini                                        # noqa: F401
+from ccxt.grvt import grvt                                            # noqa: F401
 from ccxt.hashkey import hashkey                                      # noqa: F401
 from ccxt.hibachi import hibachi                                      # noqa: F401
 from ccxt.hitbtc import hitbtc                                        # noqa: F401
@@ -164,6 +165,7 @@ from ccxt.kucoin import kucoin                                        # noqa: F4
 from ccxt.kucoinfutures import kucoinfutures                          # noqa: F401
 from ccxt.latoken import latoken                                      # noqa: F401
 from ccxt.lbank import lbank                                          # noqa: F401
+from ccxt.lighter import lighter                                      # noqa: F401
 from ccxt.luno import luno                                            # noqa: F401
 from ccxt.mercado import mercado                                      # noqa: F401
 from ccxt.mexc import mexc                                            # noqa: F401
@@ -180,8 +182,6 @@ from ccxt.paradex import paradex                                      # noqa: F4
 from ccxt.paymium import paymium                                      # noqa: F401
 from ccxt.phemex import phemex                                        # noqa: F401
 from ccxt.poloniex import poloniex                                    # noqa: F401
-from ccxt.probit import probit                                        # noqa: F401
-from ccxt.timex import timex                                          # noqa: F401
 from ccxt.tokocrypto import tokocrypto                                # noqa: F401
 from ccxt.toobit import toobit                                        # noqa: F401
 from ccxt.upbit import upbit                                          # noqa: F401
@@ -196,10 +196,12 @@ from ccxt.zebpay import zebpay                                        # noqa: F4
 from ccxt.zonda import zonda                                          # noqa: F401
 
 exchanges = [
+    'aftermath',
     'alpaca',
     'apex',
     'arkham',
     'ascendex',
+    'aster',
     'backpack',
     'bequant',
     'bigone',
@@ -226,7 +228,6 @@ exchanges = [
     'bitvavo',
     'blockchaincom',
     'blofin',
-    'btcalpha',
     'btcbox',
     'btcmarkets',
     'btcturk',
@@ -249,7 +250,6 @@ exchanges = [
     'cryptocom',
     'cryptomus',
     'deepcoin',
-    'defx',
     'delta',
     'deribit',
     'derive',
@@ -261,6 +261,7 @@ exchanges = [
     'gate',
     'gateio',
     'gemini',
+    'grvt',
     'hashkey',
     'hibachi',
     'hitbtc',
@@ -276,6 +277,7 @@ exchanges = [
     'kucoinfutures',
     'latoken',
     'lbank',
+    'lighter',
     'luno',
     'mercado',
     'mexc',
@@ -292,8 +294,6 @@ exchanges = [
     'paymium',
     'phemex',
     'poloniex',
-    'probit',
-    'timex',
     'tokocrypto',
     'toobit',
     'upbit',

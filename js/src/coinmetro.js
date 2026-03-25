@@ -382,7 +382,7 @@ export default class coinmetro extends Exchange {
             const code = this.safeCurrencyCode(id);
             const typeRaw = this.safeString(currency, 'type');
             let type = undefined;
-            if (typeRaw === 'coin' || typeRaw === 'token' || typeRaw === 'erc20') {
+            if (typeRaw === 'coin' || typeRaw === 'token' || typeRaw === 'erc20' || typeRaw === 'crypto') {
                 type = 'crypto';
             }
             else if (typeRaw === 'fiat') {
@@ -1120,7 +1120,7 @@ export default class coinmetro extends Exchange {
      * @param {int} [limit] max number of ledger entries to return (default 200, max 500)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();

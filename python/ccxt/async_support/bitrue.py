@@ -770,7 +770,7 @@ class bitrue(Exchange, ImplicitAPI):
         #                 {
         #                     "chain": "BEP20",
         #                     "enableWithdraw": True,
-        #                     "enableDeposit": True,
+        #                     "enableDeposit": False,
         #                     "withdrawFee": "0.2000",
         #                     "minWithdraw": "5.0000",
         #                     "maxWithdraw": "1000000000000000.0000",
@@ -2359,7 +2359,7 @@ class bitrue(Exchange, ImplicitAPI):
         #         "code": "0",
         #         "msg": "Success",
         #         "data": {
-        #             "orderId": 1690615847831143159
+        #             "orderId": 1690615847831143154
         #         }
         #     }
         #

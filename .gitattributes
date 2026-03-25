@@ -4,4 +4,11 @@ php/*.php linguist-generated=true
 php/abstract/*.php linguist-generated=true
 php/async/abstract/*.php linguist-generated=true
 php/pro/*.php linguist-generated=true
+go/v4/pro/*.go linguist-generated=true
+cs/ccxt/exchanges/pro/*.cs linguist-generated=true
 *.png binary
+*.so  binary
+*.wasm binary
+*.o   binary
+*.dll binary
+*.dylib binary

@@ -1215,7 +1215,7 @@ class toobit extends \ccxt\async\toobit {
                 return;
             }
             // whether or not to schedule another $listenKey keepAlive request
-            $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
+            $listenKeyRefreshRate = $this->safe_integer($this->options['ws'], 'listenKeyRefreshRate', 1200000);
             $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
         }) ();
     }

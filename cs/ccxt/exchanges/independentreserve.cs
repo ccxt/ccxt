@@ -146,9 +146,10 @@ public partial class independentreserve : Exchange
                         { "takeProfitPrice", false },
                         { "attachedStopLossTakeProfit", null },
                         { "timeInForce", new Dictionary<string, object>() {
-                            { "IOC", false },
-                            { "FOK", false },
-                            { "PO", false },
+                            { "GTC", true },
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
                             { "GTD", false },
                         } },
                         { "hedged", false },
@@ -598,7 +599,7 @@ public partial class independentreserve : Exchange
             { "lastTradeTimestamp", null },
             { "symbol", symbol },
             { "type", orderType },
-            { "timeInForce", null },
+            { "timeInForce", this.parseTimeInForce(this.safeString(order, "TimeInForce")) },
             { "postOnly", null },
             { "side", side },
             { "price", this.safeString(order, "Price") },
@@ -628,8 +629,20 @@ public partial class independentreserve : Exchange
             { "Cancelled", "canceled" },
             { "PartiallyFilledAndExpired", "canceled" },
             { "Expired", "canceled" },
+            { "Failed", "canceled" },
         };
         return this.safeString(statuses, status, status);
+    }
+
+    public virtual object parseTimeInForce(object timeInForce)
+    {
+        object timeInForces = new Dictionary<string, object>() {
+            { "Gtc", "GTC" },
+            { "Moc", "PO" },
+            { "Fok", "FOK" },
+            { "Ioc", "IOC" },
+        };
+        return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
     /**
@@ -670,7 +683,7 @@ public partial class independentreserve : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object request = this.ordered(new Dictionary<string, object>() {});
+        object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -703,7 +716,7 @@ public partial class independentreserve : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object request = this.ordered(new Dictionary<string, object>() {});
+        object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -742,10 +755,10 @@ public partial class independentreserve : Exchange
         {
             limit = 50;
         }
-        object request = this.ordered(new Dictionary<string, object>() {
+        object request = new Dictionary<string, object>() {
             { "pageIndex", pageIndex },
             { "pageSize", limit },
-        });
+        };
         object response = await this.privatePostGetTrades(this.extend(request, parameters));
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -895,11 +908,11 @@ public partial class independentreserve : Exchange
         object market = this.market(symbol);
         object orderType = this.capitalize(type);
         orderType = add(orderType, ((bool) isTrue((isEqual(side, "sell")))) ? "Offer" : "Bid");
-        object request = this.ordered(new Dictionary<string, object>() {
+        object request = new Dictionary<string, object>() {
             { "primaryCurrencyCode", getValue(market, "baseId") },
             { "secondaryCurrencyCode", getValue(market, "quoteId") },
             { "orderType", orderType },
-        });
+        };
         object response = null;
         ((IDictionary<string,object>)request)["volume"] = amount;
         if (isTrue(isEqual(type, "limit")))
@@ -1143,7 +1156,7 @@ public partial class independentreserve : Exchange
             }
             object message = String.Join(",", ((IList<object>)auth).ToArray());
             object signature = this.hmac(this.encode(message), this.encode(this.secret), sha256);
-            object query = this.ordered(new Dictionary<string, object>() {});
+            object query = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)query)["apiKey"] = this.apiKey;
             ((IDictionary<string,object>)query)["nonce"] = nonce;
             ((IDictionary<string,object>)query)["signature"] = ((string)signature).ToUpper();

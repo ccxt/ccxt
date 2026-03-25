@@ -24,6 +24,6 @@ declare const flatten: (x: any[], out?: any[]) => any[];
 declare const pluck: (x: Dictionary<any>, k: any) => any[];
 declare const omit: (x: Dictionary<any>, ...args: any) => any;
 declare const sum: (...xs: any[]) => any;
-declare const deepExtend: (...xs: any) => any;
+declare const deepExtend: (...args: any) => any;
 declare const merge: (target: Dictionary<any>, ...args: any) => Dictionary<any>;
 export { keys, values, extend, clone, index, ordered, unique, arrayConcat, inArray, toArray, isEmpty, sort, keysort, indexBy, groupBy, filterBy, sortBy, sortBy2, flatten, pluck, omit, sum, deepExtend, merge, };

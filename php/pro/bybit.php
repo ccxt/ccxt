@@ -1720,7 +1720,7 @@ class bybit extends \ccxt\async\bybit {
             /**
              * watch the public liquidations of a trading pair
              *
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/liquidation
+             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/all-liquidation
              *
              * @param {string} $symbol unified CCXT $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch liquidations for
@@ -1735,7 +1735,7 @@ class bybit extends \ccxt\async\bybit {
             $url = Async\await($this->get_url_by_market_type($symbol, false, 'watchLiquidations', $params));
             $params = $this->clean_params($params);
             $method = null;
-            list($method, $params) = $this->handle_option_and_params($params, 'watchLiquidations', 'method', 'liquidation');
+            list($method, $params) = $this->handle_option_and_params($params, 'watchLiquidations', 'method', 'allLiquidation');
             $messageHash = 'liquidations::' . $symbol;
             $topic = $method . '.' . $market['id'];
             $newLiquidation = Async\await($this->watch_topics($url, array( $messageHash ), array( $topic ), $params));
@@ -1784,13 +1784,12 @@ class bybit extends \ccxt\async\bybit {
                 $market = $this->safe_market($marketId, null, '', 'contract');
                 $symbol = $market['symbol'];
                 $liquidation = $this->parse_ws_liquidation($rawLiquidation, $market);
-                $liquidations = $this->safe_value($this->liquidations, $symbol);
-                if ($liquidations === null) {
+                if ($this->liquidations === null) {
                     $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
-                    $liquidations = new ArrayCache ($limit);
+                    $this->liquidations = new ArrayCache ($limit);
                 }
-                $liquidations->append ($liquidation);
-                $this->liquidations[$symbol] = $liquidations;
+                $cache = $this->liquidations;
+                $cache->append ($liquidation);
                 $client->resolve (array( $liquidation ), 'liquidations');
                 $client->resolve (array( $liquidation ), 'liquidations::' . $symbol);
             }
@@ -1800,13 +1799,12 @@ class bybit extends \ccxt\async\bybit {
             $market = $this->safe_market($marketId, null, '', 'contract');
             $symbol = $market['symbol'];
             $liquidation = $this->parse_ws_liquidation($rawLiquidation, $market);
-            $liquidations = $this->safe_value($this->liquidations, $symbol);
-            if ($liquidations === null) {
+            if ($this->liquidations === null) {
                 $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
-                $liquidations = new ArrayCache ($limit);
+                $this->liquidations = new ArrayCache ($limit);
             }
-            $liquidations->append ($liquidation);
-            $this->liquidations[$symbol] = $liquidations;
+            $cache = $this->liquidations;
+            $cache->append ($liquidation);
             $client->resolve (array( $liquidation ), 'liquidations');
             $client->resolve (array( $liquidation ), 'liquidations::' . $symbol);
         }

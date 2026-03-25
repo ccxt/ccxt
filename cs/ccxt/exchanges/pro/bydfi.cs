@@ -723,34 +723,20 @@ public partial class bydfi : ccxt.bydfi
         object marketId = this.safeString(rawOrder, "s");
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
-        object match = false;
         object messageHash = "orders";
         object symbolMessageHash = add(add(messageHash, "::"), symbol);
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, messageHash);
-        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+        if (isTrue(isEqual(this.orders, null)))
         {
-            object hash = getValue(messageHashes, i);
-            if (isTrue(isTrue(isEqual(hash, symbolMessageHash)) || isTrue(isEqual(hash, messageHash))))
-            {
-                match = true;
-                break;
-            }
+            object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            this.orders = new ArrayCacheBySymbolById(limit);
         }
-        if (isTrue(match))
-        {
-            if (isTrue(isEqual(this.orders, null)))
-            {
-                object limit = this.safeInteger(this.options, "ordersLimit", 1000);
-                this.orders = new ArrayCacheBySymbolById(limit);
-            }
-            object orders = this.orders;
-            object order = this.parseWsOrder(rawOrder, market);
-            object lastUpdateTimestamp = this.safeInteger(message, "T");
-            ((IDictionary<string,object>)order)["lastUpdateTimestamp"] = lastUpdateTimestamp;
-            callDynamically(orders, "append", new object[] {order});
-            callDynamically(client as WebSocketClient, "resolve", new object[] {orders, messageHash});
-            callDynamically(client as WebSocketClient, "resolve", new object[] {orders, symbolMessageHash});
-        }
+        object orders = this.orders;
+        object order = this.parseWsOrder(rawOrder, market);
+        object lastUpdateTimestamp = this.safeInteger(message, "T");
+        ((IDictionary<string,object>)order)["lastUpdateTimestamp"] = lastUpdateTimestamp;
+        callDynamically(orders, "append", new object[] {order});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {orders, messageHash});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {orders, symbolMessageHash});
     }
 
     public override object parseWsOrder(object order, object market = null)
@@ -907,33 +893,18 @@ public partial class bydfi : ccxt.bydfi
         object symbol = getValue(market, "symbol");
         object messageHash = "positions";
         object symbolMessageHash = add(add(messageHash, "::"), symbol);
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, messageHash);
-        object match = false;
-        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+        if (isTrue(isEqual(this.positions, null)))
         {
-            object hash = getValue(messageHashes, i);
-            if (isTrue(isTrue(isEqual(hash, symbolMessageHash)) || isTrue(isEqual(hash, messageHash))))
-            {
-                match = true;
-                break;
-            }
+            this.positions = new ArrayCacheBySymbolBySide();
         }
-        if (isTrue(match))
-        {
-            if (isTrue(isEqual(this.positions, null)))
-            {
-                this.positions = new ArrayCacheBySymbolBySide();
-            }
-            object cache = this.positions;
-            object parsedPosition = this.parseWsPosition(rawPosition, market);
-            object timestamp = this.safeInteger(message, "T");
-            ((IDictionary<string,object>)parsedPosition)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)parsedPosition)["datetime"] = this.iso8601(timestamp);
-            callDynamically(cache, "append", new object[] {parsedPosition});
-            object symbolSpecificMessageHash = add(add(messageHash, ":"), getValue(parsedPosition, "symbol"));
-            callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {parsedPosition}, messageHash});
-            callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {parsedPosition}, symbolSpecificMessageHash});
-        }
+        object cache = this.positions;
+        object parsedPosition = this.parseWsPosition(rawPosition, market);
+        object timestamp = this.safeInteger(message, "T");
+        ((IDictionary<string,object>)parsedPosition)["timestamp"] = timestamp;
+        ((IDictionary<string,object>)parsedPosition)["datetime"] = this.iso8601(timestamp);
+        callDynamically(cache, "append", new object[] {parsedPosition});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {parsedPosition}, messageHash});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {parsedPosition}, symbolMessageHash});
     }
 
     public virtual object parseWsPosition(object position, object market = null)

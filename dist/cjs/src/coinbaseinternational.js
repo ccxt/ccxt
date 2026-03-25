@@ -229,6 +229,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                     'is a required field': errors.BadRequest,
                     'Not Found': errors.BadRequest,
                     'ip not allowed': errors.AuthenticationError,
+                    'cbe spot routing instrument not supported': errors.NotSupported,
                 },
             },
             'timeframes': {

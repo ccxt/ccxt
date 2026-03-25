@@ -501,7 +501,7 @@ public partial class coinbase
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}.</returns>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}.</returns>
     public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -635,6 +635,12 @@ public partial class coinbase
     /// <term>params.tradable_balance</term>
     /// <description>
     /// string : amount of tradable balance
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.reduceOnly</term>
+    /// <description>
+    /// float : set to true for closing a position or use closePosition
     /// </description>
     /// </item>
     /// </list>
@@ -1113,7 +1119,7 @@ public partial class coinbase
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#send-money"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/send-crypto"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>tag</term>
@@ -1125,6 +1131,18 @@ public partial class coinbase
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.network</term>
+    /// <description>
+    /// string : the cryptocurrency network to use for the withdrawal using the lowercase name like bitcoin, ethereum, solana, etc.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.travel_rule_data</term>
+    /// <description>
+    /// object : some regions require travel rule information for crypto withdrawals, see the exchange docs for details https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/travel-rule
     /// </description>
     /// </item>
     /// </list>

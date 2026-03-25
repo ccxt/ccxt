@@ -531,11 +531,11 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             isMaker = true;
             ((IDictionary<string,object>)parsed)["takerOrMaker"] = "maker";
-            feeRate = this.safeNumber(trade, "maker_fee_rate");
+            feeRate = this.safeString(trade, "maker_fee_rate");
         } else
         {
             ((IDictionary<string,object>)parsed)["takerOrMaker"] = "taker";
-            feeRate = this.safeNumber(trade, "taker_fee_rate");
+            feeRate = this.safeString(trade, "taker_fee_rate");
             // side always represents the maker side of the trade
             // so if we're taker, we invert it
             object currentSide = getValue(parsed, "side");
@@ -551,12 +551,12 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         object feeCost = null;
         if (isTrue(isTrue((!isEqual(getValue(parsed, "cost"), null))) && isTrue((!isEqual(feeRate, null)))))
         {
-            object cost = this.safeNumber(parsed, "cost");
-            feeCost = multiply(cost, feeRate);
+            object cost = this.safeString(parsed, "cost");
+            feeCost = Precise.stringMul(cost, feeRate);
         }
         ((IDictionary<string,object>)parsed)["fee"] = new Dictionary<string, object>() {
-            { "rate", feeRate },
-            { "cost", feeCost },
+            { "rate", this.parseNumber(feeRate) },
+            { "cost", this.parseNumber(feeCost) },
             { "currency", feeCurrency },
         };
         return parsed;
@@ -695,26 +695,27 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                         }
                         ((IList<object>)getValue(previousOrder, "trades")).Add(trade);
                         ((IDictionary<string,object>)previousOrder)["lastTradeTimestamp"] = getValue(trade, "timestamp");
-                        object totalCost = 0;
-                        object totalAmount = 0;
+                        object totalCost = "0";
+                        object totalAmount = "0";
                         object trades = getValue(previousOrder, "trades");
                         for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
                         {
                             object tradeEntry = getValue(trades, i);
-                            totalCost = this.sum(totalCost, getValue(tradeEntry, "cost"));
-                            totalAmount = this.sum(totalAmount, getValue(tradeEntry, "amount"));
+                            totalCost = this.safeString(tradeEntry, "cost", "0");
+                            totalAmount = this.safeString(tradeEntry, "amount", "0");
                         }
-                        if (isTrue(isGreaterThan(totalAmount, 0)))
+                        if (!isTrue(Precise.stringEq(totalAmount, "0")))
                         {
-                            ((IDictionary<string,object>)previousOrder)["average"] = divide(totalCost, totalAmount);
+                            ((IDictionary<string,object>)previousOrder)["average"] = this.parseNumber(Precise.stringDiv(totalCost, totalAmount));
                         }
-                        ((IDictionary<string,object>)previousOrder)["cost"] = totalCost;
-                        if (isTrue(!isEqual(getValue(previousOrder, "filled"), null)))
+                        ((IDictionary<string,object>)previousOrder)["cost"] = this.parseNumber(totalCost);
+                        object previousOrderFilled = this.safeString(previousOrder, "filled");
+                        if (isTrue(!isEqual(previousOrderFilled, null)))
                         {
-                            ((IDictionary<string,object>)previousOrder)["filled"] = add(((IDictionary<string,object>)previousOrder)["filled"], getValue(trade, "amount"));
+                            ((IDictionary<string,object>)previousOrder)["filled"] = this.parseNumber(Precise.stringAdd(previousOrderFilled, this.safeString(trade, "amount")));
                             if (isTrue(!isEqual(getValue(previousOrder, "amount"), null)))
                             {
-                                ((IDictionary<string,object>)previousOrder)["remaining"] = subtract(getValue(previousOrder, "amount"), getValue(previousOrder, "filled"));
+                                ((IDictionary<string,object>)previousOrder)["remaining"] = this.parseNumber(Precise.stringSub(this.safeString(previousOrder, "amount"), this.safeString(previousOrder, "filled")));
                             }
                         }
                         if (isTrue(isEqual(getValue(previousOrder, "fee"), null)))
@@ -727,6 +728,9 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                         if (isTrue(isTrue((!isEqual(getValue(getValue(previousOrder, "fee"), "cost"), null))) && isTrue((!isEqual(getValue(getValue(trade, "fee"), "cost"), null)))))
                         {
                             ((IDictionary<string,object>)getValue(previousOrder, "fee"))["cost"] = this.sum(getValue(getValue(previousOrder, "fee"), "cost"), getValue(getValue(trade, "fee"), "cost"));
+                            object previousOrderFee = this.safeDict(previousOrder, "fee");
+                            object tradeFee = this.safeDict(trade, "fee");
+                            ((IDictionary<string,object>)getValue(previousOrder, "fee"))["cost"] = this.parseNumber(Precise.stringAdd(this.safeString(previousOrderFee, "cost"), this.safeString(tradeFee, "cost")));
                         }
                         // update the newUpdates count
                         callDynamically(orders, "append", new object[] {previousOrder});
@@ -762,24 +766,24 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         object symbol = this.safeSymbol(marketId);
         object side = this.safeString(order, "side");
         object price = this.safeNumber(order, "price");
-        object amount = this.safeNumber2(order, "size", "funds");
+        object amount = this.safeString2(order, "size", "funds");
         object time = this.safeString(order, "time");
         object timestamp = this.parse8601(time);
         object reason = this.safeString(order, "reason");
         object status = this.parseWsOrderStatus(reason);
         object orderType = this.safeString(order, "order_type");
-        object remaining = this.safeNumber(order, "remaining_size");
+        object remaining = this.safeString(order, "remaining_size");
         object type = this.safeString(order, "type");
         object filled = null;
         if (isTrue(isTrue((!isEqual(amount, null))) && isTrue((!isEqual(remaining, null)))))
         {
-            filled = subtract(amount, remaining);
+            filled = Precise.stringSub(amount, remaining);
         } else if (isTrue(isEqual(type, "received")))
         {
-            filled = 0;
+            filled = "0";
             if (isTrue(!isEqual(amount, null)))
             {
-                remaining = subtract(amount, filled);
+                remaining = Precise.stringSub(amount, filled);
             }
         }
         return this.safeOrder(new Dictionary<string, object>() {
@@ -797,11 +801,11 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             { "price", price },
             { "stopPrice", null },
             { "triggerPrice", null },
-            { "amount", amount },
+            { "amount", this.parseNumber(amount) },
             { "cost", null },
             { "average", null },
-            { "filled", filled },
-            { "remaining", remaining },
+            { "filled", this.parseNumber(filled) },
+            { "remaining", this.parseNumber(remaining) },
             { "status", status },
             { "fee", null },
             { "trades", null },

@@ -385,7 +385,7 @@ func (this *CoinmetroCore) FetchCurrencies(optionalArgs ...interface{}) <-chan i
 			var code interface{} = this.SafeCurrencyCode(id)
 			var typeRaw interface{} = this.SafeString(currency, "type")
 			var typeVar interface{} = nil
-			if IsTrue(IsTrue(IsTrue(IsEqual(typeRaw, "coin")) || IsTrue(IsEqual(typeRaw, "token"))) || IsTrue(IsEqual(typeRaw, "erc20"))) {
+			if IsTrue(IsTrue(IsTrue(IsTrue(IsEqual(typeRaw, "coin")) || IsTrue(IsEqual(typeRaw, "token"))) || IsTrue(IsEqual(typeRaw, "erc20"))) || IsTrue(IsEqual(typeRaw, "crypto"))) {
 				typeVar = "crypto"
 			} else if IsTrue(IsEqual(typeRaw, "fiat")) {
 				typeVar = "fiat"
@@ -1276,7 +1276,7 @@ func (this *CoinmetroCore) ParseBalance(balances interface{}) interface{} {
  * @param {int} [limit] max number of ledger entries to return (default 200, max 500)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch entries for
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *CoinmetroCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})

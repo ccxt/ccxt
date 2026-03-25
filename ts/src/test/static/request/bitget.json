@@ -2436,6 +2436,19 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "UTA fetch funding history",
+                "method": "fetchFundingHistory",
+                "url": "https://api.bitget.com/api/v3/account/financial-records?coin=USDT&category=USDT-FUTURES&startTime=0&limit=100",
+                "input": [
+                    "BTC/USDT:USDT",
+                    0,
+                    100,
+                    {
+                        "uta": true
+                    }
+                ]
             }
         ],
         "fetchOpenInterest": [

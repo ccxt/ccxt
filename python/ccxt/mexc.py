@@ -164,8 +164,8 @@ class mexc(Exchange, ImplicitAPI):
                         'private': 'https://www.mexc.com/open/api/v2',
                     },
                     'contract': {
-                        'public': 'https://contract.mexc.com/api/v1/contract',
-                        'private': 'https://contract.mexc.com/api/v1/private',
+                        'public': 'https://api.mexc.com/api/v1/contract',
+                        'private': 'https://api.mexc.com/api/v1/private',
                     },
                     'broker': {
                         'private': 'https://api.mexc.com/api/v3/broker',
@@ -4062,7 +4062,7 @@ class mexc(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=reduce-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         return self.modify_margin_helper(symbol, amount, 'SUB', params)
 
@@ -4075,7 +4075,7 @@ class mexc(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         return self.modify_margin_helper(symbol, amount, 'ADD', params)
 
@@ -4196,7 +4196,15 @@ class mexc(Exchange, ImplicitAPI):
         #         "timestamp": 1643240373359
         #     }
         #
-        nextFundingRate = self.safe_number(contract, 'fundingRate')
+        # watchFundingRate
+        #
+        #     {
+        #         "symbol": "BTC_USDT",
+        #         "rate": -0.000021,
+        #         "nextSettleTime": 1771084800000
+        #     }
+        #
+        nextFundingRate = self.safe_number_2(contract, 'fundingRate', 'rate')
         nextFundingTimestamp = self.safe_integer(contract, 'nextSettleTime')
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market, None, 'contract')
@@ -4490,7 +4498,6 @@ class mexc(Exchange, ImplicitAPI):
         address = self.safe_string(depositAddress, 'address')
         currencyId = self.safe_string(depositAddress, 'coin')
         networkId = self.safe_string(depositAddress, 'netWork')
-        self.check_address(address)
         return {
             'info': depositAddress,
             'currency': self.safe_currency_code(currencyId, currency),

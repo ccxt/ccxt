@@ -197,9 +197,10 @@ class independentreserve(Exchange, ImplicitAPI):
                         'takeProfitPrice': False,
                         'attachedStopLossTakeProfit': None,
                         'timeInForce': {
-                            'IOC': False,
-                            'FOK': False,
-                            'PO': False,
+                            'GTC': True,
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
                             'GTD': False,
                         },
                         'hedged': False,
@@ -597,7 +598,7 @@ class independentreserve(Exchange, ImplicitAPI):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': orderType,
-            'timeInForce': None,
+            'timeInForce': self.parse_time_in_force(self.safe_string(order, 'TimeInForce')),
             'postOnly': None,
             'side': side,
             'price': self.safe_string(order, 'Price'),
@@ -625,8 +626,18 @@ class independentreserve(Exchange, ImplicitAPI):
             'Cancelled': 'canceled',
             'PartiallyFilledAndExpired': 'canceled',
             'Expired': 'canceled',
+            'Failed': 'canceled',
         }
         return self.safe_string(statuses, status, status)
+
+    def parse_time_in_force(self, timeInForce: Str):
+        timeInForces: dict = {
+            'Gtc': 'GTC',
+            'Moc': 'PO',
+            'Fok': 'FOK',
+            'Ioc': 'IOC',
+        }
+        return self.safe_string(timeInForces, timeInForce, timeInForce)
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -655,7 +666,7 @@ class independentreserve(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        request = self.ordered({})
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -679,7 +690,7 @@ class independentreserve(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        request = self.ordered({})
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -706,10 +717,10 @@ class independentreserve(Exchange, ImplicitAPI):
         pageIndex = self.safe_integer(params, 'pageIndex', 1)
         if limit is None:
             limit = 50
-        request = self.ordered({
+        request = {
             'pageIndex': pageIndex,
             'pageSize': limit,
-        })
+        }
         response = await self.privatePostGetTrades(self.extend(request, params))
         market = None
         if symbol is not None:
@@ -829,11 +840,11 @@ class independentreserve(Exchange, ImplicitAPI):
         market = self.market(symbol)
         orderType = self.capitalize(type)
         orderType += 'Offer' if (side == 'sell') else 'Bid'
-        request = self.ordered({
+        request = {
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
             'orderType': orderType,
-        })
+        }
         response = None
         request['volume'] = amount
         if type == 'limit':
@@ -1046,7 +1057,7 @@ class independentreserve(Exchange, ImplicitAPI):
                 auth.append(key + '=' + value)
             message = ','.join(auth)
             signature = self.hmac(self.encode(message), self.encode(self.secret), hashlib.sha256)
-            query = self.ordered({})
+            query = {}
             query['apiKey'] = self.apiKey
             query['nonce'] = nonce
             query['signature'] = signature.upper()

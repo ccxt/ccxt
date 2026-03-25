@@ -1,8 +1,11 @@
 import paradexRest from '../paradex.js';
-import type { Int, Trade, OrderBook, Ticker, Strings, Tickers, Bool } from '../base/types.js';
+import type { Int, Str, Trade, Order, OrderBook, Ticker, Strings, Tickers, Bool, Market, FundingRate, FundingRates } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class paradex extends paradexRest {
     describe(): any;
+    requestId(): any;
+    authenticate(params?: {}): Promise<any>;
+    handleAuthenticationMessage(client: Client, message: any): void;
     /**
      * @method
      * @name paradex#watchTrades
@@ -48,7 +51,42 @@ export default class paradex extends paradexRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    /**
+     * @method
+     * @name paradex#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://docs.paradex.trade/ws/web-socket-channels/orders/orders
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    handleOrder(client: Client, message: any): void;
     handleTicker(client: Client, message: any): any;
+    /**
+     * @method
+     * @name paradex#watchFundingRate
+     * @description watch the current funding rate for a symbol
+     * @see https://docs.paradex.trade/ws/web-socket-channels/funding-data-market-symbol/funding-data-market-symbol
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    /**
+     * @method
+     * @name paradex#watchFundingRates
+     * @description watch the funding rate for multiple markets
+     * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    watchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
+    handleFundingRate(client: Client, message: any): void;
+    parseFundingRateWs(contract: any, market?: Market): FundingRate;
     handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;
 }

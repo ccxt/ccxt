@@ -437,7 +437,7 @@ func  (this *NdaxCore) HandleOrderBook(client interface{}, message interface{}) 
     //
     //     [
     //         0,   // 0 MDUpdateId
-    //         1,   // 1 Number of ccxt.Unique Accounts
+    //         1,   // 1 Number of Unique Accounts
     //         123, // 2 ActionDateTime in Posix format X 1000
     //         0,   // 3 ActionType 0 (New), 1 (Update), 2(Delete)
     //         0.0, // 4 LastTradePrice
@@ -513,7 +513,7 @@ func  (this *NdaxCore) HandleOrderBookSubscription(client interface{}, message i
     //     [
     //         [
     //             0,   // 0 MDUpdateId
-    //             1,   // 1 Number of ccxt.Unique Accounts
+    //             1,   // 1 Number of Unique Accounts
     //             123, // 2 ActionDateTime in Posix format X 1000
     //             0,   // 3 ActionType 0 (New), 1 (Update), 2(Delete)
     //             0.0, // 4 LastTradePrice
