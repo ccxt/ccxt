@@ -28,37 +28,32 @@ public partial class Exchange
         return outDict;
     }
 
-    public object sort(object inputListObj)
+    public List<string> sort(object inputListObj)
     {
+        var sortedList = new List<string>();
+
         if (inputListObj is IList<string> stringList)
         {
-            var sortedList = new List<string>(stringList);
-            sortedList.Sort();
-            return sortedList;
+            sortedList.AddRange(stringList);
         }
         else if (inputListObj is IList<object> objectList)
         {
-            var sortedList = new List<object>(objectList);
-            sortedList.Sort((a, b) =>
+            foreach (var item in objectList)
             {
-                if (a == null && b == null) return 0;
-                if (a == null) return -1;
-                if (b == null) return 1;
-                if (a is IComparable cmpA && a.GetType() == b.GetType())
+                if (item is string str)
                 {
-                    return cmpA.CompareTo(b);
+                    sortedList.Add(str);
                 }
-                if ((a is int || a is long || a is double || a is float || a is decimal) &&
-                    (b is int || b is long || b is double || b is float || b is decimal))
-                {
-                    return Convert.ToDouble(a).CompareTo(Convert.ToDouble(b));
-                }
-                return a.ToString().CompareTo(b.ToString());
-            });
+            }
+        }
+        else
+        {
+            // Unsupported type; return empty list
             return sortedList;
         }
 
-        return new List<object>();
+        sortedList.Sort();
+        return sortedList;
     }
 
 
