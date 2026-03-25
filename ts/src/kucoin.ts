@@ -903,6 +903,13 @@ export default class kucoin extends Exchange {
                 'fetchBalance': {
                     'code': 'USDT', // for contract endpoint
                 },
+                'timeInForce': {
+                    'IOC': 'IOC',
+                    'FOK': 'FOK',
+                    'PO': 'PO',
+                    'GTD': 'GTT',
+                    'RPI': 'RPI',
+                },
                 'timeframes': {
                     'swap': {
                         '1m': 1,
@@ -3800,19 +3807,25 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-take-profit-and-stop-loss-order
+     * @see https://www.kucoin.com/docs-new/rest/ua/place-order
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount the amount of currency to trade
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params]  extra parameters specific to the exchange API endpoint
-     * Check createSpotOrder() and createContractOrder() for more details on the extra parameters that can be used in params
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
+     * Check createSpotOrder(), createContractOrder() and createUtaOrder () for more details on the extra parameters that can be used in params
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['spot']) {
+        const uta = this.safeBool (params, 'uta', false);
+        if (uta) {
+            params = this.omit (params, 'uta');
+            return await this.createUtaOrder (symbol, type, side, amount, price, params);
+        } else if (market['spot']) {
             return await this.createSpotOrder (symbol, type, side, amount, price, params);
         } else if (market['contract']) {
             return await this.createContractOrder (symbol, type, side, amount, price, params);
@@ -3841,7 +3854,7 @@ export default class kucoin extends Exchange {
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {string} [params.marginMode] 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
      * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
-     * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
+     * @param {bool} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
@@ -4021,7 +4034,7 @@ export default class kucoin extends Exchange {
      * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
      * @param {bool} [params.reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
      * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
-     * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
+     * @param {bool} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
      * @param {float} [params.cost] the cost of the order in units of USDT
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'isolated'
      * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
@@ -4182,6 +4195,166 @@ export default class kucoin extends Exchange {
             }
         }
         params = this.omit (params, [ 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged' ]); // Time in force only valid for limit orders, exchange error when gtc for market orders
+        return this.extend (request, params);
+    }
+
+    /**
+     * @method
+     * @name kucoin#createUtaOrder
+     * @description helper method for creating uta orders
+     * @see https://www.kucoin.com/docs-new/rest/ua/place-order
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {string} type 'limit' or 'market'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount the amount of currency to trade
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params]  extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id, defaults to uuid if not passed
+     * @param {float} [params.cost] the cost of the order in units of quote currency
+     * @param {string} [params.timeInForce] GTC, GTD, IOC, FOK or PO
+     * @param {bool} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK (default is false)
+     * @param {bool} [params.reduceOnly] *contract markets only* A mark to reduce the position size only. Set to false by default
+     * @param {string} [params.marginMode] 'cross' or 'isolated', (default is 'cross' for margin orders, default is 'isolated' for contract orders)
+     *
+     * Exchange-specific parameters -------------------------------------------------
+     * @param {string} [params.accountMode] 'unified' or 'classic', default is 'unified'
+     * @param {string} [params.stp] '', // self trade prevention, CN, CO, CB or DC
+     * @param {string} [params.tags] - Order Tags, max length 20
+     * @param {int} [params.cancelAfter] - Cancel After N Seconds (Calculated from the time of entering the matching engine), only effective when timeInForce is GTD
+     *
+     * Classic account parameters
+     * @param {bool} [params.autoBorrow] *classic margin orders only*
+     * @param {bool} [params.autoRepay] *classic margin orders only*
+     * @param {string} [params.hedged] *classic contract orders only* true for hedged mode, false for one way mode, default is false
+     * @param {int} [params.leverage] *classic contract orders with isolated marginMode only* Leverage size of the order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async createUtaOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = this.createUtaOrderRequest (symbol, type, side, amount, price, params);
+        const response = await this.utaPrivatePostAccountModeOrderPlace (request);
+        //
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseOrder (data);
+    }
+
+    createUtaOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        const market = this.market (symbol);
+        const isSpot = market['spot'];
+        const isContract = market['contract'];
+        let accountMode = 'unified';
+        [ accountMode, params ] = this.handleOptionAndParams (params, 'createOrder', 'accountMode', accountMode);
+        const isUnified = (accountMode === 'unified');
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+        const marginModeDefined = (marginMode !== undefined);
+        const isSpotMargin = (isSpot && marginModeDefined);
+        if (isSpotMargin && isUnified) {
+            throw new NotSupported (this.id + ' createOrder() does not support spot margin orders with unified accountMode');
+        }
+        let tradeType = undefined;
+        if (accountMode !== 'unified') {
+            accountMode = 'classic';
+            if (isContract) {
+                tradeType = 'FUTURES';
+            } else if (marginModeDefined) {
+                tradeType = marginMode.toUpperCase ();
+            } else {
+                tradeType = 'SPOT';
+            }
+        }
+        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId', this.uuid ());
+        params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
+        const request: Dict = {
+            'accountMode': accountMode, // 'unified' or 'classic',
+            // 'tradeType' - 'SPOT', 'FUTURES', 'ISOLATED', 'CROSS' (required for classic account)
+            'clientOid': clientOrderId,
+            'symbol': market['id'],
+            // 'triggerDirection'- 'UP' or 'DOWN (required for trigger orders, supported for classic-FUTURES and unified-SPOT and unified-FUTURES)
+            // 'triggerPriceType' - 'TP', 'IP', 'MP' (required for trigger orders, supported for classic-FUTURES and unified-SPOT and unified-FUTURES)
+            // 'triggerPrice' (required for trigger orders)
+            'side': side.toUpperCase (),
+            'orderType': type.toUpperCase (),
+            // 'size'
+            // 'sizeUnit' - 'BASECCY', 'QUOTECCY' (for market SPOT) or 'UNIT' (for unified-FUTURES)
+            // 'price'
+            // 'timeInForce' - 'GTC', 'IOC', 'FOK', 'GTT' or 'RPI' (GTT is not supported for FUTURES)
+            // 'postOnly'
+            // 'reduceOnly' (only for FUTURES)
+            // 'stp' - 'CN', 'CO', 'CB' or 'DC' (DC is not supported for FUTURES)
+            // 'cancelAfter' - time in seconds (only valid when timeInForce is GTT, not supported for FUTURES)
+            // 'tags'
+            // 'autoBorrow' (only for classic-CROSS and classic-ISOLATED)
+            // 'autoRepay' (only for classic-CROSS and classic-ISOLATED)
+            // 'positionSide' - 'BOTH', 'LONG' or 'SHORT' (only for classic-FUTURES)
+            // 'marginMode' - 'ISOLATED' or 'CROSS' (only for classic-FUTURES, default is 'ISOLATED')
+            // 'leverage' (only for classic-FUTURES-ISOLATED, required)
+            // 'tpTriggerPriceType' - 'TP', 'IP', 'MP' (only for unified-FUTURES and classic-FUTURES)
+            // 'tpTriggerPrice' (only for unified-FUTURES and classic-FUTURES)
+            // 'slTriggerPriceType' - 'TP', 'IP', 'MP' (only for unified-FUTURES and classic-FUTURES)
+            // 'slTriggerPrice' (only for unified-FUTURES and classic-FUTURES)
+        };
+        if (tradeType !== undefined) {
+            request['tradeType'] = tradeType;
+        }
+        request['clientOid'] = clientOrderId;
+        const isMarketOrder = (type === 'market');
+        const cost = this.safeString (params, 'cost');
+        if (cost !== undefined) {
+            params = this.omit (params, 'cost');
+            if (isSpot) {
+                if (isMarketOrder) {
+                    request['sizeUnit'] = 'QUOTECCY';
+                    request['size'] = this.marketOrderAmountToPrecision (symbol, cost);
+                } else {
+                    throw new NotSupported (this.id + ' createOrder() with cost is not supported for spot limit orders');
+                }
+            } else {
+                request['sizeUnit'] = 'UNIT';
+                request['size'] = this.costToPrecision (symbol, cost);
+            }
+        } else {
+            request['sizeUnit'] = 'BASECCY';
+            request['size'] = this.amountToPrecision (symbol, amount);
+        }
+        if (!isMarketOrder) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        let postOnly = undefined;
+        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, false, params);
+        const timeInForce = this.handleTimeInForce (params);
+        if ((timeInForce !== undefined)) {
+            params = this.omit (params, 'timeInForce');
+            request['timeInForce'] = timeInForce;
+        }
+        if (postOnly) {
+            request['postOnly'] = true;
+        }
+        if (isContract) {
+            if (!isUnified) {
+                if (marginModeDefined) {
+                    request['marginMode'] = marginMode.toUpperCase ();
+                    if (marginMode === 'isolated') {
+                        const leverage = this.safeInteger (params, 'leverage');
+                        if (leverage === undefined) {
+                            request['leverage'] = 1;
+                        }
+                    }
+                }
+                const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+                let hedged = false;
+                [ hedged, params ] = this.handleParamBool (params, 'hedged', hedged);
+                if (hedged) {
+                    let positionSide = (side === 'buy') ? 'LONG' : 'SHORT';
+                    if (reduceOnly) {
+                        positionSide = (positionSide === 'LONG') ? 'SHORT' : 'LONG';
+                    }
+                    request['positionSide'] = positionSide;
+                }
+            }
+        }
+        // todo handle with conditional orders
         return this.extend (request, params);
     }
 
@@ -4837,11 +5010,14 @@ export default class kucoin extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest order to retrieve
      * @param {int} [limit] The maximum number of orders to retrieve
      * @param {object} [params] exchange specific parameters
-     * Check fetchSpotOrdersByStatus() and fetchContractOrdersByStatus() for more details on the extra parameters that can be used in params
+     * @param {boolean} [params.uta] true for fetch orders with uta endpoint (default is false)
+     * Check fetchSpotOrdersByStatus(), fetchContractOrdersByStatus() and fetchUtaOrdersByStatus() for more details on the extra parameters that can be used in params
      * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
+        let uta = false;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchOrdersByStatus', 'uta', uta);
         let marketType = undefined;
         if (symbol === undefined) {
             const type = this.safeString (params, 'type'); // exchange has specific param for order type
@@ -4850,13 +5026,23 @@ export default class kucoin extends Exchange {
                 marketType = type;
                 params = this.omit (params, 'type');
             } else {
-                [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', undefined, {});
+                const methodOptions = this.safeDict (this.options, 'fetchOrdersByStatus', {});
+                const methodDefaultType = this.safeString2 (methodOptions, 'defaultType', 'type');
+                if (methodDefaultType === undefined) {
+                    marketType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
+                } else {
+                    marketType = methodDefaultType;
+                }
             }
         } else {
             const market = this.market (symbol);
             marketType = market['type'];
         }
-        if ((marketType === 'spot') || (marketType === 'margin')) {
+        if (uta) {
+            params = this.omit (params, 'uta');
+            params = this.extend (params, { 'marketType': marketType });
+            return await this.fetchUtaOrdersByStatus (status, symbol, since, limit, params);
+        } else if ((marketType === 'spot') || (marketType === 'margin')) {
             return await this.fetchSpotOrdersByStatus (status, symbol, since, limit, params);
         } else {
             return await this.fetchContractOrdersByStatus (status, symbol, since, limit, params);
@@ -5115,6 +5301,84 @@ export default class kucoin extends Exchange {
 
     /**
      * @method
+     * @name kucoin#fetchUtaOrdersByStatus
+     * @description helper method for fetching orders by status with uta endpoint
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-open-order-list
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-order-history
+     * @param {string} status 'active' or 'closed', only 'active' is valid for stop orders
+     * @param {string} symbol unified symbol for the market to retrieve orders from
+     * @param {int} [since] timestamp in ms of the earliest order to retrieve
+     * @param {int} [limit] The maximum number of orders to retrieve
+     * @param {object} [params] exchange specific parameters
+     * @param {bool} [params.trigger] set to true for conditional orders (default is false)
+     * @param {int} [params.until] End time in ms
+     * @param {string} [params.side] *closed orders only* 'BUY' or 'SELL'
+     * @param {string} [params.accountMode] 'unified' or 'classic' (default is unified)
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async fetchUtaOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        let paginate = false;
+        const maxLimit = 200;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrdersByStatus', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchOrdersByStatus', symbol, since, limit, params, maxLimit) as Order[];
+        }
+        let accountMode = 'unified';
+        [ accountMode, params ] = this.handleOptionAndParams (params, 'fetchUtaOrdersByStatus', 'accountMode', accountMode);
+        let request: Dict = {
+            'accountMode': accountMode,
+        };
+        let marketType = undefined;
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            marketType = market['type'];
+            request['symbol'] = market['id'];
+        } else {
+            marketType = this.safeString (params, 'marketType');
+        }
+        params = this.omit (params, 'marketType');
+        const isContract = (marketType !== 'spot') && (marketType !== 'margin');
+        if (!isContract && (symbol === undefined)) {
+            throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus() requires a symbol argument for spot and margin markets when using uta endpoint');
+        }
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrdersByStatus', params);
+        const tradeType = this.handleTradeType (isContract, marginMode, params);
+        params['tradeType'] = tradeType;
+        const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
+        params = this.omit (params, [ 'stop', 'trigger' ]);
+        if (trigger) {
+            request['orderFilter'] = 'CONDITION';
+        }
+        if (since !== undefined) {
+            request['startAt'] = since;
+        }
+        [ request, params ] = this.handleUntilOption ('endAt', request, params);
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        let lowercaseStatus = status.toLowerCase ();
+        if (lowercaseStatus === 'open') {
+            lowercaseStatus = 'active';
+        } else if (lowercaseStatus === 'closed') {
+            lowercaseStatus = 'done';
+        }
+        let response = undefined;
+        if (lowercaseStatus === 'active') {
+            response = await this.utaPrivateGetAccountModeOrderOpenList (this.extend (request, params));
+        } else {
+            response = await this.utaPrivateGetAccountModeOrderHistory (this.extend (request, params));
+        }
+        const data = this.safeDict (response, 'data', {});
+        const orders = this.safeList (data, 'items', []);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    /**
+     * @method
      * @name kucoin#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-closed-orders
@@ -5196,15 +5460,23 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-clientoid
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-by-orderld
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/get-stop-order-by-clientoid
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-order-details
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
-     * Check fetchSpotOrder() and fetchContractOrder() for more details on the extra parameters that can be used in params
+     * @param {bool} [params.uta] true if fetching an order with uta endpoint (default is false)
+     * Check fetchSpotOrder(), fetchContractOrder() and fetchUtaOrder() for more details on the extra parameters that can be used in params
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder (id: Str, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
+        let uta = false;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchOrder', 'uta');
+        if (uta) {
+            params = this.omit (params, 'uta');
+            return await this.fetchUtaOrder (id, symbol, params);
+        }
         let marketType = undefined;
         if (symbol === undefined) {
             [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', undefined, params);
@@ -5384,6 +5656,63 @@ export default class kucoin extends Exchange {
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
         const responseData = this.safeDict (response, 'data');
         return this.parseOrder (responseData, market);
+    }
+
+    /**
+     * @method
+     * @name kucoin#fetchUtaOrder
+     * @description fetch uta order
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-order-details
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountMode] 'unified' or 'classic' (default is 'unified')
+     * @param {string} [params.clientOrderId] client order id, required if id is not provided
+     * @param {string} [params.marginMode] 'cross' or 'isolated', required if fetching a margin order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async fetchUtaOrder (id: Str, symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument for uta orders');
+        }
+        const request: Dict = {};
+        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientOid'] = clientOrderId;
+            params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
+        } else {
+            if (id === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOrder() requires an id argument or clientOrderId parameter');
+            }
+            request['orderId'] = id;
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        request['symbol'] = market['id'];
+        let accountMode = 'unified';
+        [ accountMode, params ] = this.handleOptionAndParams (params, 'fetchOrder', 'accountMode', accountMode);
+        request['accountMode'] = accountMode;
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrder', params);
+        const tradeType = this.handleTradeType (market['contract'], marginMode, params);
+        request['tradeType'] = tradeType;
+        const response = await this.utaPrivateGetAccountModeOrderDetail (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        return this.parseOrder (data, market);
+    }
+
+    handleTradeType (isContractMarket = false, marginMode = undefined, params = {}) {
+        let tradeType = this.safeString (params, 'tradeType');
+        if (tradeType === undefined) {
+            if (isContractMarket) {
+                tradeType = 'FUTURES';
+            } else if (marginMode !== undefined) {
+                tradeType = marginMode.toUpperCase ();
+            } else {
+                tradeType = 'SPOT';
+            }
+        }
+        return tradeType;
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
