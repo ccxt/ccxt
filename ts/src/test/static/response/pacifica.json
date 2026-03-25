@@ -1,7 +1,6 @@
 {
     "exchange": "pacifica",
     "skipKeys": ["start_time", "signature", "end_time"],
-    "apiKey": null,
     "privateKey": "2fGURdTtScQVocLdZovb6kJ3V8TmWe3eg5TJpYAqrTRTqYf27goDdQVfMx4W2uUmTwTc78qxsxhhvrdx7MTd55rn",
     "options": {
         "walletAddress": "bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
