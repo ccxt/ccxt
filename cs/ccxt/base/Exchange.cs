@@ -561,7 +561,12 @@ public partial class Exchange
 
     public List<string> unique(object obj)
     {
-        return (obj as List<string>).ToList();
+        var stringList = (obj as List<string>);
+        if (stringList == null)
+        {
+            return new List<string>();
+        }
+        return stringList.ToList();
     }
 
     public int parseTimeframe(object timeframe2)
