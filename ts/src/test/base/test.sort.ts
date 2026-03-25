@@ -21,6 +21,7 @@ function testSort () {
 
     testSharedMethods.assertDeepEqual (exchange, undefined, 'sort', exchange.sort ([ 'b', 'a', 'c', 'd' ]), [ 'a', 'b', 'c', 'd' ]);
 
+    // todo: add test for above 10, eg: 1, 2, 10, 20, 21
     // integers (single-digit, safe for cross-language lexicographic/numeric consistency)
     testSharedMethods.assertDeepEqual (exchange, undefined, 'sort', exchange.sort ([ 3, 1, 2 ]), [ 1, 2, 3 ]);
     testSharedMethods.assertDeepEqual (exchange, undefined, 'sort', exchange.sort ([ 5, 3, 1, 4, 2 ]), [ 1, 2, 3, 4, 5 ]);
