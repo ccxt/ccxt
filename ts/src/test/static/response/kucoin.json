@@ -953,6 +953,136 @@
         ],
         "fetchOpenOrders": [
             {
+                "description": "fetch open spot unfified orders with uta",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "ETH/USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "pageNumber": 1,
+                        "pageSize": 50,
+                        "totalNum": 1,
+                        "totalPage": 1,
+                        "items": [
+                            {
+                                "orderId": "426328635071352832",
+                                "symbol": "ETH-USDT",
+                                "orderType": "LIMIT",
+                                "side": "BUY",
+                                "size": "0.001",
+                                "price": "1000",
+                                "timeInForce": "GTC",
+                                "tags": "partner:ccxt",
+                                "orderTime": 1774457869404794600,
+                                "stp": "",
+                                "cancelAfter": null,
+                                "postOnly": false,
+                                "reduceOnly": false,
+                                "triggerDirection": "",
+                                "triggerPrice": "",
+                                "triggerPriceType": "",
+                                "tpTriggerPrice": "",
+                                "tpTriggerPriceType": "",
+                                "slTriggerPrice": "",
+                                "slTriggerPriceType": "",
+                                "filledSize": "0",
+                                "avgPrice": "0",
+                                "fee": "0",
+                                "feeCurrency": "USDT",
+                                "tax": "0",
+                                "updatedTime": 1774457869469028900,
+                                "triggerOrderId": "",
+                                "cancelReason": "",
+                                "cancelSize": "0",
+                                "clientOid": "708987d5-c346-487a-a70c-ea267377b0ca",
+                                "sizeUnit": "BASECCY",
+                                "status": 2
+                            }
+                        ],
+                        "tradeType": "SPOT"
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "426328635071352832",
+                        "clientOrderId": "708987d5-c346-487a-a70c-ea267377b0ca",
+                        "symbol": "ETH/USDT",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "amount": 0.001,
+                        "price": 1000,
+                        "triggerPrice": null,
+                        "cost": 0,
+                        "filled": 0,
+                        "remaining": 0.001,
+                        "timestamp": 1774457869404,
+                        "datetime": "2026-03-25T16:57:49.404Z",
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": "0"
+                        },
+                        "status": "open",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1774457869469,
+                        "average": null,
+                        "trades": [],
+                        "info": {
+                            "orderId": "426328635071352832",
+                            "symbol": "ETH-USDT",
+                            "orderType": "LIMIT",
+                            "side": "BUY",
+                            "size": "0.001",
+                            "price": "1000",
+                            "timeInForce": "GTC",
+                            "tags": "partner:ccxt",
+                            "orderTime": 1774457869404794600,
+                            "stp": "",
+                            "cancelAfter": null,
+                            "postOnly": false,
+                            "reduceOnly": false,
+                            "triggerDirection": "",
+                            "triggerPrice": "",
+                            "triggerPriceType": "",
+                            "tpTriggerPrice": "",
+                            "tpTriggerPriceType": "",
+                            "slTriggerPrice": "",
+                            "slTriggerPriceType": "",
+                            "filledSize": "0",
+                            "avgPrice": "0",
+                            "fee": "0",
+                            "feeCurrency": "USDT",
+                            "tax": "0",
+                            "updatedTime": 1774457869469028900,
+                            "triggerOrderId": "",
+                            "cancelReason": "",
+                            "cancelSize": "0",
+                            "clientOid": "708987d5-c346-487a-a70c-ea267377b0ca",
+                            "sizeUnit": "BASECCY",
+                            "status": 2
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0
+                            }
+                        ],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            },
+            {
                 "description": "Fetch swap open orders",
                 "method": "fetchOpenOrders",
                 "input": [
@@ -1830,6 +1960,128 @@
             }
         ],
         "fetchOrder": [
+            {
+                "description": "fetch unified swap order with tpsl",
+                "method": "fetchOrder",
+                "input": [
+                    "426373228194254848",
+                    "DOGE/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "orderId": "426373228194254848",
+                        "symbol": "DOGEUSDTM",
+                        "orderType": "MARKET",
+                        "side": "BUY",
+                        "size": "1",
+                        "price": "",
+                        "timeInForce": "GTC",
+                        "tags": "",
+                        "orderTime": 1774468501233400600,
+                        "stp": "",
+                        "cancelAfter": null,
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "triggerDirection": "",
+                        "triggerPrice": "",
+                        "triggerPriceType": "",
+                        "tpTriggerPrice": "1",
+                        "tpTriggerPriceType": "MP",
+                        "slTriggerPrice": "0.01",
+                        "slTriggerPriceType": "MP",
+                        "filledSize": "1",
+                        "avgPrice": "0.09641",
+                        "fee": "0.0057846",
+                        "feeCurrency": "USDT",
+                        "tax": "0",
+                        "updatedTime": 1774468501294000000,
+                        "triggerOrderId": "",
+                        "cancelReason": "",
+                        "cancelSize": "0",
+                        "clientOid": "test order with tp and sl",
+                        "sizeUnit": "UNIT",
+                        "tradeType": "FUTURES",
+                        "tradeId": "1711108516570",
+                        "status": 3
+                    }
+                },
+                "parsedResponse": {
+                    "id": "426373228194254848",
+                    "clientOrderId": "test order with tp and sl",
+                    "symbol": "DOGE/USDT:USDT",
+                    "type": "market",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "amount": 1,
+                    "price": 0.09641,
+                    "triggerPrice": null,
+                    "cost": 9.641,
+                    "filled": 1,
+                    "remaining": 0,
+                    "timestamp": 1774468501233,
+                    "datetime": "2026-03-25T19:55:01.233Z",
+                    "fee": {
+                        "currency": "USDT",
+                        "cost": "0.0057846"
+                    },
+                    "status": "closed",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1774468501294,
+                    "average": 0.09641,
+                    "trades": [],
+                    "stopLossPrice": 0.01,
+                    "takeProfitPrice": 1,
+                    "info": {
+                        "orderId": "426373228194254848",
+                        "symbol": "DOGEUSDTM",
+                        "orderType": "MARKET",
+                        "side": "BUY",
+                        "size": "1",
+                        "price": "",
+                        "timeInForce": "GTC",
+                        "tags": "",
+                        "orderTime": 1774468501233400600,
+                        "stp": "",
+                        "cancelAfter": null,
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "triggerDirection": "",
+                        "triggerPrice": "",
+                        "triggerPriceType": "",
+                        "tpTriggerPrice": "1",
+                        "tpTriggerPriceType": "MP",
+                        "slTriggerPrice": "0.01",
+                        "slTriggerPriceType": "MP",
+                        "filledSize": "1",
+                        "avgPrice": "0.09641",
+                        "fee": "0.0057846",
+                        "feeCurrency": "USDT",
+                        "tax": "0",
+                        "updatedTime": 1774468501294000000,
+                        "triggerOrderId": "",
+                        "cancelReason": "",
+                        "cancelSize": "0",
+                        "clientOid": "test order with tp and sl",
+                        "sizeUnit": "UNIT",
+                        "tradeType": "FUTURES",
+                        "tradeId": "1711108516570",
+                        "status": 3
+                    },
+                    "fees": [
+                        {
+                            "currency": "USDT",
+                            "cost": 0.0057846
+                        }
+                    ],
+                    "stopPrice": null
+                }
+            },
             {
                 "description": "fetch swap order",
                 "method": "fetchOrder",
