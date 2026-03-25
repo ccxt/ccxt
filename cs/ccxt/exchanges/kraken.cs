@@ -174,6 +174,7 @@ public partial class kraken : Exchange
                         { "WithdrawAddresses", 3 },
                         { "WithdrawStatus", 3 },
                         { "WalletTransfer", 3 },
+                        { "GetApiKeyInfo", 3 },
                         { "CreateSubaccount", 3 },
                         { "AccountTransfer", 3 },
                         { "Earn/Allocate", 3 },

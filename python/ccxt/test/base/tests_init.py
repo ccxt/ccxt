@@ -42,7 +42,9 @@ from ccxt.test.base.test_is_empty import test_is_empty  # noqa E402
 from ccxt.test.base.test_in_array import test_in_array  # noqa E402
 from ccxt.test.base.test_precision_from_string import test_precision_from_string  # noqa E402
 from ccxt.test.base.test_urlencode_base64 import test_urlencode_base64  # noqa E402
+from ccxt.test.base.test_urlencode import test_urlencode  # noqa E402
 from ccxt.test.base.test_after_constructor import test_after_constructor  # noqa E402
+from ccxt.test.base.test_rawencode import test_rawencode  # noqa E402
 from ccxt.test.base.test_handle_methods import test_handle_methods  # noqa E402
 from ccxt.test.base.test_remove_repeated_elements_from_array import test_remove_repeated_elements_from_array  # noqa E402
 from ccxt.test.base.test_urlencode_with_array_repeat import test_urlencode_with_array_repeat  # noqa E402
@@ -81,6 +83,7 @@ async def base_tests_init():
     test_sort_by()
     test_sum()
     test_urlencode_base64()
+    test_urlencode()
     test_omit()
     test_group_by()
     test_index_by()
@@ -94,6 +97,7 @@ async def base_tests_init():
     test_precision_from_string()
     test_timeframes()
     test_strip()
+    test_rawencode()
     test_extract_params()
     test_array_concat()
     test_arrays_concat()

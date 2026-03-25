@@ -31,7 +31,9 @@ import testIsEmpty from './test.isEmpty.js';
 import testInArray from './test.inArray.js';
 import testPrecisionFromString from './test.precisionFromString.js';
 import testUrlencodeBase64 from './test.urlencodeBase64.js';
+import testUrlencode from './test.urlencode.js';
 import testAfterConstructor from './test.afterConstructor.js';
+import testRawencode from './test.rawencode.js';
 import testHandleMethods from './test.handleMethods.js';
 import testRemoveRepeatedElementsFromArray from './test.removeRepeatedElementsFromArray.js';
 import testUrlencodeWithArrayRepeat from './test.urlencodeWithArrayRepeat.js';
@@ -69,6 +71,7 @@ async function baseTestsInit() {
     testSortBy();
     testSum();
     testUrlencodeBase64();
+    testUrlencode();
     testOmit();
     testGroupBy();
     testIndexBy();
@@ -82,6 +85,7 @@ async function baseTestsInit() {
     testPrecisionFromString();
     testTimeframes();
     testStrip();
+    testRawencode();
     testExtractParams();
     testArrayConcat();
     testArraysConcat();

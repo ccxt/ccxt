@@ -1986,7 +1986,7 @@ public partial class kucoin : Exchange
             //         ]
             //     }
             //
-            response = await ((Task<object>)callDynamically(this, "utaGetAssetCurrencies", new object[] { parameters }));
+            response = await this.utaGetAssetCurrencies(parameters);
         } else
         {
             //
@@ -2653,7 +2653,7 @@ public partial class kucoin : Exchange
         object response = null;
         if (isTrue(isEqual(method, "futuresPublicGetAllTickers")))
         {
-            response = await ((Task<object>)callDynamically(this, "futuresPublicGetAllTickers", new object[] { parameters }));
+            response = await this.futuresPublicGetAllTickers(parameters);
         } else
         {
             response = await this.futuresPublicGetContractsActive(parameters);
@@ -3293,7 +3293,7 @@ public partial class kucoin : Exchange
         object request = new Dictionary<string, object>() {
             { "currency", currencyId },
         };
-        object response = await ((Task<object>)callDynamically(this, "futuresPrivateGetDepositAddress", new object[] { this.extend(request, parameters) }));
+        object response = await this.futuresPrivateGetDepositAddress(this.extend(request, parameters));
         //
         //    {
         //        "code": "200000",
@@ -3687,7 +3687,7 @@ public partial class kucoin : Exchange
         {
             if (isTrue(isMarginOrder))
             {
-                response = await ((Task<object>)callDynamically(this, "privatePostHfMarginStopOrder", new object[] { orderRequest }));
+                response = await this.privatePostHfMarginStopOrder(orderRequest);
             } else
             {
                 response = await this.privatePostStopOrder(orderRequest);
@@ -3877,7 +3877,7 @@ public partial class kucoin : Exchange
         {
             if (isTrue(hasTpOrSlOrder))
             {
-                response = await ((Task<object>)callDynamically(this, "futuresPrivatePostStOrders", new object[] { orderRequest }));
+                response = await this.futuresPrivatePostStOrders(orderRequest);
             } else
             {
                 response = await this.futuresPrivatePostOrders(orderRequest);
@@ -4468,7 +4468,7 @@ public partial class kucoin : Exchange
             {
                 if (isTrue(isMarginOrder))
                 {
-                    response = await ((Task<object>)callDynamically(this, "privateDeleteHfMarginStopOrderCancelByClientOid", new object[] { this.extend(request, parameters) }));
+                    response = await this.privateDeleteHfMarginStopOrderCancelByClientOid(this.extend(request, parameters));
                     object data = this.safeDict(response, "data");
                     object orderIds = this.safeList(data, "cancelledOrderIds", new List<object>() {});
                     object orderId = this.safeString(orderIds, 0);
@@ -4511,7 +4511,7 @@ public partial class kucoin : Exchange
             {
                 if (isTrue(isMarginOrder))
                 {
-                    response = await ((Task<object>)callDynamically(this, "privateDeleteHfMarginStopOrderCancelById", new object[] { this.extend(request, parameters) }));
+                    response = await this.privateDeleteHfMarginStopOrderCancelById(this.extend(request, parameters));
                 } else
                 {
                     //
@@ -4697,7 +4697,7 @@ public partial class kucoin : Exchange
         {
             if (isTrue(isMarginOrders))
             {
-                response = await ((Task<object>)callDynamically(this, "privateDeleteHfMarginStopOrderCancel", new object[] { this.extend(request, query) }));
+                response = await this.privateDeleteHfMarginStopOrderCancel(this.extend(request, query));
             } else
             {
                 response = await this.privateDeleteStopOrderCancel(this.extend(request, query));
@@ -4910,7 +4910,7 @@ public partial class kucoin : Exchange
             {
                 if (isTrue(isMarginOrder))
                 {
-                    response = await ((Task<object>)callDynamically(this, "privateGetHfMarginStopOrders", new object[] { this.extend(request, query) }));
+                    response = await this.privateGetHfMarginStopOrders(this.extend(request, query));
                 } else
                 {
                     response = await this.privateGetStopOrder(this.extend(request, query));
@@ -5254,7 +5254,7 @@ public partial class kucoin : Exchange
             {
                 if (isTrue(isMarginOrder))
                 {
-                    response = await ((Task<object>)callDynamically(this, "privateGetHfMarginStopOrderClientOid", new object[] { this.extend(request, parameters) }));
+                    response = await this.privateGetHfMarginStopOrderClientOid(this.extend(request, parameters));
                 } else
                 {
                     if (isTrue(!isEqual(symbol, null)))
@@ -5287,7 +5287,7 @@ public partial class kucoin : Exchange
             {
                 if (isTrue(isMarginOrder))
                 {
-                    response = await ((Task<object>)callDynamically(this, "privateGetHfMarginStopOrderOrderId", new object[] { this.extend(request, parameters) }));
+                    response = await this.privateGetHfMarginStopOrderOrderId(this.extend(request, parameters));
                 } else
                 {
                     response = await this.privateGetStopOrderOrderId(this.extend(request, parameters));
@@ -6482,7 +6482,7 @@ public partial class kucoin : Exchange
         } else
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
-            response = await ((Task<object>)callDynamically(this, "futuresPrivateGetTradeFees", new object[] { this.extend(request, parameters) }));
+            response = await this.futuresPrivateGetTradeFees(this.extend(request, parameters));
             //
             //     {
             //         "code": "200000",
@@ -6844,7 +6844,7 @@ public partial class kucoin : Exchange
         {
             ((IDictionary<string,object>)request)["startAt"] = since;
         }
-        object response = await ((Task<object>)callDynamically(this, "futuresPrivateGetDepositList", new object[] { this.extend(request, parameters) }));
+        object response = await this.futuresPrivateGetDepositList(this.extend(request, parameters));
         //
         //     {
         //         "code": "200000",
@@ -7019,7 +7019,7 @@ public partial class kucoin : Exchange
         {
             ((IDictionary<string,object>)request)["startAt"] = since;
         }
-        object response = await ((Task<object>)callDynamically(this, "futuresPrivateGetWithdrawalList", new object[] { this.extend(request, parameters) }));
+        object response = await this.futuresPrivateGetWithdrawalList(this.extend(request, parameters));
         //
         //     {
         //         "code": "200000",
@@ -8502,7 +8502,7 @@ public partial class kucoin : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object response = await ((Task<object>)callDynamically(this, "futuresPrivateGetGetCrossUserLeverage", new object[] { this.extend(request, parameters) }));
+        object response = await this.futuresPrivateGetGetCrossUserLeverage(this.extend(request, parameters));
         //
         //    {
         //        "code": "200000",
@@ -8596,7 +8596,7 @@ public partial class kucoin : Exchange
             { "symbol", getValue(market, "id") },
             { "leverage", ((object)leverage).ToString() },
         };
-        object response = await ((Task<object>)callDynamically(this, "futuresPrivatePostChangeCrossUserLeverage", new object[] { this.extend(request, parameters) }));
+        object response = await this.futuresPrivatePostChangeCrossUserLeverage(this.extend(request, parameters));
         //
         //    {
         //        "code": "200000",
@@ -9111,7 +9111,7 @@ public partial class kucoin : Exchange
             parameters = this.omit(parameters, "until");
             ((IDictionary<string,object>)request)["to"] = until;
         }
-        object response = await ((Task<object>)callDynamically(this, "futuresPrivateGetHistoryPositions", new object[] { this.extend(request, parameters) }));
+        object response = await this.futuresPrivateGetHistoryPositions(this.extend(request, parameters));
         //
         // {
         //     "success": true,
@@ -9338,7 +9338,7 @@ public partial class kucoin : Exchange
         object requestKey = ((bool) isTrue(useClientorderId)) ? "clientOidsList" : "orderIdsList";
         object request = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)request)[(string)requestKey] = ordersRequests;
-        object response = await ((Task<object>)callDynamically(this, "futuresPrivateDeleteOrdersMultiCancel", new object[] { this.extend(request, parameters) }));
+        object response = await this.futuresPrivateDeleteOrdersMultiCancel(this.extend(request, parameters));
         //
         //   {
         //       "code": "200000",
@@ -9527,7 +9527,7 @@ public partial class kucoin : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object response = await ((Task<object>)callDynamically(this, "futuresPrivateGetPositionGetMarginMode", new object[] { this.extend(request, parameters) }));
+        object response = await this.futuresPrivateGetPositionGetMarginMode(this.extend(request, parameters));
         //
         //     {
         //         "code": "200000",
@@ -9580,7 +9580,7 @@ public partial class kucoin : Exchange
             { "symbol", getValue(market, "id") },
             { "marginMode", ((string)marginMode).ToUpper() },
         };
-        object response = await ((Task<object>)callDynamically(this, "futuresPrivatePostPositionChangeMarginMode", new object[] { this.extend(request, parameters) }));
+        object response = await this.futuresPrivatePostPositionChangeMarginMode(this.extend(request, parameters));
         //
         //    {
         //        "code": "200000",
@@ -9612,7 +9612,7 @@ public partial class kucoin : Exchange
         object request = new Dictionary<string, object>() {
             { "positionMode", posMode },
         };
-        object response = await ((Task<object>)callDynamically(this, "futuresPrivatePostPositionSwitchPositionMode", new object[] { this.extend(request, parameters) }));
+        object response = await this.futuresPrivatePostPositionSwitchPositionMode(this.extend(request, parameters));
         //
         //     {
         //         "code": "200000",
@@ -9636,7 +9636,7 @@ public partial class kucoin : Exchange
     public async override Task<object> fetchPositionMode(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await ((Task<object>)callDynamically(this, "futuresPrivateGetPositionGetPositionMode", new object[] { parameters }));
+        object response = await this.futuresPrivateGetPositionGetPositionMode(parameters);
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object positionMode = this.safeInteger(data, "positionMode");
         return new Dictionary<string, object>() {
@@ -9717,7 +9717,7 @@ public partial class kucoin : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object response = await ((Task<object>)callDynamically(this, "futuresPublicGetContractsRiskLimitSymbol", new object[] { this.extend(request, parameters) }));
+        object response = await this.futuresPublicGetContractsRiskLimitSymbol(this.extend(request, parameters));
         //
         //    {
         //        "code": "200000",

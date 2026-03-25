@@ -28,6 +28,7 @@ public partial class BaseTest
             testSortBy();
             testSum();
             testUrlencodeBase64();
+            testUrlencode();
             testOmit();
             testGroupBy();
             testIndexBy();
@@ -41,6 +42,7 @@ public partial class BaseTest
             testPrecisionFromString();
             testTimeframes();
             testStrip();
+            testRawencode();
             testExtractParams();
             testArrayConcat();
             testArraysConcat();

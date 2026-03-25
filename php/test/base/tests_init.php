@@ -37,7 +37,9 @@ include_once __DIR__ . '/test_is_empty.php';
 include_once __DIR__ . '/test_in_array.php';
 include_once __DIR__ . '/test_precision_from_string.php';
 include_once __DIR__ . '/test_urlencode_base64.php';
+include_once __DIR__ . '/test_urlencode.php';
 include_once __DIR__ . '/test_after_constructor.php';
+include_once __DIR__ . '/test_rawencode.php';
 include_once __DIR__ . '/test_handle_methods.php';
 include_once __DIR__ . '/test_remove_repeated_elements_from_array.php';
 include_once __DIR__ . '/test_urlencode_with_array_repeat.php';
@@ -77,6 +79,7 @@ function base_tests_init() {
         test_sort_by();
         test_sum();
         test_urlencode_base64();
+        test_urlencode();
         test_omit();
         test_group_by();
         test_index_by();
@@ -90,6 +93,7 @@ function base_tests_init() {
         test_precision_from_string();
         test_timeframes();
         test_strip();
+        test_rawencode();
         test_extract_params();
         test_array_concat();
         test_arrays_concat();
