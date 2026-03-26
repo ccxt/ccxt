@@ -1742,6 +1742,66 @@
         ],
         "transfer": [
             {
+                "description": "transfer from spot to unified with uta endpoint",
+                "method": "transfer",
+                "url": "https://api.kucoin.com/api/ua/v1/account/transfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "spot",
+                    "unified",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"clientOid\":\"3d90868a-f295-4e45-a9a8-ce5c3baed691\",\"fromAccountType\":\"SPOT\",\"toAccountType\":\"UNIFIED\",\"type\":\"0\"}"
+            },
+            {
+                "description": "transfer from swap to unified with uta endpoint",
+                "method": "transfer",
+                "url": "https://api.kucoin.com/api/ua/v1/account/transfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "swap",
+                    "unified",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"clientOid\":\"9432ea27-6462-4fd4-9b42-5d9b9bbd8f30\",\"fromAccountType\":\"FUTURES\",\"toAccountType\":\"UNIFIED\",\"type\":\"0\"}"
+            },
+            {
+                "description": "transfer from cross to unified with uta endpoint",
+                "method": "transfer",
+                "url": "https://api.kucoin.com/api/ua/v1/account/transfer",
+                "input": [
+                    "USDT",
+                    10,
+                    "ETH/USDT",
+                    "unified",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"10\",\"clientOid\":\"17317a37-b94b-41d6-9b8b-9fca8c947c81\",\"fromAccountSymbol\":\"ETH-USDT\",\"fromAccountType\":\"ISOLATED\",\"toAccountType\":\"UNIFIED\",\"type\":\"0\"}"
+            },
+            {
+                "description": "transfer from main to unified with uta endpoint",
+                "method": "transfer",
+                "url": "https://api.kucoin.com/api/ua/v1/account/transfer",
+                "input": [
+                    "USDT",
+                    10,
+                    "funding",
+                    "unified",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"10\",\"clientOid\":\"95c0555d-54cc-4119-adab-cb96d31b5765\",\"fromAccountType\":\"FUNDING\",\"toAccountType\":\"UNIFIED\",\"type\":\"0\"}"
+            },
+            {
                 "description": "Transfer from swap to spot",
                 "method": "transfer",
                 "url": "https://api.kucoin.com/api/v3/accounts/universal-transfer",
