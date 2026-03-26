@@ -1327,6 +1327,84 @@
         ],
         "fetchMyTrades": [
             {
+                "description": "fetch my unified spot trades",
+                "method": "fetchMyTrades",
+                "input": [
+                    "ETH/USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "tradeType": "SPOT",
+                        "lastId": 30000000000531960,
+                        "items": [
+                            {
+                                "orderId": "426340869306667008",
+                                "symbol": "ETH-USDT",
+                                "orderType": "MARKET",
+                                "side": "BUY",
+                                "tradeId": "20719257576687616",
+                                "size": "0.0046169",
+                                "price": "2165.93",
+                                "value": "9.999882217",
+                                "executionTime": 1774460786277000000,
+                                "fee": "0.009999882217",
+                                "feeCurrency": "USDT",
+                                "tax": "",
+                                "liquidityRole": "TAKER",
+                                "fillType": "NORMAL"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "orderId": "426340869306667008",
+                            "symbol": "ETH-USDT",
+                            "orderType": "MARKET",
+                            "side": "BUY",
+                            "tradeId": "20719257576687616",
+                            "size": "0.0046169",
+                            "price": "2165.93",
+                            "value": "9.999882217",
+                            "executionTime": 1774460786277000000,
+                            "fee": "0.009999882217",
+                            "feeCurrency": "USDT",
+                            "tax": "",
+                            "liquidityRole": "TAKER",
+                            "fillType": "NORMAL"
+                        },
+                        "id": "20719257576687616",
+                        "order": "426340869306667008",
+                        "timestamp": 1774460786276,
+                        "datetime": "2026-03-25T17:46:26.276Z",
+                        "symbol": "ETH/USDT",
+                        "type": "market",
+                        "takerOrMaker": "taker",
+                        "side": "buy",
+                        "price": 2165.93,
+                        "amount": 0.0046169,
+                        "cost": 9.999882217,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.009999882217
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.009999882217
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
                 "description": "fethc swap trade",
                 "method": "fetchMyTrades",
                 "input": [
