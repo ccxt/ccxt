@@ -12,6 +12,20 @@
     "options": {
     },
     "methods": {
+        "fetchPosition": [
+            {
+                "description": "fetch position for uta",
+                "method": "fetchPosition",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/position/open-list?symbol=DOGEUSDTM",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            }
+        ],
         "fetchDepositAddress": [
             {
                 "description": "fetch deposit address with uta",
@@ -222,6 +236,18 @@
             }
         ],
         "fetchPositions": [
+            {
+                "description": "fetch positions with uta",
+                "method": "fetchPositions",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/position/open-list",
+                "input": [
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "fetch positions",
                 "method": "fetchPositions",
