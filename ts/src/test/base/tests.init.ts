@@ -45,6 +45,7 @@ import testTimeframes from './test.timeframes.js';
 import testKeysort from './test.keysort.js';
 import testImplodeParams from './test.implodeParams.js';
 import testUrlencodeNested from './test.urlencodeNested.js';
+import testStringToBase16 from './test.stringToBase16.js';
 import testCapitalize from './test.capitalize.js';
 import testConstants from './test.constants.js';
 import testIsJsonEncodedObject from './test.isJsonEncodedObject.js';
@@ -84,6 +85,7 @@ async function baseTestsInit () {
     testTimeframes ();
     testStrip ();
     testRawencode ();
+    testStringToBase16 ();
     testExtractParams ();
     testArrayConcat ();
     testArraysConcat ();
