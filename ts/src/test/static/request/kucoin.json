@@ -1552,6 +1552,49 @@
         ],
         "fetchMyTrades": [
             {
+                "description": "fetch my unified swap trades for market",
+                "method": "fetchMyTrades",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/order/execution?symbol=DOGEUSDTM&tradeType=FUTURES",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch my unified swap trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/order/execution?tradeType=FUTURES",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "uta": true,
+                        "type": "swap"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch my unified spot trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/order/execution?symbol=ETH-USDT&tradeType=SPOT",
+                "input": [
+                    "ETH/USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "spot trades",
                 "method": "fetchMyTrades",
                 "url": "https://api.kucoin.com/api/v1/fills",
