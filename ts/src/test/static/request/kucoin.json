@@ -12,6 +12,31 @@
     "options": {
     },
     "methods": {
+        "fetchPositionHistory": [
+            {
+                "description": "fetch position history",
+                "method": "fetchPositionHistory",
+                "url": "https://api-futures.kucoin.com/api/v1/history-positions?symbol=DOGEUSDTM&limit=200",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch uta position history",
+                "method": "fetchPositionHistory",
+                "url": "https://api.kucoin.com/api/ua/v1/position/history?symbol=DOGEUSDTM",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            }
+        ],
         "fetchPosition": [
             {
                 "description": "fetch position for uta",
@@ -257,6 +282,31 @@
             }
         ],
         "fetchPositionsHistory": [
+            {
+                "description": "fetch uta positions history",
+                "method": "fetchPositionsHistory",
+                "url": "https://api.kucoin.com/api/ua/v1/position/history?pageSize=1",
+                "input": [
+                    null,
+                    null,
+                    1,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch positions history",
+                "method": "fetchPositionsHistory",
+                "url": "https://api-futures.kucoin.com/api/v1/history-positions?limit=1",
+                "input": [
+                    null,
+                    null,
+                    1
+                ],
+                "output": null
+            },
             {
                 "description": "fetchPositionsHistory",
                 "method": "fetchPositionsHistory",
