@@ -12,12 +12,16 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
             });
+            // todo: add sort
+            // todo: add nulls
             object dict2 = new Dictionary<string, object>() {
                 { "a", 1 },
                 { "b", "+&" },
-                { "d", "x123" },
             };
-            object expected2 = "a=1&b=+&&d=x123";
-            Assert(isEqual(exchange.rawencode(dict2), expected2), add(add(add("rawencode: expected ", expected2), " but got "), exchange.rawencode(dict2)));
+            // as key-order not preserved, expect mixed orde
+            object expected2a = "a=1&b=+&";
+            object expected2b = "b=+&&a=1";
+            object result2 = exchange.rawencode(dict2);
+            Assert(isTrue(isEqual(result2, expected2a)) || isTrue(isEqual(result2, expected2b)), add(add(add(add(add("rawencode: expected ", expected2a), " or "), expected2b), " but got "), result2));
         }
 }

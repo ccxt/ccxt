@@ -191,6 +191,10 @@ func (this *KrakenCore) PrivatePostWalletTransfer(args ...interface{}) <-chan in
 	return this.callEndpointAsync("privatePostWalletTransfer", args...)
 }
 
+func (this *KrakenCore) PrivatePostGetApiKeyInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetApiKeyInfo", args...)
+}
+
 func (this *KrakenCore) PrivatePostCreateSubaccount(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostCreateSubaccount", args...)
 }

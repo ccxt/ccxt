@@ -20,10 +20,13 @@ def test_urlencode():
         'id': 'sampleexchange',
     })
     # todo: add nulls
+    # todo: add sort
     dict1 = {
         'a': 1,
         'c': '+&',
-        'b': 2,
     }
-    expected1 = 'a=1&c=%2B%26&b=2'
-    assert exchange.urlencode(dict1) == expected1, 'testUrlencode: expected ' + expected1 + ' but got ' + exchange.urlencode(dict1)
+    # as key-order not preserved, expect mixed order
+    expected1 = 'a=1&c=%2B%26'
+    expected2 = 'c=%2B%26&a=1'
+    encoded = exchange.urlencode(dict1)
+    assert encoded == expected1 or encoded == expected2, 'testUrlencode: expected ' + expected1 + ' or ' + expected2 + ' but got ' + encoded

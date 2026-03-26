@@ -13,12 +13,15 @@ public partial class BaseTest
                 { "id", "sampleexchange" },
             });
             // todo: add nulls
+            // todo: add sort
             object dict1 = new Dictionary<string, object>() {
                 { "a", 1 },
                 { "c", "+&" },
-                { "b", 2 },
             };
-            object expected1 = "a=1&c=%2B%26&b=2";
-            Assert(isEqual(exchange.urlencode(dict1), expected1), add(add(add("testUrlencode: expected ", expected1), " but got "), exchange.urlencode(dict1)));
+            // as key-order not preserved, expect mixed order
+            object expected1 = "a=1&c=%2B%26";
+            object expected2 = "c=%2B%26&a=1";
+            object encoded = exchange.urlencode(dict1);
+            Assert(isTrue(isEqual(encoded, expected1)) || isTrue(isEqual(encoded, expected2)), add(add(add(add(add("testUrlencode: expected ", expected1), " or "), expected2), " but got "), encoded));
         }
 }
