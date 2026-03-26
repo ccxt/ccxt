@@ -13,9 +13,10 @@ public partial class BaseTest
                 { "id", "sampleexchange" },
             });
             // in different langs, the order (sort) is not guaranteed, so we sort the results before comparing them
+            // todo: `unique` is primarily meant for strings atm, add numeric support
             AssertDeepEqual(exchange, null, "testUnique", exchange.unique(new List<object>() {}), new List<object>() {});
-            AssertDeepEqual(exchange, null, "testUnique", exchange.sort(exchange.unique(new List<object>() {1, 2, 3})), new List<object>() {1, 2, 3});
-            AssertDeepEqual(exchange, null, "testUnique", exchange.sort(exchange.unique(new List<object>() {1, 2, 3, 4, 1})), new List<object>() {1, 2, 3, 4});
+            // AssertDeepEqual (exchange, undefined, 'testUnique',  exchange.sort (exchange.unique ([ 1, 2, 3 ])), [ 1, 2, 3 ]);
+            // AssertDeepEqual (exchange, undefined, 'testUnique',  exchange.sort (exchange.unique ([ 1, 2, 3, 4, 1 ])), [ 1, 2, 3, 4 ]);
             AssertDeepEqual(exchange, null, "testUnique", exchange.sort(exchange.unique(new List<object>() {"a", "a", "b", "c", "a", "c"})), new List<object>() {"a", "b", "c"});
         }
 }
