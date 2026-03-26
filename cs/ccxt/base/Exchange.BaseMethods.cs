@@ -2945,6 +2945,11 @@ public partial class Exchange
         return reversed;
     }
 
+    public virtual object stringToBase16(object str)
+    {
+        return add("0x", this.binaryToBase16(this.base64ToBinary(this.stringToBase64(str))));
+    }
+
     public virtual object reduceFeesByCurrency(object fees)
     {
         //

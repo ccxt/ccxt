@@ -207,6 +207,8 @@ class kraken extends Exchange {
                         'WithdrawAddresses' => 3,
                         'WithdrawStatus' => 3,
                         'WalletTransfer' => 3,
+                        // account
+                        'GetApiKeyInfo' => 3,
                         // sub accounts
                         'CreateSubaccount' => 3,
                         'AccountTransfer' => 3,

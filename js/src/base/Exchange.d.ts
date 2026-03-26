@@ -622,6 +622,7 @@ export default class Exchange {
     parseFeeNumeric(fee: any): any;
     findNearestCeiling(arr: number[], providedValue: number): number;
     invertFlatStringDictionary(dict: any): {};
+    stringToBase16(str: any): string;
     reduceFeesByCurrency(fees: any): any[];
     safeTicker(ticker: Dict, market?: Market): Ticker;
     fetchBorrowRate(code: string, amount: number, params?: {}): Promise<{}>;

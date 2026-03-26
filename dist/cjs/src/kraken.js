@@ -214,6 +214,8 @@ class kraken extends kraken$1["default"] {
                         'WithdrawAddresses': 3,
                         'WithdrawStatus': 3,
                         'WalletTransfer': 3,
+                        // account
+                        'GetApiKeyInfo': 3,
                         // sub accounts
                         'CreateSubaccount': 3,
                         'AccountTransfer': 3,

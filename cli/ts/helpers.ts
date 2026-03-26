@@ -411,6 +411,8 @@ function setNoSend (exchange: any) {
     return exchange;
 }
 
+// ----------------------------------------------------------------------------
+
 /**
  *
  * @param exchange
@@ -426,7 +428,7 @@ function parseMethodArgs (exchange, params, methodName, cliOptions, inject = tru
             ? exchange.parse8601 (s)
             : s))
         .map ((s) => (() => {
-            if (s.match (/^\d+$/g)) return s < Number.MAX_SAFE_INTEGER ? Number (s) : s;
+            if (typeof s === 'string' && s.match (/^\d+$/g)) return s < Number.MAX_SAFE_INTEGER ? Number (s) : s;
             try {
                 return eval ('(() => (' + s + ')) ()');
             } catch (e) {

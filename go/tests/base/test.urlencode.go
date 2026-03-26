@@ -12,11 +12,14 @@ func TestUrlencode() {
 		"id": "sampleexchange",
 	}, map[string]interface{}{}, exchange)
 	// todo: add nulls
+	// todo: add sort
 	var dict1 map[string]interface{} = map[string]interface{}{
 		"a": 1,
 		"c": "+&",
-		"b": 2,
 	}
-	var expected1 interface{} = "a=1&c=%2B%26&b=2"
-	assert(ccxt.IsEqual(exchange.Urlencode(dict1), expected1), ccxt.Add(ccxt.Add(ccxt.Add("testUrlencode: expected ", expected1), " but got "), exchange.Urlencode(dict1)))
+	// as key-order not preserved, expect mixed order
+	var expected1 interface{} = "a=1&c=%2B%26"
+	var expected2 interface{} = "c=%2B%26&a=1"
+	var encoded interface{} = exchange.Urlencode(dict1)
+	assert(ccxt.IsTrue(ccxt.IsEqual(encoded, expected1)) || ccxt.IsTrue(ccxt.IsEqual(encoded, expected2)), ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("testUrlencode: expected ", expected1), " or "), expected2), " but got "), encoded))
 }

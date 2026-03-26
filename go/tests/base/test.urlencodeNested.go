@@ -11,14 +11,19 @@ func TestUrlencodeNested() {
 	exchange.InitParent(map[string]interface{}{
 		"id": "sampleexchange",
 	}, map[string]interface{}{}, exchange)
+	// todo: add nulls
+	// todo: add key sort (for different langs)
 	var dict2 map[string]interface{} = map[string]interface{}{
-		"a": 1,
 		"b": map[string]interface{}{
 			"c":      2,
 			"target": "+&",
 		},
 		"d": []interface{}{1, 2},
 	}
-	var expected2 interface{} = "a=1&b[c]=2&b[target]=%2B%26&d[0]=1&d[1]=2"
-	assert(ccxt.IsEqual(exchange.UrlencodeNested(dict2), expected2), ccxt.Add(ccxt.Add(ccxt.Add("urlencodeNested: expected ", expected2), " but got "), exchange.UrlencodeNested(dict2)))
+	var expected2a interface{} = "b[c]=2&b[target]=%2B%26&d[0]=1&d[1]=2"
+	var expected2c interface{} = "b[target]=%2B%26&b[c]=2&d[0]=1&d[1]=2"
+	var expected2b interface{} = "d[0]=1&d[1]=2&b[c]=2&b[target]=%2B%26"
+	var expected2d interface{} = "d[0]=1&d[1]=2&b[target]=%2B%26&b[c]=2"
+	var result2 interface{} = exchange.UrlencodeNested(dict2)
+	assert(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(result2, expected2a)) || ccxt.IsTrue(ccxt.IsEqual(result2, expected2b))) || ccxt.IsTrue(ccxt.IsEqual(result2, expected2c))) || ccxt.IsTrue(ccxt.IsEqual(result2, expected2d)), ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("urlencodeNested: expected ", expected2a), " or "), expected2b), " or "), expected2c), " or "), expected2d), " but got "), result2))
 }

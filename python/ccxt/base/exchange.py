@@ -4504,6 +4504,9 @@ class Exchange(object):
                 reversed[value] = key
         return reversed
 
+    def string_to_base16(self, str):
+        return '0x' + self.binary_to_base16(self.base64_to_binary(self.string_to_base64(str)))
+
     def reduce_fees_by_currency(self, fees):
         #
         # self function takes a list of fee structures having the following format

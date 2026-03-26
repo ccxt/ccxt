@@ -13,11 +13,15 @@ function test_rawencode() {
     $exchange = new \ccxt\async\Exchange(array(
         'id' => 'sampleexchange',
     ));
+    // todo: add sort
+    // todo: add nulls
     $dict2 = array(
         'a' => 1,
         'b' => '+&',
-        'd' => 'x123',
     );
-    $expected2 = 'a=1&b=+&&d=x123';
-    assert($exchange->rawencode($dict2) === $expected2, 'rawencode: expected ' . $expected2 . ' but got ' . $exchange->rawencode($dict2));
+    // as key-order not preserved, expect mixed orde
+    $expected2a = 'a=1&b=+&';
+    $expected2b = 'b=+&&a=1';
+    $result2 = $exchange->rawencode($dict2);
+    assert($result2 === $expected2a || $result2 === $expected2b, 'rawencode: expected ' . $expected2a . ' or ' . $expected2b . ' but got ' . $result2);
 }

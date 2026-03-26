@@ -3,6 +3,7 @@
 
 import testDecimalToPrecision from './test.decimalToPrecision.js';
 import testBinaryToBase64 from './test.binaryToBase64.js';
+import testBase64ToBinary from './test.base64ToBinary.js';
 import testNumberToString from './test.numberToString.js';
 import testPrecise from './test.precise.js';
 import testDatetime from './test.datetime.js';
@@ -28,6 +29,7 @@ import testIsEmpty from './test.isEmpty.js';
 import testInArray from './test.inArray.js';
 import testPrecisionFromString from './test.precisionFromString.js';
 import testUrlencodeBase64 from './test.urlencodeBase64.js';
+import testStringToBase64 from './test.stringToBase64.js';
 import testUrlencode from './test.urlencode.js';
 import testAfterConstructor from './test.afterConstructor.js';
 import testRawencode from './test.rawencode.js';
@@ -45,9 +47,11 @@ import testTimeframes from './test.timeframes.js';
 import testKeysort from './test.keysort.js';
 import testImplodeParams from './test.implodeParams.js';
 import testUrlencodeNested from './test.urlencodeNested.js';
+import testStringToBase16 from './test.stringToBase16.js';
 import testCapitalize from './test.capitalize.js';
 import testConstants from './test.constants.js';
 import testIsJsonEncodedObject from './test.isJsonEncodedObject.js';
+import testEncodeDecode from './test.encodeDecode.js';
 
 async function baseTestsInit () {
     await testLanguageSpecific ();
@@ -57,6 +61,7 @@ async function baseTestsInit () {
     testDeepExtend ();
     testCryptography ();
     testBinaryToBase64 ();
+    testBase64ToBinary ();
     testDatetime ();
     testDecimalToPrecision ();
     testCapitalize ();
@@ -69,6 +74,7 @@ async function baseTestsInit () {
     testSortBy ();
     testSum ();
     testUrlencodeBase64 ();
+    testStringToBase64 ();
     testUrlencode ();
     testOmit ();
     testGroupBy ();
@@ -84,6 +90,7 @@ async function baseTestsInit () {
     testTimeframes ();
     testStrip ();
     testRawencode ();
+    testStringToBase16 ();
     testExtractParams ();
     testArrayConcat ();
     testArraysConcat ();
@@ -97,6 +104,7 @@ async function baseTestsInit () {
     await testSleep ();
     testIo ();
     testIsJsonEncodedObject ();
+    testEncodeDecode ();
 }
 
 export default baseTestsInit;
