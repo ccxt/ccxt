@@ -9757,9 +9757,11 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchPosition
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-details
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-position-list-uta
      * @description fetch data on an open position
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition (symbol: string, params = {}) {
@@ -9768,53 +9770,87 @@ export default class kucoin extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const response = await this.futuresPrivateGetPosition (this.extend (request, params));
-        //
-        //    {
-        //        "code": "200000",
-        //        "data": {
-        //            "id": "6505ee6eaff4070001f651c4",
-        //            "symbol": "XBTUSDTM",
-        //            "autoDeposit": false,
-        //            "maintMarginReq": 0,
-        //            "riskLimit": 200,
-        //            "realLeverage": 0.0,
-        //            "crossMode": false,
-        //            "delevPercentage": 0.0,
-        //            "currentTimestamp": 1694887534594,
-        //            "currentQty": 0,
-        //            "currentCost": 0.0,
-        //            "currentComm": 0.0,
-        //            "unrealisedCost": 0.0,
-        //            "realisedGrossCost": 0.0,
-        //            "realisedCost": 0.0,
-        //            "isOpen": false,
-        //            "markPrice": 26611.71,
-        //            "markValue": 0.0,
-        //            "posCost": 0.0,
-        //            "posCross": 0,
-        //            "posInit": 0.0,
-        //            "posComm": 0.0,
-        //            "posLoss": 0.0,
-        //            "posMargin": 0.0,
-        //            "posMaint": 0.0,
-        //            "maintMargin": 0.0,
-        //            "realisedGrossPnl": 0.0,
-        //            "realisedPnl": 0.0,
-        //            "unrealisedPnl": 0.0,
-        //            "unrealisedPnlPcnt": 0,
-        //            "unrealisedRoePcnt": 0,
-        //            "avgEntryPrice": 0.0,
-        //            "liquidationPrice": 0.0,
-        //            "bankruptPrice": 0.0,
-        //            "settleCurrency": "USDT",
-        //            "maintainMargin": 0,
-        //            "riskLimitLevel": 1
-        //        }
-        //    }
-        //
-        const data = this.safeDict (response, 'data', {});
-        return this.parsePosition (data, market);
+        let uta = false;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchPosition', 'uta', uta);
+        let response = undefined;
+        let position: Dict = undefined;
+        if (uta) {
+            request['accountMode'] = 'unified';
+            response = await this.utaPrivateGetAccountModePositionOpenList (this.extend (request, params));
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": [
+            //             {
+            //                 "symbol": "DOGEUSDTM",
+            //                 "id": "30000000000084351",
+            //                 "marginMode": "CROSS",
+            //                 "size": "2",
+            //                 "entryPrice": "0.093795",
+            //                 "positionValue": "18.298",
+            //                 "markPrice": "0.09149",
+            //                 "leverage": "3",
+            //                 "unrealizedPnL": "-0.461",
+            //                 "realizedPnL": "-0.01122489",
+            //                 "initialMargin": "6.0993333327234",
+            //                 "mmr": "0.007",
+            //                 "maintenanceMargin": "0.128086",
+            //                 "creationTime": 1774469753178000000
+            //             }
+            //         ]
+            //     }
+            //
+            const data = this.safeList (response, 'data', []);
+            position = this.safeDict (data, 0, {});
+        } else {
+            response = await this.futuresPrivateGetPosition (this.extend (request, params));
+            //
+            //    {
+            //        "code": "200000",
+            //        "data": {
+            //            "id": "6505ee6eaff4070001f651c4",
+            //            "symbol": "XBTUSDTM",
+            //            "autoDeposit": false,
+            //            "maintMarginReq": 0,
+            //            "riskLimit": 200,
+            //            "realLeverage": 0.0,
+            //            "crossMode": false,
+            //            "delevPercentage": 0.0,
+            //            "currentTimestamp": 1694887534594,
+            //            "currentQty": 0,
+            //            "currentCost": 0.0,
+            //            "currentComm": 0.0,
+            //            "unrealisedCost": 0.0,
+            //            "realisedGrossCost": 0.0,
+            //            "realisedCost": 0.0,
+            //            "isOpen": false,
+            //            "markPrice": 26611.71,
+            //            "markValue": 0.0,
+            //            "posCost": 0.0,
+            //            "posCross": 0,
+            //            "posInit": 0.0,
+            //            "posComm": 0.0,
+            //            "posLoss": 0.0,
+            //            "posMargin": 0.0,
+            //            "posMaint": 0.0,
+            //            "maintMargin": 0.0,
+            //            "realisedGrossPnl": 0.0,
+            //            "realisedPnl": 0.0,
+            //            "unrealisedPnl": 0.0,
+            //            "unrealisedPnlPcnt": 0,
+            //            "unrealisedRoePcnt": 0,
+            //            "avgEntryPrice": 0.0,
+            //            "liquidationPrice": 0.0,
+            //            "bankruptPrice": 0.0,
+            //            "settleCurrency": "USDT",
+            //            "maintainMargin": 0,
+            //            "riskLimitLevel": 1
+            //        }
+            //    }
+            //
+            position = this.safeDict (response, 'data', {});
+        }
+        return this.parsePosition (position, market);
     }
 
     /**
@@ -9822,59 +9858,68 @@ export default class kucoin extends Exchange {
      * @name kucoin#fetchPositions
      * @description fetch all open positions
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-position-list-uta
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        const response = await this.futuresPrivateGetPositions (params);
-        //
-        //    {
-        //        "code": "200000",
-        //        "data": [
-        //            {
-        //                "id": "615ba79f83a3410001cde321",
-        //                "symbol": "ETHUSDTM",
-        //                "autoDeposit": false,
-        //                "maintMarginReq": 0.005,
-        //                "riskLimit": 1000000,
-        //                "realLeverage": 18.61,
-        //                "crossMode": false,
-        //                "delevPercentage": 0.86,
-        //                "openingTimestamp": 1638563515618,
-        //                "currentTimestamp": 1638576872774,
-        //                "currentQty": 2,
-        //                "currentCost": 83.64200000,
-        //                "currentComm": 0.05018520,
-        //                "unrealisedCost": 83.64200000,
-        //                "realisedGrossCost": 0.00000000,
-        //                "realisedCost": 0.05018520,
-        //                "isOpen": true,
-        //                "markPrice": 4225.01,
-        //                "markValue": 84.50020000,
-        //                "posCost": 83.64200000,
-        //                "posCross": 0.0000000000,
-        //                "posInit": 3.63660870,
-        //                "posComm": 0.05236717,
-        //                "posLoss": 0.00000000,
-        //                "posMargin": 3.68897586,
-        //                "posMaint": 0.50637594,
-        //                "maintMargin": 4.54717586,
-        //                "realisedGrossPnl": 0.00000000,
-        //                "realisedPnl": -0.05018520,
-        //                "unrealisedPnl": 0.85820000,
-        //                "unrealisedPnlPcnt": 0.0103,
-        //                "unrealisedRoePcnt": 0.2360,
-        //                "avgEntryPrice": 4182.10,
-        //                "liquidationPrice": 4023.00,
-        //                "bankruptPrice": 4000.25,
-        //                "settleCurrency": "USDT",
-        //                "isInverse": false
-        //            }
-        //        ]
-        //    }
-        //
+        let uta = false;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'uta', uta);
+        let response = undefined;
+        if (uta) {
+            response = await this.utaPrivateGetAccountModePositionOpenList (this.extend (params, { 'accountMode': 'unified' }));
+        } else {
+            response = await this.futuresPrivateGetPositions (params);
+            //
+            //    {
+            //        "code": "200000",
+            //        "data": [
+            //            {
+            //                "id": "615ba79f83a3410001cde321",
+            //                "symbol": "ETHUSDTM",
+            //                "autoDeposit": false,
+            //                "maintMarginReq": 0.005,
+            //                "riskLimit": 1000000,
+            //                "realLeverage": 18.61,
+            //                "crossMode": false,
+            //                "delevPercentage": 0.86,
+            //                "openingTimestamp": 1638563515618,
+            //                "currentTimestamp": 1638576872774,
+            //                "currentQty": 2,
+            //                "currentCost": 83.64200000,
+            //                "currentComm": 0.05018520,
+            //                "unrealisedCost": 83.64200000,
+            //                "realisedGrossCost": 0.00000000,
+            //                "realisedCost": 0.05018520,
+            //                "isOpen": true,
+            //                "markPrice": 4225.01,
+            //                "markValue": 84.50020000,
+            //                "posCost": 83.64200000,
+            //                "posCross": 0.0000000000,
+            //                "posInit": 3.63660870,
+            //                "posComm": 0.05236717,
+            //                "posLoss": 0.00000000,
+            //                "posMargin": 3.68897586,
+            //                "posMaint": 0.50637594,
+            //                "maintMargin": 4.54717586,
+            //                "realisedGrossPnl": 0.00000000,
+            //                "realisedPnl": -0.05018520,
+            //                "unrealisedPnl": 0.85820000,
+            //                "unrealisedPnlPcnt": 0.0103,
+            //                "unrealisedRoePcnt": 0.2360,
+            //                "avgEntryPrice": 4182.10,
+            //                "liquidationPrice": 4023.00,
+            //                "bankruptPrice": 4000.25,
+            //                "settleCurrency": "USDT",
+            //                "isInverse": false
+            //            }
+            //        ]
+            //    }
+            //
+        }
         const data = this.safeList (response, 'data');
         return this.parsePositions (data, symbols);
     }
@@ -10022,10 +10067,31 @@ export default class kucoin extends Exchange {
         //                 "closePrice": null
         //             }
         //
+        // uta position
+        //     {
+        //         "symbol": "DOGEUSDTM",
+        //         "id": "30000000000084351",
+        //         "marginMode": "CROSS",
+        //         "size": "2",
+        //         "entryPrice": "0.093795",
+        //         "positionValue": "18.298",
+        //         "markPrice": "0.09149",
+        //         "leverage": "3",
+        //         "unrealizedPnL": "-0.461",
+        //         "realizedPnL": "-0.01122489",
+        //         "initialMargin": "6.0993333327234",
+        //         "mmr": "0.007",
+        //         "maintenanceMargin": "0.128086",
+        //         "creationTime": 1774469753178000000
+        //     }
+        //
         const symbol = this.safeString (position, 'symbol');
         market = this.safeMarket (symbol, market);
-        const timestamp = this.safeInteger (position, 'currentTimestamp');
-        const size = this.safeString (position, 'currentQty');
+        let timestamp = this.safeInteger (position, 'currentTimestamp');
+        if (timestamp === undefined) {
+            timestamp = this.safeIntegerProduct (position, 'creationTime', 0.000001);
+        }
+        const size = this.safeString2 (position, 'currentQty', 'size');
         let side = undefined;
         const type = this.safeStringLower (position, 'type');
         if (size !== undefined) {
@@ -10041,14 +10107,14 @@ export default class kucoin extends Exchange {
                 side = 'short';
             }
         }
-        const notional = Precise.stringAbs (this.safeString (position, 'posCost'));
-        const initialMargin = this.safeString (position, 'posInit');
+        const notional = Precise.stringAbs (this.safeString2 (position, 'posCost', 'positionValue'));
+        const initialMargin = this.safeString2 (position, 'posInit', 'initialMargin');
         const initialMarginPercentage = Precise.stringDiv (initialMargin, notional);
         // const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
-        const unrealisedPnl = this.safeString (position, 'unrealisedPnl');
+        const unrealisedPnl = this.safeString2 (position, 'unrealisedPnl', 'unrealizedPnL');
         const crossMode = this.safeValue (position, 'crossMode');
         // currently crossMode is always set to false and only isolated positions are supported
-        let marginMode = undefined;
+        let marginMode = this.safeStringLower (position, 'marginMode');
         if (crossMode !== undefined) {
             marginMode = crossMode ? 'cross' : 'isolated';
         }
@@ -10061,15 +10127,15 @@ export default class kucoin extends Exchange {
             'lastUpdateTimestamp': this.safeInteger (position, 'closeTime'),
             'initialMargin': this.parseNumber (initialMargin),
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
-            'maintenanceMargin': this.safeNumber (position, 'posMaint'),
-            'maintenanceMarginPercentage': this.safeNumber (position, 'maintMarginReq'),
-            'entryPrice': this.safeNumber2 (position, 'avgEntryPrice', 'openPrice'),
+            'maintenanceMargin': this.safeNumber2 (position, 'posMaint', 'maintenanceMargin'),
+            'maintenanceMarginPercentage': this.safeNumber2 (position, 'maintMarginReq', 'mmr'),
+            'entryPrice': this.safeNumberN (position, [ 'avgEntryPrice', 'openPrice', 'entryPrice' ]),
             'notional': this.parseNumber (notional),
             'leverage': this.safeNumber2 (position, 'realLeverage', 'leverage'),
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': this.parseNumber (Precise.stringAbs (size)),
             'contractSize': this.safeValue (market, 'contractSize'),
-            'realizedPnl': this.safeNumber2 (position, 'realisedPnl', 'pnl'),
+            'realizedPnl': this.safeNumberN (position, [ 'realisedPnl', 'pnl', 'realizedPnL' ]),
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
             'markPrice': this.safeNumber (position, 'markPrice'),
