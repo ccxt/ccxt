@@ -312,7 +312,7 @@ public partial class Exchange
                 foreach (var key in ((dict)value).Keys)
                 {
                     var val = ((dict)value)[key];
-                    var nextPrefix = string.IsNullOrEmpty(prefix) ? System.Web.HttpUtility.UrlEncode(key) : prefix + "[" + System.Web.HttpUtility.UrlEncode(key) + "]";
+                    var nextPrefix = string.IsNullOrEmpty(prefix) ? Uri.EscapeDataString(key) : prefix + "[" + Uri.EscapeDataString(key) + "]";
                     urlencodeNestedRecursive(nextPrefix, val);
                 }
             }
@@ -332,7 +332,7 @@ public partial class Exchange
                 {
                     valStr = valStr.ToLower();
                 }
-                outList.Add(prefix + "=" + System.Web.HttpUtility.UrlEncode(valStr));
+                outList.Add(prefix + "=" + Uri.EscapeDataString(valStr));
             }
         }
 
@@ -350,7 +350,7 @@ public partial class Exchange
         foreach (string key in keys)
         {
             var value = parameters[key];
-            string encodedKey = System.Web.HttpUtility.UrlEncode(key);
+            string encodedKey = Uri.EscapeDataString(key);
             var finalValue = value.ToString();
             if (value.GetType() == typeof(bool))
             {
