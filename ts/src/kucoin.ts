@@ -53,8 +53,8 @@ export default class kucoin extends Exchange {
                 'createStopLossOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
-                'createTriggerOrder': true,
                 'createTakeProfitOrder': true,
+                'createTriggerOrder': true,
                 'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
@@ -103,7 +103,7 @@ export default class kucoin extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositionADLRank': true,
-                'fetchPositionHistory': false,
+                'fetchPositionHistory': true,
                 'fetchPositionMode': true,
                 'fetchPositions': true,
                 'fetchPositionsADLRank': true,
@@ -570,6 +570,7 @@ export default class kucoin extends Exchange {
                         '{accountMode}/order/execution': 8,
                         '{accountMode}/position/open-list': 6,
                         '{accountMode}/position/history': 4,
+                        'position/history': 4,
                         '{accountMode}/position/tiers': 40,
                         'sub-account/balance': 10,
                         'user/fee-rate': 6,
@@ -9929,69 +9930,119 @@ export default class kucoin extends Exchange {
      * @name kucoin#fetchPositionsHistory
      * @description fetches historical positions
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-positions-history
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-position-history-uta
      * @param {string[]} [symbols] list of unified market symbols
      * @param {int} [since] the earliest time in ms to fetch position history for
      * @param {int} [limit] the maximum number of entries to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] closing end time
      * @param {int} [params.pageId] page id
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        if (limit === undefined) {
-            limit = 200;
+        let uta = false;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchPositionsHistory', 'uta', uta);
+        let response = undefined;
+        let request: Dict = {};
+        symbols = this.marketSymbols (symbols);
+        if (symbols !== undefined) {
+            const length = symbols.length;
+            if (length === 1) {
+                const market = this.market (symbols[0]);
+                request['symbol'] = market['id'];
+            }
         }
-        const request: Dict = {
-            'limit': limit,
-        };
-        if (since !== undefined) {
-            request['from'] = since;
+        if (uta) {
+            if (since !== undefined) {
+                request['startAt'] = since;
+            }
+            if (limit !== undefined) {
+                request['pageSize'] = limit;
+            }
+            [ request, params ] = this.handleUntilOption ('endAt', request, params);
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": {
+            //             "items": [
+            //                 {
+            //                     "symbol": "DOGEUSDTM",
+            //                     "closeId": "30000000000162175",
+            //                     "marginMode": "CROSS",
+            //                     "side": "LONG",
+            //                     "entryPrice": "0.09641",
+            //                     "closePrice": "0.09613",
+            //                     "maxSize": "1",
+            //                     "avgClosePrice": "0.09613",
+            //                     "leverage": "3",
+            //                     "realizedPnL": "-0.0395524",
+            //                     "fee": "0.0115524",
+            //                     "tax": "0",
+            //                     "fundingFee": "0",
+            //                     "closingTime": 1774469647311000000,
+            //                     "creationTime": 1774468501294000000
+            //                 }
+            //             ],
+            //             "lastId": 30000000000162175
+            //         }
+            //     }
+            //
+            response = await this.utaPrivateGetPositionHistory (this.extend (request, params));
+        } else {
+            if (limit === undefined) {
+                limit = 200;
+            }
+            request['limit'] = limit;
+            if (since !== undefined) {
+                request['from'] = since;
+            }
+            const until = this.safeInteger (params, 'until');
+            if (until !== undefined) {
+                params = this.omit (params, 'until');
+                request['to'] = until;
+            }
+            //
+            // {
+            //     "success": true,
+            //     "code": "200",
+            //     "msg": "success",
+            //     "retry": false,
+            //     "data": {
+            //         "currentPage": 1,
+            //         "pageSize": 10,
+            //         "totalNum": 25,
+            //         "totalPage": 3,
+            //         "items": [
+            //             {
+            //                 "closeId": "300000000000000030",
+            //                 "positionId": "300000000000000009",
+            //                 "uid": 99996908309485,
+            //                 "userId": "6527d4fc8c7f3d0001f40f5f",
+            //                 "symbol": "XBTUSDM",
+            //                 "settleCurrency": "XBT",
+            //                 "leverage": "0.0",
+            //                 "type": "LIQUID_LONG",
+            //                 "side": null,
+            //                 "closeSize": null,
+            //                 "pnl": "-1.0000003793999999",
+            //                 "realisedGrossCost": "0.9993849748999999",
+            //                 "withdrawPnl": "0.0",
+            //                 "roe": null,
+            //                 "tradeFee": "0.0006154045",
+            //                 "fundingFee": "0.0",
+            //                 "openTime": 1713785751181,
+            //                 "closeTime": 1713785752784,
+            //                 "openPrice": null,
+            //                 "closePrice": null
+            //             }
+            //         ]
+            //     }
+            // }
+            //
+            response = await this.futuresPrivateGetHistoryPositions (this.extend (request, params));
         }
-        const until = this.safeInteger (params, 'until');
-        if (until !== undefined) {
-            params = this.omit (params, 'until');
-            request['to'] = until;
-        }
-        const response = await this.futuresPrivateGetHistoryPositions (this.extend (request, params));
-        //
-        // {
-        //     "success": true,
-        //     "code": "200",
-        //     "msg": "success",
-        //     "retry": false,
-        //     "data": {
-        //         "currentPage": 1,
-        //         "pageSize": 10,
-        //         "totalNum": 25,
-        //         "totalPage": 3,
-        //         "items": [
-        //             {
-        //                 "closeId": "300000000000000030",
-        //                 "positionId": "300000000000000009",
-        //                 "uid": 99996908309485,
-        //                 "userId": "6527d4fc8c7f3d0001f40f5f",
-        //                 "symbol": "XBTUSDM",
-        //                 "settleCurrency": "XBT",
-        //                 "leverage": "0.0",
-        //                 "type": "LIQUID_LONG",
-        //                 "side": null,
-        //                 "closeSize": null,
-        //                 "pnl": "-1.0000003793999999",
-        //                 "realisedGrossCost": "0.9993849748999999",
-        //                 "withdrawPnl": "0.0",
-        //                 "roe": null,
-        //                 "tradeFee": "0.0006154045",
-        //                 "fundingFee": "0.0",
-        //                 "openTime": 1713785751181,
-        //                 "closeTime": 1713785752784,
-        //                 "openPrice": null,
-        //                 "closePrice": null
-        //             }
-        //         ]
-        //     }
-        // }
-        //
         const data = this.safeDict (response, 'data');
         const items = this.safeList (data, 'items', []);
         return this.parsePositions (items, symbols);
@@ -10067,7 +10118,7 @@ export default class kucoin extends Exchange {
         //                 "closePrice": null
         //             }
         //
-        // uta position
+        // uta fetchPositions
         //     {
         //         "symbol": "DOGEUSDTM",
         //         "id": "30000000000084351",
@@ -10085,26 +10136,47 @@ export default class kucoin extends Exchange {
         //         "creationTime": 1774469753178000000
         //     }
         //
+        // uta fetchPositionsHistory
+        //     {
+        //         "symbol": "DOGEUSDTM",
+        //         "closeId": "30000000000162175",
+        //         "marginMode": "CROSS",
+        //         "side": "LONG",
+        //         "entryPrice": "0.09641",
+        //         "closePrice": "0.09613",
+        //         "maxSize": "1",
+        //         "avgClosePrice": "0.09613",
+        //         "leverage": "3",
+        //         "realizedPnL": "-0.0395524",
+        //         "fee": "0.0115524",
+        //         "tax": "0",
+        //         "fundingFee": "0",
+        //         "closingTime": 1774469647311000000,
+        //         "creationTime": 1774468501294000000
+        //     }
+        //
         const symbol = this.safeString (position, 'symbol');
         market = this.safeMarket (symbol, market);
         let timestamp = this.safeInteger (position, 'currentTimestamp');
         if (timestamp === undefined) {
             timestamp = this.safeIntegerProduct (position, 'creationTime', 0.000001);
         }
-        const size = this.safeString2 (position, 'currentQty', 'size');
-        let side = undefined;
+        const size = this.safeStringN (position, [ 'currentQty', 'size', 'maxSize', 'closeSize' ]);
+        let side = this.safeStringLower (position, 'side');
         const type = this.safeStringLower (position, 'type');
-        if (size !== undefined) {
-            if (Precise.stringGt (size, '0')) {
-                side = 'long';
-            } else if (Precise.stringLt (size, '0')) {
-                side = 'short';
-            }
-        } else if (type !== undefined) {
-            if (type.indexOf ('long') > -1) {
-                side = 'long';
-            } else {
-                side = 'short';
+        if (side === undefined) {
+            if (size !== undefined) {
+                if (Precise.stringGt (size, '0')) {
+                    side = 'long';
+                } else if (Precise.stringLt (size, '0')) {
+                    side = 'short';
+                }
+            } else if (type !== undefined) {
+                if (type.indexOf ('long') > -1) {
+                    side = 'long';
+                } else {
+                    side = 'short';
+                }
             }
         }
         const notional = Precise.stringAbs (this.safeString2 (position, 'posCost', 'positionValue'));
@@ -10118,13 +10190,17 @@ export default class kucoin extends Exchange {
         if (crossMode !== undefined) {
             marginMode = crossMode ? 'cross' : 'isolated';
         }
+        let lastUpdateTimestamp = this.safeInteger (position, 'closeTime');
+        if (lastUpdateTimestamp === undefined) {
+            lastUpdateTimestamp = this.safeIntegerProduct (position, 'closingTime', 0.000001);
+        }
         return this.safePosition ({
             'info': position,
-            'id': this.safeString2 (position, 'id', 'positionId'),
+            'id': this.safeStringN (position, [ 'id', 'positionId', 'closeId' ]),
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastUpdateTimestamp': this.safeInteger (position, 'closeTime'),
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'initialMargin': this.parseNumber (initialMargin),
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
             'maintenanceMargin': this.safeNumber2 (position, 'posMaint', 'maintenanceMargin'),
@@ -10139,7 +10215,7 @@ export default class kucoin extends Exchange {
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
             'markPrice': this.safeNumber (position, 'markPrice'),
-            'lastPrice': undefined,
+            'lastPrice': this.safeNumber (position, 'closePrice'),
             'collateral': this.safeNumber (position, 'maintMargin'),
             'marginMode': marginMode,
             'side': side,
