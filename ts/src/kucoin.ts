@@ -6445,12 +6445,14 @@ export default class kucoin extends Exchange {
      * @see https://docs.kucoin.com/#list-fills
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-trade-history
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-trade-history
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+     * @param {boolean} [params.uta] set to true if fetching trades from uta endpoint, default is false.
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -6465,6 +6467,7 @@ export default class kucoin extends Exchange {
      * @name kucoin#fetchMyTrades
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-trade-history
      * @description fetch all trades made by the user
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -6483,6 +6486,12 @@ export default class kucoin extends Exchange {
             market = this.market (symbol);
         }
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        let uta = false;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'uta', uta);
+        if (uta) {
+            params = this.extend (params, { 'marketType': marketType });
+            return await this.fetchMyUtaTrades (symbol, since, limit, params);
+        }
         if ((marketType === 'spot') || (marketType === 'margin')) {
             return await this.fetchMySpotTrades (symbol, since, limit, params);
         } else {
@@ -6696,6 +6705,92 @@ export default class kucoin extends Exchange {
 
     /**
      * @method
+     * @name kucoin#fetchMyUtaTrades
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-trade-history
+     * @description fetch all trades made by the user
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve (default is 50, max is 200)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {string} [params.accountMode] 'unified' or 'classic', defaults to 'unified'
+     * @param {string} [params.marginMode] 'cross' or 'isolated', only for margin trades
+     * @param {string} [params.side] 'BUY' or 'SELL' (both if not provided)
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    async fetchMyUtaTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
+        }
+        const marketType = this.safeString (params, 'marketType');
+        if (marketType !== undefined) {
+            params = this.omit (params, 'marketType');
+        }
+        let request: Dict = {};
+        let isContract = false;
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+            isContract = market['contract'];
+        } else if ((marketType === 'spot') || (marketType === 'margin')) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol parameter for uta spot or margin trades');
+        } else {
+            isContract = true;
+        }
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
+        const tradeType = this.handleTradeType (isContract, marginMode, params);
+        request['tradeType'] = tradeType;
+        let accountMode = 'unified';
+        [ accountMode, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'accountMode', accountMode);
+        request['accountMode'] = accountMode;
+        if (since !== undefined) {
+            request['startAt'] = since;
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        [ request, params ] = this.handleUntilOption ('endAt', request, params);
+        const response = await this.utaPrivateGetAccountModeOrderExecution (this.extend (request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "tradeType": "FUTURES",
+        //             "lastId": 30000000000531982,
+        //             "items": [
+        //                 {
+        //                     "orderId": "426373228194254848",
+        //                     "symbol": "DOGEUSDTM",
+        //                     "orderType": "MARKET",
+        //                     "side": "BUY",
+        //                     "tradeId": "1711108516570",
+        //                     "size": "1",
+        //                     "price": "0.09641",
+        //                     "value": "9.641",
+        //                     "executionTime": 1774468501294000000,
+        //                     "fee": "0.0057846",
+        //                     "feeCurrency": "USDT",
+        //                     "tax": "",
+        //                     "liquidityRole": "TAKER",
+        //                     "fillType": "NORMAL"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const trades = this.safeList (data, 'items', []);
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    /**
+     * @method
      * @name kucoin#fetchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-trade-history
@@ -6796,6 +6891,9 @@ export default class kucoin extends Exchange {
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
+        if ('liquidityRole' in trade) { // property specific to myTrades from uta endpoint
+            return this.parseMyUtaTrade (trade, market);
+        }
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         if ((market === undefined) || (market['spot'])) {
@@ -7078,6 +7176,49 @@ export default class kucoin extends Exchange {
             'price': priceString,
             'amount': amountString,
             'cost': costString,
+            'fee': fee,
+        }, market);
+    }
+
+    parseMyUtaTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        //     {
+        //         "orderId": "426373228194254848",
+        //         "symbol": "DOGEUSDTM",
+        //         "orderType": "MARKET",
+        //         "side": "BUY",
+        //         "tradeId": "1711108516570",
+        //         "size": "1",
+        //         "price": "0.09641",
+        //         "value": "9.641",
+        //         "executionTime": 1774468501294000000,
+        //         "fee": "0.0057846",
+        //         "feeCurrency": "USDT",
+        //         "tax": "",
+        //         "liquidityRole": "TAKER",
+        //         "fillType": "NORMAL"
+        //     }
+        //
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeIntegerProduct (trade, 'executionTime', 0.000001);
+        const fee: Dict = {
+            'cost': this.safeString (trade, 'fee'),
+            'currency': this.safeCurrencyCode (this.safeString (trade, 'feeCurrency')),
+        };
+        return this.safeTrade ({
+            'info': trade,
+            'id': this.safeString (trade, 'tradeId'),
+            'order': this.safeString (trade, 'orderId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': this.safeStringLower (trade, 'orderType'),
+            'takerOrMaker': this.safeStringLower (trade, 'liquidityRole'),
+            'side': this.safeStringLower (trade, 'side'),
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'size'),
+            'cost': this.safeString (trade, 'value'),
             'fee': fee,
         }, market);
     }
