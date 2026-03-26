@@ -48,6 +48,7 @@ import testUrlencodeNested from './test.urlencodeNested.js';
 import testCapitalize from './test.capitalize.js';
 import testConstants from './test.constants.js';
 import testIsJsonEncodedObject from './test.isJsonEncodedObject.js';
+import testEncodeDecode from './test.encodeDecode.js';
 
 async function baseTestsInit () {
     await testLanguageSpecific ();
@@ -97,6 +98,7 @@ async function baseTestsInit () {
     await testSleep ();
     testIo ();
     testIsJsonEncodedObject ();
+    testEncodeDecode ();
 }
 
 export default baseTestsInit;
