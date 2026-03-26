@@ -132,6 +132,7 @@ import luno from  './src/luno.js'
 import mercado from  './src/mercado.js'
 import mexc from  './src/mexc.js'
 import modetrade from  './src/modetrade.js'
+import mudrex from  './src/mudrex.js'
 import myokx from  './src/myokx.js'
 import ndax from  './src/ndax.js'
 import novadax from  './src/novadax.js'
@@ -326,6 +327,7 @@ const exchanges = {
     'mercado':                mercado,
     'mexc':                   mexc,
     'modetrade':              modetrade,
+    'mudrex':                 mudrex,
     'myokx':                  myokx,
     'ndax':                   ndax,
     'novadax':                novadax,
@@ -663,6 +665,7 @@ export {
     mercado,
     mexc,
     modetrade,
+    mudrex,
     myokx,
     ndax,
     novadax,
