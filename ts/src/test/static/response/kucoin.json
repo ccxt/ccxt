@@ -3,6 +3,198 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchPositionsHistory": [
+            {
+                "description": "fetch uta positions history",
+                "method": "fetchPositionsHistory",
+                "input": [
+                    null,
+                    null,
+                    1,
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "items": [
+                            {
+                                "symbol": "DOGEUSDTM",
+                                "closeId": "30000000000162369",
+                                "marginMode": "CROSS",
+                                "side": "SHORT",
+                                "entryPrice": "0.0918",
+                                "closePrice": "0.09154",
+                                "maxSize": "-1",
+                                "avgClosePrice": "0.09154",
+                                "leverage": "3",
+                                "realizedPnL": "0.0149996",
+                                "fee": "0.0110004",
+                                "tax": "0",
+                                "fundingFee": "0",
+                                "closingTime": 1774536389515000000,
+                                "creationTime": 1774533045758000000
+                            }
+                        ],
+                        "lastId": 30000000000162370
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "DOGEUSDTM",
+                            "closeId": "30000000000162369",
+                            "marginMode": "CROSS",
+                            "side": "SHORT",
+                            "entryPrice": "0.0918",
+                            "closePrice": "0.09154",
+                            "maxSize": "-1",
+                            "avgClosePrice": "0.09154",
+                            "leverage": "3",
+                            "realizedPnL": "0.0149996",
+                            "fee": "0.0110004",
+                            "tax": "0",
+                            "fundingFee": "0",
+                            "closingTime": 1774536389515000000,
+                            "creationTime": 1774533045758000000
+                        },
+                        "id": "30000000000162369",
+                        "symbol": "DOGE/USDT:USDT",
+                        "timestamp": 1774533045758,
+                        "datetime": "2026-03-26T13:50:45.758Z",
+                        "lastUpdateTimestamp": 1774536389515,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 0.0918,
+                        "notional": null,
+                        "leverage": 3,
+                        "unrealizedPnl": null,
+                        "contracts": 1,
+                        "contractSize": 100,
+                        "realizedPnl": 0.0149996,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": null,
+                        "lastPrice": 0.09154,
+                        "collateral": null,
+                        "marginMode": "cross",
+                        "side": "short",
+                        "percentage": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "fetch positions history",
+                "method": "fetchPositionsHistory",
+                "input": [
+                    null,
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "currentPage": 1,
+                        "pageSize": 1,
+                        "totalNum": 15,
+                        "totalPage": 15,
+                        "items": [
+                            {
+                                "closeId": "600000000280932749",
+                                "userId": "64f99aced178640001306e6e",
+                                "symbol": "LTCUSDTM",
+                                "settleCurrency": "USDT",
+                                "leverage": "3.0",
+                                "type": "CLOSE_LONG",
+                                "pnl": "-0.34694478",
+                                "realisedGrossCost": "0.345",
+                                "realisedGrossCostNew": "0.345",
+                                "withdrawPnl": "0.0",
+                                "tradeFee": "0.0067086",
+                                "fundingFee": "0.00476382",
+                                "openTime": 1773831107402,
+                                "closeTime": 1774195447551,
+                                "openPrice": "57.63",
+                                "closePrice": "54.18",
+                                "marginMode": "CROSS",
+                                "tax": "0.0",
+                                "roe": "-0.1802818332",
+                                "liquidAmount": null,
+                                "liquidPrice": null,
+                                "side": "LONG",
+                                "positionSide": "BOTH",
+                                "unHoldMargin": "0.0",
+                                "closeCost": "-5.418",
+                                "seqOffset": 1484146089213
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "closeId": "600000000280932749",
+                            "userId": "64f99aced178640001306e6e",
+                            "symbol": "LTCUSDTM",
+                            "settleCurrency": "USDT",
+                            "leverage": "3.0",
+                            "type": "CLOSE_LONG",
+                            "pnl": "-0.34694478",
+                            "realisedGrossCost": "0.345",
+                            "realisedGrossCostNew": "0.345",
+                            "withdrawPnl": "0.0",
+                            "tradeFee": "0.0067086",
+                            "fundingFee": "0.00476382",
+                            "openTime": 1773831107402,
+                            "closeTime": 1774195447551,
+                            "openPrice": "57.63",
+                            "closePrice": "54.18",
+                            "marginMode": "CROSS",
+                            "tax": "0.0",
+                            "roe": "-0.1802818332",
+                            "liquidAmount": null,
+                            "liquidPrice": null,
+                            "side": "LONG",
+                            "positionSide": "BOTH",
+                            "unHoldMargin": "0.0",
+                            "closeCost": "-5.418",
+                            "seqOffset": 1484146089213
+                        },
+                        "id": "600000000280932749",
+                        "symbol": "LTC/USDT:USDT",
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastUpdateTimestamp": 1774195447551,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 57.63,
+                        "notional": null,
+                        "leverage": 3,
+                        "unrealizedPnl": null,
+                        "contracts": null,
+                        "contractSize": 0.1,
+                        "realizedPnl": -0.34694478,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": null,
+                        "lastPrice": 54.18,
+                        "collateral": null,
+                        "marginMode": "cross",
+                        "side": "long",
+                        "percentage": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    }
+                ]
+            }
+        ],
         "fetchPosition": [
             {
                 "description": "fetch position for uta",
@@ -282,110 +474,6 @@
                   "symbol": "BTC/USDT:USDT",
                   "marginMode": "isolated"
                 }
-            }
-        ],
-        "fetchPositionsHistory": [
-            {
-                "description": "fetch positions history",
-                "method": "fetchPositionsHistory",
-                "input": [],
-                "httpResponse": {
-                    "code": "200000",
-                    "data": {
-                        "currentPage": 1,
-                        "pageSize": 200,
-                        "totalNum": 1,
-                        "totalPage": 1,
-                        "items": [
-                            {
-                                "closeId": "600000000216837555",
-                                "userId": "64f99aced178640001306e6e",
-                                "symbol": "XBTUSDTM",
-                                "settleCurrency": "USDT",
-                                "leverage": "20.0",
-                                "type": "CLOSE_LONG",
-                                "pnl": "-0.38591034",
-                                "realisedGrossCost": "0.2697",
-                                "realisedGrossCostNew": "0.2697",
-                                "withdrawPnl": "0.0",
-                                "tradeFee": "0.11621034",
-                                "fundingFee": "0.0",
-                                "openTime": 1768481882915,
-                                "closeTime": 1768484213995,
-                                "openPrice": "96976.8",
-                                "closePrice": "96707.1",
-                                "marginMode": "CROSS",
-                                "tax": "0.0",
-                                "roe": "-0.0786444445",
-                                "liquidAmount": null,
-                                "liquidPrice": null,
-                                "side": "LONG",
-                                "positionSide": "LONG",
-                                "unHoldMargin": "0.0",
-                                "closeCost": "-96.7071",
-                                "seqOffset": 1382304011348
-                            }
-                        ]
-                    }
-                },
-                "parsedResponse": [
-                    {
-                        "info": {
-                            "closeId": "600000000216837555",
-                            "userId": "64f99aced178640001306e6e",
-                            "symbol": "XBTUSDTM",
-                            "settleCurrency": "USDT",
-                            "leverage": "20.0",
-                            "type": "CLOSE_LONG",
-                            "pnl": "-0.38591034",
-                            "realisedGrossCost": "0.2697",
-                            "realisedGrossCostNew": "0.2697",
-                            "withdrawPnl": "0.0",
-                            "tradeFee": "0.11621034",
-                            "fundingFee": "0.0",
-                            "openTime": 1768481882915,
-                            "closeTime": 1768484213995,
-                            "openPrice": "96976.8",
-                            "closePrice": "96707.1",
-                            "marginMode": "CROSS",
-                            "tax": "0.0",
-                            "roe": "-0.0786444445",
-                            "liquidAmount": null,
-                            "liquidPrice": null,
-                            "side": "LONG",
-                            "positionSide": "LONG",
-                            "unHoldMargin": "0.0",
-                            "closeCost": "-96.7071",
-                            "seqOffset": 1382304011348
-                        },
-                        "id": null,
-                        "symbol": "BTC/USDT:USDT",
-                        "timestamp": null,
-                        "datetime": null,
-                        "lastUpdateTimestamp": 1768484213995,
-                        "initialMargin": null,
-                        "initialMarginPercentage": null,
-                        "maintenanceMargin": null,
-                        "maintenanceMarginPercentage": null,
-                        "entryPrice": 96976.8,
-                        "notional": null,
-                        "leverage": 20,
-                        "unrealizedPnl": null,
-                        "contracts": null,
-                        "contractSize": 0.001,
-                        "realizedPnl": -0.38591034,
-                        "marginRatio": null,
-                        "liquidationPrice": null,
-                        "markPrice": null,
-                        "lastPrice": null,
-                        "collateral": null,
-                        "marginMode": null,
-                        "side": "long",
-                        "percentage": null,
-                        "stopLossPrice": null,
-                        "takeProfitPrice": null
-                    }
-                ]
             }
         ],
         "fetchPositions": [
