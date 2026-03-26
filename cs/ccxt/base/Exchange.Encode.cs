@@ -357,7 +357,7 @@ public partial class Exchange
                 finalValue = finalValue.ToLower(); // c# uses "True" and "False" instead of "true" and "false" $:(
 
             }
-            finalValue = System.Web.HttpUtility.UrlEncode(finalValue).ToUpper();
+            finalValue = Uri.EscapeDataString(finalValue);
             queryString.Add($"{encodedKey}={finalValue}");
         }
         return string.Join("&", queryString);
