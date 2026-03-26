@@ -357,14 +357,7 @@ public partial class Exchange
                 finalValue = finalValue.ToLower(); // c# uses "True" and "False" instead of "true" and "false" $:(
 
             }
-            if (key.ToLower() == "timestamp")
-            {
-                finalValue = System.Web.HttpUtility.UrlEncode(finalValue).ToUpper();
-            }
-            else
-            {
-                finalValue = System.Web.HttpUtility.UrlEncode(finalValue);
-            }
+            finalValue = System.Web.HttpUtility.UrlEncode(finalValue).ToUpper();
             queryString.Add($"{encodedKey}={finalValue}");
         }
         return string.Join("&", queryString);
