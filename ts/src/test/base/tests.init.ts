@@ -3,6 +3,7 @@
 
 import testDecimalToPrecision from './test.decimalToPrecision.js';
 import testBinaryToBase64 from './test.binaryToBase64.js';
+import testBase64ToBinary from './test.base64ToBinary.js';
 import testNumberToString from './test.numberToString.js';
 import testPrecise from './test.precise.js';
 import testDatetime from './test.datetime.js';
@@ -57,6 +58,7 @@ async function baseTestsInit () {
     testDeepExtend ();
     testCryptography ();
     testBinaryToBase64 ();
+    testBase64ToBinary ();
     testDatetime ();
     testDecimalToPrecision ();
     testCapitalize ();
