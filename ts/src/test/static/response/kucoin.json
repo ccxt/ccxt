@@ -3,6 +3,83 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchPosition": [
+            {
+                "description": "fetch position for uta",
+                "method": "fetchPosition",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        {
+                            "symbol": "DOGEUSDTM",
+                            "id": "30000000000084351",
+                            "marginMode": "CROSS",
+                            "size": "1",
+                            "entryPrice": "0.093795",
+                            "positionValue": "9.181",
+                            "markPrice": "0.09181",
+                            "leverage": "3",
+                            "unrealizedPnL": "-0.1985",
+                            "realizedPnL": "-0.21823169",
+                            "initialMargin": "3.0603333330273",
+                            "mmr": "0.007",
+                            "maintenanceMargin": "0.064267",
+                            "creationTime": 1774469753178000000
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "DOGEUSDTM",
+                        "id": "30000000000084351",
+                        "marginMode": "CROSS",
+                        "size": "1",
+                        "entryPrice": "0.093795",
+                        "positionValue": "9.181",
+                        "markPrice": "0.09181",
+                        "leverage": "3",
+                        "unrealizedPnL": "-0.1985",
+                        "realizedPnL": "-0.21823169",
+                        "initialMargin": "3.0603333330273",
+                        "mmr": "0.007",
+                        "maintenanceMargin": "0.064267",
+                        "creationTime": 1774469753178000000
+                    },
+                    "id": "30000000000084351",
+                    "symbol": "DOGE/USDT:USDT",
+                    "timestamp": 1774469753177,
+                    "datetime": "2026-03-25T20:15:53.177Z",
+                    "lastUpdateTimestamp": null,
+                    "initialMargin": 3.0603333330273,
+                    "initialMarginPercentage": 0.3333333333,
+                    "maintenanceMargin": 0.064267,
+                    "maintenanceMarginPercentage": 0.007,
+                    "entryPrice": 0.093795,
+                    "notional": 9.181,
+                    "leverage": 3,
+                    "unrealizedPnl": -0.1985,
+                    "contracts": 1,
+                    "contractSize": 100,
+                    "realizedPnl": -0.21823169,
+                    "marginRatio": null,
+                    "liquidationPrice": null,
+                    "markPrice": 0.09181,
+                    "lastPrice": null,
+                    "collateral": null,
+                    "marginMode": "cross",
+                    "side": "long",
+                    "percentage": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null
+                }
+            }
+        ],
         "fetchOpenInterests": [
             {
                 "description": "fetch open interests for swap markets",
