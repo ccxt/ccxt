@@ -40,10 +40,10 @@ func  (this *HtxCore) Describe() interface{}  {
             "watchMyTrades": true,
             "watchBalance": true,
             "watchOHLCV": true,
-            "unwatchTicker": true,
-            "unwatchOHLCV": true,
-            "unwatchTrades": true,
-            "unwatchOrderBook": true,
+            "unWatchTicker": true,
+            "unWatchOHLCV": true,
+            "unWatchTrades": true,
+            "unWatchOrderBook": true,
         },
         "urls": map[string]interface{} {
             "api": map[string]interface{} {
