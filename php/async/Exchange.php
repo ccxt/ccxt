@@ -46,11 +46,11 @@ use Lighter\Signer;
 
 use Exception;
 
-$version = '4.5.44';
+$version = '4.5.45';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.44';
+    const VERSION = '4.5.45';
 
     public $browser;
     public $marketsLoading = null;
@@ -1631,8 +1631,8 @@ class Exchange extends \ccxt\Exchange {
         return $res === 0;
     }
 
-    public function non_empty_string($value) {
-        return $this->value_is_defined($value) && $value !== '';
+    public function is_empty_string($value) {
+        return !$this->value_is_defined($value) || $value === '';
     }
 
     public function safe_number_omit_zero(array $obj, int|string $key, ?float $defaultValue = null) {
@@ -2829,6 +2829,10 @@ class Exchange extends \ccxt\Exchange {
             }
         }
         return $reversed;
+    }
+
+    public function string_to_base16($str) {
+        return '0x' . bin2hex(base64_decode(base64_encode($str)));
     }
 
     public function reduce_fees_by_currency($fees) {

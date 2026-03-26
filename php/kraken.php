@@ -207,6 +207,8 @@ class kraken extends Exchange {
                         'WithdrawAddresses' => 3,
                         'WithdrawStatus' => 3,
                         'WalletTransfer' => 3,
+                        // account
+                        'GetApiKeyInfo' => 3,
                         // sub accounts
                         'CreateSubaccount' => 3,
                         'AccountTransfer' => 3,
@@ -3559,7 +3561,7 @@ class kraken extends Exchange {
         $url = '/' . $this->version . '/' . $api . '/' . $path;
         if ($api === 'public') {
             if ($params) {
-                // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
+                // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 $url .= '?' . $this->urlencode_nested($params);
             }
         } elseif ($api === 'private') {
@@ -3572,10 +3574,10 @@ class kraken extends Exchange {
             $isBatchOrder = ($path === 'AddOrderBatch');
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
-            // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
             if ($isCancelOrderBatch || $isTriggerPercent || $isBatchOrder) {
                 $body = $this->json($this->extend(array( 'nonce' => $nonce ), $params));
             } else {
+                // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 $body = $this->urlencode_nested($this->extend(array( 'nonce' => $nonce ), $params));
             }
             $auth = $this->encode($nonce . $body);

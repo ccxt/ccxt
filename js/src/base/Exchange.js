@@ -2861,8 +2861,8 @@ export default class Exchange {
         const res = this.parseToNumeric((value % 1));
         return res === 0;
     }
-    nonEmptyString(value) {
-        return this.valueIsDefined(value) && value !== '';
+    isEmptyString(value) {
+        return !this.valueIsDefined(value) || value === '';
     }
     safeNumberOmitZero(obj, key, defaultValue = undefined) {
         const value = this.safeString(obj, key);
@@ -4061,6 +4061,9 @@ export default class Exchange {
             }
         }
         return reversed;
+    }
+    stringToBase16(str) {
+        return '0x' + this.binaryToBase16(this.base64ToBinary(this.stringToBase64(str)));
     }
     reduceFeesByCurrency(fees) {
         //

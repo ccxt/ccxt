@@ -1504,9 +1504,9 @@ public partial class Exchange
         return isEqual(res, 0);
     }
 
-    public virtual object nonEmptyString(object value)
+    public virtual object isEmptyString(object value)
     {
-        return isTrue(this.valueIsDefined(value)) && isTrue(!isEqual(value, ""));
+        return !isTrue(this.valueIsDefined(value)) || isTrue(isEqual(value, ""));
     }
 
     public virtual object safeNumberOmitZero(object obj, object key, object defaultValue = null)
@@ -2943,6 +2943,11 @@ public partial class Exchange
             }
         }
         return reversed;
+    }
+
+    public virtual object stringToBase16(object str)
+    {
+        return add("0x", this.binaryToBase16(this.base64ToBinary(this.stringToBase64(str))));
     }
 
     public virtual object reduceFeesByCurrency(object fees)

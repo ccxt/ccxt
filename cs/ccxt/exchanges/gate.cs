@@ -7138,7 +7138,7 @@ public partial class gate : Exchange
 
     /**
      * @method
-     * @name gate#repayMargin
+     * @name gate#repayIsolatedMargin
      * @description repay borrowed margin and interest
      * @see https://www.gate.com/docs/developers/apiv4/en/#borrow-or-repay-2
      * @param {string} symbol unified market symbol
@@ -7202,7 +7202,8 @@ public partial class gate : Exchange
             response = await this.privateUnifiedPostLoans(this.extend(request, parameters));
         } else
         {
-            response = await this.privateMarginPostCrossRepayments(this.extend(request, parameters)); // todo: check - not present in the docs
+            // deprecated and not present in the exchange's docs but still works
+            response = await this.privateMarginPostCrossRepayments(this.extend(request, parameters));
             response = this.safeDict(response, 0);
         }
         return this.parseMarginLoan(response, currency);
@@ -7258,14 +7259,14 @@ public partial class gate : Exchange
 
     /**
      * @method
-     * @name gate#borrowMargin
+     * @name gate#borrowCrossMargin
      * @description create a loan to borrow margin
      * @see https://www.gate.com/docs/developers/apiv4/en/#borrow-or-repay
      * @param {string} code unified currency code of the currency to borrow
      * @param {float} amount the amount to borrow
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.rate] '0.0002' or '0.002' extra parameter required for isolated margin
-     * @param {boolean} [params.unifiedAccount] set to true for borrowing in the unified account
+     * @param {boolean} [params.unifiedAccount] default true (set to false to use deprecated privateMarginPostCrossLoans method)
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     public async override Task<object> borrowCrossMargin(object code, object amount, object parameters = null)
@@ -7289,7 +7290,9 @@ public partial class gate : Exchange
             response = await this.privateUnifiedPostLoans(this.extend(request, parameters));
         } else
         {
-            response = await this.privateMarginPostCrossLoans(this.extend(request, parameters)); // todo: check - not present in the docs
+            // deprecated and not present in the exchange's docs
+            // returns {"label":"REQUEST_FORBIDDEN","message":"Request is forbidden"}
+            response = await this.privateMarginPostCrossLoans(this.extend(request, parameters));
         }
         return this.parseMarginLoan(response, currency);
     }
@@ -7414,7 +7417,8 @@ public partial class gate : Exchange
             response = await this.privateMarginGetUniInterestRecords(this.extend(request, parameters));
         } else if (isTrue(isEqual(marginMode, "cross")))
         {
-            response = await this.privateMarginGetCrossInterestRecords(this.extend(request, parameters)); // todo: check - not present in the docs
+            // deprecated and not present in the exchange's docs but still works
+            response = await this.privateMarginGetCrossInterestRecords(this.extend(request, parameters));
         }
         object interest = this.parseBorrowInterests(response, market);
         return this.filterByCurrencySinceLimit(interest, code, since, limit);
@@ -7794,7 +7798,6 @@ public partial class gate : Exchange
         {
             throw new NotSupported ((string)add(this.id, " fetchSettlementHistory() supports option markets only")) ;
         }
-        // todo: add futures support
         object marketId = getValue(market, "id");
         object optionParts = ((string)marketId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
         object request = new Dictionary<string, object>() {
@@ -7831,6 +7834,7 @@ public partial class gate : Exchange
      * @name gate#fetchMySettlementHistory
      * @description fetches historical settlement records of the user
      * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-settlement-records
+     * @see https://www.gate.com/docs/developers/apiv4/en/#query-settlement-records
      * @param {string} symbol unified market symbol of the settlement history
      * @param {int} [since] timestamp in ms
      * @param {int} [limit] number of records
@@ -7840,55 +7844,90 @@ public partial class gate : Exchange
     public async virtual Task<object> fetchMySettlementHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchMySettlementHistory() requires a symbol argument")) ;
-        }
         await this.loadMarkets();
-        object market = this.market(symbol);
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            symbol = getValue(market, "symbol");
+        }
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchMySettlementHistory", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        if (isTrue(!isEqual(type, "option")))
+        object isOption = isEqual(type, "option");
+        object isFuture = isEqual(type, "future");
+        if (isTrue(!isTrue(isOption) && !isTrue(isFuture)))
         {
-            throw new NotSupported ((string)add(this.id, " fetchMySettlementHistory() supports option markets only")) ;
+            throw new NotSupported ((string)add(this.id, " fetchMySettlementHistory() supports option and future markets only")) ;
         }
-        object marketId = getValue(market, "id");
-        object optionParts = ((string)marketId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-        object request = new Dictionary<string, object>() {
-            { "underlying", this.safeString(optionParts, 0) },
-            { "contract", marketId },
-        };
-        if (isTrue(!isEqual(since, null)))
-        {
-            ((IDictionary<string,object>)request)["from"] = since;
-        }
+        var requestqueryVariable = this.prepareRequest(market, type, parameters);
+        var request = ((IList<object>) requestqueryVariable)[0];
+        var query = ((IList<object>) requestqueryVariable)[1];
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await this.privateOptionsGetMySettlements(this.extend(request, parameters));
-        //
-        //     [
-        //         {
-        //             "size": -1,
-        //             "settle_profit": "0",
-        //             "contract": "BTC_USDT-20220624-26000-C",
-        //             "strike_price": "26000",
-        //             "time": 1656057600,
-        //             "settle_price": "20917.461281337048",
-        //             "underlying": "BTC_USDT",
-        //             "realised_pnl": "-0.00116042",
-        //             "fee": "0"
-        //         }
-        //     ]
-        //
+        object response = null;
+        if (isTrue(isFuture))
+        {
+            //
+            //     [
+            //         {
+            //             "time": 1548654951,
+            //             "contract": "BTC_USDT",
+            //             "size": 600,
+            //             "leverage": "25",
+            //             "margin": "0.006705256878",
+            //             "entry_price": "3536.123",
+            //             "settle_price": "3421.54",
+            //             "profit": "-6.87498",
+            //             "fee": "0.03079386"
+            //         }
+            //     ]
+            //
+            response = await this.privateDeliveryGetSettleSettlements(this.extend(request, query));
+        } else
+        {
+            if (isTrue(!isEqual(since, null)))
+            {
+                ((IDictionary<string,object>)request)["from"] = since;
+            }
+            if (isTrue(isEqual(market, null)))
+            {
+                object underlying = this.safeString(parameters, "underlying");
+                if (isTrue(isEqual(underlying, null)))
+                {
+                    throw new ArgumentsRequired ((string)add(this.id, " fetchMySettlementHistory() requires a symbol argument or an underlying parameter in params")) ;
+                }
+            } else
+            {
+                object marketId = getValue(market, "id");
+                object optionParts = ((string)marketId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+                ((IDictionary<string,object>)request)["underlying"] = this.safeString(optionParts, 0);
+            }
+            //
+            //     [
+            //         {
+            //             "size": -1,
+            //             "settle_profit": "0",
+            //             "contract": "BTC_USDT-20220624-26000-C",
+            //             "strike_price": "26000",
+            //             "time": 1656057600,
+            //             "settle_price": "20917.461281337048",
+            //             "underlying": "BTC_USDT",
+            //             "realised_pnl": "-0.00116042",
+            //             "fee": "0"
+            //         }
+            //     ]
+            //
+            response = await this.privateOptionsGetMySettlements(this.extend(request, parameters));
+        }
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
         object data = this.safeValue(result, "list", new List<object>() {});
         object settlements = this.parseSettlements(data, market);
         object sorted = this.sortBy(settlements, "timestamp");
-        return this.filterBySymbolSinceLimit(sorted, getValue(market, "symbol"), since, limit);
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
     public virtual object parseSettlement(object settlement, object market)
@@ -7905,7 +7944,7 @@ public partial class gate : Exchange
         //         "strike_price": "25000"
         //     }
         //
-        // fetchMySettlementHistory
+        // fetchMySettlementHistory option
         //
         //     {
         //         "size": -1,
@@ -7917,6 +7956,19 @@ public partial class gate : Exchange
         //         "underlying": "BTC_USDT",
         //         "realised_pnl": "-0.00116042",
         //         "fee": "0"
+        //     }
+        //
+        // fetchMySettlementHistory future
+        //     {
+        //         "time": 1548654951,
+        //         "contract": "BTC_USDT",
+        //         "size": 600,
+        //         "leverage": "25",
+        //         "margin": "0.006705256878",
+        //         "entry_price": "3536.123",
+        //         "settle_price": "3421.54",
+        //         "profit": "-6.87498",
+        //         "fee": "0.03079386"
         //     }
         //
         object timestamp = this.safeTimestamp(settlement, "time");

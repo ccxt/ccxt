@@ -1508,25 +1508,25 @@ public partial class testMainClass
         object globalOptions = exchange.safeDict(exchangeData, "options", new Dictionary<string, object>() {});
         // read apiKey/secret from the test file
         object apiKey = exchange.safeString(exchangeData, "apiKey");
-        if (isTrue(exchange.nonEmptyString(apiKey)))
+        if (!isTrue(exchange.isEmptyString(apiKey)))
         {
             // c# to string requirement
             exchange.apiKey = ((object)apiKey).ToString();
         }
         object secret = exchange.safeString(exchangeData, "secret");
-        if (isTrue(exchange.nonEmptyString(secret)))
+        if (!isTrue(exchange.isEmptyString(secret)))
         {
             // c# to string requirement
             exchange.secret = ((object)secret).ToString();
         }
         object privateKey = exchange.safeString(exchangeData, "privateKey");
-        if (isTrue(exchange.nonEmptyString(privateKey)))
+        if (!isTrue(exchange.isEmptyString(privateKey)))
         {
             // c# to string requirement
             exchange.privateKey = ((object)privateKey).ToString();
         }
         object walletAddress = exchange.safeString(exchangeData, "walletAddress");
-        if (isTrue(exchange.nonEmptyString(walletAddress)))
+        if (!isTrue(exchange.isEmptyString(walletAddress)))
         {
             // c# to string requirement
             exchange.walletAddress = ((object)walletAddress).ToString();
@@ -1595,25 +1595,25 @@ public partial class testMainClass
         Exchange exchange = this.initOfflineExchange(exchangeName);
         // read apiKey/secret from the test file
         object apiKey = exchange.safeString(exchangeData, "apiKey");
-        if (isTrue(exchange.nonEmptyString(apiKey)))
+        if (!isTrue(exchange.isEmptyString(apiKey)))
         {
             // c# to string requirement
             exchange.apiKey = ((object)apiKey).ToString();
         }
         object secret = exchange.safeString(exchangeData, "secret");
-        if (isTrue(exchange.nonEmptyString(secret)))
+        if (!isTrue(exchange.isEmptyString(secret)))
         {
             // c# to string requirement
             exchange.secret = ((object)secret).ToString();
         }
         object privateKey = exchange.safeString(exchangeData, "privateKey");
-        if (isTrue(exchange.nonEmptyString(privateKey)))
+        if (!isTrue(exchange.isEmptyString(privateKey)))
         {
             // c# to string requirement
             exchange.privateKey = ((object)privateKey).ToString();
         }
         object walletAddress = exchange.safeString(exchangeData, "walletAddress");
-        if (isTrue(exchange.nonEmptyString(walletAddress)))
+        if (!isTrue(exchange.isEmptyString(walletAddress)))
         {
             // c# to string requirement
             exchange.walletAddress = ((object)walletAddress).ToString();

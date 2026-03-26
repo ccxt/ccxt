@@ -44,7 +44,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.44';
+$version = '4.5.45';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -63,7 +63,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.5.44';
+    const VERSION = '4.5.45';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -343,7 +343,6 @@ class Exchange {
 
     public static $exchanges = array(
         'aftermath',
-        'alp',
         'alpaca',
         'apex',
         'arkham',
@@ -828,7 +827,16 @@ class Exchange {
     }
 
     public static function is_empty($object) {
-        return empty($object) || count($object) === 0;
+        if ($object === null) {
+            return true;
+        }
+        if (is_countable($object)) {
+            return count($object) === 0;
+        }
+        if (is_object($object)) {
+            return count(get_object_vars($object)) === 0;
+        }
+        return false;
     }
 
     public static function keysort($array) {
@@ -939,10 +947,7 @@ class Exchange {
     }
 
     public function urlencode_nested($array) {
-        // we don't have to implement this method in PHP
-        // https://github.com/ccxt/ccxt/issues/12872
-        // https://github.com/ccxt/ccxt/issues/12900
-        return $this->urlencode($array);
+        return str_replace(array('%5B', '%5D'), array('[', ']'), $this->urlencode($array));
     }
 
     public function urlencode_with_array_repeat($array) {
@@ -1079,6 +1084,14 @@ class Exchange {
 
     public static function binary_to_base64($binary) {
         return \base64_encode($binary);
+    }
+
+    public static function string_to_base64($str) {
+        return \base64_encode($str);
+    }
+
+    public static function base64_to_binary($str) {
+        return \base64_decode($str);
     }
 
     public static function base16_to_binary($data) {
@@ -3904,8 +3917,8 @@ class Exchange {
         return $res === 0;
     }
 
-    public function non_empty_string($value) {
-        return $this->value_is_defined($value) && $value !== '';
+    public function is_empty_string($value) {
+        return !$this->value_is_defined($value) || $value === '';
     }
 
     public function safe_number_omit_zero(array $obj, int|string $key, ?float $defaultValue = null) {
@@ -5102,6 +5115,10 @@ class Exchange {
             }
         }
         return $reversed;
+    }
+
+    public function string_to_base16($str) {
+        return '0x' . bin2hex(base64_decode(base64_encode($str)));
     }
 
     public function reduce_fees_by_currency($fees) {

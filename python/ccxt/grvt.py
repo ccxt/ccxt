@@ -642,7 +642,7 @@ class grvt(Exchange, ImplicitAPI):
         #            ...
         #
         promises = [marketsPromise]
-        if self.privateKey is not None or self.apiKey is not None:
+        if not self.is_empty_string(self.apiKey) or not self.is_empty_string(self.privateKey):
             promises.append(self.sign_in())
         results = promises
         response = results[0]
@@ -751,7 +751,8 @@ class grvt(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
-        response = self.publicMarketPostFullV1Currency(params)
+        request = {'': ''}  # workaround for php [] empty arr
+        response = self.publicMarketPostFullV1Currency(request)
         #
         #    {
         #        "result": [

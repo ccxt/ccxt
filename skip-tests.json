@@ -468,6 +468,8 @@
         }
     },
     "bitrue": {
+        "skip": "temporary 2 day skip to allow BTC deposit/withdraw to return back",
+        "until": "2026-03-25",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies",
@@ -582,6 +584,8 @@
         }
     },
     "btcbox": {
+        "skip": "temporary reorg on exchange, lets wait 2 more weeks",
+        "until":"2026-04-06",
         "skipMethods": {
             "loadMarkets": {
                 "precision":"is undefined"
@@ -1607,6 +1611,7 @@
         }
     },
     "lbank": {
+        "httpsProxy":"http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes"

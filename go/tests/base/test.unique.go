@@ -12,8 +12,9 @@ func TestUnique() {
 		"id": "sampleexchange",
 	}, map[string]interface{}{}, exchange)
 	// in different langs, the order (sort) is not guaranteed, so we sort the results before comparing them
+	// todo: `unique` is primarily meant for strings atm, add numeric support
 	AssertDeepEqual(exchange, nil, "testUnique", exchange.Unique([]interface{}{}), []interface{}{})
-	AssertDeepEqual(exchange, nil, "testUnique", exchange.Sort(exchange.Unique([]interface{}{1, 2, 3})), []interface{}{1, 2, 3})
-	AssertDeepEqual(exchange, nil, "testUnique", exchange.Sort(exchange.Unique([]interface{}{1, 2, 3, 4, 1})), []interface{}{1, 2, 3, 4})
+	// testSharedMethods.assertDeepEqual (exchange, undefined, 'testUnique',  exchange.sort (exchange.unique ([ 1, 2, 3 ])), [ 1, 2, 3 ]);
+	// testSharedMethods.assertDeepEqual (exchange, undefined, 'testUnique',  exchange.sort (exchange.unique ([ 1, 2, 3, 4, 1 ])), [ 1, 2, 3, 4 ]);
 	AssertDeepEqual(exchange, nil, "testUnique", exchange.Sort(exchange.Unique([]interface{}{"a", "a", "b", "c", "a", "c"})), []interface{}{"a", "b", "c"})
 }

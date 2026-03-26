@@ -750,7 +750,7 @@ class bitrue extends Exchange {
         //                 array(
         //                     "chain" => "BEP20",
         //                     "enableWithdraw" => true,
-        //                     "enableDeposit" => true,
+        //                     "enableDeposit" => false,
         //                     "withdrawFee" => "0.2000",
         //                     "minWithdraw" => "5.0000",
         //                     "maxWithdraw" => "1000000000000000.0000",

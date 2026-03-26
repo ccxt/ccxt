@@ -769,7 +769,7 @@ class bitrue(Exchange, ImplicitAPI):
         #                 {
         #                     "chain": "BEP20",
         #                     "enableWithdraw": True,
-        #                     "enableDeposit": True,
+        #                     "enableDeposit": False,
         #                     "withdrawFee": "0.2000",
         #                     "minWithdraw": "5.0000",
         #                     "maxWithdraw": "1000000000000000.0000",
