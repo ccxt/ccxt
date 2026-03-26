@@ -28,6 +28,7 @@ import testIsEmpty from './test.isEmpty.js';
 import testInArray from './test.inArray.js';
 import testPrecisionFromString from './test.precisionFromString.js';
 import testUrlencodeBase64 from './test.urlencodeBase64.js';
+import testStringToBase64 from './test.stringToBase64.js';
 import testUrlencode from './test.urlencode.js';
 import testAfterConstructor from './test.afterConstructor.js';
 import testRawencode from './test.rawencode.js';
@@ -69,6 +70,7 @@ async function baseTestsInit () {
     testSortBy ();
     testSum ();
     testUrlencodeBase64 ();
+    testStringToBase64 ();
     testUrlencode ();
     testOmit ();
     testGroupBy ();
