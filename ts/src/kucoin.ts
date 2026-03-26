@@ -1082,6 +1082,7 @@ export default class kucoin extends Exchange {
                     'unified': 'unified',
                 },
                 'utaAccountsByType': {
+                    'trade': 'SPOT',
                     'spot': 'SPOT',
                     'margin': 'CROSS',
                     'cross': 'CROSS',
@@ -7669,10 +7670,11 @@ export default class kucoin extends Exchange {
         if (accountType === 'contract') {
             return await this.fetchContractWithdrawals (code, since, limit, params);
         }
+        const maxLimit = 500;
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchWithdrawals', code, since, limit, params, 500);
+            return await this.fetchPaginatedCallDynamic ('fetchWithdrawals', code, since, limit, params, maxLimit);
         }
         let request: Dict = {};
         let currency = undefined;
@@ -8192,6 +8194,116 @@ export default class kucoin extends Exchange {
      * @name kucoin#transfer
      * @description transfer currency internally between wallets on the same account
      * @see https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&
+     * @see https://www.kucoin.com/docs-new/rest/ua/flex-transfer
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
+     * Check transferClassic() and transferUta() for more details on params
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+        await this.loadMarkets ();
+        let uta = false;
+        [ uta, params ] = this.handleOptionAndParams (params, 'transfer', 'uta', uta);
+        if (uta) {
+            return await this.transferUta (code, amount, fromAccount, toAccount, params);
+        }
+        return await this.transferClassic (code, amount, fromAccount, toAccount, params);
+    }
+
+    /**
+     * @method
+     * @name kucoin#transferUta
+     * @description transfer currency internally between wallets on the same account with uta endpoint
+     * @see https://www.kucoin.com/docs-new/rest/ua/flex-transfer
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.transferType] INTERNAL, PARENT_TO_SUB, SUB_TO_PARENT, SUB_TO_SUB (default is INTERNAL)
+     * @param {string} [params.fromUserId] required if transferType is SUB_TO_PARENT or SUB_TO_SUB
+     * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB or SUB_TO_SUB
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    async transferUta (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const requestedAmount = this.currencyToPrecision (code, amount);
+        const request: Dict = {
+            'currency': currency['id'],
+            'amount': requestedAmount,
+        };
+        let transferType = 'INTERNAL';
+        [ transferType, params ] = this.handleParamString2 (params, 'transferType', 'type', transferType);
+        let fromUserId = undefined;
+        [ fromUserId, params ] = this.handleParamString2 (params, 'fromUserId', 'fromUid', fromUserId);
+        let toUserId = undefined;
+        [ toUserId, params ] = this.handleParamString2 (params, 'toUserId', 'toUid', toUserId);
+        if (transferType === 'PARENT_TO_SUB' || transferType === 'SUB_TO_SUB') {
+            if (toUserId === undefined) {
+                throw new ExchangeError (this.id + ' transfer() requires a toUserId param for PARENT_TO_SUB or SUB_TO_SUB transfers');
+            } else {
+                request['toUid'] = toUserId;
+            }
+        } else if (transferType === 'SUB_TO_PARENT' || transferType === 'SUB_TO_SUB') {
+            if (fromUserId === undefined) {
+                throw new ExchangeError (this.id + ' transfer() requires a fromUserId param for SUB_TO_PARENT or SUB_TO_SUB transfers');
+            } else {
+                request['fromUid'] = fromUserId;
+            }
+        }
+        let clientOid = this.uuid ();
+        [ clientOid, params ] = this.handleParamString2 (params, 'clientOid', 'clientOrderId', clientOid);
+        request['clientOid'] = clientOid;
+        let fromId = this.convertTypeToAccount (fromAccount);
+        let toId = this.convertTypeToAccount (toAccount);
+        const fromIsolated = this.inArray (fromId, this.ids);
+        const toIsolated = this.inArray (toId, this.ids);
+        if (fromIsolated) {
+            request['fromAccountSymbol'] = fromId;
+            fromId = 'ISOLATED';
+        }
+        if (toIsolated) {
+            request['toAccountSymbol'] = toId;
+            toId = 'ISOLATED';
+        }
+        const utaAccountsByType = this.safeDict (this.options, 'utaAccountsByType', {});
+        fromId = this.safeString (utaAccountsByType, fromId, fromId);
+        toId = this.safeString (utaAccountsByType, toId, toId);
+        request['fromAccountType'] = fromId.toUpperCase ();
+        request['toAccountType'] = toId.toUpperCase ();
+        const types: Dict = {
+            'INTERNAL': '0',
+            'PARENT_TO_SUB': '1',
+            'SUB_TO_PARENT': '2',
+            'SUB_TO_SUB': '3',
+        };
+        request['type'] = this.safeString (types, transferType, transferType);
+        const response = await this.utaPrivatePostAccountTransfer (this.extend (request, params));
+        //
+        //
+        const data = this.safeDict (response, 'data');
+        const transfer = this.parseTransfer (data, currency);
+        const transferOptions = this.safeDict (this.options, 'transfer', {});
+        const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            transfer['amount'] = amount;
+            transfer['fromAccount'] = fromAccount;
+            transfer['toAccount'] = toAccount;
+            transfer['status'] = 'ok';
+        }
+        return transfer;
+    }
+
+    /**
+     * @method
+     * @name kucoin#transferClassic
+     * @description transfer currency internally between wallets on the same account with classic endpoints
+     * @see https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
@@ -8202,7 +8314,7 @@ export default class kucoin extends Exchange {
      * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+    async transferClassic (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const requestedAmount = this.currencyToPrecision (code, amount);
@@ -9377,9 +9489,11 @@ export default class kucoin extends Exchange {
      * @description set the level of leverage for a market
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/modify-leverage
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage
+     * @see https://www.kucoin.com/docs-new/rest/ua/modify-leverage-uta
      * @param {int } [leverage] New leverage multiplier. Must be greater than 1 and up to two decimal places, and cannot be less than the user's current debt leverage or greater than the system's maximum leverage
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] *contract markets only* set to true for the unified trading account (uta)
      * @returns {object} response from the exchange
      */
     async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
@@ -9388,10 +9502,18 @@ export default class kucoin extends Exchange {
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('setLeverage', undefined, params);
         if ((symbol !== undefined) || ((marketType !== 'spot') && (marketType !== 'margin'))) {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' setLeverage requires a symbol argument for contract markets');
+            }
             market = this.market (symbol);
             if (market['contract']) {
                 return await this.setContractLeverage (leverage, symbol, params);
             }
+        }
+        let uta = false;
+        [ uta, params ] = this.handleOptionAndParams (params, 'setLeverage', 'uta', uta);
+        if (uta) {
+            throw new NotSupported (this.id + ' setLeverage with params["uta"] is supported for contract markets only');
         }
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
@@ -9415,15 +9537,17 @@ export default class kucoin extends Exchange {
      * @name kucoin#setContractLeverage
      * @description set the level of leverage for a market
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage
+     * @see https://www.kucoin.com/docs-new/rest/ua/modify-leverage-uta
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta)
      * @returns {object} response from the exchange
      */
     async setContractLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams (symbol, params);
-        if (marginMode !== 'cross') {
+        if ((marginMode !== undefined) && (marginMode !== 'cross')) {
             throw new NotSupported (this.id + ' setLeverage() currently supports only params["marginMode"] = "cross" for contracts');
         }
         await this.loadMarkets ();
@@ -9432,14 +9556,23 @@ export default class kucoin extends Exchange {
             'symbol': market['id'],
             'leverage': leverage.toString (),
         };
-        const response = await this.futuresPrivatePostChangeCrossUserLeverage (this.extend (request, params));
-        //
-        //    {
-        //        "code": "200000",
-        //        "data": true
-        //    }
-        //
-        const leverageNum = this.safeInteger (response, 'leverage');
+        let uta = false;
+        [ uta, params ] = this.handleOptionAndParams (params, 'setLeverage', 'uta', uta);
+        let response = undefined;
+        if (uta) {
+            request['accountMode'] = 'unified';
+            response = await this.utaPrivatePostAccountModeAccountModifyLeverage (this.extend (request, params));
+        } else {
+            //
+            //    {
+            //        "code": "200000",
+            //        "data": true
+            //    }
+            //
+            response = await this.futuresPrivatePostChangeCrossUserLeverage (this.extend (request, params));
+        }
+        const data = this.safeDict (response, 'data', {});
+        const leverageNum = this.safeNumber (data, 'leverage');
         return {
             'info': response,
             'symbol': market['symbol'],
@@ -9602,7 +9735,7 @@ export default class kucoin extends Exchange {
             'symbol': market['id'],
         };
         const until = this.safeInteger (params, 'until');
-        let uta = true; // for backward compatibility, dafult endpoint is uta
+        let uta = true; // default endpoint is uta
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'uta', uta);
         params = this.omit (params, 'until');
         let start = since;
