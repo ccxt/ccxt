@@ -243,6 +243,13 @@ export default class bitmart extends Exchange {
                         'spot/v4/cancel_orders': 3,
                         'spot/v4/cancel_all': 90,
                         'spot/v4/batch_orders': 3,
+                        'spot/v4/algo/submit_order': 6, // 10 times per 2 seconds
+                        'spot/v4/algo/cancel_order': 6,
+                        'spot/v4/algo/cancel_all': 12, // 5 times per 2 seconds
+                        'spot/v4/query/algo/order': 1.5,
+                        'spot/v4/query/algo/client-order': 1.5, // 40 times per 2 seconds
+                        'spot/v4/query/algo/open-orders': 3,
+                        'spot/v4/query/algo/history-orders': 3, // 20 times per 2 seconds
                         // newer endpoint
                         'spot/v3/cancel_order': 1,
                         'spot/v2/batch_orders': 1,
