@@ -1098,6 +1098,10 @@ class Exchange {
         return hex2bin($data);
     }
 
+    public static function binary_to_base16($data) {
+        return bin2hex($data);
+    }
+
     public static function int_to_base16($integer) {
         return dechex($integer);
     }
