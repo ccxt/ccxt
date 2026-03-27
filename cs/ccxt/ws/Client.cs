@@ -15,7 +15,7 @@ public partial class Exchange
     {
         public string url; // Replace with your WebSocket server URL
         public ClientWebSocket webSocket = new ClientWebSocket();
-
+        
         public IDictionary<string, Future> futures = new ConcurrentDictionary<string, Future>();
         public IDictionary<string, object> subscriptions = new ConcurrentDictionary<string, object>();
         public IDictionary<string, object> rejections = new ConcurrentDictionary<string, object>();
@@ -66,7 +66,7 @@ public partial class Exchange
             this.onError = onError;
             this.keepAlive = keepA;
             this.decompressBinary = decompressBinary;
-
+            this.webSocket.Options.KeepAliveInterval = TimeSpan.Zero; // Disable unsolicited PONG. https://learn.microsoft.com/en-us/dotnet/fundamentals/networking/websockets?#compression
             if (proxy != null)
             {
                 var webProxy = new WebProxy(proxy);
