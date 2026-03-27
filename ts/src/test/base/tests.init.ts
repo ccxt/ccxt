@@ -34,6 +34,7 @@ import testUrlencode from './test.urlencode.js';
 import testAfterConstructor from './test.afterConstructor.js';
 import testRawencode from './test.rawencode.js';
 import testHandleMethods from './test.handleMethods.js';
+import testNetworkMethods from './test.networkMethods.js';
 import testRemoveRepeatedElementsFromArray from './test.removeRepeatedElementsFromArray.js';
 import testUrlencodeWithArrayRepeat from './test.urlencodeWithArrayRepeat.js';
 import testParsePrecision from './test.parsePrecision.js';
@@ -67,6 +68,7 @@ async function baseTestsInit () {
     testCapitalize ();
     testNumberToString ();
     testPrecise ();
+    testNetworkMethods ();
     testSafeMethods ();
     testSafeTicker ();
     testToArray ();
