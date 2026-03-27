@@ -1384,8 +1384,12 @@ export default class binance extends Exchange {
                 },
                 'networks': {
                     'ERC20': 'ETH',
+                    'ETH': 'ETH',
                     'TRC20': 'TRX',
+                    'TRON': 'TRX',
+                    'TRX': 'TRX',
                     'BEP2': 'BNB',
+                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'EOS': 'EOS',
                     'SPL': 'SOL', // temporarily keep support for SPL (old name)
@@ -1398,6 +1402,7 @@ export default class binance extends Exchange {
                     'MATIC': 'MATIC',
                     'BASE': 'BASE',
                     'SUI': 'SUI',
+                    'OP': 'OPTIMISM',
                     'OPTIMISM': 'OPTIMISM',
                     'NEAR': 'NEAR',
                     'APT': 'APT',
@@ -1443,7 +1448,11 @@ export default class binance extends Exchange {
                     'ONT': 'ONT', // ontology
                 },
                 'networksById': {
+                    'TRX': 'TRC20',
+                    'BSC': 'BEP20',
+                    'ETH': 'ERC20',
                     'SOL': 'SOL', // temporary fix for SPL definition
+                    'OPTIMISM': 'OP',
                 },
                 'impliedNetworks': {
                     'ETH': { 'ERC20': 'ETH' },
