@@ -5174,14 +5174,6 @@ export default class gate extends Exchange {
                 clientOrderId = this.safeString (order['trigger'], 'text');
             }
         }
-        let filled = undefined;
-        const filledTotal = this.safeString (order, 'filled_total');
-        const filledAmount = this.safeString (order, 'filled_amount');
-        if ((filledAmount !== undefined) && (market['inverse'])) {
-            filled = filledAmount;
-        } else if ((filledTotal !== undefined) && (market['linear'] || market['spot'])) {
-            filled = filledTotal;
-        }
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': clientOrderId,
@@ -5200,7 +5192,7 @@ export default class gate extends Exchange {
             'average': average,
             'amount': Precise.stringAbs (amount),
             'cost': Precise.stringAbs (cost),
-            'filled': filled,
+            'filled': undefined,
             'remaining': remaining,
             'fee': multipleFeeCurrencies ? undefined : this.safeValue (fees, 0),
             'fees': multipleFeeCurrencies ? fees : [],
