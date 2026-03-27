@@ -1074,11 +1074,11 @@ export default class gate extends gateRest {
     /**
      * @method
      * @name gate#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://www.gate.com/docs/developers/apiv4/ws/en/#spot-balance-channel
      * @see https://www.gate.com/docs/developers/futures/ws/en/#balances-api
      * @see https://www.gate.com/docs/developers/delivery/ws/en/#balances-api
      * @see https://www.gate.com/docs/developers/options/ws/en/#balances-channel
-     * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -1107,22 +1107,26 @@ export default class gate extends gateRest {
     handleBalance (client: Client, message) {
         //
         // spot order fill
-        //   {
-        //       "time": 1653664351,
-        //       "channel": "spot.balances",
-        //       "event": "update",
-        //       "result": [
-        //         {
-        //           "timestamp": "1653664351",
-        //           "timestamp_ms": "1653664351017",
-        //           "user": "10406147",
-        //           "currency": "LTC",
-        //           "change": "-0.0002000000000000",
-        //           "total": "0.09986000000000000000",
-        //           "available": "0.09986000000000000000"
-        //         }
-        //       ]
-        //   }
+        //     {
+        //         "time": 1653664351,
+        //         "time_ms": 1605248616763,
+        //         "channel": "spot.balances",
+        //         "event": "update",
+        //         "result": [
+        //             {
+        //                 "timestamp": "1667556323",
+        //                 "timestamp_ms": "1667556323730",
+        //                 "user": "1000001",
+        //                 "currency": "USDT",
+        //                 "change": "0",
+        //                 "total": "222244.3827652",
+        //                 "available": "222244.3827",
+        //                 "freeze": "5",
+        //                 "freeze_change": "5.000000",
+        //                 "change_type": "order-create"
+        //             }
+        //         ]
+        //     }
         //
         // account transfer
         //
@@ -1166,15 +1170,16 @@ export default class gate extends gateRest {
         //   }
         //
         const result = this.safeValue (message, 'result', []);
-        const timestamp = this.safeInteger (message, 'time_ms');
         this.balance['info'] = result;
-        this.balance['timestamp'] = timestamp;
-        this.balance['datetime'] = this.iso8601 (timestamp);
         for (let i = 0; i < result.length; i++) {
             const rawBalance = result[i];
             const account = this.account ();
             const currencyId = this.safeString (rawBalance, 'currency', 'USDT'); // when not present it is USDT
             const code = this.safeCurrencyCode (currencyId);
+            const timestamp = this.safeInteger2 (rawBalance, 'time_ms', 'timestamp_ms');
+            this.balance['timestamp'] = timestamp;
+            this.balance['datetime'] = this.iso8601 (timestamp);
+            account['used'] = this.safeString (rawBalance, 'freeze');
             account['free'] = this.safeString (rawBalance, 'available');
             account['total'] = this.safeString2 (rawBalance, 'total', 'balance');
             this.balance[code] = account;
