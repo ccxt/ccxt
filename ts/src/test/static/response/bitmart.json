@@ -438,6 +438,85 @@
                         "stopLossPrice": null
                     }
                 ]
+            },
+            {
+              "description": "spot trigger fetchClosedOrders",
+              "method": "fetchClosedOrders",
+              "input": [
+                "BTC/USDT",
+                null,
+                null,
+                {
+                  "trigger": true
+                }
+              ],
+              "httpResponse": {
+                "data": [
+                  {
+                    "notional": "5.50000000",
+                    "orderId": "1538407746150621696",
+                    "createTime": "1774696247229",
+                    "clientOrderId": "1538407746150621696",
+                    "state": "untriggered",
+                    "side": "buy",
+                    "cancelSource": "user",
+                    "price": "55000.00",
+                    "symbol": "BTC_USDT",
+                    "size": "0.00010",
+                    "updateTime": "1774696956929",
+                    "trigger_type": "limit",
+                    "orderMode": "trigger"
+                  }
+                ],
+                "message": "OK",
+                "trace": "e0a9755b-6566-4821-9330-23207b9031ff",
+                "code": "1000"
+              },
+              "parsedResponse": [
+                {
+                  "id": "1538407746150621696",
+                  "clientOrderId": "1538407746150621696",
+                  "info": {
+                    "notional": "5.50000000",
+                    "orderId": "1538407746150621696",
+                    "createTime": "1774696247229",
+                    "clientOrderId": "1538407746150621696",
+                    "state": "untriggered",
+                    "side": "buy",
+                    "cancelSource": "user",
+                    "price": "55000.00",
+                    "symbol": "BTC_USDT",
+                    "size": "0.00010",
+                    "updateTime": "1774696956929",
+                    "trigger_type": "limit",
+                    "orderMode": "trigger"
+                  },
+                  "timestamp": 1774696247229,
+                  "datetime": "2026-03-28T11:10:47.229Z",
+                  "lastTradeTimestamp": null,
+                  "symbol": "BTC/USDT",
+                  "type": null,
+                  "timeInForce": null,
+                  "postOnly": null,
+                  "side": "buy",
+                  "price": 55000,
+                  "triggerPrice": null,
+                  "amount": 0.0001,
+                  "cost": null,
+                  "average": null,
+                  "filled": null,
+                  "remaining": null,
+                  "status": "untriggered",
+                  "fee": null,
+                  "trades": [],
+                  "fees": [],
+                  "lastUpdateTimestamp": null,
+                  "reduceOnly": null,
+                  "stopPrice": null,
+                  "takeProfitPrice": null,
+                  "stopLossPrice": null
+                }
+              ]
             }
         ],
         "createOrder": [
@@ -490,6 +569,59 @@
                     "takeProfitPrice": null,
                     "stopLossPrice": null
                 }
+            },
+            {
+              "description": "spot trigger createOrder",
+              "method": "createOrder",
+              "input": [
+                "BTC/USDT",
+                "limit",
+                "buy",
+                0.0001,
+                55000,
+                {
+                  "triggerPrice": "56000"
+                }
+              ],
+              "httpResponse": {
+                "code": "1000",
+                "data": {
+                  "order_id": "1538407746150621696"
+                },
+                "message": "OK",
+                "trace": "f9e6c799-7f10-4c03-8db5-ae13bafea39f"
+              },
+              "parsedResponse": {
+                "id": "1538407746150621696",
+                "clientOrderId": null,
+                "info": {
+                  "order_id": "1538407746150621696"
+                },
+                "timestamp": null,
+                "datetime": null,
+                "lastTradeTimestamp": null,
+                "symbol": "BTC/USDT",
+                "type": "limit",
+                "timeInForce": null,
+                "postOnly": null,
+                "side": "buy",
+                "price": 55000,
+                "triggerPrice": null,
+                "amount": 0.0001,
+                "cost": null,
+                "average": null,
+                "filled": null,
+                "remaining": null,
+                "status": null,
+                "fee": null,
+                "trades": [],
+                "fees": [],
+                "lastUpdateTimestamp": null,
+                "reduceOnly": null,
+                "stopPrice": null,
+                "takeProfitPrice": null,
+                "stopLossPrice": null
+              }
             }
         ],
         "cancelOrder": [
@@ -537,6 +669,54 @@
                     "takeProfitPrice": null,
                     "stopLossPrice": null
                 }
+            },
+            {
+              "description": "spot trigger cancelOrder",
+              "method": "cancelOrder",
+              "input": [
+                "1538407746150621696",
+                "BTC/USDT",
+                {
+                  "trigger": true
+                }
+              ],
+              "httpResponse": {
+                "message": "OK",
+                "code": "1000",
+                "data": {
+                  "result": true
+                },
+                "trace": "947e4c38-00f3-4be5-86f4-58d5c43a4b4e"
+              },
+              "parsedResponse": {
+                "id": "1538407746150621696",
+                "symbol": "BTC/USDT",
+                "info": {},
+                "fees": [],
+                "clientOrderId": null,
+                "timestamp": null,
+                "datetime": null,
+                "type": null,
+                "side": null,
+                "lastTradeTimestamp": null,
+                "lastUpdateTimestamp": null,
+                "price": null,
+                "amount": null,
+                "cost": null,
+                "average": null,
+                "filled": null,
+                "remaining": null,
+                "timeInForce": null,
+                "postOnly": null,
+                "trades": [],
+                "reduceOnly": null,
+                "stopPrice": null,
+                "triggerPrice": null,
+                "takeProfitPrice": null,
+                "stopLossPrice": null,
+                "status": null,
+                "fee": null
+              }
             }
         ],
         "fetchMyTrades": [
@@ -1105,6 +1285,80 @@
                   "takeProfitPrice": null,
                   "stopLossPrice": null
                 }
+            },
+            {
+              "description": "spot trigger fetch order",
+              "method": "fetchOrder",
+              "input": [
+                "1538407746150621696",
+                "BTC/USDT",
+                {
+                  "trigger": true
+                }
+              ],
+              "httpResponse": {
+                "data": {
+                  "createTime": "1774696247229",
+                  "side": "buy",
+                  "orderMode": "trigger",
+                  "cancelSource": "",
+                  "state": "untriggered",
+                  "price": "55000.00",
+                  "updateTime": "1774696247284",
+                  "symbol": "BTC_USDT",
+                  "size": "0.00010",
+                  "notional": "5.50000000",
+                  "orderId": "1538407746150621696",
+                  "trigger_type": "limit",
+                  "clientOrderId": "1538407746150621696"
+                },
+                "message": "OK",
+                "trace": "2dcbc0e1-9831-4b7e-bb66-c6cfa1d3d2ee",
+                "code": "1000"
+              },
+              "parsedResponse": {
+                "id": "1538407746150621696",
+                "clientOrderId": "1538407746150621696",
+                "info": {
+                  "createTime": "1774696247229",
+                  "side": "buy",
+                  "orderMode": "trigger",
+                  "cancelSource": "",
+                  "state": "untriggered",
+                  "price": "55000.00",
+                  "updateTime": "1774696247284",
+                  "symbol": "BTC_USDT",
+                  "size": "0.00010",
+                  "notional": "5.50000000",
+                  "orderId": "1538407746150621696",
+                  "trigger_type": "limit",
+                  "clientOrderId": "1538407746150621696"
+                },
+                "timestamp": 1774696247229,
+                "datetime": "2026-03-28T11:10:47.229Z",
+                "lastTradeTimestamp": null,
+                "symbol": "BTC/USDT",
+                "type": null,
+                "timeInForce": null,
+                "postOnly": null,
+                "side": "buy",
+                "price": 55000,
+                "triggerPrice": null,
+                "amount": 0.0001,
+                "cost": null,
+                "average": null,
+                "filled": null,
+                "remaining": null,
+                "status": "untriggered",
+                "fee": null,
+                "trades": [],
+                "fees": [],
+                "lastUpdateTimestamp": null,
+                "reduceOnly": null,
+                "stopPrice": null,
+                "takeProfitPrice": null,
+                "stopLossPrice": null
+              }
             }
         ],
         "fetchPosition": [
@@ -1399,6 +1653,141 @@
                 "datetime": "2024-12-17T08:00:02.121Z",
                 "id": "1734422402121",
                 "amount": -0.00008253
+              }
+            ]
+          }
+        ],
+        "fetchOpenOrders": [
+          {
+            "description": "spot trigger fetch open orders",
+            "method": "fetchOpenOrders",
+            "input": [
+              "BTC/USDT",
+              null,
+              null,
+              {
+                "trigger": true
+              }
+            ],
+            "httpResponse": {
+              "data": [
+                {
+                  "side": "buy",
+                  "cancelSource": "",
+                  "price": "55000.00",
+                  "size": "0.00010",
+                  "state": "untriggered",
+                  "createTime": "1774696247229",
+                  "symbol": "BTC_USDT",
+                  "updateTime": "1774696247284",
+                  "notional": "5.50000000",
+                  "clientOrderId": "1538407746150621696",
+                  "orderId": "1538407746150621696",
+                  "orderMode": "trigger",
+                  "trigger_type": "limit"
+                }
+              ],
+              "message": "OK",
+              "trace": "923659d8-ef49-40b8-bdfe-cd11211c7768",
+              "code": "1000"
+            },
+            "parsedResponse": [
+              {
+                "id": "1538407746150621696",
+                "clientOrderId": "1538407746150621696",
+                "info": {
+                  "side": "buy",
+                  "cancelSource": "",
+                  "price": "55000.00",
+                  "size": "0.00010",
+                  "state": "untriggered",
+                  "createTime": "1774696247229",
+                  "symbol": "BTC_USDT",
+                  "updateTime": "1774696247284",
+                  "notional": "5.50000000",
+                  "clientOrderId": "1538407746150621696",
+                  "orderId": "1538407746150621696",
+                  "orderMode": "trigger",
+                  "trigger_type": "limit"
+                },
+                "timestamp": 1774696247229,
+                "datetime": "2026-03-28T11:10:47.229Z",
+                "lastTradeTimestamp": null,
+                "symbol": "BTC/USDT",
+                "type": null,
+                "timeInForce": null,
+                "postOnly": null,
+                "side": "buy",
+                "price": 55000,
+                "triggerPrice": null,
+                "amount": 0.0001,
+                "cost": null,
+                "average": null,
+                "filled": null,
+                "remaining": null,
+                "status": "untriggered",
+                "fee": null,
+                "trades": [],
+                "fees": [],
+                "lastUpdateTimestamp": null,
+                "reduceOnly": null,
+                "stopPrice": null,
+                "takeProfitPrice": null,
+                "stopLossPrice": null
+              }
+            ]
+          }
+        ],
+        "cancelAllOrders": [
+          {
+            "description": "spot trigger cancelAllOrders",
+            "method": "cancelAllOrders",
+            "input": [
+              "BTC/USDT",
+              {
+                "trigger": true
+              }
+            ],
+            "httpResponse": {
+              "message": "success",
+              "code": "1000",
+              "data": {},
+              "trace": "70840b25-54d6-456b-9275-19d7f5551128"
+            },
+            "parsedResponse": [
+              {
+                "info": {
+                  "message": "success",
+                  "code": "1000",
+                  "data": {},
+                  "trace": "70840b25-54d6-456b-9275-19d7f5551128"
+                },
+                "fees": [],
+                "id": null,
+                "clientOrderId": null,
+                "timestamp": null,
+                "datetime": null,
+                "symbol": null,
+                "type": null,
+                "side": null,
+                "lastTradeTimestamp": null,
+                "lastUpdateTimestamp": null,
+                "price": null,
+                "amount": null,
+                "cost": null,
+                "average": null,
+                "filled": null,
+                "remaining": null,
+                "timeInForce": null,
+                "postOnly": null,
+                "trades": [],
+                "reduceOnly": null,
+                "stopPrice": null,
+                "triggerPrice": null,
+                "takeProfitPrice": null,
+                "stopLossPrice": null,
+                "status": null,
+                "fee": null
               }
             ]
           }
