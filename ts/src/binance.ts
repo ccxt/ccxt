@@ -1386,7 +1386,6 @@ export default class binance extends Exchange {
                     'ERC20': 'ETH',
                     'ETH': 'ETH',
                     'TRC20': 'TRX',
-                    'TRON': 'TRX',
                     'TRX': 'TRX',
                     'BEP2': 'BNB',
                     'BSC': 'BSC',
