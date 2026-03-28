@@ -618,7 +618,7 @@
                         "trailing": true
                     }
                 ],
-                "output": "{\"symbol\":\"ETHUSDT\",\"order_id\":\"3000080071007939\",\"trailing\":true}"
+                "output": "{\"symbol\":\"ETHUSDT\",\"order_id\":\"3000080071007939\"}"
             },
             {
                 "description": "spot trigger cancel order",
