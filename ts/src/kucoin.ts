@@ -3831,7 +3831,8 @@ export default class kucoin extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const uta = this.safeBool (params, 'uta', false);
+        let uta = false;
+        [ uta, params ] = this.handleOptionAndParams (params, 'createOrder', 'uta', uta);
         if (uta) {
             params = this.omit (params, 'uta');
             return await this.createUtaOrder (symbol, type, side, amount, price, params);
