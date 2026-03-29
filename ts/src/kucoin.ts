@@ -1705,6 +1705,7 @@ export default class kucoin extends Exchange {
         if (credentialsSet) {
             // load migration status for account
             promises.push (this.loadMigrationStatus ());
+            promises.push (this.isUnifiedEnabled ({ 'loadAccountMode': true }));
         }
         const responses = await Promise.all (promises);
         const symbolsData = fetchSpotMarkets ? this.safeList (responses[0], 'data') : [];
@@ -11057,9 +11058,9 @@ export default class kucoin extends Exchange {
      * @returns {boolean} true if unified account is enabled, false otherwise
      */
     async isUnifiedEnabled (params = {}) {
-        const isAuthorized = this.checkRequiredCredentials (false);
-        const uta = this.safeBool (this.options, 'uta');
-        if ((uta === undefined) && isAuthorized) {
+        const loadAccountMode = this.safeBool (params, 'loadAccountMode', false);
+        if (loadAccountMode) {
+            params = this.omit (params, 'loadAccountMode');
             const response = await this.utaPrivateGetAccountMode (params);
             const data = this.safeDict (response, 'data', {});
             const accountMode = this.safeString (data, 'selfAccountMode');
