@@ -885,7 +885,7 @@ export default class kucoin extends Exchange {
             },
             'options': {
                 'hf': undefined, // would be auto set to `true/false` after first load
-                'uta': false,
+                'uta': undefined,
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
@@ -11058,14 +11058,15 @@ export default class kucoin extends Exchange {
      */
     async isUnifiedEnabled (params = {}) {
         const isAuthorized = this.checkRequiredCredentials (false);
-        if (isAuthorized) {
+        const uta = this.safeBool (this.options, 'uta');
+        if ((uta === undefined) && isAuthorized) {
             const response = await this.utaPrivateGetAccountMode (params);
             const data = this.safeDict (response, 'data', {});
             const accountMode = this.safeString (data, 'selfAccountMode');
             const isUnified = (accountMode === 'UNIFIED');
             this.options['uta'] = isUnified;
         }
-        return this.safeValue (this.options, 'uta', false);
+        return this.safeBool (this.options, 'uta', false);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
