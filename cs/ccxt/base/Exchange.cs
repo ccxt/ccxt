@@ -828,6 +828,8 @@ public partial class Exchange
     {
         if (a == null)
             return true;
+        if (a is String)
+            return false; // disregard strings
         if (a is IList<object>)
             return ((IList<object>)a).Count == 0;
         if (a is IDictionary<string, object>)

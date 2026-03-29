@@ -3051,7 +3051,7 @@ func  (this *OkxCore) HandleErrorMessage(client interface{}, message interface{}
                         if ccxt.IsTrue(!ccxt.IsEqual(errorCode, nil)) {
                             this.ThrowExactlyMatchedException(ccxt.GetValue(this.Exceptions, "exact"), errorCode, feedback)
                         }
-                        messageString = this.SafeValue(message, "sMsg")
+                        messageString = this.SafeValue(d, "sMsg")
                         if ccxt.IsTrue(!ccxt.IsEqual(messageString, nil)) {
                             this.ThrowBroadlyMatchedException(ccxt.GetValue(this.Exceptions, "broad"), messageString, feedback)
                         }

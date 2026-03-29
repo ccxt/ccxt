@@ -1910,7 +1910,18 @@ class okx extends Exchange {
             //     }
             //
             $dataResponse = $this->safe_list($response, 'data', array());
-            return $this->parse_markets($dataResponse);
+            $marketsWithoutTest = array();
+            for ($i = 0; $i < count($dataResponse); $i++) {
+                $data = $dataResponse[$i];
+                if ($this->isSandboxModeEnabled) {
+                    $instFamily = $this->safe_string($data, 'instFamily', '');
+                    if (str_starts_with($instFamily, 'TEST')) {
+                        continue;
+                    }
+                }
+                $marketsWithoutTest[] = $data;
+            }
+            return $this->parse_markets($marketsWithoutTest);
         }) ();
     }
 

@@ -16,6 +16,7 @@ public partial class BaseTest
             testDeepExtend();
             testCryptography();
             testBinaryToBase64();
+            testBase64ToBinary();
             testDatetime();
             testDecimalToPrecision();
             testCapitalize();
@@ -28,6 +29,7 @@ public partial class BaseTest
             testSortBy();
             testSum();
             testUrlencodeBase64();
+            testStringToBase64();
             testUrlencode();
             testOmit();
             testGroupBy();
@@ -43,6 +45,7 @@ public partial class BaseTest
             testTimeframes();
             testStrip();
             testRawencode();
+            testStringToBase16();
             testExtractParams();
             testArrayConcat();
             testArraysConcat();
@@ -56,5 +59,6 @@ public partial class BaseTest
             await testSleep();
             testIo();
             testIsJsonEncodedObject();
+            testEncodeDecode();
         }
 }

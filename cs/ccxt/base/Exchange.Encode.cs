@@ -312,7 +312,7 @@ public partial class Exchange
                 foreach (var key in ((dict)value).Keys)
                 {
                     var val = ((dict)value)[key];
-                    var nextPrefix = string.IsNullOrEmpty(prefix) ? System.Web.HttpUtility.UrlEncode(key) : prefix + "[" + System.Web.HttpUtility.UrlEncode(key) + "]";
+                    var nextPrefix = string.IsNullOrEmpty(prefix) ? Uri.EscapeDataString(key) : prefix + "[" + Uri.EscapeDataString(key) + "]";
                     urlencodeNestedRecursive(nextPrefix, val);
                 }
             }
@@ -332,7 +332,7 @@ public partial class Exchange
                 {
                     valStr = valStr.ToLower();
                 }
-                outList.Add(prefix + "=" + System.Web.HttpUtility.UrlEncode(valStr));
+                outList.Add(prefix + "=" + Uri.EscapeDataString(valStr));
             }
         }
 
@@ -350,21 +350,14 @@ public partial class Exchange
         foreach (string key in keys)
         {
             var value = parameters[key];
-            string encodedKey = System.Web.HttpUtility.UrlEncode(key);
+            string encodedKey = Uri.EscapeDataString(key);
             var finalValue = value.ToString();
             if (value.GetType() == typeof(bool))
             {
                 finalValue = finalValue.ToLower(); // c# uses "True" and "False" instead of "true" and "false" $:(
 
             }
-            if (key.ToLower() == "timestamp")
-            {
-                finalValue = System.Web.HttpUtility.UrlEncode(finalValue).ToUpper();
-            }
-            else
-            {
-                finalValue = System.Web.HttpUtility.UrlEncode(finalValue);
-            }
+            finalValue = Uri.EscapeDataString(finalValue);
             queryString.Add($"{encodedKey}={finalValue}");
         }
         return string.Join("&", queryString);

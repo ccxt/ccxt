@@ -8881,7 +8881,8 @@ class binance extends Exchange {
         if ($internalInteger !== null) {
             $internal = ($internalInteger !== 0) ? true : false;
         }
-        $network = $this->safe_string($transaction, 'network');
+        $networkId = $this->safe_string($transaction, 'network');
+        $network = $this->network_id_to_code($networkId, $code);
         return array(
             'info' => $transaction,
             'id' => $id,

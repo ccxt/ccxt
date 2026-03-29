@@ -8405,7 +8405,8 @@ class binance(Exchange, ImplicitAPI):
         internal = None
         if internalInteger is not None:
             internal = True if (internalInteger != 0) else False
-        network = self.safe_string(transaction, 'network')
+        networkId = self.safe_string(transaction, 'network')
+        network = self.network_id_to_code(networkId, code)
         return {
             'info': transaction,
             'id': id,

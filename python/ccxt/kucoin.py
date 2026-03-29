@@ -209,6 +209,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'get': {
                         # account
                         'user-info': 20,
+                        'user/api-key': 20,
                         'accounts': 5,
                         'accounts/{accountId}': 5,
                         'accounts/ledgers': 2,
@@ -726,7 +727,7 @@ class kucoin(Exchange, ImplicitAPI):
                     '400006': AuthenticationError,
                     '400007': AuthenticationError,
                     '400008': NotSupported,
-                    '400100': InsufficientFunds,  # {"msg":"account.available.amount","code":"400100"} or {"msg":"Withdrawal amount is below the minimum requirement.","code":"400100"}
+                    '400100': BadRequest,  # {"msg":"account.available.amount","code":"400100"} or {"msg":"Withdrawal amount is below the minimum requirement.","code":"400100"} or  {"msg":"pageSize should not greater than 500","code":"400100"}
                     '400200': InvalidOrder,  # {"code":"400200","msg":"Forbidden to place an order"}
                     '400330': InvalidOrder,  # {"msg":"Order price can't deviate from NAV by 50%","code":"400330"}
                     '400350': InvalidOrder,  # {"code":"400350","msg":"Upper limit for holding: 10,000USDT, you can still buy 10,000USDT worth of coin."}
@@ -758,6 +759,7 @@ class kucoin(Exchange, ImplicitAPI):
                     '330008': InsufficientFunds,  # {"msg":"Your current margin and leverage have reached the maximum open limit. Please increase your margin or raise your leverage to open larger positions.","code":"330008"}
                 },
                 'broad': {
+                    'pageSize should not greater than 500': BadRequest,
                     'Exceeded the access frequency': RateLimitExceeded,
                     'require more permission': PermissionDenied,
                     # futures errors
@@ -6373,7 +6375,7 @@ class kucoin(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate')
         if paginate:
-            return self.fetch_paginated_call_dynamic('fetchWithdrawals', code, since, limit, params)
+            return self.fetch_paginated_call_dynamic('fetchWithdrawals', code, since, limit, params, 500)
         request: dict = {}
         currency = None
         if code is not None:

@@ -1886,7 +1886,15 @@ class okx(Exchange, ImplicitAPI):
         #     }
         #
         dataResponse = self.safe_list(response, 'data', [])
-        return self.parse_markets(dataResponse)
+        marketsWithoutTest = []
+        for i in range(0, len(dataResponse)):
+            data = dataResponse[i]
+            if self.isSandboxModeEnabled:
+                instFamily = self.safe_string(data, 'instFamily', '')
+                if instFamily.startswith('TEST'):
+                    continue
+            marketsWithoutTest.append(data)
+        return self.parse_markets(marketsWithoutTest)
 
     def fetch_currencies(self, params={}) -> Currencies:
         """

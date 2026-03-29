@@ -174,14 +174,7 @@ public partial class Exchange
                     }
                     else
                     {
-                        if (arg2 != null)
-                        {
-                            ((dict)outObj)[k] = arg2;
-                        }
-                        else
-                        {
-                            ((dict)outObj)[k] = arg1;
-                        }
+                        ((dict)outObj)[k] = arg2;
                     }
                 }
             }

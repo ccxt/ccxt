@@ -1098,6 +1098,10 @@ class Exchange {
         return hex2bin($data);
     }
 
+    public static function binary_to_base16($data) {
+        return bin2hex($data);
+    }
+
     public static function int_to_base16($integer) {
         return dechex($integer);
     }
@@ -5115,6 +5119,10 @@ class Exchange {
             }
         }
         return $reversed;
+    }
+
+    public function string_to_base16($str) {
+        return '0x' . bin2hex(base64_decode(base64_encode($str)));
     }
 
     public function reduce_fees_by_currency($fees) {

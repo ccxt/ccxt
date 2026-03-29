@@ -170,6 +170,7 @@ public partial class kucoin : Exchange
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
                         { "user-info", 20 },
+                        { "user/api-key", 20 },
                         { "accounts", 5 },
                         { "accounts/{accountId}", 5 },
                         { "accounts/ledgers", 2 },
@@ -662,7 +663,7 @@ public partial class kucoin : Exchange
                     { "400006", typeof(AuthenticationError) },
                     { "400007", typeof(AuthenticationError) },
                     { "400008", typeof(NotSupported) },
-                    { "400100", typeof(InsufficientFunds) },
+                    { "400100", typeof(BadRequest) },
                     { "400200", typeof(InvalidOrder) },
                     { "400330", typeof(InvalidOrder) },
                     { "400350", typeof(InvalidOrder) },
@@ -693,6 +694,7 @@ public partial class kucoin : Exchange
                     { "330008", typeof(InsufficientFunds) },
                 } },
                 { "broad", new Dictionary<string, object>() {
+                    { "pageSize should not greater than 500", typeof(BadRequest) },
                     { "Exceeded the access frequency", typeof(RateLimitExceeded) },
                     { "require more permission", typeof(PermissionDenied) },
                     { "Position does not exist", typeof(OrderNotFound) },
@@ -6914,7 +6916,7 @@ public partial class kucoin : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, parameters);
+            return await this.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, parameters, 500);
         }
         object request = new Dictionary<string, object>() {};
         object currency = null;

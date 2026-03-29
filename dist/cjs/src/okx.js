@@ -1890,7 +1890,18 @@ class okx extends okx$1["default"] {
         //     }
         //
         const dataResponse = this.safeList(response, 'data', []);
-        return this.parseMarkets(dataResponse);
+        const marketsWithoutTest = [];
+        for (let i = 0; i < dataResponse.length; i++) {
+            const data = dataResponse[i];
+            if (this.isSandboxModeEnabled) {
+                const instFamily = this.safeString(data, 'instFamily', '');
+                if (instFamily.startsWith('TEST')) {
+                    continue;
+                }
+            }
+            marketsWithoutTest.push(data);
+        }
+        return this.parseMarkets(marketsWithoutTest);
     }
     /**
      * @method

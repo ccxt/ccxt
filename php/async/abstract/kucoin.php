@@ -79,6 +79,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     public function private_get_user_info($params = array()) {
         return $this->request('user-info', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
+    public function private_get_user_api_key($params = array()) {
+        return $this->request('user/api-key', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function private_get_accounts($params = array()) {
         return $this->request('accounts', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -1104,6 +1107,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     }
     public function privateGetUserInfo($params = array()) {
         return $this->request('user-info', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function privateGetUserApiKey($params = array()) {
+        return $this->request('user/api-key', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
     public function privateGetAccounts($params = array()) {
         return $this->request('accounts', 'private', 'GET', $params, null, null, array("cost" => 5));

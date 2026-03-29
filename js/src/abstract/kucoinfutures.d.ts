@@ -25,6 +25,7 @@ interface kucoin {
     publicGetConvertCurrencies(params?: {}): Promise<implicitReturnType>;
     publicPostBulletPublic(params?: {}): Promise<implicitReturnType>;
     privateGetUserInfo(params?: {}): Promise<implicitReturnType>;
+    privateGetUserApiKey(params?: {}): Promise<implicitReturnType>;
     privateGetAccounts(params?: {}): Promise<implicitReturnType>;
     privateGetAccountsAccountId(params?: {}): Promise<implicitReturnType>;
     privateGetAccountsLedgers(params?: {}): Promise<implicitReturnType>;

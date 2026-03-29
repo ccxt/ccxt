@@ -1852,7 +1852,21 @@ public partial class okx : Exchange
         //     }
         //
         object dataResponse = this.safeList(response, "data", new List<object>() {});
-        return this.parseMarkets(dataResponse);
+        object marketsWithoutTest = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(dataResponse)); postFixIncrement(ref i))
+        {
+            object data = getValue(dataResponse, i);
+            if (isTrue(this.isSandboxModeEnabled))
+            {
+                object instFamily = this.safeString(data, "instFamily", "");
+                if (isTrue(((string)instFamily).StartsWith(((string)"TEST"))))
+                {
+                    continue;
+                }
+            }
+            ((IList<object>)marketsWithoutTest).Add(data);
+        }
+        return this.parseMarkets(marketsWithoutTest);
     }
 
     /**

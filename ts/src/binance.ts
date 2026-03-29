@@ -8802,7 +8802,8 @@ export default class binance extends Exchange {
         if (internalInteger !== undefined) {
             internal = (internalInteger !== 0) ? true : false;
         }
-        const network = this.safeString (transaction, 'network');
+        const networkId = this.safeString (transaction, 'network');
+        const network = this.networkIdToCode (networkId, code);
         return {
             'info': transaction,
             'id': id,
