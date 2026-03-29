@@ -885,6 +885,7 @@ export default class kucoin extends Exchange {
             },
             'options': {
                 'hf': undefined, // would be auto set to `true/false` after first load
+                'uta': false,
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
@@ -3834,7 +3835,6 @@ export default class kucoin extends Exchange {
         let uta = false;
         [ uta, params ] = this.handleOptionAndParams (params, 'createOrder', 'uta', uta);
         if (uta) {
-            params = this.omit (params, 'uta');
             return await this.createUtaOrder (symbol, type, side, amount, price, params);
         } else if (market['spot']) {
             return await this.createSpotOrder (symbol, type, side, amount, price, params);
