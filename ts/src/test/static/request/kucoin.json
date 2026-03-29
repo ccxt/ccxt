@@ -407,7 +407,10 @@
                 "input": [
                     "BTC/USDT:USDT",
                     1769328000000,
-                    1
+                    1,
+                    {
+                        "uta": true
+                    }
                 ],
                 "output": null
             }
