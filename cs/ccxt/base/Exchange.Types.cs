@@ -1716,6 +1716,8 @@ public struct MarketInterface
         created = Exchange.SafeInteger(market, "created");
         precision = Exchange.SafeValue(market, "precision") != null ? new Precision(Exchange.SafeValue(market, "precision")) : null;
         marginModes = Exchange.SafeValue(market, "marginModes") != null ? new MarketMarginModes(Exchange.SafeValue(market, "marginModes")) : null;
+        limits = Exchange.SafeValue(market, "limits") != null ? new Limits(Exchange.SafeValue(market, "limits")) : null;
+
     }
 
 }
