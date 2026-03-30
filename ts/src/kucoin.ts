@@ -885,7 +885,7 @@ export default class kucoin extends Exchange {
             },
             'options': {
                 'hf': undefined, // would be auto set to `true/false` after first load
-                'uta': false,
+                'uta': undefined,
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
