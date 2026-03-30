@@ -425,6 +425,7 @@ class Exchange {
         'lbank',
         'lighter',
         'luno',
+        'matrixport',
         'mercado',
         'mexc',
         'modetrade',

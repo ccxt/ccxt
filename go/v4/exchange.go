@@ -1585,14 +1585,14 @@ func (this *Exchange) OrderBook(optionalArgs ...interface{}) *WsOrderBook {
 // IndexedOrderBook and CountedOrderBook share the same implementation for now.
 func (this *Exchange) IndexedOrderBook(optionalArgs ...interface{}) *IndexedOrderBook {
 	snapshot := GetArg(optionalArgs, 0, map[string]interface{}{})
-	depth := GetArg(optionalArgs, 1, 9007199254740991)
+	depth := GetArg(optionalArgs, 1, int64(9007199254740991))
 	orderBook := NewIndexedOrderBook(snapshot, depth)
 	return orderBook
 }
 
 func (this *Exchange) CountedOrderBook(optionalArgs ...interface{}) *CountedOrderBook {
 	snapshot := GetArg(optionalArgs, 0, map[string]interface{}{})
-	depth := GetArg(optionalArgs, 1, 9007199254740991)
+	depth := GetArg(optionalArgs, 1, int64(9007199254740991))
 	orderBook := NewCountedOrderBook(snapshot, depth)
 	return orderBook
 }

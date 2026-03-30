@@ -7,102 +7,102 @@
 
 package ccxt
 
-func (this *BitteamCore) HistoryGetApiTwHistoryPairNameResolution(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("historyGetApiTwHistoryPairNameResolution", args...)
+func (this *BitteamCore) HistoryGetApiTwHistoryPairNameResolution (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("historyGetApiTwHistoryPairNameResolution", args...)
 }
 
-func (this *BitteamCore) PublicGetTradeApiAsset(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTradeApiAsset", args...)
+func (this *BitteamCore) PublicGetTradeApiAsset (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTradeApiAsset", args...)
 }
 
-func (this *BitteamCore) PublicGetTradeApiCurrencies(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTradeApiCurrencies", args...)
+func (this *BitteamCore) PublicGetTradeApiCurrencies (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTradeApiCurrencies", args...)
 }
 
-func (this *BitteamCore) PublicGetTradeApiOrderbooksSymbol(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTradeApiOrderbooksSymbol", args...)
+func (this *BitteamCore) PublicGetTradeApiOrderbooksSymbol (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTradeApiOrderbooksSymbol", args...)
 }
 
-func (this *BitteamCore) PublicGetTradeApiOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTradeApiOrders", args...)
+func (this *BitteamCore) PublicGetTradeApiOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTradeApiOrders", args...)
 }
 
-func (this *BitteamCore) PublicGetTradeApiPairName(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTradeApiPairName", args...)
+func (this *BitteamCore) PublicGetTradeApiPairName (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTradeApiPairName", args...)
 }
 
-func (this *BitteamCore) PublicGetTradeApiPairs(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTradeApiPairs", args...)
+func (this *BitteamCore) PublicGetTradeApiPairs (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTradeApiPairs", args...)
 }
 
-func (this *BitteamCore) PublicGetTradeApiPairsPrecisions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTradeApiPairsPrecisions", args...)
+func (this *BitteamCore) PublicGetTradeApiPairsPrecisions (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTradeApiPairsPrecisions", args...)
 }
 
-func (this *BitteamCore) PublicGetTradeApiRates(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTradeApiRates", args...)
+func (this *BitteamCore) PublicGetTradeApiRates (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTradeApiRates", args...)
 }
 
-func (this *BitteamCore) PublicGetTradeApiTradeId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTradeApiTradeId", args...)
+func (this *BitteamCore) PublicGetTradeApiTradeId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTradeApiTradeId", args...)
 }
 
-func (this *BitteamCore) PublicGetTradeApiTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTradeApiTrades", args...)
+func (this *BitteamCore) PublicGetTradeApiTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTradeApiTrades", args...)
 }
 
-func (this *BitteamCore) PublicGetTradeApiCcxtPairs(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTradeApiCcxtPairs", args...)
+func (this *BitteamCore) PublicGetTradeApiCcxtPairs (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTradeApiCcxtPairs", args...)
 }
 
-func (this *BitteamCore) PublicGetTradeApiCmcAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTradeApiCmcAssets", args...)
+func (this *BitteamCore) PublicGetTradeApiCmcAssets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTradeApiCmcAssets", args...)
 }
 
-func (this *BitteamCore) PublicGetTradeApiCmcOrderbookPair(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTradeApiCmcOrderbookPair", args...)
+func (this *BitteamCore) PublicGetTradeApiCmcOrderbookPair (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTradeApiCmcOrderbookPair", args...)
 }
 
-func (this *BitteamCore) PublicGetTradeApiCmcSummary(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTradeApiCmcSummary", args...)
+func (this *BitteamCore) PublicGetTradeApiCmcSummary (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTradeApiCmcSummary", args...)
 }
 
-func (this *BitteamCore) PublicGetTradeApiCmcTicker(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTradeApiCmcTicker", args...)
+func (this *BitteamCore) PublicGetTradeApiCmcTicker (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTradeApiCmcTicker", args...)
 }
 
-func (this *BitteamCore) PublicGetTradeApiCmcTradesPair(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTradeApiCmcTradesPair", args...)
+func (this *BitteamCore) PublicGetTradeApiCmcTradesPair (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTradeApiCmcTradesPair", args...)
 }
 
-func (this *BitteamCore) PrivateGetTradeApiCcxtBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetTradeApiCcxtBalance", args...)
+func (this *BitteamCore) PrivateGetTradeApiCcxtBalance (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetTradeApiCcxtBalance", args...)
 }
 
-func (this *BitteamCore) PrivateGetTradeApiCcxtOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetTradeApiCcxtOrderId", args...)
+func (this *BitteamCore) PrivateGetTradeApiCcxtOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetTradeApiCcxtOrderId", args...)
 }
 
-func (this *BitteamCore) PrivateGetTradeApiCcxtOrdersOfUser(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetTradeApiCcxtOrdersOfUser", args...)
+func (this *BitteamCore) PrivateGetTradeApiCcxtOrdersOfUser (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetTradeApiCcxtOrdersOfUser", args...)
 }
 
-func (this *BitteamCore) PrivateGetTradeApiCcxtTradesOfUser(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetTradeApiCcxtTradesOfUser", args...)
+func (this *BitteamCore) PrivateGetTradeApiCcxtTradesOfUser (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetTradeApiCcxtTradesOfUser", args...)
 }
 
-func (this *BitteamCore) PrivateGetTradeApiTransactionsOfUser(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetTradeApiTransactionsOfUser", args...)
+func (this *BitteamCore) PrivateGetTradeApiTransactionsOfUser (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetTradeApiTransactionsOfUser", args...)
 }
 
-func (this *BitteamCore) PrivatePostTradeApiCcxtCancelAllOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostTradeApiCcxtCancelAllOrder", args...)
+func (this *BitteamCore) PrivatePostTradeApiCcxtCancelAllOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostTradeApiCcxtCancelAllOrder", args...)
 }
 
-func (this *BitteamCore) PrivatePostTradeApiCcxtCancelorder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostTradeApiCcxtCancelorder", args...)
+func (this *BitteamCore) PrivatePostTradeApiCcxtCancelorder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostTradeApiCcxtCancelorder", args...)
 }
 
-func (this *BitteamCore) PrivatePostTradeApiCcxtOrdercreate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostTradeApiCcxtOrdercreate", args...)
+func (this *BitteamCore) PrivatePostTradeApiCcxtOrdercreate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostTradeApiCcxtOrdercreate", args...)
 }

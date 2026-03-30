@@ -7,234 +7,234 @@
 
 package ccxt
 
-func (this *LbankCore) SpotPublicGetCurrencyPairs(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPublicGetCurrencyPairs", args...)
+func (this *LbankCore) SpotPublicGetCurrencyPairs (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPublicGetCurrencyPairs", args...)
 }
 
-func (this *LbankCore) SpotPublicGetAccuracy(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPublicGetAccuracy", args...)
+func (this *LbankCore) SpotPublicGetAccuracy (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPublicGetAccuracy", args...)
 }
 
-func (this *LbankCore) SpotPublicGetUsdToCny(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPublicGetUsdToCny", args...)
+func (this *LbankCore) SpotPublicGetUsdToCny (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPublicGetUsdToCny", args...)
 }
 
-func (this *LbankCore) SpotPublicGetAssetConfigs(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPublicGetAssetConfigs", args...)
+func (this *LbankCore) SpotPublicGetAssetConfigs (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPublicGetAssetConfigs", args...)
 }
 
-func (this *LbankCore) SpotPublicGetWithdrawConfigs(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPublicGetWithdrawConfigs", args...)
+func (this *LbankCore) SpotPublicGetWithdrawConfigs (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPublicGetWithdrawConfigs", args...)
 }
 
-func (this *LbankCore) SpotPublicGetTimestamp(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPublicGetTimestamp", args...)
+func (this *LbankCore) SpotPublicGetTimestamp (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPublicGetTimestamp", args...)
 }
 
-func (this *LbankCore) SpotPublicGetTicker24hr(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPublicGetTicker24hr", args...)
+func (this *LbankCore) SpotPublicGetTicker24hr (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPublicGetTicker24hr", args...)
 }
 
-func (this *LbankCore) SpotPublicGetTicker(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPublicGetTicker", args...)
+func (this *LbankCore) SpotPublicGetTicker (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPublicGetTicker", args...)
 }
 
-func (this *LbankCore) SpotPublicGetDepth(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPublicGetDepth", args...)
+func (this *LbankCore) SpotPublicGetDepth (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPublicGetDepth", args...)
 }
 
-func (this *LbankCore) SpotPublicGetIncrDepth(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPublicGetIncrDepth", args...)
+func (this *LbankCore) SpotPublicGetIncrDepth (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPublicGetIncrDepth", args...)
 }
 
-func (this *LbankCore) SpotPublicGetTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPublicGetTrades", args...)
+func (this *LbankCore) SpotPublicGetTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPublicGetTrades", args...)
 }
 
-func (this *LbankCore) SpotPublicGetKline(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPublicGetKline", args...)
+func (this *LbankCore) SpotPublicGetKline (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPublicGetKline", args...)
 }
 
-func (this *LbankCore) SpotPublicGetSupplementSystemPing(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPublicGetSupplementSystemPing", args...)
+func (this *LbankCore) SpotPublicGetSupplementSystemPing (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPublicGetSupplementSystemPing", args...)
 }
 
-func (this *LbankCore) SpotPublicGetSupplementIncrDepth(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPublicGetSupplementIncrDepth", args...)
+func (this *LbankCore) SpotPublicGetSupplementIncrDepth (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPublicGetSupplementIncrDepth", args...)
 }
 
-func (this *LbankCore) SpotPublicGetSupplementTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPublicGetSupplementTrades", args...)
+func (this *LbankCore) SpotPublicGetSupplementTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPublicGetSupplementTrades", args...)
 }
 
-func (this *LbankCore) SpotPublicGetSupplementTickerPrice(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPublicGetSupplementTickerPrice", args...)
+func (this *LbankCore) SpotPublicGetSupplementTickerPrice (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPublicGetSupplementTickerPrice", args...)
 }
 
-func (this *LbankCore) SpotPublicGetSupplementTickerBookTicker(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPublicGetSupplementTickerBookTicker", args...)
+func (this *LbankCore) SpotPublicGetSupplementTickerBookTicker (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPublicGetSupplementTickerBookTicker", args...)
 }
 
-func (this *LbankCore) SpotPublicPostSupplementSystemStatus(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPublicPostSupplementSystemStatus", args...)
+func (this *LbankCore) SpotPublicPostSupplementSystemStatus (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPublicPostSupplementSystemStatus", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostUserInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostUserInfo", args...)
+func (this *LbankCore) SpotPrivatePostUserInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostUserInfo", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSubscribeGetKey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostSubscribeGetKey", args...)
+func (this *LbankCore) SpotPrivatePostSubscribeGetKey (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostSubscribeGetKey", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSubscribeRefreshKey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostSubscribeRefreshKey", args...)
+func (this *LbankCore) SpotPrivatePostSubscribeRefreshKey (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostSubscribeRefreshKey", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSubscribeDestroyKey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostSubscribeDestroyKey", args...)
+func (this *LbankCore) SpotPrivatePostSubscribeDestroyKey (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostSubscribeDestroyKey", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostGetDepositAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostGetDepositAddress", args...)
+func (this *LbankCore) SpotPrivatePostGetDepositAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostGetDepositAddress", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostDepositHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostDepositHistory", args...)
+func (this *LbankCore) SpotPrivatePostDepositHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostDepositHistory", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostCreateOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostCreateOrder", args...)
+func (this *LbankCore) SpotPrivatePostCreateOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostCreateOrder", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostBatchCreateOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostBatchCreateOrder", args...)
+func (this *LbankCore) SpotPrivatePostBatchCreateOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostBatchCreateOrder", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostCancelOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostCancelOrder", args...)
+func (this *LbankCore) SpotPrivatePostCancelOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostCancelOrder", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostCancelClientOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostCancelClientOrders", args...)
+func (this *LbankCore) SpotPrivatePostCancelClientOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostCancelClientOrders", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostOrdersInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostOrdersInfo", args...)
+func (this *LbankCore) SpotPrivatePostOrdersInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostOrdersInfo", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostOrdersInfoHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostOrdersInfoHistory", args...)
+func (this *LbankCore) SpotPrivatePostOrdersInfoHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostOrdersInfoHistory", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostOrderTransactionDetail(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostOrderTransactionDetail", args...)
+func (this *LbankCore) SpotPrivatePostOrderTransactionDetail (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostOrderTransactionDetail", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostTransactionHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostTransactionHistory", args...)
+func (this *LbankCore) SpotPrivatePostTransactionHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostTransactionHistory", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostOrdersInfoNoDeal(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostOrdersInfoNoDeal", args...)
+func (this *LbankCore) SpotPrivatePostOrdersInfoNoDeal (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostOrdersInfoNoDeal", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostWithdraw(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostWithdraw", args...)
+func (this *LbankCore) SpotPrivatePostWithdraw (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostWithdraw", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostWithdrawCancel(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostWithdrawCancel", args...)
+func (this *LbankCore) SpotPrivatePostWithdrawCancel (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostWithdrawCancel", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostWithdraws(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostWithdraws", args...)
+func (this *LbankCore) SpotPrivatePostWithdraws (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostWithdraws", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementUserInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostSupplementUserInfo", args...)
+func (this *LbankCore) SpotPrivatePostSupplementUserInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostSupplementUserInfo", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementWithdraw(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostSupplementWithdraw", args...)
+func (this *LbankCore) SpotPrivatePostSupplementWithdraw (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostSupplementWithdraw", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementDepositHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostSupplementDepositHistory", args...)
+func (this *LbankCore) SpotPrivatePostSupplementDepositHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostSupplementDepositHistory", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementWithdraws(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostSupplementWithdraws", args...)
+func (this *LbankCore) SpotPrivatePostSupplementWithdraws (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostSupplementWithdraws", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementGetDepositAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostSupplementGetDepositAddress", args...)
+func (this *LbankCore) SpotPrivatePostSupplementGetDepositAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostSupplementGetDepositAddress", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementAssetDetail(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostSupplementAssetDetail", args...)
+func (this *LbankCore) SpotPrivatePostSupplementAssetDetail (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostSupplementAssetDetail", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementCustomerTradeFee(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostSupplementCustomerTradeFee", args...)
+func (this *LbankCore) SpotPrivatePostSupplementCustomerTradeFee (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostSupplementCustomerTradeFee", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementApiRestrictions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostSupplementApiRestrictions", args...)
+func (this *LbankCore) SpotPrivatePostSupplementApiRestrictions (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostSupplementApiRestrictions", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementSystemPing(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostSupplementSystemPing", args...)
+func (this *LbankCore) SpotPrivatePostSupplementSystemPing (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostSupplementSystemPing", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementCreateOrderTest(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostSupplementCreateOrderTest", args...)
+func (this *LbankCore) SpotPrivatePostSupplementCreateOrderTest (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostSupplementCreateOrderTest", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementCreateOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostSupplementCreateOrder", args...)
+func (this *LbankCore) SpotPrivatePostSupplementCreateOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostSupplementCreateOrder", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementCancelOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostSupplementCancelOrder", args...)
+func (this *LbankCore) SpotPrivatePostSupplementCancelOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostSupplementCancelOrder", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementCancelOrderBySymbol(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostSupplementCancelOrderBySymbol", args...)
+func (this *LbankCore) SpotPrivatePostSupplementCancelOrderBySymbol (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostSupplementCancelOrderBySymbol", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementOrdersInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostSupplementOrdersInfo", args...)
+func (this *LbankCore) SpotPrivatePostSupplementOrdersInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostSupplementOrdersInfo", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementOrdersInfoNoDeal(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostSupplementOrdersInfoNoDeal", args...)
+func (this *LbankCore) SpotPrivatePostSupplementOrdersInfoNoDeal (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostSupplementOrdersInfoNoDeal", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementOrdersInfoHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostSupplementOrdersInfoHistory", args...)
+func (this *LbankCore) SpotPrivatePostSupplementOrdersInfoHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostSupplementOrdersInfoHistory", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementUserInfoAccount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostSupplementUserInfoAccount", args...)
+func (this *LbankCore) SpotPrivatePostSupplementUserInfoAccount (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostSupplementUserInfoAccount", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementTransactionHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("spotPrivatePostSupplementTransactionHistory", args...)
+func (this *LbankCore) SpotPrivatePostSupplementTransactionHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("spotPrivatePostSupplementTransactionHistory", args...)
 }
 
-func (this *LbankCore) ContractPublicGetCfdOpenApiV1PubGetTime(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("contractPublicGetCfdOpenApiV1PubGetTime", args...)
+func (this *LbankCore) ContractPublicGetCfdOpenApiV1PubGetTime (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("contractPublicGetCfdOpenApiV1PubGetTime", args...)
 }
 
-func (this *LbankCore) ContractPublicGetCfdOpenApiV1PubInstrument(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("contractPublicGetCfdOpenApiV1PubInstrument", args...)
+func (this *LbankCore) ContractPublicGetCfdOpenApiV1PubInstrument (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("contractPublicGetCfdOpenApiV1PubInstrument", args...)
 }
 
-func (this *LbankCore) ContractPublicGetCfdOpenApiV1PubMarketData(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("contractPublicGetCfdOpenApiV1PubMarketData", args...)
+func (this *LbankCore) ContractPublicGetCfdOpenApiV1PubMarketData (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("contractPublicGetCfdOpenApiV1PubMarketData", args...)
 }
 
-func (this *LbankCore) ContractPublicGetCfdOpenApiV1PubMarketOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("contractPublicGetCfdOpenApiV1PubMarketOrder", args...)
+func (this *LbankCore) ContractPublicGetCfdOpenApiV1PubMarketOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("contractPublicGetCfdOpenApiV1PubMarketOrder", args...)
 }

@@ -7,66 +7,66 @@
 
 package ccxt
 
-func (this *CryptomusCore) PublicGetV2UserApiExchangeMarkets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetV2UserApiExchangeMarkets", args...)
+func (this *CryptomusCore) PublicGetV2UserApiExchangeMarkets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetV2UserApiExchangeMarkets", args...)
 }
 
-func (this *CryptomusCore) PublicGetV2UserApiExchangeMarketPrice(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetV2UserApiExchangeMarketPrice", args...)
+func (this *CryptomusCore) PublicGetV2UserApiExchangeMarketPrice (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetV2UserApiExchangeMarketPrice", args...)
 }
 
-func (this *CryptomusCore) PublicGetV1ExchangeMarketAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetV1ExchangeMarketAssets", args...)
+func (this *CryptomusCore) PublicGetV1ExchangeMarketAssets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetV1ExchangeMarketAssets", args...)
 }
 
-func (this *CryptomusCore) PublicGetV1ExchangeMarketOrderBookCurrencyPair(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetV1ExchangeMarketOrderBookCurrencyPair", args...)
+func (this *CryptomusCore) PublicGetV1ExchangeMarketOrderBookCurrencyPair (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetV1ExchangeMarketOrderBookCurrencyPair", args...)
 }
 
-func (this *CryptomusCore) PublicGetV1ExchangeMarketTickers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetV1ExchangeMarketTickers", args...)
+func (this *CryptomusCore) PublicGetV1ExchangeMarketTickers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetV1ExchangeMarketTickers", args...)
 }
 
-func (this *CryptomusCore) PublicGetV1ExchangeMarketTradesCurrencyPair(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetV1ExchangeMarketTradesCurrencyPair", args...)
+func (this *CryptomusCore) PublicGetV1ExchangeMarketTradesCurrencyPair (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetV1ExchangeMarketTradesCurrencyPair", args...)
 }
 
-func (this *CryptomusCore) PrivateGetV2UserApiExchangeOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetV2UserApiExchangeOrders", args...)
+func (this *CryptomusCore) PrivateGetV2UserApiExchangeOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetV2UserApiExchangeOrders", args...)
 }
 
-func (this *CryptomusCore) PrivateGetV2UserApiExchangeOrdersHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetV2UserApiExchangeOrdersHistory", args...)
+func (this *CryptomusCore) PrivateGetV2UserApiExchangeOrdersHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetV2UserApiExchangeOrdersHistory", args...)
 }
 
-func (this *CryptomusCore) PrivateGetV2UserApiExchangeAccountBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetV2UserApiExchangeAccountBalance", args...)
+func (this *CryptomusCore) PrivateGetV2UserApiExchangeAccountBalance (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetV2UserApiExchangeAccountBalance", args...)
 }
 
-func (this *CryptomusCore) PrivateGetV2UserApiExchangeAccountTariffs(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetV2UserApiExchangeAccountTariffs", args...)
+func (this *CryptomusCore) PrivateGetV2UserApiExchangeAccountTariffs (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetV2UserApiExchangeAccountTariffs", args...)
 }
 
-func (this *CryptomusCore) PrivateGetV2UserApiPaymentServices(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetV2UserApiPaymentServices", args...)
+func (this *CryptomusCore) PrivateGetV2UserApiPaymentServices (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetV2UserApiPaymentServices", args...)
 }
 
-func (this *CryptomusCore) PrivateGetV2UserApiPayoutServices(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetV2UserApiPayoutServices", args...)
+func (this *CryptomusCore) PrivateGetV2UserApiPayoutServices (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetV2UserApiPayoutServices", args...)
 }
 
-func (this *CryptomusCore) PrivateGetV2UserApiTransactionList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetV2UserApiTransactionList", args...)
+func (this *CryptomusCore) PrivateGetV2UserApiTransactionList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetV2UserApiTransactionList", args...)
 }
 
-func (this *CryptomusCore) PrivatePostV2UserApiExchangeOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostV2UserApiExchangeOrders", args...)
+func (this *CryptomusCore) PrivatePostV2UserApiExchangeOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostV2UserApiExchangeOrders", args...)
 }
 
-func (this *CryptomusCore) PrivatePostV2UserApiExchangeOrdersMarket(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostV2UserApiExchangeOrdersMarket", args...)
+func (this *CryptomusCore) PrivatePostV2UserApiExchangeOrdersMarket (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostV2UserApiExchangeOrdersMarket", args...)
 }
 
-func (this *CryptomusCore) PrivateDeleteV2UserApiExchangeOrdersOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeleteV2UserApiExchangeOrdersOrderId", args...)
+func (this *CryptomusCore) PrivateDeleteV2UserApiExchangeOrdersOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeleteV2UserApiExchangeOrdersOrderId", args...)
 }

@@ -147,6 +147,7 @@ from ccxt.async_support.latoken import latoken                                  
 from ccxt.async_support.lbank import lbank                                      # noqa: F401
 from ccxt.async_support.lighter import lighter                                  # noqa: F401
 from ccxt.async_support.luno import luno                                        # noqa: F401
+from ccxt.async_support.matrixport import matrixport                            # noqa: F401
 from ccxt.async_support.mercado import mercado                                  # noqa: F401
 from ccxt.async_support.mexc import mexc                                        # noqa: F401
 from ccxt.async_support.modetrade import modetrade                              # noqa: F401
@@ -259,6 +260,7 @@ exchanges = [
     'lbank',
     'lighter',
     'luno',
+    'matrixport',
     'mercado',
     'mexc',
     'modetrade',

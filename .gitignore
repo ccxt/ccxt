@@ -43,3 +43,5 @@ obj/
 __debug*
 *.o
 .custom_gitignore
+matrixport-go-test/
+matrixport-service/

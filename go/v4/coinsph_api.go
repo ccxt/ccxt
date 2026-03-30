@@ -7,286 +7,286 @@
 
 package ccxt
 
-func (this *CoinsphCore) PublicGetOpenapiV1Ping(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOpenapiV1Ping", args...)
+func (this *CoinsphCore) PublicGetOpenapiV1Ping (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenapiV1Ping", args...)
 }
 
-func (this *CoinsphCore) PublicGetOpenapiV1Time(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOpenapiV1Time", args...)
+func (this *CoinsphCore) PublicGetOpenapiV1Time (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenapiV1Time", args...)
 }
 
-func (this *CoinsphCore) PublicGetOpenapiV1UserIp(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOpenapiV1UserIp", args...)
+func (this *CoinsphCore) PublicGetOpenapiV1UserIp (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenapiV1UserIp", args...)
 }
 
-func (this *CoinsphCore) PublicGetOpenapiQuoteV1Ticker24hr(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOpenapiQuoteV1Ticker24hr", args...)
+func (this *CoinsphCore) PublicGetOpenapiQuoteV1Ticker24hr (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenapiQuoteV1Ticker24hr", args...)
 }
 
-func (this *CoinsphCore) PublicGetOpenapiQuoteV1TickerPrice(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOpenapiQuoteV1TickerPrice", args...)
+func (this *CoinsphCore) PublicGetOpenapiQuoteV1TickerPrice (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenapiQuoteV1TickerPrice", args...)
 }
 
-func (this *CoinsphCore) PublicGetOpenapiQuoteV1TickerBookTicker(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOpenapiQuoteV1TickerBookTicker", args...)
+func (this *CoinsphCore) PublicGetOpenapiQuoteV1TickerBookTicker (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenapiQuoteV1TickerBookTicker", args...)
 }
 
-func (this *CoinsphCore) PublicGetOpenapiV1ExchangeInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOpenapiV1ExchangeInfo", args...)
+func (this *CoinsphCore) PublicGetOpenapiV1ExchangeInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenapiV1ExchangeInfo", args...)
 }
 
-func (this *CoinsphCore) PublicGetOpenapiQuoteV1Depth(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOpenapiQuoteV1Depth", args...)
+func (this *CoinsphCore) PublicGetOpenapiQuoteV1Depth (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenapiQuoteV1Depth", args...)
 }
 
-func (this *CoinsphCore) PublicGetOpenapiQuoteV1Klines(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOpenapiQuoteV1Klines", args...)
+func (this *CoinsphCore) PublicGetOpenapiQuoteV1Klines (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenapiQuoteV1Klines", args...)
 }
 
-func (this *CoinsphCore) PublicGetOpenapiQuoteV1Trades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOpenapiQuoteV1Trades", args...)
+func (this *CoinsphCore) PublicGetOpenapiQuoteV1Trades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenapiQuoteV1Trades", args...)
 }
 
-func (this *CoinsphCore) PublicGetOpenapiV1Pairs(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOpenapiV1Pairs", args...)
+func (this *CoinsphCore) PublicGetOpenapiV1Pairs (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenapiV1Pairs", args...)
 }
 
-func (this *CoinsphCore) PublicGetOpenapiQuoteV1AvgPrice(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOpenapiQuoteV1AvgPrice", args...)
+func (this *CoinsphCore) PublicGetOpenapiQuoteV1AvgPrice (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenapiQuoteV1AvgPrice", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1CheckSysStatus(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenapiV1CheckSysStatus", args...)
+func (this *CoinsphCore) PrivateGetOpenapiV1CheckSysStatus (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenapiV1CheckSysStatus", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiWalletV1ConfigGetall(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenapiWalletV1ConfigGetall", args...)
+func (this *CoinsphCore) PrivateGetOpenapiWalletV1ConfigGetall (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenapiWalletV1ConfigGetall", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiWalletV1DepositAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenapiWalletV1DepositAddress", args...)
+func (this *CoinsphCore) PrivateGetOpenapiWalletV1DepositAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenapiWalletV1DepositAddress", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiWalletV1DepositHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenapiWalletV1DepositHistory", args...)
+func (this *CoinsphCore) PrivateGetOpenapiWalletV1DepositHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenapiWalletV1DepositHistory", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiWalletV1WithdrawHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenapiWalletV1WithdrawHistory", args...)
+func (this *CoinsphCore) PrivateGetOpenapiWalletV1WithdrawHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenapiWalletV1WithdrawHistory", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiWalletV1WithdrawAddressWhitelist(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenapiWalletV1WithdrawAddressWhitelist", args...)
+func (this *CoinsphCore) PrivateGetOpenapiWalletV1WithdrawAddressWhitelist (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenapiWalletV1WithdrawAddressWhitelist", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1Account(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenapiV1Account", args...)
+func (this *CoinsphCore) PrivateGetOpenapiV1Account (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenapiV1Account", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1ApiKeys(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenapiV1ApiKeys", args...)
+func (this *CoinsphCore) PrivateGetOpenapiV1ApiKeys (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenapiV1ApiKeys", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1OpenOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenapiV1OpenOrders", args...)
+func (this *CoinsphCore) PrivateGetOpenapiV1OpenOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenapiV1OpenOrders", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1AssetTradeFee(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenapiV1AssetTradeFee", args...)
+func (this *CoinsphCore) PrivateGetOpenapiV1AssetTradeFee (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenapiV1AssetTradeFee", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1Order(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenapiV1Order", args...)
+func (this *CoinsphCore) PrivateGetOpenapiV1Order (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenapiV1Order", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1HistoryOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenapiV1HistoryOrders", args...)
+func (this *CoinsphCore) PrivateGetOpenapiV1HistoryOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenapiV1HistoryOrders", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1MyTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenapiV1MyTrades", args...)
+func (this *CoinsphCore) PrivateGetOpenapiV1MyTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenapiV1MyTrades", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1CapitalDepositHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenapiV1CapitalDepositHistory", args...)
+func (this *CoinsphCore) PrivateGetOpenapiV1CapitalDepositHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenapiV1CapitalDepositHistory", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1CapitalWithdrawHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenapiV1CapitalWithdrawHistory", args...)
+func (this *CoinsphCore) PrivateGetOpenapiV1CapitalWithdrawHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenapiV1CapitalWithdrawHistory", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV3PaymentRequestGetPaymentRequest(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenapiV3PaymentRequestGetPaymentRequest", args...)
+func (this *CoinsphCore) PrivateGetOpenapiV3PaymentRequestGetPaymentRequest (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenapiV3PaymentRequestGetPaymentRequest", args...)
 }
 
-func (this *CoinsphCore) PrivateGetMerchantApiV1GetInvoices(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetMerchantApiV1GetInvoices", args...)
+func (this *CoinsphCore) PrivateGetMerchantApiV1GetInvoices (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetMerchantApiV1GetInvoices", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiAccountV3CryptoAccounts(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenapiAccountV3CryptoAccounts", args...)
+func (this *CoinsphCore) PrivateGetOpenapiAccountV3CryptoAccounts (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenapiAccountV3CryptoAccounts", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiTransferV3TransfersId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenapiTransferV3TransfersId", args...)
+func (this *CoinsphCore) PrivateGetOpenapiTransferV3TransfersId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenapiTransferV3TransfersId", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenapiV1SubAccountList", args...)
+func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenapiV1SubAccountList", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountAsset(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenapiV1SubAccountAsset", args...)
+func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountAsset (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenapiV1SubAccountAsset", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountTransferUniversalTransferHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenapiV1SubAccountTransferUniversalTransferHistory", args...)
+func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountTransferUniversalTransferHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenapiV1SubAccountTransferUniversalTransferHistory", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountTransferSubHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenapiV1SubAccountTransferSubHistory", args...)
+func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountTransferSubHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenapiV1SubAccountTransferSubHistory", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountApikeyIpRestriction(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenapiV1SubAccountApikeyIpRestriction", args...)
+func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountApikeyIpRestriction (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenapiV1SubAccountApikeyIpRestriction", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountWalletDepositAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenapiV1SubAccountWalletDepositAddress", args...)
+func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountWalletDepositAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenapiV1SubAccountWalletDepositAddress", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountWalletDepositHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenapiV1SubAccountWalletDepositHistory", args...)
+func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountWalletDepositHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenapiV1SubAccountWalletDepositHistory", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1FundCollectGetFundRecord(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenapiV1FundCollectGetFundRecord", args...)
+func (this *CoinsphCore) PrivateGetOpenapiV1FundCollectGetFundRecord (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenapiV1FundCollectGetFundRecord", args...)
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1AssetTransactionHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenapiV1AssetTransactionHistory", args...)
+func (this *CoinsphCore) PrivateGetOpenapiV1AssetTransactionHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenapiV1AssetTransactionHistory", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiWalletV1WithdrawApply(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenapiWalletV1WithdrawApply", args...)
+func (this *CoinsphCore) PrivatePostOpenapiWalletV1WithdrawApply (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenapiWalletV1WithdrawApply", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1OrderTest(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenapiV1OrderTest", args...)
+func (this *CoinsphCore) PrivatePostOpenapiV1OrderTest (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenapiV1OrderTest", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1Order(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenapiV1Order", args...)
+func (this *CoinsphCore) PrivatePostOpenapiV1Order (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenapiV1Order", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1CapitalWithdrawApply(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenapiV1CapitalWithdrawApply", args...)
+func (this *CoinsphCore) PrivatePostOpenapiV1CapitalWithdrawApply (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenapiV1CapitalWithdrawApply", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1CapitalDepositApply(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenapiV1CapitalDepositApply", args...)
+func (this *CoinsphCore) PrivatePostOpenapiV1CapitalDepositApply (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenapiV1CapitalDepositApply", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV3PaymentRequestPaymentRequests(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenapiV3PaymentRequestPaymentRequests", args...)
+func (this *CoinsphCore) PrivatePostOpenapiV3PaymentRequestPaymentRequests (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenapiV3PaymentRequestPaymentRequests", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV3PaymentRequestDeletePaymentRequest(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenapiV3PaymentRequestDeletePaymentRequest", args...)
+func (this *CoinsphCore) PrivatePostOpenapiV3PaymentRequestDeletePaymentRequest (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenapiV3PaymentRequestDeletePaymentRequest", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV3PaymentRequestPaymentRequestReminder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenapiV3PaymentRequestPaymentRequestReminder", args...)
+func (this *CoinsphCore) PrivatePostOpenapiV3PaymentRequestPaymentRequestReminder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenapiV3PaymentRequestPaymentRequestReminder", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1UserDataStream(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenapiV1UserDataStream", args...)
+func (this *CoinsphCore) PrivatePostOpenapiV1UserDataStream (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenapiV1UserDataStream", args...)
 }
 
-func (this *CoinsphCore) PrivatePostMerchantApiV1Invoices(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostMerchantApiV1Invoices", args...)
+func (this *CoinsphCore) PrivatePostMerchantApiV1Invoices (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostMerchantApiV1Invoices", args...)
 }
 
-func (this *CoinsphCore) PrivatePostMerchantApiV1InvoicesCancel(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostMerchantApiV1InvoicesCancel", args...)
+func (this *CoinsphCore) PrivatePostMerchantApiV1InvoicesCancel (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostMerchantApiV1InvoicesCancel", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiConvertV1GetSupportedTradingPairs(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenapiConvertV1GetSupportedTradingPairs", args...)
+func (this *CoinsphCore) PrivatePostOpenapiConvertV1GetSupportedTradingPairs (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenapiConvertV1GetSupportedTradingPairs", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiConvertV1GetQuote(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenapiConvertV1GetQuote", args...)
+func (this *CoinsphCore) PrivatePostOpenapiConvertV1GetQuote (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenapiConvertV1GetQuote", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiConvertV1AccpetQuote(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenapiConvertV1AccpetQuote", args...)
+func (this *CoinsphCore) PrivatePostOpenapiConvertV1AccpetQuote (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenapiConvertV1AccpetQuote", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiConvertV1QueryOrderHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenapiConvertV1QueryOrderHistory", args...)
+func (this *CoinsphCore) PrivatePostOpenapiConvertV1QueryOrderHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenapiConvertV1QueryOrderHistory", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiFiatV1SupportChannel(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenapiFiatV1SupportChannel", args...)
+func (this *CoinsphCore) PrivatePostOpenapiFiatV1SupportChannel (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenapiFiatV1SupportChannel", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiFiatV1CashOut(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenapiFiatV1CashOut", args...)
+func (this *CoinsphCore) PrivatePostOpenapiFiatV1CashOut (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenapiFiatV1CashOut", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiFiatV1History(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenapiFiatV1History", args...)
+func (this *CoinsphCore) PrivatePostOpenapiFiatV1History (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenapiFiatV1History", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiMigrationV4Sellorder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenapiMigrationV4Sellorder", args...)
+func (this *CoinsphCore) PrivatePostOpenapiMigrationV4Sellorder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenapiMigrationV4Sellorder", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiMigrationV4ValidateField(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenapiMigrationV4ValidateField", args...)
+func (this *CoinsphCore) PrivatePostOpenapiMigrationV4ValidateField (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenapiMigrationV4ValidateField", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiTransferV3Transfers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenapiTransferV3Transfers", args...)
+func (this *CoinsphCore) PrivatePostOpenapiTransferV3Transfers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenapiTransferV3Transfers", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1SubAccountCreate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenapiV1SubAccountCreate", args...)
+func (this *CoinsphCore) PrivatePostOpenapiV1SubAccountCreate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenapiV1SubAccountCreate", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1SubAccountTransferUniversalTransfer(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenapiV1SubAccountTransferUniversalTransfer", args...)
+func (this *CoinsphCore) PrivatePostOpenapiV1SubAccountTransferUniversalTransfer (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenapiV1SubAccountTransferUniversalTransfer", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1SubAccountTransferSubToMaster(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenapiV1SubAccountTransferSubToMaster", args...)
+func (this *CoinsphCore) PrivatePostOpenapiV1SubAccountTransferSubToMaster (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenapiV1SubAccountTransferSubToMaster", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1SubAccountApikeyAddIpRestriction(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenapiV1SubAccountApikeyAddIpRestriction", args...)
+func (this *CoinsphCore) PrivatePostOpenapiV1SubAccountApikeyAddIpRestriction (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenapiV1SubAccountApikeyAddIpRestriction", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1SubAccountApikeyDeleteIpRestriction(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenapiV1SubAccountApikeyDeleteIpRestriction", args...)
+func (this *CoinsphCore) PrivatePostOpenapiV1SubAccountApikeyDeleteIpRestriction (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenapiV1SubAccountApikeyDeleteIpRestriction", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1FundCollectCollectFromSubAccount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenapiV1FundCollectCollectFromSubAccount", args...)
+func (this *CoinsphCore) PrivatePostOpenapiV1FundCollectCollectFromSubAccount (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenapiV1FundCollectCollectFromSubAccount", args...)
 }
 
-func (this *CoinsphCore) PrivatePutOpenapiV1UserDataStream(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePutOpenapiV1UserDataStream", args...)
+func (this *CoinsphCore) PrivatePutOpenapiV1UserDataStream (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePutOpenapiV1UserDataStream", args...)
 }
 
-func (this *CoinsphCore) PrivateDeleteOpenapiV1Order(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeleteOpenapiV1Order", args...)
+func (this *CoinsphCore) PrivateDeleteOpenapiV1Order (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeleteOpenapiV1Order", args...)
 }
 
-func (this *CoinsphCore) PrivateDeleteOpenapiV1OpenOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeleteOpenapiV1OpenOrders", args...)
+func (this *CoinsphCore) PrivateDeleteOpenapiV1OpenOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeleteOpenapiV1OpenOrders", args...)
 }
 
-func (this *CoinsphCore) PrivateDeleteOpenapiV1UserDataStream(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeleteOpenapiV1UserDataStream", args...)
+func (this *CoinsphCore) PrivateDeleteOpenapiV1UserDataStream (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeleteOpenapiV1UserDataStream", args...)
 }
