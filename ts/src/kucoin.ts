@@ -885,7 +885,7 @@ export default class kucoin extends Exchange {
             },
             'options': {
                 'hf': undefined, // would be auto set to `true/false` after first load
-                'uta': undefined,
+                'uta': false,
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
@@ -1520,8 +1520,8 @@ export default class kucoin extends Exchange {
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     async fetchStatus (params = {}) {
-        let uta = await this.isUnifiedEnabled ();
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchStatus', 'uta', false);
+        let uta = false;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchStatus', 'uta', uta);
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
         let response = undefined;
@@ -1591,8 +1591,8 @@ export default class kucoin extends Exchange {
     async fetchMarkets (params = {}): Promise<Market[]> {
         let fetchTickersFees = undefined;
         [ fetchTickersFees, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'fetchTickersFees', true);
-        let uta = await this.isUnifiedEnabled ();
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'uta', false);
+        let uta = false;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'uta', uta);
         if (uta) {
             return await this.fetchUTAMarkets (params);
         }
@@ -1705,7 +1705,6 @@ export default class kucoin extends Exchange {
         if (credentialsSet) {
             // load migration status for account
             promises.push (this.loadMigrationStatus ());
-            promises.push (this.isUnifiedEnabled ({ 'loadAccountMode': true }));
         }
         const responses = await Promise.all (promises);
         const symbolsData = fetchSpotMarkets ? this.safeList (responses[0], 'data') : [];
@@ -2201,7 +2200,10 @@ export default class kucoin extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        let uta = await this.isUnifiedEnabled ();
+        let uta = false;
+        if (this.checkRequiredCredentials (false)) {
+            uta = await this.isUTAEnabled ({ 'loadAccountMode': true });
+        }
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchCurrencies', 'uta', uta);
         let response = undefined;
         if (uta) {
@@ -2351,7 +2353,7 @@ export default class kucoin extends Exchange {
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     async fetchAccounts (params = {}): Promise<Account[]> {
-        let uta = await this.isUnifiedEnabled ();
+        let uta = await this.isUTAEnabled ();
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchAccounts', 'uta', uta);
         let response = undefined;
         let data = [];
@@ -2846,8 +2848,8 @@ export default class kucoin extends Exchange {
         await this.loadMarkets ();
         const request: Dict = {};
         symbols = this.marketSymbols (symbols, undefined, true, true);
-        let uta = await this.isUnifiedEnabled ();
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'uta', false);
+        let uta = false;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'uta', uta);
         const tradeType = this.safeString (params, 'tradeType');
         let firstMarket = undefined;
         if (symbols !== undefined) {
@@ -3047,8 +3049,8 @@ export default class kucoin extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let uta = await this.isUnifiedEnabled ();
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchTicker', 'uta', false);
+        let uta = false;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchTicker', 'uta', uta);
         let response = undefined;
         let result = undefined;
         let type = undefined;
@@ -3220,8 +3222,8 @@ export default class kucoin extends Exchange {
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let uta = await this.isUnifiedEnabled ();
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'uta', false);
+        let uta = false;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'uta', uta);
         if (uta) {
             return await this.fetchUTAOHLCV (symbol, timeframe, since, limit, params);
         } else if (market['contract']) {
@@ -3480,8 +3482,8 @@ export default class kucoin extends Exchange {
         [ accountType, params ] = this.handleOptionAndParams (params, 'fetchDepositAddress', 'accountType', accountType);
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         accountType = this.safeString (accountsByType, accountType, accountType);
-        let uta = await this.isUnifiedEnabled ();
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchDepositAddress', 'uta', false);
+        let uta = await this.isUTAEnabled ();
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchDepositAddress', 'uta', uta);
         if (accountType === 'contract') {
             return await this.fetchContractDepositAddress (code, params);
         } else if (uta || (accountType === 'uta') || (accountType === 'unified')) {
@@ -3593,7 +3595,7 @@ export default class kucoin extends Exchange {
         const request: Dict = {
             'currency': currency['id'],
         };
-        let uta = await this.isUnifiedEnabled ();
+        let uta = await this.isUTAEnabled ();
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchDepositAddressesByNetwork', 'uta', uta);
         let response = undefined;
         if (uta) {
@@ -3669,8 +3671,8 @@ export default class kucoin extends Exchange {
         const level = this.safeInteger (params, 'level', 2);
         const request: Dict = { 'symbol': market['id'] };
         const isAuthenticated = this.checkRequiredCredentials (false);
-        let uta = await this.isUnifiedEnabled ();
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'uta', false);
+        let uta = false;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'uta', uta);
         let response = undefined;
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
@@ -3833,7 +3835,7 @@ export default class kucoin extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let uta = await this.isUnifiedEnabled ();
+        let uta = await this.isUTAEnabled ();
         [ uta, params ] = this.handleOptionAndParams (params, 'createOrder', 'uta', uta);
         if (uta) {
             return await this.createUtaOrder (symbol, type, side, amount, price, params);
@@ -4726,7 +4728,7 @@ export default class kucoin extends Exchange {
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        let uta = await this.isUnifiedEnabled ();
+        let uta = await this.isUTAEnabled ();
         [ uta, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'uta', uta);
         if (uta) {
             return await this.cancelUtaOrder (id, symbol, params);
@@ -5014,7 +5016,7 @@ export default class kucoin extends Exchange {
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        let uta = await this.isUnifiedEnabled ();
+        let uta = await this.isUTAEnabled ();
         [ uta, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'uta', uta);
         if (uta) {
             return await this.cancelAllUtaOrders (symbol, params);
@@ -5202,7 +5204,7 @@ export default class kucoin extends Exchange {
      */
     async fetchOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        let uta = await this.isUnifiedEnabled ();
+        let uta = await this.isUTAEnabled ();
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchOrdersByStatus', 'uta', uta);
         let marketType = undefined;
         if (symbol === undefined) {
@@ -5701,8 +5703,8 @@ export default class kucoin extends Exchange {
      */
     async fetchOrder (id: Str, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        let uta = await this.isUnifiedEnabled ();
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchOrder', 'uta');
+        let uta = await this.isUTAEnabled ();
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchOrder', 'uta', uta);
         if (uta) {
             params = this.omit (params, 'uta');
             return await this.fetchUtaOrder (id, symbol, params);
@@ -6491,7 +6493,7 @@ export default class kucoin extends Exchange {
             market = this.market (symbol);
         }
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
-        let uta = await this.isUnifiedEnabled ();
+        let uta = await this.isUTAEnabled ();
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'uta', uta);
         if (uta) {
             params = this.extend (params, { 'marketType': marketType });
@@ -6821,8 +6823,8 @@ export default class kucoin extends Exchange {
         // if (limit !== undefined) {
         //     request['pageSize'] = limit;
         // }
-        let uta = await this.isUnifiedEnabled ();
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'uta', false);
+        let uta = false;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'uta', uta);
         let response = undefined;
         let trades = undefined;
         let type = undefined;
@@ -7243,8 +7245,8 @@ export default class kucoin extends Exchange {
     async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let uta = await this.isUnifiedEnabled ();
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchTradingFee', 'uta', false);
+        let uta = await this.isUTAEnabled ();
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchTradingFee', 'uta', uta);
         const request: Dict = {};
         let response = undefined;
         let entry: Dict = undefined;
@@ -7829,7 +7831,7 @@ export default class kucoin extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let uta = await this.isUnifiedEnabled ();
+        let uta = await this.isUTAEnabled ();
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'uta', uta);
         if (uta) {
             return await this.fetchUtaBalance (params);
@@ -8208,7 +8210,7 @@ export default class kucoin extends Exchange {
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         await this.loadMarkets ();
-        let uta = await this.isUnifiedEnabled ();
+        let uta = await this.isUTAEnabled ();
         [ uta, params ] = this.handleOptionAndParams (params, 'transfer', 'uta', uta);
         if (uta) {
             return await this.transferUta (code, amount, fromAccount, toAccount, params);
@@ -8723,8 +8725,8 @@ export default class kucoin extends Exchange {
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        let uta = await this.isUnifiedEnabled ();
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'uta');
+        let uta = await this.isUTAEnabled ();
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'uta', uta);
         let hf = undefined;
         [ hf, params ] = this.handleHfAndParams (params);
         let requestedType = undefined;
@@ -9512,7 +9514,7 @@ export default class kucoin extends Exchange {
                 return await this.setContractLeverage (leverage, symbol, params);
             }
         }
-        let uta = await this.isUnifiedEnabled ();
+        let uta = await this.isUTAEnabled ();
         [ uta, params ] = this.handleOptionAndParams (params, 'setLeverage', 'uta', uta);
         if (uta) {
             throw new NotSupported (this.id + ' setLeverage with params["uta"] is supported for contract markets only');
@@ -9558,7 +9560,7 @@ export default class kucoin extends Exchange {
             'symbol': market['id'],
             'leverage': leverage.toString (),
         };
-        let uta = await this.isUnifiedEnabled ();
+        let uta = await this.isUTAEnabled ();
         [ uta, params ] = this.handleOptionAndParams (params, 'setLeverage', 'uta', uta);
         let response = undefined;
         if (uta) {
@@ -9614,7 +9616,7 @@ export default class kucoin extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let uta = await this.isUnifiedEnabled ();
+        let uta = false;
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchFundingRate', 'uta', uta);
         let response = undefined;
         if (uta) {
@@ -9737,7 +9739,7 @@ export default class kucoin extends Exchange {
             'symbol': market['id'],
         };
         const until = this.safeInteger (params, 'until');
-        let uta = await this.isUnifiedEnabled ();
+        let uta = false;
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'uta', uta);
         params = this.omit (params, 'until');
         let start = since;
@@ -9907,7 +9909,7 @@ export default class kucoin extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let uta = await this.isUnifiedEnabled ();
+        let uta = await this.isUTAEnabled ();
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchPosition', 'uta', uta);
         let response = undefined;
         let position: Dict = undefined;
@@ -10003,7 +10005,7 @@ export default class kucoin extends Exchange {
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        let uta = await this.isUnifiedEnabled ();
+        let uta = await this.isUTAEnabled ();
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'uta', uta);
         let response = undefined;
         if (uta) {
@@ -10078,7 +10080,7 @@ export default class kucoin extends Exchange {
      */
     async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        let uta = await this.isUnifiedEnabled ();
+        let uta = await this.isUTAEnabled ();
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchPositionsHistory', 'uta', uta);
         let response = undefined;
         let request: Dict = {};
@@ -10378,7 +10380,7 @@ export default class kucoin extends Exchange {
      */
     async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        let uta = await this.isUnifiedEnabled ();
+        let uta = await this.isUTAEnabled ();
         [ uta, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'uta', uta);
         let market = undefined;
         let isContractMarket = true; // default to contract market orders if symbol is not provided, uta endpoint requires a symbol to be provided
@@ -10780,7 +10782,7 @@ export default class kucoin extends Exchange {
         if (!market['contract']) {
             throw new BadRequest (this.id + ' fetchMarketLeverageTiers() supports contract markets only');
         }
-        let uta = await this.isUnifiedEnabled ();
+        let uta = false;
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchMarketLeverageTiers', 'uta', uta);
         if (uta) {
             const result = await this.fetchLeverageTiers ([ symbol ], params);
@@ -11051,21 +11053,20 @@ export default class kucoin extends Exchange {
 
     /**
      * @method
-     * @name kucoin#isUnifiedEnabled
+     * @name kucoin#isUTAEnabled
      * @see https://www.kucoin.com/docs-new/rest/ua/get-account-mode
      * @description returns true or false so the user can check if unified account is enabled
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true if unified account is enabled, false otherwise
      */
-    async isUnifiedEnabled (params = {}) {
-        const loadAccountMode = this.safeBool (params, 'loadAccountMode', false);
-        if (loadAccountMode) {
-            params = this.omit (params, 'loadAccountMode');
+    async isUTAEnabled (params = {}) {
+        let uta = this.safeBool (this.options, 'uta');
+        if (uta === undefined) {
             const response = await this.utaPrivateGetAccountMode (params);
             const data = this.safeDict (response, 'data', {});
             const accountMode = this.safeString (data, 'selfAccountMode');
-            const isUnified = (accountMode === 'UNIFIED');
-            this.options['uta'] = isUnified;
+            uta = (accountMode === 'UNIFIED');
+            this.options['uta'] = uta;
         }
         return this.safeBool (this.options, 'uta', false);
     }
@@ -11104,6 +11105,10 @@ export default class kucoin extends Exchange {
             if (((method === 'GET') || (method === 'DELETE')) && (path !== 'orders/multi-cancel')) {
                 endpoint += '?' + this.rawencode (query);
             } else {
+                if (endpoint === '/api/ua/v1/classic/order/place') {
+                    const tradeType = this.safeString (query, 'tradeType');
+                    endpoint += '?tradeType=' + tradeType;
+                }
                 body = this.json (query);
                 endpart = body;
                 headers['Content-Type'] = 'application/json';
