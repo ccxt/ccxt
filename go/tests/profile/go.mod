@@ -2,9 +2,9 @@ module github.com/ccxt/tests/profile
 
 go 1.24.0
 
-replace github.com/ccxt/ccxt/go/v4 => ../../ccxt
+replace github.com/mtan11/ccxt/go/v4 => ../../ccxt
 
-require github.com/ccxt/ccxt/go/v4 v4.0.0-00010101000000-000000000000
+require github.com/mtan11/ccxt/go/v4 v4.0.0-00010101000000-000000000000
 
 require (
 	github.com/ProjectZKM/Ziren/crates/go-runtime/zkvm_runtime v0.0.0-20251001021608-1fe7b43fc4d6 // indirect

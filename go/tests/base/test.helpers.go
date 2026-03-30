@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"sync"
 
-	ccxt "github.com/ccxt/ccxt/go/v4"
+	ccxt "github.com/mtan11/ccxt/go/v4"
 )
 
 func SafeValue(obj interface{}, key interface{}, defaultValue interface{}) interface{} {

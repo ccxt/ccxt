@@ -5,7 +5,7 @@ import (
 	"log"
 	"sync"
 
-	ccxtpro "github.com/ccxt/ccxt/go/v4/pro"
+	ccxtpro "github.com/mtan11/ccxt/go/v4/pro"
 )
 
 var wg sync.WaitGroup

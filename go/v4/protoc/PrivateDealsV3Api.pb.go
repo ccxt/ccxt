@@ -174,7 +174,7 @@ const file_PrivateDealsV3Api_proto_rawDesc = "" +
 	" \x01(\tR\tfeeAmount\x12 \n" +
 	"\vfeeCurrency\x18\v \x01(\tR\vfeeCurrency\x12\x12\n" +
 	"\x04time\x18\f \x01(\x03R\x04timeB]\n" +
-	"\x1ccom.mxc.push.common.protobufB\x16PrivateDealsV3ApiProtoH\x01P\x01Z!github.com/ccxt/ccxt/go/v4/protocb\x06proto3"
+	"\x1ccom.mxc.push.common.protobufB\x16PrivateDealsV3ApiProtoH\x01P\x01Z!github.com/mtan11/ccxt/go/v4/protocb\x06proto3"
 
 var (
 	file_PrivateDealsV3Api_proto_rawDescOnce sync.Once

@@ -1,6 +1,6 @@
 package base
 
-import ccxt "github.com/ccxt/ccxt/go/v4"
+import ccxt "github.com/mtan11/ccxt/go/v4"
 
 // this test ensures we have all types defined in ccxt, alias exchanges, etc
 

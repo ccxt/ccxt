@@ -165,7 +165,7 @@ const file_PublicAggreDepthsV3Api_proto_rawDesc = "" +
 	"\x19PublicAggreDepthV3ApiItem\x12\x14\n" +
 	"\x05price\x18\x01 \x01(\tR\x05price\x12\x1a\n" +
 	"\bquantity\x18\x02 \x01(\tR\bquantityBb\n" +
-	"\x1ccom.mxc.push.common.protobufB\x1bPublicAggreDepthsV3ApiProtoH\x01P\x01Z!github.com/ccxt/ccxt/go/v4/protocb\x06proto3"
+	"\x1ccom.mxc.push.common.protobufB\x1bPublicAggreDepthsV3ApiProtoH\x01P\x01Z!github.com/mtan11/ccxt/go/v4/protocb\x06proto3"
 
 var (
 	file_PublicAggreDepthsV3Api_proto_rawDescOnce sync.Once

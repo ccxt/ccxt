@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"reflect"
 
-	ccxt "github.com/ccxt/ccxt/go/v4"
-	ccxtpro "github.com/ccxt/ccxt/go/v4/pro"
+	ccxt "github.com/mtan11/ccxt/go/v4"
+	ccxtpro "github.com/mtan11/ccxt/go/v4/pro"
 )
 
 func TestExchangeStruct(types reflect.Type, links map[string]interface{}) {

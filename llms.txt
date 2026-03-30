@@ -29,7 +29,7 @@ composer require ccxt/ccxt
 dotnet add package ccxt
 
 # Go
-go get github.com/ccxt/ccxt/go/v4
+go get github.com/mtan11/ccxt/go/v4
 ```
 
 ## AI Assistant Skills
