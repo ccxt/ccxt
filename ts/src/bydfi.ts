@@ -382,13 +382,15 @@ export default class bydfi extends Exchange {
                 },
                 'accountsByType': {
                     'spot': 'SPOT',
-                    'swap': 'SWAP',
-                    'funding': 'FUND',
+                    'swap': 'UMFUTURE',
+                    'funding': 'FUNDING',
+                    'inverse': 'CMFUTURE',
                 },
                 'accountsById': {
                     'SPOT': 'spot',
-                    'SWAP': 'swap',
-                    'FUND': 'funding',
+                    'UMFUTURE': 'swap',
+                    'FUNDING': 'funding',
+                    'CMFUTURE': 'inverse',
                 },
             },
         });
@@ -2459,15 +2461,15 @@ export default class bydfi extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let accountType = 'SPOT';
-        [ accountType, params ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'account', accountType);
-        let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'wallet', wallet);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        let wallet = undefined;
+        [ wallet, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'wallet');
         const request: Dict = {};
         let response = undefined;
-        if (!wallet) {
+        if (wallet === undefined) {
             const options = this.safeDict (this.options, 'accountsByType', {});
-            const parsedAccountType = this.safeString (options, accountType, accountType);
+            const parsedAccountType = this.safeStringUpper (options, type, type);
             request['walletType'] = parsedAccountType;
             //
             //     {
