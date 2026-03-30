@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	ccxt "github.com/ccxt/ccxt/go/v4"
-	ccxtpro "github.com/ccxt/ccxt/go/v4/pro"
+	"ccxt/go/ccxt"
+	ccxtpro "github.com/mtan11/ccxt/go/v4/pro"
 )
 
 func PlaceOrderWs() {

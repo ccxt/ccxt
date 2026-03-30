@@ -1,7 +1,7 @@
 package base
 
 import (
-	ccxtpro "github.com/ccxt/ccxt/go/v4/pro"
+	ccxtpro "github.com/mtan11/ccxt/go/v4/pro"
 )
 
 // this test ensures we have all types defined in ccxtpro and we don't need to import ccxt just for types

@@ -74,7 +74,7 @@ const file_PublicBookTickerBatchV3Api_proto_rawDesc = "" +
 	" PublicBookTickerBatchV3Api.proto\x1a\x1bPublicBookTickerV3Api.proto\"J\n" +
 	"\x1aPublicBookTickerBatchV3Api\x12,\n" +
 	"\x05items\x18\x01 \x03(\v2\x16.PublicBookTickerV3ApiR\x05itemsBf\n" +
-	"\x1ccom.mxc.push.common.protobufB\x1fPublicBookTickerBatchV3ApiProtoH\x01P\x01Z!github.com/ccxt/ccxt/go/v4/protocb\x06proto3"
+	"\x1ccom.mxc.push.common.protobufB\x1fPublicBookTickerBatchV3ApiProtoH\x01P\x01Z!github.com/mtan11/ccxt/go/v4/protocb\x06proto3"
 
 var (
 	file_PublicBookTickerBatchV3Api_proto_rawDescOnce sync.Once

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	ccxt "github.com/ccxt/ccxt/go/v4"
+	ccxt "github.com/mtan11/ccxt/go/v4"
 )
 
 const (

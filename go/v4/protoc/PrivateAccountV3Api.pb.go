@@ -137,7 +137,7 @@ const file_PrivateAccountV3Api_proto_rawDesc = "" +
 	"\x12frozenAmountChange\x18\x06 \x01(\tR\x12frozenAmountChange\x12\x12\n" +
 	"\x04type\x18\a \x01(\tR\x04type\x12\x12\n" +
 	"\x04time\x18\b \x01(\x03R\x04timeB_\n" +
-	"\x1ccom.mxc.push.common.protobufB\x18PrivateAccountV3ApiProtoH\x01P\x01Z!github.com/ccxt/ccxt/go/v4/protocb\x06proto3"
+	"\x1ccom.mxc.push.common.protobufB\x18PrivateAccountV3ApiProtoH\x01P\x01Z!github.com/mtan11/ccxt/go/v4/protocb\x06proto3"
 
 var (
 	file_PrivateAccountV3Api_proto_rawDescOnce sync.Once

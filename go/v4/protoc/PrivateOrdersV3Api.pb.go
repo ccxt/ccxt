@@ -317,7 +317,7 @@ const file_PrivateOrdersV3Api_proto_rawDesc = "" +
 	"\t_marketIdB\x13\n" +
 	"\x11_marketCurrencyIdB\r\n" +
 	"\v_currencyIdB^\n" +
-	"\x1ccom.mxc.push.common.protobufB\x17PrivateOrdersV3ApiProtoH\x01P\x01Z!github.com/ccxt/ccxt/go/v4/protocb\x06proto3"
+	"\x1ccom.mxc.push.common.protobufB\x17PrivateOrdersV3ApiProtoH\x01P\x01Z!github.com/mtan11/ccxt/go/v4/protocb\x06proto3"
 
 var (
 	file_PrivateOrdersV3Api_proto_rawDescOnce sync.Once

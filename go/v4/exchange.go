@@ -19,7 +19,7 @@ import (
 	"sync"
 	"time"
 
-	pb "github.com/ccxt/ccxt/go/v4/protoc"
+	pb "github.com/mtan11/ccxt/go/v4/protoc"
 	"golang.org/x/net/proxy"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"

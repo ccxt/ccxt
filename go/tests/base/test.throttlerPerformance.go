@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	ccxt "github.com/ccxt/ccxt/go/v4"
+	ccxt "github.com/mtan11/ccxt/go/v4"
 )
 
 func TestThrottlerPerformanceHelper(exchange ccxt.IExchange, numRequests interface{}) <-chan interface{} {
