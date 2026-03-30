@@ -1825,6 +1825,7 @@ class testMainClass {
 
     async testKucoin () {
         const exchange = this.initOfflineExchange ('kucoin');
+        exchange.options['uta'] = false; // prevents fetching account mode inside createOrder
         let reqHeaders = undefined;
         const spotId =  exchange.options['partner']['spot']['id'];
         const spotKey =  exchange.options['partner']['spot']['key'];
