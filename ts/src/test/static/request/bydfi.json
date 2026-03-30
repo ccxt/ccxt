@@ -154,6 +154,7 @@
             {
                 "description": "Fetch balance for swap",
                 "method": "fetchBalance",
+                "disabled": true,
                 "url": "https://api.bydfi.com/api/v1/fapi/account/balance?wallet=W001",
                 "input": [
                     {
