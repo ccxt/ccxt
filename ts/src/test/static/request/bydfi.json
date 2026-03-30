@@ -135,7 +135,7 @@
                     "spot",
                     "swap"
                 ],
-                "output": "{\"amount\":\"10\",\"asset\":\"USDC\",\"fromType\":\"SPOT\",\"toType\":\"SWAP\"}"
+                "output": "{\"amount\":\"10\",\"asset\":\"USDC\",\"fromType\":\"SPOT\",\"toType\":\"UMFUTURE\"}"
             },
             {
                 "description": "Transfer from swap to spot",
@@ -147,7 +147,7 @@
                     "swap",
                     "spot"
                 ],
-                "output": "{\"amount\":\"42\",\"asset\":\"USDC\",\"fromType\":\"SWAP\",\"toType\":\"SPOT\"}"
+                "output": "{\"amount\":\"42\",\"asset\":\"USDC\",\"fromType\":\"UMFUTURE\",\"toType\":\"SPOT\"}"
             }
         ],
         "fetchBalance": [
