@@ -2127,7 +2127,7 @@ export default class kucoin extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeNumber (market, 'lotSize'),
+                    'amount': this.safeNumber2 (market, 'lotSize', 'baseOrderStep'),
                     'price': this.safeNumber (market, 'tickSize'),
                 },
                 'limits': {
@@ -2202,7 +2202,7 @@ export default class kucoin extends Exchange {
     async fetchCurrencies (params = {}): Promise<Currencies> {
         let uta = false;
         if (this.checkRequiredCredentials (false)) {
-            uta = await this.isUTAEnabled ({ 'loadAccountMode': true });
+            uta = await this.isUTAEnabled ();
         }
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchCurrencies', 'uta', uta);
         let response = undefined;
@@ -11101,12 +11101,12 @@ export default class kucoin extends Exchange {
         let endpart = '';
         headers = (headers !== undefined) ? headers : {};
         let url = this.urls['api'][api];
+        const tradeType = this.safeString (query, 'tradeType');
         if (!this.isEmpty (query)) {
             if (((method === 'GET') || (method === 'DELETE')) && (path !== 'orders/multi-cancel')) {
                 endpoint += '?' + this.rawencode (query);
             } else {
                 if (endpoint === '/api/ua/v1/classic/order/place') {
-                    const tradeType = this.safeString (query, 'tradeType');
                     endpoint += '?tradeType=' + tradeType;
                 }
                 body = this.json (query);
@@ -11138,7 +11138,9 @@ export default class kucoin extends Exchange {
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
             headers['KC-API-SIGN'] = signature;
             let partner = this.safeDict (this.options, 'partner', {});
-            partner = isFuturePrivate ? this.safeValue (partner, 'future', partner) : this.safeValue (partner, 'spot', partner);
+            const isUtaFuturePrivate = isUtaPrivate && (tradeType === 'FUTURES');
+            const isFuturePartner = isFuturePrivate || isUtaFuturePrivate;
+            partner = isFuturePartner ? this.safeValue (partner, 'future', partner) : this.safeValue (partner, 'spot', partner);
             const partnerId = this.safeString (partner, 'id');
             const partnerSecret = this.safeString2 (partner, 'secret', 'key');
             if ((partnerId !== undefined) && (partnerSecret !== undefined)) {
