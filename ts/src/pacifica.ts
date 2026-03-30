@@ -3278,7 +3278,7 @@ export default class pacifica extends Exchange {
         const useBuilder = this.handleOption ('postActionRequest', 'builderFee', true);
         let builderCode = undefined;
         if (useBuilder) {
-            [ builderCode, params ] = this.handleOption ('postActionRequest', 'builderCode');
+            builderCode = this.handleOption ('postActionRequest', 'builderCode');
         }
         if (builderCode !== undefined) {
             const isOperationSupportBuilder = this.safeBool (this.options['builderSupportOperations'], operationType, false);
