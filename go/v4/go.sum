@@ -16,6 +16,8 @@ github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 h1:YLtO71vCjJRCBcrPMtQ9nqBsqpA1
 github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1/go.mod h1:hyedUtir6IdtD/7lIxGeCxkaw7y45JueMRL4DIyJDKs=
 github.com/elliottech/lighter-go v1.0.2 h1:b6uEk9v+ImqvVvnkG7zXqg+QRSo7jUCESs7dOGyH4O8=
 github.com/elliottech/lighter-go v1.0.2/go.mod h1:9ag9xaUe6jIFHcclX8BE8H5k6sdQEa6FYNwsmiMZnE0=
+github.com/elliottech/poseidon_crypto v0.0.11 h1:iX4rCg0m1XIX/7mhXVUEYUJIdQD57zNGNLeb6RZRl7g=
+github.com/elliottech/poseidon_crypto v0.0.11/go.mod h1:NhWxSjPGr5JXRuB2Aepl/+ZrbmUG3hvku/GarB1JR8c=
 github.com/emicklei/dot v1.6.2 h1:08GN+DD79cy/tzN6uLCT84+2Wk9u+wvqP+Hkx/dIR8A=
 github.com/emicklei/dot v1.6.2/go.mod h1:DeV7GvQtIw4h2u73RKBkkFdvVAz0D9fzeJrgPW6gy/s=
 github.com/ethereum/c-kzg-4844/v2 v2.1.5 h1:aVtoLK5xwJ6c5RiqO8g8ptJ5KU+2Hdquf6G3aXiHh5s=
