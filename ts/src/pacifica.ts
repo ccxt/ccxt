@@ -1252,7 +1252,6 @@ export default class pacifica extends Exchange {
      * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
      * @param {string|undefined} [params.agentAddress] only if agent wallet in use.
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
-     * @param {string|undefined} [params.builderCode] only if builder approved.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1317,7 +1316,6 @@ export default class pacifica extends Exchange {
          * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
          * @param {string|undefined} [params.agentAddress] only if agent wallet in use
          * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
-         * @param {string|undefined} [params.builderCode] only if builder approved
          * @returns {object} an [order structure]
          */
         const market = this.market (symbol);
@@ -3277,6 +3275,17 @@ export default class pacifica extends Exchange {
         if (operationType === 'undefined') {
             throw new ArgumentsRequired (this.id + ' action: ' + operationType + ' postActionRequest() requires "operationType"');
         }
+        const useBuilder = this.handleOption ('postActionRequest', 'builderFee', true);
+        let builderCode = undefined;
+        if (useBuilder) {
+            [ builderCode, params ] = this.handleOption ('postActionRequest', 'builderCode');
+        }
+        if (builderCode !== undefined) {
+            const isOperationSupportBuilder = this.safeBool (this.options['builderSupportOperations'], operationType, false);
+            if (isOperationSupportBuilder) {
+                sigPayload['builder_code'] = builderCode;
+            }
+        }
         let expiryWindow = undefined;
         [ expiryWindow, params ] = this.handleOptionAndParams2 (params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000);
         const timestamp = this.safeInteger (params, 'timestamp', this.milliseconds ());
@@ -3297,14 +3306,6 @@ export default class pacifica extends Exchange {
         finalHeaders['account'] = originAddress;
         if (agentAddress !== undefined) {
             finalHeaders['agent_wallet'] = agentAddress;
-        }
-        let builderCode = undefined;
-        [ builderCode, params ] = this.handleOptionAndParams (params, 'postActionRequest', 'builderCode');
-        const isOperationSupportBuilder = this.safeBool (this.options['builderSupportOperations'], operationType, false);
-        if (builderCode !== undefined) {
-            if (isOperationSupportBuilder) {
-                finalHeaders['builder_code'] = builderCode;
-            }
         }
         finalHeaders['signature'] = signature;
         finalHeaders['timestamp'] = this.safeInteger (signatureHeader, 'timestamp');
