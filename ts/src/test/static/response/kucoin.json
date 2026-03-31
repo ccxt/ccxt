@@ -1,7 +1,9 @@
 {
     "exchange": "kucoin",
     "skipKeys": [],
-    "options": {},
+    "options": {
+        "uta": false
+    },
     "methods": {
         "fetchPositionsHistory": [
             {
@@ -972,10 +974,7 @@
                 "input": [
                     "BTC/USDT:USDT",
                     1769328000000,
-                    1,
-                    {
-                        "uta": false
-                    }
+                    1
                 ],
                 "httpResponse": {
                     "code": "200000",
@@ -1148,7 +1147,7 @@
                                 "price": "1000",
                                 "timeInForce": "GTC",
                                 "tags": "partner:ccxt",
-                                "orderTime": 1774457869404000000,
+                                "orderTime": 1774457869404794600,
                                 "stp": "",
                                 "cancelAfter": null,
                                 "postOnly": false,
@@ -1213,7 +1212,7 @@
                             "price": "1000",
                             "timeInForce": "GTC",
                             "tags": "partner:ccxt",
-                            "orderTime": 1774457869404000000,
+                            "orderTime": 1774457869404794600,
                             "stp": "",
                             "cancelAfter": null,
                             "postOnly": false,
