@@ -1844,7 +1844,7 @@ class testMainClass {
         let id = 'ccxt';
         assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for spot orders.');
         try {
-            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000, { 'uta': 'true' });
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000, { 'uta': true });
         } catch (e) {
             reqHeaders = exchange.last_request_headers;
         }
@@ -1857,7 +1857,7 @@ class testMainClass {
         }
         assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for swap orders.');
         try {
-            await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, { 'uta': 'true' });
+            await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, { 'uta': true });
         } catch (e) {
             reqHeaders = exchange.last_request_headers;
         }
@@ -1883,7 +1883,7 @@ class testMainClass {
         }
         assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoinfutures - id: ' + id + ' not in headers.');
         try {
-            await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, { 'uta': 'true' });
+            await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, { 'uta': true });
         } catch (e) {
             reqHeaders = exchange.last_request_headers;
         }
