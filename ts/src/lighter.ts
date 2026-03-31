@@ -1157,7 +1157,7 @@ export default class lighter extends Exchange {
         //         "daily_chart": {},
         //         "market_config": {
         //             "market_margin_mode": 0,
-        //             "insurance_fund_account_index": 281474976710655,
+        //             "insurance_fund_account_index": 281474976710654,
         //             "liquidation_mode": 0,
         //             "force_reduce_only": false,
         //             "trading_hours": ""

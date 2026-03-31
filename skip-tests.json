@@ -2277,6 +2277,9 @@
             "orderBook": {
                 "spread":"bids[0][0] is not < asks[0][0]",
                 "timestamp": "not provided"
+            },
+            "fetchTickers": {
+                "compareOHLC": "broken https://github.com/ccxt/ccxt/actions/runs/23807522040/job/69385956136?pr=28306#step:11:315"
             }
         }
     }
