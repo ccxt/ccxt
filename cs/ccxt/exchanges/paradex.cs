@@ -1428,12 +1428,6 @@ public partial class paradex : Exchange
         return this.safeStringLower(types, type, type);
     }
 
-    public virtual object convertShortString(object str)
-    {
-        // TODO: add stringToBase16 in exchange
-        return add("0x", this.binaryToBase16(this.base64ToBinary(this.stringToBase64(str))));
-    }
-
     public virtual object scaleNumber(object num)
     {
         return Precise.stringMul(num, "100000000");
@@ -1562,9 +1556,9 @@ public partial class paradex : Exchange
         object now = this.nonce();
         object orderReq = new Dictionary<string, object>() {
             { "timestamp", multiply(now, 1000) },
-            { "market", this.convertShortString(getValue(request, "market")) },
+            { "market", this.stringToBase16(getValue(request, "market")) },
             { "side", ((bool) isTrue((isEqual(orderSide, "BUY")))) ? "1" : "2" },
-            { "orderType", this.convertShortString(getValue(request, "type")) },
+            { "orderType", this.stringToBase16(getValue(request, "type")) },
             { "size", this.scaleNumber(getValue(request, "size")) },
             { "price", ((bool) isTrue((isMarket))) ? "0" : this.scaleNumber(getValue(request, "price")) },
         };

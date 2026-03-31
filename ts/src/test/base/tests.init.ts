@@ -1,12 +1,14 @@
 
 
-
+import testAggregate from './test.aggregate.js';
 import testDecimalToPrecision from './test.decimalToPrecision.js';
 import testBinaryToBase64 from './test.binaryToBase64.js';
+import testBase64ToBinary from './test.base64ToBinary.js';
 import testNumberToString from './test.numberToString.js';
 import testPrecise from './test.precise.js';
 import testDatetime from './test.datetime.js';
 import testCryptography from './test.cryptography.js';
+import testToArray from './test.toArray.js';
 import testExtend from './test.extend.js';
 import testDeepExtend from './test.deepExtend.js';
 import testLanguageSpecific from './language_specific/test.languageSpecific.js';
@@ -23,31 +25,44 @@ import testGroupBy from './test.groupBy.js';
 import testIndexBy from './test.indexBy.js';
 import testFilterBy from './test.filterBy.js';
 import testUuid from './test.uuid.js';
+import testIsEmpty from './test.isEmpty.js';
 import testInArray from './test.inArray.js';
 import testPrecisionFromString from './test.precisionFromString.js';
 import testUrlencodeBase64 from './test.urlencodeBase64.js';
+import testStringToBase64 from './test.stringToBase64.js';
+import testUrlencode from './test.urlencode.js';
 import testAfterConstructor from './test.afterConstructor.js';
+import testRawencode from './test.rawencode.js';
 import testHandleMethods from './test.handleMethods.js';
 import testRemoveRepeatedElementsFromArray from './test.removeRepeatedElementsFromArray.js';
+import testUrlencodeWithArrayRepeat from './test.urlencodeWithArrayRepeat.js';
 import testParsePrecision from './test.parsePrecision.js';
+import testStrip from './test.strip.js';
+import testArrayConcat from './test.arrayConcat.js';
 import testArraysConcat from './test.arraysConcat.js';
 import testSetMarketsFromExchange from './test.setMarketsFromExchange.js';
 import testSleep from './test.sleep.js';
 import testEthMethods from './test.ethMethods.js';
+import testTimeframes from './test.timeframes.js';
 import testKeysort from './test.keysort.js';
 import testImplodeParams from './test.implodeParams.js';
+import testUrlencodeNested from './test.urlencodeNested.js';
+import testStringToBase16 from './test.stringToBase16.js';
 import testCapitalize from './test.capitalize.js';
 import testConstants from './test.constants.js';
 import testIsJsonEncodedObject from './test.isJsonEncodedObject.js';
+import testEncodeDecode from './test.encodeDecode.js';
 
 async function baseTestsInit () {
     await testLanguageSpecific ();
     testConstants ();
     testAfterConstructor ();
+    testAggregate ();
     testExtend ();
     testDeepExtend ();
     testCryptography ();
     testBinaryToBase64 ();
+    testBase64ToBinary ();
     testDatetime ();
     testDecimalToPrecision ();
     testCapitalize ();
@@ -55,10 +70,13 @@ async function baseTestsInit () {
     testPrecise ();
     testSafeMethods ();
     testSafeTicker ();
+    testToArray ();
     testJson ();
     testSortBy ();
     testSum ();
     testUrlencodeBase64 ();
+    testStringToBase64 ();
+    testUrlencode ();
     testOmit ();
     testGroupBy ();
     testIndexBy ();
@@ -66,9 +84,16 @@ async function baseTestsInit () {
     testFilterBy ();
     testHandleMethods ();
     testRemoveRepeatedElementsFromArray ();
+    testIsEmpty ();
+    testUrlencodeWithArrayRepeat ();
     testParsePrecision ();
     testPrecisionFromString ();
+    testTimeframes ();
+    testStrip ();
+    testRawencode ();
+    testStringToBase16 ();
     testExtractParams ();
+    testArrayConcat ();
     testArraysConcat ();
     testUuid ();
     await testSetMarketsFromExchange ();
@@ -76,9 +101,11 @@ async function baseTestsInit () {
     testKeysort ();
     testImplodeParams ();
     testUnique ();
+    testUrlencodeNested ();
     await testSleep ();
     testIo ();
     testIsJsonEncodedObject ();
+    testEncodeDecode ();
 }
 
 export default baseTestsInit;

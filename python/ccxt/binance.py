@@ -1405,8 +1405,11 @@ class binance(Exchange, ImplicitAPI):
                 },
                 'networks': {
                     'ERC20': 'ETH',
+                    'ETH': 'ETH',
                     'TRC20': 'TRX',
+                    'TRX': 'TRX',
                     'BEP2': 'BNB',
+                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'EOS': 'EOS',
                     'SPL': 'SOL',  # temporarily keep support for SPL(old name)
@@ -1419,6 +1422,7 @@ class binance(Exchange, ImplicitAPI):
                     'MATIC': 'MATIC',
                     'BASE': 'BASE',
                     'SUI': 'SUI',
+                    'OP': 'OPTIMISM',
                     'OPTIMISM': 'OPTIMISM',
                     'NEAR': 'NEAR',
                     'APT': 'APT',
@@ -1464,7 +1468,11 @@ class binance(Exchange, ImplicitAPI):
                     'ONT': 'ONT',  # ontology
                 },
                 'networksById': {
+                    'TRX': 'TRC20',
+                    'BSC': 'BEP20',
+                    'ETH': 'ERC20',
                     'SOL': 'SOL',  # temporary fix for SPL definition
+                    'OPTIMISM': 'OP',
                 },
                 'impliedNetworks': {
                     'ETH': {'ERC20': 'ETH'},
@@ -8404,7 +8412,8 @@ class binance(Exchange, ImplicitAPI):
         internal = None
         if internalInteger is not None:
             internal = True if (internalInteger != 0) else False
-        network = self.safe_string(transaction, 'network')
+        networkId = self.safe_string(transaction, 'network')
+        network = self.network_id_to_code(networkId, code)
         return {
             'info': transaction,
             'id': id,

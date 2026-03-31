@@ -42,6 +42,7 @@ export default class grvt extends grvtRest {
                 },
                 'watchTickers': {
                     'channel': 'v1.ticker.s', // v1.ticker.s | v1.ticker.d | v1.mini.s | v1.mini.d
+                    'interval': 500, // raw, 50, 100, 200, 500, 1000, 5000
                 },
             },
             'streaming': {
@@ -160,6 +161,8 @@ export default class grvt extends grvtRest {
         }
         let channel = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'v1.ticker.s');
+        let interval = undefined;
+        [ interval, params ] = this.handleOptionAndParams (params, 'watchTickers', 'interval', 500);
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const rawHashes = [];
@@ -168,8 +171,7 @@ export default class grvt extends grvtRest {
             const symbol = symbols[i];
             const market = this.market (symbol);
             const marketId = market['id'];
-            const interval = this.safeInteger (params, 'interval', 500); // raw, 50, 100, 200, 500, 1000, 5000
-            rawHashes.push (marketId + '@' + interval);
+            rawHashes.push (marketId + '@' + interval.toString ());
             messageHashes.push ('ticker::' + market['symbol']);
         }
         const request = {

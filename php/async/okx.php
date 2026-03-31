@@ -1081,9 +1081,12 @@ class okx extends Exchange {
                     'BTC' => 'Bitcoin',
                     'BTCLN' => 'Lightning',
                     'BTCLIGHTNING' => 'Lightning',
+                    'BSC' => 'BSC',
                     'BEP20' => 'BSC',
                     'BRC20' => 'BRC20',
+                    'ETH' => 'ERC20',
                     'ERC20' => 'ERC20',
+                    'TRX' => 'TRC20',
                     'TRC20' => 'TRC20',
                     'CRC20' => 'Crypto',
                     'ACA' => 'Acala',
@@ -1198,6 +1201,11 @@ class okx extends Exchange {
                     // "Venom",
                     // "WBTCK-OKTC",
                     // "ZetaChain",
+                ),
+                'networksById' => array(
+                    'ERC20' => 'ERC20',
+                    'TRC20' => 'TRC20',
+                    'BEP20' => 'BEP20',
                 ),
                 'fetchOpenInterestHistory' => array(
                     'timeframes' => array(
@@ -1910,24 +1918,35 @@ class okx extends Exchange {
             //     }
             //
             $dataResponse = $this->safe_list($response, 'data', array());
-            return $this->parse_markets($dataResponse);
+            $marketsWithoutTest = array();
+            for ($i = 0; $i < count($dataResponse); $i++) {
+                $data = $dataResponse[$i];
+                if ($this->isSandboxModeEnabled) {
+                    $instFamily = $this->safe_string($data, 'instFamily', '');
+                    if (str_starts_with($instFamily, 'TEST')) {
+                        continue;
+                    }
+                }
+                $marketsWithoutTest[] = $data;
+            }
+            return $this->parse_markets($marketsWithoutTest);
         }) ();
     }
 
     public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * fetches all available currencies on an exchange
+             * fetches all available $currencies on an exchange
              *
-             * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
+             * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-$currencies
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an associative dictionary of currencies
+             * @return {array} an associative dictionary of $currencies
              */
             // this endpoint requires authentication
             // while fetchCurrencies is a public API method by design
             // therefore we check the keys here
-            // and fallback to generating the currencies from the markets
+            // and fallback to generating the $currencies from the markets
             $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             if (!$this->check_required_credentials(false) || $isSandboxMode) {
                 return array();
@@ -1982,69 +2001,69 @@ class okx extends Exchange {
             //    }
             //
             $data = $this->safe_list($response, 'data', array());
-            $result = array();
             $dataByCurrencyId = $this->group_by($data, 'ccy');
-            $currencyIds = is_array($dataByCurrencyId) ? array_keys($dataByCurrencyId) : array();
-            for ($i = 0; $i < count($currencyIds); $i++) {
-                $currencyId = $currencyIds[$i];
-                $currency = $this->safe_currency($currencyId);
-                $code = $currency['code'];
-                $chains = $dataByCurrencyId[$currencyId];
-                $networks = array();
-                $type = 'crypto';
-                $chainsLength = count($chains);
-                for ($j = 0; $j < $chainsLength; $j++) {
-                    $chain = $chains[$j];
-                    // allow empty string for rare fiat-currencies, e.g. TRY
-                    $networkId = $this->safe_string($chain, 'chain', ''); // USDT-BEP20, USDT-Avalance-C, etc
-                    if ($networkId === '') {
-                        // only happens for fiat 'TRY' $currency
-                        $type = 'fiat';
-                    }
-                    $idParts = explode('-', $networkId);
-                    $parts = $this->array_slice($idParts, 1);
-                    $chainPart = implode('-', $parts);
-                    $networkCode = $this->network_id_to_code($chainPart, $currency['code']);
-                    $networks[$networkCode] = array(
-                        'id' => $networkId,
-                        'network' => $networkCode,
-                        'active' => null,
-                        'deposit' => $this->safe_bool($chain, 'canDep'),
-                        'withdraw' => $this->safe_bool($chain, 'canWd'),
-                        'fee' => $this->safe_number($chain, 'fee'),
-                        'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'wdTickSz'))),
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => $this->safe_number($chain, 'minWd'),
-                                'max' => $this->safe_number($chain, 'maxWd'),
-                            ),
-                        ),
-                        'info' => $chain,
-                    );
-                }
-                $firstChain = $this->safe_dict($chains, 0, array());
-                $result[$code] = $this->safe_currency_structure(array(
-                    'info' => $chains,
-                    'code' => $code,
-                    'id' => $currencyId,
-                    'name' => $this->safe_string($firstChain, 'name'),
-                    'active' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'fee' => null,
-                    'precision' => null,
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'type' => $type,
-                    'networks' => $networks,
-                ));
-            }
-            return $result;
+            $currencies = is_array($dataByCurrencyId) ? array_values($dataByCurrencyId) : array();
+            return $this->parse_currencies($currencies);
         }) ();
+    }
+
+    public function parse_currency(array $currency): array {
+        $chains = $currency;
+        // currencies are grouped by $chain entries, so there is at least one entry
+        $firstChain = $this->safe_dict($chains, 0, array());
+        $currencyId = $this->safe_string($firstChain, 'ccy');
+        $code = $this->safe_currency_code($currencyId);
+        $networks = array();
+        $type = 'crypto';
+        $chainsLength = count($chains);
+        for ($j = 0; $j < $chainsLength; $j++) {
+            $chain = $chains[$j];
+            // allow empty string for rare fiat-currencies, e.g. TRY
+            $networkId = $this->safe_string($chain, 'chain', ''); // USDT-BEP20, USDT-Avalance-C, etc
+            if ($networkId === '') {
+                // only happens for fiat 'TRY' $currency
+                $type = 'fiat';
+            }
+            $idParts = explode('-', $networkId);
+            $parts = $this->array_slice($idParts, 1);
+            $chainPart = implode('-', $parts);
+            $networkCode = $this->network_id_to_code($chainPart, $code);
+            $networks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
+                'active' => null,
+                'deposit' => $this->safe_bool($chain, 'canDep'),
+                'withdraw' => $this->safe_bool($chain, 'canWd'),
+                'fee' => $this->safe_number($chain, 'fee'),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'wdTickSz'))),
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number($chain, 'minWd'),
+                        'max' => $this->safe_number($chain, 'maxWd'),
+                    ),
+                ),
+                'info' => $chain,
+            );
+        }
+        return $this->safe_currency_structure(array(
+            'info' => $chains,
+            'code' => $code,
+            'id' => $currencyId,
+            'name' => $this->safe_string($firstChain, 'name'),
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'precision' => null,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'type' => $type,
+            'networks' => $networks,
+        ));
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
@@ -5454,7 +5473,7 @@ class okx extends Exchange {
             if ($fee === null) {
                 $currencies = Async\await($this->fetch_currencies());
                 $this->currencies = $this->map_to_safe_map($this->deep_extend($this->currencies, $currencies));
-                $targetNetwork = $this->safe_dict($currency['networks'], $this->network_id_to_code($network), array());
+                $targetNetwork = $this->safe_dict($currency['networks'], $this->network_id_to_code($network, $currency['code']), array());
                 $fee = $this->safe_string($targetNetwork, 'fee');
                 if ($fee === null) {
                     throw new ArgumentsRequired($this->id . ' withdraw() requires a "fee" string parameter, $network $transaction $fee must be ≥ 0. Withdrawals to OKCoin or OKX are $fee-free, please set "0". Withdrawing to external digital asset $address requires $network $transaction $fee->');

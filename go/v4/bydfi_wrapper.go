@@ -30,7 +30,7 @@ func NewBydfiFromCore(core *BydfiCore) *Bydfi {
  * @method
  * @name bydfi#fetchMarkets
  * @description retrieves data on all markets for bydfi
- * @see https://developers.bydfi.com/en/swap/market#fetching-trading-rules-and-pairs
+ * @see https://developers.bydfi.com/en/futures/market#fetching-trading-rules-and-pairs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -46,7 +46,7 @@ func (this *Bydfi) FetchMarkets(params ...interface{}) ([]MarketInterface, error
  * @method
  * @name bydfi#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://developers.bydfi.com/en/swap/market#depth-information
+ * @see https://developers.bydfi.com/en/futures/market#depth-information
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return, could be 5, 10, 20, 50, 100, 500 or 1000 (default 500)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -81,7 +81,7 @@ func (this *Bydfi) FetchOrderBook(symbol string, options ...FetchOrderBookOption
  * @method
  * @name bydfi#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://developers.bydfi.com/en/swap/market#recent-trades
+ * @see https://developers.bydfi.com/en/futures/market#recent-trades
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch (default 500, max 1000)
@@ -122,7 +122,7 @@ func (this *Bydfi) FetchTrades(symbol string, options ...FetchTradesOptions) ([]
  * @method
  * @name bydfi#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://developers.bydfi.com/en/swap/trade#historical-trades-query
+ * @see https://developers.bydfi.com/en/futures/trade#historical-trades-query
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -171,7 +171,7 @@ func (this *Bydfi) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, erro
  * @method
  * @name bydfi#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://developers.bydfi.com/en/swap/market#candlestick-data
+ * @see https://developers.bydfi.com/en/futures/market#candlestick-data
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -217,7 +217,7 @@ func (this *Bydfi) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OH
 /**
  * @method
  * @name bydfi#fetchTickers
- * @see https://developers.bydfi.com/en/swap/market#24hr-price-change-statistics
+ * @see https://developers.bydfi.com/en/futures/market#24hr-price-change-statistics
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -251,7 +251,7 @@ func (this *Bydfi) FetchTickers(options ...FetchTickersOptions) (Tickers, error)
  * @method
  * @name bydfi#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://developers.bydfi.com/en/swap/market#24hr-price-change-statistics
+ * @see https://developers.bydfi.com/en/futures/market#24hr-price-change-statistics
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -279,7 +279,7 @@ func (this *Bydfi) FetchTicker(symbol string, options ...FetchTickerOptions) (Ti
  * @method
  * @name bydfi#fetchFundingRate
  * @description fetch the current funding rate
- * @see https://developers.bydfi.com/en/swap/market#recent-funding-rate
+ * @see https://developers.bydfi.com/en/futures/market#recent-funding-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -307,7 +307,7 @@ func (this *Bydfi) FetchFundingRate(symbol string, options ...FetchFundingRateOp
  * @method
  * @name bydfi#fetchFundingRateHistory
  * @description fetches historical funding rate prices
- * @see https://developers.bydfi.com/en/swap/market#historical-funding-rates
+ * @see https://developers.bydfi.com/en/futures/market#historical-funding-rates
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -353,7 +353,7 @@ func (this *Bydfi) FetchFundingRateHistory(options ...FetchFundingRateHistoryOpt
  * @method
  * @name bydfi#createOrder
  * @description create a trade order
- * @see https://developers.bydfi.com/en/swap/trade#placing-an-order
+ * @see https://developers.bydfi.com/en/futures/trade#placing-an-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -402,7 +402,7 @@ func (this *Bydfi) CreateOrder(symbol string, typeVar string, side string, amoun
  * @method
  * @name bydfi#createOrders
  * @description create a list of trade orders
- * @see https://developers.bydfi.com/en/swap/trade#batch-order-placement
+ * @see https://developers.bydfi.com/en/futures/trade#batch-order-placement
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -431,7 +431,7 @@ func (this *Bydfi) CreateOrders(orders []OrderRequest, options ...CreateOrdersOp
  * @method
  * @name bydfi#editOrder
  * @description edit a trade order
- * @see https://developers.bydfi.com/en/swap/trade#order-modification
+ * @see https://developers.bydfi.com/en/futures/trade#order-modification
  * @param {string} id order id (mandatory if params.clientOrderId is not provided)
  * @param {string} [symbol] unified symbol of the market to create an order in
  * @param {string} [type] not used by bydfi editOrder
@@ -476,7 +476,7 @@ func (this *Bydfi) EditOrder(id string, symbol string, typeVar string, side stri
  * @method
  * @name bydfi#editOrders
  * @description edit a list of trade orders
- * @see https://developers.bydfi.com/en/swap/trade#batch-order-modification
+ * @see https://developers.bydfi.com/en/futures/trade#batch-order-modification
  * @param {Array} orders list of orders to edit, each object should contain the parameters required by editOrder, namely id, symbol, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -505,7 +505,7 @@ func (this *Bydfi) EditOrders(orders []OrderRequest, options ...EditOrdersOption
  * @method
  * @name bydfi#cancelAllOrders
  * @description cancel all open orders in a market
- * @see https://developers.bydfi.com/en/swap/trade#complete-order-cancellation
+ * @see https://developers.bydfi.com/en/futures/trade#complete-order-cancellation
  * @param {string} symbol unified market symbol of the market to cancel orders in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -539,8 +539,8 @@ func (this *Bydfi) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, 
  * @method
  * @name bydfi#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://developers.bydfi.com/en/swap/trade#pending-order-query
- * @see https://developers.bydfi.com/en/swap/trade#planned-order-query
+ * @see https://developers.bydfi.com/en/futures/trade#pending-order-query
+ * @see https://developers.bydfi.com/en/futures/trade#planned-order-query
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -587,8 +587,8 @@ func (this *Bydfi) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, 
  * @method
  * @name bydfi#fetchOpenOrder
  * @description fetch an open order by the id
- * @see https://developers.bydfi.com/en/swap/trade#pending-order-query
- * @see https://developers.bydfi.com/en/swap/trade#planned-order-query
+ * @see https://developers.bydfi.com/en/futures/trade#pending-order-query
+ * @see https://developers.bydfi.com/en/futures/trade#planned-order-query
  * @param {string} id order id (mandatory if params.clientOrderId is not provided)
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -625,7 +625,7 @@ func (this *Bydfi) FetchOpenOrder(id string, options ...FetchOpenOrderOptions) (
  * @method
  * @name bydfi#fetchCanceledAndClosedOrders
  * @description fetches information on multiple canceled and closed orders made by the user
- * @see https://developers.bydfi.com/en/swap/trade#historical-orders-query
+ * @see https://developers.bydfi.com/en/futures/trade#historical-orders-query
  * @param {string} symbol unified market symbol of the closed orders
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the max number of closed orders to return
@@ -674,7 +674,7 @@ func (this *Bydfi) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClose
  * @method
  * @name bydfi#setLeverage
  * @description set the level of leverage for a market
- * @see https://developers.bydfi.com/en/swap/trade#set-leverage-for-single-trading-pair
+ * @see https://developers.bydfi.com/en/futures/trade#set-leverage-for-single-trading-pair
  * @param {float} leverage the rate of leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -709,7 +709,7 @@ func (this *Bydfi) SetLeverage(leverage int64, options ...SetLeverageOptions) (m
  * @method
  * @name bydfi#fetchLeverage
  * @description fetch the set leverage for a market
- * @see https://developers.bydfi.com/en/swap/trade#get-leverage-for-single-trading-pair
+ * @see https://developers.bydfi.com/en/futures/trade#get-leverage-for-single-trading-pair
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -738,7 +738,7 @@ func (this *Bydfi) FetchLeverage(symbol string, options ...FetchLeverageOptions)
  * @method
  * @name bydfi#fetchPositions
  * @description fetch all open positions
- * @see https://developers.bydfi.com/en/swap/trade#positions-query
+ * @see https://developers.bydfi.com/en/futures/trade#positions-query
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
@@ -773,7 +773,7 @@ func (this *Bydfi) FetchPositions(options ...FetchPositionsOptions) ([]Position,
  * @method
  * @name bydfi#fetchPositionsForSymbol
  * @description fetch open positions for a single market
- * @see https://developers.bydfi.com/en/swap/trade#positions-query
+ * @see https://developers.bydfi.com/en/futures/trade#positions-query
  * @description fetch all open positions for specific symbol
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -803,7 +803,7 @@ func (this *Bydfi) FetchPositionsForSymbol(symbol string, options ...FetchPositi
  * @method
  * @name bydfi#fetchPositionHistory
  * @description fetches historical positions
- * @see https://developers.bydfi.com/en/swap/trade#query-historical-position-profit-and-loss-records
+ * @see https://developers.bydfi.com/en/futures/trade#query-historical-position-profit-and-loss-records
  * @param {string} symbol a unified market symbol
  * @param {int} [since] timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
  * @param {int} [limit] the maximum amount of records to fetch (default 500, max 500)
@@ -846,7 +846,7 @@ func (this *Bydfi) FetchPositionHistory(symbol string, options ...FetchPositionH
  * @method
  * @name bydfi#fetchPositionsHistory
  * @description fetches historical positions
- * @see https://developers.bydfi.com/en/swap/trade#query-historical-position-profit-and-loss-records
+ * @see https://developers.bydfi.com/en/futures/trade#query-historical-position-profit-and-loss-records
  * @param {string[]} symbols a list of unified market symbols
  * @param {int} [since] timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
  * @param {int} [limit] the maximum amount of records to fetch (default 500, max 500)
@@ -894,7 +894,7 @@ func (this *Bydfi) FetchPositionsHistory(options ...FetchPositionsHistoryOptions
  * @method
  * @name bydfi#fetchMarginMode
  * @description fetches the margin mode of a trading pair
- * @see https://developers.bydfi.com/en/swap/user#margin-mode-query
+ * @see https://developers.bydfi.com/en/futures/user#margin-mode-query
  * @param {string} symbol unified symbol of the market to fetch the margin mode for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
@@ -924,7 +924,7 @@ func (this *Bydfi) FetchMarginMode(symbol string, options ...FetchMarginModeOpti
  * @method
  * @name bydfi#setMarginMode
  * @description set margin mode to 'cross' or 'isolated'
- * @see https://developers.bydfi.com/en/swap/user#change-margin-type-cross-margin
+ * @see https://developers.bydfi.com/en/futures/user#change-margin-type-cross-margin
  * @param {string} marginMode 'cross' or 'isolated'
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -960,7 +960,7 @@ func (this *Bydfi) SetMarginMode(marginMode string, options ...SetMarginModeOpti
  * @method
  * @name bydfi#setPositionMode
  * @description set hedged to true or false for a market, hedged for bydfi is set identically for all markets with same settle currency
- * @see https://developers.bydfi.com/en/swap/user#change-position-mode-dual
+ * @see https://developers.bydfi.com/en/futures/user#change-position-mode-dual
  * @param {bool} hedged set to true to use dualSidePosition
  * @param {string} [symbol] not used by bydfi setPositionMode ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -997,7 +997,7 @@ func (this *Bydfi) SetPositionMode(hedged bool, options ...SetPositionModeOption
  * @method
  * @name bydfi#fetchPositionMode
  * @description fetchs the position mode, hedged or one way, hedged for bydfi is set identically for all markets with same settle currency
- * @see https://developers.bydfi.com/en/swap/user#get-position-mode
+ * @see https://developers.bydfi.com/en/futures/user#get-position-mode
  * @param {string} [symbol] unified symbol of the market to fetch the order book for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
@@ -1034,9 +1034,9 @@ func (this *Bydfi) FetchPositionMode(options ...FetchPositionModeOptions) (map[s
  * @name bydfi#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://developers.bydfi.com/en/account#asset-inquiry
- * @see https://developers.bydfi.com/en/swap/user#asset-query
+ * @see https://developers.bydfi.com/en/futures/user#asset-query
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.accountType] the type of account to fetch the balance for, either 'spot' or 'swap'  or 'funding' (default is 'spot')
+ * @param {string} [params.account] the type of account to fetch the balance for, either 'SPOT' or 'UMFUTURE'  or 'CMFUTURE'  or 'COPY'  or 'GRID'  or 'FUNDING' (default is 'SPOT')
  * @param {string} [params.wallet] *swap only* The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
  * @param {string} [params.asset] currency id for the balance to fetch
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}

@@ -191,6 +191,7 @@ class kucoin extends kucoin$1["default"] {
                     'get': {
                         // account
                         'user-info': 20,
+                        'user/api-key': 20,
                         'accounts': 5,
                         'accounts/{accountId}': 5,
                         'accounts/ledgers': 2,
@@ -708,7 +709,7 @@ class kucoin extends kucoin$1["default"] {
                     '400006': errors.AuthenticationError,
                     '400007': errors.AuthenticationError,
                     '400008': errors.NotSupported,
-                    '400100': errors.InsufficientFunds,
+                    '400100': errors.BadRequest,
                     '400200': errors.InvalidOrder,
                     '400330': errors.InvalidOrder,
                     '400350': errors.InvalidOrder,
@@ -740,6 +741,7 @@ class kucoin extends kucoin$1["default"] {
                     '330008': errors.InsufficientFunds, // {"msg":"Your current margin and leverage have reached the maximum open limit. Please increase your margin or raise your leverage to open larger positions.","code":"330008"}
                 },
                 'broad': {
+                    'pageSize should not greater than 500': errors.BadRequest,
                     'Exceeded the access frequency': errors.RateLimitExceeded,
                     'require more permission': errors.PermissionDenied,
                     // futures errors
@@ -6737,7 +6739,7 @@ class kucoin extends kucoin$1["default"] {
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchWithdrawals', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic('fetchWithdrawals', code, since, limit, params);
+            return await this.fetchPaginatedCallDynamic('fetchWithdrawals', code, since, limit, params, 500);
         }
         let request = {};
         let currency = undefined;

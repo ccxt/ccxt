@@ -1416,7 +1416,9 @@ public partial class bitget : Exchange
                     { "20003", typeof(ExchangeError) },
                     { "01001", typeof(ExchangeError) },
                     { "40024", typeof(RestrictedLocation) },
+                    { "41117", typeof(InvalidOrder) },
                     { "43111", typeof(PermissionDenied) },
+                    { "45113", typeof(InvalidOrder) },
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "invalid size, valid range", typeof(ExchangeError) },

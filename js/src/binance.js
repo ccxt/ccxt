@@ -1385,8 +1385,11 @@ export default class binance extends Exchange {
                 },
                 'networks': {
                     'ERC20': 'ETH',
+                    'ETH': 'ETH',
                     'TRC20': 'TRX',
+                    'TRX': 'TRX',
                     'BEP2': 'BNB',
+                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'EOS': 'EOS',
                     'SPL': 'SOL',
@@ -1399,6 +1402,7 @@ export default class binance extends Exchange {
                     'MATIC': 'MATIC',
                     'BASE': 'BASE',
                     'SUI': 'SUI',
+                    'OP': 'OPTIMISM',
                     'OPTIMISM': 'OPTIMISM',
                     'NEAR': 'NEAR',
                     'APT': 'APT',
@@ -1444,7 +1448,11 @@ export default class binance extends Exchange {
                     'ONT': 'ONT', // ontology
                 },
                 'networksById': {
-                    'SOL': 'SOL', // temporary fix for SPL definition
+                    'TRX': 'TRC20',
+                    'BSC': 'BEP20',
+                    'ETH': 'ERC20',
+                    'SOL': 'SOL',
+                    'OPTIMISM': 'OP',
                 },
                 'impliedNetworks': {
                     'ETH': { 'ERC20': 'ETH' },
@@ -8965,7 +8973,8 @@ export default class binance extends Exchange {
         if (internalInteger !== undefined) {
             internal = (internalInteger !== 0) ? true : false;
         }
-        const network = this.safeString(transaction, 'network');
+        const networkId = this.safeString(transaction, 'network');
+        const network = this.networkIdToCode(networkId, code);
         return {
             'info': transaction,
             'id': id,

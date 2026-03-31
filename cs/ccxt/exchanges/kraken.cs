@@ -174,6 +174,7 @@ public partial class kraken : Exchange
                         { "WithdrawAddresses", 3 },
                         { "WithdrawStatus", 3 },
                         { "WalletTransfer", 3 },
+                        { "GetApiKeyInfo", 3 },
                         { "CreateSubaccount", 3 },
                         { "AccountTransfer", 3 },
                         { "Earn/Allocate", 3 },
@@ -3809,7 +3810,7 @@ public partial class kraken : Exchange
         {
             if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
             {
-                // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
+                // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 url = add(url, add("?", this.urlencodeNested(parameters)));
             }
         } else if (isTrue(isEqual(api, "private")))
@@ -3824,7 +3825,6 @@ public partial class kraken : Exchange
             object isBatchOrder = (isEqual(path, "AddOrderBatch"));
             this.checkRequiredCredentials();
             object nonce = ((object)this.nonce()).ToString();
-            // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
             if (isTrue(isTrue(isTrue(isCancelOrderBatch) || isTrue(isTriggerPercent)) || isTrue(isBatchOrder)))
             {
                 body = this.json(this.extend(new Dictionary<string, object>() {
@@ -3832,6 +3832,7 @@ public partial class kraken : Exchange
                 }, parameters));
             } else
             {
+                // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 body = this.urlencodeNested(this.extend(new Dictionary<string, object>() {
                     { "nonce", nonce },
                 }, parameters));

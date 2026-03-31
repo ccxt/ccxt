@@ -47,6 +47,7 @@ class grvt(ccxt.async_support.grvt):
                 },
                 'watchTickers': {
                     'channel': 'v1.ticker.s',  # v1.ticker.s | v1.ticker.d | v1.mini.s | v1.mini.d
+                    'interval': 500,  # raw, 50, 100, 200, 500, 1000, 5000
                 },
             },
             'streaming': {
@@ -156,6 +157,8 @@ class grvt(ccxt.async_support.grvt):
             raise ArgumentsRequired(self.id + ' watchTickers requires a symbols argument')
         channel = None
         channel, params = self.handle_option_and_params(params, 'watchTickers', 'channel', 'v1.ticker.s')
+        interval = None
+        interval, params = self.handle_option_and_params(params, 'watchTickers', 'interval', 500)
         await self.load_markets()
         symbols = self.market_symbols(symbols)
         rawHashes = []
@@ -164,8 +167,7 @@ class grvt(ccxt.async_support.grvt):
             symbol = symbols[i]
             market = self.market(symbol)
             marketId = market['id']
-            interval = self.safe_integer(params, 'interval', 500)  # raw, 50, 100, 200, 500, 1000, 5000
-            rawHashes.append(marketId + '@' + interval)
+            rawHashes.append(marketId + '@' + str(interval))
             messageHashes.append('ticker::' + market['symbol'])
         request = {
             'stream': channel,

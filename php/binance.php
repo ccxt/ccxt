@@ -1376,8 +1376,11 @@ class binance extends Exchange {
                 ),
                 'networks' => array(
                     'ERC20' => 'ETH',
+                    'ETH' => 'ETH',
                     'TRC20' => 'TRX',
+                    'TRX' => 'TRX',
                     'BEP2' => 'BNB',
+                    'BSC' => 'BSC',
                     'BEP20' => 'BSC',
                     'EOS' => 'EOS',
                     'SPL' => 'SOL', // temporarily keep support for SPL (old name)
@@ -1390,6 +1393,7 @@ class binance extends Exchange {
                     'MATIC' => 'MATIC',
                     'BASE' => 'BASE',
                     'SUI' => 'SUI',
+                    'OP' => 'OPTIMISM',
                     'OPTIMISM' => 'OPTIMISM',
                     'NEAR' => 'NEAR',
                     'APT' => 'APT',
@@ -1435,7 +1439,11 @@ class binance extends Exchange {
                     'ONT' => 'ONT', // ontology
                 ),
                 'networksById' => array(
+                    'TRX' => 'TRC20',
+                    'BSC' => 'BEP20',
+                    'ETH' => 'ERC20',
                     'SOL' => 'SOL', // temporary fix for SPL definition
+                    'OPTIMISM' => 'OP',
                 ),
                 'impliedNetworks' => array(
                     'ETH' => array( 'ERC20' => 'ETH' ),
@@ -8792,7 +8800,8 @@ class binance extends Exchange {
         if ($internalInteger !== null) {
             $internal = ($internalInteger !== 0) ? true : false;
         }
-        $network = $this->safe_string($transaction, 'network');
+        $networkId = $this->safe_string($transaction, 'network');
+        $network = $this->network_id_to_code($networkId, $code);
         return array(
             'info' => $transaction,
             'id' => $id,

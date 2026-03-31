@@ -1458,7 +1458,9 @@ export default class bitget extends Exchange {
                     '20003': ExchangeError,
                     '01001': ExchangeError,
                     '40024': RestrictedLocation,
-                    '43111': PermissionDenied, // {"code":"43111","msg":"参数错误 address not in address book","requestTime":1665394201164,"data":null}
+                    '41117': InvalidOrder,
+                    '43111': PermissionDenied,
+                    '45113': InvalidOrder, // {"code":"45113","msg":"Maximum order value limit triggered","requestTime":1774884278712,"data":null}
                 },
                 'broad': {
                     'invalid size, valid range': ExchangeError,

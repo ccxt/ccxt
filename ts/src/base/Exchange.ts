@@ -3412,8 +3412,8 @@ export default class Exchange {
         return res === 0;
     }
 
-    nonEmptyString (value) {
-        return this.valueIsDefined (value) && value !== '';
+    isEmptyString (value) {
+        return !this.valueIsDefined (value) || value === '';
     }
 
     safeNumberOmitZero (obj: object, key: IndexType, defaultValue: Num = undefined): Num {
@@ -4615,6 +4615,10 @@ export default class Exchange {
             }
         }
         return reversed;
+    }
+
+    stringToBase16 (str) {
+        return '0x' + this.binaryToBase16 (this.base64ToBinary (this.stringToBase64 (str)));
     }
 
     reduceFeesByCurrency (fees) {

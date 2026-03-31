@@ -1384,8 +1384,11 @@ class binance extends binance$1["default"] {
                 },
                 'networks': {
                     'ERC20': 'ETH',
+                    'ETH': 'ETH',
                     'TRC20': 'TRX',
+                    'TRX': 'TRX',
                     'BEP2': 'BNB',
+                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'EOS': 'EOS',
                     'SPL': 'SOL',
@@ -1398,6 +1401,7 @@ class binance extends binance$1["default"] {
                     'MATIC': 'MATIC',
                     'BASE': 'BASE',
                     'SUI': 'SUI',
+                    'OP': 'OPTIMISM',
                     'OPTIMISM': 'OPTIMISM',
                     'NEAR': 'NEAR',
                     'APT': 'APT',
@@ -1443,7 +1447,11 @@ class binance extends binance$1["default"] {
                     'ONT': 'ONT', // ontology
                 },
                 'networksById': {
-                    'SOL': 'SOL', // temporary fix for SPL definition
+                    'TRX': 'TRC20',
+                    'BSC': 'BEP20',
+                    'ETH': 'ERC20',
+                    'SOL': 'SOL',
+                    'OPTIMISM': 'OP',
                 },
                 'impliedNetworks': {
                     'ETH': { 'ERC20': 'ETH' },
@@ -8964,7 +8972,8 @@ class binance extends binance$1["default"] {
         if (internalInteger !== undefined) {
             internal = (internalInteger !== 0) ? true : false;
         }
-        const network = this.safeString(transaction, 'network');
+        const networkId = this.safeString(transaction, 'network');
+        const network = this.networkIdToCode(networkId, code);
         return {
             'info': transaction,
             'id': id,

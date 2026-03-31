@@ -203,16 +203,16 @@ class bydfi extends Exchange {
                 'public' => array(
                     'get' => array(
                         'v1/public/api_limits' => 1, // https://developers.bydfi.com/en/public#inquiry-into-api-rate-limit-configuration
-                        'v1/swap/market/exchange_info' => 1,
-                        'v1/swap/market/depth' => 1,
-                        'v1/swap/market/trades' => 1,
-                        'v1/swap/market/klines' => 1,
-                        'v1/swap/market/ticker/24hr' => 1,
-                        'v1/swap/market/ticker/price' => 1, // https://developers.bydfi.com/en/swap/market#latest-price
-                        'v1/swap/market/mark_price' => 1, // https://developers.bydfi.com/en/swap/market#mark-price
-                        'v1/swap/market/funding_rate' => 1,
-                        'v1/swap/market/funding_rate_history' => 1,
-                        'v1/swap/market/risk_limit' => 1, // https://developers.bydfi.com/en/swap/market#risk-limit
+                        'v1/fapi/market/exchange_info' => 1,
+                        'v1/fapi/market/depth' => 1,
+                        'v1/fapi/market/trades' => 1,
+                        'v1/fapi/market/klines' => 1,
+                        'v1/fapi/market/ticker/24hr' => 1,
+                        'v1/fapi/market/ticker/price' => 1, // https://developers.bydfi.com/en/futures/market#latest-price
+                        'v1/fapi/market/mark_price' => 1, // https://developers.bydfi.com/en/futures/market#mark-price
+                        'v1/fapi/market/funding_rate' => 1,
+                        'v1/fapi/market/funding_rate_history' => 1,
+                        'v1/fapi/market/risk_limit' => 1, // https://developers.bydfi.com/en/futures/market#risk-limit
                     ),
                 ),
                 'private' => array(
@@ -221,16 +221,16 @@ class bydfi extends Exchange {
                         'v1/account/transfer_records' => 1,
                         'v1/spot/deposit_records' => 1,
                         'v1/spot/withdraw_records' => 1,
-                        'v1/swap/trade/open_order' => 1,
-                        'v1/swap/trade/plan_order' => 1,
-                        'v1/swap/trade/leverage' => 1,
-                        'v1/swap/trade/history_order' => 1,
-                        'v1/swap/trade/history_trade' => 1,
-                        'v1/swap/trade/position_history' => 1,
-                        'v1/swap/trade/positions' => 1,
-                        'v1/swap/account/balance' => 1,
-                        'v1/swap/user_data/assets_margin' => 1,
-                        'v1/swap/user_data/position_side/dual' => 1,
+                        'v1/fapi/trade/open_order' => 1,
+                        'v1/fapi/trade/plan_order' => 1,
+                        'v1/fapi/trade/leverage' => 1,
+                        'v1/fapi/trade/history_order' => 1,
+                        'v1/fapi/trade/history_trade' => 1,
+                        'v1/fapi/trade/position_history' => 1,
+                        'v1/fapi/trade/positions' => 1,
+                        'v1/fapi/account/balance' => 1,
+                        'v1/fapi/user_data/assets_margin' => 1,
+                        'v1/fapi/user_data/position_side/dual' => 1,
                         'v1/agent/teams' => 1, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-team-information
                         'v1/agent/agent_links' => 1, // https://developers.bydfi.com/en/agent/#query-kol-invitation-code-list
                         'v1/agent/regular_overview' => 1, // https://developers.bydfi.com/en/agent/#query-kol-direct-client-data-list
@@ -243,15 +243,15 @@ class bydfi extends Exchange {
                     ),
                     'post' => array(
                         'v1/account/transfer' => 1,
-                        'v1/swap/trade/place_order' => 1,
-                        'v1/swap/trade/batch_place_order' => 1,
-                        'v1/swap/trade/edit_order' => 1,
-                        'v1/swap/trade/batch_edit_order' => 1,
-                        'v1/swap/trade/cancel_all_order' => 1,
-                        'v1/swap/trade/leverage' => 1,
-                        'v1/swap/trade/batch_leverage_margin' => 1, // https://developers.bydfi.com/en/swap/trade#modify-leverage-and-margin-type-with-one-click
-                        'v1/swap/user_data/margin_type' => 1,
-                        'v1/swap/user_data/position_side/dual' => 1,
+                        'v1/fapi/trade/place_order' => 1,
+                        'v1/fapi/trade/batch_place_order' => 1,
+                        'v1/fapi/trade/edit_order' => 1,
+                        'v1/fapi/trade/batch_edit_order' => 1,
+                        'v1/fapi/trade/cancel_all_order' => 1,
+                        'v1/fapi/trade/leverage' => 1,
+                        'v1/fapi/trade/batch_leverage_margin' => 1, // https://developers.bydfi.com/en/futures/trade#modify-leverage-and-margin-type-with-one-click
+                        'v1/fapi/user_data/margin_type' => 1,
+                        'v1/fapi/user_data/position_side/dual' => 1,
                         'v1/agent/internal_withdrawal' => 1, // https://developers.bydfi.com/en/agent/#internal-withdrawal
                     ),
                 ),
@@ -384,13 +384,15 @@ class bydfi extends Exchange {
                 ),
                 'accountsByType' => array(
                     'spot' => 'SPOT',
-                    'swap' => 'SWAP',
-                    'funding' => 'FUND',
+                    'swap' => 'UMFUTURE',
+                    'funding' => 'FUNDING',
+                    'inverse' => 'CMFUTURE',
                 ),
                 'accountsById' => array(
                     'SPOT' => 'spot',
-                    'SWAP' => 'swap',
-                    'FUND' => 'funding',
+                    'UMFUTURE' => 'swap',
+                    'FUNDING' => 'funding',
+                    'CMFUTURE' => 'inverse',
                 ),
             ),
         ));
@@ -401,12 +403,12 @@ class bydfi extends Exchange {
             /**
              * retrieves $data on all markets for bydfi
              *
-             * @see https://developers.bydfi.com/en/swap/market#fetching-trading-rules-and-pairs
+             * @see https://developers.bydfi.com/en/futures/market#fetching-trading-rules-and-pairs
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market $data
              */
-            $response = Async\await($this->publicGetV1SwapMarketExchangeInfo ($params));
+            $response = Async\await($this->publicGetV1FapiMarketExchangeInfo ($params));
             //
             //     {
             //         "code" => "200",
@@ -565,7 +567,7 @@ class bydfi extends Exchange {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
              *
-             * @see https://developers.bydfi.com/en/swap/market#depth-information
+             * @see https://developers.bydfi.com/en/futures/market#depth-information
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return, could be 5, 10, 20, 50, 100, 500 or 1000 (default 500)
@@ -581,7 +583,7 @@ class bydfi extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $this->get_closest_limit($limit);
             }
-            $response = Async\await($this->publicGetV1SwapMarketDepth ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV1FapiMarketDepth ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -633,7 +635,7 @@ class bydfi extends Exchange {
             /**
              * get the list of most recent trades for a particular $symbol
              *
-             * @see https://developers.bydfi.com/en/swap/market#recent-trades
+             * @see https://developers.bydfi.com/en/futures/market#recent-trades
              *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -650,7 +652,7 @@ class bydfi extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->publicGetV1SwapMarketTrades ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV1FapiMarketTrades ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -678,7 +680,7 @@ class bydfi extends Exchange {
             /**
              * fetch all trades made by the user
              *
-             * @see https://developers.bydfi.com/en/swap/trade#historical-trades-query
+             * @see https://developers.bydfi.com/en/futures/trade#historical-trades-query
              *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -713,7 +715,7 @@ class bydfi extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetV1SwapTradeHistoryTrade ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV1FapiTradeHistoryTrade ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -825,7 +827,7 @@ class bydfi extends Exchange {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
              *
-             * @see https://developers.bydfi.com/en/swap/market#candlestick-$data
+             * @see https://developers.bydfi.com/en/futures/market#candlestick-$data
              *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
@@ -871,7 +873,7 @@ class bydfi extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->publicGetV1SwapMarketKlines ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV1FapiMarketKlines ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -922,7 +924,7 @@ class bydfi extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              *
-             * @see https://developers.bydfi.com/en/swap/market#24hr-price-change-statistics
+             * @see https://developers.bydfi.com/en/futures/market#24hr-price-change-statistics
              *
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -930,7 +932,7 @@ class bydfi extends Exchange {
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->publicGetV1SwapMarketTicker24hr ($params));
+            $response = Async\await($this->publicGetV1FapiMarketTicker24hr ($params));
             //
             //     {
             //         "code" => 200,
@@ -959,7 +961,7 @@ class bydfi extends Exchange {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              *
-             * @see https://developers.bydfi.com/en/swap/market#24hr-price-change-statistics
+             * @see https://developers.bydfi.com/en/futures/market#24hr-price-change-statistics
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -970,7 +972,7 @@ class bydfi extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetV1SwapMarketTicker24hr ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV1FapiMarketTicker24hr ($this->extend($request, $params)));
             $data = $this->safe_list($response, 'data', array());
             $ticker = $this->safe_dict($data, 0, array());
             return $this->parse_ticker($ticker, $market);
@@ -1025,7 +1027,7 @@ class bydfi extends Exchange {
             /**
              * fetch the current funding rate
              *
-             * @see https://developers.bydfi.com/en/swap/market#recent-funding-rate
+             * @see https://developers.bydfi.com/en/futures/market#recent-funding-rate
              *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1036,7 +1038,7 @@ class bydfi extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetV1SwapMarketFundingRate ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV1FapiMarketFundingRate ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -1095,7 +1097,7 @@ class bydfi extends Exchange {
             /**
              * fetches historical funding rate prices
              *
-             * @see https://developers.bydfi.com/en/swap/market#historical-funding-rates
+             * @see https://developers.bydfi.com/en/futures/market#historical-funding-rates
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
              * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
@@ -1123,7 +1125,7 @@ class bydfi extends Exchange {
             if ($until !== null) {
                 $request['endTime'] = $until;
             }
-            $response = Async\await($this->publicGetV1SwapMarketFundingRateHistory ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetV1FapiMarketFundingRateHistory ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -1169,7 +1171,7 @@ class bydfi extends Exchange {
             /**
              * create a trade order
              *
-             * @see https://developers.bydfi.com/en/swap/trade#placing-an-order
+             * @see https://developers.bydfi.com/en/futures/trade#placing-an-order
              *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
@@ -1197,7 +1199,7 @@ class bydfi extends Exchange {
             $wallet = 'W001';
             list($wallet, $params) = $this->handle_option_and_params($params, 'createOrder', 'wallet', $wallet);
             $orderRequest = $this->extend($orderRequest, array( 'wallet' => $wallet ));
-            $response = Async\await($this->privatePostV1SwapTradePlaceOrder ($orderRequest));
+            $response = Async\await($this->privatePostV1FapiTradePlaceOrder ($orderRequest));
             //
             //     {
             //         "code" => 200,
@@ -1348,7 +1350,7 @@ class bydfi extends Exchange {
             /**
              * create a list of trade $orders
              *
-             * @see https://developers.bydfi.com/en/swap/trade#batch-order-placement
+             * @see https://developers.bydfi.com/en/futures/trade#batch-order-placement
              *
              * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1378,7 +1380,7 @@ class bydfi extends Exchange {
                 'wallet' => $wallet,
                 'orders' => $ordersRequests,
             );
-            $response = Async\await($this->privatePostV1SwapTradeBatchPlaceOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostV1FapiTradeBatchPlaceOrder ($this->extend($request, $params)));
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data);
         }) ();
@@ -1389,7 +1391,7 @@ class bydfi extends Exchange {
             /**
              * edit a trade order
              *
-             * @see https://developers.bydfi.com/en/swap/trade#order-modification
+             * @see https://developers.bydfi.com/en/futures/trade#order-modification
              *
              * @param {string} $id order $id (mandatory if $params->clientOrderId is not provided)
              * @param {string} [$symbol] unified $symbol of the market to create an order in
@@ -1407,7 +1409,7 @@ class bydfi extends Exchange {
             $wallet = 'W001';
             list($wallet, $params) = $this->handle_option_and_params($params, 'editOrder', 'wallet', $wallet);
             $request['wallet'] = $wallet;
-            $response = Async\await($this->privatePostV1SwapTradeEditOrder ($request));
+            $response = Async\await($this->privatePostV1FapiTradeEditOrder ($request));
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data);
         }) ();
@@ -1418,7 +1420,7 @@ class bydfi extends Exchange {
             /**
              * edit a list of trade $orders
              *
-             * @see https://developers.bydfi.com/en/swap/trade#batch-order-modification
+             * @see https://developers.bydfi.com/en/futures/trade#batch-order-modification
              *
              * @param {Array} $orders list of $orders to edit, each object should contain the parameters required by editOrder, namely $id, $symbol, $amount, $price and $params
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1448,7 +1450,7 @@ class bydfi extends Exchange {
                 'wallet' => $wallet,
                 'editOrders' => $ordersRequests,
             );
-            $response = Async\await($this->privatePostV1SwapTradeBatchEditOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostV1FapiTradeBatchEditOrder ($this->extend($request, $params)));
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data);
         }) ();
@@ -1481,7 +1483,7 @@ class bydfi extends Exchange {
             /**
              * cancel all open orders in a $market
              *
-             * @see https://developers.bydfi.com/en/swap/trade#complete-order-cancellation
+             * @see https://developers.bydfi.com/en/futures/trade#complete-order-cancellation
              *
              * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1499,7 +1501,7 @@ class bydfi extends Exchange {
                 'symbol' => $market['id'],
                 'wallet' => $wallet,
             );
-            $response = Async\await($this->privatePostV1SwapTradeCancelAllOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostV1FapiTradeCancelAllOrder ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -1542,8 +1544,8 @@ class bydfi extends Exchange {
             /**
              * fetch all unfilled currently open orders
              *
-             * @see https://developers.bydfi.com/en/swap/trade#pending-order-query
-             * @see https://developers.bydfi.com/en/swap/trade#planned-order-query
+             * @see https://developers.bydfi.com/en/futures/trade#pending-order-query
+             * @see https://developers.bydfi.com/en/futures/trade#planned-order-query
              *
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -1600,9 +1602,9 @@ class bydfi extends Exchange {
                 //         "success" => true
                 //     }
                 //
-                $response = Async\await($this->privateGetV1SwapTradeOpenOrder ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetV1FapiTradeOpenOrder ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privateGetV1SwapTradePlanOrder ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetV1FapiTradePlanOrder ($this->extend($request, $params)));
             }
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
@@ -1614,8 +1616,8 @@ class bydfi extends Exchange {
             /**
              * fetch an open $order by the $id
              *
-             * @see https://developers.bydfi.com/en/swap/trade#pending-$order-query
-             * @see https://developers.bydfi.com/en/swap/trade#planned-$order-query
+             * @see https://developers.bydfi.com/en/futures/trade#pending-$order-query
+             * @see https://developers.bydfi.com/en/futures/trade#planned-$order-query
              *
              * @param {string} $id $order $id (mandatory if $params->clientOrderId is not provided)
              * @param {string} $symbol unified $market $symbol
@@ -1646,9 +1648,9 @@ class bydfi extends Exchange {
             $trigger = false;
             list($trigger, $params) = $this->handle_option_and_params($params, 'fetchOpenOrder', 'trigger', $trigger);
             if (!$trigger) {
-                $response = Async\await($this->privateGetV1SwapTradeOpenOrder ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetV1FapiTradeOpenOrder ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privateGetV1SwapTradePlanOrder ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetV1FapiTradePlanOrder ($this->extend($request, $params)));
             }
             $data = $this->safe_list($response, 'data', array());
             $order = $this->safe_dict($data, 0, array());
@@ -1661,7 +1663,7 @@ class bydfi extends Exchange {
             /**
              * fetches information on multiple canceled and closed orders made by the user
              *
-             * @see https://developers.bydfi.com/en/swap/trade#historical-orders-query
+             * @see https://developers.bydfi.com/en/futures/trade#historical-orders-query
              *
              * @param {string} $symbol unified $market $symbol of the closed orders
              * @param {int} [$since] timestamp in ms of the earliest order
@@ -1696,7 +1698,7 @@ class bydfi extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetV1SwapTradeHistoryOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV1FapiTradeHistoryOrder ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -1935,7 +1937,7 @@ class bydfi extends Exchange {
             /**
              * set the level of $leverage for a $market
              *
-             * @see https://developers.bydfi.com/en/swap/trade#set-$leverage-for-single-trading-pair
+             * @see https://developers.bydfi.com/en/futures/trade#set-$leverage-for-single-trading-pair
              *
              * @param {float} $leverage the rate of $leverage
              * @param {string} $symbol unified $market $symbol
@@ -1955,7 +1957,7 @@ class bydfi extends Exchange {
                 'leverage' => $leverage,
                 'wallet' => $wallet,
             );
-            $response = Async\await($this->privatePostV1SwapTradeLeverage ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostV1FapiTradeLeverage ($this->extend($request, $params)));
             $data = $this->safe_dict($response, 'data', array());
             return $data;
         }) ();
@@ -1966,7 +1968,7 @@ class bydfi extends Exchange {
             /**
              * fetch the set leverage for a $market
              *
-             * @see https://developers.bydfi.com/en/swap/trade#get-leverage-for-single-trading-pair
+             * @see https://developers.bydfi.com/en/futures/trade#get-leverage-for-single-trading-pair
              *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1984,7 +1986,7 @@ class bydfi extends Exchange {
                 'symbol' => $market['id'],
                 'wallet' => $wallet,
             );
-            $response = Async\await($this->privateGetV1SwapTradeLeverage ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV1FapiTradeLeverage ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -2018,7 +2020,7 @@ class bydfi extends Exchange {
             /**
              * fetch all open positions
              *
-             * @see https://developers.bydfi.com/en/swap/trade#positions-query
+             * @see https://developers.bydfi.com/en/futures/trade#positions-query
              *
              * @param {string[]} [$symbols] list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2032,7 +2034,7 @@ class bydfi extends Exchange {
             $request = array(
                 'contractType' => $contractType,
             );
-            $response = Async\await($this->privateGetV1SwapTradePositions ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV1FapiTradePositions ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -2065,7 +2067,7 @@ class bydfi extends Exchange {
             /**
              * fetch open positions for a single $market
              *
-             * @see https://developers.bydfi.com/en/swap/trade#positions-query
+             * @see https://developers.bydfi.com/en/futures/trade#positions-query
              *
              * fetch all open positions for specific $symbol
              * @param {string} $symbol unified $market $symbol
@@ -2081,7 +2083,7 @@ class bydfi extends Exchange {
                 'contractType' => $contractType,
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->privateGetV1SwapTradePositions ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV1FapiTradePositions ($this->extend($request, $params)));
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_positions($data, [ $market['symbol'] ]);
         }) ();
@@ -2205,7 +2207,7 @@ class bydfi extends Exchange {
             /**
              * fetches historical $positions
              *
-             * @see https://developers.bydfi.com/en/swap/trade#query-historical-position-profit-and-loss-records
+             * @see https://developers.bydfi.com/en/futures/trade#query-historical-position-profit-and-loss-records
              *
              * @param {string} $symbol a unified $market $symbol
              * @param {int} [$since] timestamp in ms of the earliest position to fetch , $params["until"] - $since <= 7 days
@@ -2228,7 +2230,7 @@ class bydfi extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetV1SwapTradePositionHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV1FapiTradePositionHistory ($this->extend($request, $params)));
             //
             //
             $data = $this->safe_list($response, 'data', array());
@@ -2242,7 +2244,7 @@ class bydfi extends Exchange {
             /**
              * fetches historical $positions
              *
-             * @see https://developers.bydfi.com/en/swap/trade#query-historical-position-profit-and-loss-records
+             * @see https://developers.bydfi.com/en/futures/trade#query-historical-position-profit-and-loss-records
              *
              * @param {string[]} $symbols a list of unified market $symbols
              * @param {int} [$since] timestamp in ms of the earliest position to fetch , $params["until"] - $since <= 7 days
@@ -2263,7 +2265,7 @@ class bydfi extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetV1SwapTradePositionHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV1FapiTradePositionHistory ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -2317,7 +2319,7 @@ class bydfi extends Exchange {
             /**
              * fetches the margin mode of a trading pair
              *
-             * @see https://developers.bydfi.com/en/swap/user#margin-mode-query
+             * @see https://developers.bydfi.com/en/futures/user#margin-mode-query
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the margin mode for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2336,7 +2338,7 @@ class bydfi extends Exchange {
                 'symbol' => $market['id'],
                 'wallet' => $wallet,
             );
-            $response = Async\await($this->privateGetV1SwapUserDataAssetsMargin ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV1FapiUserDataAssetsMargin ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -2368,7 +2370,7 @@ class bydfi extends Exchange {
             /**
              * set margin mode to 'cross' or 'isolated'
              *
-             * @see https://developers.bydfi.com/en/swap/user#change-margin-type-cross-margin
+             * @see https://developers.bydfi.com/en/futures/user#change-margin-type-cross-margin
              *
              * @param {string} $marginMode 'cross' or 'isolated'
              * @param {string} $symbol unified $market $symbol
@@ -2396,7 +2398,7 @@ class bydfi extends Exchange {
                 'marginType' => strtoupper($marginMode),
                 'wallet' => $wallet,
             );
-            return Async\await($this->privatePostV1SwapUserDataMarginType ($this->extend($request, $params)));
+            return Async\await($this->privatePostV1FapiUserDataMarginType ($this->extend($request, $params)));
         }) ();
     }
 
@@ -2405,7 +2407,7 @@ class bydfi extends Exchange {
             /**
              * set $hedged to true or false for a market, $hedged for bydfi is set identically for all markets with same settle currency
              *
-             * @see https://developers.bydfi.com/en/swap/user#change-position-mode-dual
+             * @see https://developers.bydfi.com/en/futures/user#change-position-mode-dual
              *
              * @param {bool} $hedged set to true to use dualSidePosition
              * @param {string} [$symbol] not used by bydfi setPositionMode ()
@@ -2439,7 +2441,7 @@ class bydfi extends Exchange {
             //         "success" => true
             //     }
             //
-            return Async\await($this->privatePostV1SwapUserDataPositionSideDual ($this->extend($request, $params)));
+            return Async\await($this->privatePostV1FapiUserDataPositionSideDual ($this->extend($request, $params)));
         }) ();
     }
 
@@ -2448,7 +2450,7 @@ class bydfi extends Exchange {
             /**
              * fetchs the position mode, $hedged or one way, $hedged for bydfi is set identically for all markets with same settle currency
              *
-             * @see https://developers.bydfi.com/en/swap/user#get-position-mode
+             * @see https://developers.bydfi.com/en/futures/user#get-position-mode
              *
              * @param {string} [$symbol] unified $symbol of the $market to fetch the order book for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2474,7 +2476,7 @@ class bydfi extends Exchange {
                 'settleCoin' => $settleCoin,
                 'wallet' => $wallet,
             );
-            $response = Async\await($this->privateGetV1SwapUserDataPositionSideDual ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetV1FapiUserDataPositionSideDual ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -2507,22 +2509,24 @@ class bydfi extends Exchange {
              * query for balance and get the amount of funds available for trading or funds locked in orders
              *
              * @see https://developers.bydfi.com/en/account#asset-inquiry
-             * @see https://developers.bydfi.com/en/swap/user#asset-query
+             * @see https://developers.bydfi.com/en/futures/user#asset-query
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->accountType] the type of account to fetch the balance for, either 'spot' or 'swap'  or 'funding' (default is 'spot')
+             * @param {string} [$params->account] the $type of account to fetch the balance for, either 'SPOT' or 'UMFUTURE'  or 'CMFUTURE'  or 'COPY'  or 'GRID'  or 'FUNDING' (default is 'SPOT')
              * @param {string} [$params->wallet] *swap only* The unique code of a sub-$wallet-> W001 is the default $wallet and the main $wallet code of the contract
              * @param {string} [$params->asset] currency id for the balance to fetch
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            $accountType = 'spot';
-            list($accountType, $params) = $this->handle_option_and_params_2($params, 'fetchBalance', 'accountType', 'type', $accountType);
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+            $wallet = null;
+            list($wallet, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'wallet');
             $request = array();
             $response = null;
-            if ($accountType !== 'swap') {
+            if ($wallet === null) {
                 $options = $this->safe_dict($this->options, 'accountsByType', array());
-                $parsedAccountType = $this->safe_string($options, $accountType, $accountType);
+                $parsedAccountType = $this->safe_string_upper($options, $type, $type);
                 $request['walletType'] = $parsedAccountType;
                 //
                 //     {
@@ -2542,8 +2546,6 @@ class bydfi extends Exchange {
                 //
                 $response = Async\await($this->privateGetV1AccountAssets ($this->extend($request, $params)));
             } else {
-                $wallet = 'W001';
-                list($wallet, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'wallet', $wallet);
                 $request['wallet'] = $wallet;
                 //
                 //     {
@@ -2573,7 +2575,7 @@ class bydfi extends Exchange {
                 //         ),
                 //         "success" => true
                 //     }
-                $response = Async\await($this->privateGetV1SwapAccountBalance ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetV1FapiAccountBalance ($this->extend($request, $params)));
             }
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_balance($data);

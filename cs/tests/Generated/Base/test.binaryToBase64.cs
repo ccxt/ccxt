@@ -7,6 +7,10 @@ namespace Tests;
 
 public partial class BaseTest
 {
+        public object helperStrToBinary(Exchange exchange, object str)
+        {
+            return exchange.base64ToBinary(exchange.stringToBase64(str));
+        }
         public void testBinaryToBase64()
         {
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
@@ -16,34 +20,34 @@ public partial class BaseTest
             // The encode() method converts string to bytes
             Assert("GO_SKIP_START");
             // Test 1: Simple binary from string
-            object binary1 = exchange.encode("hello");
+            object binary1 = helperStrToBinary(exchange, "hello");
             Assert(isEqual(exchange.binaryToBase64(binary1), "aGVsbG8="));
             // Test 2: Binary with space in original
-            object binary2 = exchange.encode("hello world");
+            object binary2 = helperStrToBinary(exchange, "hello world");
             Assert(isEqual(exchange.binaryToBase64(binary2), "aGVsbG8gd29ybGQ="));
             // Test 3: Short binary
-            object binary3 = exchange.encode("test");
+            object binary3 = helperStrToBinary(exchange, "test");
             Assert(isEqual(exchange.binaryToBase64(binary3), "dGVzdA=="));
             // Test 4: Empty binary
-            object binary4 = exchange.encode("");
+            object binary4 = helperStrToBinary(exchange, "");
             Assert(isEqual(exchange.binaryToBase64(binary4), ""));
             // Test 5: Single byte
-            object binary5 = exchange.encode("a");
+            object binary5 = helperStrToBinary(exchange, "a");
             Assert(isEqual(exchange.binaryToBase64(binary5), "YQ=="));
             // Test 6: Two bytes
-            object binary6 = exchange.encode("ab");
+            object binary6 = helperStrToBinary(exchange, "ab");
             Assert(isEqual(exchange.binaryToBase64(binary6), "YWI="));
             // Test 7: Three bytes (no padding)
-            object binary7 = exchange.encode("abc");
+            object binary7 = helperStrToBinary(exchange, "abc");
             Assert(isEqual(exchange.binaryToBase64(binary7), "YWJj"));
             // Test 8: JSON-like binary
-            object binary8 = exchange.encode("{\"key\":\"value\"}");
+            object binary8 = helperStrToBinary(exchange, "{\"key\":\"value\"}");
             Assert(isEqual(exchange.binaryToBase64(binary8), "eyJrZXkiOiJ2YWx1ZSJ9"));
             // Test 9: Numbers as binary
-            object binary9 = exchange.encode("123456");
+            object binary9 = helperStrToBinary(exchange, "123456");
             Assert(isEqual(exchange.binaryToBase64(binary9), "MTIzNDU2"));
             // Test 10: Special characters
-            object binary10 = exchange.encode("hello+world/test");
+            object binary10 = helperStrToBinary(exchange, "hello+world/test");
             Assert(isEqual(exchange.binaryToBase64(binary10), "aGVsbG8rd29ybGQvdGVzdA=="));
             Assert("GO_SKIP_END");
             Assert(isEqual(exchange.safeString(null, "key"), null), "GO_WORKAROUND");

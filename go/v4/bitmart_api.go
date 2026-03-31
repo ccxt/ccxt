@@ -367,6 +367,34 @@ func (this *BitmartCore) PrivatePostSpotV4BatchOrders(args ...interface{}) <-cha
 	return this.callEndpointAsync("privatePostSpotV4BatchOrders", args...)
 }
 
+func (this *BitmartCore) PrivatePostSpotV4AlgoSubmitOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSpotV4AlgoSubmitOrder", args...)
+}
+
+func (this *BitmartCore) PrivatePostSpotV4AlgoCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSpotV4AlgoCancelOrder", args...)
+}
+
+func (this *BitmartCore) PrivatePostSpotV4AlgoCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSpotV4AlgoCancelAll", args...)
+}
+
+func (this *BitmartCore) PrivatePostSpotV4QueryAlgoOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSpotV4QueryAlgoOrder", args...)
+}
+
+func (this *BitmartCore) PrivatePostSpotV4QueryAlgoClientOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSpotV4QueryAlgoClientOrder", args...)
+}
+
+func (this *BitmartCore) PrivatePostSpotV4QueryAlgoOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSpotV4QueryAlgoOpenOrders", args...)
+}
+
+func (this *BitmartCore) PrivatePostSpotV4QueryAlgoHistoryOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSpotV4QueryAlgoHistoryOrders", args...)
+}
+
 func (this *BitmartCore) PrivatePostSpotV3CancelOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostSpotV3CancelOrder", args...)
 }

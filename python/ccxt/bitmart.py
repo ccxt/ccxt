@@ -261,6 +261,13 @@ class bitmart(Exchange, ImplicitAPI):
                         'spot/v4/cancel_orders': 3,
                         'spot/v4/cancel_all': 90,
                         'spot/v4/batch_orders': 3,
+                        'spot/v4/algo/submit_order': 6,  # 10 times per 2 seconds
+                        'spot/v4/algo/cancel_order': 6,
+                        'spot/v4/algo/cancel_all': 12,  # 5 times per 2 seconds
+                        'spot/v4/query/algo/order': 1.5,
+                        'spot/v4/query/algo/client-order': 1.5,  # 40 times per 2 seconds
+                        'spot/v4/query/algo/open-orders': 3,
+                        'spot/v4/query/algo/history-orders': 3,  # 20 times per 2 seconds
                         # newer endpoint
                         'spot/v3/cancel_order': 1,
                         'spot/v2/batch_orders': 1,
@@ -947,7 +954,7 @@ class bitmart(Exchange, ImplicitAPI):
         servicesByType = self.index_by(services, 'service_type')
         if type == 'swap':
             type = 'contract'
-        service = self.safe_string(servicesByType, type)
+        service = self.safe_dict(servicesByType, type)
         status = None
         eta = None
         if service is not None:
@@ -2688,6 +2695,7 @@ class bitmart(Exchange, ImplicitAPI):
         https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
         https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-sl-order-signed
         https://developer-pro.bitmart.com/en/futuresv2/#submit-trail-order-signed
+        https://developer-pro.bitmart.com/en/spot/#new-algo-order-v4-signed
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market', 'limit' or 'trailing' for swap markets only
@@ -2725,7 +2733,9 @@ class bitmart(Exchange, ImplicitAPI):
         response = None
         if market['spot']:
             spotRequest = self.create_spot_order_request(symbol, type, side, amount, price, params)
-            if marginMode == 'isolated':
+            if isStopLoss or isTakeProfit or isTriggerOrder:
+                response = self.privatePostSpotV4AlgoSubmitOrder(spotRequest)
+            elif marginMode == 'isolated':
                 response = self.privatePostSpotV1MarginSubmitOrder(spotRequest)
             else:
                 response = self.privatePostSpotV2SubmitOrder(spotRequest)
@@ -2957,6 +2967,7 @@ class bitmart(Exchange, ImplicitAPI):
         create a spot order request
         https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
         https://developer-pro.bitmart.com/en/spot/#new-margin-order-v1-signed
+        https://developer-pro.bitmart.com/en/spot/#new-algo-order-v4-signed
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -2964,13 +2975,23 @@ class bitmart(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated'
+        :param str [params.clientOrderId]: client order id of the order
+        :param str [params.triggerPrice]: the price to trigger a stop order
+        :param str [params.stopLossPrice]: the price to trigger a stop-loss order
+        :param str [params.takeProfitPrice]: the price to trigger a take-profit order
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         market = self.market(symbol)
+        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'trigger_price'])
+        stopLossPrice = self.safe_string(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
+        isStopLoss = stopLossPrice is not None
+        isTakeProfit = takeProfitPrice is not None
+        isTriggerOrder = triggerPrice is not None
+        isAlgoOrder = isStopLoss or isTakeProfit or isTriggerOrder
         request: dict = {
             'symbol': market['id'],
             'side': side,
-            'type': type,
         }
         timeInForce = self.safe_string(params, 'timeInForce')
         if timeInForce == 'FOK':
@@ -2983,7 +3004,23 @@ class bitmart(Exchange, ImplicitAPI):
         params = self.omit(params, ['timeInForce', 'postOnly'])
         ioc = ((timeInForce == 'IOC') or (type == 'ioc'))
         isLimitOrder = (type == 'limit') or postOnly or ioc
-        # method = 'privatePostSpotV2SubmitOrder'
+        if isAlgoOrder:
+            if isTriggerOrder:
+                request['type'] = 'trigger'
+            else:
+                request['type'] = 'tp/sl'
+            if isLimitOrder:
+                request['trigger_type'] = 'limit'
+            else:
+                request['trigger_type'] = 'market'
+            if isStopLoss:
+                request['trigger_price'] = self.price_to_precision(symbol, stopLossPrice)
+            elif isTakeProfit:
+                request['trigger_price'] = self.price_to_precision(symbol, takeProfitPrice)
+            elif isTriggerOrder:
+                request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
+        else:
+            request['type'] = type
         if isLimitOrder:
             request['size'] = self.amount_to_precision(symbol, amount)
             request['price'] = self.price_to_precision(symbol, price)
@@ -3025,13 +3062,15 @@ class bitmart(Exchange, ImplicitAPI):
         https://developer-pro.bitmart.com/en/futuresv2/#cancel-plan-order-signed
         https://developer-pro.bitmart.com/en/futuresv2/#cancel-order-signed
         https://developer-pro.bitmart.com/en/futuresv2/#cancel-trail-order-signed
+        https://developer-pro.bitmart.com/en/spot/#cancel-algo-order-v4-signed
 
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: *spot only* the client order id of the order to cancel
-        :param boolean [params.trigger]: *swap only* whether the order is a trigger order
         :param boolean [params.trailing]: *swap only* whether the order is a stop order
+        :param boolean [params.trigger]: whether the order is a trigger order
+        :param boolean [params.stopLossTakeProfit]: whether the order is a stopLossPrice or takeProfitPrice order
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
@@ -3046,14 +3085,21 @@ class bitmart(Exchange, ImplicitAPI):
             request['client_order_id'] = clientOrderId
         else:
             request['order_id'] = str(id)
-        params = self.omit(params, ['clientOrderId'])
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
+        stopLossTakeProfit = self.safe_bool(params, 'stopLossTakeProfit')
+        trailing = self.safe_bool(params, 'trailing')
+        params = self.omit(params, ['clientOrderId', 'stop', 'trigger', 'trailing', 'stopLossTakeProfit'])
         response = None
         if market['spot']:
-            response = self.privatePostSpotV3CancelOrder(self.extend(request, params))
+            if trigger or stopLossTakeProfit:
+                if stopLossTakeProfit:
+                    request['type'] = 'tp/sl'
+                elif trigger:
+                    request['type'] = 'trigger'
+                response = self.privatePostSpotV4AlgoCancelOrder(self.extend(request, params))
+            else:
+                response = self.privatePostSpotV3CancelOrder(self.extend(request, params))
         else:
-            trigger = self.safe_bool_2(params, 'stop', 'trigger')
-            trailing = self.safe_bool(params, 'trailing')
-            params = self.omit(params, ['stop', 'trigger'])
             if trigger:
                 response = self.privatePostContractPrivateCancelPlanOrder(self.extend(request, params))
             elif trailing:
@@ -3162,10 +3208,13 @@ class bitmart(Exchange, ImplicitAPI):
 
         https://developer-pro.bitmart.com/en/spot/#cancel-all-order-v4-signed
         https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed
+        https://developer-pro.bitmart.com/en/spot/#cancel-all-algo-order-v4-signed
 
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.side]: *spot only* 'buy' or 'sell'
+        :param boolean [params.trigger]: whether the orders are trigger orders
+        :param boolean [params.stopLossTakeProfit]: whether the orders are stopLossPrice or takeProfitPrice orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
@@ -3178,7 +3227,17 @@ class bitmart(Exchange, ImplicitAPI):
         type = None
         type, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
         if type == 'spot':
-            response = self.privatePostSpotV4CancelAll(self.extend(request, params))
+            trigger = self.safe_bool_2(params, 'stop', 'trigger')
+            stopLossTakeProfit = self.safe_bool(params, 'stopLossTakeProfit')
+            params = self.omit(params, ['stop', 'trigger', 'stopLossTakeProfit'])
+            if trigger or stopLossTakeProfit:
+                if stopLossTakeProfit:
+                    request['type'] = 'tp/sl'
+                elif trigger:
+                    request['type'] = 'trigger'
+                response = self.privatePostSpotV4AlgoCancelAll(self.extend(request, params))
+            else:
+                response = self.privatePostSpotV4CancelAll(self.extend(request, params))
         elif type == 'swap':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
@@ -3258,12 +3317,13 @@ class bitmart(Exchange, ImplicitAPI):
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
+        fetch all unfilled currently open orders
 
         https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
         https://developer-pro.bitmart.com/en/futuresv2/#get-all-open-orders-keyed
         https://developer-pro.bitmart.com/en/futuresv2/#get-all-current-plan-orders-keyed
+        https://developer-pro.bitmart.com/en/spot/#current-algo-open-orders-v4-signed
 
-        fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
@@ -3274,7 +3334,8 @@ class bitmart(Exchange, ImplicitAPI):
         :param str [params.order_state]: *swap* the order state, 'all' or 'partially_filled', default is 'all'
         :param str [params.orderType]: *swap only* 'limit', 'market', or 'trailing'
         :param boolean [params.trailing]: *swap only* set to True if you want to fetch trailing orders
-        :param boolean [params.trigger]: *swap only* set to True if you want to fetch trigger orders
+        :param boolean [params.trigger]: set to True if you want to fetch trigger orders
+        :param boolean [params.stopLossTakeProfit]: set to True if you want to fetch stopLossPrice or takeProfitPrice orders
         :param str [params.stpMode]: self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -3287,6 +3348,9 @@ class bitmart(Exchange, ImplicitAPI):
         type = None
         response = None
         type, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
+        isTrigger = self.safe_bool_2(params, 'stop', 'trigger')
+        stopLossTakeProfit = self.safe_bool(params, 'stopLossTakeProfit')
+        params = self.omit(params, ['stop', 'trigger', 'stopLossTakeProfit'])
         if type == 'spot':
             if limit is not None:
                 request['limit'] = min(limit, 200)
@@ -3300,12 +3364,17 @@ class bitmart(Exchange, ImplicitAPI):
             if until is not None:
                 params = self.omit(params, ['endTime'])
                 request['endTime'] = until
-            response = self.privatePostSpotV4QueryOpenOrders(self.extend(request, params))
+            if isTrigger or stopLossTakeProfit:
+                if isTrigger:
+                    request['orderMode'] = 'trigger'
+                elif stopLossTakeProfit:
+                    request['orderMode'] = 'tp/sl'
+                response = self.privatePostSpotV4QueryAlgoOpenOrders(self.extend(request, params))
+            else:
+                response = self.privatePostSpotV4QueryOpenOrders(self.extend(request, params))
         elif type == 'swap':
             if limit is not None:
                 request['limit'] = min(limit, 100)
-            isTrigger = self.safe_bool_2(params, 'stop', 'trigger')
-            params = self.omit(params, ['stop', 'trigger'])
             if isTrigger:
                 response = self.privateGetContractPrivateCurrentPlanOrder(self.extend(request, params))
             else:
@@ -3378,11 +3447,12 @@ class bitmart(Exchange, ImplicitAPI):
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
+        fetches information on multiple closed orders made by the user
 
         https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
         https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed
+        https://developer-pro.bitmart.com/en/spot/#account-algo-orders-v4-signed
 
-        fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -3390,6 +3460,8 @@ class bitmart(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest entry
         :param str [params.marginMode]: *spot only* 'cross' or 'isolated', for margin trading
         :param str [params.stpMode]: self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+        :param boolean [params.trigger]: set to True if you want to fetch trigger orders
+        :param boolean [params.stopLossTakeProfit]: set to True if you want to fetch stopLossPrice or takeProfitPrice orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
@@ -3411,13 +3483,23 @@ class bitmart(Exchange, ImplicitAPI):
         if until is not None:
             params = self.omit(params, ['until'])
             request[endTimeKey] = until
+        isTrigger = self.safe_bool_2(params, 'stop', 'trigger')
+        stopLossTakeProfit = self.safe_bool(params, 'stopLossTakeProfit')
+        params = self.omit(params, ['stop', 'trigger', 'stopLossTakeProfit'])
         response = None
         if type == 'spot':
             marginMode = None
             marginMode, params = self.handle_margin_mode_and_params('fetchClosedOrders', params)
             if marginMode == 'isolated':
                 request['orderMode'] = 'iso_margin'
-            response = self.privatePostSpotV4QueryHistoryOrders(self.extend(request, params))
+            if isTrigger or stopLossTakeProfit:
+                if isTrigger:
+                    request['orderMode'] = 'trigger'
+                elif stopLossTakeProfit:
+                    request['orderMode'] = 'tp/sl'
+                response = self.privatePostSpotV4QueryAlgoHistoryOrders(self.extend(request, params))
+            else:
+                response = self.privatePostSpotV4QueryHistoryOrders(self.extend(request, params))
         else:
             response = self.privateGetContractPrivateOrderHistory(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
@@ -3441,6 +3523,8 @@ class bitmart(Exchange, ImplicitAPI):
         https://developer-pro.bitmart.com/en/spot/#query-order-by-id-v4-signed
         https://developer-pro.bitmart.com/en/spot/#query-order-by-clientorderid-v4-signed
         https://developer-pro.bitmart.com/en/futuresv2/#get-order-detail-keyed
+        https://developer-pro.bitmart.com/en/spot/#query-algo-order-by-id-v4-signed
+        https://developer-pro.bitmart.com/en/spot/#query-algo-order-by-clientorderid-v4-signed
 
         :param str id: the id of the order
         :param str symbol: unified symbol of the market the order was made in
@@ -3449,6 +3533,7 @@ class bitmart(Exchange, ImplicitAPI):
         :param str [params.orderType]: *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing'
         :param boolean [params.trailing]: *swap only* set to True if you want to fetch a trailing order
         :param str [params.stpMode]: self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+        :param boolean [params.trigger]: whether the orders is a trigger, stopLossPrice or takeProfitPrice order
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
@@ -3461,12 +3546,20 @@ class bitmart(Exchange, ImplicitAPI):
         type, params = self.handle_market_type_and_params('fetchOrder', market, params)
         if type == 'spot':
             clientOrderId = self.safe_string(params, 'clientOrderId')
+            trigger = self.safe_bool_2(params, 'stop', 'trigger')
+            params = self.omit(params, ['stop', 'trigger'])
             if not clientOrderId:
                 request['orderId'] = id
-            if clientOrderId is not None:
-                response = self.privatePostSpotV4QueryClientOrder(self.extend(request, params))
+            if trigger:
+                if clientOrderId is not None:
+                    response = self.privatePostSpotV4QueryAlgoClientOrder(self.extend(request, params))
+                else:
+                    response = self.privatePostSpotV4QueryAlgoOrder(self.extend(request, params))
             else:
-                response = self.privatePostSpotV4QueryOrder(self.extend(request, params))
+                if clientOrderId is not None:
+                    response = self.privatePostSpotV4QueryClientOrder(self.extend(request, params))
+                else:
+                    response = self.privatePostSpotV4QueryOrder(self.extend(request, params))
         elif type == 'swap':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')

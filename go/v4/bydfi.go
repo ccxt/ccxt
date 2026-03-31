@@ -198,16 +198,16 @@ func (this *BydfiCore) Describe() interface{} {
 			"public": map[string]interface{}{
 				"get": map[string]interface{}{
 					"v1/public/api_limits":                1,
-					"v1/swap/market/exchange_info":        1,
-					"v1/swap/market/depth":                1,
-					"v1/swap/market/trades":               1,
-					"v1/swap/market/klines":               1,
-					"v1/swap/market/ticker/24hr":          1,
-					"v1/swap/market/ticker/price":         1,
-					"v1/swap/market/mark_price":           1,
-					"v1/swap/market/funding_rate":         1,
-					"v1/swap/market/funding_rate_history": 1,
-					"v1/swap/market/risk_limit":           1,
+					"v1/fapi/market/exchange_info":        1,
+					"v1/fapi/market/depth":                1,
+					"v1/fapi/market/trades":               1,
+					"v1/fapi/market/klines":               1,
+					"v1/fapi/market/ticker/24hr":          1,
+					"v1/fapi/market/ticker/price":         1,
+					"v1/fapi/market/mark_price":           1,
+					"v1/fapi/market/funding_rate":         1,
+					"v1/fapi/market/funding_rate_history": 1,
+					"v1/fapi/market/risk_limit":           1,
 				},
 			},
 			"private": map[string]interface{}{
@@ -216,16 +216,16 @@ func (this *BydfiCore) Describe() interface{} {
 					"v1/account/transfer_records":          1,
 					"v1/spot/deposit_records":              1,
 					"v1/spot/withdraw_records":             1,
-					"v1/swap/trade/open_order":             1,
-					"v1/swap/trade/plan_order":             1,
-					"v1/swap/trade/leverage":               1,
-					"v1/swap/trade/history_order":          1,
-					"v1/swap/trade/history_trade":          1,
-					"v1/swap/trade/position_history":       1,
-					"v1/swap/trade/positions":              1,
-					"v1/swap/account/balance":              1,
-					"v1/swap/user_data/assets_margin":      1,
-					"v1/swap/user_data/position_side/dual": 1,
+					"v1/fapi/trade/open_order":             1,
+					"v1/fapi/trade/plan_order":             1,
+					"v1/fapi/trade/leverage":               1,
+					"v1/fapi/trade/history_order":          1,
+					"v1/fapi/trade/history_trade":          1,
+					"v1/fapi/trade/position_history":       1,
+					"v1/fapi/trade/positions":              1,
+					"v1/fapi/account/balance":              1,
+					"v1/fapi/user_data/assets_margin":      1,
+					"v1/fapi/user_data/position_side/dual": 1,
 					"v1/agent/teams":                       1,
 					"v1/agent/agent_links":                 1,
 					"v1/agent/regular_overview":            1,
@@ -238,15 +238,15 @@ func (this *BydfiCore) Describe() interface{} {
 				},
 				"post": map[string]interface{}{
 					"v1/account/transfer":                  1,
-					"v1/swap/trade/place_order":            1,
-					"v1/swap/trade/batch_place_order":      1,
-					"v1/swap/trade/edit_order":             1,
-					"v1/swap/trade/batch_edit_order":       1,
-					"v1/swap/trade/cancel_all_order":       1,
-					"v1/swap/trade/leverage":               1,
-					"v1/swap/trade/batch_leverage_margin":  1,
-					"v1/swap/user_data/margin_type":        1,
-					"v1/swap/user_data/position_side/dual": 1,
+					"v1/fapi/trade/place_order":            1,
+					"v1/fapi/trade/batch_place_order":      1,
+					"v1/fapi/trade/edit_order":             1,
+					"v1/fapi/trade/batch_edit_order":       1,
+					"v1/fapi/trade/cancel_all_order":       1,
+					"v1/fapi/trade/leverage":               1,
+					"v1/fapi/trade/batch_leverage_margin":  1,
+					"v1/fapi/user_data/margin_type":        1,
+					"v1/fapi/user_data/position_side/dual": 1,
 					"v1/agent/internal_withdrawal":         1,
 				},
 			},
@@ -378,13 +378,15 @@ func (this *BydfiCore) Describe() interface{} {
 			},
 			"accountsByType": map[string]interface{}{
 				"spot":    "SPOT",
-				"swap":    "SWAP",
-				"funding": "FUND",
+				"swap":    "UMFUTURE",
+				"funding": "FUNDING",
+				"inverse": "CMFUTURE",
 			},
 			"accountsById": map[string]interface{}{
-				"SPOT": "spot",
-				"SWAP": "swap",
-				"FUND": "funding",
+				"SPOT":     "spot",
+				"UMFUTURE": "swap",
+				"FUNDING":  "funding",
+				"CMFUTURE": "inverse",
 			},
 		},
 	})
@@ -394,7 +396,7 @@ func (this *BydfiCore) Describe() interface{} {
  * @method
  * @name bydfi#fetchMarkets
  * @description retrieves data on all markets for bydfi
- * @see https://developers.bydfi.com/en/swap/market#fetching-trading-rules-and-pairs
+ * @see https://developers.bydfi.com/en/futures/market#fetching-trading-rules-and-pairs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -406,7 +408,7 @@ func (this *BydfiCore) FetchMarkets(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		response := (<-this.PublicGetV1SwapMarketExchangeInfo(params))
+		response := (<-this.PublicGetV1FapiMarketExchangeInfo(params))
 		PanicOnError(response)
 		//
 		//     {
@@ -568,7 +570,7 @@ func (this *BydfiCore) ParseMarket(market interface{}) interface{} {
  * @method
  * @name bydfi#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://developers.bydfi.com/en/swap/market#depth-information
+ * @see https://developers.bydfi.com/en/futures/market#depth-information
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return, could be 5, 10, 20, 50, 100, 500 or 1000 (default 500)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -585,8 +587,8 @@ func (this *BydfiCore) FetchOrderBook(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes5708 := (<-this.LoadMarkets())
-		PanicOnError(retRes5708)
+		retRes5728 := (<-this.LoadMarkets())
+		PanicOnError(retRes5728)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -595,7 +597,7 @@ func (this *BydfiCore) FetchOrderBook(symbol interface{}, optionalArgs ...interf
 			AddElementToObject(request, "limit", this.GetClosestLimit(limit))
 		}
 
-		response := (<-this.PublicGetV1SwapMarketDepth(this.Extend(request, params)))
+		response := (<-this.PublicGetV1FapiMarketDepth(this.Extend(request, params)))
 		PanicOnError(response)
 		//
 		//     {
@@ -650,7 +652,7 @@ func (this *BydfiCore) GetClosestLimit(limit interface{}) interface{} {
  * @method
  * @name bydfi#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://developers.bydfi.com/en/swap/market#recent-trades
+ * @see https://developers.bydfi.com/en/futures/market#recent-trades
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch (default 500, max 1000)
@@ -670,8 +672,8 @@ func (this *BydfiCore) FetchTrades(symbol interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes6378 := (<-this.LoadMarkets())
-		PanicOnError(retRes6378)
+		retRes6398 := (<-this.LoadMarkets())
+		PanicOnError(retRes6398)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -680,7 +682,7 @@ func (this *BydfiCore) FetchTrades(symbol interface{}, optionalArgs ...interface
 			AddElementToObject(request, "limit", limit)
 		}
 
-		response := (<-this.PublicGetV1SwapMarketTrades(this.Extend(request, params)))
+		response := (<-this.PublicGetV1FapiMarketTrades(this.Extend(request, params)))
 		PanicOnError(response)
 		//
 		//     {
@@ -712,7 +714,7 @@ func (this *BydfiCore) FetchTrades(symbol interface{}, optionalArgs ...interface
  * @method
  * @name bydfi#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://developers.bydfi.com/en/swap/trade#historical-trades-query
+ * @see https://developers.bydfi.com/en/futures/trade#historical-trades-query
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -737,8 +739,8 @@ func (this *BydfiCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes6838 := (<-this.LoadMarkets())
-		PanicOnError(retRes6838)
+		retRes6858 := (<-this.LoadMarkets())
+		PanicOnError(retRes6858)
 		var paginate interface{} = this.SafeBool(params, "paginate", false)
 		if IsTrue(paginate) {
 			var maxLimit interface{} = 500
@@ -770,7 +772,7 @@ func (this *BydfiCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interfa
 			AddElementToObject(request, "limit", limit)
 		}
 
-		response := (<-this.PrivateGetV1SwapTradeHistoryTrade(this.Extend(request, params)))
+		response := (<-this.PrivateGetV1FapiTradeHistoryTrade(this.Extend(request, params)))
 		PanicOnError(response)
 		//
 		//     {
@@ -886,7 +888,7 @@ func (this *BydfiCore) ParseTradeType(typeVar interface{}) interface{} {
  * @method
  * @name bydfi#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://developers.bydfi.com/en/swap/market#candlestick-data
+ * @see https://developers.bydfi.com/en/futures/market#candlestick-data
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -909,8 +911,8 @@ func (this *BydfiCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes8268 := (<-this.LoadMarkets())
-		PanicOnError(retRes8268)
+		retRes8288 := (<-this.LoadMarkets())
+		PanicOnError(retRes8288)
 		var maxLimit interface{} = 500 // docs says max 1500, but in practice only 500 works
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
@@ -953,7 +955,7 @@ func (this *BydfiCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{
 			AddElementToObject(request, "limit", limit)
 		}
 
-		response := (<-this.PublicGetV1SwapMarketKlines(this.Extend(request, params)))
+		response := (<-this.PublicGetV1FapiMarketKlines(this.Extend(request, params)))
 		PanicOnError(response)
 		//
 		//     {
@@ -1002,7 +1004,7 @@ func (this *BydfiCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}
 /**
  * @method
  * @name bydfi#fetchTickers
- * @see https://developers.bydfi.com/en/swap/market#24hr-price-change-statistics
+ * @see https://developers.bydfi.com/en/futures/market#24hr-price-change-statistics
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1018,10 +1020,10 @@ func (this *BydfiCore) FetchTickers(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes9188 := (<-this.LoadMarkets())
-		PanicOnError(retRes9188)
+		retRes9208 := (<-this.LoadMarkets())
+		PanicOnError(retRes9208)
 
-		response := (<-this.PublicGetV1SwapMarketTicker24hr(params))
+		response := (<-this.PublicGetV1FapiMarketTicker24hr(params))
 		PanicOnError(response)
 		//
 		//     {
@@ -1054,7 +1056,7 @@ func (this *BydfiCore) FetchTickers(optionalArgs ...interface{}) <-chan interfac
  * @method
  * @name bydfi#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://developers.bydfi.com/en/swap/market#24hr-price-change-statistics
+ * @see https://developers.bydfi.com/en/futures/market#24hr-price-change-statistics
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1067,14 +1069,14 @@ func (this *BydfiCore) FetchTicker(symbol interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes9528 := (<-this.LoadMarkets())
-		PanicOnError(retRes9528)
+		retRes9548 := (<-this.LoadMarkets())
+		PanicOnError(retRes9548)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
 		}
 
-		response := (<-this.PublicGetV1SwapMarketTicker24hr(this.Extend(request, params)))
+		response := (<-this.PublicGetV1FapiMarketTicker24hr(this.Extend(request, params)))
 		PanicOnError(response)
 		var data interface{} = this.SafeList(response, "data", []interface{}{})
 		var ticker interface{} = this.SafeDict(data, 0, map[string]interface{}{})
@@ -1134,7 +1136,7 @@ func (this *BydfiCore) ParseTicker(ticker interface{}, optionalArgs ...interface
  * @method
  * @name bydfi#fetchFundingRate
  * @description fetch the current funding rate
- * @see https://developers.bydfi.com/en/swap/market#recent-funding-rate
+ * @see https://developers.bydfi.com/en/futures/market#recent-funding-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -1147,14 +1149,14 @@ func (this *BydfiCore) FetchFundingRate(symbol interface{}, optionalArgs ...inte
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes10168 := (<-this.LoadMarkets())
-		PanicOnError(retRes10168)
+		retRes10188 := (<-this.LoadMarkets())
+		PanicOnError(retRes10188)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
 		}
 
-		response := (<-this.PublicGetV1SwapMarketFundingRate(this.Extend(request, params)))
+		response := (<-this.PublicGetV1FapiMarketFundingRate(this.Extend(request, params)))
 		PanicOnError(response)
 		//
 		//     {
@@ -1218,7 +1220,7 @@ func (this *BydfiCore) ParseFundingRate(contract interface{}, optionalArgs ...in
  * @method
  * @name bydfi#fetchFundingRateHistory
  * @description fetches historical funding rate prices
- * @see https://developers.bydfi.com/en/swap/market#historical-funding-rates
+ * @see https://developers.bydfi.com/en/futures/market#historical-funding-rates
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -1243,8 +1245,8 @@ func (this *BydfiCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-ch
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
 
-		retRes10908 := (<-this.LoadMarkets())
-		PanicOnError(retRes10908)
+		retRes10928 := (<-this.LoadMarkets())
+		PanicOnError(retRes10928)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1263,7 +1265,7 @@ func (this *BydfiCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-ch
 			AddElementToObject(request, "endTime", until)
 		}
 
-		response := (<-this.PublicGetV1SwapMarketFundingRateHistory(this.Extend(request, params)))
+		response := (<-this.PublicGetV1FapiMarketFundingRateHistory(this.Extend(request, params)))
 		PanicOnError(response)
 		//
 		//     {
@@ -1314,7 +1316,7 @@ func (this *BydfiCore) ParseFundingRateHistory(contract interface{}, optionalArg
  * @method
  * @name bydfi#createOrder
  * @description create a trade order
- * @see https://developers.bydfi.com/en/swap/trade#placing-an-order
+ * @see https://developers.bydfi.com/en/futures/trade#placing-an-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -1345,8 +1347,8 @@ func (this *BydfiCore) CreateOrder(symbol interface{}, typeVar interface{}, side
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes11728 := (<-this.LoadMarkets())
-		PanicOnError(retRes11728)
+		retRes11748 := (<-this.LoadMarkets())
+		PanicOnError(retRes11748)
 		var market interface{} = this.Market(symbol)
 		var orderRequest interface{} = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 		var wallet interface{} = "W001"
@@ -1357,7 +1359,7 @@ func (this *BydfiCore) CreateOrder(symbol interface{}, typeVar interface{}, side
 			"wallet": wallet,
 		})
 
-		response := (<-this.PrivatePostV1SwapTradePlaceOrder(orderRequest))
+		response := (<-this.PrivatePostV1FapiTradePlaceOrder(orderRequest))
 		PanicOnError(response)
 		//
 		//     {
@@ -1510,7 +1512,7 @@ func (this *BydfiCore) EncodeWorkingType(workingType interface{}) interface{} {
  * @method
  * @name bydfi#createOrders
  * @description create a list of trade orders
- * @see https://developers.bydfi.com/en/swap/trade#batch-order-placement
+ * @see https://developers.bydfi.com/en/futures/trade#batch-order-placement
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -1524,8 +1526,8 @@ func (this *BydfiCore) CreateOrders(orders interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes13348 := (<-this.LoadMarkets())
-		PanicOnError(retRes13348)
+		retRes13368 := (<-this.LoadMarkets())
+		PanicOnError(retRes13368)
 		var length interface{} = GetArrayLength(orders)
 		if IsTrue(IsGreaterThan(length, 5)) {
 			panic(BadRequest(Add(this.Id, " createOrders() accepts a maximum of 5 orders")))
@@ -1551,7 +1553,7 @@ func (this *BydfiCore) CreateOrders(orders interface{}, optionalArgs ...interfac
 			"orders": ordersRequests,
 		}
 
-		response := (<-this.PrivatePostV1SwapTradeBatchPlaceOrder(this.Extend(request, params)))
+		response := (<-this.PrivatePostV1FapiTradeBatchPlaceOrder(this.Extend(request, params)))
 		PanicOnError(response)
 		var data interface{} = this.SafeList(response, "data", []interface{}{})
 
@@ -1566,7 +1568,7 @@ func (this *BydfiCore) CreateOrders(orders interface{}, optionalArgs ...interfac
  * @method
  * @name bydfi#editOrder
  * @description edit a trade order
- * @see https://developers.bydfi.com/en/swap/trade#order-modification
+ * @see https://developers.bydfi.com/en/futures/trade#order-modification
  * @param {string} id order id (mandatory if params.clientOrderId is not provided)
  * @param {string} [symbol] unified symbol of the market to create an order in
  * @param {string} [type] not used by bydfi editOrder
@@ -1590,8 +1592,8 @@ func (this *BydfiCore) EditOrder(id interface{}, symbol interface{}, typeVar int
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes13798 := (<-this.LoadMarkets())
-		PanicOnError(retRes13798)
+		retRes13818 := (<-this.LoadMarkets())
+		PanicOnError(retRes13818)
 		var request interface{} = this.CreateEditOrderRequest(id, symbol, "limit", side, amount, price, params)
 		var wallet interface{} = "W001"
 		walletparamsVariable := this.HandleOptionAndParams(params, "editOrder", "wallet", wallet)
@@ -1599,7 +1601,7 @@ func (this *BydfiCore) EditOrder(id interface{}, symbol interface{}, typeVar int
 		params = GetValue(walletparamsVariable, 1)
 		AddElementToObject(request, "wallet", wallet)
 
-		response := (<-this.PrivatePostV1SwapTradeEditOrder(request))
+		response := (<-this.PrivatePostV1FapiTradeEditOrder(request))
 		PanicOnError(response)
 		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
 
@@ -1614,7 +1616,7 @@ func (this *BydfiCore) EditOrder(id interface{}, symbol interface{}, typeVar int
  * @method
  * @name bydfi#editOrders
  * @description edit a list of trade orders
- * @see https://developers.bydfi.com/en/swap/trade#batch-order-modification
+ * @see https://developers.bydfi.com/en/futures/trade#batch-order-modification
  * @param {Array} orders list of orders to edit, each object should contain the parameters required by editOrder, namely id, symbol, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -1628,8 +1630,8 @@ func (this *BydfiCore) EditOrders(orders interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes14008 := (<-this.LoadMarkets())
-		PanicOnError(retRes14008)
+		retRes14028 := (<-this.LoadMarkets())
+		PanicOnError(retRes14028)
 		var length interface{} = GetArrayLength(orders)
 		if IsTrue(IsGreaterThan(length, 5)) {
 			panic(BadRequest(Add(this.Id, " editOrders() accepts a maximum of 5 orders")))
@@ -1655,7 +1657,7 @@ func (this *BydfiCore) EditOrders(orders interface{}, optionalArgs ...interface{
 			"editOrders": ordersRequests,
 		}
 
-		response := (<-this.PrivatePostV1SwapTradeBatchEditOrder(this.Extend(request, params)))
+		response := (<-this.PrivatePostV1FapiTradeBatchEditOrder(this.Extend(request, params)))
 		PanicOnError(response)
 		var data interface{} = this.SafeList(response, "data", []interface{}{})
 
@@ -1697,7 +1699,7 @@ func (this *BydfiCore) CreateEditOrderRequest(id interface{}, symbol interface{}
  * @method
  * @name bydfi#cancelAllOrders
  * @description cancel all open orders in a market
- * @see https://developers.bydfi.com/en/swap/trade#complete-order-cancellation
+ * @see https://developers.bydfi.com/en/futures/trade#complete-order-cancellation
  * @param {string} symbol unified market symbol of the market to cancel orders in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -1716,8 +1718,8 @@ func (this *BydfiCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inter
 			panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
 		}
 
-		retRes14648 := (<-this.LoadMarkets())
-		PanicOnError(retRes14648)
+		retRes14668 := (<-this.LoadMarkets())
+		PanicOnError(retRes14668)
 		var market interface{} = this.Market(symbol)
 		var wallet interface{} = "W001"
 		walletparamsVariable := this.HandleOptionAndParams(params, "cancelAllOrders", "wallet", wallet)
@@ -1728,7 +1730,7 @@ func (this *BydfiCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inter
 			"wallet": wallet,
 		}
 
-		response := (<-this.PrivatePostV1SwapTradeCancelAllOrder(this.Extend(request, params)))
+		response := (<-this.PrivatePostV1FapiTradeCancelAllOrder(this.Extend(request, params)))
 		PanicOnError(response)
 		//
 		//     {
@@ -1775,8 +1777,8 @@ func (this *BydfiCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inter
  * @method
  * @name bydfi#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://developers.bydfi.com/en/swap/trade#pending-order-query
- * @see https://developers.bydfi.com/en/swap/trade#planned-order-query
+ * @see https://developers.bydfi.com/en/futures/trade#pending-order-query
+ * @see https://developers.bydfi.com/en/futures/trade#planned-order-query
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1802,8 +1804,8 @@ func (this *BydfiCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inter
 			panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrders() requires a symbol argument")))
 		}
 
-		retRes15278 := (<-this.LoadMarkets())
-		PanicOnError(retRes15278)
+		retRes15298 := (<-this.LoadMarkets())
+		PanicOnError(retRes15298)
 		var market interface{} = this.Market(symbol)
 		var wallet interface{} = "W001"
 		walletparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "wallet", wallet)
@@ -1852,11 +1854,11 @@ func (this *BydfiCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inter
 			//     }
 			//
 
-			response = (<-this.PrivateGetV1SwapTradeOpenOrder(this.Extend(request, params)))
+			response = (<-this.PrivateGetV1FapiTradeOpenOrder(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.PrivateGetV1SwapTradePlanOrder(this.Extend(request, params)))
+			response = (<-this.PrivateGetV1FapiTradePlanOrder(this.Extend(request, params)))
 			PanicOnError(response)
 		}
 		var data interface{} = this.SafeList(response, "data", []interface{}{})
@@ -1872,8 +1874,8 @@ func (this *BydfiCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inter
  * @method
  * @name bydfi#fetchOpenOrder
  * @description fetch an open order by the id
- * @see https://developers.bydfi.com/en/swap/trade#pending-order-query
- * @see https://developers.bydfi.com/en/swap/trade#planned-order-query
+ * @see https://developers.bydfi.com/en/futures/trade#pending-order-query
+ * @see https://developers.bydfi.com/en/futures/trade#planned-order-query
  * @param {string} id order id (mandatory if params.clientOrderId is not provided)
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1895,8 +1897,8 @@ func (this *BydfiCore) FetchOpenOrder(id interface{}, optionalArgs ...interface{
 			panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrder() requires a symbol argument")))
 		}
 
-		retRes15978 := (<-this.LoadMarkets())
-		PanicOnError(retRes15978)
+		retRes15998 := (<-this.LoadMarkets())
+		PanicOnError(retRes15998)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1919,11 +1921,11 @@ func (this *BydfiCore) FetchOpenOrder(id interface{}, optionalArgs ...interface{
 		params = GetValue(triggerparamsVariable, 1)
 		if !IsTrue(trigger) {
 
-			response = (<-this.PrivateGetV1SwapTradeOpenOrder(this.Extend(request, params)))
+			response = (<-this.PrivateGetV1FapiTradeOpenOrder(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.PrivateGetV1SwapTradePlanOrder(this.Extend(request, params)))
+			response = (<-this.PrivateGetV1FapiTradePlanOrder(this.Extend(request, params)))
 			PanicOnError(response)
 		}
 		var data interface{} = this.SafeList(response, "data", []interface{}{})
@@ -1940,7 +1942,7 @@ func (this *BydfiCore) FetchOpenOrder(id interface{}, optionalArgs ...interface{
  * @method
  * @name bydfi#fetchCanceledAndClosedOrders
  * @description fetches information on multiple canceled and closed orders made by the user
- * @see https://developers.bydfi.com/en/swap/trade#historical-orders-query
+ * @see https://developers.bydfi.com/en/futures/trade#historical-orders-query
  * @param {string} symbol unified market symbol of the closed orders
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the max number of closed orders to return
@@ -1965,8 +1967,8 @@ func (this *BydfiCore) FetchCanceledAndClosedOrders(optionalArgs ...interface{})
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes16408 := (<-this.LoadMarkets())
-		PanicOnError(retRes16408)
+		retRes16428 := (<-this.LoadMarkets())
+		PanicOnError(retRes16428)
 		var paginate interface{} = this.SafeBool(params, "paginate", false)
 		if IsTrue(paginate) {
 			var maxLimit interface{} = 500
@@ -1998,7 +2000,7 @@ func (this *BydfiCore) FetchCanceledAndClosedOrders(optionalArgs ...interface{})
 			AddElementToObject(request, "limit", limit)
 		}
 
-		response := (<-this.PrivateGetV1SwapTradeHistoryOrder(this.Extend(request, params)))
+		response := (<-this.PrivateGetV1FapiTradeHistoryOrder(this.Extend(request, params)))
 		PanicOnError(response)
 		//
 		//     {
@@ -2244,7 +2246,7 @@ func (this *BydfiCore) ParseOrderStatus(status interface{}) interface{} {
  * @method
  * @name bydfi#setLeverage
  * @description set the level of leverage for a market
- * @see https://developers.bydfi.com/en/swap/trade#set-leverage-for-single-trading-pair
+ * @see https://developers.bydfi.com/en/futures/trade#set-leverage-for-single-trading-pair
  * @param {float} leverage the rate of leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2264,8 +2266,8 @@ func (this *BydfiCore) SetLeverage(leverage interface{}, optionalArgs ...interfa
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes19118 := (<-this.LoadMarkets())
-		PanicOnError(retRes19118)
+		retRes19138 := (<-this.LoadMarkets())
+		PanicOnError(retRes19138)
 		var market interface{} = this.Market(symbol)
 		var wallet interface{} = "W001"
 		walletparamsVariable := this.HandleOptionAndParams(params, "setLeverage", "wallet", wallet)
@@ -2277,7 +2279,7 @@ func (this *BydfiCore) SetLeverage(leverage interface{}, optionalArgs ...interfa
 			"wallet":   wallet,
 		}
 
-		response := (<-this.PrivatePostV1SwapTradeLeverage(this.Extend(request, params)))
+		response := (<-this.PrivatePostV1FapiTradeLeverage(this.Extend(request, params)))
 		PanicOnError(response)
 		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
 
@@ -2292,7 +2294,7 @@ func (this *BydfiCore) SetLeverage(leverage interface{}, optionalArgs ...interfa
  * @method
  * @name bydfi#fetchLeverage
  * @description fetch the set leverage for a market
- * @see https://developers.bydfi.com/en/swap/trade#get-leverage-for-single-trading-pair
+ * @see https://developers.bydfi.com/en/futures/trade#get-leverage-for-single-trading-pair
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -2309,8 +2311,8 @@ func (this *BydfiCore) FetchLeverage(symbol interface{}, optionalArgs ...interfa
 			panic(ArgumentsRequired(Add(this.Id, " fetchLeverage() requires a symbol argument")))
 		}
 
-		retRes19398 := (<-this.LoadMarkets())
-		PanicOnError(retRes19398)
+		retRes19418 := (<-this.LoadMarkets())
+		PanicOnError(retRes19418)
 		var market interface{} = this.Market(symbol)
 		var wallet interface{} = "W001"
 		walletparamsVariable := this.HandleOptionAndParams(params, "fetchLeverage", "wallet", wallet)
@@ -2321,7 +2323,7 @@ func (this *BydfiCore) FetchLeverage(symbol interface{}, optionalArgs ...interfa
 			"wallet": wallet,
 		}
 
-		response := (<-this.PrivateGetV1SwapTradeLeverage(this.Extend(request, params)))
+		response := (<-this.PrivateGetV1FapiTradeLeverage(this.Extend(request, params)))
 		PanicOnError(response)
 		//
 		//     {
@@ -2360,7 +2362,7 @@ func (this *BydfiCore) ParseLeverage(leverage interface{}, optionalArgs ...inter
  * @method
  * @name bydfi#fetchPositions
  * @description fetch all open positions
- * @see https://developers.bydfi.com/en/swap/trade#positions-query
+ * @see https://developers.bydfi.com/en/futures/trade#positions-query
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
@@ -2377,8 +2379,8 @@ func (this *BydfiCore) FetchPositions(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes19878 := (<-this.LoadMarkets())
-		PanicOnError(retRes19878)
+		retRes19898 := (<-this.LoadMarkets())
+		PanicOnError(retRes19898)
 		var contractType interface{} = "FUTURE"
 		contractTypeparamsVariable := this.HandleOptionAndParams(params, "fetchPositions", "contractType", contractType)
 		contractType = GetValue(contractTypeparamsVariable, 0)
@@ -2387,7 +2389,7 @@ func (this *BydfiCore) FetchPositions(optionalArgs ...interface{}) <-chan interf
 			"contractType": contractType,
 		}
 
-		response := (<-this.PrivateGetV1SwapTradePositions(this.Extend(request, params)))
+		response := (<-this.PrivateGetV1FapiTradePositions(this.Extend(request, params)))
 		PanicOnError(response)
 		//
 		//     {
@@ -2424,7 +2426,7 @@ func (this *BydfiCore) FetchPositions(optionalArgs ...interface{}) <-chan interf
  * @method
  * @name bydfi#fetchPositionsForSymbol
  * @description fetch open positions for a single market
- * @see https://developers.bydfi.com/en/swap/trade#positions-query
+ * @see https://developers.bydfi.com/en/futures/trade#positions-query
  * @description fetch all open positions for specific symbol
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2439,8 +2441,8 @@ func (this *BydfiCore) FetchPositionsForSymbol(symbol interface{}, optionalArgs 
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes20328 := (<-this.LoadMarkets())
-		PanicOnError(retRes20328)
+		retRes20348 := (<-this.LoadMarkets())
+		PanicOnError(retRes20348)
 		var market interface{} = this.Market(symbol)
 		var contractType interface{} = "FUTURE"
 		contractTypeparamsVariable := this.HandleOptionAndParams(params, "fetchPositions", "contractType", contractType)
@@ -2451,7 +2453,7 @@ func (this *BydfiCore) FetchPositionsForSymbol(symbol interface{}, optionalArgs 
 			"symbol":       GetValue(market, "id"),
 		}
 
-		response := (<-this.PrivateGetV1SwapTradePositions(this.Extend(request, params)))
+		response := (<-this.PrivateGetV1FapiTradePositions(this.Extend(request, params)))
 		PanicOnError(response)
 		var data interface{} = this.SafeList(response, "data", []interface{}{})
 
@@ -2579,7 +2581,7 @@ func (this *BydfiCore) ParsePositionSide(side interface{}) interface{} {
  * @method
  * @name bydfi#fetchPositionHistory
  * @description fetches historical positions
- * @see https://developers.bydfi.com/en/swap/trade#query-historical-position-profit-and-loss-records
+ * @see https://developers.bydfi.com/en/futures/trade#query-historical-position-profit-and-loss-records
  * @param {string} symbol a unified market symbol
  * @param {int} [since] timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
  * @param {int} [limit] the maximum amount of records to fetch (default 500, max 500)
@@ -2601,8 +2603,8 @@ func (this *BydfiCore) FetchPositionHistory(symbol interface{}, optionalArgs ...
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes21738 := (<-this.LoadMarkets())
-		PanicOnError(retRes21738)
+		retRes21758 := (<-this.LoadMarkets())
+		PanicOnError(retRes21758)
 		var market interface{} = this.Market(symbol)
 		var contractType interface{} = "FUTURE"
 		contractTypeparamsVariable := this.HandleOptionAndParams(params, "fetchPositionsHistory", "contractType", contractType)
@@ -2617,7 +2619,7 @@ func (this *BydfiCore) FetchPositionHistory(symbol interface{}, optionalArgs ...
 			AddElementToObject(request, "limit", limit)
 		}
 
-		response := (<-this.PrivateGetV1SwapTradePositionHistory(this.Extend(request, params)))
+		response := (<-this.PrivateGetV1FapiTradePositionHistory(this.Extend(request, params)))
 		PanicOnError(response)
 		//
 		//
@@ -2635,7 +2637,7 @@ func (this *BydfiCore) FetchPositionHistory(symbol interface{}, optionalArgs ...
  * @method
  * @name bydfi#fetchPositionsHistory
  * @description fetches historical positions
- * @see https://developers.bydfi.com/en/swap/trade#query-historical-position-profit-and-loss-records
+ * @see https://developers.bydfi.com/en/futures/trade#query-historical-position-profit-and-loss-records
  * @param {string[]} symbols a list of unified market symbols
  * @param {int} [since] timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
  * @param {int} [limit] the maximum amount of records to fetch (default 500, max 500)
@@ -2659,8 +2661,8 @@ func (this *BydfiCore) FetchPositionsHistory(optionalArgs ...interface{}) <-chan
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes22088 := (<-this.LoadMarkets())
-		PanicOnError(retRes22088)
+		retRes22108 := (<-this.LoadMarkets())
+		PanicOnError(retRes22108)
 		var contractType interface{} = "FUTURE"
 		contractTypeparamsVariable := this.HandleOptionAndParams(params, "fetchPositionsHistory", "contractType", contractType)
 		contractType = GetValue(contractTypeparamsVariable, 0)
@@ -2673,7 +2675,7 @@ func (this *BydfiCore) FetchPositionsHistory(optionalArgs ...interface{}) <-chan
 			AddElementToObject(request, "limit", limit)
 		}
 
-		response := (<-this.PrivateGetV1SwapTradePositionHistory(this.Extend(request, params)))
+		response := (<-this.PrivateGetV1FapiTradePositionHistory(this.Extend(request, params)))
 		PanicOnError(response)
 		//
 		//     {
@@ -2731,7 +2733,7 @@ func (this *BydfiCore) FetchPositionsHistory(optionalArgs ...interface{}) <-chan
  * @method
  * @name bydfi#fetchMarginMode
  * @description fetches the margin mode of a trading pair
- * @see https://developers.bydfi.com/en/swap/user#margin-mode-query
+ * @see https://developers.bydfi.com/en/futures/user#margin-mode-query
  * @param {string} symbol unified symbol of the market to fetch the margin mode for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
@@ -2746,8 +2748,8 @@ func (this *BydfiCore) FetchMarginMode(symbol interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes22788 := (<-this.LoadMarkets())
-		PanicOnError(retRes22788)
+		retRes22808 := (<-this.LoadMarkets())
+		PanicOnError(retRes22808)
 		var market interface{} = this.Market(symbol)
 		var contractType interface{} = "FUTURE"
 		contractTypeparamsVariable := this.HandleOptionAndParams(params, "fetchMarginMode", "contractType", contractType)
@@ -2763,7 +2765,7 @@ func (this *BydfiCore) FetchMarginMode(symbol interface{}, optionalArgs ...inter
 			"wallet":       wallet,
 		}
 
-		response := (<-this.PrivateGetV1SwapUserDataAssetsMargin(this.Extend(request, params)))
+		response := (<-this.PrivateGetV1FapiUserDataAssetsMargin(this.Extend(request, params)))
 		PanicOnError(response)
 		//
 		//     {
@@ -2800,7 +2802,7 @@ func (this *BydfiCore) ParseMarginMode(marginMode interface{}, optionalArgs ...i
  * @method
  * @name bydfi#setMarginMode
  * @description set margin mode to 'cross' or 'isolated'
- * @see https://developers.bydfi.com/en/swap/user#change-margin-type-cross-margin
+ * @see https://developers.bydfi.com/en/futures/user#change-margin-type-cross-margin
  * @param {string} marginMode 'cross' or 'isolated'
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2825,8 +2827,8 @@ func (this *BydfiCore) SetMarginMode(marginMode interface{}, optionalArgs ...int
 			panic(BadRequest(Add(this.Id, " setMarginMode() marginMode argument should be isolated or cross")))
 		}
 
-		retRes23358 := (<-this.LoadMarkets())
-		PanicOnError(retRes23358)
+		retRes23378 := (<-this.LoadMarkets())
+		PanicOnError(retRes23378)
 		var market interface{} = this.Market(symbol)
 		var contractType interface{} = "FUTURE"
 		contractTypeparamsVariable := this.HandleOptionAndParams(params, "fetchMarginMode", "contractType", contractType)
@@ -2843,9 +2845,9 @@ func (this *BydfiCore) SetMarginMode(marginMode interface{}, optionalArgs ...int
 			"wallet":       wallet,
 		}
 
-		retRes234715 := (<-this.PrivatePostV1SwapUserDataMarginType(this.Extend(request, params)))
-		PanicOnError(retRes234715)
-		ch <- retRes234715
+		retRes234915 := (<-this.PrivatePostV1FapiUserDataMarginType(this.Extend(request, params)))
+		PanicOnError(retRes234915)
+		ch <- retRes234915
 		return nil
 
 	}()
@@ -2856,7 +2858,7 @@ func (this *BydfiCore) SetMarginMode(marginMode interface{}, optionalArgs ...int
  * @method
  * @name bydfi#setPositionMode
  * @description set hedged to true or false for a market, hedged for bydfi is set identically for all markets with same settle currency
- * @see https://developers.bydfi.com/en/swap/user#change-position-mode-dual
+ * @see https://developers.bydfi.com/en/futures/user#change-position-mode-dual
  * @param {bool} hedged set to true to use dualSidePosition
  * @param {string} [symbol] not used by bydfi setPositionMode ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2878,8 +2880,8 @@ func (this *BydfiCore) SetPositionMode(hedged interface{}, optionalArgs ...inter
 			panic(NotSupported(Add(this.Id, " setPositionMode() does not support a symbol argument. The position mode is set identically for all markets with same settle currency")))
 		}
 
-		retRes23678 := (<-this.LoadMarkets())
-		PanicOnError(retRes23678)
+		retRes23698 := (<-this.LoadMarkets())
+		PanicOnError(retRes23698)
 		var positionType interface{} = Ternary(IsTrue(hedged), "HEDGE", "ONEWAY")
 		var wallet interface{} = "W001"
 		walletparamsVariable := this.HandleOptionAndParams(params, "setPositionMode", "wallet", wallet)
@@ -2900,8 +2902,8 @@ func (this *BydfiCore) SetPositionMode(hedged interface{}, optionalArgs ...inter
 			"settleCoin":   settleCoin,
 		}
 
-		retRes238815 := (<-this.PrivatePostV1SwapUserDataPositionSideDual(this.Extend(request, params)))
-		PanicOnError(retRes238815)
+		retRes239015 := (<-this.PrivatePostV1FapiUserDataPositionSideDual(this.Extend(request, params)))
+		PanicOnError(retRes239015)
 		//
 		//     {
 		//         "code": 200,
@@ -2909,7 +2911,7 @@ func (this *BydfiCore) SetPositionMode(hedged interface{}, optionalArgs ...inter
 		//         "success": true
 		//     }
 		//
-		ch <- retRes238815
+		ch <- retRes239015
 		return nil
 
 	}()
@@ -2920,7 +2922,7 @@ func (this *BydfiCore) SetPositionMode(hedged interface{}, optionalArgs ...inter
  * @method
  * @name bydfi#fetchPositionMode
  * @description fetchs the position mode, hedged or one way, hedged for bydfi is set identically for all markets with same settle currency
- * @see https://developers.bydfi.com/en/swap/user#get-position-mode
+ * @see https://developers.bydfi.com/en/futures/user#get-position-mode
  * @param {string} [symbol] unified symbol of the market to fetch the order book for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
@@ -2938,8 +2940,8 @@ func (this *BydfiCore) FetchPositionMode(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes24048 := (<-this.LoadMarkets())
-		PanicOnError(retRes24048)
+		retRes24068 := (<-this.LoadMarkets())
+		PanicOnError(retRes24068)
 		var wallet interface{} = "W001"
 		walletparamsVariable := this.HandleOptionAndParams(params, "fetchPositionMode", "wallet", wallet)
 		wallet = GetValue(walletparamsVariable, 0)
@@ -2963,7 +2965,7 @@ func (this *BydfiCore) FetchPositionMode(optionalArgs ...interface{}) <-chan int
 			"wallet":       wallet,
 		}
 
-		response := (<-this.PrivateGetV1SwapUserDataPositionSideDual(this.Extend(request, params)))
+		response := (<-this.PrivateGetV1FapiUserDataPositionSideDual(this.Extend(request, params)))
 		PanicOnError(response)
 		//
 		//     {
@@ -3000,9 +3002,9 @@ func (this *BydfiCore) FetchPositionMode(optionalArgs ...interface{}) <-chan int
  * @name bydfi#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://developers.bydfi.com/en/account#asset-inquiry
- * @see https://developers.bydfi.com/en/swap/user#asset-query
+ * @see https://developers.bydfi.com/en/futures/user#asset-query
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.accountType] the type of account to fetch the balance for, either 'spot' or 'swap'  or 'funding' (default is 'spot')
+ * @param {string} [params.account] the type of account to fetch the balance for, either 'SPOT' or 'UMFUTURE'  or 'CMFUTURE'  or 'COPY'  or 'GRID'  or 'FUNDING' (default is 'SPOT')
  * @param {string} [params.wallet] *swap only* The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
  * @param {string} [params.asset] currency id for the balance to fetch
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -3015,17 +3017,21 @@ func (this *BydfiCore) FetchBalance(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes24608 := (<-this.LoadMarkets())
-		PanicOnError(retRes24608)
-		var accountType interface{} = "spot"
-		accountTypeparamsVariable := this.HandleOptionAndParams2(params, "fetchBalance", "accountType", "type", accountType)
-		accountType = GetValue(accountTypeparamsVariable, 0)
-		params = GetValue(accountTypeparamsVariable, 1)
+		retRes24628 := (<-this.LoadMarkets())
+		PanicOnError(retRes24628)
+		var typeVar interface{} = nil
+		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
+		typeVar = GetValue(typeVarparamsVariable, 0)
+		params = GetValue(typeVarparamsVariable, 1)
+		var wallet interface{} = nil
+		walletparamsVariable := this.HandleOptionAndParams(params, "fetchBalance", "wallet")
+		wallet = GetValue(walletparamsVariable, 0)
+		params = GetValue(walletparamsVariable, 1)
 		var request interface{} = map[string]interface{}{}
 		var response interface{} = nil
-		if IsTrue(!IsEqual(accountType, "swap")) {
+		if IsTrue(IsEqual(wallet, nil)) {
 			var options interface{} = this.SafeDict(this.Options, "accountsByType", map[string]interface{}{})
-			var parsedAccountType interface{} = this.SafeString(options, accountType, accountType)
+			var parsedAccountType interface{} = this.SafeStringUpper(options, typeVar, typeVar)
 			AddElementToObject(request, "walletType", parsedAccountType)
 			//
 			//     {
@@ -3047,10 +3053,6 @@ func (this *BydfiCore) FetchBalance(optionalArgs ...interface{}) <-chan interfac
 			response = (<-this.PrivateGetV1AccountAssets(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
-			var wallet interface{} = "W001"
-			walletparamsVariable := this.HandleOptionAndParams(params, "fetchBalance", "wallet", wallet)
-			wallet = GetValue(walletparamsVariable, 0)
-			params = GetValue(walletparamsVariable, 1)
 			AddElementToObject(request, "wallet", wallet)
 			//
 			//     {
@@ -3081,7 +3083,7 @@ func (this *BydfiCore) FetchBalance(optionalArgs ...interface{}) <-chan interfac
 			//         "success": true
 			//     }
 
-			response = (<-this.PrivateGetV1SwapAccountBalance(this.Extend(request, params)))
+			response = (<-this.PrivateGetV1FapiAccountBalance(this.Extend(request, params)))
 			PanicOnError(response)
 		}
 		var data interface{} = this.SafeList(response, "data", []interface{}{})
@@ -3131,8 +3133,8 @@ func (this *BydfiCore) Transfer(code interface{}, amount interface{}, fromAccoun
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes25568 := (<-this.LoadMarkets())
-		PanicOnError(retRes25568)
+		retRes25588 := (<-this.LoadMarkets())
+		PanicOnError(retRes25588)
 		var currency interface{} = this.Currency(code)
 		var accountsByType interface{} = this.SafeDict(this.Options, "accountsByType", map[string]interface{}{})
 		var fromId interface{} = this.SafeString(accountsByType, fromAccount, fromAccount)
@@ -3202,8 +3204,8 @@ func (this *BydfiCore) FetchTransfers(optionalArgs ...interface{}) <-chan interf
 			panic(ArgumentsRequired(Add(this.Id, " fetchTransfers() requires a code argument")))
 		}
 
-		retRes26068 := (<-this.LoadMarkets())
-		PanicOnError(retRes26068)
+		retRes26088 := (<-this.LoadMarkets())
+		PanicOnError(retRes26088)
 		var currency interface{} = this.Currency(code)
 		var paginate interface{} = this.SafeBool(params, "paginate", false)
 		if IsTrue(paginate) {
@@ -3344,9 +3346,9 @@ func (this *BydfiCore) FetchDeposits(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes271915 := (<-this.FetchTransactionsHelper("deposit", code, since, limit, params))
-		PanicOnError(retRes271915)
-		ch <- retRes271915
+		retRes272115 := (<-this.FetchTransactionsHelper("deposit", code, since, limit, params))
+		PanicOnError(retRes272115)
+		ch <- retRes272115
 		return nil
 
 	}()
@@ -3378,9 +3380,9 @@ func (this *BydfiCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes273415 := (<-this.FetchTransactionsHelper("withdrawal", code, since, limit, params))
-		PanicOnError(retRes273415)
-		ch <- retRes273415
+		retRes273615 := (<-this.FetchTransactionsHelper("withdrawal", code, since, limit, params))
+		PanicOnError(retRes273615)
+		ch <- retRes273615
 		return nil
 
 	}()
@@ -3396,8 +3398,8 @@ func (this *BydfiCore) FetchTransactionsHelper(typeVar interface{}, code interfa
 			panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires a code argument")))
 		}
 
-		retRes27428 := (<-this.LoadMarkets())
-		PanicOnError(retRes27428)
+		retRes27448 := (<-this.LoadMarkets())
+		PanicOnError(retRes27448)
 		var currency interface{} = this.Currency(code)
 		var paginate interface{} = this.SafeBool(params, "paginate", false)
 		if IsTrue(paginate) {

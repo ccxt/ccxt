@@ -103,6 +103,10 @@ func (this *KucoinCore) PrivateGetUserInfo(args ...interface{}) <-chan interface
 	return this.callEndpointAsync("privateGetUserInfo", args...)
 }
 
+func (this *KucoinCore) PrivateGetUserApiKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserApiKey", args...)
+}
+
 func (this *KucoinCore) PrivateGetAccounts(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccounts", args...)
 }

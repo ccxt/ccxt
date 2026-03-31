@@ -26,6 +26,7 @@ class ImplicitAPI:
     public_get_convert_currencies = publicGetConvertCurrencies = Entry('convert/currencies', 'public', 'GET', {'cost': 5})
     public_post_bullet_public = publicPostBulletPublic = Entry('bullet-public', 'public', 'POST', {'cost': 10})
     private_get_user_info = privateGetUserInfo = Entry('user-info', 'private', 'GET', {'cost': 20})
+    private_get_user_api_key = privateGetUserApiKey = Entry('user/api-key', 'private', 'GET', {'cost': 20})
     private_get_accounts = privateGetAccounts = Entry('accounts', 'private', 'GET', {'cost': 5})
     private_get_accounts_accountid = privateGetAccountsAccountId = Entry('accounts/{accountId}', 'private', 'GET', {'cost': 5})
     private_get_accounts_ledgers = privateGetAccountsLedgers = Entry('accounts/ledgers', 'private', 'GET', {'cost': 2})

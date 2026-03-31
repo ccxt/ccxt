@@ -5007,6 +5007,42 @@ export default class gate extends Exchange {
         //   order_type: '',
         //   in_dual_mode: false,
         //   parent_id: '0',
+        //
+        // unified spot: watchOrders
+        //
+        //     {
+        //         "id": "1036717689726",
+        //         "text": "apiv4",
+        //         "create_time": "1774613210",
+        //         "update_time": "1774613210",
+        //         "currency_pair": "BTC_USDT",
+        //         "type": "limit",
+        //         "account": "unified",
+        //         "side": "buy",
+        //         "amount": "0.1",
+        //         "price": "200",
+        //         "time_in_force": "gtc",
+        //         "left": "0.1",
+        //         "filled_amount": "0",
+        //         "filled_total": "0",
+        //         "avg_deal_price": "0",
+        //         "fee": "0",
+        //         "fee_currency": "BTC",
+        //         "point_fee": "0",
+        //         "gt_fee": "0",
+        //         "rebated_fee": "0",
+        //         "rebated_fee_currency": "BTC",
+        //         "create_time_ms": "1774613210391",
+        //         "update_time_ms": "1774613210391",
+        //         "user": 10406147,
+        //         "event": "put",
+        //         "stp_id": 0,
+        //         "stp_act": "-",
+        //         "finish_as": "open",
+        //         "biz_info": "ch:ccxt",
+        //         "amend_text": "-"
+        //     }
+        //
         const succeeded = this.safeBool (order, 'succeeded', true);
         if (!succeeded) {
             // cancelOrders response
@@ -5081,7 +5117,6 @@ export default class gate extends Exchange {
         }
         const exchangeSymbol = this.safeString2 (order, 'currency_pair', 'market', contract);
         const symbol = this.safeSymbol (exchangeSymbol, market, '_', marketType);
-        // Everything below this(above return) is related to fees
         const fees = [];
         const gtFee = this.safeString (order, 'gt_fee');
         if (gtFee !== undefined) {
@@ -5110,7 +5145,7 @@ export default class gate extends Exchange {
         let remaining = Precise.stringAbs (remainingString);
         // handle spot market buy
         const account = this.safeString (order, 'account'); // using this instead of market type because of the conflicting ids
-        if (account === 'spot') {
+        if ((account === 'spot') || (account === 'unified')) {
             const averageString = this.safeString (order, 'avg_deal_price');
             average = this.parseNumber (averageString);
             if ((type === 'market') && (side === 'buy')) {
@@ -6587,7 +6622,7 @@ export default class gate extends Exchange {
 
     /**
      * @method
-     * @name gate#repayMargin
+     * @name gate#repayIsolatedMargin
      * @description repay borrowed margin and interest
      * @see https://www.gate.com/docs/developers/apiv4/en/#borrow-or-repay-2
      * @param {string} symbol unified market symbol
@@ -6643,7 +6678,8 @@ export default class gate extends Exchange {
             request['type'] = 'repay';
             response = await this.privateUnifiedPostLoans (this.extend (request, params));
         } else {
-            response = await this.privateMarginPostCrossRepayments (this.extend (request, params)); // todo: check - not present in the docs
+            // deprecated and not present in the exchange's docs but still works
+            response = await this.privateMarginPostCrossRepayments (this.extend (request, params));
             response = this.safeDict (response, 0);
             //
             //     [
@@ -6713,14 +6749,14 @@ export default class gate extends Exchange {
 
     /**
      * @method
-     * @name gate#borrowMargin
+     * @name gate#borrowCrossMargin
      * @description create a loan to borrow margin
      * @see https://www.gate.com/docs/developers/apiv4/en/#borrow-or-repay
      * @param {string} code unified currency code of the currency to borrow
      * @param {float} amount the amount to borrow
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.rate] '0.0002' or '0.002' extra parameter required for isolated margin
-     * @param {boolean} [params.unifiedAccount] set to true for borrowing in the unified account
+     * @param {boolean} [params.unifiedAccount] default true (set to false to use deprecated privateMarginPostCrossLoans method)
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     async borrowCrossMargin (code: string, amount: number, params = {}) {
@@ -6738,7 +6774,9 @@ export default class gate extends Exchange {
             request['type'] = 'borrow';
             response = await this.privateUnifiedPostLoans (this.extend (request, params));
         } else {
-            response = await this.privateMarginPostCrossLoans (this.extend (request, params)); // todo: check - not present in the docs
+            // deprecated and not present in the exchange's docs
+            // returns {"label":"REQUEST_FORBIDDEN","message":"Request is forbidden"}
+            response = await this.privateMarginPostCrossLoans (this.extend (request, params));
             //
             //     {
             //         "id": "17",
@@ -6859,7 +6897,8 @@ export default class gate extends Exchange {
             }
             response = await this.privateMarginGetUniInterestRecords (this.extend (request, params));
         } else if (marginMode === 'cross') {
-            response = await this.privateMarginGetCrossInterestRecords (this.extend (request, params)); // todo: check - not present in the docs
+            // deprecated and not present in the exchange's docs but still works
+            response = await this.privateMarginGetCrossInterestRecords (this.extend (request, params));
         }
         const interest = this.parseBorrowInterests (response, market);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
@@ -7184,7 +7223,6 @@ export default class gate extends Exchange {
         if (type !== 'option') {
             throw new NotSupported (this.id + ' fetchSettlementHistory() supports option markets only');
         }
-        // todo: add futures support
         const marketId = market['id'];
         const optionParts = marketId.split ('-');
         const request: Dict = {
@@ -7219,6 +7257,7 @@ export default class gate extends Exchange {
      * @name gate#fetchMySettlementHistory
      * @description fetches historical settlement records of the user
      * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-settlement-records
+     * @see https://www.gate.com/docs/developers/apiv4/en/#query-settlement-records
      * @param {string} symbol unified market symbol of the settlement history
      * @param {int} [since] timestamp in ms
      * @param {int} [limit] number of records
@@ -7226,49 +7265,77 @@ export default class gate extends Exchange {
      * @returns {object[]} a list of [settlement history objects]
      */
     async fetchMySettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMySettlementHistory() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+        }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMySettlementHistory', market, params);
-        if (type !== 'option') {
-            throw new NotSupported (this.id + ' fetchMySettlementHistory() supports option markets only');
+        const isOption = type === 'option';
+        const isFuture = type === 'future';
+        if (!isOption && !isFuture) {
+            throw new NotSupported (this.id + ' fetchMySettlementHistory() supports option and future markets only');
         }
-        const marketId = market['id'];
-        const optionParts = marketId.split ('-');
-        const request: Dict = {
-            'underlying': this.safeString (optionParts, 0),
-            'contract': marketId,
-        };
-        if (since !== undefined) {
-            request['from'] = since;
-        }
+        const [ request, query ] = this.prepareRequest (market, type, params);
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateOptionsGetMySettlements (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "size": -1,
-        //             "settle_profit": "0",
-        //             "contract": "BTC_USDT-20220624-26000-C",
-        //             "strike_price": "26000",
-        //             "time": 1656057600,
-        //             "settle_price": "20917.461281337048",
-        //             "underlying": "BTC_USDT",
-        //             "realised_pnl": "-0.00116042",
-        //             "fee": "0"
-        //         }
-        //     ]
-        //
+        let response = undefined;
+        if (isFuture) {
+            //
+            //     [
+            //         {
+            //             "time": 1548654951,
+            //             "contract": "BTC_USDT",
+            //             "size": 600,
+            //             "leverage": "25",
+            //             "margin": "0.006705256878",
+            //             "entry_price": "3536.123",
+            //             "settle_price": "3421.54",
+            //             "profit": "-6.87498",
+            //             "fee": "0.03079386"
+            //         }
+            //     ]
+            //
+            response = await this.privateDeliveryGetSettleSettlements (this.extend (request, query));
+        } else {
+            if (since !== undefined) {
+                request['from'] = since;
+            }
+            if (market === undefined) {
+                const underlying = this.safeString (params, 'underlying');
+                if (underlying === undefined) {
+                    throw new ArgumentsRequired (this.id + ' fetchMySettlementHistory() requires a symbol argument or an underlying parameter in params');
+                }
+            } else {
+                const marketId = market['id'];
+                const optionParts = marketId.split ('-');
+                request['underlying'] = this.safeString (optionParts, 0);
+            }
+            //
+            //     [
+            //         {
+            //             "size": -1,
+            //             "settle_profit": "0",
+            //             "contract": "BTC_USDT-20220624-26000-C",
+            //             "strike_price": "26000",
+            //             "time": 1656057600,
+            //             "settle_price": "20917.461281337048",
+            //             "underlying": "BTC_USDT",
+            //             "realised_pnl": "-0.00116042",
+            //             "fee": "0"
+            //         }
+            //     ]
+            //
+            response = await this.privateOptionsGetMySettlements (this.extend (request, params));
+        }
         const result = this.safeValue (response, 'result', {});
         const data = this.safeValue (result, 'list', []);
         const settlements = this.parseSettlements (data, market);
         const sorted = this.sortBy (settlements, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     parseSettlement (settlement, market) {
@@ -7284,7 +7351,7 @@ export default class gate extends Exchange {
         //         "strike_price": "25000"
         //     }
         //
-        // fetchMySettlementHistory
+        // fetchMySettlementHistory option
         //
         //     {
         //         "size": -1,
@@ -7296,6 +7363,19 @@ export default class gate extends Exchange {
         //         "underlying": "BTC_USDT",
         //         "realised_pnl": "-0.00116042",
         //         "fee": "0"
+        //     }
+        //
+        // fetchMySettlementHistory future
+        //     {
+        //         "time": 1548654951,
+        //         "contract": "BTC_USDT",
+        //         "size": 600,
+        //         "leverage": "25",
+        //         "margin": "0.006705256878",
+        //         "entry_price": "3536.123",
+        //         "settle_price": "3421.54",
+        //         "profit": "-6.87498",
+        //         "fee": "0.03079386"
         //     }
         //
         const timestamp = this.safeTimestamp (settlement, 'time');

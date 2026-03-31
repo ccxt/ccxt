@@ -46,6 +46,7 @@ class grvt extends \ccxt\async\grvt {
                 ),
                 'watchTickers' => array(
                     'channel' => 'v1.ticker.s', // v1.ticker.s | v1.ticker.d | v1.mini.s | v1.mini.d
+                    'interval' => 500, // raw, 50, 100, 200, 500, 1000, 5000
                 ),
             ),
             'streaming' => array(
@@ -169,6 +170,8 @@ class grvt extends \ccxt\async\grvt {
             }
             $channel = null;
             list($channel, $params) = $this->handle_option_and_params($params, 'watchTickers', 'channel', 'v1.ticker.s');
+            $interval = null;
+            list($interval, $params) = $this->handle_option_and_params($params, 'watchTickers', 'interval', 500);
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
             $rawHashes = array();
@@ -177,8 +180,7 @@ class grvt extends \ccxt\async\grvt {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
                 $marketId = $market['id'];
-                $interval = $this->safe_integer($params, 'interval', 500); // raw, 50, 100, 200, 500, 1000, 5000
-                $rawHashes[] = $marketId . '@' . $interval;
+                $rawHashes[] = $marketId . '@' . (string) $interval;
                 $messageHashes[] = 'ticker::' . $market['symbol'];
             }
             $request = array(

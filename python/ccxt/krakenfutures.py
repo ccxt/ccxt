@@ -1973,9 +1973,6 @@ class krakenfutures(Exchange, ImplicitAPI):
             #
             datetime = self.safe_string(orderDictFromFetchOrder, 'timestamp')
             innerStatus = self.safe_string(order, 'status')
-            filledOrder = self.safe_string(orderDictFromFetchOrder, 'filled', '0')
-            if (filledOrder == '0') or (filledOrder == '0.0'):
-                filledOrder = None
             fetchOrderPriceTriggerOptions = self.safe_dict(orderDictFromFetchOrder, 'priceTriggerOptions', {})
             fetchOrderTriggerPrice = self.safe_string(fetchOrderPriceTriggerOptions, 'triggerPrice')
             return self.safe_order({
@@ -1998,7 +1995,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'amount': self.safe_string(orderDictFromFetchOrder, 'quantity'),
                 'cost': None,
                 'average': None,
-                'filled': filledOrder,
+                'filled': self.safe_string(orderDictFromFetchOrder, 'filled'),
                 'remaining': None,
                 'status': self.parse_order_status(innerStatus),
                 'fee': None,

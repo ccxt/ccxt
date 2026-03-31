@@ -186,6 +186,7 @@ class kucoin extends Exchange {
                     'get' => array(
                         // account
                         'user-info' => 20,
+                        'user/api-key' => 20,
                         'accounts' => 5,
                         'accounts/{accountId}' => 5,
                         'accounts/ledgers' => 2,
@@ -703,7 +704,7 @@ class kucoin extends Exchange {
                     '400006' => '\\ccxt\\AuthenticationError',
                     '400007' => '\\ccxt\\AuthenticationError',
                     '400008' => '\\ccxt\\NotSupported',
-                    '400100' => '\\ccxt\\InsufficientFunds', // array("msg":"account.available.amount","code":"400100") or array("msg":"Withdrawal amount is below the minimum requirement.","code":"400100")
+                    '400100' => '\\ccxt\\BadRequest', // array("msg":"account.available.amount","code":"400100") or array("msg":"Withdrawal amount is below the minimum requirement.","code":"400100") or  array("msg":"pageSize should not greater than 500","code":"400100")
                     '400200' => '\\ccxt\\InvalidOrder', // array("code":"400200","msg":"Forbidden to place an order")
                     '400330' => '\\ccxt\\InvalidOrder', // array("msg":"Order price can't deviate from NAV by 50%","code":"400330")
                     '400350' => '\\ccxt\\InvalidOrder', // array("code":"400350","msg":"Upper limit for holding => 10,000USDT, you can still buy 10,000USDT worth of coin.")
@@ -735,6 +736,7 @@ class kucoin extends Exchange {
                     '330008' => '\\ccxt\\InsufficientFunds', // array("msg":"Your current margin and leverage have reached the maximum open limit. Please increase your margin or raise your leverage to open larger positions.","code":"330008")
                 ),
                 'broad' => array(
+                    'pageSize should not greater than 500' => '\\ccxt\\BadRequest',
                     'Exceeded the access frequency' => '\\ccxt\\RateLimitExceeded',
                     'require more permission' => '\\ccxt\\PermissionDenied',
                     // futures errors
@@ -6683,7 +6685,7 @@ class kucoin extends Exchange {
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_dynamic('fetchWithdrawals', $code, $since, $limit, $params);
+            return $this->fetch_paginated_call_dynamic('fetchWithdrawals', $code, $since, $limit, $params, 500);
         }
         $request = array();
         $currency = null;

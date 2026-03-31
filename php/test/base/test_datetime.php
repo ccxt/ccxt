@@ -59,22 +59,6 @@ function test_parse_date() {
 }
 
 
-function test_round_timeframe() {
-    $exchange = new \ccxt\async\Exchange(array(
-        'id' => 'sampleexchange',
-    ));
-    assert($exchange->round_timeframe('5m', $exchange->parse8601('2019-08-12 13:22:08'), ROUND_DOWN) === $exchange->parse8601('2019-08-12 13:20:00'));
-    assert($exchange->round_timeframe('10m', $exchange->parse8601('2019-08-12 13:22:08'), ROUND_DOWN) === $exchange->parse8601('2019-08-12 13:20:00'));
-    assert($exchange->round_timeframe('30m', $exchange->parse8601('2019-08-12 13:22:08'), ROUND_DOWN) === $exchange->parse8601('2019-08-12 13:00:00'));
-    assert($exchange->round_timeframe('1d', $exchange->parse8601('2019-08-12 13:22:08'), ROUND_DOWN) === $exchange->parse8601('2019-08-12 00:00:00'));
-    assert($exchange->round_timeframe('5m', $exchange->parse8601('2019-08-12 13:22:08'), ROUND_UP) === $exchange->parse8601('2019-08-12 13:25:00'));
-    assert($exchange->round_timeframe('10m', $exchange->parse8601('2019-08-12 13:22:08'), ROUND_UP) === $exchange->parse8601('2019-08-12 13:30:00'));
-    assert($exchange->round_timeframe('30m', $exchange->parse8601('2019-08-12 13:22:08'), ROUND_UP) === $exchange->parse8601('2019-08-12 13:30:00'));
-    assert($exchange->round_timeframe('1h', $exchange->parse8601('2019-08-12 13:22:08'), ROUND_UP) === $exchange->parse8601('2019-08-12 14:00:00'));
-    assert($exchange->round_timeframe('1d', $exchange->parse8601('2019-08-12 13:22:08'), ROUND_UP) === $exchange->parse8601('2019-08-13 00:00:00'));
-}
-
-
 function test_microseconds() {
     $exchange = new \ccxt\async\Exchange(array(
         'id' => 'sampleexchange',
@@ -108,12 +92,65 @@ function test_seconds() {
 }
 
 
+function test_yymmdd() {
+    $exchange = new \ccxt\async\Exchange(array(
+        'id' => 'sampleexchange',
+    ));
+    $test_ms = 1750123456789; // 17 June 2025
+    $value = $exchange->yymmdd($test_ms, '_');
+    assert($value === '25_06_17');
+    $value2 = $exchange->yymmdd($exchange->milliseconds());
+    assert(strlen($value2) === 6);
+    $int_num = $exchange->parse_to_int($value2);
+    assert($int_num > 260000 && $int_num < 360000); // date between 2026 and 2036
+}
+
+
+function test_yyyymmdd() {
+    $exchange = new \ccxt\async\Exchange(array(
+        'id' => 'sampleexchange',
+    ));
+    $test_ms = 1750123456789; // 17 June 2025
+    $value = $exchange->yyyymmdd($test_ms, '_');
+    assert($value === '2025_06_17');
+    $value2 = $exchange->yyyymmdd($exchange->milliseconds());
+    assert(strlen($value2) === 10);
+    $int_num = $exchange->parse_to_int(str_replace('-', '', (str_replace('-', '', $value2))));
+    assert($int_num > 20260000 && $int_num < 20360000); // date between 2026 and 2036
+}
+
+
+function test_ymd() {
+    $exchange = new \ccxt\async\Exchange(array(
+        'id' => 'sampleexchange',
+    ));
+    $test_ms = 1750123456789; // 17 June 2025
+    $value = $exchange->ymd($test_ms, '_');
+    assert($value === '2025_06_17');
+}
+
+
+function test_ymdhms() {
+    $exchange = new \ccxt\async\Exchange(array(
+        'id' => 'sampleexchange',
+    ));
+    $test_ms = 1750123456789; // 17 June 2025
+    $value = $exchange->ymdhms($test_ms, '_');
+    assert($value === '2025-06-17_01:24:16' || $value === '2025-06-17_01:24:17'); // todo: php/py rounds up to 17
+}
+
+
 function test_datetime() {
     test_iso8601();
     test_parse8601();
     test_parse_date();
-    test_round_timeframe();
     test_microseconds();
     test_milliseconds();
     test_seconds();
+    test_yymmdd();
+    test_yyyymmdd();
+    assert('GO_SKIP_START');
+    test_ymd();
+    test_ymdhms();
+    assert('GO_SKIP_END');
 }

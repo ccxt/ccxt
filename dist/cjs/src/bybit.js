@@ -1130,8 +1130,12 @@ class bybit extends bybit$1["default"] {
                     'FUND': 'fund',
                 },
                 'networks': {
+                    'BTC': 'BTC',
+                    'ETH': 'ETH',
                     'ERC20': 'ETH',
+                    'TRX': 'TRX',
                     'TRC20': 'TRX',
+                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'SOL': 'SOL',
                     'ACA': 'ACA',
@@ -1180,6 +1184,7 @@ class bybit extends bybit$1["default"] {
                     'OASIS': 'ROSE',
                     'OMNI': 'OMNI',
                     'ONE': 'ONE',
+                    'OP': 'OP',
                     'OPTIMISM': 'OP',
                     'POKT': 'POKT',
                     'QTUM': 'QTUM',
@@ -1210,8 +1215,7 @@ class bybit extends bybit$1["default"] {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
                     'BSC': 'BEP20',
-                    'OMNI': 'OMNI',
-                    'SPL': 'SOL',
+                    'OP': 'OP',
                 },
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
@@ -1707,68 +1711,66 @@ class bybit extends bybit$1["default"] {
         //
         const data = this.safeDict(response, 'result', {});
         const rows = this.safeList(data, 'rows', []);
-        const result = {};
-        for (let i = 0; i < rows.length; i++) {
-            const currency = rows[i];
-            const currencyId = this.safeString(currency, 'coin');
-            const code = this.safeCurrencyCode(currencyId);
-            const name = this.safeString(currency, 'name');
-            const chains = this.safeList(currency, 'chains', []);
-            const networks = {};
-            for (let j = 0; j < chains.length; j++) {
-                const chain = chains[j];
-                const networkId = this.safeString(chain, 'chain');
-                const networkCode = this.networkIdToCode(networkId);
-                networks[networkCode] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': undefined,
-                    'deposit': this.safeInteger(chain, 'chainDeposit') === 1,
-                    'withdraw': this.safeInteger(chain, 'chainWithdraw') === 1,
-                    'fee': this.safeNumber(chain, 'withdrawFee'),
-                    'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'minAccuracy'))),
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber(chain, 'withdrawMin'),
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': this.safeNumber(chain, 'depositMin'),
-                            'max': undefined,
-                        },
-                    },
-                };
-            }
-            result[code] = this.safeCurrencyStructure({
-                'info': currency,
-                'code': code,
-                'id': currencyId,
-                'name': name,
+        return this.parseCurrencies(rows);
+    }
+    parseCurrency(currency) {
+        const currencyId = this.safeString(currency, 'coin');
+        const code = this.safeCurrencyCode(currencyId);
+        const name = this.safeString(currency, 'name');
+        const chains = this.safeList(currency, 'chains', []);
+        const networks = {};
+        for (let j = 0; j < chains.length; j++) {
+            const chain = chains[j];
+            const networkId = this.safeString(chain, 'chain');
+            const networkCode = this.networkIdToCode(networkId, code);
+            networks[networkCode] = {
+                'info': chain,
+                'id': networkId,
+                'network': networkCode,
                 'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': undefined,
+                'deposit': this.safeInteger(chain, 'chainDeposit') === 1,
+                'withdraw': this.safeInteger(chain, 'chainWithdraw') === 1,
+                'fee': this.safeNumber(chain, 'withdrawFee'),
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'minAccuracy'))),
                 'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
-                        'min': undefined,
+                        'min': this.safeNumber(chain, 'withdrawMin'),
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': undefined,
+                        'min': this.safeNumber(chain, 'depositMin'),
                         'max': undefined,
                     },
                 },
-                'networks': networks,
-                'type': 'crypto', // atm exchange api provides only cryptos
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'info': currency,
+            'code': code,
+            'id': currencyId,
+            'name': name,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': undefined,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+            'type': 'crypto', // atm exchange api provides only cryptos
+        });
     }
     /**
      * @method
@@ -6077,7 +6079,7 @@ class bybit extends bybit$1["default"] {
             'txid': this.safeString(transaction, 'txID'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': this.networkIdToCode(this.safeString(transaction, 'chain')),
+            'network': this.networkIdToCode(this.safeString(transaction, 'chain'), code),
             'address': undefined,
             'addressTo': toAddress,
             'addressFrom': undefined,
@@ -6414,7 +6416,7 @@ class bybit extends bybit$1["default"] {
             request['tag'] = tag;
         }
         const [networkCode, query] = this.handleNetworkCodeAndParams(params);
-        const networkId = this.networkCodeToId(networkCode);
+        const networkId = this.networkCodeToId(networkCode, code);
         if (networkId !== undefined) {
             request['chain'] = networkId.toUpperCase();
         }

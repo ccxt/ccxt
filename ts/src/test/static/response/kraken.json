@@ -160,6 +160,135 @@
         ],
         "createOrder": [
             {
+                "description": "nested urlencoded",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    1000,
+                    {
+                        "close": {
+                            "price": 1111,
+                            "price2": 1234,
+                            "something": "+&"
+                        }
+                    }
+                ],
+                "httpResponse": {
+                    "error": [],
+                    "result": {
+                        "txid": [
+                            "OARXDO-TJVDS-4G3G54"
+                        ],
+                        "descr": {
+                            "order": "buy 0.00100 ETHUSDT @ limit 1000.00"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "id": "OARXDO-TJVDS-4G3G54",
+                    "clientOrderId": null,
+                    "info": {
+                        "txid": [
+                            "OARXDO-TJVDS-4G3G54"
+                        ],
+                        "descr": {
+                            "order": "buy 0.00100 ETHUSDT @ limit 1000.00"
+                        }
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "ETH/USDT",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 1000,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "cost": null,
+                    "amount": 0.001,
+                    "filled": null,
+                    "average": null,
+                    "remaining": null,
+                    "reduceOnly": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "conditional close",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    1000,
+                    {
+                        "close": {
+                            "price": 1111,
+                            "price2": 1234
+                        }
+                    }
+                ],
+                "httpResponse": {
+                    "error": [],
+                    "result": {
+                        "txid": [
+                            "O2HBTP-OBCCZ-SSZAZR"
+                        ],
+                        "descr": {
+                            "order": "buy 0.00100 ETHUSDT @ limit 1000.00"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "id": "O2HBTP-OBCCZ-SSZAZR",
+                    "clientOrderId": null,
+                    "info": {
+                        "txid": [
+                            "O2HBTP-OBCCZ-SSZAZR"
+                        ],
+                        "descr": {
+                            "order": "buy 0.00100 ETHUSDT @ limit 1000.00"
+                        }
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "ETH/USDT",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 1000,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "cost": null,
+                    "amount": 0.001,
+                    "filled": null,
+                    "average": null,
+                    "remaining": null,
+                    "reduceOnly": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null
+                }
+            },
+            {
                 "description": "createOrder long precisions",
                 "method": "createOrder",
                 "input": [

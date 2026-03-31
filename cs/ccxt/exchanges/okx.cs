@@ -1024,9 +1024,12 @@ public partial class okx : Exchange
                     { "BTC", "Bitcoin" },
                     { "BTCLN", "Lightning" },
                     { "BTCLIGHTNING", "Lightning" },
+                    { "BSC", "BSC" },
                     { "BEP20", "BSC" },
                     { "BRC20", "BRC20" },
+                    { "ETH", "ERC20" },
                     { "ERC20", "ERC20" },
+                    { "TRX", "TRC20" },
                     { "TRC20", "TRC20" },
                     { "CRC20", "Crypto" },
                     { "ACA", "Acala" },
@@ -1092,6 +1095,11 @@ public partial class okx : Exchange
                     { "THETA", "Theta" },
                     { "WAX", "Wax" },
                     { "ZIL", "Zilliqa" },
+                } },
+                { "networksById", new Dictionary<string, object>() {
+                    { "ERC20", "ERC20" },
+                    { "TRC20", "TRC20" },
+                    { "BEP20", "BEP20" },
                 } },
                 { "fetchOpenInterestHistory", new Dictionary<string, object>() {
                     { "timeframes", new Dictionary<string, object>() {
@@ -1852,7 +1860,21 @@ public partial class okx : Exchange
         //     }
         //
         object dataResponse = this.safeList(response, "data", new List<object>() {});
-        return this.parseMarkets(dataResponse);
+        object marketsWithoutTest = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(dataResponse)); postFixIncrement(ref i))
+        {
+            object data = getValue(dataResponse, i);
+            if (isTrue(this.isSandboxModeEnabled))
+            {
+                object instFamily = this.safeString(data, "instFamily", "");
+                if (isTrue(((string)instFamily).StartsWith(((string)"TEST"))))
+                {
+                    continue;
+                }
+            }
+            ((IList<object>)marketsWithoutTest).Add(data);
+        }
+        return this.parseMarkets(marketsWithoutTest);
     }
 
     /**
@@ -1925,71 +1947,71 @@ public partial class okx : Exchange
         //    }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        object result = new Dictionary<string, object>() {};
         object dataByCurrencyId = this.groupBy(data, "ccy");
-        object currencyIds = new List<object>(((IDictionary<string,object>)dataByCurrencyId).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
+        object currencies = new List<object>(((IDictionary<string,object>)dataByCurrencyId).Values);
+        return this.parseCurrencies(currencies);
+    }
+
+    public override object parseCurrency(object currency)
+    {
+        object chains = currency;
+        // currencies are grouped by chain entries, so there is at least one entry
+        object firstChain = this.safeDict(chains, 0, new Dictionary<string, object>() {});
+        object currencyId = this.safeString(firstChain, "ccy");
+        object code = this.safeCurrencyCode(currencyId);
+        object networks = new Dictionary<string, object>() {};
+        object type = "crypto";
+        object chainsLength = getArrayLength(chains);
+        for (object j = 0; isLessThan(j, chainsLength); postFixIncrement(ref j))
         {
-            object currencyId = getValue(currencyIds, i);
-            object currency = this.safeCurrency(currencyId);
-            object code = getValue(currency, "code");
-            object chains = getValue(dataByCurrencyId, currencyId);
-            object networks = new Dictionary<string, object>() {};
-            object type = "crypto";
-            object chainsLength = getArrayLength(chains);
-            for (object j = 0; isLessThan(j, chainsLength); postFixIncrement(ref j))
+            object chain = getValue(chains, j);
+            // allow empty string for rare fiat-currencies, e.g. TRY
+            object networkId = this.safeString(chain, "chain", ""); // USDT-BEP20, USDT-Avalance-C, etc
+            if (isTrue(isEqual(networkId, "")))
             {
-                object chain = getValue(chains, j);
-                // allow empty string for rare fiat-currencies, e.g. TRY
-                object networkId = this.safeString(chain, "chain", ""); // USDT-BEP20, USDT-Avalance-C, etc
-                if (isTrue(isEqual(networkId, "")))
-                {
-                    // only happens for fiat 'TRY' currency
-                    type = "fiat";
-                }
-                object idParts = ((string)networkId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-                object parts = this.arraySlice(idParts, 1);
-                object chainPart = String.Join("-", ((IList<object>)parts).ToArray());
-                object networkCode = this.networkIdToCode(chainPart, getValue(currency, "code"));
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "id", networkId },
-                    { "network", networkCode },
-                    { "active", null },
-                    { "deposit", this.safeBool(chain, "canDep") },
-                    { "withdraw", this.safeBool(chain, "canWd") },
-                    { "fee", this.safeNumber(chain, "fee") },
-                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "wdTickSz"))) },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(chain, "minWd") },
-                            { "max", this.safeNumber(chain, "maxWd") },
-                        } },
-                    } },
-                    { "info", chain },
-                };
+                // only happens for fiat 'TRY' currency
+                type = "fiat";
             }
-            object firstChain = this.safeDict(chains, 0, new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "info", chains },
-                { "code", code },
-                { "id", currencyId },
-                { "name", this.safeString(firstChain, "name") },
+            object idParts = ((string)networkId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+            object parts = this.arraySlice(idParts, 1);
+            object chainPart = String.Join("-", ((IList<object>)parts).ToArray());
+            object networkCode = this.networkIdToCode(chainPart, code);
+            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "id", networkId },
+                { "network", networkCode },
                 { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
-                { "precision", null },
+                { "deposit", this.safeBool(chain, "canDep") },
+                { "withdraw", this.safeBool(chain, "canWd") },
+                { "fee", this.safeNumber(chain, "fee") },
+                { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "wdTickSz"))) },
                 { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(chain, "minWd") },
+                        { "max", this.safeNumber(chain, "maxWd") },
                     } },
                 } },
-                { "type", type },
-                { "networks", networks },
-            });
+                { "info", chain },
+            };
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "info", chains },
+            { "code", code },
+            { "id", currencyId },
+            { "name", this.safeString(firstChain, "name") },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "precision", null },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "type", type },
+            { "networks", networks },
+        });
     }
 
     /**
@@ -5635,7 +5657,7 @@ public partial class okx : Exchange
         {
             object currencies = await this.fetchCurrencies();
             this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, currencies));
-            object targetNetwork = this.safeDict(getValue(currency, "networks"), this.networkIdToCode(network), new Dictionary<string, object>() {});
+            object targetNetwork = this.safeDict(getValue(currency, "networks"), this.networkIdToCode(network, getValue(currency, "code")), new Dictionary<string, object>() {});
             fee = this.safeString(targetNetwork, "fee");
             if (isTrue(isEqual(fee, null)))
             {

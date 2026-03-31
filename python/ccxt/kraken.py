@@ -230,6 +230,8 @@ class kraken(Exchange, ImplicitAPI):
                         'WithdrawAddresses': 3,
                         'WithdrawStatus': 3,
                         'WalletTransfer': 3,
+                        # account
+                        'GetApiKeyInfo': 3,
                         # sub accounts
                         'CreateSubaccount': 3,
                         'AccountTransfer': 3,
@@ -3375,7 +3377,7 @@ class kraken(Exchange, ImplicitAPI):
         url = '/' + self.version + '/' + api + '/' + path
         if api == 'public':
             if params:
-                # urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
+                # rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 url += '?' + self.urlencode_nested(params)
         elif api == 'private':
             price = self.safe_string(params, 'price')
@@ -3386,10 +3388,10 @@ class kraken(Exchange, ImplicitAPI):
             isBatchOrder = (path == 'AddOrderBatch')
             self.check_required_credentials()
             nonce = str(self.nonce())
-            # urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
             if isCancelOrderBatch or isTriggerPercent or isBatchOrder:
                 body = self.json(self.extend({'nonce': nonce}, params))
             else:
+                # rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 body = self.urlencode_nested(self.extend({'nonce': nonce}, params))
             auth = self.encode(nonce + body)
             hash = self.hash(auth, 'sha256', 'binary')

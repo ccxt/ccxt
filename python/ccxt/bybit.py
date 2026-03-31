@@ -1146,8 +1146,12 @@ class bybit(Exchange, ImplicitAPI):
                     'FUND': 'fund',
                 },
                 'networks': {
+                    'BTC': 'BTC',
+                    'ETH': 'ETH',
                     'ERC20': 'ETH',
+                    'TRX': 'TRX',
                     'TRC20': 'TRX',
+                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'SOL': 'SOL',
                     'ACA': 'ACA',
@@ -1196,6 +1200,7 @@ class bybit(Exchange, ImplicitAPI):
                     'OASIS': 'ROSE',
                     'OMNI': 'OMNI',
                     'ONE': 'ONE',
+                    'OP': 'OP',
                     'OPTIMISM': 'OP',
                     'POKT': 'POKT',
                     'QTUM': 'QTUM',
@@ -1226,8 +1231,7 @@ class bybit(Exchange, ImplicitAPI):
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
                     'BSC': 'BEP20',
-                    'OMNI': 'OMNI',
-                    'SPL': 'SOL',
+                    'OP': 'OP',
                 },
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
@@ -1702,66 +1706,65 @@ class bybit(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'result', {})
         rows = self.safe_list(data, 'rows', [])
-        result: dict = {}
-        for i in range(0, len(rows)):
-            currency = rows[i]
-            currencyId = self.safe_string(currency, 'coin')
-            code = self.safe_currency_code(currencyId)
-            name = self.safe_string(currency, 'name')
-            chains = self.safe_list(currency, 'chains', [])
-            networks: dict = {}
-            for j in range(0, len(chains)):
-                chain = chains[j]
-                networkId = self.safe_string(chain, 'chain')
-                networkCode = self.network_id_to_code(networkId)
-                networks[networkCode] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': None,
-                    'deposit': self.safe_integer(chain, 'chainDeposit') == 1,
-                    'withdraw': self.safe_integer(chain, 'chainWithdraw') == 1,
-                    'fee': self.safe_number(chain, 'withdrawFee'),
-                    'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'minAccuracy'))),
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number(chain, 'withdrawMin'),
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': self.safe_number(chain, 'depositMin'),
-                            'max': None,
-                        },
-                    },
-                }
-            result[code] = self.safe_currency_structure({
-                'info': currency,
-                'code': code,
-                'id': currencyId,
-                'name': name,
+        return self.parse_currencies(rows)
+
+    def parse_currency(self, currency: dict) -> Currency:
+        currencyId = self.safe_string(currency, 'coin')
+        code = self.safe_currency_code(currencyId)
+        name = self.safe_string(currency, 'name')
+        chains = self.safe_list(currency, 'chains', [])
+        networks: dict = {}
+        for j in range(0, len(chains)):
+            chain = chains[j]
+            networkId = self.safe_string(chain, 'chain')
+            networkCode = self.network_id_to_code(networkId, code)
+            networks[networkCode] = {
+                'info': chain,
+                'id': networkId,
+                'network': networkCode,
                 'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
-                'precision': None,
+                'deposit': self.safe_integer(chain, 'chainDeposit') == 1,
+                'withdraw': self.safe_integer(chain, 'chainWithdraw') == 1,
+                'fee': self.safe_number(chain, 'withdrawFee'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'minAccuracy'))),
                 'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
-                        'min': None,
+                        'min': self.safe_number(chain, 'withdrawMin'),
                         'max': None,
                     },
                     'deposit': {
-                        'min': None,
+                        'min': self.safe_number(chain, 'depositMin'),
                         'max': None,
                     },
                 },
-                'networks': networks,
-                'type': 'crypto',  # atm exchange api provides only cryptos
-            })
-        return result
+            }
+        return self.safe_currency_structure({
+            'info': currency,
+            'code': code,
+            'id': currencyId,
+            'name': name,
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'precision': None,
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': networks,
+            'type': 'crypto',  # atm exchange api provides only cryptos
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -5762,7 +5765,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'txid': self.safe_string(transaction, 'txID'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': self.network_id_to_code(self.safe_string(transaction, 'chain')),
+            'network': self.network_id_to_code(self.safe_string(transaction, 'chain'), code),
             'address': None,
             'addressTo': toAddress,
             'addressFrom': None,
@@ -6084,7 +6087,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if tag is not None:
             request['tag'] = tag
         networkCode, query = self.handle_network_code_and_params(params)
-        networkId = self.network_code_to_id(networkCode)
+        networkId = self.network_code_to_id(networkCode, code)
         if networkId is not None:
             request['chain'] = networkId.upper()
         response = self.privatePostV5AssetWithdrawCreate(self.extend(request, query))

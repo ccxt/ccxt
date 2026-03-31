@@ -2042,10 +2042,6 @@ class krakenfutures extends Exchange {
             //
             $datetime = $this->safe_string($orderDictFromFetchOrder, 'timestamp');
             $innerStatus = $this->safe_string($order, 'status');
-            $filledOrder = $this->safe_string($orderDictFromFetchOrder, 'filled', '0');
-            if (($filledOrder === '0') || ($filledOrder === '0.0')) {
-                $filledOrder = null;
-            }
             $fetchOrderPriceTriggerOptions = $this->safe_dict($orderDictFromFetchOrder, 'priceTriggerOptions', array());
             $fetchOrderTriggerPrice = $this->safe_string($fetchOrderPriceTriggerOptions, 'triggerPrice');
             return $this->safe_order(array(
@@ -2068,7 +2064,7 @@ class krakenfutures extends Exchange {
                 'amount' => $this->safe_string($orderDictFromFetchOrder, 'quantity'),
                 'cost' => null,
                 'average' => null,
-                'filled' => $filledOrder,
+                'filled' => $this->safe_string($orderDictFromFetchOrder, 'filled'),
                 'remaining' => null,
                 'status' => $this->parse_order_status($innerStatus),
                 'fee' => null,
