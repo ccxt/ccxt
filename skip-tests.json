@@ -1,4 +1,8 @@
 {
+    "aftermath": {
+        "skip": "exchange doesn't function for some reasons during last few days",
+        "until": "2026-04-07"
+    },
     "alp": {
         "skipMethods": {
             "fetchCurrencies": {
