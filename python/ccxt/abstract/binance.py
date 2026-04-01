@@ -1083,6 +1083,7 @@ class ImplicitAPI:
         'apiReferral/traderSummary', 'fapiPrivate', 'GET', {'cost': 1}
     )
     fapiprivate_get_adlquantile = fapiPrivateGetAdlQuantile = Entry('adlQuantile', 'fapiPrivate', 'GET', {'cost': 5})
+    fapiprivate_get_feeburn = fapiPrivateGetFeeBurn = Entry('feeBurn', 'fapiPrivate', 'GET', {'cost': 3})
     fapiprivate_get_pmaccountinfo = fapiPrivateGetPmAccountInfo = Entry(
         'pmAccountInfo', 'fapiPrivate', 'GET', {'cost': 5}
     )
@@ -1282,6 +1283,7 @@ class ImplicitAPI:
     papi_get_um_income = papiGetUmIncome = Entry('um/income', 'papi', 'GET', {'cost': 30})
     papi_get_cm_income = papiGetCmIncome = Entry('cm/income', 'papi', 'GET', {'cost': 30})
     papi_get_um_account = papiGetUmAccount = Entry('um/account', 'papi', 'GET', {'cost': 5})
+    papi_get_um_feeburn = papiGetUmFeeBurn = Entry('um/feeBurn', 'papi', 'GET', {'cost': 3})
     papi_get_cm_account = papiGetCmAccount = Entry('cm/account', 'papi', 'GET', {'cost': 5})
     papi_get_repay_futures_switch = papiGetRepayFuturesSwitch = Entry(
         'repay-futures-switch', 'papi', 'GET', {'cost': 3}
