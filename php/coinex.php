@@ -675,6 +675,7 @@ class coinex extends Exchange {
                     'Service is not available during funding fee settlement' => '\\ccxt\\OperationFailed',
                 ),
             ),
+            'rollingWindowSize' => 1000.0,    // docs say 1000.0 => https://docs.coinex.com/api/v2/rate-limit#ip-rate-limit, tested with 60000.0 and received no errors
         ));
     }
 

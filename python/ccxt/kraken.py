@@ -230,6 +230,8 @@ class kraken(Exchange, ImplicitAPI):
                         'WithdrawAddresses': 3,
                         'WithdrawStatus': 3,
                         'WalletTransfer': 3,
+                        # account
+                        'GetApiKeyInfo': 3,
                         # sub accounts
                         'CreateSubaccount': 3,
                         'AccountTransfer': 3,
@@ -540,6 +542,7 @@ class kraken(Exchange, ImplicitAPI):
                 },
             },
             'precisionMode': TICK_SIZE,
+            'rollingWindowSize': 10000.0,  # https://docs.kraken.com/api/docs/guides/custody-rest-ratelimits
             'exceptions': {
                 'exact': {
                     'EQuery:Invalid asset pair': BadSymbol,  # {"error":["EQuery:Invalid asset pair"]}
@@ -1649,7 +1652,7 @@ class kraken(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result')
         result['usingCost'] = isUsingCost
         # it's impossible to know if the order was created using cost or base currency
-        # becuase kraken only returns something like self: {order: 'buy 10.00000000 LTCUSD @ market'}
+        # because kraken only returns something like self: {order: 'buy 10.00000000 LTCUSD @ market'}
         # self usingCost flag is used to help the parsing but omited from the order
         return self.parse_order(result)
 
@@ -3374,7 +3377,7 @@ class kraken(Exchange, ImplicitAPI):
         url = '/' + self.version + '/' + api + '/' + path
         if api == 'public':
             if params:
-                # urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
+                # rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 url += '?' + self.urlencode_nested(params)
         elif api == 'private':
             price = self.safe_string(params, 'price')
@@ -3385,10 +3388,10 @@ class kraken(Exchange, ImplicitAPI):
             isBatchOrder = (path == 'AddOrderBatch')
             self.check_required_credentials()
             nonce = str(self.nonce())
-            # urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
             if isCancelOrderBatch or isTriggerPercent or isBatchOrder:
                 body = self.json(self.extend({'nonce': nonce}, params))
             else:
+                # rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 body = self.urlencode_nested(self.extend({'nonce': nonce}, params))
             auth = self.encode(nonce + body)
             hash = self.hash(auth, 'sha256', 'binary')

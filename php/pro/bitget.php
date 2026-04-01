@@ -2056,6 +2056,7 @@ class bitget extends \ccxt\async\bitget {
 
     public function parse_ws_order_status($status) {
         $statuses = array(
+            'new' => 'open',
             'live' => 'open',
             'partially_filled' => 'open',
             'filled' => 'closed',

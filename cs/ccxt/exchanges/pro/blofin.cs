@@ -12,6 +12,8 @@ public partial class blofin : ccxt.blofin
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
+                { "watchFundingRate", true },
+                { "watchFundingRates", false },
                 { "watchTrades", true },
                 { "watchTradesForSymbols", true },
                 { "watchOrderBook", true },
@@ -113,7 +115,8 @@ public partial class blofin : ccxt.blofin
             object firstSymbol = this.safeString(firstMarket, "symbol");
             limit = callDynamically(trades, "getLimit", new object[] {firstSymbol, limit});
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        object result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        return this.sortBy(result, "timestamp");  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599430/job/59597237029?pr=27624#step:11:611
     }
 
     public virtual void handleTrades(WebSocketClient client, object message)
@@ -707,6 +710,60 @@ public partial class blofin : ccxt.blofin
         return this.parsePosition(position, market);
     }
 
+    /**
+     * @method
+     * @name blofin#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://docs.blofin.com/index.html#ws-funding-rate-channel
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    public async override Task<object> watchFundingRate(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchFundingRate", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object messageHash = add("fundingRate:", getValue(market, "symbol"));
+        object requestParams = new Dictionary<string, object>() {
+            { "channel", "funding-rate" },
+            { "instId", getValue(market, "id") },
+        };
+        object request = this.getSubscriptionRequest(new List<object>() {requestParams});
+        object url = this.implodeHostname(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), marketType), "public"));
+        return await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
+    }
+
+    public virtual void handleFundingRate(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "arg": {
+        //             "channel": "funding-rate",
+        //             "instId": "BTC-USDT"
+        //         },
+        //         "data": [
+        //             {
+        //                 "instId": "BTC-USDT",
+        //                 "fundingRate": "0.00007873240488719234",
+        //                 "fundingTime": "1771430400000"
+        //             }
+        //         ]
+        //     }
+        //
+        object data = this.safeList(message, "data", new List<object>() {});
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        object fundingRate = this.parseFundingRate(first);
+        object symbol = getValue(fundingRate, "symbol");
+        ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
+        object messageHash = add("fundingRate:", symbol);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {fundingRate, messageHash});
+    }
+
     public async virtual Task<object> watchMultipleWrapper(object isPublic, object channelName, object callerMethodName, object symbolsArray = null, object parameters = null)
     {
         // underlier method for all watch-multiple symbols
@@ -818,6 +875,7 @@ public partial class blofin : ccxt.blofin
             { "orders", this.handleOrders },
             { "orders-algo", this.handleOrders },
             { "positions", this.handlePositions },
+            { "funding-rate", this.handleFundingRate },
         };
         object method = null;
         if (isTrue(isEqual(message, "pong")))

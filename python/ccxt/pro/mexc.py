@@ -704,13 +704,18 @@ class mexc(ccxt.async_support.mexc):
         #       "amount":"366804.43",
         #       "windowEnd":"1754737980"
         #
+        volume = self.safe_number_2(ohlcv, 'v', 'volume')
+        # MEXC swap websocket klines publish contracts volume in `q`,
+        # while spot/protobuf uses `v`/`volume`.
+        if (market is not None) and (not self.safe_bool(market, 'spot')) and (volume is None):
+            volume = self.safe_number_2(ohlcv, 'q', 'v')
         return [
             self.safe_timestamp_2(ohlcv, 't', 'windowStart'),
             self.safe_number_2(ohlcv, 'o', 'openingPrice'),
             self.safe_number_2(ohlcv, 'h', 'highestPrice'),
             self.safe_number_2(ohlcv, 'l', 'lowestPrice'),
             self.safe_number_2(ohlcv, 'c', 'closingPrice'),
-            self.safe_number_2(ohlcv, 'v', 'volume'),
+            volume,
         ]
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -1368,7 +1373,7 @@ class mexc(ccxt.async_support.mexc):
         #
         timestamp = self.safe_integer(order, 'createTime')
         side = self.safe_string(order, 'tradeType')
-        status = self.safe_string(order, 'status')
+        status = self.safe_string_2(order, 'status', 'state')
         type = self.safe_string(order, 'orderType')
         fee = None
         feeCurrency = self.safe_string(order, 'N')
@@ -1389,8 +1394,8 @@ class mexc(ccxt.async_support.mexc):
             'timeInForce': self.parse_ws_time_in_force(type),
             'side': 'buy' if (side == '1') else 'sell',
             'price': self.safe_string(order, 'price'),
-            'stopPrice': None,
-            'triggerPrice': None,
+            'stopPrice': self.safe_string_2(order, 'triggerPrice', 'P'),
+            'triggerPrice': self.safe_string_2(order, 'triggerPrice', 'P'),
             'average': self.safe_string(order, 'avgPrice'),
             'amount': self.safe_string(order, 'quantity'),
             'cost': self.safe_string(order, 'amount'),
@@ -1403,6 +1408,7 @@ class mexc(ccxt.async_support.mexc):
 
     def parse_ws_order_status(self, status, market=None):
         statuses: dict = {
+            '0': 'open',     # new/pending(OCO orders)
             '1': 'open',     # new order
             '2': 'closed',   # filled
             '3': 'open',     # partially filled
@@ -1423,6 +1429,8 @@ class mexc(ccxt.async_support.mexc):
             '4': None,  # FILL_OR_KILL
             '5': 'market',  # MARKET_ORDER
             '100': 'limit',  # STOP_LIMIT
+            '101': 'limit',  # OCO_STOP_LIMIT
+            '102': 'limit',  # OCO_LIMIT
         }
         return self.safe_string(types, type)
 
@@ -1434,6 +1442,8 @@ class mexc(ccxt.async_support.mexc):
             '4': 'FOK',  # FILL_OR_KILL
             '5': 'GTC',  # MARKET_ORDER
             '100': 'GTC',  # STOP_LIMIT
+            '101': 'GTC',  # OCO_STOP_LIMIT
+            '102': 'GTC',  # OCO_LIMIT
         }
         return self.safe_string(timeInForceIds, timeInForce)
 
@@ -1488,7 +1498,7 @@ class mexc(ccxt.async_support.mexc):
         #             "frozenBalance": 0,
         #             "positionMargin": 1.36945756
         #         },
-        #         "ts": 1680059188190
+        #         "ts": 1680059188191
         #     }
         #
         channel = self.safe_string(message, 'channel')

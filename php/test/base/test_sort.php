@@ -10,11 +10,29 @@ namespace ccxt;
 
 
 function test_sort() {
-    // todo: other argument checks
     $exchange = new \ccxt\async\Exchange(array(
         'id' => 'sampleexchange',
     ));
-    $arr = ['b', 'a', 'c', 'd'];
-    $sorted_arr = $exchange->sort($arr);
-    assert_deep_equal($exchange, null, 'sort', $sorted_arr, ['a', 'b', 'c', 'd']);
+    // empty array
+    assert_deep_equal($exchange, null, 'sort', $exchange->sort([]), []);
+    // single element
+    assert_deep_equal($exchange, null, 'sort', $exchange->sort(['a']), ['a']);
+    // already sorted (idempotent)
+    assert_deep_equal($exchange, null, 'sort', $exchange->sort(['a', 'b', 'c']), ['a', 'b', 'c']);
+    // duplicates
+    assert_deep_equal($exchange, null, 'sort', $exchange->sort(['b', 'a', 'b', 'c']), ['a', 'b', 'b', 'c']);
+    assert_deep_equal($exchange, null, 'sort', $exchange->sort(['b', 'a', 'c', 'd']), ['a', 'b', 'c', 'd']);
+    // todo 1: atm, `sort` is only meant for strings. we should update to support numerics
+    // todo 2: add test for above 10, eg: 1, 2, 10, 20, 21
+    // // integers (single-digit, safe for cross-language lexicographic/numeric consistency)
+    // testSharedMethods.assertDeepEqual (exchange, undefined, 'sort', exchange.sort ([ 3, 1, 2 ]), [ 1, 2, 3 ]);
+    // testSharedMethods.assertDeepEqual (exchange, undefined, 'sort', exchange.sort ([ 5, 3, 1, 4, 2 ]), [ 1, 2, 3, 4, 5 ]);
+    // testSharedMethods.assertDeepEqual (exchange, undefined, 'sort', exchange.sort ([ 0, 3, 1, 2 ]), [ 0, 1, 2, 3 ]);
+    // // floats (values chosen so lexicographic order matches numeric order)
+    // testSharedMethods.assertDeepEqual (exchange, undefined, 'sort', exchange.sort ([ 1.5, 0.5, 2.5 ]), [ 0.5, 1.5, 2.5 ]);
+    // testSharedMethods.assertDeepEqual (exchange, undefined, 'sort', exchange.sort ([ 3.3, 1.1, 2.2 ]), [ 1.1, 2.2, 3.3 ]);
+    // immutability - original array should not be modified
+    $original = ['b', 'a', 'c'];
+    $exchange->sort($original);
+    assert_deep_equal($exchange, null, 'sort', $original, ['b', 'a', 'c']);
 }

@@ -227,6 +227,7 @@ class hyperliquid extends Exchange {
             'options' => array(
                 'defaultType' => 'swap',
                 'sandboxMode' => false,
+                'builderFee' => true,
                 'defaultSlippage' => 0.05,
                 'marketHelperProps' => array( 'hip3TokensByName', 'cachedCurrenciesById' ),
                 'zeroAddress' => '0x0000000000000000000000000000000000000000',
@@ -361,6 +362,7 @@ class hyperliquid extends Exchange {
                     ),
                 ),
             ),
+            'rollingWindowSize' => 0.0,
         ));
     }
 
@@ -589,7 +591,8 @@ class hyperliquid extends Exchange {
             for ($i = 1; $i < count($fetchDexes); $i++) {
                 // builder-deployed perp dexs start at 110000
                 $dex = $fetchDexes[$i];
-                $offset = 110000 . ($i - 1) * 10000;
+                $secondPart = ($i - 1) * 10000;
+                $offset = $this->sum(110000, $secondPart);
                 $perpDexesOffset[$dex['name']] = $offset;
             }
             $fetchDexesList = array();
@@ -643,7 +646,7 @@ class hyperliquid extends Exchange {
                         $this->safe_dict($universe, $j, array()),
                         $this->safe_dict($assetCtxs, $j, array())
                     );
-                    $data['baseId'] = $j . $offset;
+                    $data['baseId'] = $this->sum($j, $offset);
                     $data['collateralToken'] = $collateralToken;
                     $data['hip3'] = true;
                     $data['dex'] = $dexName;
@@ -891,6 +894,10 @@ class hyperliquid extends Exchange {
                 $quoteTokenInfo = $this->safe_dict($tokens, $quoteTokenPos, array());
                 $baseName = $this->safe_string($baseTokenInfo, 'name');
                 $quoteId = $this->safe_string($quoteTokenInfo, 'name');
+                if ($baseName === null || $quoteId === null) {
+                    continue;
+                    // why sandbox sending this? check it later
+                }
                 // do spot currency mapping
                 $spotCurrencyMapping = $this->safe_dict($this->options, 'spotCurrencyMapping', array());
                 $mappedBaseName = $this->safe_string($spotCurrencyMapping, $baseName, $baseName);
@@ -1110,17 +1117,23 @@ class hyperliquid extends Exchange {
              * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
              * @param {string} [$params->type] wallet $type, ['spot', 'swap'], defaults to swap
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for margin trading, uses $this->options.defaultMarginMode if not passed, defaults to null/None/null
-             * @param {string} [$params->dex] for hip3 markets, the dex name, eg => 'xyz'
+             * @param {string} [$params->dex] for hip3 markets, the $dex name, eg => 'xyz'
              * @param {string} [$params->subAccountAddress] sub $account user address
+             * @param {boolean} [$params->enableUnifiedMargin] enable unified margin, CCXT tries to auto-detects this value but you can override it
              * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
              */
+            // if user provides a different address in $params and does not provide the enableUnifiedMargin we assume we need to $request the info again
+            $shouldRefresh = ($this->safe_string_2($params, 'user', 'address') !== null) && $this->safe_bool($params, 'enableUnifiedMargin') === null;
             $userAddress = null;
             list($userAddress, $params) = $this->handle_public_address('fetchBalance', $params);
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBalance', $params);
-            $isSpot = ($type === 'spot');
+            $isUnifiedEnabled = null;
+            list($isUnifiedEnabled, $params) = Async\await($this->is_unified_enabled('fetchBalance', $userAddress, $shouldRefresh, $params));
+            $dex = $this->safe_string($params, 'dex');
+            $isSpot = (($type === 'spot') || $isUnifiedEnabled) && ($dex === null);
             $request = array(
                 'type' => ($isSpot) ? 'spotClearinghouseState' : 'clearinghouseState',
                 'user' => $userAddress,
@@ -1859,7 +1872,7 @@ class hyperliquid extends Exchange {
     public function initialize_client() {
         return Async\async(function ()  {
             try {
-                Async\await(Promise\all(array( $this->handle_builder_fee_approval(), $this->set_ref() )));
+                Async\await(Promise\all(array( $this->handle_builder_fee_approval(), $this->set_ref(), $this->is_unified_enabled('fetchBalance', null, false, array()) ))); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods
             } catch (Exception $e) {
                 return false;
             }
@@ -1886,6 +1899,49 @@ class hyperliquid extends Exchange {
                 $this->options['builderFee'] = false; // disable $builder fee if an error occurs
             }
             return true;
+        }) ();
+    }
+
+    public function is_unified_enabled(string $method, ?string $address = null, $shouldRefresh = false, $params = array ()) {
+        return Async\async(function () use ($method, $address, $shouldRefresh, $params) {
+            /**
+             *
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-abstraction-state
+             *
+             * returns $enableUnifiedMargin so the user can check if unified account is enabled
+             * @param {string} $method the $method for which we want to check if unified margin is enabled, this is used to check options for specific methods ($e->g. fetchBalance can have a specific option to enable unified margin)
+             * @param $address
+             * @param $shouldRefresh
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {bool} $enableUnifiedMargin
+             */
+            $userAddress = null;
+            if ($address !== null) {
+                $userAddress = $address;
+            } else {
+                list($userAddress, $params) = $this->handle_public_address('isUnifiedEnabled', $params);
+            }
+            $enableUnifiedMargin = null;
+            list($enableUnifiedMargin, $params) = $this->handle_option_and_params($params, $method, 'enableUnifiedMargin');
+            if ($enableUnifiedMargin === null || $shouldRefresh) {
+                $request = array(
+                    'type' => 'userAbstraction',
+                    'user' => $userAddress,
+                );
+                $response = null;
+                try {
+                    $response = Async\await($this->publicPostInfo ($this->extend($request, $params)));
+                } catch (Exception $e) {
+                    $response = null; // ignore this error and assume unified margin is not enabled
+                }
+                //
+                // "unifiedAccount" | "portfolioMargin" | "disabled" | "default" | "dexAbstraction"
+                //
+                $enableUnifiedMargin = $response === '"unifiedAccount"';
+                // don't cache this result if this is a different addresss
+                $this->options['enableUnifiedMargin'] = $enableUnifiedMargin; // cache this for future calls
+            }
+            return array( $enableUnifiedMargin, $params );
         }) ();
     }
 
@@ -2284,7 +2340,6 @@ class hyperliquid extends Exchange {
             $hasTakeProfit = ($takeProfit !== null);
             $orderParams = $this->omit($orderParams, array( 'stopLoss', 'takeProfit' ));
             $mainOrderObj = $this->create_order_request($symbol, $type, $side, $amount, $price, $orderParams);
-            $orderReq[] = $mainOrderObj;
             if ($hasStopLoss || $hasTakeProfit) {
                 // $grouping opposed $orders for sl/tp
                 $stopLossOrderTriggerPrice = $this->safe_string_n($stopLoss, array( 'triggerPrice', 'stopPrice' ));
@@ -2293,8 +2348,17 @@ class hyperliquid extends Exchange {
                 $takeProfitOrderTriggerPrice = $this->safe_string_n($takeProfit, array( 'triggerPrice', 'stopPrice' ));
                 $takeProfitOrderType = $this->safe_string($takeProfit, 'type', 'limit');
                 $takeProfitOrderLimitPrice = $this->safe_string_n($takeProfit, array( 'price', 'takeProfitPrice' ), $takeProfitOrderTriggerPrice);
-                $grouping = 'normalTpsl';
-                $orderParams = $this->omit($orderParams, array( 'stopLoss', 'takeProfit' ));
+                $grouping = $this->safe_string($orderParams, 'grouping', 'normalTpsl');
+                if ($grouping === 'positionTpsl') {
+                    $amount = '0';
+                    $stopLossOrderType = 'market';
+                    $takeProfitOrderType = 'market';
+                } elseif ($grouping === 'normalTpsl') {
+                    $orderReq[] = $mainOrderObj;
+                } else {
+                    throw new NotSupported($this->id . ' only support $grouping normalTpsl and positionTpsl.');
+                }
+                $orderParams = $this->omit($orderParams, array( 'stopLoss', 'takeProfit', 'grouping' ));
                 $triggerOrderSide = '';
                 if ($side === 'BUY') {
                     $triggerOrderSide = 'sell';
@@ -2315,6 +2379,8 @@ class hyperliquid extends Exchange {
                     )));
                     $orderReq[] = $orderObj;
                 }
+            } else {
+                $orderReq[] = $mainOrderObj;
             }
         }
         $vaultAddress = null;
@@ -4694,16 +4760,18 @@ class hyperliquid extends Exchange {
         $id = $this->safe_string($income, 'hash');
         $timestamp = $this->safe_integer($income, 'time');
         $delta = $this->safe_dict($income, 'delta');
-        $baseId = $this->safe_string($delta, 'coin');
-        $marketSymbol = $baseId . '/USDC:USDC';
-        $market = $this->safe_market($marketSymbol);
-        $symbol = $market['symbol'];
+        $coin = $this->safe_string($delta, 'coin');
+        $marketId = null;
+        if ($coin !== null) {
+            $marketId = $this->coin_to_market_id($coin);
+        }
+        $market = $this->safe_market($marketId, $market);
         $amount = $this->safe_string($delta, 'usdc');
-        $code = $this->safe_currency_code('USDC');
+        $code = $this->safe_string($market, 'settle', 'USDC');
         $rate = $this->safe_number($delta, 'fundingRate');
         return array(
             'info' => $income,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'code' => $code,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

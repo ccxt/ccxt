@@ -409,8 +409,15 @@ public partial class krakenfutures : ccxt.krakenfutures
         //
         object marketId = this.safeString(position, "instrument");
         object hedged = "both";
-        object balance = this.safeNumber(position, "balance");
-        object side = ((bool) isTrue((isGreaterThan(balance, 0)))) ? "long" : "short";
+        object balanceString = this.safeString(position, "balance");
+        object side = null;
+        if (isTrue(Precise.stringGt(balanceString, "0")))
+        {
+            side = "long";
+        } else if (isTrue(Precise.stringLt(balanceString, "0")))
+        {
+            side = "short";
+        }
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -421,7 +428,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             { "entryPrice", this.safeNumber(position, "entry_price") },
             { "unrealizedPnl", this.safeNumber(position, "pnl") },
             { "percentage", this.safeNumber(position, "return_on_equity") },
-            { "contracts", this.parseNumber(Precise.stringAbs(this.numberToString(balance))) },
+            { "contracts", this.parseNumber(Precise.stringAbs(balanceString)) },
             { "contractSize", null },
             { "markPrice", this.safeNumber(position, "mark_price") },
             { "side", side },

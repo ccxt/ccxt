@@ -4626,7 +4626,6 @@ public partial class mexc : Exchange
         object address = this.safeString(depositAddress, "address");
         object currencyId = this.safeString(depositAddress, "coin");
         object networkId = this.safeString(depositAddress, "netWork");
-        this.checkAddress(address);
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", this.safeCurrencyCode(currencyId, currency) },

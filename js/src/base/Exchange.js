@@ -6,11 +6,12 @@
 
 // ----------------------------------------------------------------------------
 import * as functions from './functions.js';
-import { 
-// keys as keysFunc,
-// values as valuesFunc,
-// inArray as inArrayFunc,
-vwap as vwapFunc, } from './functions.js';
+// import {
+//     // keys as keysFunc,
+//     // values as valuesFunc,
+//     // inArray as inArrayFunc,
+//     // vwap as vwapFunc,
+// } from './functions.js';
 // import exceptions from "./errors.js"
 import { // eslint-disable-line object-curly-newline
 ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, OperationFailed, BadResponse, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, InvalidProxySettings, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded, BadRequest, UnsubscribeError, ExchangeClosedByUser, } from './errors.js';
@@ -35,9 +36,9 @@ import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { sha1 } from '../static_dependencies/noble-hashes/sha1.js';
 import { exportMnemonicAndPrivateKey, deriveHDKeyFromMnemonic } from '../static_dependencies/dydx-v4-client/onboarding.js';
 import { Long } from '../static_dependencies/dydx-v4-client/helpers.js';
-const { isNode, selfIsDefined, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, merge, binaryConcat, hash, 
+const { isNode, selfIsDefined, deepExtend, extend, clone, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, binaryConcat, hash, 
 // ecdsa,
-arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, sort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep, } = functions;
+arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, sort, inArray, isEmpty, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep, readFile, writeFile, existsFile, getTempDir, } = functions;
 // ----------------------------------------------------------------------------
 let protobufMexc = undefined;
 let encodeAsAny = undefined;
@@ -47,14 +48,6 @@ let TxBody = undefined;
 let TxRaw = undefined;
 let SignDoc = undefined;
 let SignMode = undefined;
-(async () => {
-    try {
-        protobufMexc = await import('../protobuf/mexc/compiled.cjs');
-    }
-    catch (e) {
-        // TODO: handle error
-    }
-})();
 // -----------------------------------------------------------------------------
 /**
  * @class Exchange
@@ -172,7 +165,6 @@ export default class Exchange {
         this.isNode = isNode;
         this.extend = extend;
         this.clone = clone;
-        this.flatten = flatten;
         this.unique = unique;
         this.indexBy = indexBy;
         this.indexBySafe = indexBy;
@@ -207,8 +199,6 @@ export default class Exchange {
         this.implodeParams = implodeParams;
         this.extractParams = extractParams;
         this.json = json;
-        this.vwap = vwapFunc;
-        this.merge = merge;
         this.binaryConcat = binaryConcat;
         this.hash = hash;
         this.arrayConcat = arrayConcat;
@@ -224,8 +214,6 @@ export default class Exchange {
         this.safeStringUpper = safeStringUpper;
         this.safeTimestamp = safeTimestamp;
         this.binaryConcatArray = binaryConcatArray;
-        this.uuidv1 = uuidv1;
-        this.numberToLE = numberToLE;
         this.ymdhms = ymdhms;
         this.yymmdd = yymmdd;
         this.stringToBase64 = stringToBase64;
@@ -244,7 +232,6 @@ export default class Exchange {
         this.safeStringLower2 = safeStringLower2;
         this.safeStringUpper2 = safeStringUpper2;
         this.isEmpty = isEmpty;
-        this.ordered = ordered;
         this.filterBy = filterBy;
         this.uuid16 = uuid16;
         this.urlencodeWithArrayRepeat = urlencodeWithArrayRepeat;
@@ -267,6 +254,11 @@ export default class Exchange {
         this.crc32 = crc32;
         this.packb = packb;
         this.urlencodeBase64 = urlencodeBase64;
+        // io
+        this.readFile = readFile;
+        this.writeFile = writeFile;
+        this.existsFile = existsFile;
+        this.getTempDir = getTempDir;
         Object.assign(this, functions);
         //
         //     if (isNode) {
@@ -381,6 +373,18 @@ export default class Exchange {
         this.afterConstruct();
         if (this.safeBool(userConfig, 'sandbox') || this.safeBool(userConfig, 'testnet')) {
             this.setSandboxMode(true);
+        }
+        // exchange specific libs
+        this.loadExchangeSpecificFiles();
+    }
+    async loadExchangeSpecificFiles() {
+        if (this.id === 'mexc') {
+            try {
+                protobufMexc = await import('../protobuf/mexc/compiled.cjs');
+            }
+            catch (e) {
+                // TODO: handle error
+            }
         }
     }
     uuid5(namespace, name) {
@@ -681,6 +685,29 @@ export default class Exchange {
         }
         // set final headers
         headers = this.setHeaders(headers);
+        // multipart/form-data
+        const headersKeys = Object.keys(headers);
+        for (let i = 0; i < headersKeys.length; i++) {
+            const key = headersKeys[i];
+            if (key.toLowerCase() === 'content-type') {
+                let value = headers[key];
+                if (value === 'multipart/form-data') {
+                    const bodyKeys = Object.keys(body);
+                    const boundary = '--------------------------' + this.randomBytes(12);
+                    const eol = '\r\n';
+                    let newBody = '';
+                    for (let j = 0; j < bodyKeys.length; j++) {
+                        const bodyKey = bodyKeys[j];
+                        newBody += '--' + boundary + eol + 'Content-Disposition: form-data; name="' + bodyKey + '"' + eol + eol + body[bodyKey] + eol;
+                    }
+                    newBody += '--' + boundary + '--' + eol;
+                    value += '; boundary=' + boundary;
+                    headers[key] = value;
+                    body = newBody;
+                    break;
+                }
+            }
+        }
         // log
         if (this.verbose) {
             this.log('fetch Request:\n', this.id, method, url, '\nRequestHeaders:\n', headers, '\nRequestBody:\n', body, '\n');
@@ -1564,6 +1591,112 @@ export default class Exchange {
     }
     unlockId() {
         return undefined; // c# stub
+    }
+    async loadLighterLibrary(libraryPath, chainId, privateKey, apiKeyIndex, accountIndex) {
+        // wasmExecPathExample: '/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js';
+        // libraryPath eg: '/Users/cjg/Git/lighter-go/lighter.wasm';
+        if (libraryPath === undefined || libraryPath === '') {
+            throw new Error('loadLighterLibrary() requires "libraryPath" that should point to "lighter.wasm".\nYou can build it from source using the official Ligher SDK or download it here https://github.com/ccxt/lighter-wasm.\nExample: exchanges.options["libraryPath"] = "/user/cjg/Git/lighter-wasm/lighter.wasm"');
+        }
+        if (!isNode) {
+            throw new NotSupported(this.id + ' loadLighterLibrary() is only supported in node environment.');
+        }
+        await functions.initFileSystem();
+        const wasmExecPath = this.safeString(this.options, 'wasmExecPath');
+        if (wasmExecPath === undefined || wasmExecPath === '') {
+            throw new Error('loadLighterLibrary() requires "wasmExecPath" that should point to `wasm_exec.js`. You can check the location of the file locally if you have GO installed or download it here https://github.com/ccxt/lighter-wasm.\nExample: exchanges.options["wasmExecPath"] = "/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js"');
+        }
+        await import(wasmExecPath);
+        const go = new globalThis.Go();
+        // read wasm from disks
+        const bytes = new Uint8Array(readFile(libraryPath, null)); // it should point to lighter.wasm
+        const { instance } = await WebAssembly.instantiate(bytes, go.importObject);
+        go.run(instance);
+        // createCLient
+        const url = this.implodeHostname(this.urls['api']['public']);
+        const res = globalThis.CreateClient(url, privateKey, chainId, apiKeyIndex, accountIndex);
+        this.checkLighterSignedError(res);
+        return {}; // empty object we will read it from globalThis
+    }
+    // eslint-disable-next-line no-unused-vars
+    lighterSignCreateGroupedOrders(signer, request) {
+        const orders = request['orders'];
+        const ordersArr = [];
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            ordersArr.push({
+                'MarketIndex': parseInt(order['market_index']),
+                'ClientOrderIndex': order['client_order_index'],
+                'BaseAmount': order['base_amount'],
+                'Price': order['avg_execution_price'],
+                'IsAsk': order['is_ask'],
+                'Type': order['order_type'],
+                'TimeInForce': order['time_in_force'],
+                'ReduceOnly': order['reduce_only'],
+                'TriggerPrice': order['trigger_price'],
+                'OrderExpiry': order['order_expiry'],
+            });
+        }
+        const res = globalThis.SignCreateGroupedOrders(request['grouping_type'], ordersArr, orders.length, request['nonce'], request['api_key_index'], request['account_index']);
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
+    // eslint-disable-next-line no-unused-vars
+    lighterSignCreateOrder(signer, request) {
+        const res = (globalThis.SignCreateOrder(parseInt(request['market_index']), request['client_order_index'], request['base_amount'], request['avg_execution_price'], request['is_ask'], request['order_type'], request['time_in_force'], request['reduce_only'], request['trigger_price'], request['order_expiry'], request['nonce'], request['api_key_index'], request['account_index']));
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
+    checkLighterSignedError(result) {
+        if ('error' in result) {
+            throw new Error('Lighter signing error: ' + result.error);
+        }
+    }
+    lighterSignCancelOrder(signer, request) {
+        const res = (globalThis.SignCancelOrder(request['market_index'], request['order_index'], request['nonce'], request['api_key_index'], request['account_index']));
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
+    lighterSignWithdraw(signer, request) {
+        const res = (globalThis.SignWithdraw(request['asset_index'], request['route_type'], request['amount'], request['nonce'], request['api_key_index'], request['account_index']));
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
+    // eslint-disable-next-line no-unused-vars
+    lighterSignCreateSubAccount(signer, request) {
+        const res = (globalThis.SignCreateSubAccount(request['nonce'], request['api_key_index'], request['account_index']));
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
+    lighterSignCancelAllOrders(signer, request) {
+        const res = (globalThis.SignCancelAllOrders(request['time_in_force'], request['time'], request['nonce'], request['api_key_index'], request['account_index']));
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
+    lighterSignModifyOrder(signer, request) {
+        const res = (globalThis.SignModifyOrder(request['market_index'], request['index'], request['base_amount'], request['price'], request['trigger_price'], request['nonce'], request['api_key_index'], request['account_index']));
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
+    lighterSignTransfer(signer, request) {
+        const res = globalThis.SignTransfer(request['to_account_index'], request['asset_index'], request['from_route_type'], request['to_route_type'], request['amount'], request['usdc_fee'], request['memo'], request['nonce'], request['api_key_index'], request['account_index']);
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
+    lighterSignUpdateLeverage(signer, request) {
+        const res = (globalThis.SignUpdateLeverage(request['market_index'], request['initial_margin_fraction'], request['margin_mode'], request['nonce'], request['api_key_index'], request['account_index']));
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
+    lighterCreateAuthToken(signer, request) {
+        const res = globalThis.CreateAuthToken(request['deadline'], request['api_key_index'], request['account_index']);
+        this.checkLighterSignedError(res);
+        return res.authToken;
+    }
+    lighterSignUpdateMargin(signer, request) {
+        const res = globalThis.SignUpdateMargin(request['market_index'], request['usdc_amount'], request['direction'], request['nonce'], request['api_key_index'], request['account_index']);
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
     }
     /* eslint-enable */
     // ------------------------------------------------------------------------
@@ -2727,6 +2860,9 @@ export default class Exchange {
         // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
         const res = this.parseToNumeric((value % 1));
         return res === 0;
+    }
+    isEmptyString(value) {
+        return !this.valueIsDefined(value) || value === '';
     }
     safeNumberOmitZero(obj, key, defaultValue = undefined) {
         const value = this.safeString(obj, key);
@@ -3926,6 +4062,9 @@ export default class Exchange {
         }
         return reversed;
     }
+    stringToBase16(str) {
+        return '0x' + this.binaryToBase16(this.base64ToBinary(this.stringToBase64(str)));
+    }
     reduceFeesByCurrency(fees) {
         //
         // this function takes a list of fee structures having the following format
@@ -4133,6 +4272,12 @@ export default class Exchange {
             message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file';
         }
         throw new NotSupported(this.id + ' fetchOHLCV() is not supported yet' + message);
+    }
+    async fetchSpotOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchSpotOHLCV() is not supported yet');
+    }
+    async fetchContractOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchContractOHLCV() is not supported yet');
     }
     async fetchOHLCVWs(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         let message = '';
@@ -4999,7 +5144,8 @@ export default class Exchange {
         return await this.createOrder(symbol, type, side, amount, price, params);
     }
     async editOrderWithClientOrderId(clientOrderId, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        return await this.editOrder('', symbol, type, side, amount, price, this.extend({ 'clientOrderId': clientOrderId }, params));
+        const extendedParams = this.extend(params, { 'clientOrderId': clientOrderId });
+        return await this.editOrder('', symbol, type, side, amount, price, extendedParams);
     }
     async editOrderWs(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.cancelOrderWs(id, symbol);
@@ -5467,11 +5613,17 @@ export default class Exchange {
     async fetchTickers(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchTickers() is not supported yet');
     }
+    async fetchSpotTickers(symbols = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchSpotTickers() is not supported yet');
+    }
+    async fetchContractTickers(symbols = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchContractTickers() is not supported yet');
+    }
     async fetchMarkPrices(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchMarkPrices() is not supported yet');
     }
     async fetchTickersWs(symbols = undefined, params = {}) {
-        throw new NotSupported(this.id + ' fetchTickers() is not supported yet');
+        throw new NotSupported(this.id + ' fetchTickersWs() is not supported yet');
     }
     async fetchOrderBooks(symbols = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOrderBooks() is not supported yet');
@@ -5976,6 +6128,12 @@ export default class Exchange {
     async createOrders(orders, params = {}) {
         throw new NotSupported(this.id + ' createOrders() is not supported yet');
     }
+    async createSpotOrders(orders, params = {}) {
+        throw new NotSupported(this.id + ' createSpotOrders() is not supported yet');
+    }
+    async createContractOrders(orders, params = {}) {
+        throw new NotSupported(this.id + ' createContractOrders() is not supported yet');
+    }
     async editOrders(orders, params = {}) {
         throw new NotSupported(this.id + ' editOrders() is not supported yet');
     }
@@ -5984,6 +6142,12 @@ export default class Exchange {
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' cancelOrder() is not supported yet');
+    }
+    async cancelSpotOrder(id, symbol = undefined, params = {}) {
+        throw new NotSupported(this.id + ' cancelSpotOrder() is not supported yet');
+    }
+    async cancelContractOrder(id, symbol = undefined, params = {}) {
+        throw new NotSupported(this.id + ' cancelContractOrder() is not supported yet');
     }
     /**
      * @method
@@ -6022,6 +6186,12 @@ export default class Exchange {
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' cancelAllOrders() is not supported yet');
+    }
+    async cancelAllSpotOrders(symbol = undefined, params = {}) {
+        throw new NotSupported(this.id + ' cancelAllSpotOrders() is not supported yet');
+    }
+    async cancelAllContractOrders(symbol = undefined, params = {}) {
+        throw new NotSupported(this.id + ' cancelAllContractOrders() is not supported yet');
     }
     async cancelAllOrdersAfter(timeout, params = {}) {
         throw new NotSupported(this.id + ' cancelAllOrdersAfter() is not supported yet');
@@ -6184,6 +6354,9 @@ export default class Exchange {
         else {
             throw new NotSupported(this.id + ' fetchDepositAddress() is not supported yet');
         }
+    }
+    async fetchContractDepositAddress(code, params = {}) {
+        throw new NotSupported(this.id + ' fetchContractDepositAddress() is not supported yet');
     }
     account() {
         return {

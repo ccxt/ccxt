@@ -47,6 +47,7 @@ interface Exchange {
     privatePostWithdrawAddresses(params?: {}): Promise<implicitReturnType>;
     privatePostWithdrawStatus(params?: {}): Promise<implicitReturnType>;
     privatePostWalletTransfer(params?: {}): Promise<implicitReturnType>;
+    privatePostGetApiKeyInfo(params?: {}): Promise<implicitReturnType>;
     privatePostCreateSubaccount(params?: {}): Promise<implicitReturnType>;
     privatePostAccountTransfer(params?: {}): Promise<implicitReturnType>;
     privatePostEarnAllocate(params?: {}): Promise<implicitReturnType>;

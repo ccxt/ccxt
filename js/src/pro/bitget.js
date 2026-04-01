@@ -2017,6 +2017,7 @@ export default class bitget extends bitgetRest {
     }
     parseWsOrderStatus(status) {
         const statuses = {
+            'new': 'open',
             'live': 'open',
             'partially_filled': 'open',
             'filled': 'closed',

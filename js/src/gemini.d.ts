@@ -254,4 +254,15 @@ export default class gemini extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    /**
+     * @method
+     * @name gemini#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://docs.gemini.com/rest/derivatives#get-risk-stats
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
+    parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
 }

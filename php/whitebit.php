@@ -63,7 +63,7 @@ class whitebit extends Exchange {
                 'fetchFundingHistory' => true,
                 'fetchFundingLimits' => true,
                 'fetchFundingRate' => true,
-                'fetchFundingRateHistory' => false,
+                'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
@@ -188,6 +188,7 @@ class whitebit extends Exchange {
                             'assets',
                             'collateral/markets',
                             'fee',
+                            'funding-history/{market}',
                             'orderbook/depth/{market}',
                             'orderbook/{market}',
                             'ticker',
@@ -1315,7 +1316,40 @@ class whitebit extends Exchange {
         //       tradesEnabled => true
         //   }
         //
-        $marketId = $this->safe_string($ticker, 'tradingPairs');
+        // v4PublicGetFutures
+        //     {
+        //         "ticker_id" => "0G_PERP",
+        //         "stock_currency" => "0G",
+        //         "money_currency" => "USDT",
+        //         "last_price" => "0.6065",
+        //         "stock_volume" => "2563218",
+        //         "money_volume" => "1587952.6137",
+        //         "bid" => "0.6065",
+        //         "ask" => "0.6077",
+        //         "high" => "0.6472",
+        //         "low" => "0.6045",
+        //         "product_type" => "Perpetual",
+        //         "open_interest" => "3721488",
+        //         "index_price" => "0.61",
+        //         "index_name" => "0G future contract",
+        //         "index_currency" => "0G",
+        //         "funding_rate" => "-0.00000778",
+        //         "next_funding_rate_timestamp" => "1772467200000",
+        //         "brackets" => array(
+        //             "1" => 0,
+        //             "10" => 0,
+        //             "100" => 0,
+        //             "2" => 0,
+        //             "20" => 4000,
+        //             "3" => 0,
+        //             "5" => 0,
+        //             "50" => 800
+        //         ),
+        //         "max_leverage" => 50,
+        //         "funding_interval_minutes" => 240
+        //     }
+        //
+        $marketId = $this->safe_string_2($ticker, 'tradingPairs', 'ticker_id');
         $market = $this->safe_market($marketId, $market);
         // $last price is provided as "last" or "last_price"
         $last = $this->safe_string_n($ticker, array( 'last', 'last_price', 'lastPrice' ));
@@ -1332,15 +1366,16 @@ class whitebit extends Exchange {
             'ask' => $this->safe_string_2($ticker, 'ask', 'lowestAsk'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_string($ticker, 'open'),
+            'open' => $this->safe_string($ticker, 'open'), // can not be defined in v4PublicGetFutures
             'close' => $close,
             'last' => $last,
             'previousClose' => null,
-            'change' => null,
-            'percentage' => $this->safe_string($ticker, 'change'),
-            'average' => null,
-            'baseVolume' => $this->safe_string_n($ticker, array( 'base_volume', 'volume', 'baseVolume24h' )),
-            'quoteVolume' => $this->safe_string_n($ticker, array( 'quote_volume', 'deal', 'quoteVolume24h' )),
+            'change' => null, // can not be defined in v4PublicGetFutures
+            'percentage' => $this->safe_string($ticker, 'change'), // can not be defined in v4PublicGetFutures
+            'average' => null, // can not be defined in v4PublicGetFutures
+            'baseVolume' => $this->safe_string_n($ticker, array( 'base_volume', 'volume', 'baseVolume24h', 'stock_volume' )),
+            'quoteVolume' => $this->safe_string_n($ticker, array( 'quote_volume', 'deal', 'quoteVolume24h', 'money_volume' )),
+            'indexPrice' => $this->safe_string($ticker, 'index_price'),
             'info' => $ticker,
         ), $market);
     }
@@ -1427,30 +1462,95 @@ class whitebit extends Exchange {
          *
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->method] either v2PublicGetTicker or v4PublicGetTicker default is v4PublicGetTicker
+         * @param {string} [$params->type] 'spot' or 'swap' - default is 'spot'. If type is 'swap', it will call v4PublicGetFutures
+         * @param {string} [$params->method] either v2PublicGetTicker or v4PublicGetTicker or v4PublicGetFutures - default is v4PublicGetTicker for spot and mixed markets, and v4PublicGetFutures for swap
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
-        $method = 'v4PublicGetTicker';
+        $onlyContractSymbols = true;
+        if ($symbols !== null) {
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $market = $this->market($symbol);
+                if (!($market['contract'])) {
+                    $onlyContractSymbols = false;
+                    break;
+                }
+            }
+        } else {
+            $onlyContractSymbols = false;
+        }
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', null, $params);
+        $method = null;
         list($method, $params) = $this->handle_option_and_params($params, 'fetchTickers', 'method', $method);
+        if ($method === null) {
+            // if the user did not specify a $method, choose it based on $market type and $symbols
+            if ($onlyContractSymbols || ($marketType === 'swap')) {
+                $method = 'v4PublicGetFutures';
+            } else {
+                $method = 'v4PublicGetTicker';
+            }
+        }
         $response = null;
         if ($method === 'v4PublicGetTicker') {
+            //
+            //      "BCH_RUB" => array(
+            //          "base_id":1831,
+            //          "quote_id":0,
+            //          "last_price":"32830.21",
+            //          "quote_volume":"1494659.8024096",
+            //          "base_volume":"46.1083",
+            //          "isFrozen":false,
+            //          "change":"2.12"
+            //      ),
+            //
             $response = $this->v4PublicGetTicker ($params);
+        } elseif ($method === 'v4PublicGetFutures') {
+            //
+            //     {
+            //         "success" => true,
+            //         "message" => null,
+            //         "result" => array(
+            //             {
+            //                 "ticker_id" => "0G_PERP",
+            //                 "stock_currency" => "0G",
+            //                 "money_currency" => "USDT",
+            //                 "last_price" => "0.6065",
+            //                 "stock_volume" => "2563218",
+            //                 "money_volume" => "1587952.6137",
+            //                 "bid" => "0.6065",
+            //                 "ask" => "0.6077",
+            //                 "high" => "0.6472",
+            //                 "low" => "0.6045",
+            //                 "product_type" => "Perpetual",
+            //                 "open_interest" => "3721488",
+            //                 "index_price" => "0.61",
+            //                 "index_name" => "0G future contract",
+            //                 "index_currency" => "0G",
+            //                 "funding_rate" => "-0.00000778",
+            //                 "next_funding_rate_timestamp" => "1772467200000",
+            //                 "brackets" => array(
+            //                     "1" => 0,
+            //                     "10" => 0,
+            //                     "100" => 0,
+            //                     "2" => 0,
+            //                     "20" => 4000,
+            //                     "3" => 0,
+            //                     "5" => 0,
+            //                     "50" => 800
+            //                 ),
+            //                 "max_leverage" => 50,
+            //                 "funding_interval_minutes" => 240
+            //             }
+            //         )
+            //     }
+            //
+            $response = $this->v4PublicGetFutures ($params);
         } else {
             $response = $this->v2PublicGetTicker ($params);
         }
-        //
-        //      "BCH_RUB" => array(
-        //          "base_id":1831,
-        //          "quote_id":0,
-        //          "last_price":"32830.21",
-        //          "quote_volume":"1494659.8024096",
-        //          "base_volume":"46.1083",
-        //          "isFrozen":false,
-        //          "change":"2.12"
-        //      ),
-        //
         $resultList = $this->safe_list($response, 'result');
         if ($resultList !== null) {
             return $this->parse_tickers($resultList, $symbols);
@@ -3943,6 +4043,68 @@ class whitebit extends Exchange {
     public function is_fiat(string $currency): bool {
         $fiatCurrencies = $this->safe_value($this->options, 'fiatCurrencies', array());
         return $this->in_array($currency, $fiatCurrencies);
+    }
+
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches historical funding rate prices
+         *
+         * @see https://docs.whitebit.com/api-reference/market-data/funding-history
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch (default 100, max 1000)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest funding rate
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+        }
+        $maxLimit = 1000;
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, $maxLimit);
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+        );
+        if ($since !== null) {
+            $request['startDate'] = (int) round($since / 1000);
+        }
+        list($request, $params) = $this->handle_until_option('until_timestamp', $request, $params, 0.001);
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->v4PublicGetFundingHistoryMarket ($this->extend($request, $params));
+        //
+        //     array(
+        //         {
+        //             "fundingTime" => "1773648000",
+        //             "fundingRate" => "-0.00004593",
+        //             "market" => "ETH_PERP",
+        //             "settlementPrice" => "2248.47",
+        //             "rateCalculatedTime" => "1773619200"
+        //         }
+        //     )
+        //
+        return $this->parse_funding_rate_histories($response, $market, $since, $limit);
+    }
+
+    public function parse_funding_rate_history($info, ?array $market = null) {
+        $marketId = $this->safe_string($info, 'market');
+        $market = $this->safe_market($marketId, $market);
+        $timestamp = $this->safe_timestamp($info, 'fundingTime');
+        return array(
+            'info' => $info,
+            'symbol' => $market['symbol'],
+            'fundingRate' => $this->safe_number($info, 'fundingRate'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
     }
 
     public function nonce() {

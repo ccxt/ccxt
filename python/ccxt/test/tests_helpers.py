@@ -4,6 +4,7 @@ import argparse
 import json
 # import logging
 import os
+import platform
 import sys
 from traceback import format_tb, format_exception
 
@@ -278,6 +279,16 @@ def get_env_vars():
 
 def is_sync():
     return IS_SYNCHRONOUS
+
+def is_windows() -> bool:
+    return sys.platform.startswith("win")
+
+def is_linux() -> bool:
+    return sys.platform.startswith("linux")
+
+def is_amd64() -> bool:
+    m = platform.machine()
+    return m in ("x86_64", "AMD64", "amd64")
 
 argvExchange = argv.exchange
 argvSymbol = argv.symbol if argv.symbol and '/' in argv.symbol else None

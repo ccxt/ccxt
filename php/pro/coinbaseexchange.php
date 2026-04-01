@@ -11,6 +11,7 @@ use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
+use ccxt\Precise;
 use \React\Async;
 use \React\Promise\PromiseInterface;
 
@@ -502,10 +503,10 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         if (is_array($trade) && array_key_exists('maker_fee_rate', $trade)) {
             $isMaker = true;
             $parsed['takerOrMaker'] = 'maker';
-            $feeRate = $this->safe_number($trade, 'maker_fee_rate');
+            $feeRate = $this->safe_string($trade, 'maker_fee_rate');
         } else {
             $parsed['takerOrMaker'] = 'taker';
-            $feeRate = $this->safe_number($trade, 'taker_fee_rate');
+            $feeRate = $this->safe_string($trade, 'taker_fee_rate');
             // side always represents the maker side of the $trade
             // so if we're taker, we invert it
             $currentSide = $parsed['side'];
@@ -520,12 +521,12 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         $feeCurrency = $market['quote'];
         $feeCost = null;
         if (($parsed['cost'] !== null) && ($feeRate !== null)) {
-            $cost = $this->safe_number($parsed, 'cost');
-            $feeCost = $cost * $feeRate;
+            $cost = $this->safe_string($parsed, 'cost');
+            $feeCost = Precise::string_mul($cost, $feeRate);
         }
         $parsed['fee'] = array(
-            'rate' => $feeRate,
-            'cost' => $feeCost,
+            'rate' => $this->parse_number($feeRate),
+            'cost' => $this->parse_number($feeCost),
             'currency' => $feeCurrency,
         );
         return $parsed;
@@ -654,22 +655,23 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
                         }
                         $previousOrder['trades'][] = $trade;
                         $previousOrder['lastTradeTimestamp'] = $trade['timestamp'];
-                        $totalCost = 0;
-                        $totalAmount = 0;
+                        $totalCost = '0';
+                        $totalAmount = '0';
                         $trades = $previousOrder['trades'];
                         for ($i = 0; $i < count($trades); $i++) {
                             $tradeEntry = $trades[$i];
-                            $totalCost = $this->sum($totalCost, $tradeEntry['cost']);
-                            $totalAmount = $this->sum($totalAmount, $tradeEntry['amount']);
+                            $totalCost = $this->safe_string($tradeEntry, 'cost', '0');
+                            $totalAmount = $this->safe_string($tradeEntry, 'amount', '0');
                         }
-                        if ($totalAmount > 0) {
-                            $previousOrder['average'] = $totalCost / $totalAmount;
+                        if (!Precise::string_eq($totalAmount, '0')) {
+                            $previousOrder['average'] = $this->parse_number(Precise::string_div($totalCost, $totalAmount));
                         }
-                        $previousOrder['cost'] = $totalCost;
-                        if ($previousOrder['filled'] !== null) {
-                            $previousOrder['filled'] .= $trade['amount'];
+                        $previousOrder['cost'] = $this->parse_number($totalCost);
+                        $previousOrderFilled = $this->safe_string($previousOrder, 'filled');
+                        if ($previousOrderFilled !== null) {
+                            $previousOrder['filled'] = $this->parse_number(Precise::string_add($previousOrderFilled, $this->safe_string($trade, 'amount')));
                             if ($previousOrder['amount'] !== null) {
-                                $previousOrder['remaining'] = $previousOrder['amount'] - $previousOrder['filled'];
+                                $previousOrder['remaining'] = $this->parse_number(Precise::string_sub($this->safe_string($previousOrder, 'amount'), $this->safe_string($previousOrder, 'filled')));
                             }
                         }
                         if ($previousOrder['fee'] === null) {
@@ -680,6 +682,9 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
                         }
                         if (($previousOrder['fee']['cost'] !== null) && ($trade['fee']['cost'] !== null)) {
                             $previousOrder['fee']['cost'] = $this->sum($previousOrder['fee']['cost'], $trade['fee']['cost']);
+                            $previousOrderFee = $this->safe_dict($previousOrder, 'fee');
+                            $tradeFee = $this->safe_dict($trade, 'fee');
+                            $previousOrder['fee']['cost'] = $this->parse_number(Precise::string_add($this->safe_string($previousOrderFee, 'cost'), $this->safe_string($tradeFee, 'cost')));
                         }
                         // update the newUpdates count
                         $orders->append ($previousOrder);
@@ -711,21 +716,21 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         $symbol = $this->safe_symbol($marketId);
         $side = $this->safe_string($order, 'side');
         $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number_2($order, 'size', 'funds');
+        $amount = $this->safe_string_2($order, 'size', 'funds');
         $time = $this->safe_string($order, 'time');
         $timestamp = $this->parse8601($time);
         $reason = $this->safe_string($order, 'reason');
         $status = $this->parse_ws_order_status($reason);
         $orderType = $this->safe_string($order, 'order_type');
-        $remaining = $this->safe_number($order, 'remaining_size');
+        $remaining = $this->safe_string($order, 'remaining_size');
         $type = $this->safe_string($order, 'type');
         $filled = null;
         if (($amount !== null) && ($remaining !== null)) {
-            $filled = $amount - $remaining;
+            $filled = Precise::string_sub($amount, $remaining);
         } elseif ($type === 'received') {
-            $filled = 0;
+            $filled = '0';
             if ($amount !== null) {
-                $remaining = $amount - $filled;
+                $remaining = Precise::string_sub($amount, $filled);
             }
         }
         return $this->safe_order(array(
@@ -743,11 +748,11 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
             'price' => $price,
             'stopPrice' => null,
             'triggerPrice' => null,
-            'amount' => $amount,
+            'amount' => $this->parse_number($amount),
             'cost' => null,
             'average' => null,
-            'filled' => $filled,
-            'remaining' => $remaining,
+            'filled' => $this->parse_number($filled),
+            'remaining' => $this->parse_number($remaining),
             'status' => $status,
             'fee' => null,
             'trades' => null,

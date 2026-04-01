@@ -46,7 +46,7 @@ func TestFetchCurrencies(exchange ccxt.ICoreExchange, skippedProperties interfac
 				var withdraw interface{} = exchange.SafeBool(currency, "withdraw")
 				var deposit interface{} = exchange.SafeBool(currency, "deposit")
 				if IsTrue(exchange.InArray(code, requiredActiveCurrencies)) {
-					Assert(IsTrue(skipMajorCurrencyCheck) || IsTrue((IsTrue(withdraw) && IsTrue(deposit))), Add(Add("Major currency ", code), " should have withdraw and deposit flags enabled"))
+					Assert(IsTrue(skipMajorCurrencyCheck) || IsTrue((IsTrue(withdraw) && IsTrue(deposit))), Add(Add(Add("Major currency ", code), " should have withdraw and deposit flags enabled ::: "), exchange.Json(currency)))
 				}
 			}
 			// check at least X% of currencies are active

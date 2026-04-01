@@ -469,7 +469,7 @@ class backpack extends backpack$1["default"] {
                     'INSUFFICIENT_SUPPLY': errors.InsufficientFunds,
                     'INVALID_ASSET': errors.BadRequest,
                     'INVALID_MARKET': errors.BadSymbol,
-                    'INVALID_PRICE': errors.BadRequest,
+                    'INVALID_PRICE': errors.InvalidOrder,
                     'INVALID_POSITION_ID': errors.BadRequest,
                     'INVALID_QUANTITY': errors.BadRequest,
                     'INVALID_RANGE': errors.BadRequest,

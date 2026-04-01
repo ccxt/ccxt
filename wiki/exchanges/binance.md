@@ -740,6 +740,7 @@ create a trade order
 | params.stopLossOrTakeProfit | <code>string</code> | No | 'stopLoss' or 'takeProfit', required for spot trailing orders |
 | params.positionSide | <code>string</code> | No | *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode |
 | params.hedged | <code>bool</code> | No | *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false |
+| params.clientOrderId | <code>string</code> | No | the clientOrderId of the order |
 
 
 ```javascript

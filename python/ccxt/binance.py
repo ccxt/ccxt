@@ -1405,16 +1405,74 @@ class binance(Exchange, ImplicitAPI):
                 },
                 'networks': {
                     'ERC20': 'ETH',
+                    'ETH': 'ETH',
                     'TRC20': 'TRX',
+                    'TRX': 'TRX',
                     'BEP2': 'BNB',
+                    'BSC': 'BSC',
                     'BEP20': 'BSC',
-                    'OMNI': 'OMNI',
                     'EOS': 'EOS',
                     'SPL': 'SOL',  # temporarily keep support for SPL(old name)
                     'SOL': 'SOL',  # we shouldn't rename SOL
+                    # 'FIAT': 'FIAT_MONEY',  # not unified atm
+                    # 'LEVERAGE_TOKEN': 'ETF',  # not unified atm
+                    # 'STAKING': 'STAKING',  # not unified atm
+                    'ARBONE': 'ARBITRUM',
+                    'AVAXC': 'AVAXC',
+                    'MATIC': 'MATIC',
+                    'BASE': 'BASE',
+                    'SUI': 'SUI',
+                    'OP': 'OPTIMISM',
+                    'OPTIMISM': 'OPTIMISM',
+                    'NEAR': 'NEAR',
+                    'APT': 'APT',
+                    'SCROLL': 'SCROLL',
+                    'KAVA': 'KAVA',
+                    'XLM': 'XLM',
+                    # BLAST - not supported
+                    # LINEA - not supported
+                    # CRO - not supported
+                    # TAIKO - not supported
+                    'RSK': 'RSK',  # RBTC
+                    'SEI': 'SEI',
+                    # MNT - not supported
+                    'TON': 'TON',
+                    'ADA': 'ADA',
+                    # HYPE - not supported
+                    # CORE - not supported
+                    'ALGO': 'ALGO',
+                    'RUNE': 'RUNE',
+                    'OSMO': 'OSMO',
+                    # XIN - not supported
+                    'CELO': 'CELO',
+                    'HBAR': 'HBAR',
+                    # FTM - renamed
+                    # WEMIX - not supported
+                    'ZKSYNCERA': 'ZKSYNCERA',
+                    'KLAY': 'KLAY',
+                    # HECO - not supported
+                    # FSN - not supported
+                    'ACA': 'ACA',
+                    'STX': 'STX',  # STACKS
+                    'XTZ': 'XTZ',
+                    # 'NEO': 'NEO',  # tbd NEO3
+                    'METIS': 'METIS',
+                    # TLOS - not supported
+                    'EGLD': 'EGLD',
+                    'ASTR': 'ASTR',
+                    'CFX': 'CFX',
+                    # 'GLMR': 'GLMR', GLIMMER vs MOONBEAM
+                    # CANTO - not supported
+                    'SCRT': 'SCRT',
+                    # AUR - not supported
+                    'ONT': 'ONT',  # ontology
                 },
                 'networksById': {
+                    'TRX': 'TRC20',
+                    'BSC': 'BEP20',
+                    'ETH': 'ERC20',
                     'SOL': 'SOL',  # temporary fix for SPL definition
+                    'OPTIMISM': 'OP',
                 },
                 'impliedNetworks': {
                     'ETH': {'ERC20': 'ETH'},
@@ -3004,7 +3062,7 @@ class binance(Exchange, ImplicitAPI):
             for j in range(0, len(networkList)):
                 networkItem = networkList[j]
                 network = self.safe_string(networkItem, 'network')
-                networkCode = self.network_id_to_code(network)
+                networkCode = self.network_id_to_code(network, code)
                 isETF = (network == 'ETF')  # e.g. BTCUP, ETHDOWN
                 # name = self.safe_string(networkItem, 'name')
                 withdrawFee = self.safe_number(networkItem, 'withdrawFee')
@@ -6172,6 +6230,7 @@ class binance(Exchange, ImplicitAPI):
         :param str [params.stopLossOrTakeProfit]: 'stopLoss' or 'takeProfit', required for spot trailing orders
         :param str [params.positionSide]: *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
         :param bool [params.hedged]: *swap and portfolio margin only* True for hedged mode, False for one way mode, default is False
+        :param str [params.clientOrderId]: the clientOrderId of the order
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
@@ -8353,7 +8412,8 @@ class binance(Exchange, ImplicitAPI):
         internal = None
         if internalInteger is not None:
             internal = True if (internalInteger != 0) else False
-        network = self.safe_string(transaction, 'network')
+        networkId = self.safe_string(transaction, 'network')
+        network = self.network_id_to_code(networkId, code)
         return {
             'info': transaction,
             'id': id,
@@ -8748,12 +8808,10 @@ class binance(Exchange, ImplicitAPI):
             'coin': currency['id'],
             # 'network': 'ETH',  # 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
         }
-        networks = self.safe_dict(self.options, 'networks', {})
-        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
-        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
-        if network is not None:
-            request['network'] = network
-            params = self.omit(params, 'network')
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        if networkCode is not None:
+            request['network'] = self.network_code_to_id(networkCode, currency['code'])
         # has support for the 'network' parameter
         response = self.sapiGetCapitalDepositAddress(self.extend(request, params))
         #
@@ -9009,12 +9067,13 @@ class binance(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
+        code = self.safe_string(currency, 'code')
         networkList = self.safe_list(fee, 'networkList', [])
         result = self.deposit_withdraw_fee(fee)
         for j in range(0, len(networkList)):
             networkEntry = networkList[j]
             networkId = self.safe_string(networkEntry, 'network')
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = self.network_id_to_code(networkId, code)
             withdrawFee = self.safe_number(networkEntry, 'withdrawFee')
             isDefault = self.safe_bool(networkEntry, 'isDefault')
             if isDefault is True:
@@ -9059,13 +9118,11 @@ class binance(Exchange, ImplicitAPI):
         }
         if tag is not None:
             request['addressTag'] = tag
-        networks = self.safe_dict(self.options, 'networks', {})
-        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
-        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
-        if network is not None:
-            request['network'] = network
-            params = self.omit(params, 'network')
-        request['amount'] = self.currency_to_precision(code, amount, network)
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        if networkCode is not None:
+            request['network'] = self.network_code_to_id(networkCode, currency['code'])
+        request['amount'] = self.currency_to_precision(currency['code'], amount, networkCode)
         response = self.sapiPostCapitalWithdrawApply(self.extend(request, params))
         #     {id: '9a67628b16ba4988ae20d329333f16bc'}
         return self.parse_transaction(response, currency)

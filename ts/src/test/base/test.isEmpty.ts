@@ -1,0 +1,29 @@
+
+import assert from 'assert';
+import ccxt from '../../../ccxt.js';
+import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
+
+function testIsEmpty () {
+
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleexchange',
+    });
+
+    assert (exchange.isEmpty (undefined) === true, 'undefined should be empty');
+    assert (exchange.isEmpty (null) === true, 'null should be empty');
+    assert (exchange.isEmpty ({}) === true, 'empty object should be empty');
+    assert (exchange.isEmpty ([]) === true, 'empty array should be empty');
+    assert (exchange.isEmpty ({ 'foo': 1 }) === false, 'non-empty object should not be empty');
+    assert (exchange.isEmpty ([ 1, 2 ]) === false, 'non-empty array should not be empty');
+    // below are scalars, so they are not checked.
+    // @ts-expect-error
+    assert (exchange.isEmpty ('') === false, 'empty string should return false');
+    // @ts-expect-error
+    assert (exchange.isEmpty (0) === false, 'zero should return false');
+    // @ts-expect-error
+    assert (exchange.isEmpty (false) === false, 'false should return false');
+    // @ts-expect-error
+    assert (exchange.isEmpty ('non-empty string') === false, 'non-empty string should not be empty');
+}
+
+export default testIsEmpty;

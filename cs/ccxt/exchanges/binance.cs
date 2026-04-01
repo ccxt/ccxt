@@ -1400,16 +1400,54 @@ public partial class binance : Exchange
                 } },
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "ETH" },
+                    { "ETH", "ETH" },
                     { "TRC20", "TRX" },
+                    { "TRX", "TRX" },
                     { "BEP2", "BNB" },
+                    { "BSC", "BSC" },
                     { "BEP20", "BSC" },
-                    { "OMNI", "OMNI" },
                     { "EOS", "EOS" },
                     { "SPL", "SOL" },
                     { "SOL", "SOL" },
+                    { "ARBONE", "ARBITRUM" },
+                    { "AVAXC", "AVAXC" },
+                    { "MATIC", "MATIC" },
+                    { "BASE", "BASE" },
+                    { "SUI", "SUI" },
+                    { "OP", "OPTIMISM" },
+                    { "OPTIMISM", "OPTIMISM" },
+                    { "NEAR", "NEAR" },
+                    { "APT", "APT" },
+                    { "SCROLL", "SCROLL" },
+                    { "KAVA", "KAVA" },
+                    { "XLM", "XLM" },
+                    { "RSK", "RSK" },
+                    { "SEI", "SEI" },
+                    { "TON", "TON" },
+                    { "ADA", "ADA" },
+                    { "ALGO", "ALGO" },
+                    { "RUNE", "RUNE" },
+                    { "OSMO", "OSMO" },
+                    { "CELO", "CELO" },
+                    { "HBAR", "HBAR" },
+                    { "ZKSYNCERA", "ZKSYNCERA" },
+                    { "KLAY", "KLAY" },
+                    { "ACA", "ACA" },
+                    { "STX", "STX" },
+                    { "XTZ", "XTZ" },
+                    { "METIS", "METIS" },
+                    { "EGLD", "EGLD" },
+                    { "ASTR", "ASTR" },
+                    { "CFX", "CFX" },
+                    { "SCRT", "SCRT" },
+                    { "ONT", "ONT" },
                 } },
                 { "networksById", new Dictionary<string, object>() {
+                    { "TRX", "TRC20" },
+                    { "BSC", "BEP20" },
+                    { "ETH", "ERC20" },
                     { "SOL", "SOL" },
+                    { "OPTIMISM", "OP" },
                 } },
                 { "impliedNetworks", new Dictionary<string, object>() {
                     { "ETH", new Dictionary<string, object>() {
@@ -6597,6 +6635,7 @@ public partial class binance : Exchange
      * @param {string} [params.stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
      * @param {string} [params.positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
      * @param {bool} [params.hedged] *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
+     * @param {string} [params.clientOrderId] the clientOrderId of the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -9187,7 +9226,8 @@ public partial class binance : Exchange
         {
             intern = ((bool) isTrue((!isEqual(internalInteger, 0)))) ? true : false;
         }
-        object network = this.safeString(transaction, "network");
+        object networkId = this.safeString(transaction, "network");
+        object network = this.networkIdToCode(networkId, code);
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", id },

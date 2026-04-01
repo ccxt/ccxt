@@ -47,7 +47,7 @@ class bydfi extends \ccxt\async\bydfi {
             ),
             'urls' => array(
                 'api' => array(
-                    'ws' => 'wss://stream.bydfi.com/v1/public/swap',
+                    'ws' => 'wss://stream.bydfi.com/v1/public/fapi',
                 ),
             ),
             'options' => array(
@@ -156,7 +156,7 @@ class bydfi extends \ccxt\async\bydfi {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              *
-             * @see https://developers.bydfi.com/en/swap/websocket-$market#ticker-by-$symbol
+             * @see https://developers.bydfi.com/en/futures/websocket-$market#ticker-by-$symbol
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -176,7 +176,7 @@ class bydfi extends \ccxt\async\bydfi {
             /**
              * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              *
-             * @see https://developers.bydfi.com/en/swap/websocket-market#ticker-by-$symbol
+             * @see https://developers.bydfi.com/en/futures/websocket-market#ticker-by-$symbol
              *
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -191,8 +191,8 @@ class bydfi extends \ccxt\async\bydfi {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              *
-             * @see https://developers.bydfi.com/en/swap/websocket-market#ticker-by-$symbol
-             * @see https://developers.bydfi.com/en/swap/websocket-market#market-wide-ticker
+             * @see https://developers.bydfi.com/en/futures/websocket-market#ticker-by-$symbol
+             * @see https://developers.bydfi.com/en/futures/websocket-market#market-wide-ticker
              *
              * @param {string[]} $symbols unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -225,8 +225,8 @@ class bydfi extends \ccxt\async\bydfi {
             /**
              * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              *
-             * @see https://developers.bydfi.com/en/swap/websocket-market#ticker-by-$symbol
-             * @see https://developers.bydfi.com/en/swap/websocket-market#market-wide-ticker
+             * @see https://developers.bydfi.com/en/futures/websocket-market#ticker-by-$symbol
+             * @see https://developers.bydfi.com/en/futures/websocket-market#market-wide-ticker
              *
              * @param {string[]} $symbols unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -314,7 +314,7 @@ class bydfi extends \ccxt\async\bydfi {
             /**
              * watches historical candlestick data containing the open, high, low, close price, and the volume of a market
              *
-             * @see https://developers.bydfi.com/en/swap/websocket-market#candlestick-data
+             * @see https://developers.bydfi.com/en/futures/websocket-market#candlestick-data
              *
              * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -333,7 +333,7 @@ class bydfi extends \ccxt\async\bydfi {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
              *
-             * @see https://developers.bydfi.com/en/swap/websocket-market#candlestick-data
+             * @see https://developers.bydfi.com/en/futures/websocket-market#candlestick-data
              *
              * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -349,7 +349,7 @@ class bydfi extends \ccxt\async\bydfi {
             /**
              * watches historical candlestick data containing the open, high, low, close price, and the volume of a $market
              *
-             * @see https://developers.bydfi.com/en/swap/websocket-$market#candlestick-data
+             * @see https://developers.bydfi.com/en/futures/websocket-$market#candlestick-data
              *
              * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and $timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -388,7 +388,7 @@ class bydfi extends \ccxt\async\bydfi {
             /**
              * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              *
-             * @see https://developers.bydfi.com/en/swap/websocket-$market#candlestick-data
+             * @see https://developers.bydfi.com/en/futures/websocket-$market#candlestick-data
              *
              * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -460,7 +460,7 @@ class bydfi extends \ccxt\async\bydfi {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              *
-             * @see https://developers.bydfi.com/en/swap/websocket-market#limited-depth-information
+             * @see https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information
              *
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return (default and maxi is 100)
@@ -476,7 +476,7 @@ class bydfi extends \ccxt\async\bydfi {
             /**
              * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              *
-             * @see https://developers.bydfi.com/en/swap/websocket-market#limited-depth-information
+             * @see https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information
              *
              * @param {string} $symbol unified array of symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -491,7 +491,7 @@ class bydfi extends \ccxt\async\bydfi {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              *
-             * @see https://developers.bydfi.com/en/swap/websocket-$market#limited-$depth-information
+             * @see https://developers.bydfi.com/en/futures/websocket-$market#limited-$depth-information
              *
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return (default and max is 100)
@@ -526,7 +526,7 @@ class bydfi extends \ccxt\async\bydfi {
             /**
              * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              *
-             * @see https://developers.bydfi.com/en/swap/websocket-$market#limited-$depth-information
+             * @see https://developers.bydfi.com/en/futures/websocket-$market#limited-$depth-information
              *
              * @param {string[]} $symbols unified array of $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -589,7 +589,7 @@ class bydfi extends \ccxt\async\bydfi {
             /**
              * watches information on multiple orders made by the user
              *
-             * @see https://developers.bydfi.com/en/swap/websocket-account#order-trade-update-push
+             * @see https://developers.bydfi.com/en/futures/websocket-account#order-trade-update-push
              *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -610,7 +610,7 @@ class bydfi extends \ccxt\async\bydfi {
             /**
              * watches information on multiple $orders made by the user
              *
-             * @see https://developers.bydfi.com/en/swap/websocket-account#order-trade-update-push
+             * @see https://developers.bydfi.com/en/futures/websocket-account#order-trade-update-push
              *
              * @param {string[]} $symbols unified $symbol of the market to fetch $orders for
              * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -757,7 +757,7 @@ class bydfi extends \ccxt\async\bydfi {
             /**
              * watch all open $positions
              *
-             * @see https://developers.bydfi.com/en/swap/websocket-account#balance-and-position-update-push
+             * @see https://developers.bydfi.com/en/futures/websocket-account#balance-and-position-update-push
              *
              * @param {string[]} [$symbols] list of unified market $symbols
              * @param {int} [$since] the earliest time in ms to fetch $positions for
@@ -915,7 +915,7 @@ class bydfi extends \ccxt\async\bydfi {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
              *
-             * @see https://developers.bydfi.com/en/swap/websocket-account#balance-and-position-update-push
+             * @see https://developers.bydfi.com/en/futures/websocket-account#balance-and-position-update-push
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~

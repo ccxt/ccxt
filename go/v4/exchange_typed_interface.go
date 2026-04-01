@@ -220,8 +220,8 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "exchange":
 		itf := NewExchangeTyped(nil)
 		return itf
-	case "alp":
-		itf := NewAlp(options)
+	case "aftermath":
+		itf := NewAftermath(options)
 		return itf
 	case "alpaca":
 		itf := NewAlpaca(options)
@@ -382,9 +382,6 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "deepcoin":
 		itf := NewDeepcoin(options)
 		return itf
-	case "defx":
-		itf := NewDefx(options)
-		return itf
 	case "delta":
 		itf := NewDelta(options)
 		return itf
@@ -417,6 +414,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 		return itf
 	case "gemini":
 		itf := NewGemini(options)
+		return itf
+	case "grvt":
+		itf := NewGrvt(options)
 		return itf
 	case "hashkey":
 		itf := NewHashkey(options)
@@ -462,6 +462,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 		return itf
 	case "lbank":
 		itf := NewLbank(options)
+		return itf
+	case "lighter":
+		itf := NewLighter(options)
 		return itf
 	case "luno":
 		itf := NewLuno(options)
@@ -510,9 +513,6 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 		return itf
 	case "poloniex":
 		itf := NewPoloniex(options)
-		return itf
-	case "timex":
-		itf := NewTimex(options)
 		return itf
 	case "tokocrypto":
 		itf := NewTokocrypto(options)

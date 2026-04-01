@@ -647,7 +647,7 @@ public partial class hollaex : Exchange
         //         "low": 8607,
         //         "last": 8841.05,
         //         "volume": 20.2802,
-        //         "timestamp": "2020-03-03T03:11:18.964Z"
+        //         "timestamp": "2020-03-03T03:11:18.965Z"
         //     }
         //
         return this.parseTicker(response, market);

@@ -1384,16 +1384,74 @@ class binance extends binance$1["default"] {
                 },
                 'networks': {
                     'ERC20': 'ETH',
+                    'ETH': 'ETH',
                     'TRC20': 'TRX',
+                    'TRX': 'TRX',
                     'BEP2': 'BNB',
+                    'BSC': 'BSC',
                     'BEP20': 'BSC',
-                    'OMNI': 'OMNI',
                     'EOS': 'EOS',
                     'SPL': 'SOL',
-                    'SOL': 'SOL', // we shouldn't rename SOL
+                    'SOL': 'SOL',
+                    // 'FIAT': 'FIAT_MONEY', // not unified atm
+                    // 'LEVERAGE_TOKEN': 'ETF', // not unified atm
+                    // 'STAKING': 'STAKING', // not unified atm
+                    'ARBONE': 'ARBITRUM',
+                    'AVAXC': 'AVAXC',
+                    'MATIC': 'MATIC',
+                    'BASE': 'BASE',
+                    'SUI': 'SUI',
+                    'OP': 'OPTIMISM',
+                    'OPTIMISM': 'OPTIMISM',
+                    'NEAR': 'NEAR',
+                    'APT': 'APT',
+                    'SCROLL': 'SCROLL',
+                    'KAVA': 'KAVA',
+                    'XLM': 'XLM',
+                    // BLAST - not supported
+                    // LINEA - not supported
+                    // CRO - not supported
+                    // TAIKO - not supported
+                    'RSK': 'RSK',
+                    'SEI': 'SEI',
+                    // MNT - not supported
+                    'TON': 'TON',
+                    'ADA': 'ADA',
+                    // HYPE - not supported
+                    // CORE - not supported
+                    'ALGO': 'ALGO',
+                    'RUNE': 'RUNE',
+                    'OSMO': 'OSMO',
+                    // XIN - not supported
+                    'CELO': 'CELO',
+                    'HBAR': 'HBAR',
+                    // FTM - renamed
+                    // WEMIX - not supported
+                    'ZKSYNCERA': 'ZKSYNCERA',
+                    'KLAY': 'KLAY',
+                    // HECO - not supported
+                    // FSN - not supported
+                    'ACA': 'ACA',
+                    'STX': 'STX',
+                    'XTZ': 'XTZ',
+                    // 'NEO': 'NEO', // tbd NEO3
+                    'METIS': 'METIS',
+                    // TLOS - not supported
+                    'EGLD': 'EGLD',
+                    'ASTR': 'ASTR',
+                    'CFX': 'CFX',
+                    // 'GLMR': 'GLMR', GLIMMER vs MOONBEAM
+                    // CANTO - not supported
+                    'SCRT': 'SCRT',
+                    // AUR - not supported
+                    'ONT': 'ONT', // ontology
                 },
                 'networksById': {
-                    'SOL': 'SOL', // temporary fix for SPL definition
+                    'TRX': 'TRC20',
+                    'BSC': 'BEP20',
+                    'ETH': 'ERC20',
+                    'SOL': 'SOL',
+                    'OPTIMISM': 'OP',
                 },
                 'impliedNetworks': {
                     'ETH': { 'ERC20': 'ETH' },
@@ -3018,7 +3076,7 @@ class binance extends binance$1["default"] {
             for (let j = 0; j < networkList.length; j++) {
                 const networkItem = networkList[j];
                 const network = this.safeString(networkItem, 'network');
-                const networkCode = this.networkIdToCode(network);
+                const networkCode = this.networkIdToCode(network, code);
                 const isETF = (network === 'ETF'); // e.g. BTCUP, ETHDOWN
                 // const name = this.safeString (networkItem, 'name');
                 const withdrawFee = this.safeNumber(networkItem, 'withdrawFee');
@@ -6416,6 +6474,7 @@ class binance extends binance$1["default"] {
      * @param {string} [params.stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
      * @param {string} [params.positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
      * @param {bool} [params.hedged] *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
+     * @param {string} [params.clientOrderId] the clientOrderId of the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -8913,7 +8972,8 @@ class binance extends binance$1["default"] {
         if (internalInteger !== undefined) {
             internal = (internalInteger !== 0) ? true : false;
         }
-        const network = this.safeString(transaction, 'network');
+        const networkId = this.safeString(transaction, 'network');
+        const network = this.networkIdToCode(networkId, code);
         return {
             'info': transaction,
             'id': id,
@@ -9340,12 +9400,10 @@ class binance extends binance$1["default"] {
             'coin': currency['id'],
             // 'network': 'ETH', // 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
         };
-        const networks = this.safeDict(this.options, 'networks', {});
-        let network = this.safeStringUpper(params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString(networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            request['network'] = network;
-            params = this.omit(params, 'network');
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        if (networkCode !== undefined) {
+            request['network'] = this.networkCodeToId(networkCode, currency['code']);
         }
         // has support for the 'network' parameter
         const response = await this.sapiGetCapitalDepositAddress(this.extend(request, params));
@@ -9605,12 +9663,13 @@ class binance extends binance$1["default"] {
         //        ]
         //    }
         //
+        const code = this.safeString(currency, 'code');
         const networkList = this.safeList(fee, 'networkList', []);
         const result = this.depositWithdrawFee(fee);
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
             const networkId = this.safeString(networkEntry, 'network');
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             const withdrawFee = this.safeNumber(networkEntry, 'withdrawFee');
             const isDefault = this.safeBool(networkEntry, 'isDefault');
             if (isDefault === true) {
@@ -9658,14 +9717,12 @@ class binance extends binance$1["default"] {
         if (tag !== undefined) {
             request['addressTag'] = tag;
         }
-        const networks = this.safeDict(this.options, 'networks', {});
-        let network = this.safeStringUpper(params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString(networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            request['network'] = network;
-            params = this.omit(params, 'network');
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        if (networkCode !== undefined) {
+            request['network'] = this.networkCodeToId(networkCode, currency['code']);
         }
-        request['amount'] = this.currencyToPrecision(code, amount, network);
+        request['amount'] = this.currencyToPrecision(currency['code'], amount, networkCode);
         const response = await this.sapiPostCapitalWithdrawApply(this.extend(request, params));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
         return this.parseTransaction(response, currency);

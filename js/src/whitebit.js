@@ -69,7 +69,7 @@ export default class whitebit extends Exchange {
                 'fetchFundingHistory': true,
                 'fetchFundingLimits': true,
                 'fetchFundingRate': true,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
@@ -194,6 +194,7 @@ export default class whitebit extends Exchange {
                             'assets',
                             'collateral/markets',
                             'fee',
+                            'funding-history/{market}',
                             'orderbook/depth/{market}',
                             'orderbook/{market}',
                             'ticker',
@@ -1313,7 +1314,40 @@ export default class whitebit extends Exchange {
         //       tradesEnabled: true
         //   }
         //
-        const marketId = this.safeString(ticker, 'tradingPairs');
+        // v4PublicGetFutures
+        //     {
+        //         "ticker_id": "0G_PERP",
+        //         "stock_currency": "0G",
+        //         "money_currency": "USDT",
+        //         "last_price": "0.6065",
+        //         "stock_volume": "2563218",
+        //         "money_volume": "1587952.6137",
+        //         "bid": "0.6065",
+        //         "ask": "0.6077",
+        //         "high": "0.6472",
+        //         "low": "0.6045",
+        //         "product_type": "Perpetual",
+        //         "open_interest": "3721488",
+        //         "index_price": "0.61",
+        //         "index_name": "0G future contract",
+        //         "index_currency": "0G",
+        //         "funding_rate": "-0.00000778",
+        //         "next_funding_rate_timestamp": "1772467200000",
+        //         "brackets": {
+        //             "1": 0,
+        //             "10": 0,
+        //             "100": 0,
+        //             "2": 0,
+        //             "20": 4000,
+        //             "3": 0,
+        //             "5": 0,
+        //             "50": 800
+        //         },
+        //         "max_leverage": 50,
+        //         "funding_interval_minutes": 240
+        //     }
+        //
+        const marketId = this.safeString2(ticker, 'tradingPairs', 'ticker_id');
         market = this.safeMarket(marketId, market);
         // last price is provided as "last" or "last_price"
         const last = this.safeStringN(ticker, ['last', 'last_price', 'lastPrice']);
@@ -1337,8 +1371,9 @@ export default class whitebit extends Exchange {
             'change': undefined,
             'percentage': this.safeString(ticker, 'change'),
             'average': undefined,
-            'baseVolume': this.safeStringN(ticker, ['base_volume', 'volume', 'baseVolume24h']),
-            'quoteVolume': this.safeStringN(ticker, ['quote_volume', 'deal', 'quoteVolume24h']),
+            'baseVolume': this.safeStringN(ticker, ['base_volume', 'volume', 'baseVolume24h', 'stock_volume']),
+            'quoteVolume': this.safeStringN(ticker, ['quote_volume', 'deal', 'quoteVolume24h', 'money_volume']),
+            'indexPrice': this.safeString(ticker, 'index_price'),
             'info': ticker,
         }, market);
     }
@@ -1424,32 +1459,100 @@ export default class whitebit extends Exchange {
      * @see https://docs.whitebit.com/public/http-v4/#market-activity
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.method] either v2PublicGetTicker or v4PublicGetTicker default is v4PublicGetTicker
+     * @param {string} [params.type] 'spot' or 'swap' - default is 'spot'. If type is 'swap', it will call v4PublicGetFutures
+     * @param {string} [params.method] either v2PublicGetTicker or v4PublicGetTicker or v4PublicGetFutures - default is v4PublicGetTicker for spot and mixed markets, and v4PublicGetFutures for swap
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        let method = 'v4PublicGetTicker';
+        let onlyContractSymbols = true;
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market(symbol);
+                if (!(market['contract'])) {
+                    onlyContractSymbols = false;
+                    break;
+                }
+            }
+        }
+        else {
+            onlyContractSymbols = false;
+        }
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchTickers', undefined, params);
+        let method = undefined;
         [method, params] = this.handleOptionAndParams(params, 'fetchTickers', 'method', method);
+        if (method === undefined) {
+            // if the user did not specify a method, choose it based on market type and symbols
+            if (onlyContractSymbols || (marketType === 'swap')) {
+                method = 'v4PublicGetFutures';
+            }
+            else {
+                method = 'v4PublicGetTicker';
+            }
+        }
         let response = undefined;
         if (method === 'v4PublicGetTicker') {
+            //
+            //      "BCH_RUB": {
+            //          "base_id":1831,
+            //          "quote_id":0,
+            //          "last_price":"32830.21",
+            //          "quote_volume":"1494659.8024096",
+            //          "base_volume":"46.1083",
+            //          "isFrozen":false,
+            //          "change":"2.12"
+            //      },
+            //
             response = await this.v4PublicGetTicker(params);
+        }
+        else if (method === 'v4PublicGetFutures') {
+            //
+            //     {
+            //         "success": true,
+            //         "message": null,
+            //         "result": [
+            //             {
+            //                 "ticker_id": "0G_PERP",
+            //                 "stock_currency": "0G",
+            //                 "money_currency": "USDT",
+            //                 "last_price": "0.6065",
+            //                 "stock_volume": "2563218",
+            //                 "money_volume": "1587952.6137",
+            //                 "bid": "0.6065",
+            //                 "ask": "0.6077",
+            //                 "high": "0.6472",
+            //                 "low": "0.6045",
+            //                 "product_type": "Perpetual",
+            //                 "open_interest": "3721488",
+            //                 "index_price": "0.61",
+            //                 "index_name": "0G future contract",
+            //                 "index_currency": "0G",
+            //                 "funding_rate": "-0.00000778",
+            //                 "next_funding_rate_timestamp": "1772467200000",
+            //                 "brackets": {
+            //                     "1": 0,
+            //                     "10": 0,
+            //                     "100": 0,
+            //                     "2": 0,
+            //                     "20": 4000,
+            //                     "3": 0,
+            //                     "5": 0,
+            //                     "50": 800
+            //                 },
+            //                 "max_leverage": 50,
+            //                 "funding_interval_minutes": 240
+            //             }
+            //         ]
+            //     }
+            //
+            response = await this.v4PublicGetFutures(params);
         }
         else {
             response = await this.v2PublicGetTicker(params);
         }
-        //
-        //      "BCH_RUB": {
-        //          "base_id":1831,
-        //          "quote_id":0,
-        //          "last_price":"32830.21",
-        //          "quote_volume":"1494659.8024096",
-        //          "base_volume":"46.1083",
-        //          "isFrozen":false,
-        //          "change":"2.12"
-        //      },
-        //
         const resultList = this.safeList(response, 'result');
         if (resultList !== undefined) {
             return this.parseTickers(resultList, symbols);
@@ -3910,6 +4013,66 @@ export default class whitebit extends Exchange {
     isFiat(currency) {
         const fiatCurrencies = this.safeValue(this.options, 'fiatCurrencies', []);
         return this.inArray(currency, fiatCurrencies);
+    }
+    /**
+     * @method
+     * @name whitebit#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://docs.whitebit.com/api-reference/market-data/funding-history
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch (default 100, max 1000)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+     */
+    async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        const maxLimit = 1000;
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, maxLimit);
+        }
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        let request = {
+            'market': market['id'],
+        };
+        if (since !== undefined) {
+            request['startDate'] = Math.round(since / 1000);
+        }
+        [request, params] = this.handleUntilOption('until_timestamp', request, params, 0.001);
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.v4PublicGetFundingHistoryMarket(this.extend(request, params));
+        //
+        //     [
+        //         {
+        //             "fundingTime": "1773648000",
+        //             "fundingRate": "-0.00004593",
+        //             "market": "ETH_PERP",
+        //             "settlementPrice": "2248.47",
+        //             "rateCalculatedTime": "1773619200"
+        //         }
+        //     ]
+        //
+        return this.parseFundingRateHistories(response, market, since, limit);
+    }
+    parseFundingRateHistory(info, market = undefined) {
+        const marketId = this.safeString(info, 'market');
+        market = this.safeMarket(marketId, market);
+        const timestamp = this.safeTimestamp(info, 'fundingTime');
+        return {
+            'info': info,
+            'symbol': market['symbol'],
+            'fundingRate': this.safeNumber(info, 'fundingRate'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+        };
     }
     nonce() {
         return this.milliseconds() - this.options['timeDifference'];

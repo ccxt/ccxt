@@ -224,7 +224,11 @@ public partial class Exchange
         return BinaryToBase64(buff);
     }
 
-    public static string BinaryToBase64(byte[] buff) => Convert.ToBase64String(buff);
+    public static string BinaryToBase64(object buff2)
+    {
+        var buff = (byte[])buff2;
+        return Convert.ToBase64String(buff);
+    }
 
 
 
@@ -299,33 +303,41 @@ public partial class Exchange
 
     public string urlencodeNested(object paramaters)
     {
-        // stub check this out
-        var queryString = System.Web.HttpUtility.ParseQueryString(string.Empty);
-        var keys = new List<string>(((dict)paramaters).Keys);
-        foreach (string key in keys)
+        var outList = new List<string>();
+
+        void urlencodeNestedRecursive(string prefix, object value)
         {
-            var value = ((dict)paramaters)[key];
             if (value != null && value.GetType() == typeof(dict))
             {
-                var keys2 = new List<string>(((dict)value).Keys);
-                foreach (string key2 in keys2)
+                foreach (var key in ((dict)value).Keys)
                 {
-                    var value2 = ((dict)value)[key2];
-                    var finalValue = value2.ToString();
-                    if (value2.GetType() == typeof(bool))
-                    {
-                        finalValue = finalValue.ToLower(); // c# uses "True" and "False" instead of "true" and "false" $:(
-
-                    }
-                    queryString.Add(key + "[" + key2 + "]", finalValue);
+                    var val = ((dict)value)[key];
+                    var nextPrefix = string.IsNullOrEmpty(prefix) ? Uri.EscapeDataString(key) : prefix + "[" + Uri.EscapeDataString(key) + "]";
+                    urlencodeNestedRecursive(nextPrefix, val);
                 }
             }
-            else
+            else if (value is IList<object> listValue)
             {
-                queryString.Add(key, value.ToString());
+                for (int i = 0; i < listValue.Count; i++)
+                {
+                    var val = listValue[i];
+                    var nextPrefix = string.IsNullOrEmpty(prefix) ? i.ToString() : prefix + "[" + i + "]";
+                    urlencodeNestedRecursive(nextPrefix, val);
+                }
+            }
+            else if (value != null)
+            {
+                var valStr = value.ToString();
+                if (value is bool)
+                {
+                    valStr = valStr.ToLower();
+                }
+                outList.Add(prefix + "=" + Uri.EscapeDataString(valStr));
             }
         }
-        return queryString.ToString();
+
+        urlencodeNestedRecursive(string.Empty, paramaters);
+        return string.Join("&", outList);
     }
 
     public string urlencode(object parameters2, bool sort = false)
@@ -338,21 +350,14 @@ public partial class Exchange
         foreach (string key in keys)
         {
             var value = parameters[key];
-            string encodedKey = System.Web.HttpUtility.UrlEncode(key);
+            string encodedKey = Uri.EscapeDataString(key);
             var finalValue = value.ToString();
             if (value.GetType() == typeof(bool))
             {
                 finalValue = finalValue.ToLower(); // c# uses "True" and "False" instead of "true" and "false" $:(
 
             }
-            if (key.ToLower() == "timestamp")
-            {
-                finalValue = System.Web.HttpUtility.UrlEncode(finalValue).ToUpper();
-            }
-            else
-            {
-                finalValue = System.Web.HttpUtility.UrlEncode(finalValue);
-            }
+            finalValue = Uri.EscapeDataString(finalValue);
             queryString.Add($"{encodedKey}={finalValue}");
         }
         return string.Join("&", queryString);

@@ -25,7 +25,7 @@ func NewBydfi(userConfig map[string]interface{}) *Bydfi {
  * @method
  * @name bydfi#watchTicker
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://developers.bydfi.com/en/swap/websocket-market#ticker-by-symbol
+ * @see https://developers.bydfi.com/en/futures/websocket-market#ticker-by-symbol
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -52,7 +52,7 @@ func (this *Bydfi) WatchTicker(symbol string, options ...ccxt.WatchTickerOptions
  * @method
  * @name bydfi#unWatchTicker
  * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://developers.bydfi.com/en/swap/websocket-market#ticker-by-symbol
+ * @see https://developers.bydfi.com/en/futures/websocket-market#ticker-by-symbol
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -79,8 +79,8 @@ func (this *Bydfi) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOpt
  * @method
  * @name bydfi#watchTickers
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
- * @see https://developers.bydfi.com/en/swap/websocket-market#ticker-by-symbol
- * @see https://developers.bydfi.com/en/swap/websocket-market#market-wide-ticker
+ * @see https://developers.bydfi.com/en/futures/websocket-market#ticker-by-symbol
+ * @see https://developers.bydfi.com/en/futures/websocket-market#market-wide-ticker
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -112,8 +112,8 @@ func (this *Bydfi) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Ticke
  * @method
  * @name bydfi#unWatchTickers
  * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
- * @see https://developers.bydfi.com/en/swap/websocket-market#ticker-by-symbol
- * @see https://developers.bydfi.com/en/swap/websocket-market#market-wide-ticker
+ * @see https://developers.bydfi.com/en/futures/websocket-market#ticker-by-symbol
+ * @see https://developers.bydfi.com/en/futures/websocket-market#market-wide-ticker
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -145,7 +145,7 @@ func (this *Bydfi) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (interf
  * @method
  * @name bydfi#watchOHLCV
  * @description watches historical candlestick data containing the open, high, low, close price, and the volume of a market
- * @see https://developers.bydfi.com/en/swap/websocket-market#candlestick-data
+ * @see https://developers.bydfi.com/en/futures/websocket-market#candlestick-data
  * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -190,7 +190,7 @@ func (this *Bydfi) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions) 
  * @method
  * @name bydfi#unWatchOHLCV
  * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://developers.bydfi.com/en/swap/websocket-market#candlestick-data
+ * @see https://developers.bydfi.com/en/futures/websocket-market#candlestick-data
  * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -223,7 +223,7 @@ func (this *Bydfi) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptio
  * @method
  * @name bydfi#watchOHLCVForSymbols
  * @description watches historical candlestick data containing the open, high, low, close price, and the volume of a market
- * @see https://developers.bydfi.com/en/swap/websocket-market#candlestick-data
+ * @see https://developers.bydfi.com/en/futures/websocket-market#candlestick-data
  * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch ccxt.OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
@@ -262,7 +262,7 @@ func (this *Bydfi) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options
  * @method
  * @name bydfi#unWatchOHLCVForSymbols
  * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://developers.bydfi.com/en/swap/websocket-market#candlestick-data
+ * @see https://developers.bydfi.com/en/futures/websocket-market#candlestick-data
  * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch ccxt.OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -289,7 +289,7 @@ func (this *Bydfi) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, optio
  * @method
  * @name bydfi#watchOrderBook
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://developers.bydfi.com/en/swap/websocket-market#limited-depth-information
+ * @see https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return (default and maxi is 100)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -322,7 +322,7 @@ func (this *Bydfi) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookO
  * @method
  * @name bydfi#unWatchOrderBook
  * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://developers.bydfi.com/en/swap/websocket-market#limited-depth-information
+ * @see https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information
  * @param {string} symbol unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
@@ -349,7 +349,7 @@ func (this *Bydfi) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderB
  * @method
  * @name bydfi#watchOrderBookForSymbols
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://developers.bydfi.com/en/swap/websocket-market#limited-depth-information
+ * @see https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return (default and max is 100)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -382,7 +382,7 @@ func (this *Bydfi) WatchOrderBookForSymbols(symbols []string, options ...ccxt.Wa
  * @method
  * @name bydfi#unWatchOrderBookForSymbols
  * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://developers.bydfi.com/en/swap/websocket-market#limited-depth-information
+ * @see https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information
  * @param {string[]} symbols unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
@@ -410,7 +410,7 @@ func (this *Bydfi) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.
  * @method
  * @name bydfi#watchOrders
  * @description watches information on multiple orders made by the user
- * @see https://developers.bydfi.com/en/swap/websocket-account#order-trade-update-push
+ * @see https://developers.bydfi.com/en/futures/websocket-account#order-trade-update-push
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -454,7 +454,7 @@ func (this *Bydfi) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order
  * @method
  * @name bydfi#watchOrdersForSymbols
  * @description watches information on multiple orders made by the user
- * @see https://developers.bydfi.com/en/swap/websocket-account#order-trade-update-push
+ * @see https://developers.bydfi.com/en/futures/websocket-account#order-trade-update-push
  * @param {string[]} symbols unified symbol of the market to fetch orders for
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -493,7 +493,7 @@ func (this *Bydfi) WatchOrdersForSymbols(symbols []string, options ...ccxt.Watch
  * @method
  * @name bydfi#watchPositions
  * @description watch all open positions
- * @see https://developers.bydfi.com/en/swap/websocket-account#balance-and-position-update-push
+ * @see https://developers.bydfi.com/en/futures/websocket-account#balance-and-position-update-push
  * @param {string[]} [symbols] list of unified market symbols
  * @param {int} [since] the earliest time in ms to fetch positions for
  * @param {int} [limit] the maximum number of positions to retrieve
@@ -537,7 +537,7 @@ func (this *Bydfi) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt
  * @method
  * @name bydfi#watchBalance
  * @description watch balance and get the amount of funds available for trading or funds locked in orders
- * @see https://developers.bydfi.com/en/swap/websocket-account#balance-and-position-update-push
+ * @see https://developers.bydfi.com/en/futures/websocket-account#balance-and-position-update-push
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */

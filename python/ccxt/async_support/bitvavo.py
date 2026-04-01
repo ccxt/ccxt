@@ -415,6 +415,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'commonCurrencies': {
                 'MIOTA': 'IOTA',  # https://github.com/ccxt/ccxt/issues/7487
             },
+            'rollingWindowSize': 60000.0,
         })
 
     async def fetch_time(self, params={}) -> Int:
