@@ -2259,7 +2259,7 @@ export default class kucoin extends Exchange {
         }
         const currenciesData = this.safeList (response, 'data', []);
         const brokenCurrencies = this.handleOption ('fetchCurrencies', 'brokenCurrencies', []);
-        const filteredCurrencies = this.filterByExcludedArray (currenciesData, 'currency', brokenCurrencies); // remove broken entries
+        const filteredCurrencies = this.filterOutByArray (currenciesData, 'currency', brokenCurrencies); // remove broken entries
         return this.parseCurrencies (filteredCurrencies);
     }
 

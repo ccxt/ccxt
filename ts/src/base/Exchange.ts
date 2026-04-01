@@ -5612,7 +5612,7 @@ export default class Exchange {
         return results;
     }
 
-    filterByExcludedArray (objects, key: IndexType, values = undefined, indexed = true) {
+    filterOutByArray (objects, key: IndexType, values = undefined, indexed = true) {
         objects = this.toArray (objects);
         // return all of them if no values were passed
         if (values === undefined || !values) {
