@@ -1098,6 +1098,7 @@ class ImplicitAPI:
         'trade/asyn/id', 'fapiPrivate', 'GET', {'cost': 5}
     )
     fapiprivate_post_batchorders = fapiPrivatePostBatchOrders = Entry('batchOrders', 'fapiPrivate', 'POST', {'cost': 5})
+    fapiprivate_post_feeburn = fapiPrivatePostFeeBurn = Entry('feeBurn', 'fapiPrivate', 'POST', {'cost': 0.1})
     fapiprivate_post_positionside_dual = fapiPrivatePostPositionSideDual = Entry(
         'positionSide/dual', 'fapiPrivate', 'POST', {'cost': 1}
     )
@@ -1296,6 +1297,7 @@ class ImplicitAPI:
     papi_get_portfolio_interest_history = papiGetPortfolioInterestHistory = Entry(
         'portfolio/interest-history', 'papi', 'GET', {'cost': 50}
     )
+    papi_post_um_feeburn = papiPostUmFeeBurn = Entry('um/feeBurn', 'papi', 'POST', {'cost': 0.1})
     papi_post_um_order = papiPostUmOrder = Entry('um/order', 'papi', 'POST', {'cost': 1})
     papi_post_cm_order = papiPostCmOrder = Entry('cm/order', 'papi', 'POST', {'cost': 1})
     papi_post_margin_order = papiPostMarginOrder = Entry('margin/order', 'papi', 'POST', {'cost': 0.0133})
