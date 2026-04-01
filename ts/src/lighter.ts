@@ -344,6 +344,8 @@ export default class lighter extends Exchange {
                 'apiKeyIndex': undefined,
                 'wasmExecPath': undefined, // [JS Only] users should set the path to wasm_exec.js. It can be downloaded here https://github.com/ccxt/lighter-wasm
                 'libraryPath': undefined, // users should set the path to the lighter signing library. It can be downloaded here https://github.com/elliottech/lighter-python/tree/main/lighter/signers, GO users don't need it
+                'authDeadlineExpiry': 600,
+                'authDeadlineMinimumRemaining': 60,
             },
             'features': {
                 'default': {
@@ -486,12 +488,35 @@ export default class lighter extends Exchange {
             const res = this.handleOptionAndParams2 ({}, 'createAuth', 'accountIndex', 'account_index');
             accountIndex = this.safeInteger (res, 0);
         }
-        const rs = {
-            'deadline': this.seconds () + 60,
+        const deadlines = this.safeDict (this.options, 'authDeadlines');
+        const accountDeadlines = this.safeDict (deadlines, accountIndex);
+        const cachedDeadline = this.safeInteger (accountDeadlines, apiKeyIndex);
+        if (cachedDeadline !== undefined) {
+            const minimumDeadline = this.seconds () + this.safeInteger (this.options, 'authDeadlineMinimumRemaining');
+            if (cachedDeadline >= minimumDeadline) {
+                const authTokens = this.safeDict (this.options, 'authTokens');
+                const accountAuthTokens = this.safeDict (authTokens, accountIndex);
+                return this.safeString (accountAuthTokens, apiKeyIndex);
+            }
+        }
+        const deadline = this.seconds () + this.safeInteger (this.options, 'authDeadlineExpiry');
+        const request = {
+            'deadline': deadline,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
-        return this.lighterCreateAuthToken (this.safeValue (this.options, 'signer'), rs);
+        const authToken = this.lighterCreateAuthToken (this.safeValue (this.options, 'signer'), request);
+        if (!('authTokens' in this.options)) {
+            this.options['authTokens'] = {};
+            this.options['authDeadlines'] = {};
+        }
+        if (!(accountIndex in this.options['authTokens'])) {
+            this.options['authTokens'][accountIndex] = {};
+            this.options['authDeadlines'][accountIndex] = {};
+        }
+        this.options['authTokens'][accountIndex][apiKeyIndex] = authToken;
+        this.options['authDeadlines'][accountIndex][apiKeyIndex] = deadline;
+        return authToken;
     }
 
     pow (n: string, m: string) {
