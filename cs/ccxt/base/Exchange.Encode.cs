@@ -203,7 +203,7 @@ public partial class Exchange
     public string binaryToBase58(object buff2)
     {
         var buff = (byte[])buff2;
-        return binaryToHex(buff);
+        return Base58.Encode(buff);
     }
 
     public static string Base64ToBase64Url(string base64, bool stripPadding = true)
