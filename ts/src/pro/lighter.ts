@@ -92,7 +92,7 @@ export default class lighter extends lighterRest {
         return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscription);
     }
 
-    async unsubscribePublic (messageHash, params = {}) {
+    async unsubscribe (messageHash, params = {}) {
         const url = this.urls['api']['ws'];
         const request: Dict = {
             'type': 'unsubscribe',
@@ -218,7 +218,7 @@ export default class lighter extends lighterRest {
             'channel': 'order_book/' + market['id'],
         };
         const messageHash = this.getMessageHash ('unsubscribe', symbol);
-        return await this.unsubscribePublic (messageHash, this.extend (request, params));
+        return await this.unsubscribe (messageHash, this.extend (request, params));
     }
 
     handleTicker (client: Client, message) {
@@ -331,7 +331,7 @@ export default class lighter extends lighterRest {
             'channel': 'market_stats/' + market['id'],
         };
         const messageHash = this.getMessageHash ('unsubscribe', symbol);
-        return await this.unsubscribePublic (messageHash, this.extend (request, params));
+        return await this.unsubscribe (messageHash, this.extend (request, params));
     }
 
     /**
@@ -387,7 +387,7 @@ export default class lighter extends lighterRest {
             'channel': 'market_stats/all',
         };
         const messageHash = this.getMessageHash ('unsubscribe');
-        return await this.unsubscribePublic (messageHash, this.extend (request, params));
+        return await this.unsubscribe (messageHash, this.extend (request, params));
     }
 
     /**
@@ -600,7 +600,7 @@ export default class lighter extends lighterRest {
             'channel': 'trade/' + market['id'],
         };
         const messageHash = this.getMessageHash ('unsubscribe', symbol);
-        return await this.unsubscribePublic (messageHash, this.extend (request, params));
+        return await this.unsubscribe (messageHash, this.extend (request, params));
     }
 
     handleMyTrades (client: Client, message) {
@@ -721,7 +721,7 @@ export default class lighter extends lighterRest {
         const request: Dict = {
             'channel': 'account_all_trades/' + accountIndex,
         };
-        return await this.unsubscribePublic (messageHash, this.extend (request, params));
+        return await this.unsubscribe (messageHash, this.extend (request, params));
     }
 
     parseWsLiquidation (liquidation, market = undefined) {
@@ -908,7 +908,7 @@ export default class lighter extends lighterRest {
             messageHash = this.getMessageHash ('orders');
             request['channel'] = 'account_all_orders/' + this.numberToString (accountIndex);
         }
-        return await this.unsubscribePublic (messageHash, this.extend (request, params));
+        return await this.unsubscribe (messageHash, this.extend (request, params));
     }
 
     handleOrders (client: Client, message) {
