@@ -246,7 +246,9 @@ export default class pacifica extends Exchange {
                 'originAddress': undefined,
                 'apiKey': undefined,
                 'walletAddress': undefined,
-                'builderCode': undefined,
+                'builderCode': 'CCXT', // case sensitive
+                'feeRate': "0.01", // default rate for builder fee approval 0.01%
+                'builderFee': true,
                 'batchOrdersMax': 10,
                 'defaultType': 'swap',
                 'defaultSlippage': 0.5,
@@ -375,6 +377,36 @@ export default class pacifica extends Exchange {
                 },
             },
         });
+    }
+
+    
+    async initializeClient () {
+        try {
+            await this.handleBuilderFeeApproval ()
+        } catch (e) {
+            return false;
+        }
+        return true;
+    }
+
+    async handleBuilderFeeApproval () {
+        const buildFee = this.safeBool (this.options, 'builderFee', true);
+        if (!buildFee) {
+            return false; // skip if builder fee is not enabled
+        }
+        const approvedBuilderFee = this.safeBool (this.options, 'approvedBuilderFee', false);
+        if (approvedBuilderFee) {
+            return true; // skip if builder fee is already approved
+        }
+        try {
+            const builder = this.safeString (this.options, 'builderCode', 'CCXT'); // case sensitive
+            const maxFeeRate = this.safeString (this.options, 'feeRate', '0.01');
+            await this.approveBuilderCode (builder, maxFeeRate);
+            this.options['approvedBuilderFee'] = true;
+        } catch (e) {
+            this.options['builderFee'] = false; // disable builder fee if an error occurs
+        }
+        return true;
     }
 
     /**
@@ -1256,6 +1288,7 @@ export default class pacifica extends Exchange {
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
+        await this.initializeClient ();
         const [ request, operationType ] = this.createOrderRequest (symbol, type, side, amount, price, params);
         params = this.omit (params, [
             'reduceOnly', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
@@ -1501,6 +1534,7 @@ export default class pacifica extends Exchange {
      */
     async createOrders (orders: OrderRequest[], params = {}) {
         await this.loadMarkets ();
+        await this.initializeClient ();
         const request = this.createOrdersRequest (orders);
         const response = await this.privatePostOrdersBatch (this.extend (request, params));
         // {
@@ -1556,6 +1590,7 @@ export default class pacifica extends Exchange {
      */
     async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
+        await this.initializeClient ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a "symbol" argument!');
         }
@@ -1642,6 +1677,7 @@ export default class pacifica extends Exchange {
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
+        await this.initializeClient ();
         const request = this.cancelAllOrdersRequest (symbol, params);
         params = this.omit (params, [ 'excludeReduceOnly', 'agentAddress', 'originAddress', 'expiryWindow' ]);
         const response = await this.privatePostOrdersCancelAll (this.extend (request, params));
@@ -1696,6 +1732,7 @@ export default class pacifica extends Exchange {
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
+        await this.initializeClient ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -1762,6 +1799,7 @@ export default class pacifica extends Exchange {
      */
     async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
+        await this.initializeClient ();
         const market = this.market (symbol);
         const request = this.editOrderRequest (id, symbol, type, side, amount, price, market, params);
         params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'clientOrderId' ]);
