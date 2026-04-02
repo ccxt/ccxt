@@ -391,6 +391,9 @@ export default class pacifica extends Exchange {
     }
 
     async handleBuilderFeeApproval () {
+        if (this.isSandboxModeEnabled === true) { // At this stage, building codes are mostly only on the mainnet.
+            return false;
+        }
         const buildFee = this.safeBool (this.options, 'builderFee', true);
         if (!buildFee) {
             return false; // skip if builder fee is not enabled
@@ -3291,15 +3294,17 @@ export default class pacifica extends Exchange {
         if (operationType === 'undefined') {
             throw new ArgumentsRequired (this.id + ' action: ' + operationType + ' postActionRequest() requires "operationType"');
         }
-        const useBuilder = this.handleOption ('postActionRequest', 'builderFee', true);
-        let builderCode = undefined;
-        if (useBuilder) {
-            builderCode = this.handleOption ('postActionRequest', 'builderCode');
-        }
-        if (builderCode !== undefined) {
-            const isOperationSupportBuilder = this.safeBool (this.options['builderSupportOperations'], operationType, false);
-            if (isOperationSupportBuilder) {
-                sigPayload['builder_code'] = builderCode;
+        if (this.isSandboxModeEnabled === false) { // At this stage, building codes are mostly only on the mainnet.
+            const useBuilder = this.handleOption ('postActionRequest', 'builderFee', true);
+            let builderCode = undefined;
+            if (useBuilder) {
+                builderCode = this.handleOption ('postActionRequest', 'builderCode');
+            }
+            if (builderCode !== undefined) {
+                const isOperationSupportBuilder = this.safeBool (this.options['builderSupportOperations'], operationType, false);
+                if (isOperationSupportBuilder) {
+                    sigPayload['builder_code'] = builderCode;
+                }
             }
         }
         let expiryWindow = undefined;
