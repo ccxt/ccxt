@@ -214,6 +214,8 @@ class kraken extends kraken$1["default"] {
                         'WithdrawAddresses': 3,
                         'WithdrawStatus': 3,
                         'WalletTransfer': 3,
+                        // account
+                        'GetApiKeyInfo': 3,
                         // sub accounts
                         'CreateSubaccount': 3,
                         'AccountTransfer': 3,
@@ -524,6 +526,7 @@ class kraken extends kraken$1["default"] {
                 },
             },
             'precisionMode': number.TICK_SIZE,
+            'rollingWindowSize': 10000.0,
             'exceptions': {
                 'exact': {
                     'EQuery:Invalid asset pair': errors.BadSymbol,
@@ -1679,7 +1682,7 @@ class kraken extends kraken$1["default"] {
         const result = this.safeDict(response, 'result');
         result['usingCost'] = isUsingCost;
         // it's impossible to know if the order was created using cost or base currency
-        // becuase kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
+        // because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
         // this usingCost flag is used to help the parsing but omited from the order
         return this.parseOrder(result);
     }
@@ -3537,7 +3540,7 @@ class kraken extends kraken$1["default"] {
         let url = '/' + this.version + '/' + api + '/' + path;
         if (api === 'public') {
             if (Object.keys(params).length) {
-                // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
+                // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 url += '?' + this.urlencodeNested(params);
             }
         }
@@ -3551,11 +3554,11 @@ class kraken extends kraken$1["default"] {
             const isBatchOrder = (path === 'AddOrderBatch');
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
-            // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
             if (isCancelOrderBatch || isTriggerPercent || isBatchOrder) {
                 body = this.json(this.extend({ 'nonce': nonce }, params));
             }
             else {
+                // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 body = this.urlencodeNested(this.extend({ 'nonce': nonce }, params));
             }
             const auth = this.encode(nonce + body);

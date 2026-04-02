@@ -1100,6 +1100,34 @@ func (this *Bullish) FetchBorrowRateHistory(code string, options ...FetchBorrowR
 	return res.(map[string]interface{}), nil
 }
 
+/**
+ * @method
+ * @name bullish#fetchOpenInterest
+ * @description fetches the open interest of a specific market
+ * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-symbol-/tick
+ * @param {string} symbol unified symbol of the market to fetch the open interest for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Bullish) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
+
+	opts := FetchOpenInterestOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchOpenInterest(symbol, params)
+	if IsError(res) {
+		return OpenInterest{}, CreateReturnError(res)
+	}
+	return NewOpenInterest(res), nil
+}
+
 // missing typed methods from base
 // nolint
 func (this *Bullish) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
@@ -1329,9 +1357,6 @@ func (this *Bullish) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers
 }
 func (this *Bullish) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
 	return this.exchangeTyped.FetchMyLiquidations(options...)
-}
-func (this *Bullish) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
-	return this.exchangeTyped.FetchOpenInterest(symbol, options...)
 }
 func (this *Bullish) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
 	return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)

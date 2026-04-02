@@ -378,7 +378,7 @@ class coinmetro extends Exchange {
             $code = $this->safe_currency_code($id);
             $typeRaw = $this->safe_string($currency, 'type');
             $type = null;
-            if ($typeRaw === 'coin' || $typeRaw === 'token' || $typeRaw === 'erc20') {
+            if ($typeRaw === 'coin' || $typeRaw === 'token' || $typeRaw === 'erc20' || $typeRaw === 'crypto') {
                 $type = 'crypto';
             } elseif ($typeRaw === 'fiat') {
                 $type = 'fiat';

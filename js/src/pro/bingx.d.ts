@@ -1,5 +1,5 @@
 import bingxRest from '../bingx.js';
-import type { Int, Market, OHLCV, Str, OrderBook, Order, Trade, Balances, Ticker, Dict } from '../base/types.js';
+import type { Int, Market, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Position, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bingx extends bingxRest {
     describe(): any;
@@ -158,6 +158,22 @@ export default class bingx extends bingxRest {
     watchBalance(params?: {}): Promise<Balances>;
     setBalanceCache(client: Client, type: any, subType: any, subscriptionHash: any, params: any): void;
     loadBalanceSnapshot(client: any, messageHash: any, type: any, subType: any): Promise<void>;
+    /**
+     * @method
+     * @name bingx#watchPositions
+     * @description watch all open positions
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
+     * @param {string[]|undefined} [symbols] list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of position structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    setPositionsCache(client: Client, type: any, symbols?: Strings): void;
+    loadPositionsSnapshot(client: any, messageHash: any, type: any): Promise<void>;
+    parseWsPosition(position: any, market?: any): Position;
+    handlePositions(client: Client, message: any): void;
     handleErrorMessage(client: any, message: any): boolean;
     keepAliveListenKey(params?: {}): Promise<void>;
     authenticate(params?: {}): Promise<void>;

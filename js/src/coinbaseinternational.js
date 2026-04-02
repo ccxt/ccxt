@@ -6,7 +6,7 @@
 
 // ----------------------------------------------------------------------------
 import Exchange from './abstract/coinbaseinternational.js';
-import { ExchangeError, ArgumentsRequired, BadRequest, InvalidOrder, PermissionDenied, DuplicateOrderId, AuthenticationError } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, BadRequest, InvalidOrder, PermissionDenied, DuplicateOrderId, AuthenticationError, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -230,6 +230,7 @@ export default class coinbaseinternational extends Exchange {
                     'is a required field': BadRequest,
                     'Not Found': BadRequest,
                     'ip not allowed': AuthenticationError,
+                    'cbe spot routing instrument not supported': NotSupported,
                 },
             },
             'timeframes': {

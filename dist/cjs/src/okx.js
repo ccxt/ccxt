@@ -1073,11 +1073,13 @@ class okx extends okx$1["default"] {
                 },
                 'networks': {
                     'BTC': 'Bitcoin',
-                    'BTCLN': 'Lightning',
                     'BTCLIGHTNING': 'Lightning',
+                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'BRC20': 'BRC20',
+                    'ETH': 'ERC20',
                     'ERC20': 'ERC20',
+                    'TRX': 'TRC20',
                     'TRC20': 'TRC20',
                     'CRC20': 'Crypto',
                     'ACA': 'Acala',
@@ -1192,6 +1194,11 @@ class okx extends okx$1["default"] {
                     // "Venom",
                     // "WBTCK-OKTC",
                     // "ZetaChain",
+                },
+                'networksById': {
+                    'ERC20': 'ERC20',
+                    'TRC20': 'TRC20',
+                    'BEP20': 'BEP20',
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
@@ -1395,6 +1402,7 @@ class okx extends okx$1["default"] {
                 // the exchange refers to ERC20 version of Aeternity (AEToken)
                 'AE': 'AET', // https://github.com/ccxt/ccxt/issues/4981
             },
+            'rollingWindowSize': 0.0, // okx always receives rateLimitExceeded with rolling window
         });
     }
     handleMarketTypeAndParams(methodName, market = undefined, params = {}, defaultValue = undefined) {
@@ -1889,7 +1897,18 @@ class okx extends okx$1["default"] {
         //     }
         //
         const dataResponse = this.safeList(response, 'data', []);
-        return this.parseMarkets(dataResponse);
+        const marketsWithoutTest = [];
+        for (let i = 0; i < dataResponse.length; i++) {
+            const data = dataResponse[i];
+            if (this.isSandboxModeEnabled) {
+                const instFamily = this.safeString(data, 'instFamily', '');
+                if (instFamily.startsWith('TEST')) {
+                    continue;
+                }
+            }
+            marketsWithoutTest.push(data);
+        }
+        return this.parseMarkets(marketsWithoutTest);
     }
     /**
      * @method
@@ -1958,68 +1977,67 @@ class okx extends okx$1["default"] {
         //    }
         //
         const data = this.safeList(response, 'data', []);
-        const result = {};
         const dataByCurrencyId = this.groupBy(data, 'ccy');
-        const currencyIds = Object.keys(dataByCurrencyId);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const currency = this.safeCurrency(currencyId);
-            const code = currency['code'];
-            const chains = dataByCurrencyId[currencyId];
-            const networks = {};
-            let type = 'crypto';
-            const chainsLength = chains.length;
-            for (let j = 0; j < chainsLength; j++) {
-                const chain = chains[j];
-                // allow empty string for rare fiat-currencies, e.g. TRY
-                const networkId = this.safeString(chain, 'chain', ''); // USDT-BEP20, USDT-Avalance-C, etc
-                if (networkId === '') {
-                    // only happens for fiat 'TRY' currency
-                    type = 'fiat';
-                }
-                const idParts = networkId.split('-');
-                const parts = this.arraySlice(idParts, 1);
-                const chainPart = parts.join('-');
-                const networkCode = this.networkIdToCode(chainPart, currency['code']);
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': undefined,
-                    'deposit': this.safeBool(chain, 'canDep'),
-                    'withdraw': this.safeBool(chain, 'canWd'),
-                    'fee': this.safeNumber(chain, 'fee'),
-                    'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'wdTickSz'))),
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber(chain, 'minWd'),
-                            'max': this.safeNumber(chain, 'maxWd'),
-                        },
-                    },
-                    'info': chain,
-                };
+        const currencies = Object.values(dataByCurrencyId);
+        return this.parseCurrencies(currencies);
+    }
+    parseCurrency(currency) {
+        const chains = currency;
+        // currencies are grouped by chain entries, so there is at least one entry
+        const firstChain = this.safeDict(chains, 0, {});
+        const currencyId = this.safeString(firstChain, 'ccy');
+        const code = this.safeCurrencyCode(currencyId);
+        const networks = {};
+        let type = 'crypto';
+        const chainsLength = chains.length;
+        for (let j = 0; j < chainsLength; j++) {
+            const chain = chains[j];
+            // allow empty string for rare fiat-currencies, e.g. TRY
+            const networkId = this.safeString(chain, 'chain', ''); // USDT-BEP20, USDT-Avalance-C, etc
+            if (networkId === '') {
+                // only happens for fiat 'TRY' currency
+                type = 'fiat';
             }
-            const firstChain = this.safeDict(chains, 0, {});
-            result[code] = this.safeCurrencyStructure({
-                'info': chains,
-                'code': code,
-                'id': currencyId,
-                'name': this.safeString(firstChain, 'name'),
+            const idParts = networkId.split('-');
+            const parts = this.arraySlice(idParts, 1);
+            const chainPart = parts.join('-');
+            const networkCode = this.networkIdToCode(chainPart, code);
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': undefined,
+                'deposit': this.safeBool(chain, 'canDep'),
+                'withdraw': this.safeBool(chain, 'canWd'),
+                'fee': this.safeNumber(chain, 'fee'),
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'wdTickSz'))),
                 'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+                    'withdraw': {
+                        'min': this.safeNumber(chain, 'minWd'),
+                        'max': this.safeNumber(chain, 'maxWd'),
                     },
                 },
-                'type': type,
-                'networks': networks,
-            });
+                'info': chain,
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'info': chains,
+            'code': code,
+            'id': currencyId,
+            'name': this.safeString(firstChain, 'name'),
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': undefined,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'type': type,
+            'networks': networks,
+        });
     }
     /**
      * @method
@@ -5404,7 +5422,7 @@ class okx extends okx$1["default"] {
         if (fee === undefined) {
             const currencies = await this.fetchCurrencies();
             this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, currencies));
-            const targetNetwork = this.safeDict(currency['networks'], this.networkIdToCode(network), {});
+            const targetNetwork = this.safeDict(currency['networks'], this.networkIdToCode(network, currency['code']), {});
             fee = this.safeString(targetNetwork, 'fee');
             if (fee === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' withdraw() requires a "fee" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set "0". Withdrawing to external digital asset address requires network transaction fee.');
@@ -6183,7 +6201,12 @@ class okx extends okx$1["default"] {
             initialMarginPercentage = this.parseNumber(Precise["default"].stringDiv(initialMarginString, notionalString, 4));
         }
         else if (initialMarginString === undefined) {
-            initialMarginString = Precise["default"].stringDiv(Precise["default"].stringDiv(Precise["default"].stringMul(contractsAbs, contractSizeString), entryPriceString), leverageString);
+            if (market['linear']) {
+                initialMarginString = Precise["default"].stringMul(initialMarginPercentage, notionalString);
+            }
+            else {
+                initialMarginString = Precise["default"].stringDiv(Precise["default"].stringDiv(Precise["default"].stringMul(contractsAbs, contractSizeString), entryPriceString), leverageString);
+            }
         }
         const rounder = '0.00005'; // round to closest 0.01%
         const maintenanceMarginPercentage = this.parseNumber(Precise["default"].stringDiv(Precise["default"].stringAdd(maintenanceMarginPercentageString, rounder), '1', 4));
@@ -6825,6 +6848,15 @@ class okx extends okx$1["default"] {
             const marketInner = this.safeMarket(instId);
             const currencyId = this.safeString(entry, 'ccy');
             const code = this.safeCurrencyCode(currencyId);
+            const balanceChange = this.safeString(entry, 'balChg');
+            const positionBalanceChange = this.safeString(entry, 'posBalChg');
+            let amount = undefined;
+            if ((balanceChange !== undefined) && (!Precise["default"].stringEq(balanceChange, '0'))) {
+                amount = balanceChange;
+            }
+            else {
+                amount = positionBalanceChange;
+            }
             result.push({
                 'info': entry,
                 'symbol': marketInner['symbol'],
@@ -6832,7 +6864,7 @@ class okx extends okx$1["default"] {
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
                 'id': this.safeString(entry, 'billId'),
-                'amount': this.safeNumber(entry, 'balChg'),
+                'amount': this.parseNumber(amount),
             });
         }
         const sorted = this.sortBy(result, 'timestamp');

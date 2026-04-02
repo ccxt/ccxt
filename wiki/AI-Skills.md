@@ -38,9 +38,17 @@ Each skill is tailored to the specific language with appropriate idioms, naming 
 
 You need either [Claude Code](https://claude.ai/download) or [OpenCode](https://opencode.dev/) installed on your system.
 
-### Quick Install (No Repository Clone Required)
+### Quick Install (Recommended)
 
-Install all skills with a single command:
+Install all skills with a single command using the [skills CLI](https://github.com/vercel-labs/skills):
+
+```bash
+npx skills add ccxt/ccxt
+```
+
+This works with Claude Code, Cursor, Copilot, Windsurf, Codex, and 30+ other AI coding assistants.
+
+### Alternative: Shell Script
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/ccxt/ccxt/master/install-skills.sh | bash

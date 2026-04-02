@@ -399,8 +399,11 @@ func CheckPrecisionAccuracy(exchange ccxt.ICoreExchange, skippedProperties inter
 	if IsTrue(exchange.IsTickPrecision()) {
 		// TICK_SIZE should be above zero
 		AssertGreater(exchange, skippedProperties, method, entry, key, "0")
-		// the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so their existence in our case indicates to incorrectly implemented tick-sizes, which might mistakenly be implemented with DECIMAL_PLACES, so we throw error
+		// the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so in our case, such values probably indicate an incorrectly implemented tick-sizes calculation, so we throw error
 		var decimalNumbers interface{} = []interface{}{"2", "3", "4", "5", "6", "7", "8", "9", "11", "12", "13", "14", "15", "16"}
+		if IsTrue(IsTrue(IsEqual(key, "amount")) && IsTrue(InOp(skippedProperties, "precisionAmountAbnormal"))) {
+			return
+		}
 		for i := 0; IsLessThan(i, GetArrayLength(decimalNumbers)); i++ {
 			var num interface{} = GetValue(decimalNumbers, i)
 			var numStr interface{} = num

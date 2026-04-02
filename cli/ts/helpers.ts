@@ -12,6 +12,7 @@ const log = ololog.configure ({ 'locate': false }).unlimited;
 let add_static_result;
 
 try {
+    // @ts-ignore
     add_static_result = (await import ('../../utils/update-static-tests-data')).add_static_result;
 } catch (e) {
     // noop
@@ -410,6 +411,8 @@ function setNoSend (exchange: any) {
     return exchange;
 }
 
+// ----------------------------------------------------------------------------
+
 /**
  *
  * @param exchange
@@ -425,7 +428,7 @@ function parseMethodArgs (exchange, params, methodName, cliOptions, inject = tru
             ? exchange.parse8601 (s)
             : s))
         .map ((s) => (() => {
-            if (s.match (/^\d+$/g)) return s < Number.MAX_SAFE_INTEGER ? Number (s) : s;
+            if (typeof s === 'string' && s.match (/^\d+$/g)) return s < Number.MAX_SAFE_INTEGER ? Number (s) : s;
             try {
                 return eval ('(() => (' + s + ')) ()');
             } catch (e) {

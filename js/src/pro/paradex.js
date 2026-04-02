@@ -234,7 +234,7 @@ export default class paradex extends paradexRest {
         }
         const orderbook = this.orderbooks[symbol];
         const snapshot = this.parseOrderBook(orderbookData, symbol, timestamp, 'bids', 'asks');
-        snapshot['nonce'] = this.safeNumber(data, 'seq_no');
+        snapshot['nonce'] = this.safeInteger(data, 'seq_no');
         orderbook.reset(snapshot);
         const messageHash = this.safeString(params, 'channel');
         client.resolve(orderbook, messageHash);
@@ -285,7 +285,7 @@ export default class paradex extends paradexRest {
             },
         };
         const messageHashes = [];
-        if (Array.isArray(symbols)) {
+        if (symbols !== undefined && Array.isArray(symbols)) {
             for (let i = 0; i < symbols.length; i++) {
                 const messageHash = channel + '.' + symbols[i];
                 messageHashes.push(messageHash);
@@ -294,10 +294,10 @@ export default class paradex extends paradexRest {
         else {
             messageHashes.push(channel);
         }
-        const newTickers = await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), messageHashes);
+        const newTicker = await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), messageHashes);
         if (this.newUpdates) {
             const result = {};
-            result[newTickers['symbol']] = newTickers;
+            result[newTicker['symbol']] = newTicker;
             return result;
         }
         return this.filterByArray(this.tickers, 'symbol', symbols);

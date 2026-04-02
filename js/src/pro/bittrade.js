@@ -305,6 +305,7 @@ export default class bittrade extends bittradeRest {
         //     {
         //         "id": 1583473663565,
         //         "rep": "market.btcusdt.mbp.150",
+        //         "ts": 1774979531056,
         //         "status": "ok",
         //         "data": {
         //             "seqNum": 104999417756,
@@ -323,10 +324,13 @@ export default class bittrade extends bittradeRest {
         //
         const symbol = this.safeString(subscription, 'symbol');
         const messageHash = this.safeString(subscription, 'messageHash');
+        const timestamp = this.safeInteger(message, 'ts');
         const orderbook = this.orderbooks[symbol];
         const data = this.safeValue(message, 'data');
         const snapshot = this.parseOrderBook(data, symbol);
         snapshot['nonce'] = this.safeInteger(data, 'seqNum');
+        snapshot['timestamp'] = timestamp;
+        snapshot['datetime'] = this.iso8601(timestamp);
         orderbook.reset(snapshot);
         // unroll the accumulated deltas
         const messages = orderbook.cache;

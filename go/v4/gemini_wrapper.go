@@ -725,6 +725,34 @@ func (this *Gemini) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]O
 	return NewOHLCVArray(res), nil
 }
 
+/**
+ * @method
+ * @name gemini#fetchOpenInterest
+ * @description retrieves the open interest of a contract trading pair
+ * @see https://docs.gemini.com/rest/derivatives#get-risk-stats
+ * @param {string} symbol unified CCXT market symbol
+ * @param {object} [params] exchange specific parameters
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+func (this *Gemini) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
+
+	opts := FetchOpenInterestOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchOpenInterest(symbol, params)
+	if IsError(res) {
+		return OpenInterest{}, CreateReturnError(res)
+	}
+	return NewOpenInterest(res), nil
+}
+
 // missing typed methods from base
 // nolint
 func (this *Gemini) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
@@ -966,9 +994,6 @@ func (this *Gemini) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers,
 }
 func (this *Gemini) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
 	return this.exchangeTyped.FetchMyLiquidations(options...)
-}
-func (this *Gemini) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
-	return this.exchangeTyped.FetchOpenInterest(symbol, options...)
 }
 func (this *Gemini) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
 	return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)

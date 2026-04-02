@@ -1681,7 +1681,7 @@ class blofin(Exchange, ImplicitAPI):
         #     {
         #         "currency": "USDT",
         #         "chain": "TRC20",
-        #         "address": "TGfJLtnsh3B9EqekFEBZ1nR14QanBUf5Bi",
+        #         "address": "TGfJLtnsh3B9EqekFEBZ1nR14QanBUf5Be",
         #         "txId": "892f4e0c32268b29b2e541ef30d32a30bbf10f902adcc4b1428319ed7c3758fd",
         #         "type": "0",
         #         "amount": "86.975843",

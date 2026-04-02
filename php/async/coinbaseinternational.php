@@ -231,6 +231,7 @@ class coinbaseinternational extends Exchange {
                     'is a required field' => '\\ccxt\\BadRequest',
                     'Not Found' => '\\ccxt\\BadRequest',
                     'ip not allowed' => '\\ccxt\\AuthenticationError',
+                    'cbe spot routing instrument not supported' => '\\ccxt\\NotSupported',
                 ),
             ),
             'timeframes' => array(

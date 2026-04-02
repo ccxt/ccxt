@@ -396,6 +396,7 @@ class bitvavo extends Exchange {
             'commonCurrencies' => array(
                 'MIOTA' => 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
             ),
+            'rollingWindowSize' => 60000.0,
         ));
     }
 

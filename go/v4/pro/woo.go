@@ -1404,15 +1404,10 @@ func  (this *WooCore) ParseWsOrder(order interface{}, optionalArgs ...interface{
     if ccxt.IsTrue(ccxt.IsTrue(ccxt.Precise.StringEq(priceString, "0")) && ccxt.IsTrue((!ccxt.IsEqual(avgPrice, nil)))) {
         price = avgPrice
     }
-    var amount interface{} = this.SafeFloat(order, "quantity")
+    var amount interface{} = this.SafeString(order, "quantity")
     var side interface{} = this.SafeStringLower(order, "side")
     var typeVar interface{} = this.SafeStringLower(order, "type")
-    var filled interface{} = this.SafeNumber(order, "totalExecutedQuantity")
-    var totalExecQuantity interface{} = this.SafeFloat(order, "totalExecutedQuantity")
-    var remaining interface{} = amount
-    if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(amount, totalExecQuantity)) {
-        remaining = ccxt.Subtract(remaining, totalExecQuantity)
-    }
+    var filled interface{} = this.SafeString2(order, "totalExecutedQuantity", "executed")
     var rawStatus interface{} = this.SafeString2(order, "status", "algoStatus")
     var status interface{} = this.ParseOrderStatus(rawStatus)
     var trades interface{} = nil
@@ -1438,7 +1433,7 @@ func  (this *WooCore) ParseWsOrder(order interface{}, optionalArgs ...interface{
         "cost": nil,
         "average": avgPrice,
         "filled": filled,
-        "remaining": remaining,
+        "remaining": nil,
         "status": status,
         "fee": fee,
         "trades": trades,
@@ -1594,8 +1589,8 @@ func  (this *WooCore) WatchPositions(optionalArgs ...interface{}) <- chan interf
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes12498 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes12498)
+            retRes12448 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes12448)
             var messageHashes interface{} = []interface{}{}
             symbols = this.MarketSymbols(symbols)
             if !ccxt.IsTrue(this.IsEmpty(symbols)) {
@@ -1741,8 +1736,8 @@ func  (this *WooCore) WatchBalance(optionalArgs ...interface{}) <- chan interfac
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes13688 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes13688)
+            retRes13638 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes13638)
             var topic interface{} = "balance"
             var messageHash interface{} = topic
             var request interface{} = map[string]interface{} {
@@ -1751,9 +1746,9 @@ func  (this *WooCore) WatchBalance(optionalArgs ...interface{}) <- chan interfac
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes137615 :=  (<-this.WatchPrivate(messageHash, message))
-                ccxt.PanicOnError(retRes137615)
-                ch <- retRes137615
+                retRes137115 :=  (<-this.WatchPrivate(messageHash, message))
+                ccxt.PanicOnError(retRes137115)
+                ch <- retRes137115
                 return nil
         
             }()
@@ -1827,8 +1822,8 @@ func  (this *WooCore) WatchFundingRate(symbol interface{}, optionalArgs ...inter
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes14418 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes14418)
+            retRes14368 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes14368)
             var market interface{} = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var topic interface{} = ccxt.Add(ccxt.GetValue(market, "id"), "@estfundingrate")
@@ -1838,9 +1833,9 @@ func  (this *WooCore) WatchFundingRate(symbol interface{}, optionalArgs ...inter
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes145015 :=  (<-this.WatchPublic(topic, message))
-                ccxt.PanicOnError(retRes145015)
-                ch <- retRes145015
+                retRes144515 :=  (<-this.WatchPublic(topic, message))
+                ccxt.PanicOnError(retRes144515)
+                ch <- retRes144515
                 return nil
         
             }()

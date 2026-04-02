@@ -1,5 +1,5 @@
 import Exchange from './abstract/ascendex.js';
-import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode, MarginModification, Currencies, TradingFees, Dict, LeverageTier, LeverageTiers, int, FundingRate, FundingRates, DepositAddress, Position } from './base/types.js';
+import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode, MarginModification, Currencies, TradingFees, Dict, LeverageTier, LeverageTiers, int, FundingRate, FundingRates, DepositAddress, Position, OpenInterests } from './base/types.js';
 /**
  * @class ascendex
  * @augments Exchange
@@ -413,6 +413,17 @@ export default class ascendex extends Exchange {
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     fetchLeverages(symbols?: Strings, params?: {}): Promise<Leverages>;
+    /**
+     * @method
+     * @name ascendex#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#futures-pricing-data
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    fetchOpenInterests(symbols?: Strings, params?: {}): Promise<OpenInterests>;
+    parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

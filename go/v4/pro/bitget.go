@@ -2336,6 +2336,7 @@ func  (this *BitgetCore) ParseWsOrder(order interface{}, optionalArgs ...interfa
 }
 func  (this *BitgetCore) ParseWsOrderStatus(status interface{}) interface{}  {
     var statuses interface{} = map[string]interface{} {
+        "new": "open",
         "live": "open",
         "partially_filled": "open",
         "filled": "closed",
@@ -2371,8 +2372,8 @@ func  (this *BitgetCore) WatchMyTrades(optionalArgs ...interface{}) <- chan inte
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes20498 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes20498)
+            retRes20508 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes20508)
             var market interface{} = nil
             var messageHash interface{} = "myTrades"
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -2624,9 +2625,9 @@ func  (this *BitgetCore) WatchBalance(optionalArgs ...interface{}) <- chan inter
             }
             var messageHash interface{} = ccxt.Add("balance:", ccxt.ToLower(instType))
         
-                retRes227115 :=  (<-this.WatchPrivate(uta, messageHash, messageHash, args, params))
-                ccxt.PanicOnError(retRes227115)
-                ch <- retRes227115
+                retRes227215 :=  (<-this.WatchPrivate(uta, messageHash, messageHash, args, params))
+                ccxt.PanicOnError(retRes227215)
+                ch <- retRes227215
                 return nil
         
             }()
@@ -2788,9 +2789,9 @@ func  (this *BitgetCore) WatchPublic(uta interface{}, messageHash interface{}, a
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes242415 :=  (<-this.Watch(url, messageHash, message, messageHash))
-                ccxt.PanicOnError(retRes242415)
-                ch <- retRes242415
+                retRes242515 :=  (<-this.Watch(url, messageHash, message, messageHash))
+                ccxt.PanicOnError(retRes242515)
+                ch <- retRes242515
                 return nil
         
             }()
@@ -2821,9 +2822,9 @@ func  (this *BitgetCore) UnWatchPublic(uta interface{}, messageHash interface{},
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes244515 :=  (<-this.Watch(url, messageHash, message, messageHash))
-                ccxt.PanicOnError(retRes244515)
-                ch <- retRes244515
+                retRes244615 :=  (<-this.Watch(url, messageHash, message, messageHash))
+                ccxt.PanicOnError(retRes244615)
+                ch <- retRes244615
                 return nil
         
             }()
@@ -2851,9 +2852,9 @@ func  (this *BitgetCore) WatchPublicMultiple(uta interface{}, messageHashes inte
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes246315 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
-                ccxt.PanicOnError(retRes246315)
-                ch <- retRes246315
+                retRes246415 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
+                ccxt.PanicOnError(retRes246415)
+                ch <- retRes246415
                 return nil
         
             }()
@@ -2890,9 +2891,9 @@ func  (this *BitgetCore) Authenticate(optionalArgs ...interface{}) <- chan inter
                 this.Watch(url, messageHash, message, messageHash)
             }
         
-                retRes249215 := <- future.(*ccxt.Future).Await()
-                ccxt.PanicOnError(retRes249215)
-                ch <- retRes249215
+                retRes249315 := <- future.(*ccxt.Future).Await()
+                ccxt.PanicOnError(retRes249315)
+                ch <- retRes249315
                 return nil
         
             }()
@@ -2918,19 +2919,19 @@ func  (this *BitgetCore) WatchPrivate(uta interface{}, messageHash interface{}, 
                 }
             }
         
-            retRes25088 := (<-this.Authenticate(map[string]interface{} {
+            retRes25098 := (<-this.Authenticate(map[string]interface{} {
                 "url": url,
             }))
-            ccxt.PanicOnError(retRes25088)
+            ccxt.PanicOnError(retRes25098)
             var request interface{} = map[string]interface{} {
                 "op": "subscribe",
                 "args": []interface{}{args},
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes251415 :=  (<-this.Watch(url, messageHash, message, subscriptionHash))
-                ccxt.PanicOnError(retRes251415)
-                ch <- retRes251415
+                retRes251515 :=  (<-this.Watch(url, messageHash, message, subscriptionHash))
+                ccxt.PanicOnError(retRes251515)
+                ch <- retRes251515
                 return nil
         
             }()

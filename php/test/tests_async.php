@@ -957,6 +957,11 @@ class testMainClass {
         if (!$new_output && !$stored_output) {
             return true;
         }
+        // if needed convert stringified jsons to objects
+        if ((is_string($stored_output)) && (is_string($new_output)) && str_starts_with($stored_output, '{') && str_starts_with($new_output, '{')) {
+            $stored_output = json_parse($stored_output);
+            $new_output = json_parse($new_output);
+        }
         if ((is_array($stored_output)) && (is_array($new_output))) {
             $stored_output_keys = is_array($stored_output) ? array_keys($stored_output) : array();
             $new_output_keys = is_array($new_output) ? array_keys($new_output) : array();
@@ -1202,8 +1207,34 @@ class testMainClass {
     public function init_offline_exchange($exchange_name) {
         $markets = $this->load_markets_from_file($exchange_name);
         $currencies = $this->load_currencies_from_file($exchange_name);
+        $wasm_exec_path = null;
+        $library_path = null;
+        // const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
+        // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
+        // const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
+        // const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
         // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
-        $exchange = init_exchange($exchange_name, array(
+        $base_path = get_root_dir() . 'ts/src/test/static/binaries/';
+        if ($exchange_name === 'lighter') {
+            if ($this->lang === 'JS') {
+                $wasm_exec_path = get_root_dir() . '/src/test/static/binaries/wasm_exec.js';
+                $library_path = $base_path . 'lighter.wasm';
+            } else {
+                if (is_windows()) {
+                    $library_path = $base_path . 'lighter-signer-windows-amd64.dll';
+                } elseif (is_linux()) {
+                    if (is_amd64()) {
+                        $library_path = $base_path . 'lighter-signer-linux-amd64.so';
+                    } else {
+                        $library_path = $base_path . 'lighter-signer-linux-arm64.so';
+                    }
+                } else {
+                    // assume macos arm64
+                    $library_path = $base_path . 'lighter-signer-darwin-arm64.dylib';
+                }
+            }
+        }
+        $options = array(
             'markets' => $markets,
             'currencies' => $currencies,
             'enableRateLimit' => false,
@@ -1232,8 +1263,15 @@ class testMainClass {
                 'accessToken' => 'token',
                 'expires' => 999999999999999,
                 'leverageBrackets' => array(),
+                'libraryPath' => $library_path,
+                'wasmExecPath' => $wasm_exec_path,
             ),
-        ));
+        );
+        if ($exchange_name === 'grvt') {
+            $options['apiKey'] = '';
+            $options['secret'] = '';
+        }
+        $exchange = init_exchange($exchange_name, $options);
         $exchange->currencies = $currencies;
         // not working in python if assigned  in the config dict
         return $exchange;
@@ -1246,19 +1284,19 @@ class testMainClass {
             $global_options = $exchange->safe_dict($exchange_data, 'options', array());
             // read apiKey/secret from the test file
             $api_key = $exchange->safe_string($exchange_data, 'apiKey');
-            if ($api_key) {
+            if (!$exchange->is_empty_string($api_key)) {
                 $exchange->apiKey = ((string) $api_key);
             }
             $secret = $exchange->safe_string($exchange_data, 'secret');
-            if ($secret) {
+            if (!$exchange->is_empty_string($secret)) {
                 $exchange->secret = ((string) $secret);
             }
             $private_key = $exchange->safe_string($exchange_data, 'privateKey');
-            if ($private_key) {
+            if (!$exchange->is_empty_string($private_key)) {
                 $exchange->privateKey = ((string) $private_key);
             }
             $wallet_address = $exchange->safe_string($exchange_data, 'walletAddress');
-            if ($wallet_address) {
+            if (!$exchange->is_empty_string($wallet_address)) {
                 $exchange->walletAddress = ((string) $wallet_address);
             }
             $accounts = $exchange->safe_list($exchange_data, 'accounts');
@@ -1317,19 +1355,19 @@ class testMainClass {
             $exchange = $this->init_offline_exchange($exchange_name);
             // read apiKey/secret from the test file
             $api_key = $exchange->safe_string($exchange_data, 'apiKey');
-            if ($api_key) {
+            if (!$exchange->is_empty_string($api_key)) {
                 $exchange->apiKey = ((string) $api_key);
             }
             $secret = $exchange->safe_string($exchange_data, 'secret');
-            if ($secret) {
+            if (!$exchange->is_empty_string($secret)) {
                 $exchange->secret = ((string) $secret);
             }
             $private_key = $exchange->safe_string($exchange_data, 'privateKey');
-            if ($private_key) {
+            if (!$exchange->is_empty_string($private_key)) {
                 $exchange->privateKey = ((string) $private_key);
             }
             $wallet_address = $exchange->safe_string($exchange_data, 'walletAddress');
-            if ($wallet_address) {
+            if (!$exchange->is_empty_string($wallet_address)) {
                 $exchange->walletAddress = ((string) $wallet_address);
             }
             $methods = $exchange->safe_value($exchange_data, 'methods', array());
@@ -1496,7 +1534,7 @@ class testMainClass {
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
         return Async\async(function () {
-            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_coincatch(), $this->test_defx(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack()];
+            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_coincatch(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit()];
             Async\await(Promise\all($promises));
             $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
             dump('[INFO]' . $success_message);
@@ -1660,11 +1698,16 @@ class testMainClass {
     public function test_kucoin() {
         return Async\async(function () {
             $exchange = $this->init_offline_exchange('kucoin');
+            $exchange->options['uta'] = false; // prevents fetching account mode inside createOrder
             $req_headers = null;
             $spot_id = $exchange->options['partner']['spot']['id'];
             $spot_key = $exchange->options['partner']['spot']['key'];
             assert($spot_id === 'ccxt', 'kucoin - id: ' . $spot_id . ' not in options');
             assert($spot_key === '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'kucoin - key: ' . $spot_key . ' not in options.');
+            $future_id = $exchange->options['partner']['future']['id'];
+            $future_key = $exchange->options['partner']['future']['key'];
+            assert($future_id === 'ccxtfutures', 'kucoin - id: ' . $future_id . ' not in options.');
+            assert($future_key === '1b327198-f30c-4f14-a0ac-918871282f15', 'kucoin - key: ' . $future_key . ' not in options.');
             try {
                 Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
@@ -1672,7 +1715,30 @@ class testMainClass {
                 $req_headers = $exchange->last_request_headers;
             }
             $id = 'ccxt';
-            assert($req_headers['KC-API-PARTNER'] === $id, 'kucoin - id: ' . $id . ' not in headers.');
+            assert($req_headers['KC-API-PARTNER'] === $id, 'kucoin - id: ' . $id . ' not in headers for spot orders.');
+            try {
+                Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000, array(
+                    'uta' => true,
+                )));
+            } catch(\Throwable $e) {
+                $req_headers = $exchange->last_request_headers;
+            }
+            assert($req_headers['KC-API-PARTNER'] === $id, 'kucoin - id: ' . $id . ' not in headers for spot uta orders.');
+            $id = 'ccxtfutures';
+            try {
+                Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $req_headers = $exchange->last_request_headers;
+            }
+            assert($req_headers['KC-API-PARTNER'] === $id, 'kucoin - id: ' . $id . ' not in headers for swap orders.');
+            try {
+                Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, array(
+                    'uta' => true,
+                )));
+            } catch(\Throwable $e) {
+                $req_headers = $exchange->last_request_headers;
+            }
+            assert($req_headers['KC-API-PARTNER'] === $id, 'kucoin - id: ' . $id . ' not in headers for swap uta orders.');
             if (!is_sync()) {
                 Async\await(close($exchange));
             }
@@ -1695,6 +1761,14 @@ class testMainClass {
                 $req_headers = $exchange->last_request_headers;
             }
             assert($req_headers['KC-API-PARTNER'] === $id, 'kucoinfutures - id: ' . $id . ' not in headers.');
+            try {
+                Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, array(
+                    'uta' => true,
+                )));
+            } catch(\Throwable $e) {
+                $req_headers = $exchange->last_request_headers;
+            }
+            assert($req_headers['KC-API-PARTNER'] === $id, 'kucoinfutures - id: ' . $id . ' not in headers for uta orders.');
             if (!is_sync()) {
                 Async\await(close($exchange));
             }
@@ -2122,25 +2196,6 @@ class testMainClass {
         }) ();
     }
 
-    public function test_defx() {
-        return Async\async(function () {
-            $exchange = $this->init_offline_exchange('defx');
-            $req_headers = null;
-            try {
-                Async\await($exchange->create_order('DOGE/USDC:USDC', 'limit', 'buy', 100, 1));
-            } catch(\Throwable $e) {
-                // we expect an error here, we're only interested in the headers
-                $req_headers = $exchange->last_request_headers;
-            }
-            $id = 'ccxt';
-            assert($req_headers['X-DEFX-SOURCE'] === $id, 'defx - id: ' . $id . ' not in headers.');
-            if (!is_sync()) {
-                Async\await(close($exchange));
-            }
-            return true;
-        }) ();
-    }
-
     public function test_cryptomus() {
         return Async\async(function () {
             $exchange = $this->init_offline_exchange('cryptomus');
@@ -2220,6 +2275,25 @@ class testMainClass {
                 $req_headers = $exchange->last_request_headers;
             }
             assert($req_headers['X-Broker-Id'] === $id, 'backpack - id: ' . $id . ' not in headers.');
+            if (!is_sync()) {
+                Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_toobit() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('toobit');
+            $req_headers = null;
+            $id = '177321641268789';
+            try {
+                Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                // we expect an error here, we're only interested in the headers
+                $req_headers = $exchange->last_request_headers;
+            }
+            assert($req_headers['X-BB-API-PLATFORM'] === $id, 'toobit - id: ' . $id . ' not in headers.');
             if (!is_sync()) {
                 Async\await(close($exchange));
             }

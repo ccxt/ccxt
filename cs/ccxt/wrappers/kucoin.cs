@@ -10,7 +10,8 @@ public partial class kucoin
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#server-time"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-server-time"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-server-time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -30,13 +31,20 @@ public partial class kucoin
     /// the latest known information on the availability of the exchange API
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#service-status"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-service-status"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-service-status"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-service-status"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : spot or swap
     /// </description>
     /// </item>
     /// <item>
@@ -63,8 +71,9 @@ public partial class kucoin
     /// retrieves data on all markets for kucoin
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#get-symbols-list-deprecated"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/#get-all-tickers"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-symbols"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-symbol"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-all-symbols"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -86,21 +95,32 @@ public partial class kucoin
         var res = await this.fetchMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<List<MarketInterface>> FetchUtaMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchContractMarkets(Dictionary<string, object> parameters = null)
     {
-        var res = await this.fetchUtaMarkets(parameters);
+        var res = await this.fetchContractMarkets(parameters);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+    }
+    public async Task<List<MarketInterface>> FetchUTAMarkets(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchUTAMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
     /// fetch all the accounts associated with a profile
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#list-accounts"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-list-spot"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -129,7 +149,7 @@ public partial class kucoin
     /// fetch the fee for deposits and withdrawals
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#get-withdrawal-quotas"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-quotas"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -155,7 +175,8 @@ public partial class kucoin
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#get-all-tickers"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-tickers"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-all-tickers"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -171,9 +192,15 @@ public partial class kucoin
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.tradeType</term>
+    /// <term>params.type</term>
     /// <description>
-    /// string : *uta only* set to SPOT or FUTURES
+    /// string : spot or swap (default is spot)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.method</term>
+    /// <description>
+    /// string : *swap only* the method to use, futuresPublicGetContractsActive or futuresPublicGetAllTickers (default is futuresPublicGetContractsActive)
     /// </description>
     /// </item>
     /// </list>
@@ -184,11 +211,16 @@ public partial class kucoin
         var res = await this.fetchTickers(symbols, parameters);
         return new Tickers(res);
     }
+    public async Task<Tickers> FetchContractTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchContractTickers(symbols, parameters);
+        return new Tickers(res);
+    }
     /// <summary>
     /// fetches the mark price for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-all-margin-trading-pairs-mark-prices"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/market-data/get-mark-price-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -208,7 +240,8 @@ public partial class kucoin
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#get-24hr-stats"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-24hr-stats"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-ticker"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -235,7 +268,8 @@ public partial class kucoin
     /// fetches the mark price for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-mark-price"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/market-data/get-mark-price-detail"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-mark-price"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -255,7 +289,8 @@ public partial class kucoin
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#get-klines"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-klines"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-klines"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-klines"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -299,10 +334,112 @@ public partial class kucoin
         return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
     /// <summary>
+    /// helper method for fetchOHLCV
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-klines"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest candle to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of candles to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
+    public async Task<List<OHLCV>> FetchUTAOHLCV(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchUTAOHLCV(symbol, timeframe, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
+    }
+    /// <summary>
+    /// helper method for fetchOHLCV
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-klines"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest candle to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of candles to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
+    public async Task<List<OHLCV>> FetchSpotOHLCV(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchSpotOHLCV(symbol, timeframe, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
+    }
+    /// <summary>
+    /// helper method for fetchOHLCV
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-klines"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest candle to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of candles to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
+    public async Task<List<OHLCV>> FetchContractOHLCV(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchContractOHLCV(symbol, timeframe, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
+    }
+    /// <summary>
     /// create a currency deposit address
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/rest/funding/deposit/create-deposit-address-v3-"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/deposit/add-deposit-address-v3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -328,7 +465,8 @@ public partial class kucoin
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#get-deposit-addresses-v2"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-deposit-address"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -340,6 +478,18 @@ public partial class kucoin
     /// <term>params.network</term>
     /// <description>
     /// string : the blockchain network name
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.accountType</term>
+    /// <description>
+    /// string : 'main', 'contract' or 'uta' (default is 'main')
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta) endpoint, defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -354,12 +504,39 @@ public partial class kucoin
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#get-deposit-addresses-v2"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-address"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/?id=address-structure}.</returns>
+    public async Task<DepositAddress> FetchContractDepositAddress(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchContractDepositAddress(code, parameters);
+        return new DepositAddress(res);
+    }
+    /// <summary>
+    /// fetch the deposit address for a currency associated with this account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-deposit-address"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta) endpoint, defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -374,8 +551,9 @@ public partial class kucoin
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/market-data/get-part-order-book-aggregated-"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/market-data/get-full-order-book-aggregated-"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-part-orderbook"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-full-orderbook"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-part-orderbook"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-orderbook"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -409,13 +587,56 @@ public partial class kucoin
     /// Create an order on the exchange
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/spot#place-a-new-order"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/spot#place-a-new-order-2"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/spot#place-a-margin-order"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/spot-hf/#place-hf-order"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/orders/place-order-test"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/rest/margin-trading/orders/place-margin-order-test"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-place-hf-order"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order-sync"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order-test"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-stop-order"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order-test"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-stop-order"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-take-profit-and-stop-loss-order"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/place-order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>price</term>
+    /// <description>
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object :  extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta) endpoint, defaults to false
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var res = await this.createOrder(symbol, type, side, amount, price, parameters);
+        return new Order(res);
+    }
+    /// <summary>
+    /// helper method for creating spot orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order-sync"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order-test"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-stop-order"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order-test"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-stop-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -450,7 +671,7 @@ public partial class kucoin
     /// <item>
     /// <term>params.postOnly</term>
     /// <description>
-    /// string : Post only flag, invalid when timeInForce is IOC or FOK
+    /// bool : Post only flag, invalid when timeInForce is IOC or FOK
     /// </description>
     /// </item>
     /// <item>
@@ -546,17 +767,332 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateSpotOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
-        var res = await this.createOrder(symbol, type, side, amount, price, parameters);
+        var res = await this.createSpotOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
+    }
+    public Dictionary<string, object> CreateSpotOrderRequest(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var res = this.createSpotOrderRequest(symbol, type, side, amount, price, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// helper method for creating contract orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-take-profit-and-stop-loss-order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>price</term>
+    /// <description>
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object :  extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.takeProfit</term>
+    /// <description>
+    /// object : *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopLoss</term>
+    /// <description>
+    /// object : *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.triggerPrice</term>
+    /// <description>
+    /// float : The price a trigger order is triggered at
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopLossPrice</term>
+    /// <description>
+    /// float : price to trigger stop-loss orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.takeProfitPrice</term>
+    /// <description>
+    /// float : price to trigger take-profit orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.reduceOnly</term>
+    /// <description>
+    /// bool : A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.timeInForce</term>
+    /// <description>
+    /// string : GTC, GTT, IOC, or FOK, default is GTC, limit orders only
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.postOnly</term>
+    /// <description>
+    /// bool : Post only flag, invalid when timeInForce is IOC or FOK
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.cost</term>
+    /// <description>
+    /// float : the cost of the order in units of USDT
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated', default is 'isolated'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.hedged</term>
+    /// <description>
+    /// bool : *swap and future only* true for hedged mode, false for one way mode, default is false
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.leverage</term>
+    /// <description>
+    /// float : Leverage size of the order (mandatory param in request, default is 1)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.clientOid</term>
+    /// <description>
+    /// string : client order id, defaults to uuid if not passed
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.remark</term>
+    /// <description>
+    /// string : remark for the order, length cannot exceed 100 utf8 characters
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stop</term>
+    /// <description>
+    /// string : 'up' or 'down', the direction the triggerPrice is triggered from, requires triggerPrice. down: Triggers when the price reaches or goes below the triggerPrice. up: Triggers when the price reaches or goes above the triggerPrice.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.triggerPriceType</term>
+    /// <description>
+    /// string : "last", "mark", "index" - defaults to "mark"
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopPriceType</term>
+    /// <description>
+    /// string : exchange-specific alternative for triggerPriceType: TP, IP or MP
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.closeOrder</term>
+    /// <description>
+    /// bool : set to true to close position
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.test</term>
+    /// <description>
+    /// bool : set to true to use the test order endpoint (does not submit order, use to validate params)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.forceHold</term>
+    /// <description>
+    /// bool : A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.\
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.positionSide</term>
+    /// <description>
+    /// string : *swap and future only* hedged two-way position side, LONG or SHORT
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<Order> CreateContractOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var res = await this.createContractOrder(symbol, type, side, amount, price, parameters);
+        return new Order(res);
+    }
+    public Dictionary<string, object> CreateContractOrderRequest(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var res = this.createContractOrderRequest(symbol, type, side, amount, price, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// helper method for creating uta orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/place-order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>price</term>
+    /// <description>
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object :  extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : client order id, defaults to uuid if not passed
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.cost</term>
+    /// <description>
+    /// float : the cost of the order in units of quote currency
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.timeInForce</term>
+    /// <description>
+    /// string : GTC, GTD, IOC, FOK or PO
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.postOnly</term>
+    /// <description>
+    /// bool : Post only flag, invalid when timeInForce is IOC or FOK (default is false)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.reduceOnly</term>
+    /// <description>
+    /// bool : *contract markets only* A mark to reduce the position size only. Set to false by default
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.triggerPrice</term>
+    /// <description>
+    /// float : The price a trigger order is triggered at
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.triggerDirection</term>
+    /// <description>
+    /// string : 'ascending' or 'descending', the direction the triggerPrice is triggered from, requires triggerPrice
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.triggerPriceType</term>
+    /// <description>
+    /// string : *contract markets only* "last", "mark", "index" - defaults to "mark"
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopLossPrice</term>
+    /// <description>
+    /// float : price to trigger stop-loss orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.takeProfitPrice</term>
+    /// <description>
+    /// float : price to trigger take-profit orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated', (default is 'cross' for margin orders, default is 'isolated' for contract orders)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.accountMode</term>
+    /// <description>
+    /// string : 'unified' or 'classic', default is 'unified'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stp</term>
+    /// <description>
+    /// string : '', // self trade prevention, CN, CO, CB or DC
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.cancelAfter</term>
+    /// <description>
+    /// int : - Cancel After N Seconds (Calculated from the time of entering the matching engine), only effective when timeInForce is GTD
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.sizeUnit</term>
+    /// <description>
+    /// string : *contracts only* 'BASECCY' (amount of base currency) or 'UNIT' (number of contracts), default is 'UNIT'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.autoBorrow</term>
+    /// <description>
+    /// bool : *classic margin orders only*
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.autoRepay</term>
+    /// <description>
+    /// bool : *classic margin orders only*
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.hedged</term>
+    /// <description>
+    /// string : *classic contract orders only* true for hedged mode, false for one way mode, default is false
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.leverage</term>
+    /// <description>
+    /// int : *classic contract orders with isolated marginMode only* Leverage size of the order
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<Order> CreateUtaOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var res = await this.createUtaOrder(symbol, type, side, amount, price, parameters);
+        return new Order(res);
+    }
+    public Dictionary<string, object> CreateUtaOrderRequest(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var res = this.createUtaOrderRequest(symbol, type, side, amount, price, parameters);
+        return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// create a market order by providing the symbol, side and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/orders/place-order"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -576,7 +1112,8 @@ public partial class kucoin
     /// create a market buy order by providing the symbol and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/orders/place-order"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -596,7 +1133,8 @@ public partial class kucoin
     /// create a market sell order by providing the symbol and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/orders/place-order"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -616,9 +1154,30 @@ public partial class kucoin
     /// create a list of trade orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/orders/place-multiple-orders"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/place-multiple-hf-orders"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-place-multiple-hf-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-add-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-add-orders-sync"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object :  extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> CreateOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createOrders(orders, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// helper method for creating spot orders in batch
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-add-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-add-orders-sync"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/batch-add-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -641,22 +1200,36 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> CreateOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CreateSpotOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
     {
-        var res = await this.createOrders(orders, parameters);
+        var res = await this.createSpotOrders(orders, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
-    public Dictionary<string, object> CreateOrderRequest(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    /// <summary>
+    /// helper method for creating contract orders in batch
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/batch-add-orders"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object :  extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> CreateContractOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
     {
-        var price = price2 == 0 ? null : (object)price2;
-        var res = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-        return ((Dictionary<string, object>)res);
+        var res = await this.createContractOrders(orders, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// edit an order, kucoin currently only supports the modification of HF orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/spot-hf/#modify-order"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/modify-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -690,14 +1263,66 @@ public partial class kucoin
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/spot#cancel-an-order"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/spot#cancel-an-order-2"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/spot#cancel-single-order-by-clientoid"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/spot#cancel-single-order-by-clientoid-2"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/spot-hf/#cancel-orders-by-orderid"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/spot-hf/#cancel-order-by-clientoid"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-cancel-hf-order-by-orderid"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-cancel-hf-order-by-clientoid"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld-sync"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid-sync"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-clientoid"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-orderld"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-order-by-orderld"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-order-by-clientoid"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-orderld"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-clientoid"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-orderld"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-clientoid"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/cancel-order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : *spot only* 'cross' or 'isolated'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : true for cancelling order with unified account endpoint (default is false)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>undefined</term> undefined.</returns>
+    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelOrder(id, symbol, parameters);
+        return new Order(res);
+    }
+    /// <summary>
+    /// helper method for cancelling spot orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld-sync"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid-sync"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-clientoid"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-orderld"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-order-by-orderld"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-order-by-clientoid"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-orderld"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-clientoid"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -723,21 +1348,139 @@ public partial class kucoin
     /// bool : false, // true to use the hf sync call
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated'
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>undefined</term> undefined.</returns>
-    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CancelSpotOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
-        var res = await this.cancelOrder(id, symbol, parameters);
+        var res = await this.cancelSpotOrder(id, symbol, parameters);
+        return new Order(res);
+    }
+    /// <summary>
+    /// helper method for cancelling contract orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-orderld"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-clientoid"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : cancel order by client order id
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<Order> CancelContractOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelContractOrder(id, symbol, parameters);
+        return new Order(res);
+    }
+    /// <summary>
+    /// helper method for cancelling uta orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/cancel-order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.accountMode</term>
+    /// <description>
+    /// string : 'unified' or 'classic' (default is 'unified')
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : client order id, required if id is not provided
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated', required if fetching a margin order
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>undefined</term> undefined.</returns>
+    public async Task<Order> CancelUtaOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelUtaOrder(id, symbol, parameters);
         return new Order(res);
     }
     /// <summary>
     /// cancel all open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/spot#cancel-all-orders"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/spot#cancel-orders"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/spot-hf/#cancel-all-hf-orders-by-symbol"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders-by-symbol"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-cancel-stop-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-all-orders-by-symbol"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/batch-cancel-stop-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-stop-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-symbol"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : *spot only* 'cross' or 'isolated'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : true for cancelling orders with unified account endpoint (default is false)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>undefined</term> undefined.</returns>
+    public async Task<List<Order>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelAllOrders(symbol, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// helper method for cancelling all spot orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders-by-symbol"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-cancel-stop-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-all-orders-by-symbol"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/batch-cancel-stop-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -760,7 +1503,7 @@ public partial class kucoin
     /// <item>
     /// <term>params.orderIds</term>
     /// <description>
-    /// string : *stop orders only* Comma seperated order IDs
+    /// string : *stop orders only* Comma separated order IDs
     /// </description>
     /// </item>
     /// <item>
@@ -772,19 +1515,129 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>undefined</term> undefined.</returns>
-    public async Task<List<Order>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelAllSpotOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
-        var res = await this.cancelAllOrders(symbol, parameters);
+        var res = await this.cancelAllSpotOrders(symbol, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
-    /// fetch a list of orders
+    /// helper method for cancelling all contract orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/spot#list-orders"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/spot#list-stop-orders"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/spot-hf/#obtain-list-of-active-hf-orders"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/spot-hf/#obtain-list-of-filled-hf-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-stop-orders"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// object : When true, all the trigger orders will be cancelled
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>undefined</term> undefined.</returns>
+    public async Task<List<Order>> CancelAllContractOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelAllContractOrders(symbol, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// helper method for cancelling all uta orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-symbol"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// bool : true if cancelling all stop orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'CROSS' or 'ISOLATED'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>undefined</term> undefined.</returns>
+    public async Task<List<Order>> CancelAllUtaOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelAllUtaOrders(symbol, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// fetches a list of orders placed on the exchange
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-open-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-closed-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-open-order-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-order-history"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest order to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : The maximum number of orders to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : exchange specific parameters
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : true for fetch orders with uta endpoint (default is false)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>undefined</term> undefined.</returns>
+    public async Task<List<Order>> FetchOrdersByStatus(object status, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchOrdersByStatus(status, symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// fetch a list of spot orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-open-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-closed-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -825,7 +1678,7 @@ public partial class kucoin
     /// <item>
     /// <term>params.tradeType</term>
     /// <description>
-    /// string : TRADE for spot trading, MARGIN_TRADE for Margin Trading
+    /// string : TRADE for spot trading, MARGIN_TRADE or MARGIN_ISOLATED_TRADE for Margin Trading
     /// </description>
     /// </item>
     /// <item>
@@ -837,7 +1690,7 @@ public partial class kucoin
     /// <item>
     /// <term>params.orderIds</term>
     /// <description>
-    /// string : *trigger orders only* comma seperated order ID list
+    /// string : *trigger orders only* comma separated order ID list
     /// </description>
     /// </item>
     /// <item>
@@ -852,24 +1705,157 @@ public partial class kucoin
     /// bool : false, // true for hf order
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated', only for margin orders
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>undefined</term> undefined.</returns>
-    public async Task<List<Order>> FetchOrdersByStatus(object status, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> FetchSpotOrdersByStatus(object status, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchOrdersByStatus(status, symbol, since, limit, parameters);
+        var res = await this.fetchSpotOrdersByStatus(status, symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// fetches a list of contract orders placed on the exchange
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest order to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : The maximum number of orders to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : exchange specific parameters
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// bool : set to true to retrieve untriggered stop orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : End time in ms
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.side</term>
+    /// <description>
+    /// string : buy or sell
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : limit or market
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>undefined</term> undefined.</returns>
+    public async Task<List<Order>> FetchContractOrdersByStatus(object status, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchContractOrdersByStatus(status, symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// helper method for fetching orders by status with uta endpoint
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-open-order-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-order-history"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest order to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : The maximum number of orders to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : exchange specific parameters
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : End time in ms
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.side</term>
+    /// <description>
+    /// string : *closed orders only* 'BUY' or 'SELL'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.accountMode</term>
+    /// <description>
+    /// string : 'unified' or 'classic' (default is unified)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>undefined</term> undefined.</returns>
+    public async Task<List<Order>> FetchUtaOrdersByStatus(object status, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchUtaOrdersByStatus(status, symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/spot#list-orders"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/spot#list-stop-orders"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/spot-hf/#obtain-list-of-active-hf-orders"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/spot-hf/#obtain-list-of-filled-hf-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-closed-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-order-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -945,10 +1931,14 @@ public partial class kucoin
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/spot#list-orders"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/spot#list-stop-orders"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/spot-hf/#obtain-list-of-active-hf-orders"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/spot-hf/#obtain-list-of-filled-hf-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-open-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-open-order-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1007,7 +1997,7 @@ public partial class kucoin
     /// <item>
     /// <term>params.orderIds</term>
     /// <description>
-    /// string : *trigger orders only* comma seperated order ID list
+    /// string : *trigger orders only* comma separated order ID list
     /// </description>
     /// </item>
     /// <item>
@@ -1033,15 +2023,59 @@ public partial class kucoin
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
-    /// fetch an order
+    /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/spot#get-an-order"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/spot#get-single-active-order-by-clientoid"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/spot#get-single-order-info"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/spot#get-single-order-by-clientoid"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/spot-hf/#details-of-a-single-hf-order"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/spot-hf/#obtain-details-of-a-single-hf-order-using-clientoid"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-orderld"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-clientoid"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-order-by-orderld"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/get-stop-order-by-clientoid"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-order-by-orderld"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-order-by-clientoid"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-orderld"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-clientoid"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-by-orderld"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/get-stop-order-by-clientoid"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-order-details"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// bool : true if fetching an order with uta endpoint (default is false)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<Order> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOrder(id, symbol, parameters);
+        return new Order(res);
+    }
+    /// <summary>
+    /// fetch a spot order
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-orderld"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-clientoid"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-order-by-orderld"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/get-stop-order-by-clientoid"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-order-by-orderld"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-order-by-clientoid"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-orderld"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-clientoid"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1067,12 +2101,77 @@ public partial class kucoin
     /// bool : unique order id created by users to identify their orders
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// object : 'cross' or 'isolated'
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>undefined</term> undefined.</returns>
-    public async Task<Order> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> FetchSpotOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
-        var res = await this.fetchOrder(id, symbol, parameters);
+        var res = await this.fetchSpotOrder(id, symbol, parameters);
+        return new Order(res);
+    }
+    /// <summary>
+    /// fetc contract order
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-by-orderld"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/get-stop-order-by-clientoid"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<Order> FetchContractOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchContractOrder(id, symbol, parameters);
+        return new Order(res);
+    }
+    /// <summary>
+    /// fetch uta order
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-order-details"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.accountMode</term>
+    /// <description>
+    /// string : 'unified' or 'classic' (default is 'unified')
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : client order id, required if id is not provided
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated', required if fetching a margin order
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<Order> FetchUtaOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchUtaOrder(id, symbol, parameters);
         return new Order(res);
     }
     /// <summary>
@@ -1080,7 +2179,9 @@ public partial class kucoin
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.kucoin.com/#list-fills"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/spot-hf/#transaction-details"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-trade-history"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-trade-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1100,6 +2201,18 @@ public partial class kucoin
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true if fetching trades from uta endpoint, default is false.
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
@@ -1114,8 +2227,56 @@ public partial class kucoin
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#list-fills"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/spot-hf/#transaction-details"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-trade-history"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch trades for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of trades structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
+    public async Task<List<Trade>> FetchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchMyTrades(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+    }
+    /// <summary>
+    /// fetch all spot trades made by the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1148,6 +2309,12 @@ public partial class kucoin
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated', only for margin trades
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.paginate</term>
     /// <description>
     /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -1156,19 +2323,130 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
-    public async Task<List<Trade>> FetchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Trade>> FetchMySpotTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchMyTrades(symbol, since, limit, parameters);
+        var res = await this.fetchMySpotTrades(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+    }
+    /// <summary>
+    /// fetch all contract trades made by the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-trade-history"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch trades for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of trades structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : End time in ms
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
+    public async Task<List<Trade>> FetchMyContractTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchMyContractTrades(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+    }
+    /// <summary>
+    /// fetch all trades made by the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-trade-history"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch trades for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of trades structures to retrieve (default is 50, max is 200)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch entries for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.accountMode</term>
+    /// <description>
+    /// string : 'unified' or 'classic', defaults to 'unified'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated', only for margin trades
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.side</term>
+    /// <description>
+    /// string : 'BUY' or 'SELL' (both if not provided)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
+    public async Task<List<Trade>> FetchMyUtaTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchMyUtaTrades(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
     /// <summary>
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/market-data/get-trade-histories"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-trade-history"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-trades"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-trade-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1208,12 +2486,20 @@ public partial class kucoin
     /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/rest/funding/trade-fee/trading-pair-actual-fee-spot-margin-trade_hf"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/trade-fee/get-actual-fee-spot-margin"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/trade-fee/get-actual-fee-futures"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-actual-fee"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta) endpoint, defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -1228,7 +2514,7 @@ public partial class kucoin
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/rest/funding/withdrawals/apply-withdraw-v3-"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/withdrawals/withdraw-v3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1248,6 +2534,7 @@ public partial class kucoin
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-history"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-list"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs/rest/funding/deposit/get-v1-historical-deposits-list"/>  <br/>
     /// <list type="table">
@@ -1278,7 +2565,13 @@ public partial class kucoin
     /// <item>
     /// <term>params.paginate</term>
     /// <description>
-    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// boolean : *main account only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.accountType</term>
+    /// <description>
+    /// string : 'main' or 'contract' (default is 'main')
     /// </description>
     /// </item>
     /// </list>
@@ -1292,9 +2585,43 @@ public partial class kucoin
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
     /// <summary>
+    /// helper method for fetching deposits for futures accounts
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch deposits for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of deposits structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
+    public async Task<List<Transaction>> FetchContractDeposits(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchContractDeposits(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
+    }
+    /// <summary>
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-history"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs/rest/funding/withdrawals/get-withdrawals-list"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs/rest/funding/withdrawals/get-v1-historical-withdrawals-list"/>  <br/>
     /// <list type="table">
@@ -1325,7 +2652,13 @@ public partial class kucoin
     /// <item>
     /// <term>params.paginate</term>
     /// <description>
-    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// boolean : *main account only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.accountType</term>
+    /// <description>
+    /// string : 'main' or 'contract' (default is 'main')
     /// </description>
     /// </item>
     /// </list>
@@ -1339,12 +2672,48 @@ public partial class kucoin
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
     /// <summary>
+    /// helper method for fetching withdrawals for futures accounts
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch withdrawals for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of withdrawals structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
+    public async Task<List<Transaction>> FetchContractWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchContractWithdrawals(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
+    }
+    /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/rest/account/basic-info/get-account-list-spot-margin-trade_hf"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-margin"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-isolated-margin"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-detail-spot"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-cross-margin"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-isolated-margin"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-futures"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-uta"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-classic"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1370,6 +2739,12 @@ public partial class kucoin
     /// object : *default if false* if true, the result includes the balance of the high frequency account
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta) endpoint, defaults to false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
@@ -1379,7 +2754,131 @@ public partial class kucoin
         return new Balances(res);
     }
     /// <summary>
+    /// query for balance and get the amount of funds available for trading or funds locked in orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-futures"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.code</term>
+    /// <description>
+    /// object : the unified currency code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
+    public async Task<Balances> FetchContractBalance(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchContractBalance(parameters);
+        return new Balances(res);
+    }
+    /// <summary>
+    /// helper method for fetching balance with unified trading account (uta) endpoint
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-uta"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-classic"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'spot', 'unified', 'funding', 'cross', 'isolated' or 'swap' (default is 'spot')
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated', margin type for fetching margin balance, only applicable if type is margin (default is cross)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
+    public async Task<Balances> FetchUtaBalance(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchUtaBalance(parameters);
+        return new Balances(res);
+    }
+    /// <summary>
     /// transfer currency internally between wallets on the same account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/flex-transfer"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta) endpoint, defaults to false
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
+    public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
+        return new TransferEntry(res);
+    }
+    /// <summary>
+    /// transfer currency internally between wallets on the same account with uta endpoint
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/flex-transfer"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.transferType</term>
+    /// <description>
+    /// string : INTERNAL, PARENT_TO_SUB, SUB_TO_PARENT, SUB_TO_SUB (default is INTERNAL)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.fromUserId</term>
+    /// <description>
+    /// string : required if transferType is SUB_TO_PARENT or SUB_TO_SUB
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.toUserId</term>
+    /// <description>
+    /// string : required if transferType is PARENT_TO_SUB or SUB_TO_SUB
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
+    public async Task<TransferEntry> TransferUta(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.transferUta(code, amount, fromAccount, toAccount, parameters);
+        return new TransferEntry(res);
+    }
+    /// <summary>
+    /// transfer currency internally between wallets on the same account with classic endpoints
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&"/>  <br/>
@@ -1411,18 +2910,20 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
-    public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
+    public async Task<TransferEntry> TransferClassic(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
     {
-        var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
+        var res = await this.transferClassic(code, amount, fromAccount, toAccount, parameters);
         return new TransferEntry(res);
     }
     /// <summary>
     /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-spot-margin"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-trade_hf"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-margin_hf"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-spot-margin"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-tradehf"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-marginhf"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-futures"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-account-ledger"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -1449,6 +2950,12 @@ public partial class kucoin
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.hf</term>
     /// <description>
     /// boolean : default false, when true will fetch ledger entries for the high frequency trading account
@@ -1458,6 +2965,12 @@ public partial class kucoin
     /// <term>params.until</term>
     /// <description>
     /// int : the latest time in ms to fetch entries for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : default false, when true will fetch ledger entries for the unified trading account (UTA) instead of the regular accounts endpoint
     /// </description>
     /// </item>
     /// <item>
@@ -1480,8 +2993,8 @@ public partial class kucoin
     /// fetch the interest owed by the user for borrowing currency for margin trading
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#get-repay-record"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/#query-isolated-margin-account-info"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-cross-margin"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-isolated-margin"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -1533,7 +3046,7 @@ public partial class kucoin
     /// retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is undefined
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/get-cross-isolated-margin-interest-records"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/debit/get-interest-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1579,7 +3092,7 @@ public partial class kucoin
     /// retrieves a history of a currencies borrow interest rate at specific time slots
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/get-cross-isolated-margin-interest-records"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/debit/get-interest-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1642,10 +3155,32 @@ public partial class kucoin
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
+    /// fetch the set leverage for a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-cross-margin-leverage"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}.</returns>
+    public async Task<Leverage> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchLeverage(symbol, parameters);
+        return new Leverage(res);
+    }
+    /// <summary>
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/modify-leverage-multiplier"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/debit/modify-leverage"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/modify-leverage-uta"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -1659,6 +3194,12 @@ public partial class kucoin
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : *contract markets only* set to true for the unified trading account (uta)
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> response from the exchange.</returns>
@@ -1668,15 +3209,42 @@ public partial class kucoin
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
-    /// fetch the current funding rate
+    /// fetch the current funding rate interval
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-current-funding-rate"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-current-funding-rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRate> FetchFundingInterval(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingInterval(symbol, parameters);
+        return new FundingRate(res);
+    }
+    /// <summary>
+    /// fetch the current funding rate
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-current-funding-rate"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-current-funding-rate"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta)
     /// </description>
     /// </item>
     /// </list>
@@ -1691,6 +3259,7 @@ public partial class kucoin
     /// fetches historical funding rate prices
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-public-funding-history"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-history-funding-rate"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -1717,6 +3286,12 @@ public partial class kucoin
     /// int : end time in ms
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to true
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}.</returns>
@@ -1726,6 +3301,390 @@ public partial class kucoin
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchFundingRateHistory(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new FundingRateHistory(item)).ToList<FundingRateHistory>();
+    }
+    /// <summary>
+    /// fetch the history of funding payments paid and received on this account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-private-funding-history"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch funding history for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of funding history structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}.</returns>
+    public async Task<List<FundingHistory>> FetchFundingHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchFundingHistory(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new FundingHistory(item)).ToList<FundingHistory>();
+    }
+    /// <summary>
+    /// fetch data on an open position
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-details"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-position-list-uta"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [position structure]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
+    public async Task<Position> FetchPosition(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPosition(symbol, parameters);
+        return new Position(res);
+    }
+    /// <summary>
+    /// fetch all open positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-position-list-uta"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
+    public async Task<List<Position>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositions(symbols, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+    }
+    /// <summary>
+    /// fetches historical positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-positions-history"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-position-history-uta"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch position history for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of entries to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : closing end time
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.pageId</term>
+    /// <description>
+    /// int : page id
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
+    public async Task<List<Position>> FetchPositionsHistory(List<String> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchPositionsHistory(symbols, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+    }
+    /// <summary>
+    /// cancel multiple orders for contract markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/3470241e0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-id"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true to use the unified trading account (uta) endpoint, defaults to false for the contract orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.accountMode</term>
+    /// <description>
+    /// string : *for uta endpoint only* 'unified' or 'classic' (default is 'unified')
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : *for margin orders only* 'cross' or 'isolated'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelOrders(ids, symbol, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// fetches the margin mode of a trading pair
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-margin-mode"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}.</returns>
+    public async Task<MarginMode> FetchMarginMode(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMarginMode(symbol, parameters);
+        return new MarginMode(res);
+    }
+    /// <summary>
+    /// set margin mode to 'cross' or 'isolated'
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/positions/switch-margin-mode"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> response from the exchange.</returns>
+    public async Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.setMarginMode(marginMode, symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// set hedged to true or false for a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/positions/switch-position-mode"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : not used by bybit setPositionMode ()
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a response from the exchange.</returns>
+    public async Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.setPositionMode(hedged, symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetchs the position mode, hedged or one way
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-mode"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified symbol of the market to fetch the position mode for (not used in blofin fetchPositionMode)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an object detailing whether the market is in hedged or one-way mode.</returns>
+    public async Task<Dictionary<string, object>> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionMode(symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-isolated-margin-risk-limit"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true to fetch leverage tiers for unified trading account instead of futures account (default is false)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}.</returns>
+    public async Task<List<LeverageTier>> FetchMarketLeverageTiers(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMarketLeverageTiers(symbol, parameters);
+        return ((IList<object>)res).Select(item => new LeverageTier(item)).ToList<LeverageTier>();
+    }
+    /// <summary>
+    /// retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-position-tiers"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols.</returns>
+    public async Task<LeverageTiers> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchLeverageTiers(symbols, parameters);
+        return new LeverageTiers(res);
+    }
+    /// <summary>
+    /// Retrieves the open interest for a list of symbols
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-futures-open-interset"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : exchange specific parameters
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}.</returns>
+    public async Task<OpenInterests> FetchOpenInterests(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOpenInterests(symbols, parameters);
+        return new OpenInterests(res);
+    }
+    /// <summary>
+    /// Retrieves the open interest history of a currency
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-futures-open-interset"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the time(ms) of the earliest record to retrieve as a unix timestamp
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : default 30，max 200
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch entries for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}.</returns>
+    public async Task<List<OpenInterest>> FetchOpenInterestHistory(string symbol, string timeframe = "5m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchOpenInterestHistory(symbol, timeframe, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new OpenInterest(item)).ToList<OpenInterest>();
     }
     /// <summary>
     /// fetch a history of internal transfers made on an account
@@ -1778,5 +3737,10 @@ public partial class kucoin
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTransfers(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new TransferEntry(item)).ToList<TransferEntry>();
+    }
+    public async Task<List<ADL>> FetchPositionsADLRank(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionsADLRank(symbols, parameters);
+        return ((IList<object>)res).Select(item => new ADL(item)).ToList<ADL>();
     }
 }

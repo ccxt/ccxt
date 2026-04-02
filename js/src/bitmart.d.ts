@@ -234,6 +234,7 @@ export default class bitmart extends Exchange {
      * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-sl-order-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-trail-order-signed
+     * @see https://developer-pro.bitmart.com/en/spot/#new-algo-order-v4-signed
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market', 'limit' or 'trailing' for swap markets only
      * @param {string} side 'buy' or 'sell'
@@ -280,12 +281,14 @@ export default class bitmart extends Exchange {
      * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-plan-order-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-order-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-trail-order-signed
+     * @see https://developer-pro.bitmart.com/en/spot/#cancel-algo-order-v4-signed
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] *spot only* the client order id of the order to cancel
-     * @param {boolean} [params.trigger] *swap only* whether the order is a trigger order
      * @param {boolean} [params.trailing] *swap only* whether the order is a stop order
+     * @param {boolean} [params.trigger] whether the order is a trigger order
+     * @param {boolean} [params.stopLossTakeProfit] whether the order is a stopLossPrice or takeProfitPrice order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -307,9 +310,12 @@ export default class bitmart extends Exchange {
      * @description cancel all open orders in a market
      * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-order-v4-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed
+     * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-algo-order-v4-signed
      * @param {string} symbol unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.side] *spot only* 'buy' or 'sell'
+     * @param {boolean} [params.trigger] whether the orders are trigger orders
+     * @param {boolean} [params.stopLossTakeProfit] whether the orders are stopLossPrice or takeProfitPrice orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
@@ -317,10 +323,11 @@ export default class bitmart extends Exchange {
     /**
      * @method
      * @name bitmart#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
      * @see https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-all-open-orders-keyed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-all-current-plan-orders-keyed
-     * @description fetch all unfilled currently open orders
+     * @see https://developer-pro.bitmart.com/en/spot/#current-algo-open-orders-v4-signed
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -331,7 +338,8 @@ export default class bitmart extends Exchange {
      * @param {string} [params.order_state] *swap* the order state, 'all' or 'partially_filled', default is 'all'
      * @param {string} [params.orderType] *swap only* 'limit', 'market', or 'trailing'
      * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch trailing orders
-     * @param {boolean} [params.trigger] *swap only* set to true if you want to fetch trigger orders
+     * @param {boolean} [params.trigger] set to true if you want to fetch trigger orders
+     * @param {boolean} [params.stopLossTakeProfit] set to true if you want to fetch stopLossPrice or takeProfitPrice orders
      * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -339,9 +347,10 @@ export default class bitmart extends Exchange {
     /**
      * @method
      * @name bitmart#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
      * @see https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed
-     * @description fetches information on multiple closed orders made by the user
+     * @see https://developer-pro.bitmart.com/en/spot/#account-algo-orders-v4-signed
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -349,6 +358,8 @@ export default class bitmart extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest entry
      * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated', for margin trading
      * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+     * @param {boolean} [params.trigger] set to true if you want to fetch trigger orders
+     * @param {boolean} [params.stopLossTakeProfit] set to true if you want to fetch stopLossPrice or takeProfitPrice orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -370,6 +381,8 @@ export default class bitmart extends Exchange {
      * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-id-v4-signed
      * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-clientorderid-v4-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-detail-keyed
+     * @see https://developer-pro.bitmart.com/en/spot/#query-algo-order-by-id-v4-signed
+     * @see https://developer-pro.bitmart.com/en/spot/#query-algo-order-by-clientorderid-v4-signed
      * @param {string} id the id of the order
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -377,6 +390,7 @@ export default class bitmart extends Exchange {
      * @param {string} [params.orderType] *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing'
      * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch a trailing order
      * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+     * @param {boolean} [params.trigger] whether the orders is a trigger, stopLossPrice or takeProfitPrice order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;

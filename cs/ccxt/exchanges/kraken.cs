@@ -174,6 +174,7 @@ public partial class kraken : Exchange
                         { "WithdrawAddresses", 3 },
                         { "WithdrawStatus", 3 },
                         { "WalletTransfer", 3 },
+                        { "GetApiKeyInfo", 3 },
                         { "CreateSubaccount", 3 },
                         { "AccountTransfer", 3 },
                         { "Earn/Allocate", 3 },
@@ -480,6 +481,7 @@ public partial class kraken : Exchange
                 } },
             } },
             { "precisionMode", TICK_SIZE },
+            { "rollingWindowSize", 10000 },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
                     { "EQuery:Invalid asset pair", typeof(BadSymbol) },
@@ -1740,7 +1742,7 @@ public partial class kraken : Exchange
         object result = this.safeDict(response, "result");
         ((IDictionary<string,object>)result)["usingCost"] = isUsingCost;
         // it's impossible to know if the order was created using cost or base currency
-        // becuase kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
+        // because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
         // this usingCost flag is used to help the parsing but omited from the order
         return this.parseOrder(result);
     }
@@ -3808,7 +3810,7 @@ public partial class kraken : Exchange
         {
             if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
             {
-                // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
+                // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 url = add(url, add("?", this.urlencodeNested(parameters)));
             }
         } else if (isTrue(isEqual(api, "private")))
@@ -3823,7 +3825,6 @@ public partial class kraken : Exchange
             object isBatchOrder = (isEqual(path, "AddOrderBatch"));
             this.checkRequiredCredentials();
             object nonce = ((object)this.nonce()).ToString();
-            // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
             if (isTrue(isTrue(isTrue(isCancelOrderBatch) || isTrue(isTriggerPercent)) || isTrue(isBatchOrder)))
             {
                 body = this.json(this.extend(new Dictionary<string, object>() {
@@ -3831,6 +3832,7 @@ public partial class kraken : Exchange
                 }, parameters));
             } else
             {
+                // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 body = this.urlencodeNested(this.extend(new Dictionary<string, object>() {
                     { "nonce", nonce },
                 }, parameters));

@@ -99,14 +99,14 @@ public partial class htx : Exchange
                 { "fetchOrderTrades", true },
                 { "fetchPosition", true },
                 { "fetchPositionADLRank", true },
-                { "fetchPositionsADLRank", true },
                 { "fetchPositionHistory", "emulated" },
                 { "fetchPositions", true },
+                { "fetchPositionsADLRank", true },
                 { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", true },
                 { "fetchSettlementHistory", true },
-                { "fetchStatus", true },
+                { "fetchStatus", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
@@ -1300,6 +1300,7 @@ public partial class htx : Exchange
                     } },
                 } },
             } },
+            { "rollingWindowSize", 2000 },
         });
     }
 

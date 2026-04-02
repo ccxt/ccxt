@@ -136,7 +136,6 @@ export default class paradex extends Exchange {
     parseTimeInForce(timeInForce: Str): string;
     parseOrderStatus(status: Str): string;
     parseOrderType(type: Str): string;
-    convertShortString(str: string): string;
     scaleNumber(num: string): string;
     /**
      * @method

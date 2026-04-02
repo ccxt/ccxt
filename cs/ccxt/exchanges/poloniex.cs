@@ -3916,7 +3916,7 @@ public partial class poloniex : Exchange
         {
             url = getValue(getValue(this.urls, "api"), "swap");
         }
-        if (isTrue(inOp(parameters, "symbol")))
+        if (isTrue(isTrue(isEqual(method, "GET")) && isTrue((inOp(parameters, "symbol")))))
         {
             ((IDictionary<string,object>)parameters)["symbol"] = this.encodeURIComponent(getValue(parameters, "symbol")); // handle symbols like 索拉拉/USDT'
         }

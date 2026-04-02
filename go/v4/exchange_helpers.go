@@ -784,6 +784,15 @@ func IsEqual(a, b interface{}) bool {
 		case float64:
 			return float64(aVal) == bVal
 		}
+	case uint8:
+		switch bVal := b.(type) {
+		case uint8:
+			return aVal == bVal
+		case int64:
+			return int64(aVal) == bVal
+		case float64:
+			return float64(aVal) == bVal
+		}
 	case int64:
 		switch bVal := b.(type) {
 		case int:

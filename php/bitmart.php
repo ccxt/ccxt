@@ -239,6 +239,13 @@ class bitmart extends Exchange {
                         'spot/v4/cancel_orders' => 3,
                         'spot/v4/cancel_all' => 90,
                         'spot/v4/batch_orders' => 3,
+                        'spot/v4/algo/submit_order' => 6, // 10 times per 2 seconds
+                        'spot/v4/algo/cancel_order' => 6,
+                        'spot/v4/algo/cancel_all' => 12, // 5 times per 2 seconds
+                        'spot/v4/query/algo/order' => 1.5,
+                        'spot/v4/query/algo/client-order' => 1.5, // 40 times per 2 seconds
+                        'spot/v4/query/algo/open-orders' => 3,
+                        'spot/v4/query/algo/history-orders' => 3, // 20 times per 2 seconds
                         // newer endpoint
                         'spot/v3/cancel_order' => 1,
                         'spot/v2/batch_orders' => 1,
@@ -928,7 +935,7 @@ class bitmart extends Exchange {
         if ($type === 'swap') {
             $type = 'contract';
         }
-        $service = $this->safe_string($servicesByType, $type);
+        $service = $this->safe_dict($servicesByType, $type);
         $status = null;
         $eta = null;
         if ($service !== null) {
@@ -2763,6 +2770,7 @@ class bitmart extends Exchange {
          * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-$order-signed
          * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-sl-$order-signed
          * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-trail-$order-signed
+         * @see https://developer-pro.bitmart.com/en/spot/#new-algo-$order-v4-signed
          *
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market', 'limit' or 'trailing' for swap markets only
@@ -2800,7 +2808,9 @@ class bitmart extends Exchange {
         $response = null;
         if ($market['spot']) {
             $spotRequest = $this->create_spot_order_request($symbol, $type, $side, $amount, $price, $params);
-            if ($marginMode === 'isolated') {
+            if ($isStopLoss || $isTakeProfit || $isTriggerOrder) {
+                $response = $this->privatePostSpotV4AlgoSubmitOrder ($spotRequest);
+            } elseif ($marginMode === 'isolated') {
                 $response = $this->privatePostSpotV1MarginSubmitOrder ($spotRequest);
             } else {
                 $response = $this->privatePostSpotV2SubmitOrder ($spotRequest);
@@ -3060,6 +3070,7 @@ class bitmart extends Exchange {
          * create a spot order $request
          * @see https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
          * @see https://developer-pro.bitmart.com/en/spot/#new-margin-order-v1-signed
+         * @see https://developer-pro.bitmart.com/en/spot/#new-algo-order-v4-signed
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
@@ -3067,13 +3078,23 @@ class bitmart extends Exchange {
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated'
+         * @param {string} [$params->clientOrderId] client order id of the order
+         * @param {string} [$params->triggerPrice] the $price to trigger a stop order
+         * @param {string} [$params->stopLossPrice] the $price to trigger a stop-loss order
+         * @param {string} [$params->takeProfitPrice] the $price to trigger a take-profit order
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $market = $this->market($symbol);
+        $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 'trigger_price' ));
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+        $isStopLoss = $stopLossPrice !== null;
+        $isTakeProfit = $takeProfitPrice !== null;
+        $isTriggerOrder = $triggerPrice !== null;
+        $isAlgoOrder = $isStopLoss || $isTakeProfit || $isTriggerOrder;
         $request = array(
             'symbol' => $market['id'],
             'side' => $side,
-            'type' => $type,
         );
         $timeInForce = $this->safe_string($params, 'timeInForce');
         if ($timeInForce === 'FOK') {
@@ -3087,7 +3108,27 @@ class bitmart extends Exchange {
         $params = $this->omit($params, array( 'timeInForce', 'postOnly' ));
         $ioc = (($timeInForce === 'IOC') || ($type === 'ioc'));
         $isLimitOrder = ($type === 'limit') || $postOnly || $ioc;
-        // method = 'privatePostSpotV2SubmitOrder';
+        if ($isAlgoOrder) {
+            if ($isTriggerOrder) {
+                $request['type'] = 'trigger';
+            } else {
+                $request['type'] = 'tp/sl';
+            }
+            if ($isLimitOrder) {
+                $request['trigger_type'] = 'limit';
+            } else {
+                $request['trigger_type'] = 'market';
+            }
+            if ($isStopLoss) {
+                $request['trigger_price'] = $this->price_to_precision($symbol, $stopLossPrice);
+            } elseif ($isTakeProfit) {
+                $request['trigger_price'] = $this->price_to_precision($symbol, $takeProfitPrice);
+            } elseif ($isTriggerOrder) {
+                $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
+            }
+        } else {
+            $request['type'] = $type;
+        }
         if ($isLimitOrder) {
             $request['size'] = $this->amount_to_precision($symbol, $amount);
             $request['price'] = $this->price_to_precision($symbol, $price);
@@ -3137,13 +3178,15 @@ class bitmart extends Exchange {
          * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-plan-$order-signed
          * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-$order-signed
          * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-trail-$order-signed
+         * @see https://developer-pro.bitmart.com/en/spot/#cancel-algo-$order-v4-signed
          *
          * @param {string} $id $order $id
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] *spot only* the client $order $id of the $order to cancel
-         * @param {boolean} [$params->trigger] *swap only* whether the $order is a $trigger $order
          * @param {boolean} [$params->trailing] *swap only* whether the $order is a stop $order
+         * @param {boolean} [$params->trigger] whether the $order is a $trigger $order
+         * @param {boolean} [$params->stopLossTakeProfit] whether the $order is a stopLossPrice or takeProfitPrice $order
          * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($symbol === null) {
@@ -3160,14 +3203,23 @@ class bitmart extends Exchange {
         } else {
             $request['order_id'] = (string) $id;
         }
-        $params = $this->omit($params, array( 'clientOrderId' ));
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
+        $stopLossTakeProfit = $this->safe_bool($params, 'stopLossTakeProfit');
+        $trailing = $this->safe_bool($params, 'trailing');
+        $params = $this->omit($params, array( 'clientOrderId', 'stop', 'trigger', 'trailing', 'stopLossTakeProfit' ));
         $response = null;
         if ($market['spot']) {
-            $response = $this->privatePostSpotV3CancelOrder ($this->extend($request, $params));
+            if ($trigger || $stopLossTakeProfit) {
+                if ($stopLossTakeProfit) {
+                    $request['type'] = 'tp/sl';
+                } elseif ($trigger) {
+                    $request['type'] = 'trigger';
+                }
+                $response = $this->privatePostSpotV4AlgoCancelOrder ($this->extend($request, $params));
+            } else {
+                $response = $this->privatePostSpotV3CancelOrder ($this->extend($request, $params));
+            }
         } else {
-            $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
-            $trailing = $this->safe_bool($params, 'trailing');
-            $params = $this->omit($params, array( 'stop', 'trigger' ));
             if ($trigger) {
                 $response = $this->privatePostContractPrivateCancelPlanOrder ($this->extend($request, $params));
             } elseif ($trailing) {
@@ -3290,10 +3342,13 @@ class bitmart extends Exchange {
          *
          * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-order-v4-signed
          * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed
+         * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-algo-order-v4-signed
          *
          * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->side] *spot only* 'buy' or 'sell'
+         * @param {boolean} [$params->trigger] whether the orders are $trigger orders
+         * @param {boolean} [$params->stopLossTakeProfit] whether the orders are stopLossPrice or takeProfitPrice orders
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
@@ -3307,7 +3362,19 @@ class bitmart extends Exchange {
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
         if ($type === 'spot') {
-            $response = $this->privatePostSpotV4CancelAll ($this->extend($request, $params));
+            $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
+            $stopLossTakeProfit = $this->safe_bool($params, 'stopLossTakeProfit');
+            $params = $this->omit($params, array( 'stop', 'trigger', 'stopLossTakeProfit' ));
+            if ($trigger || $stopLossTakeProfit) {
+                if ($stopLossTakeProfit) {
+                    $request['type'] = 'tp/sl';
+                } elseif ($trigger) {
+                    $request['type'] = 'trigger';
+                }
+                $response = $this->privatePostSpotV4AlgoCancelAll ($this->extend($request, $params));
+            } else {
+                $response = $this->privatePostSpotV4CancelAll ($this->extend($request, $params));
+            }
         } elseif ($type === 'swap') {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
@@ -3394,12 +3461,13 @@ class bitmart extends Exchange {
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
+         * fetch all unfilled currently open orders
          *
          * @see https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
          * @see https://developer-pro.bitmart.com/en/futuresv2/#get-all-open-orders-keyed
          * @see https://developer-pro.bitmart.com/en/futuresv2/#get-all-current-plan-orders-keyed
+         * @see https://developer-pro.bitmart.com/en/spot/#current-algo-open-orders-v4-signed
          *
-         * fetch all unfilled currently open orders
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of open order structures to retrieve
@@ -3410,7 +3478,8 @@ class bitmart extends Exchange {
          * @param {string} [$params->order_state] *swap* the order state, 'all' or 'partially_filled', default is 'all'
          * @param {string} [$params->orderType] *swap only* 'limit', 'market', or 'trailing'
          * @param {boolean} [$params->trailing] *swap only* set to true if you want to fetch $trailing orders
-         * @param {boolean} [$params->trigger] *swap only* set to true if you want to fetch trigger orders
+         * @param {boolean} [$params->trigger] set to true if you want to fetch trigger orders
+         * @param {boolean} [$params->stopLossTakeProfit] set to true if you want to fetch stopLossPrice or takeProfitPrice orders
          * @param {string} [$params->stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
@@ -3424,6 +3493,9 @@ class bitmart extends Exchange {
         $type = null;
         $response = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
+        $isTrigger = $this->safe_bool_2($params, 'stop', 'trigger');
+        $stopLossTakeProfit = $this->safe_bool($params, 'stopLossTakeProfit');
+        $params = $this->omit($params, array( 'stop', 'trigger', 'stopLossTakeProfit' ));
         if ($type === 'spot') {
             if ($limit !== null) {
                 $request['limit'] = min ($limit, 200);
@@ -3441,13 +3513,20 @@ class bitmart extends Exchange {
                 $params = $this->omit($params, array( 'endTime' ));
                 $request['endTime'] = $until;
             }
-            $response = $this->privatePostSpotV4QueryOpenOrders ($this->extend($request, $params));
+            if ($isTrigger || $stopLossTakeProfit) {
+                if ($isTrigger) {
+                    $request['orderMode'] = 'trigger';
+                } elseif ($stopLossTakeProfit) {
+                    $request['orderMode'] = 'tp/sl';
+                }
+                $response = $this->privatePostSpotV4QueryAlgoOpenOrders ($this->extend($request, $params));
+            } else {
+                $response = $this->privatePostSpotV4QueryOpenOrders ($this->extend($request, $params));
+            }
         } elseif ($type === 'swap') {
             if ($limit !== null) {
                 $request['limit'] = min ($limit, 100);
             }
-            $isTrigger = $this->safe_bool_2($params, 'stop', 'trigger');
-            $params = $this->omit($params, array( 'stop', 'trigger' ));
             if ($isTrigger) {
                 $response = $this->privateGetContractPrivateCurrentPlanOrder ($this->extend($request, $params));
             } else {
@@ -3525,11 +3604,12 @@ class bitmart extends Exchange {
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
+         * fetches information on multiple closed orders made by the user
          *
          * @see https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
          * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed
+         * @see https://developer-pro.bitmart.com/en/spot/#account-algo-orders-v4-signed
          *
-         * fetches information on multiple closed orders made by the user
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -3537,6 +3617,8 @@ class bitmart extends Exchange {
          * @param {int} [$params->until] timestamp in ms of the latest entry
          * @param {string} [$params->marginMode] *spot only* 'cross' or 'isolated', for margin trading
          * @param {string} [$params->stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+         * @param {boolean} [$params->trigger] set to true if you want to fetch trigger orders
+         * @param {boolean} [$params->stopLossTakeProfit] set to true if you want to fetch stopLossPrice or takeProfitPrice orders
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
@@ -3563,6 +3645,9 @@ class bitmart extends Exchange {
             $params = $this->omit($params, array( 'until' ));
             $request[$endTimeKey] = $until;
         }
+        $isTrigger = $this->safe_bool_2($params, 'stop', 'trigger');
+        $stopLossTakeProfit = $this->safe_bool($params, 'stopLossTakeProfit');
+        $params = $this->omit($params, array( 'stop', 'trigger', 'stopLossTakeProfit' ));
         $response = null;
         if ($type === 'spot') {
             $marginMode = null;
@@ -3570,7 +3655,16 @@ class bitmart extends Exchange {
             if ($marginMode === 'isolated') {
                 $request['orderMode'] = 'iso_margin';
             }
-            $response = $this->privatePostSpotV4QueryHistoryOrders ($this->extend($request, $params));
+            if ($isTrigger || $stopLossTakeProfit) {
+                if ($isTrigger) {
+                    $request['orderMode'] = 'trigger';
+                } elseif ($stopLossTakeProfit) {
+                    $request['orderMode'] = 'tp/sl';
+                }
+                $response = $this->privatePostSpotV4QueryAlgoHistoryOrders ($this->extend($request, $params));
+            } else {
+                $response = $this->privatePostSpotV4QueryHistoryOrders ($this->extend($request, $params));
+            }
         } else {
             $response = $this->privateGetContractPrivateOrderHistory ($this->extend($request, $params));
         }
@@ -3597,6 +3691,8 @@ class bitmart extends Exchange {
          * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-$id-v4-signed
          * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-clientorderid-v4-signed
          * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-detail-keyed
+         * @see https://developer-pro.bitmart.com/en/spot/#query-algo-order-by-$id-v4-signed
+         * @see https://developer-pro.bitmart.com/en/spot/#query-algo-order-by-clientorderid-v4-signed
          *
          * @param {string} $id the $id of the order
          * @param {string} $symbol unified $symbol of the $market the order was made in
@@ -3605,6 +3701,7 @@ class bitmart extends Exchange {
          * @param {string} [$params->orderType] *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing'
          * @param {boolean} [$params->trailing] *swap only* set to true if you want to fetch a $trailing order
          * @param {string} [$params->stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+         * @param {boolean} [$params->trigger] whether the orders is a $trigger, stopLossPrice or takeProfitPrice order
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets();
@@ -3618,13 +3715,23 @@ class bitmart extends Exchange {
         list($type, $params) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
         if ($type === 'spot') {
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
+            $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
+            $params = $this->omit($params, array( 'stop', 'trigger' ));
             if (!$clientOrderId) {
                 $request['orderId'] = $id;
             }
-            if ($clientOrderId !== null) {
-                $response = $this->privatePostSpotV4QueryClientOrder ($this->extend($request, $params));
+            if ($trigger) {
+                if ($clientOrderId !== null) {
+                    $response = $this->privatePostSpotV4QueryAlgoClientOrder ($this->extend($request, $params));
+                } else {
+                    $response = $this->privatePostSpotV4QueryAlgoOrder ($this->extend($request, $params));
+                }
             } else {
-                $response = $this->privatePostSpotV4QueryOrder ($this->extend($request, $params));
+                if ($clientOrderId !== null) {
+                    $response = $this->privatePostSpotV4QueryClientOrder ($this->extend($request, $params));
+                } else {
+                    $response = $this->privatePostSpotV4QueryOrder ($this->extend($request, $params));
+                }
             }
         } elseif ($type === 'swap') {
             if ($symbol === null) {

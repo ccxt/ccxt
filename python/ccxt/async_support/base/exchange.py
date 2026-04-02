@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.39'
+__version__ = '4.5.46'
 
 # -----------------------------------------------------------------------------
 
@@ -87,6 +87,9 @@ class Exchange(BaseExchange):
         super(Exchange, self).__init__(config)
         self.markets_loading = None
         self.reloading_markets = False
+
+    async def load_lighter_library(self, path, chainId, privateKey, apiKeyIndex, accountIndex):
+        return self.load_lighter_library_helper(path, chainId, privateKey, apiKeyIndex, accountIndex)
 
     def get_event_loop(self):
         return self.asyncio_loop
@@ -204,7 +207,28 @@ class Exchange(BaseExchange):
         # end of proxies & headers
 
         request_body = body
-        encoded_body = body.encode() if body else None
+        # check content-type is multipart/form-data for lighter
+        has_multipart = False
+        content_type_key = None
+        for k, v in request_headers.items():
+            lk = k.lower()
+            if lk == 'content-type':
+                if v == 'multipart/form-data':
+                    content_type_key = k
+                    has_multipart = True
+                    data = aiohttp.FormData()
+                    # TODO: attach file?
+                    for k, v in body.items():
+                        data.add_field(k, v)
+                    encoded_body = data
+                    break
+                else:
+                    break
+        if not has_multipart:
+            encoded_body = body.encode() if body else None
+        else:
+            # asyncio would handle it for multipart/form-data
+            del request_headers[content_type_key]
         self.open()
         final_session = proxy_session if proxy_session is not None else self.session
         session_method = getattr(final_session, method.lower())
@@ -893,6 +917,12 @@ class Exchange(BaseExchange):
             message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file'
         raise NotSupported(self.id + ' fetchOHLCV() is not supported yet' + message)
 
+    async def fetch_spot_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchSpotOHLCV() is not supported yet')
+
+    async def fetch_contract_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchContractOHLCV() is not supported yet')
+
     async def fetch_ohlcv_ws(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
         message = ''
         if self.has['fetchTradesWs']:
@@ -1022,7 +1052,8 @@ class Exchange(BaseExchange):
         return await self.create_order(symbol, type, side, amount, price, params)
 
     async def edit_order_with_client_order_id(self, clientOrderId: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
-        return await self.edit_order('', symbol, type, side, amount, price, self.extend({'clientOrderId': clientOrderId}, params))
+        extendedParams = self.extend(params, {'clientOrderId': clientOrderId})
+        return await self.edit_order('', symbol, type, side, amount, price, extendedParams)
 
     async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         await self.cancel_order_ws(id, symbol)
@@ -1192,11 +1223,17 @@ class Exchange(BaseExchange):
     async def fetch_tickers(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchTickers() is not supported yet')
 
+    async def fetch_spot_tickers(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' fetchSpotTickers() is not supported yet')
+
+    async def fetch_contract_tickers(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' fetchContractTickers() is not supported yet')
+
     async def fetch_mark_prices(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchMarkPrices() is not supported yet')
 
     async def fetch_tickers_ws(self, symbols: Strings = None, params={}):
-        raise NotSupported(self.id + ' fetchTickers() is not supported yet')
+        raise NotSupported(self.id + ' fetchTickersWs() is not supported yet')
 
     async def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOrderBooks() is not supported yet')
@@ -1584,6 +1621,12 @@ class Exchange(BaseExchange):
     async def create_orders(self, orders: List[OrderRequest], params={}):
         raise NotSupported(self.id + ' createOrders() is not supported yet')
 
+    async def create_spot_orders(self, orders: List[OrderRequest], params={}):
+        raise NotSupported(self.id + ' createSpotOrders() is not supported yet')
+
+    async def create_contract_orders(self, orders: List[OrderRequest], params={}):
+        raise NotSupported(self.id + ' createContractOrders() is not supported yet')
+
     async def edit_orders(self, orders: List[OrderRequest], params={}):
         raise NotSupported(self.id + ' editOrders() is not supported yet')
 
@@ -1592,6 +1635,12 @@ class Exchange(BaseExchange):
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' cancelOrder() is not supported yet')
+
+    async def cancel_spot_order(self, id: str, symbol: Str = None, params={}):
+        raise NotSupported(self.id + ' cancelSpotOrder() is not supported yet')
+
+    async def cancel_contract_order(self, id: str, symbol: Str = None, params={}):
+        raise NotSupported(self.id + ' cancelContractOrder() is not supported yet')
 
     async def cancel_order_with_client_order_id(self, clientOrderId: str, symbol: Str = None, params={}):
         """
@@ -1626,6 +1675,12 @@ class Exchange(BaseExchange):
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' cancelAllOrders() is not supported yet')
+
+    async def cancel_all_spot_orders(self, symbol: Str = None, params={}):
+        raise NotSupported(self.id + ' cancelAllSpotOrders() is not supported yet')
+
+    async def cancel_all_contract_orders(self, symbol: Str = None, params={}):
+        raise NotSupported(self.id + ' cancelAllContractOrders() is not supported yet')
 
     async def cancel_all_orders_after(self, timeout: Int, params={}):
         raise NotSupported(self.id + ' cancelAllOrdersAfter() is not supported yet')
@@ -1771,6 +1826,9 @@ class Exchange(BaseExchange):
                 return self.safe_dict(addressStructures, key)
         else:
             raise NotSupported(self.id + ' fetchDepositAddress() is not supported yet')
+
+    async def fetch_contract_deposit_address(self, code: str, params={}):
+        raise NotSupported(self.id + ' fetchContractDepositAddress() is not supported yet')
 
     async def create_limit_order(self, symbol: str, side: OrderSide, amount: float, price: float, params={}):
         return await self.create_order(symbol, 'limit', side, amount, price, params)

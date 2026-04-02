@@ -1915,6 +1915,7 @@ class bitget(ccxt.async_support.bitget):
 
     def parse_ws_order_status(self, status):
         statuses: dict = {
+            'new': 'open',
             'live': 'open',
             'partially_filled': 'open',
             'filled': 'closed',
