@@ -2,8 +2,8 @@
     "exchange": "pacifica",
     "skipKeys": ["wallet", "timestamp", "symbol", "signature", "end_time"],
     "privateKey": "2fGURdTtScQVocLdZovb6kJ3V8TmWe3eg5TJpYAqrTRTqYf27goDdQVfMx4W2uUmTwTc78qxsxhhvrdx7MTd55rn",
+    "walletAddress": "bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
     "options": {
-        "walletAddress": "bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
         "apiKey": null
     },
     "isSandboxModeEnabled": true,
