@@ -391,7 +391,7 @@ export default class pacifica extends Exchange {
     }
 
     async handleBuilderFeeApproval () {
-        if (this.isSandboxModeEnabled === true) { // At this stage, building codes are mostly only on the mainnet.
+        if (this.isSandboxModeEnabled) { // At this stage, building codes are mostly only on the mainnet.
             return false;
         }
         const buildFee = this.safeBool (this.options, 'builderFee', true);
@@ -3294,7 +3294,7 @@ export default class pacifica extends Exchange {
         if (operationType === 'undefined') {
             throw new ArgumentsRequired (this.id + ' action: ' + operationType + ' postActionRequest() requires "operationType"');
         }
-        if (this.isSandboxModeEnabled === false) { // At this stage, building codes are mostly only on the mainnet.
+        if (!this.isSandboxModeEnabled) { // At this stage, building codes are mostly only on the mainnet.
             const useBuilder = this.handleOption ('postActionRequest', 'builderFee', true);
             let builderCode = undefined;
             if (useBuilder) {
