@@ -423,8 +423,8 @@ export default class pacifica extends Exchange {
     async fetchMarkets (params = {}): Promise<Market[]> {
         if (this.checkRequiredCredentials (false)) {
             await this.initializeClient ();
+            await this.loadAccountSettings ();
         }
-        await this.loadAccountSettings ();
         const swapMarkets = await this.fetchSwapMarkets (params);
         return swapMarkets as Market[];
     }
@@ -3170,12 +3170,13 @@ export default class pacifica extends Exchange {
 
     handleOriginAndSingleAddress (methodName: string, params: Dict) {
         let address = undefined;
-        [ address, params ] = this.handleOptionAndParams2 (params, methodName, 'account', 'address'); // this is for get endpoints that accept account or address
+        [ address, params ] = this.handleParamString2 (params, 'account', 'address', undefined); // this is for get endpoints that accept account or address
         if (address !== undefined) {
             return [ address, params ];
         }
-        if (this.walletAddress !== undefined) {
-            return [ this.walletAddress, params ];
+        const address1 = this.walletAddress;
+        if (address1 !== undefined) {
+            return [ address1, params ];
         }
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires address');
     }
