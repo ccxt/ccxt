@@ -200,7 +200,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.45';
+const version = '4.5.46';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'aftermath': aftermath["default"],

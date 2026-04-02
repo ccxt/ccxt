@@ -1858,7 +1858,7 @@ func (this *Exchange) FetchOpenInterest(symbol interface{}, optionalArgs ...inte
 		_ = params
 		if IsTrue(GetValue(this.Has, "fetchOpenInterests")) {
 
-			openInterests := (<-this.FetchOpenInterests([]interface{}{symbol}, params))
+			openInterests := <-this.DerivedExchange.FetchOpenInterests([]interface{}{symbol}, params)
 			PanicOnError(openInterests)
 
 			ch <- this.SafeDict(openInterests, symbol)
@@ -7668,7 +7668,7 @@ func (this *Exchange) FetchDepositAddress(code interface{}, optionalArgs ...inte
 			var network interface{} = this.SafeString(params, "network")
 			params = this.Omit(params, "network")
 
-			addressStructures := (<-this.FetchDepositAddressesByNetwork(code, params))
+			addressStructures := <-this.DerivedExchange.FetchDepositAddressesByNetwork(code, params)
 			PanicOnError(addressStructures)
 			if IsTrue(!IsEqual(network, nil)) {
 

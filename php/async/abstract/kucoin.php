@@ -994,6 +994,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     public function utaprivate_get_accountmode_position_history($params = array()) {
         return $this->request('{accountMode}/position/history', 'utaPrivate', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function utaprivate_get_position_history($params = array()) {
+        return $this->request('position/history', 'utaPrivate', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function utaprivate_get_accountmode_position_tiers($params = array()) {
         return $this->request('{accountMode}/position/tiers', 'utaPrivate', 'GET', $params, null, null, array("cost" => 40));
     }
@@ -2022,6 +2025,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     }
     public function utaPrivateGetAccountModePositionHistory($params = array()) {
         return $this->request('{accountMode}/position/history', 'utaPrivate', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function utaPrivateGetPositionHistory($params = array()) {
+        return $this->request('position/history', 'utaPrivate', 'GET', $params, null, null, array("cost" => 4));
     }
     public function utaPrivateGetAccountModePositionTiers($params = array()) {
         return $this->request('{accountMode}/position/tiers', 'utaPrivate', 'GET', $params, null, null, array("cost" => 40));

@@ -1074,7 +1074,6 @@ export default class okx extends Exchange {
                 },
                 'networks': {
                     'BTC': 'Bitcoin',
-                    'BTCLN': 'Lightning',
                     'BTCLIGHTNING': 'Lightning',
                     'BSC': 'BSC',
                     'BEP20': 'BSC',

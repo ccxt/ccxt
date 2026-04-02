@@ -174,7 +174,10 @@ type ICoreExchange interface {
 	FetchLedgerEntry(id interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{}
 	FetchMyTrades(optionalArgs ...interface{}) <-chan interface{}
+	FetchDepositAddressesByNetwork(code interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchOpenInterestHistory(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchOpenInterest(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchOpenInterests(optionalArgs ...interface{}) <-chan interface{}
 	FetchOrderBooks(optionalArgs ...interface{}) <-chan interface{}
 	FetchTickers(optionalArgs ...interface{}) <-chan interface{}
 	FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
@@ -411,6 +414,9 @@ type IDerivedExchange interface {
 	ParseWsTrade(trade interface{}, optionalArgs ...interface{}) interface{}
 	FetchPositionsADLRank(optionalArgs ...interface{}) <-chan interface{}
 	ParseADLRank(info interface{}, optionalArgs ...interface{}) interface{}
+	FetchDepositAddressesByNetwork(code interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchOpenInterest(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchOpenInterests(optionalArgs ...interface{}) <-chan interface{}
 }
 
 type Describer interface {

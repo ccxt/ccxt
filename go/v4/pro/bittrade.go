@@ -393,6 +393,7 @@ func  (this *BittradeCore) HandleOrderBookSnapshot(client interface{}, message i
     //     {
     //         "id": 1583473663565,
     //         "rep": "market.btcusdt.mbp.150",
+    //         "ts": 1774979531056,
     //         "status": "ok",
     //         "data": {
     //             "seqNum": 104999417756,
@@ -411,10 +412,13 @@ func  (this *BittradeCore) HandleOrderBookSnapshot(client interface{}, message i
     //
     var symbol interface{} = this.SafeString(subscription, "symbol")
     var messageHash interface{} = this.SafeString(subscription, "messageHash")
+    var timestamp interface{} = this.SafeInteger(message, "ts")
     var orderbook interface{} = ccxt.GetValue(this.Orderbooks, symbol)
     var data interface{} = this.SafeValue(message, "data")
     var snapshot interface{} = this.ParseOrderBook(data, symbol)
     ccxt.AddElementToObject(snapshot, "nonce", this.SafeInteger(data, "seqNum"))
+    ccxt.AddElementToObject(snapshot, "timestamp", timestamp)
+    ccxt.AddElementToObject(snapshot, "datetime", this.Iso8601(timestamp))
     orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
     // unroll the accumulated deltas
     var messages interface{} = orderbook.(ccxt.OrderBookInterface).GetCache()
@@ -662,10 +666,10 @@ func  (this *BittradeCore) Pong(client interface{}, message interface{}) <- chan
             //     { ping: 1583491673714 }
             //
         
-            retRes5618 := (<-client.(ccxt.ClientInterface).Send(map[string]interface{} {
+            retRes5658 := (<-client.(ccxt.ClientInterface).Send(map[string]interface{} {
                 "pong": this.SafeInteger(message, "ping"),
             }))
-            ccxt.PanicOnError(retRes5618)
+            ccxt.PanicOnError(retRes5658)
                 return nil
             }()
             return ch

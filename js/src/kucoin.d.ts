@@ -1,5 +1,5 @@
 import Exchange from './abstract/kucoin.js';
-import type { ADL, Account, Balances, BorrowInterest, Currency, Currencies, DepositAddress, Dict, FundingHistory, FundingRate, Int, int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry } from './base/types.js';
+import type { ADL, Account, Balances, BorrowInterest, Currency, Currencies, DepositAddress, Dict, FundingHistory, FundingRate, Int, int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, OpenInterest, OpenInterests, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry } from './base/types.js';
 /**
  * @class kucoin
  * @augments Exchange
@@ -78,6 +78,7 @@ export default class kucoin extends Exchange {
      * @description fetch all the accounts associated with a profile
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-list-spot
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     fetchAccounts(params?: {}): Promise<Account[]>;
@@ -238,10 +239,12 @@ export default class kucoin extends Exchange {
      * @name kucoin#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
      * @see https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-deposit-address
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] the blockchain network name
-     * @param {string} [params.accountType] 'main' or 'contract' (default is 'main')
+     * @param {string} [params.accountType] 'main', 'contract' or 'uta' (default is 'main')
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
@@ -260,9 +263,11 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchDepositAddressesByNetwork
      * @see https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-deposit-address
      * @description fetch the deposit address for a currency associated with this account
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
      * @returns {object} an array of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<DepositAddress[]>;
@@ -296,13 +301,15 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-take-profit-and-stop-loss-order
+     * @see https://www.kucoin.com/docs-new/rest/ua/place-order
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount the amount of currency to trade
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params]  extra parameters specific to the exchange API endpoint
-     * Check createSpotOrder() and createContractOrder() for more details on the extra parameters that can be used in params
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
+     * Check createSpotOrder(), createContractOrder() and createUtaOrder () for more details on the extra parameters that can be used in params
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
@@ -326,7 +333,7 @@ export default class kucoin extends Exchange {
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {string} [params.marginMode] 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
      * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
-     * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
+     * @param {bool} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
@@ -373,7 +380,7 @@ export default class kucoin extends Exchange {
      * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
      * @param {bool} [params.reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
      * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
-     * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
+     * @param {bool} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
      * @param {float} [params.cost] the cost of the order in units of USDT
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'isolated'
      * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
@@ -392,6 +399,44 @@ export default class kucoin extends Exchange {
      */
     createContractOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     createContractOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
+    /**
+     * @method
+     * @name kucoin#createUtaOrder
+     * @description helper method for creating uta orders
+     * @see https://www.kucoin.com/docs-new/rest/ua/place-order
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {string} type 'limit' or 'market'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount the amount of currency to trade
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params]  extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id, defaults to uuid if not passed
+     * @param {float} [params.cost] the cost of the order in units of quote currency
+     * @param {string} [params.timeInForce] GTC, GTD, IOC, FOK or PO
+     * @param {bool} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK (default is false)
+     * @param {bool} [params.reduceOnly] *contract markets only* A mark to reduce the position size only. Set to false by default
+     * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {string} [params.triggerDirection] 'ascending' or 'descending', the direction the triggerPrice is triggered from, requires triggerPrice
+     * @param {string} [params.triggerPriceType] *contract markets only* "last", "mark", "index" - defaults to "mark"
+     * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
+     * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
+     * @param {string} [params.marginMode] 'cross' or 'isolated', (default is 'cross' for margin orders, default is 'isolated' for contract orders)
+     *
+     * Exchange-specific parameters -------------------------------------------------
+     * @param {string} [params.accountMode] 'unified' or 'classic', default is 'unified'
+     * @param {string} [params.stp] '', // self trade prevention, CN, CO, CB or DC
+     * @param {int} [params.cancelAfter] - Cancel After N Seconds (Calculated from the time of entering the matching engine), only effective when timeInForce is GTD
+     * @param {string} [params.sizeUnit] *contracts only* 'BASECCY' (amount of base currency) or 'UNIT' (number of contracts), default is 'UNIT'
+     *
+     * Classic account parameters
+     * @param {bool} [params.autoBorrow] *classic margin orders only*
+     * @param {bool} [params.autoRepay] *classic margin orders only*
+     * @param {string} [params.hedged] *classic contract orders only* true for hedged mode, false for one way mode, default is false
+     * @param {int} [params.leverage] *classic contract orders with isolated marginMode only* Leverage size of the order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    createUtaOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createUtaOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     /**
      * @method
      * @name kucoin#createMarketOrderWithCost
@@ -497,11 +542,13 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-clientoid
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-orderld
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-clientoid
+     * @see https://www.kucoin.com/docs-new/rest/ua/cancel-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
      * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated'
+     * @param {boolean} [params.uta] true for cancelling order with unified account endpoint (default is false)
      * Check cancelSpotOrder() and cancelContractOrder() for more details on the extra parameters that can be used in params
      * @returns Response from the exchange
      */
@@ -545,6 +592,20 @@ export default class kucoin extends Exchange {
     cancelContractOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     /**
      * @method
+     * @name kucoin#cancelUtaOrder
+     * @description helper method for cancelling uta orders
+     * @see https://www.kucoin.com/docs-new/rest/ua/cancel-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountMode] 'unified' or 'classic' (default is 'unified')
+     * @param {string} [params.clientOrderId] client order id, required if id is not provided
+     * @param {string} [params.marginMode] 'cross' or 'isolated', required if fetching a margin order
+     * @returns Response from the exchange
+     */
+    cancelUtaOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    /**
+     * @method
      * @name kucoin#cancelAllOrders
      * @description cancel all open orders
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders-by-symbol
@@ -554,10 +615,13 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/batch-cancel-stop-orders
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-orders
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-stop-orders
+     * @see https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-symbol
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
      * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated'
+     * @param {boolean} [params.uta] true for cancelling orders with unified account endpoint (default is false)
+     * Check cancelAllSpotOrders(), cancelAllContractOrders() and cancelAllUtaOrders() for more details on the extra parameters that can be used in params
      * @returns Response from the exchange
      */
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
@@ -593,6 +657,18 @@ export default class kucoin extends Exchange {
     cancelAllContractOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     /**
      * @method
+     * @name kucoin#cancelAllUtaOrders
+     * @description helper method for cancelling all uta orders
+     * @see https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-symbol
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.trigger] true if cancelling all stop orders
+     * @param {string} [params.marginMode] 'CROSS' or 'ISOLATED'
+     * @returns Response from the exchange
+     */
+    cancelAllUtaOrders(symbol?: Str, params?: {}): Promise<Order[]>;
+    /**
+     * @method
      * @name kucoin#fetchOrdersByStatus
      * @description fetches a list of orders placed on the exchange
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-open-orders
@@ -603,12 +679,15 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-open-order-list
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-order-history
      * @param {string} status 'active' or 'closed', only 'active' is valid for stop orders
      * @param {string} symbol unified symbol for the market to retrieve orders from
      * @param {int} [since] timestamp in ms of the earliest order to retrieve
      * @param {int} [limit] The maximum number of orders to retrieve
      * @param {object} [params] exchange specific parameters
-     * Check fetchSpotOrdersByStatus() and fetchContractOrdersByStatus() for more details on the extra parameters that can be used in params
+     * @param {boolean} [params.uta] true for fetch orders with uta endpoint (default is false)
+     * Check fetchSpotOrdersByStatus(), fetchContractOrdersByStatus() and fetchUtaOrdersByStatus() for more details on the extra parameters that can be used in params
      * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchOrdersByStatus(status: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -660,6 +739,24 @@ export default class kucoin extends Exchange {
     fetchContractOrdersByStatus(status: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     /**
      * @method
+     * @name kucoin#fetchUtaOrdersByStatus
+     * @description helper method for fetching orders by status with uta endpoint
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-open-order-list
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-order-history
+     * @param {string} status 'active' or 'closed', only 'active' is valid for stop orders
+     * @param {string} symbol unified symbol for the market to retrieve orders from
+     * @param {int} [since] timestamp in ms of the earliest order to retrieve
+     * @param {int} [limit] The maximum number of orders to retrieve
+     * @param {object} [params] exchange specific parameters
+     * @param {int} [params.until] End time in ms
+     * @param {string} [params.side] *closed orders only* 'BUY' or 'SELL'
+     * @param {string} [params.accountMode] 'unified' or 'classic' (default is unified)
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    fetchUtaOrdersByStatus(status: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    /**
+     * @method
      * @name kucoin#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-closed-orders
@@ -668,6 +765,7 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-order-history
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -693,6 +791,7 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-open-order-list
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -723,11 +822,13 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-clientoid
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-by-orderld
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/get-stop-order-by-clientoid
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-order-details
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
-     * Check fetchSpotOrder() and fetchContractOrder() for more details on the extra parameters that can be used in params
+     * @param {bool} [params.uta] true if fetching an order with uta endpoint (default is false)
+     * Check fetchSpotOrder(), fetchContractOrder() and fetchUtaOrder() for more details on the extra parameters that can be used in params
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchOrder(id: Str, symbol?: Str, params?: {}): Promise<Order>;
@@ -765,9 +866,27 @@ export default class kucoin extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchContractOrder(id: Str, symbol?: Str, params?: {}): Promise<Order>;
+    /**
+     * @method
+     * @name kucoin#fetchUtaOrder
+     * @description fetch uta order
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-order-details
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountMode] 'unified' or 'classic' (default is 'unified')
+     * @param {string} [params.clientOrderId] client order id, required if id is not provided
+     * @param {string} [params.marginMode] 'cross' or 'isolated', required if fetching a margin order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    fetchUtaOrder(id: Str, symbol?: Str, params?: {}): Promise<Order>;
+    handleTradeType(isContractMarket?: boolean, marginMode?: any, params?: {}): string;
     parseOrder(order: Dict, market?: Market): Order;
     parseContractOrder(order: Dict, market?: Market): Order;
     parseSpotOrder(order: Dict, market?: Market): Order;
+    parseUtaOrder(order: Dict, market?: Market): Order;
+    parseOrderTimeInForce(timeInForce: Str): Str;
+    parseOrderStatus(status: Str): Str;
     /**
      * @method
      * @name kucoin#fetchOrderTrades
@@ -775,12 +894,14 @@ export default class kucoin extends Exchange {
      * @see https://docs.kucoin.com/#list-fills
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-trade-history
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-trade-history
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+     * @param {boolean} [params.uta] set to true if fetching trades from uta endpoint, default is false.
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -789,6 +910,7 @@ export default class kucoin extends Exchange {
      * @name kucoin#fetchMyTrades
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-trade-history
      * @description fetch all trades made by the user
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -833,6 +955,23 @@ export default class kucoin extends Exchange {
     fetchMyContractTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     /**
      * @method
+     * @name kucoin#fetchMyUtaTrades
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-trade-history
+     * @description fetch all trades made by the user
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve (default is 50, max is 200)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {string} [params.accountMode] 'unified' or 'classic', defaults to 'unified'
+     * @param {string} [params.marginMode] 'cross' or 'isolated', only for margin trades
+     * @param {string} [params.side] 'BUY' or 'SELL' (both if not provided)
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    fetchMyUtaTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    /**
+     * @method
      * @name kucoin#fetchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-trade-history
@@ -849,14 +988,17 @@ export default class kucoin extends Exchange {
     parseTrade(trade: Dict, market?: Market): Trade;
     parseSpotOrUtaTrade(trade: Dict, market?: Market): Trade;
     parseContractTrade(trade: Dict, market?: Market): Trade;
+    parseMyUtaTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
      * @name kucoin#fetchTradingFee
      * @description fetch the trading fees for a market
      * @see https://www.kucoin.com/docs-new/rest/account-info/trade-fee/get-actual-fee-spot-margin
      * @see https://www.kucoin.com/docs-new/rest/account-info/trade-fee/get-actual-fee-futures
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-actual-fee
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
@@ -940,10 +1082,13 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-cross-margin
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-isolated-margin
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-futures
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-uta
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-classic
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {object} [params.marginMode] 'cross' or 'isolated', margin type for fetching margin balance
      * @param {object} [params.type] extra parameters specific to the exchange API endpoint
      * @param {object} [params.hf] *default if false* if true, the result includes the balance of the high frequency account
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: {}): Promise<Balances>;
@@ -959,8 +1104,52 @@ export default class kucoin extends Exchange {
     fetchContractBalance(params?: {}): Promise<Balances>;
     /**
      * @method
+     * @name kucoin#fetchUtaBalance
+     * @description helper method for fetching balance with unified trading account (uta) endpoint
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-uta
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-classic
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot', 'unified', 'funding', 'cross', 'isolated' or 'swap' (default is 'spot')
+     * @param {string} [params.marginMode] 'cross' or 'isolated', margin type for fetching margin balance, only applicable if type is margin (default is cross)
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    fetchUtaBalance(params?: {}): Promise<Balances>;
+    /**
+     * @method
      * @name kucoin#transfer
      * @description transfer currency internally between wallets on the same account
+     * @see https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&
+     * @see https://www.kucoin.com/docs-new/rest/ua/flex-transfer
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
+     * Check transferClassic() and transferUta() for more details on params
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
+    /**
+     * @method
+     * @name kucoin#transferUta
+     * @description transfer currency internally between wallets on the same account with uta endpoint
+     * @see https://www.kucoin.com/docs-new/rest/ua/flex-transfer
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.transferType] INTERNAL, PARENT_TO_SUB, SUB_TO_PARENT, SUB_TO_SUB (default is INTERNAL)
+     * @param {string} [params.fromUserId] required if transferType is SUB_TO_PARENT or SUB_TO_SUB
+     * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB or SUB_TO_SUB
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    transferUta(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
+    /**
+     * @method
+     * @name kucoin#transferClassic
+     * @description transfer currency internally between wallets on the same account with classic endpoints
      * @see https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
@@ -972,7 +1161,7 @@ export default class kucoin extends Exchange {
      * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
+    transferClassic(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     isHfOrMining(fromId: Str, toId: Str): boolean;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseTransferStatus(status: Str): Str;
@@ -988,6 +1177,7 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-tradehf
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-marginhf
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-futures
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-account-ledger
      * @param {string} [code] unified currency code, default is undefined
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -995,6 +1185,7 @@ export default class kucoin extends Exchange {
      * @param {object} [params.type] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.hf] default false, when true will fetch ledger entries for the high frequency trading account
      * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {boolean} [params.uta] default false, when true will fetch ledger entries for the unified trading account (UTA) instead of the regular accounts endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
@@ -1168,9 +1359,11 @@ export default class kucoin extends Exchange {
      * @description set the level of leverage for a market
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/modify-leverage
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage
+     * @see https://www.kucoin.com/docs-new/rest/ua/modify-leverage-uta
      * @param {int } [leverage] New leverage multiplier. Must be greater than 1 and up to two decimal places, and cannot be less than the user's current debt leverage or greater than the system's maximum leverage
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] *contract markets only* set to true for the unified trading account (uta)
      * @returns {object} response from the exchange
      */
     setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
@@ -1179,9 +1372,11 @@ export default class kucoin extends Exchange {
      * @name kucoin#setContractLeverage
      * @description set the level of leverage for a market
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage
+     * @see https://www.kucoin.com/docs-new/rest/ua/modify-leverage-uta
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta)
      * @returns {object} response from the exchange
      */
     setContractLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Leverage>;
@@ -1247,9 +1442,11 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchPosition
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-details
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-position-list-uta
      * @description fetch data on an open position
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     fetchPosition(symbol: string, params?: {}): Promise<Position>;
@@ -1258,8 +1455,10 @@ export default class kucoin extends Exchange {
      * @name kucoin#fetchPositions
      * @description fetch all open positions
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-position-list-uta
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
@@ -1268,12 +1467,14 @@ export default class kucoin extends Exchange {
      * @name kucoin#fetchPositionsHistory
      * @description fetches historical positions
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-positions-history
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-position-history-uta
      * @param {string[]} [symbols] list of unified market symbols
      * @param {int} [since] the earliest time in ms to fetch position history for
      * @param {int} [limit] the maximum number of entries to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] closing end time
      * @param {int} [params.pageId] page id
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
@@ -1283,10 +1484,14 @@ export default class kucoin extends Exchange {
      * @name kucoin#cancelOrders
      * @description cancel multiple orders for contract markets
      * @see https://www.kucoin.com/docs-new/3470241e0
+     * @see https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-id
      * @param {string[]} ids order ids
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string[]} [params.clientOrderIds] client order ids
+     * @param {boolean} [params.uta] set to true to use the unified trading account (uta) endpoint, defaults to false for the contract orders
+     * @param {string} [params.accountMode] *for uta endpoint only* 'unified' or 'classic' (default is 'unified')
+     * @param {string} [params.marginMode] *for margin orders only* 'cross' or 'isolated'
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
@@ -1384,6 +1589,41 @@ export default class kucoin extends Exchange {
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
     fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<LeverageTiers>;
+    /**
+     * @method
+     * @name kucoin#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-futures-open-interset
+     * @param {string[]} [symbols] Unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    fetchOpenInterests(symbols?: Strings, params?: {}): Promise<OpenInterests>;
+    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    /**
+     * @method
+     * @name kucoin#fetchOpenInterestHistory
+     * @description Retrieves the open interest history of a currency
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-futures-open-interset
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {string} timeframe '5m', '15m', '30m', '1h', '4h' or '1d'
+     * @param {int} [since] the time(ms) of the earliest record to retrieve as a unix timestamp
+     * @param {int} [limit] default 30，max 200
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OpenInterest[]>;
+    /**
+     * @method
+     * @name kucoin#isUTAEnabled
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-account-mode
+     * @description returns true or false so the user can check if unified account is enabled
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true if unified account is enabled, false otherwise
+     */
+    isUTAEnabled(params?: {}): Promise<boolean>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;

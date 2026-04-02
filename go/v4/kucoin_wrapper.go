@@ -114,6 +114,7 @@ func (this *Kucoin) FetchCurrencies(params ...interface{}) (Currencies, error) {
  * @description fetch all the accounts associated with a profile
  * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-list-spot
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
 func (this *Kucoin) FetchAccounts(params ...interface{}) ([]Account, error) {
@@ -513,10 +514,12 @@ func (this *Kucoin) CreateDepositAddress(code string, options ...CreateDepositAd
  * @name kucoin#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
  * @see https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-deposit-address
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] the blockchain network name
- * @param {string} [params.accountType] 'main' or 'contract' (default is 'main')
+ * @param {string} [params.accountType] 'main', 'contract' or 'uta' (default is 'main')
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Kucoin) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
@@ -570,9 +573,11 @@ func (this *Kucoin) FetchContractDepositAddress(code string, options ...FetchCon
  * @method
  * @name kucoin#fetchDepositAddressesByNetwork
  * @see https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-deposit-address
  * @description fetch the deposit address for a currency associated with this account
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
  * @returns {object} an array of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Kucoin) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
@@ -646,13 +651,15 @@ func (this *Kucoin) FetchOrderBook(symbol string, options ...FetchOrderBookOptio
  * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
  * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test
  * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-take-profit-and-stop-loss-order
+ * @see https://www.kucoin.com/docs-new/rest/ua/place-order
  * @param {string} symbol Unified CCXT market symbol
  * @param {string} type 'limit' or 'market'
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount the amount of currency to trade
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params]  extra parameters specific to the exchange API endpoint
- * Check createSpotOrder() and createContractOrder() for more details on the extra parameters that can be used in params
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
+ * Check createSpotOrder(), createContractOrder() and createUtaOrder () for more details on the extra parameters that can be used in params
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Kucoin) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
@@ -920,11 +927,13 @@ func (this *Kucoin) EditOrder(id string, symbol string, typeVar string, side str
  * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-clientoid
  * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-orderld
  * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-clientoid
+ * @see https://www.kucoin.com/docs-new/rest/ua/cancel-order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
  * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated'
+ * @param {boolean} [params.uta] true for cancelling order with unified account endpoint (default is false)
  * Check cancelSpotOrder() and cancelContractOrder() for more details on the extra parameters that can be used in params
  * @returns Response from the exchange
  */
@@ -1046,10 +1055,13 @@ func (this *Kucoin) CancelContractOrder(id string, options ...CancelContractOrde
  * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/batch-cancel-stop-orders
  * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-orders
  * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-stop-orders
+ * @see https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-symbol
  * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
  * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated'
+ * @param {boolean} [params.uta] true for cancelling orders with unified account endpoint (default is false)
+ * Check cancelAllSpotOrders(), cancelAllContractOrders() and cancelAllUtaOrders() for more details on the extra parameters that can be used in params
  * @returns Response from the exchange
  */
 func (this *Kucoin) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
@@ -1164,12 +1176,15 @@ func (this *Kucoin) CancelAllContractOrders(options ...CancelAllContractOrdersOp
  * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list
  * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
  * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-open-order-list
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-order-history
  * @param {string} status 'active' or 'closed', only 'active' is valid for stop orders
  * @param {string} symbol unified symbol for the market to retrieve orders from
  * @param {int} [since] timestamp in ms of the earliest order to retrieve
  * @param {int} [limit] The maximum number of orders to retrieve
  * @param {object} [params] exchange specific parameters
- * Check fetchSpotOrdersByStatus() and fetchContractOrdersByStatus() for more details on the extra parameters that can be used in params
+ * @param {boolean} [params.uta] true for fetch orders with uta endpoint (default is false)
+ * Check fetchSpotOrdersByStatus(), fetchContractOrdersByStatus() and fetchUtaOrdersByStatus() for more details on the extra parameters that can be used in params
  * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Kucoin) FetchOrdersByStatus(status interface{}, options ...FetchOrdersByStatusOptions) ([]Order, error) {
@@ -1328,6 +1343,7 @@ func (this *Kucoin) FetchContractOrdersByStatus(status interface{}, options ...F
  * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
  * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
  * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-order-history
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1386,6 +1402,7 @@ func (this *Kucoin) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Or
  * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
  * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
  * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-open-order-list
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1449,11 +1466,13 @@ func (this *Kucoin) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order,
  * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-clientoid
  * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-by-orderld
  * @see https://www.kucoin.com/docs-new/rest/futures-trading/get-stop-order-by-clientoid
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-order-details
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
- * Check fetchSpotOrder() and fetchContractOrder() for more details on the extra parameters that can be used in params
+ * @param {bool} [params.uta] true if fetching an order with uta endpoint (default is false)
+ * Check fetchSpotOrder(), fetchContractOrder() and fetchUtaOrder() for more details on the extra parameters that can be used in params
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Kucoin) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
@@ -1567,12 +1586,14 @@ func (this *Kucoin) FetchContractOrder(id string, options ...FetchContractOrderO
  * @see https://docs.kucoin.com/#list-fills
  * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-trade-history
  * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-trade-history
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+ * @param {boolean} [params.uta] set to true if fetching trades from uta endpoint, default is false.
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Kucoin) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -1614,6 +1635,7 @@ func (this *Kucoin) FetchOrderTrades(id string, options ...FetchOrderTradesOptio
  * @name kucoin#fetchMyTrades
  * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history
  * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-trade-history
  * @description fetch all trades made by the user
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1804,8 +1826,10 @@ func (this *Kucoin) FetchTrades(symbol string, options ...FetchTradesOptions) ([
  * @description fetch the trading fees for a market
  * @see https://www.kucoin.com/docs-new/rest/account-info/trade-fee/get-actual-fee-spot-margin
  * @see https://www.kucoin.com/docs-new/rest/account-info/trade-fee/get-actual-fee-futures
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-actual-fee
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Kucoin) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
@@ -2059,10 +2083,13 @@ func (this *Kucoin) FetchContractWithdrawals(options ...FetchContractWithdrawals
  * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-cross-margin
  * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-isolated-margin
  * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-futures
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-uta
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-classic
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {object} [params.marginMode] 'cross' or 'isolated', margin type for fetching margin balance
  * @param {object} [params.type] extra parameters specific to the exchange API endpoint
  * @param {object} [params.hf] *default if false* if true, the result includes the balance of the high frequency account
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Kucoin) FetchBalance(params ...interface{}) (Balances, error) {
@@ -2095,14 +2122,14 @@ func (this *Kucoin) FetchContractBalance(params ...interface{}) (Balances, error
  * @name kucoin#transfer
  * @description transfer currency internally between wallets on the same account
  * @see https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&
+ * @see https://www.kucoin.com/docs-new/rest/ua/flex-transfer
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
  * @param {string} fromAccount account to transfer from
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.transferType] INTERNAL, PARENT_TO_SUB, SUB_TO_PARENT (default is INTERNAL)
- * @param {string} [params.fromUserId] required if transferType is SUB_TO_PARENT
- * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
+ * Check transferClassic() and transferUta() for more details on params
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Kucoin) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
@@ -2126,12 +2153,47 @@ func (this *Kucoin) Transfer(code string, amount float64, fromAccount string, to
 
 /**
  * @method
+ * @name kucoin#transferClassic
+ * @description transfer currency internally between wallets on the same account with classic endpoints
+ * @see https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&
+ * @param {string} code unified currency code
+ * @param {float} amount amount to transfer
+ * @param {string} fromAccount account to transfer from
+ * @param {string} toAccount account to transfer to
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.transferType] INTERNAL, PARENT_TO_SUB, SUB_TO_PARENT (default is INTERNAL)
+ * @param {string} [params.fromUserId] required if transferType is SUB_TO_PARENT
+ * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+ */
+func (this *Kucoin) TransferClassic(code string, amount float64, fromAccount string, toAccount string, options ...TransferClassicOptions) (TransferEntry, error) {
+
+	opts := TransferClassicOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.TransferClassic(code, amount, fromAccount, toAccount, params)
+	if IsError(res) {
+		return TransferEntry{}, CreateReturnError(res)
+	}
+	return NewTransferEntry(res), nil
+}
+
+/**
+ * @method
  * @name kucoin#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
  * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-spot-margin
  * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-tradehf
  * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-marginhf
  * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-futures
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-account-ledger
  * @param {string} [code] unified currency code, default is undefined
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -2139,6 +2201,7 @@ func (this *Kucoin) Transfer(code string, amount float64, fromAccount string, to
  * @param {object} [params.type] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.hf] default false, when true will fetch ledger entries for the high frequency trading account
  * @param {int} [params.until] the latest time in ms to fetch entries for
+ * @param {boolean} [params.uta] default false, when true will fetch ledger entries for the unified trading account (UTA) instead of the regular accounts endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
@@ -2385,9 +2448,11 @@ func (this *Kucoin) FetchLeverage(symbol string, options ...FetchLeverageOptions
  * @description set the level of leverage for a market
  * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/modify-leverage
  * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage
+ * @see https://www.kucoin.com/docs-new/rest/ua/modify-leverage-uta
  * @param {int } [leverage] New leverage multiplier. Must be greater than 1 and up to two decimal places, and cannot be less than the user's current debt leverage or greater than the system's maximum leverage
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] *contract markets only* set to true for the unified trading account (uta)
  * @returns {object} response from the exchange
  */
 func (this *Kucoin) SetLeverage(leverage int64, options ...SetLeverageOptions) (map[string]interface{}, error) {
@@ -2569,9 +2634,11 @@ func (this *Kucoin) FetchFundingHistory(options ...FetchFundingHistoryOptions) (
  * @method
  * @name kucoin#fetchPosition
  * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-details
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-position-list-uta
  * @description fetch data on an open position
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Kucoin) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
@@ -2598,8 +2665,10 @@ func (this *Kucoin) FetchPosition(symbol string, options ...FetchPositionOptions
  * @name kucoin#fetchPositions
  * @description fetch all open positions
  * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-position-list-uta
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Kucoin) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -2631,12 +2700,14 @@ func (this *Kucoin) FetchPositions(options ...FetchPositionsOptions) ([]Position
  * @name kucoin#fetchPositionsHistory
  * @description fetches historical positions
  * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-positions-history
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-position-history-uta
  * @param {string[]} [symbols] list of unified market symbols
  * @param {int} [since] the earliest time in ms to fetch position history for
  * @param {int} [limit] the maximum number of entries to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] closing end time
  * @param {int} [params.pageId] page id
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Kucoin) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
@@ -2678,10 +2749,14 @@ func (this *Kucoin) FetchPositionsHistory(options ...FetchPositionsHistoryOption
  * @name kucoin#cancelOrders
  * @description cancel multiple orders for contract markets
  * @see https://www.kucoin.com/docs-new/3470241e0
+ * @see https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-id
  * @param {string[]} ids order ids
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string[]} [params.clientOrderIds] client order ids
+ * @param {boolean} [params.uta] set to true to use the unified trading account (uta) endpoint, defaults to false for the contract orders
+ * @param {string} [params.accountMode] *for uta endpoint only* 'unified' or 'classic' (default is 'unified')
+ * @param {string} [params.marginMode] *for margin orders only* 'cross' or 'isolated'
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Kucoin) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
@@ -2897,6 +2972,87 @@ func (this *Kucoin) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (Le
 		return LeverageTiers{}, CreateReturnError(res)
 	}
 	return NewLeverageTiers(res), nil
+}
+
+/**
+ * @method
+ * @name kucoin#fetchOpenInterests
+ * @description Retrieves the open interest for a list of symbols
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-futures-open-interset
+ * @param {string[]} [symbols] Unified CCXT market symbol
+ * @param {object} [params] exchange specific parameters
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+func (this *Kucoin) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
+
+	opts := FetchOpenInterestsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols interface{} = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchOpenInterests(symbols, params)
+	if IsError(res) {
+		return OpenInterests{}, CreateReturnError(res)
+	}
+	return NewOpenInterests(res), nil
+}
+
+/**
+ * @method
+ * @name kucoin#fetchOpenInterestHistory
+ * @description Retrieves the open interest history of a currency
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-futures-open-interset
+ * @param {string} symbol Unified CCXT market symbol
+ * @param {string} timeframe '5m', '15m', '30m', '1h', '4h' or '1d'
+ * @param {int} [since] the time(ms) of the earliest record to retrieve as a unix timestamp
+ * @param {int} [limit] default 30，max 200
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] the latest time in ms to fetch entries for
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object} an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+func (this *Kucoin) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
+
+	opts := FetchOpenInterestHistoryOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var timeframe interface{} = nil
+	if opts.Timeframe != nil {
+		timeframe = *opts.Timeframe
+	}
+
+	var since interface{} = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit interface{} = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchOpenInterestHistory(symbol, timeframe, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOpenInterestArray(res), nil
 }
 
 /**
@@ -3144,12 +3300,6 @@ func (this *Kucoin) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) (
 }
 func (this *Kucoin) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
 	return this.exchangeTyped.FetchOpenInterest(symbol, options...)
-}
-func (this *Kucoin) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
-	return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)
-}
-func (this *Kucoin) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
-	return this.exchangeTyped.FetchOpenInterests(options...)
 }
 func (this *Kucoin) FetchOption(symbol string, options ...FetchOptionOptions) (Option, error) {
 	return this.exchangeTyped.FetchOption(symbol, options...)

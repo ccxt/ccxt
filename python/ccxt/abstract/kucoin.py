@@ -331,6 +331,7 @@ class ImplicitAPI:
     utaprivate_get_accountmode_order_execution = utaPrivateGetAccountModeOrderExecution = Entry('{accountMode}/order/execution', 'utaPrivate', 'GET', {'cost': 8})
     utaprivate_get_accountmode_position_open_list = utaPrivateGetAccountModePositionOpenList = Entry('{accountMode}/position/open-list', 'utaPrivate', 'GET', {'cost': 6})
     utaprivate_get_accountmode_position_history = utaPrivateGetAccountModePositionHistory = Entry('{accountMode}/position/history', 'utaPrivate', 'GET', {'cost': 4})
+    utaprivate_get_position_history = utaPrivateGetPositionHistory = Entry('position/history', 'utaPrivate', 'GET', {'cost': 4})
     utaprivate_get_accountmode_position_tiers = utaPrivateGetAccountModePositionTiers = Entry('{accountMode}/position/tiers', 'utaPrivate', 'GET', {'cost': 40})
     utaprivate_get_sub_account_balance = utaPrivateGetSubAccountBalance = Entry('sub-account/balance', 'utaPrivate', 'GET', {'cost': 10})
     utaprivate_get_user_fee_rate = utaPrivateGetUserFeeRate = Entry('user/fee-rate', 'utaPrivate', 'GET', {'cost': 6})

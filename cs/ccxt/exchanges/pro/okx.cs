@@ -2668,7 +2668,7 @@ public partial class okx : ccxt.okx
                         {
                             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
                         }
-                        messageString = this.safeValue(message, "sMsg");
+                        messageString = this.safeValue(d, "sMsg");
                         if (isTrue(!isEqual(messageString, null)))
                         {
                             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), messageString, feedback);

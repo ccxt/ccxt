@@ -1656,6 +1656,11 @@ public partial class kucoin : Exchange
         return await this.callAsync ("utaPrivateGetAccountModePositionHistory",parameters);
     }
 
+    public async Task<object> utaPrivateGetPositionHistory (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivateGetPositionHistory",parameters);
+    }
+
     public async Task<object> utaPrivateGetAccountModePositionTiers (object parameters = null)
     {
         return await this.callAsync ("utaPrivateGetAccountModePositionTiers",parameters);

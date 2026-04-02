@@ -1022,7 +1022,6 @@ public partial class okx : Exchange
                 } },
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "Bitcoin" },
-                    { "BTCLN", "Lightning" },
                     { "BTCLIGHTNING", "Lightning" },
                     { "BSC", "BSC" },
                     { "BEP20", "BSC" },

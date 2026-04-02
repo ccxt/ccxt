@@ -396,7 +396,7 @@ public partial class bydfi : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await ((Task<object>)callDynamically(this, "publicGetV1FapiMarketExchangeInfo", new object[] { parameters }));
+        object response = await this.publicGetV1FapiMarketExchangeInfo(parameters);
         //
         //     {
         //         "code": "200",
@@ -573,7 +573,7 @@ public partial class bydfi : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = this.getClosestLimit(limit);
         }
-        object response = await ((Task<object>)callDynamically(this, "publicGetV1FapiMarketDepth", new object[] { this.extend(request, parameters) }));
+        object response = await this.publicGetV1FapiMarketDepth(this.extend(request, parameters));
         //
         //     {
         //         "code": 200,
@@ -646,7 +646,7 @@ public partial class bydfi : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await ((Task<object>)callDynamically(this, "publicGetV1FapiMarketTrades", new object[] { this.extend(request, parameters) }));
+        object response = await this.publicGetV1FapiMarketTrades(this.extend(request, parameters));
         //
         //     {
         //         "code": 200,
@@ -716,7 +716,7 @@ public partial class bydfi : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await ((Task<object>)callDynamically(this, "privateGetV1FapiTradeHistoryTrade", new object[] { this.extend(request, parameters) }));
+        object response = await this.privateGetV1FapiTradeHistoryTrade(this.extend(request, parameters));
         //
         //     {
         //         "code": 200,
@@ -889,7 +889,7 @@ public partial class bydfi : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await ((Task<object>)callDynamically(this, "publicGetV1FapiMarketKlines", new object[] { this.extend(request, parameters) }));
+        object response = await this.publicGetV1FapiMarketKlines(this.extend(request, parameters));
         //
         //     {
         //         "code": 200,
@@ -942,7 +942,7 @@ public partial class bydfi : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await ((Task<object>)callDynamically(this, "publicGetV1FapiMarketTicker24hr", new object[] { parameters }));
+        object response = await this.publicGetV1FapiMarketTicker24hr(parameters);
         //
         //     {
         //         "code": 200,
@@ -982,7 +982,7 @@ public partial class bydfi : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object response = await ((Task<object>)callDynamically(this, "publicGetV1FapiMarketTicker24hr", new object[] { this.extend(request, parameters) }));
+        object response = await this.publicGetV1FapiMarketTicker24hr(this.extend(request, parameters));
         object data = this.safeList(response, "data", new List<object>() {});
         object ticker = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parseTicker(ticker, market);
@@ -1049,7 +1049,7 @@ public partial class bydfi : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object response = await ((Task<object>)callDynamically(this, "publicGetV1FapiMarketFundingRate", new object[] { this.extend(request, parameters) }));
+        object response = await this.publicGetV1FapiMarketFundingRate(this.extend(request, parameters));
         //
         //     {
         //         "code": 200,
@@ -1143,7 +1143,7 @@ public partial class bydfi : Exchange
         {
             ((IDictionary<string,object>)request)["endTime"] = until;
         }
-        object response = await ((Task<object>)callDynamically(this, "publicGetV1FapiMarketFundingRateHistory", new object[] { this.extend(request, parameters) }));
+        object response = await this.publicGetV1FapiMarketFundingRateHistory(this.extend(request, parameters));
         //
         //     {
         //         "code": 200,
@@ -1222,7 +1222,7 @@ public partial class bydfi : Exchange
         orderRequest = this.extend(orderRequest, new Dictionary<string, object>() {
             { "wallet", wallet },
         });
-        object response = await ((Task<object>)callDynamically(this, "privatePostV1FapiTradePlaceOrder", new object[] { orderRequest }));
+        object response = await this.privatePostV1FapiTradePlaceOrder(orderRequest);
         //
         //     {
         //         "code": 200,
@@ -1426,7 +1426,7 @@ public partial class bydfi : Exchange
             { "wallet", wallet },
             { "orders", ordersRequests },
         };
-        object response = await ((Task<object>)callDynamically(this, "privatePostV1FapiTradeBatchPlaceOrder", new object[] { this.extend(request, parameters) }));
+        object response = await this.privatePostV1FapiTradeBatchPlaceOrder(this.extend(request, parameters));
         object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data);
     }
@@ -1457,7 +1457,7 @@ public partial class bydfi : Exchange
         wallet = ((IList<object>)walletparametersVariable)[0];
         parameters = ((IList<object>)walletparametersVariable)[1];
         ((IDictionary<string,object>)request)["wallet"] = wallet;
-        object response = await ((Task<object>)callDynamically(this, "privatePostV1FapiTradeEditOrder", new object[] { request }));
+        object response = await this.privatePostV1FapiTradeEditOrder(request);
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data);
     }
@@ -1502,7 +1502,7 @@ public partial class bydfi : Exchange
             { "wallet", wallet },
             { "editOrders", ordersRequests },
         };
-        object response = await ((Task<object>)callDynamically(this, "privatePostV1FapiTradeBatchEditOrder", new object[] { this.extend(request, parameters) }));
+        object response = await this.privatePostV1FapiTradeBatchEditOrder(this.extend(request, parameters));
         object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data);
     }
@@ -1563,7 +1563,7 @@ public partial class bydfi : Exchange
             { "symbol", getValue(market, "id") },
             { "wallet", wallet },
         };
-        object response = await ((Task<object>)callDynamically(this, "privatePostV1FapiTradeCancelAllOrder", new object[] { this.extend(request, parameters) }));
+        object response = await this.privatePostV1FapiTradeCancelAllOrder(this.extend(request, parameters));
         //
         //     {
         //         "code": 200,
@@ -1670,10 +1670,10 @@ public partial class bydfi : Exchange
             //         "success": true
             //     }
             //
-            response = await ((Task<object>)callDynamically(this, "privateGetV1FapiTradeOpenOrder", new object[] { this.extend(request, parameters) }));
+            response = await this.privateGetV1FapiTradeOpenOrder(this.extend(request, parameters));
         } else
         {
-            response = await ((Task<object>)callDynamically(this, "privateGetV1FapiTradePlanOrder", new object[] { this.extend(request, parameters) }));
+            response = await this.privateGetV1FapiTradePlanOrder(this.extend(request, parameters));
         }
         object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
@@ -1725,10 +1725,10 @@ public partial class bydfi : Exchange
         parameters = ((IList<object>)triggerparametersVariable)[1];
         if (!isTrue(trigger))
         {
-            response = await ((Task<object>)callDynamically(this, "privateGetV1FapiTradeOpenOrder", new object[] { this.extend(request, parameters) }));
+            response = await this.privateGetV1FapiTradeOpenOrder(this.extend(request, parameters));
         } else
         {
-            response = await ((Task<object>)callDynamically(this, "privateGetV1FapiTradePlanOrder", new object[] { this.extend(request, parameters) }));
+            response = await this.privateGetV1FapiTradePlanOrder(this.extend(request, parameters));
         }
         object data = this.safeList(response, "data", new List<object>() {});
         object order = this.safeDict(data, 0, new Dictionary<string, object>() {});
@@ -1783,7 +1783,7 @@ public partial class bydfi : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await ((Task<object>)callDynamically(this, "privateGetV1FapiTradeHistoryOrder", new object[] { this.extend(request, parameters) }));
+        object response = await this.privateGetV1FapiTradeHistoryOrder(this.extend(request, parameters));
         //
         //     {
         //         "code": 200,
@@ -2061,7 +2061,7 @@ public partial class bydfi : Exchange
             { "leverage", leverage },
             { "wallet", wallet },
         };
-        object response = await ((Task<object>)callDynamically(this, "privatePostV1FapiTradeLeverage", new object[] { this.extend(request, parameters) }));
+        object response = await this.privatePostV1FapiTradeLeverage(this.extend(request, parameters));
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return data;
     }
@@ -2093,7 +2093,7 @@ public partial class bydfi : Exchange
             { "symbol", getValue(market, "id") },
             { "wallet", wallet },
         };
-        object response = await ((Task<object>)callDynamically(this, "privateGetV1FapiTradeLeverage", new object[] { this.extend(request, parameters) }));
+        object response = await this.privateGetV1FapiTradeLeverage(this.extend(request, parameters));
         //
         //     {
         //         "code": 200,
@@ -2144,7 +2144,7 @@ public partial class bydfi : Exchange
         object request = new Dictionary<string, object>() {
             { "contractType", contractType },
         };
-        object response = await ((Task<object>)callDynamically(this, "privateGetV1FapiTradePositions", new object[] { this.extend(request, parameters) }));
+        object response = await this.privateGetV1FapiTradePositions(this.extend(request, parameters));
         //
         //     {
         //         "code": 200,
@@ -2195,7 +2195,7 @@ public partial class bydfi : Exchange
             { "contractType", contractType },
             { "symbol", getValue(market, "id") },
         };
-        object response = await ((Task<object>)callDynamically(this, "privateGetV1FapiTradePositions", new object[] { this.extend(request, parameters) }));
+        object response = await this.privateGetV1FapiTradePositions(this.extend(request, parameters));
         object data = this.safeList(response, "data", new List<object>() {});
         return this.parsePositions(data, new List<object>() {getValue(market, "symbol")});
     }
@@ -2351,7 +2351,7 @@ public partial class bydfi : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await ((Task<object>)callDynamically(this, "privateGetV1FapiTradePositionHistory", new object[] { this.extend(request, parameters) }));
+        object response = await this.privateGetV1FapiTradePositionHistory(this.extend(request, parameters));
         //
         //
         object data = this.safeList(response, "data", new List<object>() {});
@@ -2389,7 +2389,7 @@ public partial class bydfi : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await ((Task<object>)callDynamically(this, "privateGetV1FapiTradePositionHistory", new object[] { this.extend(request, parameters) }));
+        object response = await this.privateGetV1FapiTradePositionHistory(this.extend(request, parameters));
         //
         //     {
         //         "code": 200,
@@ -2466,7 +2466,7 @@ public partial class bydfi : Exchange
             { "symbol", getValue(market, "id") },
             { "wallet", wallet },
         };
-        object response = await ((Task<object>)callDynamically(this, "privateGetV1FapiUserDataAssetsMargin", new object[] { this.extend(request, parameters) }));
+        object response = await this.privateGetV1FapiUserDataAssetsMargin(this.extend(request, parameters));
         //
         //     {
         //         "code": 200,
@@ -2533,7 +2533,7 @@ public partial class bydfi : Exchange
             { "marginType", ((string)marginMode).ToUpper() },
             { "wallet", wallet },
         };
-        return await ((Task<object>)callDynamically(this, "privatePostV1FapiUserDataMarginType", new object[] { this.extend(request, parameters) }));
+        return await this.privatePostV1FapiUserDataMarginType(this.extend(request, parameters));
     }
 
     /**
@@ -2583,7 +2583,7 @@ public partial class bydfi : Exchange
         //         "success": true
         //     }
         //
-        return await ((Task<object>)callDynamically(this, "privatePostV1FapiUserDataPositionSideDual", new object[] { this.extend(request, parameters) }));
+        return await this.privatePostV1FapiUserDataPositionSideDual(this.extend(request, parameters));
     }
 
     /**
@@ -2626,7 +2626,7 @@ public partial class bydfi : Exchange
             { "settleCoin", settleCoin },
             { "wallet", wallet },
         };
-        object response = await ((Task<object>)callDynamically(this, "privateGetV1FapiUserDataPositionSideDual", new object[] { this.extend(request, parameters) }));
+        object response = await this.privateGetV1FapiUserDataPositionSideDual(this.extend(request, parameters));
         //
         //     {
         //         "code": 200,
@@ -2731,7 +2731,7 @@ public partial class bydfi : Exchange
             //         ],
             //         "success": true
             //     }
-            response = await ((Task<object>)callDynamically(this, "privateGetV1FapiAccountBalance", new object[] { this.extend(request, parameters) }));
+            response = await this.privateGetV1FapiAccountBalance(this.extend(request, parameters));
         }
         object data = this.safeList(response, "data", new List<object>() {});
         return this.parseBalance(data);

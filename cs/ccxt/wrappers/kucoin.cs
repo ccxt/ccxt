@@ -117,6 +117,12 @@ public partial class kucoin
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type.</returns>
@@ -460,6 +466,7 @@ public partial class kucoin
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-deposit-address"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -476,7 +483,13 @@ public partial class kucoin
     /// <item>
     /// <term>params.accountType</term>
     /// <description>
-    /// string : 'main' or 'contract' (default is 'main')
+    /// string : 'main', 'contract' or 'uta' (default is 'main')
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta) endpoint, defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -512,11 +525,18 @@ public partial class kucoin
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-deposit-address"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta) endpoint, defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -577,6 +597,7 @@ public partial class kucoin
     /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-take-profit-and-stop-loss-order"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/place-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -588,6 +609,12 @@ public partial class kucoin
     /// <term>params</term>
     /// <description>
     /// object :  extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta) endpoint, defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -644,7 +671,7 @@ public partial class kucoin
     /// <item>
     /// <term>params.postOnly</term>
     /// <description>
-    /// string : Post only flag, invalid when timeInForce is IOC or FOK
+    /// bool : Post only flag, invalid when timeInForce is IOC or FOK
     /// </description>
     /// </item>
     /// <item>
@@ -817,7 +844,7 @@ public partial class kucoin
     /// <item>
     /// <term>params.postOnly</term>
     /// <description>
-    /// string : Post only flag, invalid when timeInForce is IOC or FOK
+    /// bool : Post only flag, invalid when timeInForce is IOC or FOK
     /// </description>
     /// </item>
     /// <item>
@@ -911,6 +938,153 @@ public partial class kucoin
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = this.createContractOrderRequest(symbol, type, side, amount, price, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// helper method for creating uta orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/place-order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>price</term>
+    /// <description>
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object :  extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : client order id, defaults to uuid if not passed
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.cost</term>
+    /// <description>
+    /// float : the cost of the order in units of quote currency
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.timeInForce</term>
+    /// <description>
+    /// string : GTC, GTD, IOC, FOK or PO
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.postOnly</term>
+    /// <description>
+    /// bool : Post only flag, invalid when timeInForce is IOC or FOK (default is false)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.reduceOnly</term>
+    /// <description>
+    /// bool : *contract markets only* A mark to reduce the position size only. Set to false by default
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.triggerPrice</term>
+    /// <description>
+    /// float : The price a trigger order is triggered at
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.triggerDirection</term>
+    /// <description>
+    /// string : 'ascending' or 'descending', the direction the triggerPrice is triggered from, requires triggerPrice
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.triggerPriceType</term>
+    /// <description>
+    /// string : *contract markets only* "last", "mark", "index" - defaults to "mark"
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopLossPrice</term>
+    /// <description>
+    /// float : price to trigger stop-loss orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.takeProfitPrice</term>
+    /// <description>
+    /// float : price to trigger take-profit orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated', (default is 'cross' for margin orders, default is 'isolated' for contract orders)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.accountMode</term>
+    /// <description>
+    /// string : 'unified' or 'classic', default is 'unified'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stp</term>
+    /// <description>
+    /// string : '', // self trade prevention, CN, CO, CB or DC
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.cancelAfter</term>
+    /// <description>
+    /// int : - Cancel After N Seconds (Calculated from the time of entering the matching engine), only effective when timeInForce is GTD
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.sizeUnit</term>
+    /// <description>
+    /// string : *contracts only* 'BASECCY' (amount of base currency) or 'UNIT' (number of contracts), default is 'UNIT'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.autoBorrow</term>
+    /// <description>
+    /// bool : *classic margin orders only*
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.autoRepay</term>
+    /// <description>
+    /// bool : *classic margin orders only*
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.hedged</term>
+    /// <description>
+    /// string : *classic contract orders only* true for hedged mode, false for one way mode, default is false
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.leverage</term>
+    /// <description>
+    /// int : *classic contract orders with isolated marginMode only* Leverage size of the order
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<Order> CreateUtaOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var res = await this.createUtaOrder(symbol, type, side, amount, price, parameters);
+        return new Order(res);
+    }
+    public Dictionary<string, object> CreateUtaOrderRequest(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var res = this.createUtaOrderRequest(symbol, type, side, amount, price, parameters);
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
@@ -1101,6 +1275,7 @@ public partial class kucoin
     /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-clientoid"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-orderld"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-clientoid"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/cancel-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1118,6 +1293,12 @@ public partial class kucoin
     /// <term>params.marginMode</term>
     /// <description>
     /// string : *spot only* 'cross' or 'isolated'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : true for cancelling order with unified account endpoint (default is false)
     /// </description>
     /// </item>
     /// </list>
@@ -1209,6 +1390,44 @@ public partial class kucoin
         return new Order(res);
     }
     /// <summary>
+    /// helper method for cancelling uta orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/cancel-order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.accountMode</term>
+    /// <description>
+    /// string : 'unified' or 'classic' (default is 'unified')
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : client order id, required if id is not provided
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated', required if fetching a margin order
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>undefined</term> undefined.</returns>
+    public async Task<Order> CancelUtaOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelUtaOrder(id, symbol, parameters);
+        return new Order(res);
+    }
+    /// <summary>
     /// cancel all open orders
     /// </summary>
     /// <remarks>
@@ -1219,6 +1438,7 @@ public partial class kucoin
     /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/batch-cancel-stop-orders"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-orders"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-stop-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-symbol"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1236,6 +1456,12 @@ public partial class kucoin
     /// <term>params.marginMode</term>
     /// <description>
     /// string : *spot only* 'cross' or 'isolated'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : true for cancelling orders with unified account endpoint (default is false)
     /// </description>
     /// </item>
     /// </list>
@@ -1322,6 +1548,38 @@ public partial class kucoin
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
+    /// helper method for cancelling all uta orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-symbol"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// bool : true if cancelling all stop orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'CROSS' or 'ISOLATED'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>undefined</term> undefined.</returns>
+    public async Task<List<Order>> CancelAllUtaOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelAllUtaOrders(symbol, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
     /// fetches a list of orders placed on the exchange
     /// </summary>
     /// <remarks>
@@ -1333,6 +1591,8 @@ public partial class kucoin
     /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-open-order-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-order-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1350,6 +1610,12 @@ public partial class kucoin
     /// <term>params</term>
     /// <description>
     /// object : exchange specific parameters
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : true for fetch orders with uta endpoint (default is false)
     /// </description>
     /// </item>
     /// </list>
@@ -1521,6 +1787,65 @@ public partial class kucoin
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
+    /// helper method for fetching orders by status with uta endpoint
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-open-order-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-order-history"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest order to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : The maximum number of orders to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : exchange specific parameters
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : End time in ms
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.side</term>
+    /// <description>
+    /// string : *closed orders only* 'BUY' or 'SELL'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.accountMode</term>
+    /// <description>
+    /// string : 'unified' or 'classic' (default is unified)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>undefined</term> undefined.</returns>
+    public async Task<List<Order>> FetchUtaOrdersByStatus(object status, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchUtaOrdersByStatus(status, symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
@@ -1530,6 +1855,7 @@ public partial class kucoin
     /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-order-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1612,6 +1938,7 @@ public partial class kucoin
     /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-open-order-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1709,6 +2036,7 @@ public partial class kucoin
     /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-clientoid"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-by-orderld"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/get-stop-order-by-clientoid"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-order-details"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1720,6 +2048,12 @@ public partial class kucoin
     /// <term>params.type</term>
     /// <description>
     /// string : 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// bool : true if fetching an order with uta endpoint (default is false)
     /// </description>
     /// </item>
     /// </list>
@@ -1803,12 +2137,51 @@ public partial class kucoin
         return new Order(res);
     }
     /// <summary>
+    /// fetch uta order
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-order-details"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.accountMode</term>
+    /// <description>
+    /// string : 'unified' or 'classic' (default is 'unified')
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : client order id, required if id is not provided
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated', required if fetching a margin order
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<Order> FetchUtaOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchUtaOrder(id, symbol, parameters);
+        return new Order(res);
+    }
+    /// <summary>
     /// fetch all the trades made from a single order
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.kucoin.com/#list-fills"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-trade-history"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-trade-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1834,6 +2207,12 @@ public partial class kucoin
     /// string : 'spot' or 'swap', used if symbol is not provided (default is 'spot')
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true if fetching trades from uta endpoint, default is false.
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
@@ -1850,6 +2229,7 @@ public partial class kucoin
     /// <remarks>
     /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-trade-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1997,6 +2377,70 @@ public partial class kucoin
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
     /// <summary>
+    /// fetch all trades made by the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-trade-history"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch trades for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of trades structures to retrieve (default is 50, max is 200)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch entries for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.accountMode</term>
+    /// <description>
+    /// string : 'unified' or 'classic', defaults to 'unified'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated', only for margin trades
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.side</term>
+    /// <description>
+    /// string : 'BUY' or 'SELL' (both if not provided)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
+    public async Task<List<Trade>> FetchMyUtaTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchMyUtaTrades(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+    }
+    /// <summary>
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
@@ -2044,11 +2488,18 @@ public partial class kucoin
     /// <remarks>
     /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/trade-fee/get-actual-fee-spot-margin"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/trade-fee/get-actual-fee-futures"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-actual-fee"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta) endpoint, defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -2261,6 +2712,8 @@ public partial class kucoin
     /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-cross-margin"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-isolated-margin"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-futures"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-uta"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-classic"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -2284,6 +2737,12 @@ public partial class kucoin
     /// <term>params.hf</term>
     /// <description>
     /// object : *default if false* if true, the result includes the balance of the high frequency account
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta) endpoint, defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -2321,7 +2780,105 @@ public partial class kucoin
         return new Balances(res);
     }
     /// <summary>
+    /// helper method for fetching balance with unified trading account (uta) endpoint
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-uta"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-classic"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'spot', 'unified', 'funding', 'cross', 'isolated' or 'swap' (default is 'spot')
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated', margin type for fetching margin balance, only applicable if type is margin (default is cross)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
+    public async Task<Balances> FetchUtaBalance(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchUtaBalance(parameters);
+        return new Balances(res);
+    }
+    /// <summary>
     /// transfer currency internally between wallets on the same account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/flex-transfer"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta) endpoint, defaults to false
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
+    public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
+        return new TransferEntry(res);
+    }
+    /// <summary>
+    /// transfer currency internally between wallets on the same account with uta endpoint
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/flex-transfer"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.transferType</term>
+    /// <description>
+    /// string : INTERNAL, PARENT_TO_SUB, SUB_TO_PARENT, SUB_TO_SUB (default is INTERNAL)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.fromUserId</term>
+    /// <description>
+    /// string : required if transferType is SUB_TO_PARENT or SUB_TO_SUB
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.toUserId</term>
+    /// <description>
+    /// string : required if transferType is PARENT_TO_SUB or SUB_TO_SUB
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
+    public async Task<TransferEntry> TransferUta(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.transferUta(code, amount, fromAccount, toAccount, parameters);
+        return new TransferEntry(res);
+    }
+    /// <summary>
+    /// transfer currency internally between wallets on the same account with classic endpoints
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&"/>  <br/>
@@ -2353,9 +2910,9 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
-    public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
+    public async Task<TransferEntry> TransferClassic(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
     {
-        var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
+        var res = await this.transferClassic(code, amount, fromAccount, toAccount, parameters);
         return new TransferEntry(res);
     }
     /// <summary>
@@ -2366,6 +2923,7 @@ public partial class kucoin
     /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-tradehf"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-marginhf"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-futures"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-account-ledger"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -2407,6 +2965,12 @@ public partial class kucoin
     /// <term>params.until</term>
     /// <description>
     /// int : the latest time in ms to fetch entries for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : default false, when true will fetch ledger entries for the unified trading account (UTA) instead of the regular accounts endpoint
     /// </description>
     /// </item>
     /// <item>
@@ -2616,6 +3180,7 @@ public partial class kucoin
     /// <remarks>
     /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/debit/modify-leverage"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/modify-leverage-uta"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -2627,6 +3192,12 @@ public partial class kucoin
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : *contract markets only* set to true for the unified trading account (uta)
     /// </description>
     /// </item>
     /// </list>
@@ -2770,11 +3341,18 @@ public partial class kucoin
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-details"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-position-list-uta"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -2790,11 +3368,18 @@ public partial class kucoin
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-position-list-uta"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -2810,6 +3395,7 @@ public partial class kucoin
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-positions-history"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-position-history-uta"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -2841,6 +3427,12 @@ public partial class kucoin
     /// int : page id
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
@@ -2856,11 +3448,30 @@ public partial class kucoin
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.kucoin.com/docs-new/3470241e0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-id"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true to use the unified trading account (uta) endpoint, defaults to false for the contract orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.accountMode</term>
+    /// <description>
+    /// string : *for uta endpoint only* 'unified' or 'classic' (default is 'unified')
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : *for margin orders only* 'cross' or 'isolated'
     /// </description>
     /// </item>
     /// </list>
@@ -3008,6 +3619,72 @@ public partial class kucoin
     {
         var res = await this.fetchLeverageTiers(symbols, parameters);
         return new LeverageTiers(res);
+    }
+    /// <summary>
+    /// Retrieves the open interest for a list of symbols
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-futures-open-interset"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : exchange specific parameters
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}.</returns>
+    public async Task<OpenInterests> FetchOpenInterests(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOpenInterests(symbols, parameters);
+        return new OpenInterests(res);
+    }
+    /// <summary>
+    /// Retrieves the open interest history of a currency
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-futures-open-interset"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the time(ms) of the earliest record to retrieve as a unix timestamp
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : default 30，max 200
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch entries for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}.</returns>
+    public async Task<List<OpenInterest>> FetchOpenInterestHistory(string symbol, string timeframe = "5m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchOpenInterestHistory(symbol, timeframe, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new OpenInterest(item)).ToList<OpenInterest>();
     }
     /// <summary>
     /// fetch a history of internal transfers made on an account

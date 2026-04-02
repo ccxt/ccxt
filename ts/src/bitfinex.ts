@@ -874,30 +874,25 @@ export default class bitfinex extends Exchange {
             const pool = this.safeList (indexed['pool'], id, []);
             const rawType = this.safeString (pool, 1);
             const isCryptoCoin = (rawType !== undefined) || (id in indexed['explorer']); // "hacky" solution
-            let type = undefined;
-            if (isCryptoCoin) {
-                type = 'crypto';
-            }
+            const type = isCryptoCoin ? 'crypto' : undefined;
             const feeValues = this.safeList (indexed['fees'], id, []);
             const fees = this.safeList (feeValues, 1, []);
             const fee = this.safeNumber (fees, 1);
             const undl = this.safeList (indexed['undl'], id, []);
             const precision = '8'; // default precision, todo: fix "magic constants"
-            const dwStatuses = this.safeList (indexed['statuses'], id, []);
-            const depositEnabled = this.safeInteger (dwStatuses, 1) === 1;
-            const withdrawEnabled = this.safeInteger (dwStatuses, 2) === 1;
             const networks: Dict = {};
             const netwokIds = this.safeList (indexedNetworks, id, []);
             for (let j = 0; j < netwokIds.length; j++) {
                 const networkId = netwokIds[j];
                 const network = this.networkIdToCode (networkId);
+                const dwStatuses = this.safeList (indexed['statuses'], networkId, []);
                 networks[network] = {
                     'info': networkId,
                     'id': networkId.toLowerCase (),
                     'network': networkId,
                     'active': undefined,
-                    'deposit': undefined,
-                    'withdraw': undefined,
+                    'deposit': this.safeInteger (dwStatuses, 1) === 1,
+                    'withdraw': this.safeInteger (dwStatuses, 2) === 1,
                     'fee': undefined,
                     'precision': undefined,
                     'limits': {
@@ -915,8 +910,8 @@ export default class bitfinex extends Exchange {
                 'type': type,
                 'name': name,
                 'active': true,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': fee,
                 'precision': parseInt (precision),
                 'limits': {

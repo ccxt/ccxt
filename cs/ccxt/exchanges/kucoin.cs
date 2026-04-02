@@ -38,10 +38,13 @@ public partial class kucoin : Exchange
                 { "createMarketSellOrderWithCost", true },
                 { "createOrder", true },
                 { "createOrders", true },
+                { "createOrderWithTakeProfitAndStopLoss", true },
                 { "createPostOnlyOrder", true },
                 { "createStopLimitOrder", true },
+                { "createStopLossOrder", true },
                 { "createStopMarketOrder", true },
                 { "createStopOrder", true },
+                { "createTakeProfitOrder", true },
                 { "createTriggerOrder", true },
                 { "editOrder", true },
                 { "fetchAccounts", true },
@@ -80,8 +83,9 @@ public partial class kucoin : Exchange
                 { "fetchMarkPrices", true },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
-                { "fetchOpenInterest", false },
-                { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterest", true },
+                { "fetchOpenInterestHistory", true },
+                { "fetchOpenInterests", true },
                 { "fetchOpenOrders", true },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
@@ -90,7 +94,7 @@ public partial class kucoin : Exchange
                 { "fetchOrderTrades", true },
                 { "fetchPosition", true },
                 { "fetchPositionADLRank", true },
-                { "fetchPositionHistory", false },
+                { "fetchPositionHistory", true },
                 { "fetchPositionMode", true },
                 { "fetchPositions", true },
                 { "fetchPositionsADLRank", true },
@@ -521,6 +525,7 @@ public partial class kucoin : Exchange
                         { "{accountMode}/order/execution", 8 },
                         { "{accountMode}/position/open-list", 6 },
                         { "{accountMode}/position/history", 4 },
+                        { "position/history", 4 },
                         { "{accountMode}/position/tiers", 40 },
                         { "sub-account/balance", 10 },
                         { "user/fee-rate", 6 },
@@ -585,6 +590,7 @@ public partial class kucoin : Exchange
                     { "503", typeof(ExchangeNotAvailable) },
                     { "101030", typeof(PermissionDenied) },
                     { "103000", typeof(InvalidOrder) },
+                    { "112010", typeof(PermissionDenied) },
                     { "130101", typeof(BadRequest) },
                     { "130102", typeof(ExchangeError) },
                     { "130103", typeof(OrderNotFound) },
@@ -748,6 +754,7 @@ public partial class kucoin : Exchange
             } },
             { "options", new Dictionary<string, object>() {
                 { "hf", null },
+                { "uta", null },
                 { "version", "v1" },
                 { "symbolSeparator", "-" },
                 { "fetchMyTradesMethod", "private_get_fills" },
@@ -770,6 +777,13 @@ public partial class kucoin : Exchange
                 } },
                 { "fetchBalance", new Dictionary<string, object>() {
                     { "code", "USDT" },
+                } },
+                { "timeInForce", new Dictionary<string, object>() {
+                    { "IOC", "IOC" },
+                    { "FOK", "FOK" },
+                    { "PO", "PO" },
+                    { "GTD", "GTT" },
+                    { "RPI", "RPI" },
                 } },
                 { "timeframes", new Dictionary<string, object>() {
                     { "swap", new Dictionary<string, object>() {
@@ -919,6 +933,22 @@ public partial class kucoin : Exchange
                     { "mining", "pool" },
                     { "hf", "trade_hf" },
                     { "contract", "contract" },
+                    { "uta", "unified" },
+                    { "unified", "unified" },
+                } },
+                { "utaAccountsByType", new Dictionary<string, object>() {
+                    { "trade", "SPOT" },
+                    { "spot", "SPOT" },
+                    { "margin", "CROSS" },
+                    { "cross", "CROSS" },
+                    { "isolated", "ISOLATED" },
+                    { "main", "FUNDING" },
+                    { "funding", "FUNDING" },
+                    { "future", "FUTURES" },
+                    { "swap", "FUTURES" },
+                    { "contract", "FUTURES" },
+                    { "uta", "unified" },
+                    { "unified", "unified" },
                 } },
                 { "networks", new Dictionary<string, object>() {
                     { "BRC20", "btc" },
@@ -1141,7 +1171,11 @@ public partial class kucoin : Exchange
                         { "stopLossPrice", true },
                         { "takeProfitPrice", true },
                         { "attachedStopLossTakeProfit", new Dictionary<string, object>() {
-                            { "triggerPriceType", null },
+                            { "triggerPriceType", new Dictionary<string, object>() {
+                                { "last", true },
+                                { "mark", true },
+                                { "index", true },
+                            } },
                             { "price", true },
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
@@ -1278,8 +1312,8 @@ public partial class kucoin : Exchange
     public async override Task<object> fetchStatus(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchStatus", "uta", false);
+        object uta = false;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchStatus", "uta", uta);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         object type = null;
@@ -1332,8 +1366,8 @@ public partial class kucoin : Exchange
         var fetchTickersFeesparametersVariable = this.handleOptionAndParams(parameters, "fetchMarkets", "fetchTickersFees", true);
         fetchTickersFees = ((IList<object>)fetchTickersFeesparametersVariable)[0];
         parameters = ((IList<object>)fetchTickersFeesparametersVariable)[1];
-        object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchMarkets", "uta", false);
+        object uta = false;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchMarkets", "uta", uta);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
@@ -1863,7 +1897,7 @@ public partial class kucoin : Exchange
                 { "strike", null },
                 { "optionType", null },
                 { "precision", new Dictionary<string, object>() {
-                    { "amount", this.safeNumber(market, "lotSize") },
+                    { "amount", this.safeNumber2(market, "lotSize", "baseOrderStep") },
                     { "price", this.safeNumber(market, "tickSize") },
                 } },
                 { "limits", new Dictionary<string, object>() {
@@ -1948,6 +1982,10 @@ public partial class kucoin : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object uta = false;
+        if (isTrue(this.checkRequiredCredentials(false)))
+        {
+            uta = await this.isUTAEnabled();
+        }
         var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchCurrencies", "uta", uta);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
@@ -2100,36 +2138,68 @@ public partial class kucoin : Exchange
      * @description fetch all the accounts associated with a profile
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-list-spot
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     public async override Task<object> fetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.privateGetAccounts(parameters);
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": [
-        //             {
-        //                 "balance": "0.00009788",
-        //                 "available": "0.00009788",
-        //                 "holds": "0",
-        //                 "currency": "BTC",
-        //                 "id": "5c6a4fd399a1d81c4f9cc4d0",
-        //                 "type": "trade"
-        //             },
-        //             {
-        //                 "balance": "0.00000001",
-        //                 "available": "0.00000001",
-        //                 "holds": "0",
-        //                 "currency": "ETH",
-        //                 "id": "5c6a49ec99a1d819392e8e9f",
-        //                 "type": "trade"
-        //             }
-        //         ]
-        //     }
-        //
-        object data = this.safeList(response, "data", new List<object>() {});
+        object uta = await this.isUTAEnabled();
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchAccounts", "uta", uta);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        object response = null;
+        object data = new List<object>() {};
+        if (isTrue(uta))
+        {
+            response = await this.utaPrivateGetAccountModeAccountOverview(this.extend(parameters, new Dictionary<string, object>() {
+                { "accountMode", "unified" },
+            }));
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": {
+            //             "accountType": "UNIFIED",
+            //             "riskRatio": "0.0000000000",
+            //             "equity": "30.0000000000",
+            //             "liability": "0.0000000000",
+            //             "availableMargin": "30.0000000000",
+            //             "adjustedEquity": "30.0000000000",
+            //             "im": "0.0000000000",
+            //             "mm": "0.0000000000"
+            //         }
+            //     }
+            //
+            object dataDict = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            data = new List<object>() {dataDict};
+        } else
+        {
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": [
+            //             {
+            //                 "balance": "0.00009788",
+            //                 "available": "0.00009788",
+            //                 "holds": "0",
+            //                 "currency": "BTC",
+            //                 "id": "5c6a4fd399a1d81c4f9cc4d0",
+            //                 "type": "trade"
+            //             },
+            //             {
+            //                 "balance": "0.00000001",
+            //                 "available": "0.00000001",
+            //                 "holds": "0",
+            //                 "currency": "ETH",
+            //                 "id": "5c6a49ec99a1d819392e8e9f",
+            //                 "type": "trade"
+            //             }
+            //         ]
+            //     }
+            //
+            response = await this.privateGetAccounts(parameters);
+            data = this.safeList(response, "data", new List<object>() {});
+        }
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
@@ -2137,7 +2207,7 @@ public partial class kucoin : Exchange
             object accountId = this.safeString(account, "id");
             object currencyId = this.safeString(account, "currency");
             object code = this.safeCurrencyCode(currencyId);
-            object type = this.safeString(account, "type"); // main or trade
+            object type = this.safeStringLower2(account, "type", "accountType"); // main or trade or unified
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", accountId },
                 { "type", type },
@@ -2598,8 +2668,8 @@ public partial class kucoin : Exchange
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
         symbols = this.marketSymbols(symbols, null, true, true);
-        object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchTickers", "uta", false);
+        object uta = false;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchTickers", "uta", uta);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         object tradeType = this.safeString(parameters, "tradeType");
@@ -2766,8 +2836,8 @@ public partial class kucoin : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchTicker", "uta", false);
+        object uta = false;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchTicker", "uta", uta);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         object response = null;
@@ -2942,8 +3012,8 @@ public partial class kucoin : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "uta", false);
+        object uta = false;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "uta", uta);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
@@ -3231,10 +3301,12 @@ public partial class kucoin : Exchange
      * @name kucoin#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
      * @see https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-deposit-address
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] the blockchain network name
-     * @param {string} [params.accountType] 'main' or 'contract' (default is 'main')
+     * @param {string} [params.accountType] 'main', 'contract' or 'uta' (default is 'main')
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
@@ -3247,9 +3319,18 @@ public partial class kucoin : Exchange
         parameters = ((IList<object>)accountTypeparametersVariable)[1];
         object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         accountType = this.safeString(accountsByType, accountType, accountType);
+        object uta = await this.isUTAEnabled();
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchDepositAddress", "uta", uta);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(isEqual(accountType, "contract")))
         {
             return await this.fetchContractDepositAddress(code, parameters);
+        } else if (isTrue(isTrue(isTrue(uta) || isTrue((isEqual(accountType, "uta")))) || isTrue((isEqual(accountType, "unified")))))
+        {
+            return await base.fetchDepositAddress(code, this.extend(parameters, new Dictionary<string, object>() {
+                { "uta", true },
+            }));
         }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
@@ -3352,9 +3433,11 @@ public partial class kucoin : Exchange
      * @method
      * @name kucoin#fetchDepositAddressesByNetwork
      * @see https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-deposit-address
      * @description fetch the deposit address for a currency associated with this account
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
      * @returns {object} an array of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
@@ -3365,25 +3448,62 @@ public partial class kucoin : Exchange
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
         };
-        object version = getValue(getValue(getValue(getValue(this.options, "versions"), "private"), "GET"), "deposit-addresses");
-        ((IDictionary<string,object>)getValue(getValue(getValue(this.options, "versions"), "private"), "GET"))["deposit-addresses"] = "v2";
-        object response = await this.privateGetDepositAddresses(this.extend(request, parameters));
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": [
-        //             {
-        //                 "address": "fr1qvus7d4d5fgxj5e7zvqe6yhxd7txm95h2and69r",
-        //                 "memo": "",
-        //                 "chain": "BTC-Segwit",
-        //                 "contractAddress": ""
-        //             },
-        //             {"address":"37icNMEWbiF8ZkwUMxmfzMxi2A1MQ44bMn","memo":"","chain":"BTC","contractAddress":""},
-        //             {"address":"Deposit temporarily blocked","memo":"","chain":"TRC20","contractAddress":""}
-        //         ]
-        //     }
-        //
-        ((IDictionary<string,object>)getValue(getValue(getValue(this.options, "versions"), "private"), "GET"))["deposit-addresses"] = version;
+        object uta = await this.isUTAEnabled();
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchDepositAddressesByNetwork", "uta", uta);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        object response = null;
+        if (isTrue(uta))
+        {
+            object networkCode = null;
+            var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+            networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+            parameters = ((IList<object>)networkCodeparametersVariable)[1];
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)request)["chain"] = ((string)this.networkCodeToId(networkCode)).ToLower();
+            }
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": [
+            //             {
+            //                 "address": "0xf30a9b6968183668dbce515bd6449438ab3252b3",
+            //                 "memo": "",
+            //                 "remark": "",
+            //                 "chainId": "eth",
+            //                 "to": "FUNDING",
+            //                 "expirationDate": 0,
+            //                 "currency": "USDT",
+            //                 "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+            //                 "chainName": "ERC20"
+            //             }
+            //         ]
+            //     }
+            //
+            response = await this.utaPrivateGetAssetDepositAddress(this.extend(request, parameters));
+        } else
+        {
+            object version = getValue(getValue(getValue(getValue(this.options, "versions"), "private"), "GET"), "deposit-addresses");
+            ((IDictionary<string,object>)getValue(getValue(getValue(this.options, "versions"), "private"), "GET"))["deposit-addresses"] = "v2";
+            response = await this.privateGetDepositAddresses(this.extend(request, parameters));
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": [
+            //             {
+            //                 "address": "fr1qvus7d4d5fgxj5e7zvqe6yhxd7txm95h2and69r",
+            //                 "memo": "",
+            //                 "chain": "BTC-Segwit",
+            //                 "contractAddress": ""
+            //             },
+            //             {"address":"37icNMEWbiF8ZkwUMxmfzMxi2A1MQ44bMn","memo":"","chain":"BTC","contractAddress":""},
+            //             {"address":"Deposit temporarily blocked","memo":"","chain":"TRC20","contractAddress":""}
+            //         ]
+            //     }
+            //
+            ((IDictionary<string,object>)getValue(getValue(getValue(this.options, "versions"), "private"), "GET"))["deposit-addresses"] = version;
+        }
         object chains = this.safeList(response, "data", new List<object>() {});
         object parsed = this.parseDepositAddresses(chains, new List<object>() {getValue(currency, "code")}, false, new Dictionary<string, object>() {
             { "currency", getValue(currency, "code") },
@@ -3415,8 +3535,8 @@ public partial class kucoin : Exchange
             { "symbol", getValue(market, "id") },
         };
         object isAuthenticated = this.checkRequiredCredentials(false);
-        object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBook", "uta", false);
+        object uta = false;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBook", "uta", uta);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         object response = null;
@@ -3570,13 +3690,15 @@ public partial class kucoin : Exchange
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-take-profit-and-stop-loss-order
+     * @see https://www.kucoin.com/docs-new/rest/ua/place-order
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount the amount of currency to trade
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params]  extra parameters specific to the exchange API endpoint
-     * Check createSpotOrder() and createContractOrder() for more details on the extra parameters that can be used in params
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
+     * Check createSpotOrder(), createContractOrder() and createUtaOrder () for more details on the extra parameters that can be used in params
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -3584,7 +3706,14 @@ public partial class kucoin : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        if (isTrue(getValue(market, "spot")))
+        object uta = await this.isUTAEnabled();
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "uta", uta);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            return await this.createUtaOrder(symbol, type, side, amount, price, parameters);
+        } else if (isTrue(getValue(market, "spot")))
         {
             return await this.createSpotOrder(symbol, type, side, amount, price, parameters);
         } else if (isTrue(getValue(market, "contract")))
@@ -3616,7 +3745,7 @@ public partial class kucoin : Exchange
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {string} [params.marginMode] 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
      * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
-     * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
+     * @param {bool} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
@@ -3845,7 +3974,7 @@ public partial class kucoin : Exchange
      * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
      * @param {bool} [params.reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
      * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
-     * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
+     * @param {bool} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
      * @param {float} [params.cost] the cost of the order in units of USDT
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'isolated'
      * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
@@ -4044,6 +4173,244 @@ public partial class kucoin : Exchange
             }
         }
         parameters = this.omit(parameters, new List<object>() {"timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "reduceOnly", "hedged"}); // Time in force only valid for limit orders, exchange error when gtc for market orders
+        return this.extend(request, parameters);
+    }
+
+    /**
+     * @method
+     * @name kucoin#createUtaOrder
+     * @description helper method for creating uta orders
+     * @see https://www.kucoin.com/docs-new/rest/ua/place-order
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {string} type 'limit' or 'market'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount the amount of currency to trade
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params]  extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id, defaults to uuid if not passed
+     * @param {float} [params.cost] the cost of the order in units of quote currency
+     * @param {string} [params.timeInForce] GTC, GTD, IOC, FOK or PO
+     * @param {bool} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK (default is false)
+     * @param {bool} [params.reduceOnly] *contract markets only* A mark to reduce the position size only. Set to false by default
+     * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {string} [params.triggerDirection] 'ascending' or 'descending', the direction the triggerPrice is triggered from, requires triggerPrice
+     * @param {string} [params.triggerPriceType] *contract markets only* "last", "mark", "index" - defaults to "mark"
+     * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
+     * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
+     * @param {string} [params.marginMode] 'cross' or 'isolated', (default is 'cross' for margin orders, default is 'isolated' for contract orders)
+     *
+     * Exchange-specific parameters -------------------------------------------------
+     * @param {string} [params.accountMode] 'unified' or 'classic', default is 'unified'
+     * @param {string} [params.stp] '', // self trade prevention, CN, CO, CB or DC
+     * @param {int} [params.cancelAfter] - Cancel After N Seconds (Calculated from the time of entering the matching engine), only effective when timeInForce is GTD
+     * @param {string} [params.sizeUnit] *contracts only* 'BASECCY' (amount of base currency) or 'UNIT' (number of contracts), default is 'UNIT'
+     *
+     * Classic account parameters
+     * @param {bool} [params.autoBorrow] *classic margin orders only*
+     * @param {bool} [params.autoRepay] *classic margin orders only*
+     * @param {string} [params.hedged] *classic contract orders only* true for hedged mode, false for one way mode, default is false
+     * @param {int} [params.leverage] *classic contract orders with isolated marginMode only* Leverage size of the order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async virtual Task<object> createUtaOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = this.createUtaOrderRequest(symbol, type, side, amount, price, parameters);
+        object response = await this.utaPrivatePostAccountModeOrderPlace(request);
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "orderId": "426319129738321920",
+        //             "tradeType": "SPOT",
+        //             "ts": 1774455603216000000,
+        //             "clientOid": "b896c118-a674-4863-baf4-a9ea3cd696c5"
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseOrder(data);
+    }
+
+    public virtual object createUtaOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object market = this.market(symbol);
+        object isSpot = getValue(market, "spot");
+        object isContract = getValue(market, "contract");
+        object accountMode = "unified";
+        var accountModeparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "accountMode", accountMode);
+        accountMode = ((IList<object>)accountModeparametersVariable)[0];
+        parameters = ((IList<object>)accountModeparametersVariable)[1];
+        object isUnified = (isEqual(accountMode, "unified"));
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters);
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        object marginModeDefined = (!isEqual(marginMode, null));
+        object isSpotMargin = (isTrue(isSpot) && isTrue(marginModeDefined));
+        if (isTrue(isTrue(isSpotMargin) && isTrue(isUnified)))
+        {
+            throw new NotSupported ((string)add(this.id, " createOrder() does not support spot margin orders with unified accountMode")) ;
+        }
+        object tradeType = this.handleTradeType(isContract, marginMode, parameters);
+        object clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId", this.uuid());
+        parameters = this.omit(parameters, new List<object>() {"clientOid", "clientOrderId"});
+        object request = new Dictionary<string, object>() {
+            { "accountMode", accountMode },
+            { "tradeType", tradeType },
+            { "clientOid", clientOrderId },
+            { "symbol", getValue(market, "id") },
+            { "side", ((string)side).ToUpper() },
+            { "orderType", ((string)type).ToUpper() },
+        };
+        if (isTrue(!isEqual(tradeType, null)))
+        {
+            ((IDictionary<string,object>)request)["tradeType"] = tradeType;
+        }
+        ((IDictionary<string,object>)request)["clientOid"] = clientOrderId;
+        object isMarketOrder = (isEqual(type, "market"));
+        object cost = this.safeString(parameters, "cost");
+        if (isTrue(!isEqual(cost, null)))
+        {
+            parameters = this.omit(parameters, "cost");
+            if (isTrue(isTrue(isSpot) && isTrue(isMarketOrder)))
+            {
+                ((IDictionary<string,object>)request)["sizeUnit"] = "QUOTECCY";
+                ((IDictionary<string,object>)request)["size"] = this.marketOrderAmountToPrecision(symbol, cost);
+            } else
+            {
+                throw new NotSupported ((string)add(this.id, " createOrder() with cost is supported for spot market orders only")) ;
+            }
+        } else
+        {
+            object sizeUnit = "BASECCY";
+            if (isTrue(isContract))
+            {
+                var sizeUnitparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "sizeUnit", "UNIT");
+                sizeUnit = ((IList<object>)sizeUnitparametersVariable)[0];
+                parameters = ((IList<object>)sizeUnitparametersVariable)[1];
+            }
+            ((IDictionary<string,object>)request)["sizeUnit"] = sizeUnit;
+            ((IDictionary<string,object>)request)["size"] = this.amountToPrecision(symbol, amount);
+        }
+        if (!isTrue(isMarketOrder))
+        {
+            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+        }
+        object postOnly = null;
+        var postOnlyparametersVariable = this.handlePostOnly(isMarketOrder, false, parameters);
+        postOnly = ((IList<object>)postOnlyparametersVariable)[0];
+        parameters = ((IList<object>)postOnlyparametersVariable)[1];
+        object timeInForce = this.handleTimeInForce(parameters);
+        if (isTrue((!isEqual(timeInForce, null))))
+        {
+            parameters = this.omit(parameters, "timeInForce");
+            ((IDictionary<string,object>)request)["timeInForce"] = timeInForce;
+        }
+        if (isTrue(postOnly))
+        {
+            ((IDictionary<string,object>)request)["postOnly"] = true;
+        }
+        if (isTrue(isContract))
+        {
+            if (!isTrue(isUnified))
+            {
+                if (isTrue(marginModeDefined))
+                {
+                    ((IDictionary<string,object>)request)["marginMode"] = ((string)marginMode).ToUpper();
+                    if (isTrue(isEqual(marginMode, "isolated")))
+                    {
+                        object leverage = this.safeInteger(parameters, "leverage");
+                        if (isTrue(isEqual(leverage, null)))
+                        {
+                            ((IDictionary<string,object>)request)["leverage"] = 1;
+                        }
+                    }
+                }
+                object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+                object hedged = false;
+                var hedgedparametersVariable = this.handleParamBool(parameters, "hedged", hedged);
+                hedged = ((IList<object>)hedgedparametersVariable)[0];
+                parameters = ((IList<object>)hedgedparametersVariable)[1];
+                if (isTrue(hedged))
+                {
+                    object positionSide = ((bool) isTrue((isEqual(side, "buy")))) ? "LONG" : "SHORT";
+                    if (isTrue(reduceOnly))
+                    {
+                        positionSide = ((bool) isTrue((isEqual(positionSide, "LONG")))) ? "SHORT" : "LONG";
+                    }
+                    ((IDictionary<string,object>)request)["positionSide"] = positionSide;
+                }
+            }
+        }
+        // handling with coinditional orders
+        var triggerPricestopLossPricetakeProfitPriceVariable = this.handleTriggerPrices(parameters);
+        var triggerPrice = ((IList<object>) triggerPricestopLossPricetakeProfitPriceVariable)[0];
+        var stopLossPrice = ((IList<object>) triggerPricestopLossPricetakeProfitPriceVariable)[1];
+        var takeProfitPrice = ((IList<object>) triggerPricestopLossPricetakeProfitPriceVariable)[2];
+        object stopLoss = this.safeDict(parameters, "stopLoss");
+        object takeProfit = this.safeDict(parameters, "takeProfit");
+        object hasStopLoss = !isEqual(stopLoss, null);
+        object hasTakeProfit = !isEqual(takeProfit, null);
+        object triggerPriceTypes = new Dictionary<string, object>() {
+            { "mark", "MP" },
+            { "last", "TP" },
+            { "index", "IP" },
+        };
+        if (isTrue(triggerPrice))
+        {
+            object triggerDirection = this.safeString(parameters, "triggerDirection");
+            if (isTrue(isEqual(triggerDirection, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a triggerDirection parameter for trigger orders. Provide params.tringgerDirection or use params.stopLossPrice or params.takeProfitPrice instead of params.triggerPrice")) ;
+            }
+            ((IDictionary<string,object>)request)["triggerDirection"] = ((bool) isTrue((isEqual(triggerDirection, "ascending")))) ? "UP" : "DOWN";
+            ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
+        } else if (isTrue(isTrue(hasStopLoss) || isTrue(hasTakeProfit)))
+        {
+            if (!isTrue(isContract))
+            {
+                throw new NotSupported ((string)add(this.id, " createOrder() stopLoss and takeProfit parameters are only supported for contract orders")) ;
+            }
+            if (isTrue(hasStopLoss))
+            {
+                object slTriggerPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice");
+                object slTriggerPriceType = this.safeString(stopLoss, "triggerPriceType", "mark");
+                ((IDictionary<string,object>)request)["slTriggerPrice"] = this.priceToPrecision(symbol, slTriggerPrice);
+                ((IDictionary<string,object>)request)["slTriggerPriceType"] = this.safeString(triggerPriceTypes, slTriggerPriceType, slTriggerPriceType);
+            }
+            if (isTrue(hasTakeProfit))
+            {
+                object tpTriggerPrice = this.safeString2(takeProfit, "triggerPrice", "takeProfitPrice");
+                object tpTriggerPriceType = this.safeString(takeProfit, "triggerPriceType", "mark");
+                ((IDictionary<string,object>)request)["tpTriggerPrice"] = this.priceToPrecision(symbol, tpTriggerPrice);
+                ((IDictionary<string,object>)request)["tpTriggerPriceType"] = this.safeString(triggerPriceTypes, tpTriggerPriceType, tpTriggerPriceType);
+            }
+        } else if (isTrue(isTrue(stopLossPrice) || isTrue(takeProfitPrice)))
+        {
+            if (isTrue(stopLossPrice))
+            {
+                ((IDictionary<string,object>)request)["triggerDirection"] = ((bool) isTrue((isEqual(side, "buy")))) ? "UP" : "DOWN";
+                ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, stopLossPrice);
+                if (isTrue(isContract))
+                {
+                    object stopLossPriceType = this.safeString2(parameters, "stopLossPriceType", "triggerPriceType", "mark");
+                    ((IDictionary<string,object>)request)["triggerPriceType"] = this.safeString(triggerPriceTypes, stopLossPriceType, stopLossPriceType);
+                }
+            } else
+            {
+                ((IDictionary<string,object>)request)["triggerDirection"] = ((bool) isTrue((isEqual(side, "buy")))) ? "DOWN" : "UP";
+                ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, takeProfitPrice);
+                if (isTrue(isContract))
+                {
+                    object takeProfitPriceType = this.safeString2(parameters, "takeProfitPriceType", "triggerPriceType", "mark");
+                    ((IDictionary<string,object>)request)["triggerPriceType"] = this.safeString(triggerPriceTypes, takeProfitPriceType, takeProfitPriceType);
+                }
+            }
+        }
+        parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopLossPrice", "takeProfitPrice", "stopPriceType", "stopLossPriceType", "takeProfitPriceType", "triggerPriceType", "triggerDirection", "stopLoss", "takeProfit", "hedged"});
         return this.extend(request, parameters);
     }
 
@@ -4375,11 +4742,13 @@ public partial class kucoin : Exchange
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-clientoid
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-orderld
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-clientoid
+     * @see https://www.kucoin.com/docs-new/rest/ua/cancel-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
      * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated'
+     * @param {boolean} [params.uta] true for cancelling order with unified account endpoint (default is false)
      * Check cancelSpotOrder() and cancelContractOrder() for more details on the extra parameters that can be used in params
      * @returns Response from the exchange
      */
@@ -4387,6 +4756,14 @@ public partial class kucoin : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object uta = await this.isUTAEnabled();
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "cancelOrder", "uta", uta);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            return await this.cancelUtaOrder(id, symbol, parameters);
+        }
         object marketType = null;
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -4610,6 +4987,71 @@ public partial class kucoin : Exchange
 
     /**
      * @method
+     * @name kucoin#cancelUtaOrder
+     * @description helper method for cancelling uta orders
+     * @see https://www.kucoin.com/docs-new/rest/ua/cancel-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountMode] 'unified' or 'classic' (default is 'unified')
+     * @param {string} [params.clientOrderId] client order id, required if id is not provided
+     * @param {string} [params.marginMode] 'cross' or 'isolated', required if fetching a margin order
+     * @returns Response from the exchange
+     */
+    public async virtual Task<object> cancelUtaOrder(object id, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument for uta endpoint")) ;
+        }
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
+        object clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            ((IDictionary<string,object>)request)["clientOid"] = clientOrderId;
+            parameters = this.omit(parameters, new List<object>() {"clientOid", "clientOrderId"});
+        } else
+        {
+            if (isTrue(isEqual(id, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires an id argument or clientOrderId parameter")) ;
+            }
+            ((IDictionary<string,object>)request)["orderId"] = id;
+        }
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+        object accountMode = "unified";
+        var accountModeparametersVariable = this.handleOptionAndParams(parameters, "fetchOrder", "accountMode", accountMode);
+        accountMode = ((IList<object>)accountModeparametersVariable)[0];
+        parameters = ((IList<object>)accountModeparametersVariable)[1];
+        ((IDictionary<string,object>)request)["accountMode"] = accountMode;
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrder", parameters);
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        object tradeType = this.handleTradeType(getValue(market, "contract"), marginMode, parameters);
+        ((IDictionary<string,object>)request)["tradeType"] = tradeType;
+        object response = await this.utaPrivatePostAccountModeOrderCancel(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "orderId": "426319129738321920",
+        //             "tradeType": "SPOT",
+        //             "ts": 1774457628105000000,
+        //             "clientOid": "b896c118-a674-4863-baf4-a9ea3cd696c5"
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseOrder(data, market);
+    }
+
+    /**
+     * @method
      * @name kucoin#cancelAllOrders
      * @description cancel all open orders
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders-by-symbol
@@ -4619,16 +5061,27 @@ public partial class kucoin : Exchange
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/batch-cancel-stop-orders
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-orders
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-stop-orders
+     * @see https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-symbol
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
      * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated'
+     * @param {boolean} [params.uta] true for cancelling orders with unified account endpoint (default is false)
+     * Check cancelAllSpotOrders(), cancelAllContractOrders() and cancelAllUtaOrders() for more details on the extra parameters that can be used in params
      * @returns Response from the exchange
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object uta = await this.isUTAEnabled();
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrders", "uta", uta);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            return await this.cancelAllUtaOrders(symbol, parameters);
+        }
         object marketType = null;
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -4773,6 +5226,61 @@ public partial class kucoin : Exchange
 
     /**
      * @method
+     * @name kucoin#cancelAllUtaOrders
+     * @description helper method for cancelling all uta orders
+     * @see https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-symbol
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.trigger] true if cancelling all stop orders
+     * @param {string} [params.marginMode] 'CROSS' or 'ISOLATED'
+     * @returns Response from the exchange
+     */
+    public async virtual Task<object> cancelAllUtaOrders(object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " cancelAllOrders() requires a symbol argument for uta endpoint")) ;
+        }
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object isContract = getValue(market, "contract");
+        object tradeType = ((bool) isTrue(isContract)) ? "FUTURES" : "SPOT";
+        object trigger = false;
+        var triggerparametersVariable = this.handleParamBool(parameters, "trigger", trigger);
+        trigger = ((IList<object>)triggerparametersVariable)[0];
+        parameters = ((IList<object>)triggerparametersVariable)[1];
+        object orderFilter = ((bool) isTrue(trigger)) ? "ADVANCED" : "NORMAL";
+        object request = new Dictionary<string, object>() {
+            { "accountMode", "unified" },
+            { "symbol", getValue(market, "id") },
+            { "tradeType", tradeType },
+            { "orderFilter", orderFilter },
+        };
+        object response = await this.utaPrivatePostAccountModeOrderCancelAll(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "tradeType": "SPOT",
+        //             "ts": 1774458644140000000,
+        //             "items": [
+        //                 {
+        //                     "orderId": "426328635071352832"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object orders = this.safeList(data, "items", new List<object>() {});
+        return this.parseOrders(orders, market, null, null, new Dictionary<string, object>() {
+            { "status", "canceled" },
+        });
+    }
+
+    /**
+     * @method
      * @name kucoin#fetchOrdersByStatus
      * @description fetches a list of orders placed on the exchange
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-open-orders
@@ -4783,18 +5291,25 @@ public partial class kucoin : Exchange
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-open-order-list
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-order-history
      * @param {string} status 'active' or 'closed', only 'active' is valid for stop orders
      * @param {string} symbol unified symbol for the market to retrieve orders from
      * @param {int} [since] timestamp in ms of the earliest order to retrieve
      * @param {int} [limit] The maximum number of orders to retrieve
      * @param {object} [params] exchange specific parameters
-     * Check fetchSpotOrdersByStatus() and fetchContractOrdersByStatus() for more details on the extra parameters that can be used in params
+     * @param {boolean} [params.uta] true for fetch orders with uta endpoint (default is false)
+     * Check fetchSpotOrdersByStatus(), fetchContractOrdersByStatus() and fetchUtaOrdersByStatus() for more details on the extra parameters that can be used in params
      * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<object> fetchOrdersByStatus(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object uta = await this.isUTAEnabled();
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchOrdersByStatus", "uta", uta);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
         object marketType = null;
         if (isTrue(isEqual(symbol, null)))
         {
@@ -4806,16 +5321,29 @@ public partial class kucoin : Exchange
                 parameters = this.omit(parameters, "type");
             } else
             {
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrdersByStatus", null, new Dictionary<string, object>() {});
-                marketType = ((IList<object>)marketTypeparametersVariable)[0];
-                parameters = ((IList<object>)marketTypeparametersVariable)[1];
+                object methodOptions = this.safeDict(this.options, "fetchOrdersByStatus", new Dictionary<string, object>() {});
+                object methodDefaultType = this.safeString2(methodOptions, "defaultType", "type");
+                if (isTrue(isEqual(methodDefaultType, null)))
+                {
+                    marketType = this.safeString2(this.options, "defaultType", "type", "spot");
+                } else
+                {
+                    marketType = methodDefaultType;
+                }
             }
         } else
         {
             object market = this.market(symbol);
             marketType = getValue(market, "type");
         }
-        if (isTrue(isTrue((isEqual(marketType, "spot"))) || isTrue((isEqual(marketType, "margin")))))
+        if (isTrue(uta))
+        {
+            parameters = this.omit(parameters, "uta");
+            parameters = this.extend(parameters, new Dictionary<string, object>() {
+                { "marketType", marketType },
+            });
+            return await this.fetchUtaOrdersByStatus(status, symbol, since, limit, parameters);
+        } else if (isTrue(isTrue((isEqual(marketType, "spot"))) || isTrue((isEqual(marketType, "margin")))))
         {
             return await this.fetchSpotOrdersByStatus(status, symbol, since, limit, parameters);
         } else
@@ -5072,6 +5600,146 @@ public partial class kucoin : Exchange
 
     /**
      * @method
+     * @name kucoin#fetchUtaOrdersByStatus
+     * @description helper method for fetching orders by status with uta endpoint
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-open-order-list
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-order-history
+     * @param {string} status 'active' or 'closed', only 'active' is valid for stop orders
+     * @param {string} symbol unified symbol for the market to retrieve orders from
+     * @param {int} [since] timestamp in ms of the earliest order to retrieve
+     * @param {int} [limit] The maximum number of orders to retrieve
+     * @param {object} [params] exchange specific parameters
+     * @param {int} [params.until] End time in ms
+     * @param {string} [params.side] *closed orders only* 'BUY' or 'SELL'
+     * @param {string} [params.accountMode] 'unified' or 'classic' (default is unified)
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async virtual Task<object> fetchUtaOrdersByStatus(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object paginate = false;
+        object maxLimit = 200;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrdersByStatus", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallDynamic("fetchOrdersByStatus", symbol, since, limit, parameters, maxLimit);
+        }
+        object accountMode = "unified";
+        var accountModeparametersVariable = this.handleOptionAndParams(parameters, "fetchUtaOrdersByStatus", "accountMode", accountMode);
+        accountMode = ((IList<object>)accountModeparametersVariable)[0];
+        parameters = ((IList<object>)accountModeparametersVariable)[1];
+        object request = new Dictionary<string, object>() {
+            { "accountMode", accountMode },
+        };
+        object marketType = null;
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            marketType = getValue(market, "type");
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+        } else
+        {
+            marketType = this.safeString(parameters, "marketType");
+        }
+        parameters = this.omit(parameters, "marketType");
+        object isContract = isTrue((!isEqual(marketType, "spot"))) && isTrue((!isEqual(marketType, "margin")));
+        if (isTrue(!isTrue(isContract) && isTrue((isEqual(symbol, null)))))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchOrdersByStatus() requires a symbol argument for spot and margin markets when using uta endpoint")) ;
+        }
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrdersByStatus", parameters);
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        object tradeType = this.handleTradeType(isContract, marginMode, parameters);
+        ((IDictionary<string,object>)parameters)["tradeType"] = tradeType;
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startAt"] = since;
+        }
+        var requestparametersVariable = this.handleUntilOption("endAt", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["pageSize"] = limit;
+        }
+        object lowercaseStatus = ((string)status).ToLower();
+        if (isTrue(isEqual(lowercaseStatus, "open")))
+        {
+            lowercaseStatus = "active";
+        } else if (isTrue(isEqual(lowercaseStatus, "closed")))
+        {
+            lowercaseStatus = "done";
+        }
+        object response = null;
+        if (isTrue(isEqual(lowercaseStatus, "active")))
+        {
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": {
+            //             "pageNumber": 1,
+            //             "pageSize": 50,
+            //             "totalNum": 1,
+            //             "totalPage": 1,
+            //             "items": [
+            //                 {
+            //                     "orderId": "426328635071352832",
+            //                     "symbol": "ETH-USDT",
+            //                     "orderType": "LIMIT",
+            //                     "side": "BUY",
+            //                     "size": "0.001",
+            //                     "price": "1000",
+            //                     "timeInForce": "GTC",
+            //                     "tags": "partner:ccxt",
+            //                     "orderTime": 1774457869404794617,
+            //                     "stp": "",
+            //                     "cancelAfter": null,
+            //                     "postOnly": false,
+            //                     "reduceOnly": false,
+            //                     "triggerDirection": "",
+            //                     "triggerPrice": "",
+            //                     "triggerPriceType": "",
+            //                     "tpTriggerPrice": "",
+            //                     "tpTriggerPriceType": "",
+            //                     "slTriggerPrice": "",
+            //                     "slTriggerPriceType": "",
+            //                     "filledSize": "0",
+            //                     "avgPrice": "0",
+            //                     "fee": "0",
+            //                     "feeCurrency": "USDT",
+            //                     "tax": "0",
+            //                     "updatedTime": 1774457869469028819,
+            //                     "triggerOrderId": "",
+            //                     "cancelReason": "",
+            //                     "cancelSize": "0",
+            //                     "clientOid": "708987d5-c346-487a-a70c-ea267377b0ca",
+            //                     "sizeUnit": "BASECCY",
+            //                     "status": 2
+            //                 }
+            //             ],
+            //             "tradeType": "SPOT"
+            //         }
+            //     }
+            //
+            response = await this.utaPrivateGetAccountModeOrderOpenList(this.extend(request, parameters));
+        } else
+        {
+            response = await this.utaPrivateGetAccountModeOrderHistory(this.extend(request, parameters));
+        }
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object orders = this.safeList(data, "items", new List<object>() {});
+        return this.parseOrders(orders, market, since, limit);
+    }
+
+    /**
+     * @method
      * @name kucoin#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-closed-orders
@@ -5080,6 +5748,7 @@ public partial class kucoin : Exchange
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-order-history
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -5119,6 +5788,7 @@ public partial class kucoin : Exchange
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-open-order-list
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -5163,17 +5833,28 @@ public partial class kucoin : Exchange
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-clientoid
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-by-orderld
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/get-stop-order-by-clientoid
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-order-details
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
-     * Check fetchSpotOrder() and fetchContractOrder() for more details on the extra parameters that can be used in params
+     * @param {bool} [params.uta] true if fetching an order with uta endpoint (default is false)
+     * Check fetchSpotOrder(), fetchContractOrder() and fetchUtaOrder() for more details on the extra parameters that can be used in params
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object uta = await this.isUTAEnabled();
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchOrder", "uta", uta);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            parameters = this.omit(parameters, "uta");
+            return await this.fetchUtaOrder(id, symbol, parameters);
+        }
         object marketType = null;
         if (isTrue(isEqual(symbol, null)))
         {
@@ -5393,8 +6074,134 @@ public partial class kucoin : Exchange
         return this.parseOrder(responseData, market);
     }
 
+    /**
+     * @method
+     * @name kucoin#fetchUtaOrder
+     * @description fetch uta order
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-order-details
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountMode] 'unified' or 'classic' (default is 'unified')
+     * @param {string} [params.clientOrderId] client order id, required if id is not provided
+     * @param {string} [params.marginMode] 'cross' or 'isolated', required if fetching a margin order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async virtual Task<object> fetchUtaOrder(object id, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires a symbol argument for uta orders")) ;
+        }
+        object request = new Dictionary<string, object>() {};
+        object clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            ((IDictionary<string,object>)request)["clientOid"] = clientOrderId;
+            parameters = this.omit(parameters, new List<object>() {"clientOid", "clientOrderId"});
+        } else
+        {
+            if (isTrue(isEqual(id, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires an id argument or clientOrderId parameter")) ;
+            }
+            ((IDictionary<string,object>)request)["orderId"] = id;
+        }
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+        object accountMode = "unified";
+        var accountModeparametersVariable = this.handleOptionAndParams(parameters, "fetchOrder", "accountMode", accountMode);
+        accountMode = ((IList<object>)accountModeparametersVariable)[0];
+        parameters = ((IList<object>)accountModeparametersVariable)[1];
+        ((IDictionary<string,object>)request)["accountMode"] = accountMode;
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrder", parameters);
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        object tradeType = this.handleTradeType(getValue(market, "contract"), marginMode, parameters);
+        ((IDictionary<string,object>)request)["tradeType"] = tradeType;
+        object response = await this.utaPrivateGetAccountModeOrderDetail(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "orderId": "426319129738321920",
+        //             "symbol": "ETH-USDT",
+        //             "orderType": "LIMIT",
+        //             "side": "BUY",
+        //             "size": "0.001",
+        //             "price": "1000",
+        //             "timeInForce": "GTC",
+        //             "tags": "partner:ccxt",
+        //             "orderTime": 1774455603156417582,
+        //             "stp": "",
+        //             "cancelAfter": null,
+        //             "postOnly": false,
+        //             "reduceOnly": false,
+        //             "triggerDirection": "",
+        //             "triggerPrice": "",
+        //             "triggerPriceType": "",
+        //             "tpTriggerPrice": "",
+        //             "tpTriggerPriceType": "",
+        //             "slTriggerPrice": "",
+        //             "slTriggerPriceType": "",
+        //             "filledSize": "0",
+        //             "avgPrice": "0",
+        //             "fee": "0",
+        //             "feeCurrency": "USDT",
+        //             "tax": "0",
+        //             "updatedTime": 1774455603371523690,
+        //             "triggerOrderId": "",
+        //             "cancelReason": "",
+        //             "cancelSize": "0",
+        //             "clientOid": "b896c118-a674-4863-baf4-a9ea3cd696c5",
+        //             "sizeUnit": "BASECCY",
+        //             "tradeType": "SPOT",
+        //             "tradeId": "",
+        //             "status": 2
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseOrder(data, market);
+    }
+
+    public virtual object handleTradeType(object isContractMarket = null, object marginMode = null, object parameters = null)
+    {
+        isContractMarket ??= false;
+        parameters ??= new Dictionary<string, object>();
+        object tradeType = this.safeString(parameters, "tradeType");
+        if (isTrue(isEqual(tradeType, null)))
+        {
+            if (isTrue(isContractMarket))
+            {
+                tradeType = "FUTURES";
+            } else if (isTrue(!isEqual(marginMode, null)))
+            {
+                tradeType = ((string)marginMode).ToUpper();
+            } else
+            {
+                tradeType = "SPOT";
+            }
+        }
+        return tradeType;
+    }
+
     public override object parseOrder(object order, object market = null)
     {
+        object tradeType = this.safeString(order, "tradeType");
+        object utaTradeTypes = new List<object>() {"SPOT", "CROSS", "ISOLATED", "FUTURES"}; // tradeType specific for uta endpoint
+        object isUtaOrder = this.inArray(tradeType, utaTradeTypes);
+        if (isTrue(inOp(order, "sizeUnit")))
+        {
+            isUtaOrder = true;
+        }
+        if (isTrue(isUtaOrder))
+        {
+            return this.parseUtaOrder(order, market);
+        }
         object marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         if (isTrue(isTrue((!isEqual(market, null))) && isTrue((getValue(market, "contract")))))
@@ -5735,6 +6542,135 @@ public partial class kucoin : Exchange
         }, market);
     }
 
+    public virtual object parseUtaOrder(object order, object market = null)
+    {
+        //
+        // createOrder
+        //     {
+        //         "orderId": "426319129738321920",
+        //         "tradeType": "SPOT",
+        //         "ts": 1774455603216000000,
+        //         "clientOid": "b896c118-a674-4863-baf4-a9ea3cd696c5"
+        //     }
+        //
+        // fetchOrder
+        //     {
+        //         "orderId": "426319129738321920",
+        //         "symbol": "ETH-USDT",
+        //         "orderType": "LIMIT",
+        //         "side": "BUY",
+        //         "size": "0.001",
+        //         "price": "1000",
+        //         "timeInForce": "GTC",
+        //         "tags": "partner:ccxt",
+        //         "orderTime": 1774455603156417582,
+        //         "stp": "",
+        //         "cancelAfter": null,
+        //         "postOnly": false,
+        //         "reduceOnly": false,
+        //         "triggerDirection": "",
+        //         "triggerPrice": "",
+        //         "triggerPriceType": "",
+        //         "tpTriggerPrice": "",
+        //         "tpTriggerPriceType": "",
+        //         "slTriggerPrice": "",
+        //         "slTriggerPriceType": "",
+        //         "filledSize": "0",
+        //         "avgPrice": "0",
+        //         "fee": "0",
+        //         "feeCurrency": "USDT",
+        //         "tax": "0",
+        //         "updatedTime": 1774455603371523690,
+        //         "triggerOrderId": "",
+        //         "cancelReason": "",
+        //         "cancelSize": "0",
+        //         "clientOid": "b896c118-a674-4863-baf4-a9ea3cd696c5",
+        //         "sizeUnit": "BASECCY",
+        //         "tradeType": "SPOT",
+        //         "tradeId": "",
+        //         "status": 2
+        //     }
+        //
+        object marketId = this.safeString(order, "symbol");
+        market = this.safeMarket(marketId, market);
+        object symbol = getValue(market, "symbol");
+        object timestamp = this.safeIntegerProduct2(order, "orderTime", "ts", 0.000001);
+        object lastUpdateTimestamp = this.safeIntegerProduct(order, "updatedTime", 0.000001);
+        object rawTimeInForce = this.safeString(order, "timeInForce");
+        object amount = null;
+        object cost = null;
+        object sizeUnit = this.safeString(order, "sizeUnit");
+        object size = this.safeString(order, "size");
+        object rawStatus = this.safeString(order, "status");
+        object average = this.safeString(order, "avgPrice");
+        object filled = this.safeString(order, "filledSize"); // might be in base or quote, need to check sizeUnit
+        if (isTrue(isTrue((isEqual(sizeUnit, "BASECCY"))) || isTrue((isEqual(sizeUnit, "UNIT")))))
+        {
+            amount = size;
+        } else
+        {
+            cost = filled;
+            filled = Precise.stringDiv(filled, average);
+            filled = this.amountToPrecision(symbol, filled);
+        }
+        object fee = new Dictionary<string, object>() {
+            { "currency", this.safeCurrencyCode(this.safeString(order, "feeCurrency")) },
+            { "cost", this.safeString(order, "fee") },
+        };
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "id", this.safeString(order, "orderId") },
+            { "clientOrderId", this.safeString(order, "clientOid") },
+            { "symbol", symbol },
+            { "type", this.safeStringLower(order, "orderType") },
+            { "timeInForce", this.parseOrderTimeInForce(rawTimeInForce) },
+            { "postOnly", this.safeBool(order, "postOnly") },
+            { "reduceOnly", this.safeBool(order, "reduceOnly") },
+            { "side", this.safeStringLower(order, "side") },
+            { "amount", amount },
+            { "price", this.safeString(order, "price") },
+            { "triggerPrice", this.safeString2(order, "stopPrice", "triggerPrice") },
+            { "cost", cost },
+            { "filled", filled },
+            { "remaining", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "fee", fee },
+            { "status", this.parseOrderStatus(rawStatus) },
+            { "lastTradeTimestamp", null },
+            { "lastUpdateTimestamp", lastUpdateTimestamp },
+            { "average", average },
+            { "trades", null },
+            { "stopLossPrice", this.safeString(order, "slTriggerPrice") },
+            { "takeProfitPrice", this.safeString(order, "tpTriggerPrice") },
+            { "info", order },
+        }, market);
+    }
+
+    public virtual object parseOrderTimeInForce(object timeInForce)
+    {
+        object timeInForces = new Dictionary<string, object>() {
+            { "GTC", "GTC" },
+            { "IOC", "IOC" },
+            { "FOK", "FOK" },
+            { "GTT", "GTD" },
+        };
+        return this.safeString(timeInForces, timeInForce, timeInForce);
+    }
+
+    public virtual object parseOrderStatus(object status)
+    {
+        object statuses = new Dictionary<string, object>() {
+            { "0", "open" },
+            { "1", "open" },
+            { "2", "open" },
+            { "3", "closed" },
+            { "4", "open" },
+            { "5", "canceled" },
+            { "6", "closed" },
+        };
+        return this.safeString(statuses, status, status);
+    }
+
     /**
      * @method
      * @name kucoin#fetchOrderTrades
@@ -5742,12 +6678,14 @@ public partial class kucoin : Exchange
      * @see https://docs.kucoin.com/#list-fills
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-trade-history
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-trade-history
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+     * @param {boolean} [params.uta] set to true if fetching trades from uta endpoint, default is false.
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -5764,6 +6702,7 @@ public partial class kucoin : Exchange
      * @name kucoin#fetchMyTrades
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-trade-history
      * @description fetch all trades made by the user
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -5787,6 +6726,17 @@ public partial class kucoin : Exchange
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object uta = await this.isUTAEnabled();
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "uta", uta);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            parameters = this.extend(parameters, new Dictionary<string, object>() {
+                { "marketType", marketType },
+            });
+            return await this.fetchMyUtaTrades(symbol, since, limit, parameters);
+        }
         if (isTrue(isTrue((isEqual(marketType, "spot"))) || isTrue((isEqual(marketType, "margin")))))
         {
             return await this.fetchMySpotTrades(symbol, since, limit, parameters);
@@ -6030,6 +6980,109 @@ public partial class kucoin : Exchange
 
     /**
      * @method
+     * @name kucoin#fetchMyUtaTrades
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-trade-history
+     * @description fetch all trades made by the user
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve (default is 50, max is 200)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {string} [params.accountMode] 'unified' or 'classic', defaults to 'unified'
+     * @param {string} [params.marginMode] 'cross' or 'isolated', only for margin trades
+     * @param {string} [params.side] 'BUY' or 'SELL' (both if not provided)
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    public async virtual Task<object> fetchMyUtaTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters);
+        }
+        object marketType = this.safeString(parameters, "marketType");
+        if (isTrue(!isEqual(marketType, null)))
+        {
+            parameters = this.omit(parameters, "marketType");
+        }
+        object request = new Dictionary<string, object>() {};
+        object isContract = false;
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            isContract = getValue(market, "contract");
+        } else if (isTrue(isTrue((isEqual(marketType, "spot"))) || isTrue((isEqual(marketType, "margin")))))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchMyTrades() requires a symbol parameter for uta spot or margin trades")) ;
+        } else
+        {
+            isContract = true;
+        }
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchMyTrades", parameters);
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        object tradeType = this.handleTradeType(isContract, marginMode, parameters);
+        ((IDictionary<string,object>)request)["tradeType"] = tradeType;
+        object accountMode = "unified";
+        var accountModeparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "accountMode", accountMode);
+        accountMode = ((IList<object>)accountModeparametersVariable)[0];
+        parameters = ((IList<object>)accountModeparametersVariable)[1];
+        ((IDictionary<string,object>)request)["accountMode"] = accountMode;
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startAt"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["pageSize"] = limit;
+        }
+        var requestparametersVariable = this.handleUntilOption("endAt", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object response = await this.utaPrivateGetAccountModeOrderExecution(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "tradeType": "FUTURES",
+        //             "lastId": 30000000000531982,
+        //             "items": [
+        //                 {
+        //                     "orderId": "426373228194254848",
+        //                     "symbol": "DOGEUSDTM",
+        //                     "orderType": "MARKET",
+        //                     "side": "BUY",
+        //                     "tradeId": "1711108516570",
+        //                     "size": "1",
+        //                     "price": "0.09641",
+        //                     "value": "9.641",
+        //                     "executionTime": 1774468501294000000,
+        //                     "fee": "0.0057846",
+        //                     "feeCurrency": "USDT",
+        //                     "tax": "",
+        //                     "liquidityRole": "TAKER",
+        //                     "fillType": "NORMAL"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object trades = this.safeList(data, "items", new List<object>() {});
+        return this.parseTrades(trades, market, since, limit);
+    }
+
+    /**
+     * @method
      * @name kucoin#fetchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-trade-history
@@ -6057,8 +7110,8 @@ public partial class kucoin : Exchange
         // if (limit !== undefined) {
         //     request['pageSize'] = limit;
         // }
-        object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "uta", false);
+        object uta = false;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "uta", uta);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         object response = null;
@@ -6142,6 +7195,10 @@ public partial class kucoin : Exchange
 
     public override object parseTrade(object trade, object market = null)
     {
+        if (isTrue(inOp(trade, "liquidityRole")))
+        {
+            return this.parseMyUtaTrade(trade, market);
+        }
         object marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
         if (isTrue(isTrue((isEqual(market, null))) || isTrue((getValue(market, "spot")))))
@@ -6445,14 +7502,60 @@ public partial class kucoin : Exchange
         }, market);
     }
 
+    public virtual object parseMyUtaTrade(object trade, object market = null)
+    {
+        //
+        //     {
+        //         "orderId": "426373228194254848",
+        //         "symbol": "DOGEUSDTM",
+        //         "orderType": "MARKET",
+        //         "side": "BUY",
+        //         "tradeId": "1711108516570",
+        //         "size": "1",
+        //         "price": "0.09641",
+        //         "value": "9.641",
+        //         "executionTime": 1774468501294000000,
+        //         "fee": "0.0057846",
+        //         "feeCurrency": "USDT",
+        //         "tax": "",
+        //         "liquidityRole": "TAKER",
+        //         "fillType": "NORMAL"
+        //     }
+        //
+        object marketId = this.safeString(trade, "symbol");
+        market = this.safeMarket(marketId, market);
+        object timestamp = this.safeIntegerProduct(trade, "executionTime", 0.000001);
+        object fee = new Dictionary<string, object>() {
+            { "cost", this.safeString(trade, "fee") },
+            { "currency", this.safeCurrencyCode(this.safeString(trade, "feeCurrency")) },
+        };
+        return this.safeTrade(new Dictionary<string, object>() {
+            { "info", trade },
+            { "id", this.safeString(trade, "tradeId") },
+            { "order", this.safeString(trade, "orderId") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "symbol", getValue(market, "symbol") },
+            { "type", this.safeStringLower(trade, "orderType") },
+            { "takerOrMaker", this.safeStringLower(trade, "liquidityRole") },
+            { "side", this.safeStringLower(trade, "side") },
+            { "price", this.safeString(trade, "price") },
+            { "amount", this.safeString(trade, "size") },
+            { "cost", this.safeString(trade, "value") },
+            { "fee", fee },
+        }, market);
+    }
+
     /**
      * @method
      * @name kucoin#fetchTradingFee
      * @description fetch the trading fees for a market
      * @see https://www.kucoin.com/docs-new/rest/account-info/trade-fee/get-actual-fee-spot-margin
      * @see https://www.kucoin.com/docs-new/rest/account-info/trade-fee/get-actual-fee-futures
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-actual-fee
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
@@ -6460,10 +7563,43 @@ public partial class kucoin : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
+        object uta = await this.isUTAEnabled();
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchTradingFee", "uta", uta);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
         object request = new Dictionary<string, object>() {};
         object response = null;
         object entry = null;
-        if (isTrue(getValue(market, "spot")))
+        if (isTrue(uta))
+        {
+            if (isTrue(getValue(market, "spot")))
+            {
+                ((IDictionary<string,object>)request)["tradeType"] = "SPOT";
+            } else
+            {
+                ((IDictionary<string,object>)request)["tradeType"] = "FUTURES";
+            }
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            response = await this.utaPrivateGetUserFeeRate(this.extend(request, parameters));
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": {
+            //             "tradeType": "SPOT",
+            //             "list": [
+            //                 {
+            //                     "symbol": "ETH-USDT",
+            //                     "takerFeeRate": "0.001",
+            //                     "makerFeeRate": "0.001"
+            //                 }
+            //             ]
+            //         }
+            //     }
+            //
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            object dataList = this.safeList(data, "list", new List<object>() {});
+            entry = this.safeDict(dataList, 0);
+        } else if (isTrue(getValue(market, "spot")))
         {
             ((IDictionary<string,object>)request)["symbols"] = getValue(market, "id");
             response = await this.privateGetTradeFees(this.extend(request, parameters));
@@ -6910,13 +8046,14 @@ public partial class kucoin : Exchange
         {
             return await this.fetchContractWithdrawals(code, since, limit, parameters);
         }
+        object maxLimit = 500;
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, parameters, 500);
+            return await this.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, parameters, maxLimit);
         }
         object request = new Dictionary<string, object>() {};
         object currency = null;
@@ -7075,16 +8212,29 @@ public partial class kucoin : Exchange
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-cross-margin
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-isolated-margin
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-futures
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-uta
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-classic
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {object} [params.marginMode] 'cross' or 'isolated', margin type for fetching margin balance
      * @param {object} [params.type] extra parameters specific to the exchange API endpoint
      * @param {object} [params.hf] *default if false* if true, the result includes the balance of the high frequency account
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object uta = await this.isUTAEnabled();
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "uta", uta);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            return await this.fetchUtaBalance(parameters);
+        }
+        object response = null;
+        object request = new Dictionary<string, object>() {};
         object code = this.safeString(parameters, "code");
         object currency = null;
         if (isTrue(!isEqual(code, null)))
@@ -7110,11 +8260,10 @@ public partial class kucoin : Exchange
         {
             type = "trade_hf";
         }
-        var marginModequeryVariable = this.handleMarginModeAndParams("fetchBalance", parameters);
-        var marginMode = ((IList<object>) marginModequeryVariable)[0];
-        var query = ((IList<object>) marginModequeryVariable)[1];
-        object response = null;
-        object request = new Dictionary<string, object>() {};
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBalance", parameters);
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
         object isolated = isTrue((isEqual(marginMode, "isolated"))) || isTrue((isEqual(type, "isolated")));
         object cross = isTrue((isEqual(marginMode, "cross"))) || isTrue((isEqual(type, "margin")));
         if (isTrue(isolated))
@@ -7123,10 +8272,10 @@ public partial class kucoin : Exchange
             {
                 ((IDictionary<string,object>)request)["balanceCurrency"] = getValue(currency, "id");
             }
-            response = await this.privateGetIsolatedAccounts(this.extend(request, query));
+            response = await this.privateGetIsolatedAccounts(this.extend(request, parameters));
         } else if (isTrue(cross))
         {
-            response = await this.privateGetMarginAccount(this.extend(request, query));
+            response = await this.privateGetMarginAccount(this.extend(request, parameters));
         } else
         {
             if (isTrue(!isEqual(currency, null)))
@@ -7134,7 +8283,7 @@ public partial class kucoin : Exchange
                 ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
             }
             ((IDictionary<string,object>)request)["type"] = type;
-            response = await this.privateGetAccounts(this.extend(request, query));
+            response = await this.privateGetAccounts(this.extend(request, parameters));
         }
         //
         // Spot
@@ -7330,8 +8479,294 @@ public partial class kucoin : Exchange
 
     /**
      * @method
+     * @name kucoin#fetchUtaBalance
+     * @description helper method for fetching balance with unified trading account (uta) endpoint
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-uta
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-classic
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot', 'unified', 'funding', 'cross', 'isolated' or 'swap' (default is 'spot')
+     * @param {string} [params.marginMode] 'cross' or 'isolated', margin type for fetching margin balance, only applicable if type is margin (default is cross)
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public async virtual Task<object> fetchUtaBalance(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object requestedType = null;
+        var requestedTypeparametersVariable = this.handleMarketTypeAndParams("fetchUtaBalance", null, parameters);
+        requestedType = ((IList<object>)requestedTypeparametersVariable)[0];
+        parameters = ((IList<object>)requestedTypeparametersVariable)[1];
+        if (isTrue(isEqual(requestedType, "margin")))
+        {
+            // assume cross margin if margin is specified but marginMode is not specified
+            object marginMode = "cross";
+            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchUtaBalance", parameters, marginMode);
+            marginMode = ((IList<object>)marginModeparametersVariable)[0];
+            parameters = ((IList<object>)marginModeparametersVariable)[1];
+            requestedType = marginMode;
+        }
+        object utaAccountsByType = this.safeDict(this.options, "utaAccountsByType", new Dictionary<string, object>() {});
+        object type = null;
+        type = this.safeString(utaAccountsByType, requestedType, type);
+        object isIsolated = (isEqual(type, "ISOLATED"));
+        object request = new Dictionary<string, object>() {};
+        object response = null;
+        if (isTrue(isEqual(type, "unified")))
+        {
+            ((IDictionary<string,object>)request)["accountMode"] = type;
+            // uta
+            //     {
+            //         "code": "200000",
+            //         "data": {
+            //             "accountType": "UNIFIED",
+            //             "ts": 1764731696945,
+            //             "accounts": [
+            //                 {
+            //                     "currencies": [
+            //                         {
+            //                             "currency": "USDT",
+            //                             "equity": "97.9936711985",
+            //                             "hold": "0.0000000000",
+            //                             "balance": "97.9936711985",
+            //                             "available": "97.9936711985",
+            //                             "liability": "0.0000000000"
+            //                         },
+            //                         {
+            //                             "currency": "BTC",
+            //                             "equity": "0.0000216000",
+            //                             "hold": "0.0000000000",
+            //                             "balance": "0.0000216000",
+            //                             "available": "0.0000216000",
+            //                             "liability": "0.0000000000"
+            //                         }
+            //                     ]
+            //                 }
+            //             ]
+            //         }
+            //     }
+            //
+            response = await this.utaPrivateGetAccountModeAccountBalance(this.extend(request, parameters));
+        } else
+        {
+            ((IDictionary<string,object>)request)["accountType"] = type;
+            //
+            // isolated
+            //     {
+            //         "code": "200000",
+            //         "data": {
+            //             "accountType": "ISOLATED",
+            //             "ts": 1774244660519,
+            //             "accounts": [
+            //                 {
+            //                     "accountSubtype": "LTC-USDT",
+            //                     "riskRatio": "0",
+            //                     "currencies": [
+            //                         {
+            //                             "currency": "LTC",
+            //                             "hold": "0",
+            //                             "available": "0",
+            //                             "liability": "0",
+            //                             "balance": "0",
+            //                             "equity": "0"},{
+            //                             "currency": "USDT",
+            //                             "hold": "0",
+            //                             "available": "6",
+            //                             "liability": "0",
+            //                             "balance": "6",
+            //                             "equity": "6"
+            //                         }
+            //                     ]
+            //                 }
+            //             ]
+            //         }
+            //     }
+            //
+            response = await this.utaPrivateGetAccountBalance(this.extend(request, parameters));
+        }
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object timestamp = this.safeInteger(data, "ts");
+        object result = new Dictionary<string, object>() {
+            { "info", response },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+        };
+        object accounts = this.safeList(data, "accounts", new List<object>() {});
+        if (isTrue(isIsolated))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
+            {
+                object entry = getValue(accounts, i);
+                object marketId = this.safeString(entry, "accountSubtype");
+                object symbol = this.safeSymbol(marketId, null, "-");
+                object subResult = new Dictionary<string, object>() {};
+                object currencies = this.safeList(entry, "currencies", new List<object>() {});
+                for (object j = 0; isLessThan(j, getArrayLength(currencies)); postFixIncrement(ref j))
+                {
+                    object currencyEntry = this.safeDict(currencies, j, new Dictionary<string, object>() {});
+                    object currencyId = this.safeString(currencyEntry, "currency");
+                    object currencyCode = this.safeCurrencyCode(currencyId);
+                    ((IDictionary<string,object>)subResult)[(string)currencyCode] = this.parseBalanceHelper(currencyEntry);
+                }
+                ((IDictionary<string,object>)result)[(string)symbol] = this.safeBalance(subResult);
+            }
+        } else
+        {
+            object firstAccount = this.safeDict(accounts, 0, new Dictionary<string, object>() {});
+            object currencies = this.safeList(firstAccount, "currencies", new List<object>() {});
+            for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
+            {
+                object currencyEntry = this.safeDict(currencies, i, new Dictionary<string, object>() {});
+                object currencyId = this.safeString(currencyEntry, "currency");
+                object currencyCode = this.safeCurrencyCode(currencyId);
+                ((IDictionary<string,object>)result)[(string)currencyCode] = this.parseBalanceHelper(currencyEntry);
+            }
+        }
+        object returnType = result;
+        if (!isTrue(isIsolated))
+        {
+            returnType = this.safeBalance(result);
+        }
+        return returnType;
+    }
+
+    /**
+     * @method
      * @name kucoin#transfer
      * @description transfer currency internally between wallets on the same account
+     * @see https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&
+     * @see https://www.kucoin.com/docs-new/rest/ua/flex-transfer
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
+     * Check transferClassic() and transferUta() for more details on params
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object uta = await this.isUTAEnabled();
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "transfer", "uta", uta);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            return await this.transferUta(code, amount, fromAccount, toAccount, parameters);
+        }
+        return await this.transferClassic(code, amount, fromAccount, toAccount, parameters);
+    }
+
+    /**
+     * @method
+     * @name kucoin#transferUta
+     * @description transfer currency internally between wallets on the same account with uta endpoint
+     * @see https://www.kucoin.com/docs-new/rest/ua/flex-transfer
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.transferType] INTERNAL, PARENT_TO_SUB, SUB_TO_PARENT, SUB_TO_SUB (default is INTERNAL)
+     * @param {string} [params.fromUserId] required if transferType is SUB_TO_PARENT or SUB_TO_SUB
+     * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB or SUB_TO_SUB
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public async virtual Task<object> transferUta(object code, object amount, object fromAccount, object toAccount, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object requestedAmount = this.currencyToPrecision(code, amount);
+        object request = new Dictionary<string, object>() {
+            { "currency", getValue(currency, "id") },
+            { "amount", requestedAmount },
+        };
+        object transferType = "INTERNAL";
+        var transferTypeparametersVariable = this.handleParamString2(parameters, "transferType", "type", transferType);
+        transferType = ((IList<object>)transferTypeparametersVariable)[0];
+        parameters = ((IList<object>)transferTypeparametersVariable)[1];
+        object fromUserId = null;
+        var fromUserIdparametersVariable = this.handleParamString2(parameters, "fromUserId", "fromUid", fromUserId);
+        fromUserId = ((IList<object>)fromUserIdparametersVariable)[0];
+        parameters = ((IList<object>)fromUserIdparametersVariable)[1];
+        object toUserId = null;
+        var toUserIdparametersVariable = this.handleParamString2(parameters, "toUserId", "toUid", toUserId);
+        toUserId = ((IList<object>)toUserIdparametersVariable)[0];
+        parameters = ((IList<object>)toUserIdparametersVariable)[1];
+        if (isTrue(isTrue(isEqual(transferType, "PARENT_TO_SUB")) || isTrue(isEqual(transferType, "SUB_TO_SUB"))))
+        {
+            if (isTrue(isEqual(toUserId, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " transfer() requires a toUserId param for PARENT_TO_SUB or SUB_TO_SUB transfers")) ;
+            } else
+            {
+                ((IDictionary<string,object>)request)["toUid"] = toUserId;
+            }
+        } else if (isTrue(isTrue(isEqual(transferType, "SUB_TO_PARENT")) || isTrue(isEqual(transferType, "SUB_TO_SUB"))))
+        {
+            if (isTrue(isEqual(fromUserId, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " transfer() requires a fromUserId param for SUB_TO_PARENT or SUB_TO_SUB transfers")) ;
+            } else
+            {
+                ((IDictionary<string,object>)request)["fromUid"] = fromUserId;
+            }
+        }
+        object clientOid = this.uuid();
+        var clientOidparametersVariable = this.handleParamString2(parameters, "clientOid", "clientOrderId", clientOid);
+        clientOid = ((IList<object>)clientOidparametersVariable)[0];
+        parameters = ((IList<object>)clientOidparametersVariable)[1];
+        ((IDictionary<string,object>)request)["clientOid"] = clientOid;
+        object fromId = this.convertTypeToAccount(fromAccount);
+        object toId = this.convertTypeToAccount(toAccount);
+        object fromIsolated = this.inArray(fromId, this.ids);
+        object toIsolated = this.inArray(toId, this.ids);
+        if (isTrue(fromIsolated))
+        {
+            ((IDictionary<string,object>)request)["fromAccountSymbol"] = fromId;
+            fromId = "ISOLATED";
+        }
+        if (isTrue(toIsolated))
+        {
+            ((IDictionary<string,object>)request)["toAccountSymbol"] = toId;
+            toId = "ISOLATED";
+        }
+        object utaAccountsByType = this.safeDict(this.options, "utaAccountsByType", new Dictionary<string, object>() {});
+        fromId = this.safeString(utaAccountsByType, fromId, fromId);
+        toId = this.safeString(utaAccountsByType, toId, toId);
+        ((IDictionary<string,object>)request)["fromAccountType"] = ((string)fromId).ToUpper();
+        ((IDictionary<string,object>)request)["toAccountType"] = ((string)toId).ToUpper();
+        object types = new Dictionary<string, object>() {
+            { "INTERNAL", "0" },
+            { "PARENT_TO_SUB", "1" },
+            { "SUB_TO_PARENT", "2" },
+            { "SUB_TO_SUB", "3" },
+        };
+        ((IDictionary<string,object>)request)["type"] = this.safeString(types, transferType, transferType);
+        object response = await this.utaPrivatePostAccountTransfer(this.extend(request, parameters));
+        //
+        //
+        object data = this.safeDict(response, "data");
+        object transfer = this.parseTransfer(data, currency);
+        object transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
+        object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
+        if (isTrue(fillResponseFromRequest))
+        {
+            ((IDictionary<string,object>)transfer)["amount"] = amount;
+            ((IDictionary<string,object>)transfer)["fromAccount"] = fromAccount;
+            ((IDictionary<string,object>)transfer)["toAccount"] = toAccount;
+            ((IDictionary<string,object>)transfer)["status"] = "ok";
+        }
+        return transfer;
+    }
+
+    /**
+     * @method
+     * @name kucoin#transferClassic
+     * @description transfer currency internally between wallets on the same account with classic endpoints
      * @see https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
@@ -7343,7 +8778,7 @@ public partial class kucoin : Exchange
      * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
+    public async virtual Task<object> transferClassic(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -7567,6 +9002,26 @@ public partial class kucoin : Exchange
             { "Instant Exchange", "trade" },
             { "Sub-account transfer", "transfer" },
             { "Liquidation Fees", "fee" },
+            { "RealisedPNL", "trade" },
+            { "TransferIn", "transfer" },
+            { "TransferOut", "transfer" },
+            { "TRADE_EXCHANGE", "trade" },
+            { "TRANSFER", "transfer" },
+            { "SUB_TRANSFER", "transfer" },
+            { "RETURNED_FEES", "fee" },
+            { "DEDUCTION_FEES", "fee" },
+            { "OTHER", "other" },
+            { "SUB_TO_SUB_TRANSFER", "transfer" },
+            { "SPOT_EXCHANGE", "trade" },
+            { "SPOT_EXCHANGE_REBATE", "rebate" },
+            { "FUTURES_EXCHANGE_OPEN", "trade" },
+            { "FUTURES_EXCHANGE_CLOSE", "trade" },
+            { "FUTURES_EXCHANGE_REBATE", "rebate" },
+            { "FUNDING_FEE", "fee" },
+            { "LIABILITY_INTEREST", "fee" },
+            { "KCS_DEDUCTION_FEES", "fee" },
+            { "KCS_RETURNED_FEES", "fee" },
+            { "AUTO_EXCHANGE_USER", "trade" },
         };
         return this.safeString(types, type, type);
     }
@@ -7578,6 +9033,8 @@ public partial class kucoin : Exchange
             { "out", "out" },
             { "TransferIn", "in" },
             { "TransferOut", "out" },
+            { "IN", "in" },
+            { "OUT", "out" },
         };
         return this.safeString(directions, direction, direction);
     }
@@ -7620,14 +9077,28 @@ public partial class kucoin : Exchange
         //         "currency": "USDT"
         //     }
         //
+        // ledger entry from UTA API
+        //     {
+        //         "accountType": "UNIFIED",
+        //         "id": "30000000001200350",
+        //         "currency": "USDT",
+        //         "direction": "IN",
+        //         "businessType": "TRANSFER",
+        //         "amount": "30",
+        //         "balance": "30",
+        //         "fee": "0",
+        //         "tax": "0",
+        //         "remark": "Funding Account",
+        //         "ts": 1774241648267000000
+        //     }
+        //
         object id = this.safeString(item, "id");
         object currencyId = this.safeString(item, "currency");
         object code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         object amount = this.safeString(item, "amount");
-        object balanceAfter = null;
-        // const balanceAfter = this.safeNumber (item, 'balance'); only returns zero string
-        object bizType = this.safeString(item, "bizType");
+        object balanceAfter = this.safeNumberOmitZero(item, "balance");
+        object bizType = this.safeStringN(item, new List<object>() {"bizType", "businessType", "type"});
         object type = this.parseLedgerEntryType(bizType);
         object direction = this.safeString2(item, "direction", "type");
         object account = this.safeString(item, "accountType"); // MAIN, TRADE, MARGIN, or CONTRACT
@@ -7638,6 +9109,9 @@ public partial class kucoin : Exchange
             if (isTrue(!isEqual(timestamp, null)))
             {
                 account = "CONTRACT"; // contract ledger entries do not have an accountType field, so we set it to CONTRACT if the time field is present
+            } else
+            {
+                timestamp = this.safeIntegerProduct(item, "ts", 0.000001); // for UTA API
             }
         }
         object datetime = this.iso8601(timestamp);
@@ -7715,6 +9189,7 @@ public partial class kucoin : Exchange
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-tradehf
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-marginhf
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-futures
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-account-ledger
      * @param {string} [code] unified currency code, default is undefined
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -7722,6 +9197,7 @@ public partial class kucoin : Exchange
      * @param {object} [params.type] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.hf] default false, when true will fetch ledger entries for the high frequency trading account
      * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {boolean} [params.uta] default false, when true will fetch ledger entries for the unified trading account (UTA) instead of the regular accounts endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
@@ -7730,17 +9206,58 @@ public partial class kucoin : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.loadAccounts();
-        object paginate = false;
-        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
-        parameters = ((IList<object>)paginateparametersVariable)[1];
+        object uta = await this.isUTAEnabled();
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchLedger", "uta", uta);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
         object hf = null;
         var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
         parameters = ((IList<object>)hfparametersVariable)[1];
+        object requestedType = null;
+        var requestedTypeparametersVariable = this.handleMarketTypeAndParams("fetchLedger", null, parameters);
+        requestedType = ((IList<object>)requestedTypeparametersVariable)[0];
+        parameters = ((IList<object>)requestedTypeparametersVariable)[1];
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchLedger", parameters);
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        if (isTrue(isTrue(uta) && isTrue((isEqual(requestedType, "margin")))))
+        {
+            marginMode = ((bool) isTrue((isEqual(marginMode, null)))) ? "cross" : marginMode; // default to cross margin for UTA if margin is requested but marginMode is not specified
+            requestedType = marginMode;
+        }
+        object accountsByType = this.safeDict(this.options, "accountsByType");
+        if (isTrue(uta))
+        {
+            accountsByType = this.safeDict(this.options, "utaAccountsByType");
+        }
+        object type = null;
+        type = this.safeString(accountsByType, requestedType, requestedType);
+        object maxLimit = 500; // for spot non-uta and margin
+        if (isTrue(hf))
+        {
+            maxLimit = 200;
+        } else if (isTrue(isEqual(type, "contract")))
+        {
+            maxLimit = 50;
+        } else if (isTrue(uta))
+        {
+            if (isTrue(isTrue((isEqual(type, "UNIFIED"))) || isTrue((isEqual(type, "SPOT")))))
+            {
+                maxLimit = 200;
+            } else if (isTrue(isEqual(type, "FUTURES")))
+            {
+                maxLimit = 100;
+            }
+        }
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters);
+            return await this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters, maxLimit);
         }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(since, null)))
@@ -7757,18 +9274,25 @@ public partial class kucoin : Exchange
         var requestparametersVariable = this.handleUntilOption("endAt", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        object marginMode = null;
-        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchLedger", parameters);
-        marginMode = ((IList<object>)marginModeparametersVariable)[0];
-        parameters = ((IList<object>)marginModeparametersVariable)[1];
-        object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("fetchLedger", null, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
-        object accountsByType = this.safeDict(this.options, "accountsByType");
-        type = this.safeString(accountsByType, type, type);
+        if (isTrue(!isEqual(limit, null)))
+        {
+            if (isTrue(isEqual(type, "contract")))
+            {
+                ((IDictionary<string,object>)request)["maxCount"] = limit;
+            } else if (isTrue(hf))
+            {
+                ((IDictionary<string,object>)request)["limit"] = limit;
+            } else
+            {
+                ((IDictionary<string,object>)request)["pageSize"] = limit;
+            }
+        }
         object response = null;
-        if (isTrue(hf))
+        if (isTrue(uta))
+        {
+            ((IDictionary<string,object>)request)["accountType"] = type;
+            response = await this.utaPrivateGetAccountLedger(this.extend(request, parameters));
+        } else if (isTrue(hf))
         {
             if (isTrue(!isEqual(marginMode, null)))
             {
@@ -8030,12 +9554,14 @@ public partial class kucoin : Exchange
         // Cross
         //
         //     {
-        //         "currency": "1INCH",
-        //         "total": "0",
-        //         "available": "0",
+        //         "currency": "DOGE",
+        //         "total": "119.99995308",
+        //         "available": "119.99995308",
         //         "hold": "0",
-        //         "liability": "0",
-        //         "maxBorrowSize": "0",
+        //         "liability": "10.00004692",
+        //         "liabilityPrincipal": "10",
+        //         "liabilityInterest": "0.00004692",
+        //         "maxBorrowSize": "1140",
         //         "borrowEnabled": true,
         //         "transferInEnabled": true
         //     }
@@ -8043,30 +9569,32 @@ public partial class kucoin : Exchange
         // Isolated
         //
         //     {
-        //         "symbol": "MANA-USDT",
-        //         "debtRatio": "0",
-        //         "status": "BORROW",
+        //         "symbol": "DOGE-USDT",
+        //         "status": "EFFECTIVE",
+        //         "debtRatio": "0.0822",
         //         "baseAsset": {
-        //             "currency": "MANA",
+        //             "currency": "DOGE",
         //             "borrowEnabled": true,
-        //             "repayEnabled": true,
-        //             "transferEnabled": true,
-        //             "borrowed": "0",
-        //             "totalAsset": "0",
-        //             "available": "0",
+        //             "transferInEnabled": true,
+        //             "liability": "10.00009385",
+        //             "liabilityPrincipal": "10.00004692",
+        //             "liabilityInterest": "0.00004693",
+        //             "total": "10",
+        //             "available": "10",
         //             "hold": "0",
-        //             "maxBorrowSize": "1000"
+        //             "maxBorrowSize": "990"
         //         },
         //         "quoteAsset": {
         //             "currency": "USDT",
         //             "borrowEnabled": true,
-        //             "repayEnabled": true,
-        //             "transferEnabled": true,
-        //             "borrowed": "0",
-        //             "totalAsset": "0",
-        //             "available": "0",
+        //             "transferInEnabled": true,
+        //             "liability": "0",
+        //             "liabilityPrincipal": "0",
+        //             "liabilityInterest": "0",
+        //             "total": "10",
+        //             "available": "10",
         //             "hold": "0",
-        //             "maxBorrowSize": "50000"
+        //             "maxBorrowSize": "89"
         //         }
         //     }
         //
@@ -8074,20 +9602,19 @@ public partial class kucoin : Exchange
         object marginMode = ((bool) isTrue((isEqual(marketId, null)))) ? "cross" : "isolated";
         market = this.safeMarket(marketId, market);
         object symbol = this.safeString(market, "symbol");
-        object timestamp = this.safeInteger(info, "createdAt");
         object isolatedBase = this.safeDict(info, "baseAsset", new Dictionary<string, object>() {});
         object amountBorrowed = null;
         object interest = null;
         object currencyId = null;
         if (isTrue(isEqual(marginMode, "isolated")))
         {
-            amountBorrowed = this.safeNumber(isolatedBase, "liability");
-            interest = this.safeNumber(isolatedBase, "interest");
+            amountBorrowed = this.safeNumber(isolatedBase, "liabilityPrincipal");
+            interest = this.safeNumber(isolatedBase, "liabilityInterest");
             currencyId = this.safeString(isolatedBase, "currency");
         } else
         {
-            amountBorrowed = this.safeNumber(info, "liability");
-            interest = this.safeNumber(info, "accruedInterest");
+            amountBorrowed = this.safeNumber(info, "liabilityPrincipal");
+            interest = this.safeNumber(info, "liabilityInterest");
             currencyId = this.safeString(info, "currency");
         }
         return new Dictionary<string, object>() {
@@ -8098,8 +9625,8 @@ public partial class kucoin : Exchange
             { "interestRate", this.safeNumber(info, "dailyIntRate") },
             { "amountBorrowed", amountBorrowed },
             { "marginMode", marginMode },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 
@@ -8527,9 +10054,11 @@ public partial class kucoin : Exchange
      * @description set the level of leverage for a market
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/modify-leverage
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage
+     * @see https://www.kucoin.com/docs-new/rest/ua/modify-leverage-uta
      * @param {int } [leverage] New leverage multiplier. Must be greater than 1 and up to two decimal places, and cannot be less than the user's current debt leverage or greater than the system's maximum leverage
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] *contract markets only* set to true for the unified trading account (uta)
      * @returns {object} response from the exchange
      */
     public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
@@ -8543,11 +10072,23 @@ public partial class kucoin : Exchange
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         if (isTrue(isTrue((!isEqual(symbol, null))) || isTrue((isTrue((!isEqual(marketType, "spot"))) && isTrue((!isEqual(marketType, "margin")))))))
         {
+            if (isTrue(isEqual(symbol, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " setLeverage requires a symbol argument for contract markets")) ;
+            }
             market = this.market(symbol);
             if (isTrue(getValue(market, "contract")))
             {
                 return await this.setContractLeverage(leverage, symbol, parameters);
             }
+        }
+        object uta = await this.isUTAEnabled();
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "setLeverage", "uta", uta);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            throw new NotSupported ((string)add(this.id, " setLeverage with params[\"uta\"] is supported for contract markets only")) ;
         }
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters);
@@ -8576,9 +10117,11 @@ public partial class kucoin : Exchange
      * @name kucoin#setContractLeverage
      * @description set the level of leverage for a market
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage
+     * @see https://www.kucoin.com/docs-new/rest/ua/modify-leverage-uta
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta)
      * @returns {object} response from the exchange
      */
     public async virtual Task<object> setContractLeverage(object leverage, object symbol = null, object parameters = null)
@@ -8588,7 +10131,7 @@ public partial class kucoin : Exchange
         var marginModeparametersVariable = this.handleMarginModeAndParams(symbol, parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        if (isTrue(!isEqual(marginMode, "cross")))
+        if (isTrue(isTrue((!isEqual(marginMode, null))) && isTrue((!isEqual(marginMode, "cross")))))
         {
             throw new NotSupported ((string)add(this.id, " setLeverage() currently supports only params[\"marginMode\"] = \"cross\" for contracts")) ;
         }
@@ -8598,14 +10141,27 @@ public partial class kucoin : Exchange
             { "symbol", getValue(market, "id") },
             { "leverage", ((object)leverage).ToString() },
         };
-        object response = await this.futuresPrivatePostChangeCrossUserLeverage(this.extend(request, parameters));
-        //
-        //    {
-        //        "code": "200000",
-        //        "data": true
-        //    }
-        //
-        object leverageNum = this.safeInteger(response, "leverage");
+        object uta = await this.isUTAEnabled();
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "setLeverage", "uta", uta);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        object response = null;
+        if (isTrue(uta))
+        {
+            ((IDictionary<string,object>)request)["accountMode"] = "unified";
+            response = await this.utaPrivatePostAccountModeAccountModifyLeverage(this.extend(request, parameters));
+        } else
+        {
+            //
+            //    {
+            //        "code": "200000",
+            //        "data": true
+            //    }
+            //
+            response = await this.futuresPrivatePostChangeCrossUserLeverage(this.extend(request, parameters));
+        }
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object leverageNum = this.safeNumber(data, "leverage");
         return new Dictionary<string, object>() {
             { "info", response },
             { "symbol", getValue(market, "symbol") },
@@ -8783,7 +10339,7 @@ public partial class kucoin : Exchange
             { "symbol", getValue(market, "id") },
         };
         object until = this.safeInteger(parameters, "until");
-        object uta = true; // for backward compatibility, dafult endpoint is uta
+        object uta = false;
         var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "uta", uta);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
@@ -8953,9 +10509,11 @@ public partial class kucoin : Exchange
      * @method
      * @name kucoin#fetchPosition
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-details
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-position-list-uta
      * @description fetch data on an open position
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
@@ -8966,53 +10524,91 @@ public partial class kucoin : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object response = await this.futuresPrivateGetPosition(this.extend(request, parameters));
-        //
-        //    {
-        //        "code": "200000",
-        //        "data": {
-        //            "id": "6505ee6eaff4070001f651c4",
-        //            "symbol": "XBTUSDTM",
-        //            "autoDeposit": false,
-        //            "maintMarginReq": 0,
-        //            "riskLimit": 200,
-        //            "realLeverage": 0.0,
-        //            "crossMode": false,
-        //            "delevPercentage": 0.0,
-        //            "currentTimestamp": 1694887534594,
-        //            "currentQty": 0,
-        //            "currentCost": 0.0,
-        //            "currentComm": 0.0,
-        //            "unrealisedCost": 0.0,
-        //            "realisedGrossCost": 0.0,
-        //            "realisedCost": 0.0,
-        //            "isOpen": false,
-        //            "markPrice": 26611.71,
-        //            "markValue": 0.0,
-        //            "posCost": 0.0,
-        //            "posCross": 0,
-        //            "posInit": 0.0,
-        //            "posComm": 0.0,
-        //            "posLoss": 0.0,
-        //            "posMargin": 0.0,
-        //            "posMaint": 0.0,
-        //            "maintMargin": 0.0,
-        //            "realisedGrossPnl": 0.0,
-        //            "realisedPnl": 0.0,
-        //            "unrealisedPnl": 0.0,
-        //            "unrealisedPnlPcnt": 0,
-        //            "unrealisedRoePcnt": 0,
-        //            "avgEntryPrice": 0.0,
-        //            "liquidationPrice": 0.0,
-        //            "bankruptPrice": 0.0,
-        //            "settleCurrency": "USDT",
-        //            "maintainMargin": 0,
-        //            "riskLimitLevel": 1
-        //        }
-        //    }
-        //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parsePosition(data, market);
+        object uta = await this.isUTAEnabled();
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchPosition", "uta", uta);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        object response = null;
+        object position = null;
+        if (isTrue(uta))
+        {
+            ((IDictionary<string,object>)request)["accountMode"] = "unified";
+            response = await this.utaPrivateGetAccountModePositionOpenList(this.extend(request, parameters));
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": [
+            //             {
+            //                 "symbol": "DOGEUSDTM",
+            //                 "id": "30000000000084351",
+            //                 "marginMode": "CROSS",
+            //                 "size": "2",
+            //                 "entryPrice": "0.093795",
+            //                 "positionValue": "18.298",
+            //                 "markPrice": "0.09149",
+            //                 "leverage": "3",
+            //                 "unrealizedPnL": "-0.461",
+            //                 "realizedPnL": "-0.01122489",
+            //                 "initialMargin": "6.0993333327234",
+            //                 "mmr": "0.007",
+            //                 "maintenanceMargin": "0.128086",
+            //                 "creationTime": 1774469753178000000
+            //             }
+            //         ]
+            //     }
+            //
+            object data = this.safeList(response, "data", new List<object>() {});
+            position = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        } else
+        {
+            response = await this.futuresPrivateGetPosition(this.extend(request, parameters));
+            //
+            //    {
+            //        "code": "200000",
+            //        "data": {
+            //            "id": "6505ee6eaff4070001f651c4",
+            //            "symbol": "XBTUSDTM",
+            //            "autoDeposit": false,
+            //            "maintMarginReq": 0,
+            //            "riskLimit": 200,
+            //            "realLeverage": 0.0,
+            //            "crossMode": false,
+            //            "delevPercentage": 0.0,
+            //            "currentTimestamp": 1694887534594,
+            //            "currentQty": 0,
+            //            "currentCost": 0.0,
+            //            "currentComm": 0.0,
+            //            "unrealisedCost": 0.0,
+            //            "realisedGrossCost": 0.0,
+            //            "realisedCost": 0.0,
+            //            "isOpen": false,
+            //            "markPrice": 26611.71,
+            //            "markValue": 0.0,
+            //            "posCost": 0.0,
+            //            "posCross": 0,
+            //            "posInit": 0.0,
+            //            "posComm": 0.0,
+            //            "posLoss": 0.0,
+            //            "posMargin": 0.0,
+            //            "posMaint": 0.0,
+            //            "maintMargin": 0.0,
+            //            "realisedGrossPnl": 0.0,
+            //            "realisedPnl": 0.0,
+            //            "unrealisedPnl": 0.0,
+            //            "unrealisedPnlPcnt": 0,
+            //            "unrealisedRoePcnt": 0,
+            //            "avgEntryPrice": 0.0,
+            //            "liquidationPrice": 0.0,
+            //            "bankruptPrice": 0.0,
+            //            "settleCurrency": "USDT",
+            //            "maintainMargin": 0,
+            //            "riskLimitLevel": 1
+            //        }
+            //    }
+            //
+            position = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        }
+        return this.parsePosition(position, market);
     }
 
     /**
@@ -9020,61 +10616,30 @@ public partial class kucoin : Exchange
      * @name kucoin#fetchPositions
      * @description fetch all open positions
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-position-list-uta
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.futuresPrivateGetPositions(parameters);
-        //
-        //    {
-        //        "code": "200000",
-        //        "data": [
-        //            {
-        //                "id": "615ba79f83a3410001cde321",
-        //                "symbol": "ETHUSDTM",
-        //                "autoDeposit": false,
-        //                "maintMarginReq": 0.005,
-        //                "riskLimit": 1000000,
-        //                "realLeverage": 18.61,
-        //                "crossMode": false,
-        //                "delevPercentage": 0.86,
-        //                "openingTimestamp": 1638563515618,
-        //                "currentTimestamp": 1638576872774,
-        //                "currentQty": 2,
-        //                "currentCost": 83.64200000,
-        //                "currentComm": 0.05018520,
-        //                "unrealisedCost": 83.64200000,
-        //                "realisedGrossCost": 0.00000000,
-        //                "realisedCost": 0.05018520,
-        //                "isOpen": true,
-        //                "markPrice": 4225.01,
-        //                "markValue": 84.50020000,
-        //                "posCost": 83.64200000,
-        //                "posCross": 0.0000000000,
-        //                "posInit": 3.63660870,
-        //                "posComm": 0.05236717,
-        //                "posLoss": 0.00000000,
-        //                "posMargin": 3.68897586,
-        //                "posMaint": 0.50637594,
-        //                "maintMargin": 4.54717586,
-        //                "realisedGrossPnl": 0.00000000,
-        //                "realisedPnl": -0.05018520,
-        //                "unrealisedPnl": 0.85820000,
-        //                "unrealisedPnlPcnt": 0.0103,
-        //                "unrealisedRoePcnt": 0.2360,
-        //                "avgEntryPrice": 4182.10,
-        //                "liquidationPrice": 4023.00,
-        //                "bankruptPrice": 4000.25,
-        //                "settleCurrency": "USDT",
-        //                "isInverse": false
-        //            }
-        //        ]
-        //    }
-        //
+        object uta = await this.isUTAEnabled();
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "uta", uta);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        object response = null;
+        if (isTrue(uta))
+        {
+            response = await this.utaPrivateGetAccountModePositionOpenList(this.extend(parameters, new Dictionary<string, object>() {
+                { "accountMode", "unified" },
+            }));
+        } else
+        {
+            response = await this.futuresPrivateGetPositions(parameters);
+        }
         object data = this.safeList(response, "data");
         return this.parsePositions(data, symbols);
     }
@@ -9084,74 +10649,134 @@ public partial class kucoin : Exchange
      * @name kucoin#fetchPositionsHistory
      * @description fetches historical positions
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-positions-history
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-position-history-uta
      * @param {string[]} [symbols] list of unified market symbols
      * @param {int} [since] the earliest time in ms to fetch position history for
      * @param {int} [limit] the maximum number of entries to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] closing end time
      * @param {int} [params.pageId] page id
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositionsHistory(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        if (isTrue(isEqual(limit, null)))
+        object uta = await this.isUTAEnabled();
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionsHistory", "uta", uta);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        object response = null;
+        object request = new Dictionary<string, object>() {};
+        symbols = this.marketSymbols(symbols);
+        if (isTrue(!isEqual(symbols, null)))
         {
-            limit = 200;
+            object length = getArrayLength(symbols);
+            if (isTrue(isEqual(length, 1)))
+            {
+                object market = this.market(getValue(symbols, 0));
+                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            }
         }
-        object request = new Dictionary<string, object>() {
-            { "limit", limit },
-        };
-        if (isTrue(!isEqual(since, null)))
+        if (isTrue(uta))
         {
-            ((IDictionary<string,object>)request)["from"] = since;
-        }
-        object until = this.safeInteger(parameters, "until");
-        if (isTrue(!isEqual(until, null)))
+            if (isTrue(!isEqual(since, null)))
+            {
+                ((IDictionary<string,object>)request)["startAt"] = since;
+            }
+            if (isTrue(!isEqual(limit, null)))
+            {
+                ((IDictionary<string,object>)request)["pageSize"] = limit;
+            }
+            var requestparametersVariable = this.handleUntilOption("endAt", request, parameters);
+            request = ((IList<object>)requestparametersVariable)[0];
+            parameters = ((IList<object>)requestparametersVariable)[1];
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": {
+            //             "items": [
+            //                 {
+            //                     "symbol": "DOGEUSDTM",
+            //                     "closeId": "30000000000162175",
+            //                     "marginMode": "CROSS",
+            //                     "side": "LONG",
+            //                     "entryPrice": "0.09641",
+            //                     "closePrice": "0.09613",
+            //                     "maxSize": "1",
+            //                     "avgClosePrice": "0.09613",
+            //                     "leverage": "3",
+            //                     "realizedPnL": "-0.0395524",
+            //                     "fee": "0.0115524",
+            //                     "tax": "0",
+            //                     "fundingFee": "0",
+            //                     "closingTime": 1774469647311000000,
+            //                     "creationTime": 1774468501294000000
+            //                 }
+            //             ],
+            //             "lastId": 30000000000162175
+            //         }
+            //     }
+            //
+            response = await ((Task<object>)callDynamically(this, "utaPrivateGetPositionHistory", new object[] { this.extend(request, parameters) }));
+        } else
         {
-            parameters = this.omit(parameters, "until");
-            ((IDictionary<string,object>)request)["to"] = until;
+            if (isTrue(isEqual(limit, null)))
+            {
+                limit = 200;
+            }
+            ((IDictionary<string,object>)request)["limit"] = limit;
+            if (isTrue(!isEqual(since, null)))
+            {
+                ((IDictionary<string,object>)request)["from"] = since;
+            }
+            object until = this.safeInteger(parameters, "until");
+            if (isTrue(!isEqual(until, null)))
+            {
+                parameters = this.omit(parameters, "until");
+                ((IDictionary<string,object>)request)["to"] = until;
+            }
+            //
+            // {
+            //     "success": true,
+            //     "code": "200",
+            //     "msg": "success",
+            //     "retry": false,
+            //     "data": {
+            //         "currentPage": 1,
+            //         "pageSize": 10,
+            //         "totalNum": 25,
+            //         "totalPage": 3,
+            //         "items": [
+            //             {
+            //                 "closeId": "300000000000000030",
+            //                 "positionId": "300000000000000009",
+            //                 "uid": 99996908309485,
+            //                 "userId": "6527d4fc8c7f3d0001f40f5f",
+            //                 "symbol": "XBTUSDM",
+            //                 "settleCurrency": "XBT",
+            //                 "leverage": "0.0",
+            //                 "type": "LIQUID_LONG",
+            //                 "side": null,
+            //                 "closeSize": null,
+            //                 "pnl": "-1.0000003793999999",
+            //                 "realisedGrossCost": "0.9993849748999999",
+            //                 "withdrawPnl": "0.0",
+            //                 "roe": null,
+            //                 "tradeFee": "0.0006154045",
+            //                 "fundingFee": "0.0",
+            //                 "openTime": 1713785751181,
+            //                 "closeTime": 1713785752784,
+            //                 "openPrice": null,
+            //                 "closePrice": null
+            //             }
+            //         ]
+            //     }
+            // }
+            //
+            response = await this.futuresPrivateGetHistoryPositions(this.extend(request, parameters));
         }
-        object response = await this.futuresPrivateGetHistoryPositions(this.extend(request, parameters));
-        //
-        // {
-        //     "success": true,
-        //     "code": "200",
-        //     "msg": "success",
-        //     "retry": false,
-        //     "data": {
-        //         "currentPage": 1,
-        //         "pageSize": 10,
-        //         "totalNum": 25,
-        //         "totalPage": 3,
-        //         "items": [
-        //             {
-        //                 "closeId": "300000000000000030",
-        //                 "positionId": "300000000000000009",
-        //                 "uid": 99996908309485,
-        //                 "userId": "6527d4fc8c7f3d0001f40f5f",
-        //                 "symbol": "XBTUSDM",
-        //                 "settleCurrency": "XBT",
-        //                 "leverage": "0.0",
-        //                 "type": "LIQUID_LONG",
-        //                 "side": null,
-        //                 "closeSize": null,
-        //                 "pnl": "-1.0000003793999999",
-        //                 "realisedGrossCost": "0.9993849748999999",
-        //                 "withdrawPnl": "0.0",
-        //                 "roe": null,
-        //                 "tradeFee": "0.0006154045",
-        //                 "fundingFee": "0.0",
-        //                 "openTime": 1713785751181,
-        //                 "closeTime": 1713785752784,
-        //                 "openPrice": null,
-        //                 "closePrice": null
-        //             }
-        //         ]
-        //     }
-        // }
-        //
         object data = this.safeDict(response, "data");
         object items = this.safeList(data, "items", new List<object>() {});
         return this.parsePositions(items, symbols);
@@ -9228,65 +10853,114 @@ public partial class kucoin : Exchange
         //                 "closePrice": null
         //             }
         //
+        // uta fetchPositions
+        //     {
+        //         "symbol": "DOGEUSDTM",
+        //         "id": "30000000000084351",
+        //         "marginMode": "CROSS",
+        //         "size": "2",
+        //         "entryPrice": "0.093795",
+        //         "positionValue": "18.298",
+        //         "markPrice": "0.09149",
+        //         "leverage": "3",
+        //         "unrealizedPnL": "-0.461",
+        //         "realizedPnL": "-0.01122489",
+        //         "initialMargin": "6.0993333327234",
+        //         "mmr": "0.007",
+        //         "maintenanceMargin": "0.128086",
+        //         "creationTime": 1774469753178000000
+        //     }
+        //
+        // uta fetchPositionsHistory
+        //     {
+        //         "symbol": "DOGEUSDTM",
+        //         "closeId": "30000000000162175",
+        //         "marginMode": "CROSS",
+        //         "side": "LONG",
+        //         "entryPrice": "0.09641",
+        //         "closePrice": "0.09613",
+        //         "maxSize": "1",
+        //         "avgClosePrice": "0.09613",
+        //         "leverage": "3",
+        //         "realizedPnL": "-0.0395524",
+        //         "fee": "0.0115524",
+        //         "tax": "0",
+        //         "fundingFee": "0",
+        //         "closingTime": 1774469647311000000,
+        //         "creationTime": 1774468501294000000
+        //     }
+        //
         object symbol = this.safeString(position, "symbol");
         market = this.safeMarket(symbol, market);
         object timestamp = this.safeInteger(position, "currentTimestamp");
-        object size = this.safeString(position, "currentQty");
-        object side = null;
+        if (isTrue(isEqual(timestamp, null)))
+        {
+            timestamp = this.safeIntegerProduct(position, "creationTime", 0.000001);
+        }
+        object size = this.safeStringN(position, new List<object>() {"currentQty", "size", "maxSize", "closeSize"});
+        object side = this.safeStringLower(position, "side");
         object type = this.safeStringLower(position, "type");
-        if (isTrue(!isEqual(size, null)))
+        if (isTrue(isEqual(side, null)))
         {
-            if (isTrue(Precise.stringGt(size, "0")))
+            if (isTrue(!isEqual(size, null)))
             {
-                side = "long";
-            } else if (isTrue(Precise.stringLt(size, "0")))
+                if (isTrue(Precise.stringGt(size, "0")))
+                {
+                    side = "long";
+                } else if (isTrue(Precise.stringLt(size, "0")))
+                {
+                    side = "short";
+                }
+            } else if (isTrue(!isEqual(type, null)))
             {
-                side = "short";
-            }
-        } else if (isTrue(!isEqual(type, null)))
-        {
-            if (isTrue(isGreaterThan(getIndexOf(type, "long"), -1)))
-            {
-                side = "long";
-            } else
-            {
-                side = "short";
+                if (isTrue(isGreaterThan(getIndexOf(type, "long"), -1)))
+                {
+                    side = "long";
+                } else
+                {
+                    side = "short";
+                }
             }
         }
-        object notional = Precise.stringAbs(this.safeString(position, "posCost"));
-        object initialMargin = this.safeString(position, "posInit");
+        object notional = Precise.stringAbs(this.safeString2(position, "posCost", "positionValue"));
+        object initialMargin = this.safeString2(position, "posInit", "initialMargin");
         object initialMarginPercentage = Precise.stringDiv(initialMargin, notional);
         // const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
-        object unrealisedPnl = this.safeString(position, "unrealisedPnl");
+        object unrealisedPnl = this.safeString2(position, "unrealisedPnl", "unrealizedPnL");
         object crossMode = this.safeValue(position, "crossMode");
         // currently crossMode is always set to false and only isolated positions are supported
-        object marginMode = null;
+        object marginMode = this.safeStringLower(position, "marginMode");
         if (isTrue(!isEqual(crossMode, null)))
         {
             marginMode = ((bool) isTrue(crossMode)) ? "cross" : "isolated";
         }
+        object lastUpdateTimestamp = this.safeInteger(position, "closeTime");
+        if (isTrue(isEqual(lastUpdateTimestamp, null)))
+        {
+            lastUpdateTimestamp = this.safeIntegerProduct(position, "closingTime", 0.000001);
+        }
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
-            { "id", this.safeString2(position, "id", "positionId") },
+            { "id", this.safeStringN(position, new List<object>() {"id", "positionId", "closeId"}) },
             { "symbol", this.safeString(market, "symbol") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "lastUpdateTimestamp", this.safeInteger(position, "closeTime") },
+            { "lastUpdateTimestamp", lastUpdateTimestamp },
             { "initialMargin", this.parseNumber(initialMargin) },
             { "initialMarginPercentage", this.parseNumber(initialMarginPercentage) },
-            { "maintenanceMargin", this.safeNumber(position, "posMaint") },
-            { "maintenanceMarginPercentage", this.safeNumber(position, "maintMarginReq") },
-            { "entryPrice", this.safeNumber2(position, "avgEntryPrice", "openPrice") },
+            { "maintenanceMargin", this.safeNumber2(position, "posMaint", "maintenanceMargin") },
+            { "maintenanceMarginPercentage", this.safeNumber2(position, "maintMarginReq", "mmr") },
+            { "entryPrice", this.safeNumberN(position, new List<object>() {"avgEntryPrice", "openPrice", "entryPrice"}) },
             { "notional", this.parseNumber(notional) },
             { "leverage", this.safeNumber2(position, "realLeverage", "leverage") },
             { "unrealizedPnl", this.parseNumber(unrealisedPnl) },
             { "contracts", this.parseNumber(Precise.stringAbs(size)) },
             { "contractSize", this.safeValue(market, "contractSize") },
-            { "realizedPnl", this.safeNumber2(position, "realisedPnl", "pnl") },
+            { "realizedPnl", this.safeNumberN(position, new List<object>() {"realisedPnl", "pnl", "realizedPnL"}) },
             { "marginRatio", null },
             { "liquidationPrice", this.safeNumber(position, "liquidationPrice") },
             { "markPrice", this.safeNumber(position, "markPrice") },
-            { "lastPrice", null },
+            { "lastPrice", this.safeNumber(position, "closePrice") },
             { "collateral", this.safeNumber(position, "maintMargin") },
             { "marginMode", marginMode },
             { "side", side },
@@ -9301,21 +10975,37 @@ public partial class kucoin : Exchange
      * @name kucoin#cancelOrders
      * @description cancel multiple orders for contract markets
      * @see https://www.kucoin.com/docs-new/3470241e0
+     * @see https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-id
      * @param {string[]} ids order ids
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string[]} [params.clientOrderIds] client order ids
+     * @param {boolean} [params.uta] set to true to use the unified trading account (uta) endpoint, defaults to false for the contract orders
+     * @param {string} [params.accountMode] *for uta endpoint only* 'unified' or 'classic' (default is 'unified')
+     * @param {string} [params.marginMode] *for margin orders only* 'cross' or 'isolated'
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
-        // contract markets only
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object uta = await this.isUTAEnabled();
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "cancelOrders", "uta", uta);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
         object market = null;
+        object isContractMarket = true; // default to contract market orders if symbol is not provided, uta endpoint requires a symbol to be provided
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
+            isContractMarket = getValue(market, "contract");
+            if (!isTrue(isContractMarket))
+            {
+                uta = true; // spot market orders can only be cancelled via the uta endpoint
+            }
+        } else if (isTrue(uta))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a symbol argument for uta endpoint")) ;
         }
         object ordersRequests = new List<object>() {};
         object clientOrderIds = this.safeList2(parameters, "clientOrderIds", "clientOids", new List<object>() {});
@@ -9335,33 +11025,65 @@ public partial class kucoin : Exchange
         }
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
-            ((IList<object>)ordersRequests).Add(getValue(ids, i));
+            object orderId = getValue(ids, i);
+            if (isTrue(uta))
+            {
+                ((IList<object>)ordersRequests).Add(new Dictionary<string, object>() {
+                    { "orderId", orderId },
+                    { "symbol", getValue(market, "id") },
+                });
+            } else
+            {
+                ((IList<object>)ordersRequests).Add(getValue(ids, i));
+            }
         }
-        object requestKey = ((bool) isTrue(useClientorderId)) ? "clientOidsList" : "orderIdsList";
         object request = new Dictionary<string, object>() {};
-        ((IDictionary<string,object>)request)[(string)requestKey] = ordersRequests;
-        object response = await this.futuresPrivateDeleteOrdersMultiCancel(this.extend(request, parameters));
-        //
-        //   {
-        //       "code": "200000",
-        //       "data":
-        //       [
-        //           {
-        //               "orderId": "80465574458560512",
-        //               "clientOid": null,
-        //               "code": "200",
-        //               "msg": "success"
-        //           },
-        //           {
-        //               "orderId": "80465575289094144",
-        //               "clientOid": null,
-        //               "code": "200",
-        //               "msg": "success"
-        //           }
-        //       ]
-        //   }
-        //
-        object orders = this.safeList(response, "data", new List<object>() {});
+        object response = null;
+        object orders = new List<object>() {};
+        if (isTrue(uta))
+        {
+            object accountMode = "unified";
+            var accountModeparametersVariable = this.handleOptionAndParams(parameters, "cancelOrders", "accountMode", accountMode);
+            accountMode = ((IList<object>)accountModeparametersVariable)[0];
+            parameters = ((IList<object>)accountModeparametersVariable)[1];
+            ((IDictionary<string,object>)request)["accountMode"] = accountMode;
+            object marginMode = null;
+            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrder", parameters);
+            marginMode = ((IList<object>)marginModeparametersVariable)[0];
+            parameters = ((IList<object>)marginModeparametersVariable)[1];
+            object tradeType = this.handleTradeType(isContractMarket, marginMode, parameters);
+            ((IDictionary<string,object>)request)["tradeType"] = tradeType;
+            ((IDictionary<string,object>)request)["cancelOrderList"] = ordersRequests;
+            response = await this.utaPrivatePostAccountModeOrderCancelBatch(this.extend(request, parameters));
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            orders = this.safeList(data, "items", new List<object>() {});
+        } else
+        {
+            object requestKey = ((bool) isTrue(useClientorderId)) ? "clientOidsList" : "orderIdsList";
+            ((IDictionary<string,object>)request)[(string)requestKey] = ordersRequests;
+            response = await this.futuresPrivateDeleteOrdersMultiCancel(this.extend(request, parameters));
+            //
+            //   {
+            //       "code": "200000",
+            //       "data":
+            //       [
+            //           {
+            //               "orderId": "80465574458560512",
+            //               "clientOid": null,
+            //               "code": "200",
+            //               "msg": "success"
+            //           },
+            //           {
+            //               "orderId": "80465575289094144",
+            //               "clientOid": null,
+            //               "code": "200",
+            //               "msg": "success"
+            //           }
+            //       ]
+            //   }
+            //
+            orders = this.safeList(response, "data", new List<object>() {});
+        }
         return this.parseOrders(orders, market);
     }
 
@@ -9873,6 +11595,162 @@ public partial class kucoin : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name kucoin#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-futures-open-interset
+     * @param {string[]} [symbols] Unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    public async override Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object length = getArrayLength(symbols);
+            if (isTrue(isLessThan(length, 11)))
+            {
+                // the endpoint does not accept more than 10 symbols at a time
+                // if user provided more than 10 symbols, we will fetch all symbols
+                object marketIds = this.marketIds(symbols);
+                ((IDictionary<string,object>)request)["symbol"] = String.Join(",", ((IList<object>)marketIds).ToArray());
+            }
+        }
+        object response = await this.utaGetMarketOpenInterest(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": [
+        //             {
+        //                 "symbol": "ETHUSDTM",
+        //                 "openInterest": "8053960",
+        //                 "ts": 1774007467050
+        //             }
+        //         ]
+        //     }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseOpenInterests(data, symbols);
+    }
+
+    public override object parseOpenInterest(object interest, object market = null)
+    {
+        //
+        //     {
+        //         "symbol": "ETHUSDTM",
+        //         "openInterest": "8053960",
+        //         "ts": 1774007467050
+        //     }
+        //
+        object marketId = this.safeString(interest, "symbol");
+        market = this.safeMarket(marketId, market);
+        object timestamp = this.safeInteger(interest, "ts");
+        return this.safeOpenInterest(new Dictionary<string, object>() {
+            { "symbol", this.safeSymbol(marketId) },
+            { "openInterestAmount", this.safeNumber(interest, "openInterest") },
+            { "openInterestValue", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "info", interest },
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name kucoin#fetchOpenInterestHistory
+     * @description Retrieves the open interest history of a currency
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-futures-open-interset
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {string} timeframe '5m', '15m', '30m', '1h', '4h' or '1d'
+     * @param {int} [since] the time(ms) of the earliest record to retrieve as a unix timestamp
+     * @param {int} [limit] default 30，max 200
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    public async override Task<object> fetchOpenInterestHistory(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    {
+        timeframe ??= "5m";
+        parameters ??= new Dictionary<string, object>();
+        object timeframes = new Dictionary<string, object>() {
+            { "5m", "5min" },
+            { "15m", "15min" },
+            { "30m", "30min" },
+            { "1h", "1hour" },
+            { "4h", "4hour" },
+            { "1d", "1day" },
+            { "5min", "5min" },
+            { "15min", "15min" },
+            { "30min", "30min" },
+            { "1hour", "1hour" },
+            { "4hour", "4hour" },
+            { "1day", "1day" },
+        };
+        object interval = this.safeString(timeframes, timeframe);
+        if (isTrue(isEqual(interval, null)))
+        {
+            throw new BadRequest ((string)add(this.id, " fetchOpenInterestHistory() invalid timeframe, supported are 5m, 15m, 30m, 1h, 4h, 1d")) ;
+        }
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object maxLimit = 200;
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenInterestHistory", "paginate", paginate);
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, parameters, maxLimit);
+        }
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+            { "interval", interval },
+        };
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startAt"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["pageSize"] = limit;
+        }
+        var requestparametersVariable = this.handleUntilOption("endAt", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object response = await this.utaGetMarketOpenInterest(this.extend(request, parameters));
+        object data = this.safeList(response, "data");
+        return this.parseOpenInterestsHistory(data, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name kucoin#isUTAEnabled
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-account-mode
+     * @description returns true or false so the user can check if unified account is enabled
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true if unified account is enabled, false otherwise
+     */
+    public async virtual Task<object> isUTAEnabled(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object uta = this.safeBool(this.options, "uta");
+        if (isTrue(isEqual(uta, null)))
+        {
+            object response = await this.utaPrivateGetAccountMode(parameters);
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            object accountMode = this.safeString(data, "selfAccountMode");
+            uta = (isEqual(accountMode, "UNIFIED"));
+            ((IDictionary<string,object>)this.options)["uta"] = uta;
+        }
+        return this.safeBool(this.options, "uta", false);
+    }
+
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         //
@@ -9911,6 +11789,7 @@ public partial class kucoin : Exchange
         object endpart = "";
         headers = ((bool) isTrue((!isEqual(headers, null)))) ? headers : new Dictionary<string, object>() {};
         object url = getValue(getValue(this.urls, "api"), api);
+        object tradeType = this.safeString(query, "tradeType");
         if (!isTrue(this.isEmpty(query)))
         {
             if (isTrue(isTrue((isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE"))))) && isTrue((!isEqual(path, "orders/multi-cancel")))))
@@ -9918,6 +11797,10 @@ public partial class kucoin : Exchange
                 endpoint = add(endpoint, add("?", this.rawencode(query)));
             } else
             {
+                if (isTrue(isEqual(endpoint, "/api/ua/v1/classic/order/place")))
+                {
+                    endpoint = add(endpoint, add("?tradeType=", tradeType));
+                }
                 body = this.json(query);
                 endpart = body;
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
@@ -9950,7 +11833,9 @@ public partial class kucoin : Exchange
             object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
             ((IDictionary<string,object>)headers)["KC-API-SIGN"] = signature;
             object partner = this.safeDict(this.options, "partner", new Dictionary<string, object>() {});
-            partner = ((bool) isTrue(isFuturePrivate)) ? this.safeValue(partner, "future", partner) : this.safeValue(partner, "spot", partner);
+            object isUtaFuturePrivate = isTrue(isUtaPrivate) && isTrue((isEqual(tradeType, "FUTURES")));
+            object isFuturePartner = isTrue(isFuturePrivate) || isTrue(isUtaFuturePrivate);
+            partner = ((bool) isTrue(isFuturePartner)) ? this.safeValue(partner, "future", partner) : this.safeValue(partner, "spot", partner);
             object partnerId = this.safeString(partner, "id");
             object partnerSecret = this.safeString2(partner, "secret", "key");
             if (isTrue(isTrue((!isEqual(partnerId, null))) && isTrue((!isEqual(partnerSecret, null)))))

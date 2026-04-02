@@ -10,8 +10,105 @@
     ],
     "outputType": "json",
     "options": {
+        "uta": false
     },
     "methods": {
+        "fetchPositionHistory": [
+            {
+                "description": "fetch position history",
+                "method": "fetchPositionHistory",
+                "url": "https://api-futures.kucoin.com/api/v1/history-positions?symbol=DOGEUSDTM&limit=200",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch uta position history",
+                "method": "fetchPositionHistory",
+                "url": "https://api.kucoin.com/api/ua/v1/position/history?symbol=DOGEUSDTM",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetch position for uta",
+                "method": "fetchPosition",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/position/open-list?symbol=DOGEUSDTM",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch deposit address with uta",
+                "method": "fetchDepositAddress",
+                "url": "https://api.kucoin.com/api/ua/v1/asset/deposit/address?currency=USDT",
+                "input": [
+                    "USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchOpenInterestHistory": [
+            {
+                "description": "fetch open interest history",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://api.kucoin.com/api/ua/v1/market/open-interest?symbol=ETHUSDTM&interval=5min",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "fetch open interest",
+                "method": "fetchOpenInterest",
+                "url": "https://api.kucoin.com/api/ua/v1/market/open-interest?symbol=ETHUSDTM",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "fetch open interests without symbols",
+                "method": "fetchOpenInterests",
+                "url": "https://api.kucoin.com/api/ua/v1/market/open-interest",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "fetch open interests for swap markets",
+                "method": "fetchOpenInterests",
+                "url": "https://api.kucoin.com/api/ua/v1/market/open-interest?symbol=ETHUSDTM,XBTUSDTM",
+                "input": [
+                    [
+                        "ETH/USDT:USDT",
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            }
+        ],
         "fetchLeverageTiers": [
             {
                 "description": "fetch leverage tiers",
@@ -122,6 +219,21 @@
         ],
         "cancelOrders": [
             {
+                "description": "cancel unified spot orders by order ids with uta",
+                "method": "cancelOrders",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/order/cancel-batch",
+                "input": [
+                    [
+                        "426334028208119808"
+                    ],
+                    "ETH/USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"tradeType\":\"SPOT\",\"cancelOrderList\":[{\"orderId\":\"426334028208119808\",\"symbol\":\"ETH-USDT\"}]}"
+            },
+            {
                 "description": "cancelOrders with id",
                 "method": "cancelOrders",
                 "url": "https://api-futures.kucoin.com/api/v1/orders/multi-cancel",
@@ -151,6 +263,18 @@
         ],
         "fetchPositions": [
             {
+                "description": "fetch positions with uta",
+                "method": "fetchPositions",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/position/open-list",
+                "input": [
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "fetch positions",
                 "method": "fetchPositions",
                 "url": "https://api-futures.kucoin.com/api/v1/positions",
@@ -159,6 +283,31 @@
             }
         ],
         "fetchPositionsHistory": [
+            {
+                "description": "fetch uta positions history",
+                "method": "fetchPositionsHistory",
+                "url": "https://api.kucoin.com/api/ua/v1/position/history?pageSize=1",
+                "input": [
+                    null,
+                    null,
+                    1,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch positions history",
+                "method": "fetchPositionsHistory",
+                "url": "https://api-futures.kucoin.com/api/v1/history-positions?limit=1",
+                "input": [
+                    null,
+                    null,
+                    1
+                ],
+                "output": null
+            },
             {
                 "description": "fetchPositionsHistory",
                 "method": "fetchPositionsHistory",
@@ -245,10 +394,7 @@
                 "input": [
                     "BTC/USDT:USDT",
                     1769328000000,
-                    1,
-                    {
-                        "uta": false
-                    }
+                    1
                 ],
                 "output": null
             },
@@ -259,7 +405,10 @@
                 "input": [
                     "BTC/USDT:USDT",
                     1769328000000,
-                    1
+                    1,
+                    {
+                        "uta": true
+                    }
                 ],
                 "output": null
             }
@@ -274,6 +423,74 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "create unified stop loss order",
+                "method": "createOrder",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/order/place",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "market",
+                    "sell",
+                    1,
+                    null,
+                    {
+                        "uta": true,
+                        "stopLossPrice": 0.01
+                    }
+                ],
+                "output": "{\"tradeType\":\"FUTURES\",\"clientOid\":\"d36ac20c-f92e-4403-815e-35bde595c62a\",\"symbol\":\"DOGEUSDTM\",\"side\":\"SELL\",\"orderType\":\"MARKET\",\"sizeUnit\":\"UNIT\",\"size\":\"1\",\"triggerDirection\":\"DOWN\",\"triggerPrice\":\"0.01\",\"triggerPriceType\":\"MP\"}"
+            },
+            {
+                "description": "create unified swap order with take profit",
+                "method": "createOrder",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/order/place",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "uta": true,
+                        "takeProfit": {
+                            "triggerPrice": 1
+                        }
+                    }
+                ],
+                "output": "{\"tradeType\":\"FUTURES\",\"clientOid\":\"4a528160-7b5b-4ae4-8f69-7a91ef3a31c8\",\"symbol\":\"DOGEUSDTM\",\"side\":\"BUY\",\"orderType\":\"MARKET\",\"sizeUnit\":\"UNIT\",\"size\":\"1\",\"tpTriggerPrice\":\"1\",\"tpTriggerPriceType\":\"MP\"}"
+            },
+            {
+                "description": "create market swap order with uta",
+                "method": "createOrder",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/order/place",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "market",
+                    "sell",
+                    1,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"tradeType\":\"FUTURES\",\"clientOid\":\"cc3eb487-6870-483a-a86d-f524505e8481\",\"symbol\":\"DOGEUSDTM\",\"side\":\"SELL\",\"orderType\":\"MARKET\",\"sizeUnit\":\"UNIT\",\"size\":\"1\"}"
+            },
+            {
+                "description": "create spot limit unified order with uta",
+                "method": "createOrder",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/order/place",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    1000,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"tradeType\":\"SPOT\",\"clientOid\":\"708987d5-c346-487a-a70c-ea267377b0ca\",\"symbol\":\"ETH-USDT\",\"side\":\"BUY\",\"orderType\":\"LIMIT\",\"sizeUnit\":\"BASECCY\",\"size\":\"0.001\",\"price\":\"1000\"}"
+            },
             {
                 "description": "create hf margin order",
                 "method": "createOrder",
@@ -706,6 +923,19 @@
         ],
         "createMarketBuyOrderWithCost": [
             {
+                "description": "create market spot unified order with cost",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/order/place",
+                "input": [
+                    "ETH/USDT",
+                    10,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"tradeType\":\"SPOT\",\"clientOid\":\"a2a378e4-078f-425b-b0fd-04253671dcf2\",\"symbol\":\"ETH-USDT\",\"side\":\"BUY\",\"orderType\":\"MARKET\",\"sizeUnit\":\"QUOTECCY\",\"size\":\"10\"}"
+            },
+            {
                 "method": "market buy with cost",
                 "url": "https://api.kucoin.com/api/v1/orders",
                 "input": [
@@ -752,6 +982,20 @@
             }
         ],
         "fetchOpenOrders": [
+            {
+                "description": "fetch open spot unfified orders with uta",
+                "method": "fetchOpenOrders",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/order/open-list?symbol=ETH-USDT&tradeType=SPOT",
+                "input": [
+                    "ETH/USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "spot open orders",
                 "method": "fetchOpenOrders",
@@ -833,6 +1077,34 @@
         ],
         "fetchClosedOrders": [
             {
+                "description": "fetch closed unified swap orders with uta",
+                "method": "fetchClosedOrders",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/order/history?symbol=DOGEUSDTM&tradeType=FUTURES",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch closed unified spot orders with uta",
+                "method": "fetchClosedOrders",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/order/history?symbol=ETH-USDT&tradeType=SPOT",
+                "input": [
+                    "ETH/USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "spot closed orders",
                 "method": "fetchClosedOrders",
                 "url": "https://api.kucoin.com/api/v1/orders?tradeType=TRADE&status=done",
@@ -883,6 +1155,31 @@
             }
         ],
         "cancelAllOrders": [
+            {
+                "description": "cancel all unified trigger orders for swap market",
+                "method": "cancelAllOrders",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/order/cancel-all",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    {
+                        "uta": true,
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"symbol\":\"DOGEUSDTM\",\"tradeType\":\"FUTURES\",\"orderFilter\":\"ADVANCED\"}"
+            },
+            {
+                "description": "cancel all spot unified orders with uta",
+                "method": "cancelAllOrders",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/order/cancel-all",
+                "input": [
+                    "ETH/USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"symbol\":\"ETH-USDT\",\"tradeType\":\"SPOT\",\"orderFilter\":\"NORMAL\"}"
+            },
             {
                 "description": "cancel all margin trigger orders",
                 "method": "cancelAllOrders",
@@ -981,6 +1278,20 @@
             }
         ],
         "cancelOrder": [
+            {
+                "description": "cancel unified spot order by client order id with uta",
+                "method": "cancelOrder",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/order/cancel",
+                "input": [
+                    "",
+                    "ETH/USDT",
+                    {
+                        "uta": true,
+                        "clientOrderId": "57e82888-b002-40c7-bfad-e176dc260989"
+                    }
+                ],
+                "output": "{\"clientOid\":\"57e82888-b002-40c7-bfad-e176dc260989\",\"symbol\":\"ETH-USDT\",\"tradeType\":\"SPOT\"}"
+            },
             {
                 "description": "cancel hf margin order",
                 "method": "cancelOrder",
@@ -1149,6 +1460,77 @@
         ],
         "fetchBalance": [
             {
+                "description": "fetch funding balance with uta endpoint",
+                "method": "fetchBalance",
+                "url": "https://api.kucoin.com/api/ua/v1/account/balance?accountType=FUNDING",
+                "input": [
+                    {
+                        "uta": true,
+                        "type": "funding"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch isolated balance with uta endpoint",
+                "method": "fetchBalance",
+                "url": "https://api.kucoin.com/api/ua/v1/account/balance?accountType=ISOLATED",
+                "input": [
+                    {
+                        "uta": true,
+                        "type": "isolated"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch swap balance with uta endpoint",
+                "method": "fetchBalance",
+                "url": "https://api.kucoin.com/api/ua/v1/account/balance?accountType=FUTURES",
+                "input": [
+                    {
+                        "uta": true,
+                        "type": "swap"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch cross balance with uta endpoint",
+                "method": "fetchBalance",
+                "url": "https://api.kucoin.com/api/ua/v1/account/balance?accountType=CROSS",
+                "input": [
+                    {
+                        "uta": true,
+                        "type": "cross"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch uta balance with uta endpoint",
+                "method": "fetchBalance",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/account/balance",
+                "input": [
+                    {
+                        "uta": true,
+                        "type": "uta"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch spot balance with uta endpoint",
+                "method": "fetchBalance",
+                "url": "https://api.kucoin.com/api/ua/v1/account/balance?accountType=SPOT",
+                "input": [
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "fetch margin balance",
                 "method": "fetchBalance",
                 "url": "https://api.kucoin.com/api/v1/margin/account",
@@ -1247,6 +1629,49 @@
         ],
         "fetchMyTrades": [
             {
+                "description": "fetch my unified swap trades for market",
+                "method": "fetchMyTrades",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/order/execution?symbol=DOGEUSDTM&tradeType=FUTURES",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch my unified swap trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/order/execution?tradeType=FUTURES",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "uta": true,
+                        "type": "swap"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch my unified spot trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/order/execution?symbol=ETH-USDT&tradeType=SPOT",
+                "input": [
+                    "ETH/USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "spot trades",
                 "method": "fetchMyTrades",
                 "url": "https://api.kucoin.com/api/v1/fills",
@@ -1317,6 +1742,66 @@
             }
         ],
         "transfer": [
+            {
+                "description": "transfer from spot to unified with uta endpoint",
+                "method": "transfer",
+                "url": "https://api.kucoin.com/api/ua/v1/account/transfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "spot",
+                    "unified",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"clientOid\":\"3d90868a-f295-4e45-a9a8-ce5c3baed691\",\"fromAccountType\":\"SPOT\",\"toAccountType\":\"UNIFIED\",\"type\":\"0\"}"
+            },
+            {
+                "description": "transfer from swap to unified with uta endpoint",
+                "method": "transfer",
+                "url": "https://api.kucoin.com/api/ua/v1/account/transfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "swap",
+                    "unified",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"clientOid\":\"9432ea27-6462-4fd4-9b42-5d9b9bbd8f30\",\"fromAccountType\":\"FUTURES\",\"toAccountType\":\"UNIFIED\",\"type\":\"0\"}"
+            },
+            {
+                "description": "transfer from cross to unified with uta endpoint",
+                "method": "transfer",
+                "url": "https://api.kucoin.com/api/ua/v1/account/transfer",
+                "input": [
+                    "USDT",
+                    10,
+                    "ETH/USDT",
+                    "unified",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"10\",\"clientOid\":\"17317a37-b94b-41d6-9b8b-9fca8c947c81\",\"fromAccountSymbol\":\"ETH-USDT\",\"fromAccountType\":\"ISOLATED\",\"toAccountType\":\"UNIFIED\",\"type\":\"0\"}"
+            },
+            {
+                "description": "transfer from main to unified with uta endpoint",
+                "method": "transfer",
+                "url": "https://api.kucoin.com/api/ua/v1/account/transfer",
+                "input": [
+                    "USDT",
+                    10,
+                    "funding",
+                    "unified",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"10\",\"clientOid\":\"95c0555d-54cc-4119-adab-cb96d31b5765\",\"fromAccountType\":\"FUNDING\",\"toAccountType\":\"UNIFIED\",\"type\":\"0\"}"
+            },
             {
                 "description": "Transfer from swap to spot",
                 "method": "transfer",
@@ -1396,6 +1881,21 @@
               }
         ],
         "fetchLedger": [
+            {
+                "description": "fetch uta ledger for uta account",
+                "method": "fetchLedger",
+                "url": "https://api.kucoin.com/api/ua/v1/account/ledger?accountType=unified",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "uta": true,
+                        "type": "unified"
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "fetch contract ledger",
                 "method": "fetchLedger",
@@ -1670,6 +2170,30 @@
         ],
         "fetchTradingFee": [
             {
+                "description": "fetch spot trading fee with uta",
+                "method": "fetchTradingFee",
+                "url": "https://api.kucoin.com/api/ua/v1/user/fee-rate?tradeType=FUTURES&symbol=ETHUSDTM",
+                "input": [
+                    "ETH/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch contract trading fee with uta",
+                "method": "fetchTradingFee",
+                "url": "https://api.kucoin.com/api/ua/v1/user/fee-rate?tradeType=FUTURES&symbol=ETHUSDTM",
+                "input": [
+                    "ETH/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "fetch trading fee for swap market",
                 "method": "fetchTradingFee",
                 "url": "https://api-futures.kucoin.com/api/v1/trade-fees?symbol=ETHUSDTM",
@@ -1688,6 +2212,19 @@
             }
         ],
         "fetchOrder": [
+            {
+                "description": "fetch unified swap order with tpsl",
+                "method": "fetchOrder",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/order/detail?orderId=426373228194254848&symbol=DOGEUSDTM&tradeType=FUTURES",
+                "input": [
+                    "426373228194254848",
+                    "DOGE/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "fetch hf margin order",
                 "method": "fetchOrder",
@@ -1792,6 +2329,17 @@
             }
         ],
         "fetchAccounts": [
+            {
+                "description": "fetch accounts with uta",
+                "method": "fetchAccounts",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/account/overview",
+                "input": [
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "fetch accounts",
                 "method": "fetchAccounts",

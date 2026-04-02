@@ -506,7 +506,7 @@ class grvt(ccxt.async_support.grvt):
             symbol = symbols[i]
             market = self.market(symbol)
             marketId = market['id']
-            rawHashes.append(marketId + '@' + extraPart)
+            rawHashes.append(marketId + '@' + str(extraPart))
             messageHashes.append('orderbook::' + market['symbol'])
         request = {
             'stream': channel,

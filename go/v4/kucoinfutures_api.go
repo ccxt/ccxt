@@ -1323,6 +1323,10 @@ func (this *KucoinfuturesCore) UtaPrivateGetAccountModePositionHistory(args ...i
 	return this.callEndpointAsync("utaPrivateGetAccountModePositionHistory", args...)
 }
 
+func (this *KucoinfuturesCore) UtaPrivateGetPositionHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("utaPrivateGetPositionHistory", args...)
+}
+
 func (this *KucoinfuturesCore) UtaPrivateGetAccountModePositionTiers(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("utaPrivateGetAccountModePositionTiers", args...)
 }

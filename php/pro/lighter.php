@@ -885,7 +885,7 @@ class lighter extends \ccxt\async\lighter {
         $error = $this->safe_dict($message, 'error');
         try {
             if ($error !== null) {
-                $code = $this->safe_string($message, 'code');
+                $code = $this->safe_string($error, 'code');
                 if ($code !== null) {
                     $feedback = $this->id . ' ' . $this->json($message);
                     $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);

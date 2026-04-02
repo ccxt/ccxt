@@ -291,6 +291,27 @@ helper method for cancelling all spot orders
 
 ---
 
+<a name="cancelAllUtaOrders" id="cancelallutaorders"></a>
+
+## cancelAllUtaOrders
+helper method for cancelling all uta orders
+
+**Kind**: instance   
+**Returns**: Response from the exchange
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.trigger | <code>bool</code> | No | true if cancelling all stop orders |
+| params.marginMode | <code>string</code> | No | 'CROSS' or 'ISOLATED' |
+
+##### Supported exchanges
+* [kucoin](/exchanges/kucoin.md#cancelallutaorders)
+
+---
+
 <a name="cancelContractOrder" id="cancelcontractorder"></a>
 
 ## cancelContractOrder
@@ -628,6 +649,29 @@ cancels a running twap order
 
 ---
 
+<a name="cancelUtaOrder" id="cancelutaorder"></a>
+
+## cancelUtaOrder
+helper method for cancelling uta orders
+
+**Kind**: instance   
+**Returns**: Response from the exchange
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountMode | <code>string</code> | No | 'unified' or 'classic' (default is 'unified') |
+| params.clientOrderId | <code>string</code> | No | client order id, required if id is not provided |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', required if fetching a margin order |
+
+##### Supported exchanges
+* [kucoin](/exchanges/kucoin.md#cancelutaorder)
+
+---
+
 <a name="closeAllPositions" id="closeallpositions"></a>
 
 ## closeAllPositions
@@ -746,7 +790,7 @@ helper method for creating contract orders
 | params.takeProfitPrice | <code>float</code> | No | price to trigger take-profit orders |
 | params.reduceOnly | <code>bool</code> | No | A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true. |
 | params.timeInForce | <code>string</code> | No | GTC, GTT, IOC, or FOK, default is GTC, limit orders only |
-| params.postOnly | <code>string</code> | No | Post only flag, invalid when timeInForce is IOC or FOK |
+| params.postOnly | <code>bool</code> | No | Post only flag, invalid when timeInForce is IOC or FOK |
 | params.cost | <code>float</code> | No | the cost of the order in units of USDT |
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated', default is 'isolated' |
 | params.hedged | <code>bool</code> | No | *swap and future only* true for hedged mode, false for one way mode, default is false ----------------- Exchange Specific Parameters ----------------- |
@@ -1422,6 +1466,48 @@ create a trade order that is executed as a TWAP order over a specified duration.
 
 ##### Supported exchanges
 * [hyperliquid](/exchanges/hyperliquid.md#createtwaporder)
+
+---
+
+<a name="createUtaOrder" id="createutaorder"></a>
+
+## createUtaOrder
+helper method for creating uta orders
+
+**Kind**: instance   
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | Unified CCXT market symbol |
+| type | <code>string</code> | Yes | 'limit' or 'market' |
+| side | <code>string</code> | Yes | 'buy' or 'sell' |
+| amount | <code>float</code> | Yes | the amount of currency to trade |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.clientOrderId | <code>string</code> | No | client order id, defaults to uuid if not passed |
+| params.cost | <code>float</code> | No | the cost of the order in units of quote currency |
+| params.timeInForce | <code>string</code> | No | GTC, GTD, IOC, FOK or PO |
+| params.postOnly | <code>bool</code> | No | Post only flag, invalid when timeInForce is IOC or FOK (default is false) |
+| params.reduceOnly | <code>bool</code> | No | *contract markets only* A mark to reduce the position size only. Set to false by default |
+| params.triggerPrice | <code>float</code> | No | The price a trigger order is triggered at |
+| params.triggerDirection | <code>string</code> | No | 'ascending' or 'descending', the direction the triggerPrice is triggered from, requires triggerPrice |
+| params.triggerPriceType | <code>string</code> | No | *contract markets only* "last", "mark", "index" - defaults to "mark" |
+| params.stopLossPrice | <code>float</code> | No | price to trigger stop-loss orders |
+| params.takeProfitPrice | <code>float</code> | No | price to trigger take-profit orders |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', (default is 'cross' for margin orders, default is 'isolated' for contract orders) Exchange-specific parameters ------------------------------------------------- |
+| params.accountMode | <code>string</code> | No | 'unified' or 'classic', default is 'unified' |
+| params.stp | <code>string</code> | No | '', // self trade prevention, CN, CO, CB or DC |
+| params.cancelAfter | <code>int</code> | No | Cancel After N Seconds (Calculated from the time of entering the matching engine), only effective when timeInForce is GTD |
+| params.sizeUnit | <code>string</code> | No | *contracts only* 'BASECCY' (amount of base currency) or 'UNIT' (number of contracts), default is 'UNIT' Classic account parameters |
+| params.autoBorrow | <code>bool</code> | No | *classic margin orders only* |
+| params.autoRepay | <code>bool</code> | No | *classic margin orders only* |
+| params.hedged | <code>string</code> | No | *classic contract orders only* true for hedged mode, false for one way mode, default is false |
+| params.leverage | <code>int</code> | No | *classic contract orders with isolated marginMode only* Leverage size of the order |
+
+##### Supported exchanges
+* [kucoin](/exchanges/kucoin.md#createutaorder)
 
 ---
 
@@ -4214,6 +4300,32 @@ fetch all trades made by the user
 
 ---
 
+<a name="fetchMyUtaTrades" id="fetchmyutatrades"></a>
+
+## fetchMyUtaTrades
+fetch all trades made by the user
+
+**Kind**: instance   
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
+| limit | <code>int</code> | No | the maximum number of trades structures to retrieve (default is 50, max is 200) |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
+| params.accountMode | <code>string</code> | No | 'unified' or 'classic', defaults to 'unified' |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', only for margin trades |
+| params.side | <code>string</code> | No | 'BUY' or 'SELL' (both if not provided) |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+##### Supported exchanges
+* [kucoin](/exchanges/kucoin.md#fetchmyutatrades)
+
+---
+
 <a name="fetchOHLCV" id="fetchohlcv"></a>
 
 ## fetchOHLCV
@@ -4405,6 +4517,7 @@ Retrieves the open interest history of a currency
 * [bitfinex](/exchanges/bitfinex.md#fetchopeninteresthistory)
 * [bybit](/exchanges/bybit.md#fetchopeninteresthistory)
 * [htx](/exchanges/htx.md#fetchopeninteresthistory)
+* [kucoin](/exchanges/kucoin.md#fetchopeninteresthistory)
 * [okx](/exchanges/okx.md#fetchopeninteresthistory)
 
 ---
@@ -4430,6 +4543,7 @@ Retrieves the open interest for a list of symbols
 * [hitbtc](/exchanges/hitbtc.md#fetchopeninterests)
 * [htx](/exchanges/htx.md#fetchopeninterests)
 * [hyperliquid](/exchanges/hyperliquid.md#fetchopeninterests)
+* [kucoin](/exchanges/kucoin.md#fetchopeninterests)
 * [okx](/exchanges/okx.md#fetchopeninterests)
 
 ---
@@ -6472,6 +6586,75 @@ fetches the market ids of underlying assets for a specific contract market type
 
 ---
 
+<a name="fetchUtaBalance" id="fetchutabalance"></a>
+
+## fetchUtaBalance
+helper method for fetching balance with unified trading account (uta) endpoint
+
+**Kind**: instance   
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | 'spot', 'unified', 'funding', 'cross', 'isolated' or 'swap' (default is 'spot') |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', margin type for fetching margin balance, only applicable if type is margin (default is cross) |
+
+##### Supported exchanges
+* [kucoin](/exchanges/kucoin.md#fetchutabalance)
+
+---
+
+<a name="fetchUtaOrder" id="fetchutaorder"></a>
+
+## fetchUtaOrder
+fetch uta order
+
+**Kind**: instance   
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountMode | <code>string</code> | No | 'unified' or 'classic' (default is 'unified') |
+| params.clientOrderId | <code>string</code> | No | client order id, required if id is not provided |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', required if fetching a margin order |
+
+##### Supported exchanges
+* [kucoin](/exchanges/kucoin.md#fetchutaorder)
+
+---
+
+<a name="fetchUtaOrdersByStatus" id="fetchutaordersbystatus"></a>
+
+## fetchUtaOrdersByStatus
+helper method for fetching orders by status with uta endpoint
+
+**Kind**: instance   
+**Returns**: An [array of order structures](https://docs.ccxt.com/?id=order-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| status | <code>string</code> | Yes | 'active' or 'closed', only 'active' is valid for stop orders |
+| symbol | <code>string</code> | Yes | unified symbol for the market to retrieve orders from |
+| since | <code>int</code> | No | timestamp in ms of the earliest order to retrieve |
+| limit | <code>int</code> | No | The maximum number of orders to retrieve |
+| params | <code>object</code> | No | exchange specific parameters |
+| params.until | <code>int</code> | No | End time in ms |
+| params.side | <code>string</code> | No | *closed orders only* 'BUY' or 'SELL' |
+| params.accountMode | <code>string</code> | No | 'unified' or 'classic' (default is unified) |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+##### Supported exchanges
+* [kucoin](/exchanges/kucoin.md#fetchutaordersbystatus)
+
+---
+
 <a name="fetchVolatilityHistory" id="fetchvolatilityhistory"></a>
 
 ## fetchVolatilityHistory
@@ -6620,6 +6803,24 @@ fetch all withdrawals made from an account
 
 ##### Supported exchanges
 * [bitvavo](/exchanges/bitvavo.md#fetchwithdrawalsws)
+
+---
+
+<a name="isUTAEnabled" id="isutaenabled"></a>
+
+## isUTAEnabled
+returns true or false so the user can check if unified account is enabled
+
+**Kind**: instance   
+**Returns**: <code>boolean</code> - true if unified account is enabled, false otherwise
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+##### Supported exchanges
+* [kucoin](/exchanges/kucoin.md#isutaenabled)
 
 ---
 
@@ -6908,6 +7109,7 @@ set the level of leverage for a market
 | leverage | <code>float</code> | Yes | the rate of leverage |
 | symbol | <code>string</code> | Yes | unified market symbol |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta) |
 
 ##### Supported exchanges
 * [kucoin](/exchanges/kucoin.md#setcontractleverage)
@@ -7220,6 +7422,31 @@ transfer currency internally between wallets on the same account
 
 ---
 
+<a name="transferClassic" id="transferclassic"></a>
+
+## transferClassic
+transfer currency internally between wallets on the same account with classic endpoints
+
+**Kind**: instance   
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| amount | <code>float</code> | Yes | amount to transfer |
+| fromAccount | <code>string</code> | Yes | account to transfer from |
+| toAccount | <code>string</code> | Yes | account to transfer to |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.transferType | <code>string</code> | No | INTERNAL, PARENT_TO_SUB, SUB_TO_PARENT (default is INTERNAL) |
+| params.fromUserId | <code>string</code> | No | required if transferType is SUB_TO_PARENT |
+| params.toUserId | <code>string</code> | No | required if transferType is PARENT_TO_SUB |
+
+##### Supported exchanges
+* [kucoin](/exchanges/kucoin.md#transferclassic)
+
+---
+
 <a name="transferOut" id="transferout"></a>
 
 ## transferOut
@@ -7238,6 +7465,31 @@ transfer from spot wallet to futures wallet
 ##### Supported exchanges
 * [kraken](/exchanges/kraken.md#transferout)
 * [krakenfutures](/exchanges/krakenfutures.md#transferout)
+
+---
+
+<a name="transferUta" id="transferuta"></a>
+
+## transferUta
+transfer currency internally between wallets on the same account with uta endpoint
+
+**Kind**: instance   
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| amount | <code>float</code> | Yes | amount to transfer |
+| fromAccount | <code>string</code> | Yes | account to transfer from |
+| toAccount | <code>string</code> | Yes | account to transfer to |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.transferType | <code>string</code> | No | INTERNAL, PARENT_TO_SUB, SUB_TO_PARENT, SUB_TO_SUB (default is INTERNAL) |
+| params.fromUserId | <code>string</code> | No | required if transferType is SUB_TO_PARENT or SUB_TO_SUB |
+| params.toUserId | <code>string</code> | No | required if transferType is PARENT_TO_SUB or SUB_TO_SUB |
+
+##### Supported exchanges
+* [kucoin](/exchanges/kucoin.md#transferuta)
 
 ---
 

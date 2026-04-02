@@ -3077,7 +3077,7 @@ export default class binance extends Exchange {
             for (let j = 0; j < networkList.length; j++) {
                 const networkItem = networkList[j];
                 const network = this.safeString(networkItem, 'network');
-                const networkCode = this.networkIdToCode(network);
+                const networkCode = this.networkIdToCode(network, code);
                 const isETF = (network === 'ETF'); // e.g. BTCUP, ETHDOWN
                 // const name = this.safeString (networkItem, 'name');
                 const withdrawFee = this.safeNumber(networkItem, 'withdrawFee');
@@ -9401,12 +9401,10 @@ export default class binance extends Exchange {
             'coin': currency['id'],
             // 'network': 'ETH', // 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
         };
-        const networks = this.safeDict(this.options, 'networks', {});
-        let network = this.safeStringUpper(params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString(networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            request['network'] = network;
-            params = this.omit(params, 'network');
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        if (networkCode !== undefined) {
+            request['network'] = this.networkCodeToId(networkCode, currency['code']);
         }
         // has support for the 'network' parameter
         const response = await this.sapiGetCapitalDepositAddress(this.extend(request, params));
@@ -9666,12 +9664,13 @@ export default class binance extends Exchange {
         //        ]
         //    }
         //
+        const code = this.safeString(currency, 'code');
         const networkList = this.safeList(fee, 'networkList', []);
         const result = this.depositWithdrawFee(fee);
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
             const networkId = this.safeString(networkEntry, 'network');
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             const withdrawFee = this.safeNumber(networkEntry, 'withdrawFee');
             const isDefault = this.safeBool(networkEntry, 'isDefault');
             if (isDefault === true) {
@@ -9719,14 +9718,12 @@ export default class binance extends Exchange {
         if (tag !== undefined) {
             request['addressTag'] = tag;
         }
-        const networks = this.safeDict(this.options, 'networks', {});
-        let network = this.safeStringUpper(params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString(networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            request['network'] = network;
-            params = this.omit(params, 'network');
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        if (networkCode !== undefined) {
+            request['network'] = this.networkCodeToId(networkCode, currency['code']);
         }
-        request['amount'] = this.currencyToPrecision(code, amount, network);
+        request['amount'] = this.currencyToPrecision(currency['code'], amount, networkCode);
         const response = await this.sapiPostCapitalWithdrawApply(this.extend(request, params));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
         return this.parseTransaction(response, currency);
