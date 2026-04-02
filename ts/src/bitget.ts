@@ -5393,7 +5393,9 @@ export default class bitget extends Exchange {
             } else if (isStopLossOrTakeProfitTrigger) {
                 if (price !== undefined) {
                     request['executePrice'] = this.priceToPrecision (symbol, price);
-                    delete request['price'];
+                    if ('price' in request) {
+                        delete request['price'];
+                    }
                 }
                 if (hedged) {
                     request['holdSide'] = (side === 'sell') ? 'long' : 'short';
