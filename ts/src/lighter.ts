@@ -3,7 +3,7 @@ import Exchange from './abstract/lighter.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InvalidOrder, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, Currencies, Transaction, Trade, Account, MarginModification } from './base/types.js';
+import type { Dict, FundingRate, FundingRates, Int, int, Leverage, Market, MarginMode, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, Currencies, Transaction, Trade, Account, MarginModification } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2697,7 +2697,7 @@ export default class lighter extends Exchange {
      * @param {string} [params.marginMode] margin mode, 'cross' or 'isolated'
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -2706,7 +2706,8 @@ export default class lighter extends Exchange {
         if (marginMode === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires an marginMode parameter');
         }
-        return await this.modifyLeverageAndMarginMode (leverage, marginMode, symbol, params);
+        const response = await this.modifyLeverageAndMarginMode (leverage, marginMode, symbol, params);
+        return this.parseLeverage (response);
     }
 
     /**
@@ -2721,7 +2722,7 @@ export default class lighter extends Exchange {
      * @param {int} [params.leverage] required leverage
      * @returns {object} response from the exchange
      */
-    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<MarginMode> {
         if (marginMode === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires an marginMode parameter');
         }
@@ -2730,7 +2731,8 @@ export default class lighter extends Exchange {
         if (leverage === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires an leverage parameter');
         }
-        return await this.modifyLeverageAndMarginMode (leverage, marginMode, symbol, params);
+        const response = await this.modifyLeverageAndMarginMode (leverage, marginMode, symbol, params);
+        return this.parseMarginMode (response);
     }
 
     async modifyLeverageAndMarginMode (leverage: int, marginMode: string, symbol: Str = undefined, params = {}) {
@@ -2765,6 +2767,24 @@ export default class lighter extends Exchange {
             'tx_info': txInfo,
         };
         return await this.publicPostSendTx (request);
+    }
+
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (undefined, market),
+            'marginMode': undefined,
+            'longLeverage': undefined,
+            'shortLeverage': undefined,
+        } as Leverage;
+    }
+
+    parseMarginMode (marginMode: Dict, market: Market = undefined): MarginMode {
+        return {
+            'info': marginMode,
+            'symbol': this.safeSymbol (undefined, market),
+            'marginMode': undefined,
+        } as MarginMode;
     }
 
     /**

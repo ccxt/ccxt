@@ -9499,9 +9499,9 @@ export default class kucoin extends Exchange {
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] *contract markets only* set to true for the unified trading account (uta)
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         await this.loadMarkets ();
         let market = undefined;
         let marketType: Str = undefined;
@@ -9534,7 +9534,18 @@ export default class kucoin extends Exchange {
         }
         request['leverage'] = leverage.toString ();
         request['isIsolated'] = (marginMode === 'isolated');
-        return await this.privatePostPositionUpdateUserLeverage (this.extend (request, params));
+        const response = await this.privatePostPositionUpdateUserLeverage (this.extend (request, params));
+        return this.parseLeverage (response, market);
+    }
+
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (undefined, market),
+            'marginMode': undefined,
+            'longLeverage': undefined,
+            'shortLeverage': undefined,
+        } as Leverage;
     }
 
     /**
@@ -10656,7 +10667,7 @@ export default class kucoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<MarginMode> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
@@ -10681,7 +10692,7 @@ export default class kucoin extends Exchange {
         //    }
         //
         const data = this.safeDict (response, 'data', {});
-        return this.parseMarginMode (data, market) as any;
+        return this.parseMarginMode (data, market);
     }
 
     /**

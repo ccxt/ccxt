@@ -921,6 +921,35 @@
                   "quoteVolume": null
                 }
             }
+        ],
+        "setMargin": [
+            {
+                "description": "set the margin for a linear swap position",
+                "method": "setMargin",
+                "input": [
+                    "BTC/USDT:USDT",
+                    10
+                ],
+                "httpResponse": [
+                    [
+                        1
+                    ]
+                ],
+                "parsedResponse": {
+                    "info": [
+                        1
+                    ],
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "marginMode": "isolated",
+                    "amount": null,
+                    "total": null,
+                    "code": null,
+                    "status": "ok",
+                    "timestamp": null,
+                    "datetime": null
+                }
+            }
         ]
     }
 }

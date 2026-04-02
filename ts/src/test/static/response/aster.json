@@ -7854,10 +7854,14 @@
                     "type": 1
                 },
                 "parsedResponse": {
-                    "amount": 100.0,
-                    "code": 200,
-                    "msg": "Successfully modify position margin.",
-                    "type": 1
+                    "info": {
+                        "amount": 100.0,
+                        "code": 200,
+                        "msg": "Successfully modify position margin.",
+                        "type": 1
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": null
                 }
             }
         ],
@@ -7875,9 +7879,15 @@
                     "maxNotionalValue": "5000000"
                 },
                 "parsedResponse": {
-                    "symbol": "BTCUSDT",
-                    "leverage": 21,
-                    "maxNotionalValue": "5000000"
+                    "info": {
+                        "symbol": "BTCUSDT",
+                        "leverage": 21,
+                        "maxNotionalValue": "5000000"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": null,
+                    "longLeverage": 21,
+                    "shortLeverage": 21
                 }
             }
         ],

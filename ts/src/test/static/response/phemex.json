@@ -3,50 +3,6 @@
     "skipKeys": [],
     "options": {},
     "methods": {
-        "setMarginMode": [
-            {
-                "description": "cross",
-                "method": "setMarginMode",
-                "input": [
-                    "cross",
-                    "BTC/USDT:USDT",
-                    {
-                        "leverage": 5
-                    }
-                ],
-                "httpResponse": {
-                    "code": "0",
-                    "msg": "",
-                    "data": "OK"
-                },
-                "parsedResponse": {
-                    "code": "0",
-                    "msg": "",
-                    "data": "OK"
-                }
-            },
-            {
-                "description": "isolated",
-                "method": "setMarginMode",
-                "input": [
-                    "isolated",
-                    "BTC/USDT:USDT",
-                    {
-                        "leverage": 5
-                    }
-                ],
-                "httpResponse": {
-                    "code": "0",
-                    "msg": "",
-                    "data": "OK"
-                },
-                "parsedResponse": {
-                    "code": "0",
-                    "msg": "",
-                    "data": "OK"
-                }
-            }
-        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",
@@ -9728,6 +9684,62 @@
                     "network": null,
                     "address": "0xb25d80a50beb7264d2b626a4141ab7f65f020dd6",
                     "tag": null
+                }
+            }
+        ],
+        "setMarginMode":[
+            {
+                "description": "set the margin mode",
+                "method": "setMarginMode",
+                "input": [
+                    "cross",
+                    "BTC/USD:BTC",
+                    {
+                        "leverage": 20
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": "OK"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0",
+                        "msg": "",
+                        "data": "OK"
+                    },
+                    "symbol": "BTC/USD:BTC",
+                    "marginMode": null
+                }
+            }
+        ],
+        "setLeverage":[
+            {
+                "description": "set the hedged leverage",
+                "method": "setLeverage",
+                "input": [
+                    10,
+                    "BTC/USDT:USDT",
+                    {
+                        "hedged": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": "OK"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0",
+                        "msg": "",
+                        "data": "OK"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": null,
+                    "longLeverage": null,
+                    "shortLeverage": null
                 }
             }
         ],

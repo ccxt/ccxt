@@ -650,6 +650,65 @@
                     "status": "ok"
                 }
             }
+        ],
+        "setMarginMode": [
+            {
+                "description": "set the margin mode",
+                "method": "setMarginMode",
+                "input": [
+                    "cross",
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": {
+                        "instrument_id": "BTCUSDTPERP",
+                        "margin_mode": "crossed"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "instrument_id": "BTCUSDTPERP",
+                        "margin_mode": "crossed"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": "cross"
+                }
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "set cross leverage",
+                "method": "setLeverage",
+                "input": [
+                    10,
+                    "BTC/USDT:USDT",
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": {
+                        "instrument_id": "BTCUSDTPERP",
+                        "leverage": "10",
+                        "margin_mode": "crossed",
+                        "side": "both"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "instrument_id": "BTCUSDTPERP",
+                        "leverage": "10",
+                        "margin_mode": "crossed",
+                        "side": "both"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": "cross",
+                    "longLeverage": 10,
+                    "shortLeverage": 10
+                }
+            }
         ]
     }
 }

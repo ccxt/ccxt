@@ -1707,7 +1707,7 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<MarginMode> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
@@ -1733,7 +1733,7 @@ export default class aster extends Exchange {
         //         "type": 1
         //     }
         //
-        return response;
+        return this.parseMarginMode (response, market);
     }
 
     /**
@@ -2505,7 +2505,7 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -2526,7 +2526,7 @@ export default class aster extends Exchange {
         //         "symbol": "BTCUSDT"
         //     }
         //
-        return response;
+        return this.parseLeverage (response, market);
     }
 
     /**

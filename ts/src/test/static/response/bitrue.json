@@ -161,6 +161,32 @@
                     ]
                 ]
             }
+        ],
+        "setLeverage": [
+            {
+                "description": "set the leverage for a symbol",
+                "method": "setLeverage",
+                "input": [
+                    20,
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": null
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0",
+                        "msg": "Success",
+                        "data": null
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": null,
+                    "longLeverage": null,
+                    "shortLeverage": null
+                }
+            }
         ]
     }
 }

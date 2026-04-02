@@ -1907,7 +1907,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -1922,7 +1922,7 @@ export default class bydfi extends Exchange {
         };
         const response = await this.privatePostV1FapiTradeLeverage (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
-        return data;
+        return this.parseLeverage (data, market);
     }
 
     /**
@@ -2327,7 +2327,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object} response from the exchange
      */
-    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<MarginMode> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
@@ -2347,7 +2347,9 @@ export default class bydfi extends Exchange {
             'marginType': marginMode.toUpperCase (),
             'wallet': wallet,
         };
-        return await this.privatePostV1FapiUserDataMarginType (this.extend (request, params));
+        const response = await this.privatePostV1SwapUserDataMarginType (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        return this.parseMarginMode (data, market);
     }
 
     /**
@@ -2388,7 +2390,11 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        return await this.privatePostV1FapiUserDataPositionSideDual (this.extend (request, params));
+        const response = await this.privatePostV1SwapUserDataPositionSideDual (this.extend (request, params));
+        return {
+            'info': response,
+            'hedged': hedged,
+        };
     }
 
     /**
