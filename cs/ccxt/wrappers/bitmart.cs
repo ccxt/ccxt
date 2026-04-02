@@ -445,6 +445,7 @@ public partial class bitmart
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-sl-order-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#submit-trail-order-signed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#new-algo-order-v4-signed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -697,6 +698,7 @@ public partial class bitmart
     /// <remarks>
     /// See <see href="https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/spot/#new-margin-order-v1-signed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#new-algo-order-v4-signed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -714,6 +716,30 @@ public partial class bitmart
     /// <term>params.marginMode</term>
     /// <description>
     /// string : 'cross' or 'isolated'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : client order id of the order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.triggerPrice</term>
+    /// <description>
+    /// string : the price to trigger a stop order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopLossPrice</term>
+    /// <description>
+    /// string : the price to trigger a stop-loss order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.takeProfitPrice</term>
+    /// <description>
+    /// string : the price to trigger a take-profit order
     /// </description>
     /// </item>
     /// </list>
@@ -734,6 +760,7 @@ public partial class bitmart
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#cancel-plan-order-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#cancel-order-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#cancel-trail-order-signed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#cancel-algo-order-v4-signed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -748,15 +775,21 @@ public partial class bitmart
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.trigger</term>
-    /// <description>
-    /// boolean : *swap only* whether the order is a trigger order
-    /// </description>
-    /// </item>
-    /// <item>
     /// <term>params.trailing</term>
     /// <description>
     /// boolean : *swap only* whether the order is a stop order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : whether the order is a trigger order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopLossTakeProfit</term>
+    /// <description>
+    /// boolean : whether the order is a stopLossPrice or takeProfitPrice order
     /// </description>
     /// </item>
     /// </list>
@@ -793,6 +826,7 @@ public partial class bitmart
     /// <remarks>
     /// See <see href="https://developer-pro.bitmart.com/en/spot/#cancel-all-order-v4-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#cancel-all-algo-order-v4-signed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -804,6 +838,18 @@ public partial class bitmart
     /// <term>params.side</term>
     /// <description>
     /// string : *spot only* 'buy' or 'sell'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : whether the orders are trigger orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopLossTakeProfit</term>
+    /// <description>
+    /// boolean : whether the orders are stopLossPrice or takeProfitPrice orders
     /// </description>
     /// </item>
     /// </list>
@@ -828,6 +874,7 @@ public partial class bitmart
     /// See <see href="https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-all-open-orders-keyed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-all-current-plan-orders-keyed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#current-algo-open-orders-v4-signed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -886,7 +933,13 @@ public partial class bitmart
     /// <item>
     /// <term>params.trigger</term>
     /// <description>
-    /// boolean : *swap only* set to true if you want to fetch trigger orders
+    /// boolean : set to true if you want to fetch trigger orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopLossTakeProfit</term>
+    /// <description>
+    /// boolean : set to true if you want to fetch stopLossPrice or takeProfitPrice orders
     /// </description>
     /// </item>
     /// <item>
@@ -911,6 +964,7 @@ public partial class bitmart
     /// <remarks>
     /// See <see href="https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#account-algo-orders-v4-signed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -946,6 +1000,18 @@ public partial class bitmart
     /// <term>params.stpMode</term>
     /// <description>
     /// string : self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : set to true if you want to fetch trigger orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopLossTakeProfit</term>
+    /// <description>
+    /// boolean : set to true if you want to fetch stopLossPrice or takeProfitPrice orders
     /// </description>
     /// </item>
     /// </list>
@@ -998,6 +1064,8 @@ public partial class bitmart
     /// See <see href="https://developer-pro.bitmart.com/en/spot/#query-order-by-id-v4-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/spot/#query-order-by-clientorderid-v4-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-order-detail-keyed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#query-algo-order-by-id-v4-signed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#query-algo-order-by-clientorderid-v4-signed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1027,6 +1095,12 @@ public partial class bitmart
     /// <term>params.stpMode</term>
     /// <description>
     /// string : self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : whether the orders is a trigger, stopLossPrice or takeProfitPrice order
     /// </description>
     /// </item>
     /// </list>

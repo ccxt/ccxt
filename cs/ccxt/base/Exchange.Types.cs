@@ -1680,6 +1680,9 @@ public struct MarketInterface
 
     public Int64? created;
 
+    public Precision? precision;
+    public MarketMarginModes? marginModes;
+
     public MarketInterface(object market)
     {
         info = Helper.GetInfo(market);
@@ -1711,7 +1714,10 @@ public struct MarketInterface
         taker = Exchange.SafeFloat(market, "taker");
         maker = Exchange.SafeFloat(market, "maker");
         created = Exchange.SafeInteger(market, "created");
-        limits = (market as IDictionary<string, object>).ContainsKey("limits") ? new Limits((market as IDictionary<string, object>)["limits"]) : null;
+        precision = Exchange.SafeValue(market, "precision") != null ? new Precision(Exchange.SafeValue(market, "precision")) : null;
+        marginModes = Exchange.SafeValue(market, "marginModes") != null ? new MarketMarginModes(Exchange.SafeValue(market, "marginModes")) : null;
+        limits = Exchange.SafeValue(market, "limits") != null ? new Limits(Exchange.SafeValue(market, "limits")) : null;
+
     }
 
 }

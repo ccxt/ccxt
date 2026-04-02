@@ -120,6 +120,7 @@ func (f *Future) Reject(reason interface{}) {
 		}()
 
 		// Notify all subscribers
+		f.subscribersMu.Lock()
 		for _, sub := range f.subscribers {
 			func(sub chan interface{}) {
 				defer func() {
@@ -135,6 +136,7 @@ func (f *Future) Reject(reason interface{}) {
 			}(sub)
 		}
 		f.subscribers = nil // Clear subscribers after notifying them
+		f.subscribersMu.Unlock()
 	})
 }
 
@@ -273,19 +275,46 @@ func WrapFuture(ch <-chan struct {
 	return f
 }
 
-// Race multiple Futures: returns the first resolved or rejected value/error
+// Race multiple Futures: returns the first resolved or rejected value/error.
+// Uses a shared subscriber channel instead of one goroutine per future to
+// avoid O(N) goroutine creation on every call (fixes #28182).
 func FutureRace(futures []*Future) *Future {
 	result := NewFuture()
+	// Buffered so that a non-blocking send from Future.Resolve succeeds
+	// even before the reader goroutine is scheduled.
+	sharedCh := make(chan interface{}, 1)
+
 	for _, f := range futures {
-		go func(fut *Future) {
-			futureC := fut.Await()
-			futureResponse := <-futureC
-			if err, isError := futureResponse.(error); isError {
-				result.Reject(err)
+		f.mu.Lock()
+		if f.resolved {
+			val, err := f.resolvedValue, f.resolvedError
+			f.mu.Unlock()
+			if err != nil {
+				result.Reject(err.(error))
 			} else {
-				result.Resolve(futureResponse)
+				result.Resolve(val)
 			}
-		}(f)
+			return result
+		}
+		f.mu.Unlock()
+
+		f.subscribersMu.Lock()
+		if f.subscribers == nil {
+			f.subscribers = make([]chan interface{}, 0)
+		}
+		f.subscribers = append(f.subscribers, sharedCh)
+		f.subscribersMu.Unlock()
 	}
+
+	// Single goroutine forwards the first resolved/rejected value.
+	go func() {
+		val := <-sharedCh
+		if err, isError := val.(error); isError {
+			result.Reject(err)
+		} else {
+			result.Resolve(val)
+		}
+	}()
+
 	return result
 }

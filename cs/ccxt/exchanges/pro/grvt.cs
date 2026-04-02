@@ -40,6 +40,7 @@ public partial class grvt : ccxt.grvt
                 } },
                 { "watchTickers", new Dictionary<string, object>() {
                     { "channel", "v1.ticker.s" },
+                    { "interval", 500 },
                 } },
             } },
             { "streaming", new Dictionary<string, object>() {
@@ -174,6 +175,10 @@ public partial class grvt : ccxt.grvt
         var channelparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "channel", "v1.ticker.s");
         channel = ((IList<object>)channelparametersVariable)[0];
         parameters = ((IList<object>)channelparametersVariable)[1];
+        object interval = null;
+        var intervalparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "interval", 500);
+        interval = ((IList<object>)intervalparametersVariable)[0];
+        parameters = ((IList<object>)intervalparametersVariable)[1];
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         object rawHashes = new List<object>() {};
@@ -183,8 +188,7 @@ public partial class grvt : ccxt.grvt
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
             object marketId = getValue(market, "id");
-            object interval = this.safeInteger(parameters, "interval", 500); // raw, 50, 100, 200, 500, 1000, 5000
-            ((IList<object>)rawHashes).Add(add(add(marketId, "@"), interval));
+            ((IList<object>)rawHashes).Add(add(add(marketId, "@"), ((object)interval).ToString()));
             ((IList<object>)messageHashes).Add(add("ticker::", getValue(market, "symbol")));
         }
         object request = new Dictionary<string, object>() {

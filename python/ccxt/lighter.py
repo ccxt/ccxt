@@ -498,7 +498,7 @@ class lighter(Exchange, ImplicitAPI):
     def set_sandbox_mode(self, enable: bool):
         super(lighter, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
-        self.options['chainId'] = 300
+        self.options['chainId'] = 300 if enable else 304
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> List[Any]:
         """
@@ -1095,7 +1095,7 @@ class lighter(Exchange, ImplicitAPI):
         #         "daily_chart": {},
         #         "market_config": {
         #             "market_margin_mode": 0,
-        #             "insurance_fund_account_index": 281474976710655,
+        #             "insurance_fund_account_index": 281474976710654,
         #             "liquidation_mode": 0,
         #             "force_reduce_only": False,
         #             "trading_hours": ""

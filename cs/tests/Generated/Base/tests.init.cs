@@ -12,11 +12,13 @@ public partial class BaseTest
             await testLanguageSpecific();
             testConstants();
             testAfterConstructor();
+            testAggregate();
             testExtend();
             testDeepExtend();
             testCryptography();
             testBinaryToBase64();
             testBase64ToBinary();
+            testNumberToBE();
             testDatetime();
             testDecimalToPrecision();
             testCapitalize();
@@ -24,7 +26,9 @@ public partial class BaseTest
             testPrecise();
             testSafeMethods();
             testSafeTicker();
+            testBase58ToBinary();
             testToArray();
+            testBinaryToBase58();
             testJson();
             testSortBy();
             testSum();

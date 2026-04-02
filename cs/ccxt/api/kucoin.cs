@@ -131,6 +131,11 @@ public partial class kucoin : Exchange
         return await this.callAsync ("privateGetUserInfo",parameters);
     }
 
+    public async Task<object> privateGetUserApiKey (object parameters = null)
+    {
+        return await this.callAsync ("privateGetUserApiKey",parameters);
+    }
+
     public async Task<object> privateGetAccounts (object parameters = null)
     {
         return await this.callAsync ("privateGetAccounts",parameters);
@@ -1649,6 +1654,11 @@ public partial class kucoin : Exchange
     public async Task<object> utaPrivateGetAccountModePositionHistory (object parameters = null)
     {
         return await this.callAsync ("utaPrivateGetAccountModePositionHistory",parameters);
+    }
+
+    public async Task<object> utaPrivateGetPositionHistory (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivateGetPositionHistory",parameters);
     }
 
     public async Task<object> utaPrivateGetAccountModePositionTiers (object parameters = null)

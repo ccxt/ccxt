@@ -633,7 +633,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much you want to trade in units of the base currency |
-| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders, and used as the execution price for contract stop-loss / take-profit orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.cost | <code>float</code> | No | *spot only* how much you want to trade in units of the quote currency, for market buy orders only |
 | params.triggerPrice | <code>float</code> | No | *swap only* The price at which a trigger order is triggered at |
@@ -3072,7 +3072,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much you want to trade in units of the base currency |
-| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders, and used as the execution price for contract stop-loss / take-profit orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.cost | <code>float</code> | No | *spot only* how much you want to trade in units of the quote currency, for market buy orders only |
 | params.triggerPrice | <code>float</code> | No | *swap only* The price at which a trigger order is triggered at |

@@ -159,7 +159,7 @@ public class Tests
         Helper.Green(" [C#] Crypto tests passed");
 
         // run auto-transpiled tests (all of them start by 'testFunction')
-        // await RunAutoTranspiledBaseTests (baseTestInstance);
+        await RunAutoTranspiledBaseTests (baseTestInstance);
     }
 
     static async Task RunAutoTranspiledBaseTests(object testsInstance)

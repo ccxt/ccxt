@@ -1058,8 +1058,12 @@ public partial class bybit : Exchange
                     { "FUND", "fund" },
                 } },
                 { "networks", new Dictionary<string, object>() {
+                    { "BTC", "BTC" },
+                    { "ETH", "ETH" },
                     { "ERC20", "ETH" },
+                    { "TRX", "TRX" },
                     { "TRC20", "TRX" },
+                    { "BSC", "BSC" },
                     { "BEP20", "BSC" },
                     { "SOL", "SOL" },
                     { "ACA", "ACA" },
@@ -1106,6 +1110,7 @@ public partial class bybit : Exchange
                     { "OASIS", "ROSE" },
                     { "OMNI", "OMNI" },
                     { "ONE", "ONE" },
+                    { "OP", "OP" },
                     { "OPTIMISM", "OP" },
                     { "POKT", "POKT" },
                     { "QTUM", "QTUM" },
@@ -1131,8 +1136,7 @@ public partial class bybit : Exchange
                     { "ETH", "ERC20" },
                     { "TRX", "TRC20" },
                     { "BSC", "BEP20" },
-                    { "OMNI", "OMNI" },
-                    { "SPL", "SOL" },
+                    { "OP", "OP" },
                 } },
                 { "defaultNetwork", "ERC20" },
                 { "defaultNetworks", new Dictionary<string, object>() {
@@ -1679,70 +1683,69 @@ public partial class bybit : Exchange
         //
         object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object rows = this.safeList(data, "rows", new List<object>() {});
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        return this.parseCurrencies(rows);
+    }
+
+    public override object parseCurrency(object currency)
+    {
+        object currencyId = this.safeString(currency, "coin");
+        object code = this.safeCurrencyCode(currencyId);
+        object name = this.safeString(currency, "name");
+        object chains = this.safeList(currency, "chains", new List<object>() {});
+        object networks = new Dictionary<string, object>() {};
+        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
-            object currency = getValue(rows, i);
-            object currencyId = this.safeString(currency, "coin");
-            object code = this.safeCurrencyCode(currencyId);
-            object name = this.safeString(currency, "name");
-            object chains = this.safeList(currency, "chains", new List<object>() {});
-            object networks = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
-            {
-                object chain = getValue(chains, j);
-                object networkId = this.safeString(chain, "chain");
-                object networkCode = this.networkIdToCode(networkId);
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "info", chain },
-                    { "id", networkId },
-                    { "network", networkCode },
-                    { "active", null },
-                    { "deposit", isEqual(this.safeInteger(chain, "chainDeposit"), 1) },
-                    { "withdraw", isEqual(this.safeInteger(chain, "chainWithdraw"), 1) },
-                    { "fee", this.safeNumber(chain, "withdrawFee") },
-                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "minAccuracy"))) },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(chain, "withdrawMin") },
-                            { "max", null },
-                        } },
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(chain, "depositMin") },
-                            { "max", null },
-                        } },
-                    } },
-                };
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "info", currency },
-                { "code", code },
-                { "id", currencyId },
-                { "name", name },
+            object chain = getValue(chains, j);
+            object networkId = this.safeString(chain, "chain");
+            object networkCode = this.networkIdToCode(networkId, code);
+            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "info", chain },
+                { "id", networkId },
+                { "network", networkCode },
                 { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
-                { "precision", null },
+                { "deposit", isEqual(this.safeInteger(chain, "chainDeposit"), 1) },
+                { "withdraw", isEqual(this.safeInteger(chain, "chainWithdraw"), 1) },
+                { "fee", this.safeNumber(chain, "withdrawFee") },
+                { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "minAccuracy"))) },
                 { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
+                        { "min", this.safeNumber(chain, "withdrawMin") },
                         { "max", null },
                     } },
                     { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
+                        { "min", this.safeNumber(chain, "depositMin") },
                         { "max", null },
                     } },
                 } },
-                { "networks", networks },
-                { "type", "crypto" },
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "info", currency },
+            { "code", code },
+            { "id", currencyId },
+            { "name", name },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "precision", null },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", networks },
+            { "type", "crypto" },
+        });
     }
 
     /**
@@ -6467,7 +6470,7 @@ public partial class bybit : Exchange
             { "txid", this.safeString(transaction, "txID") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "network", this.networkIdToCode(this.safeString(transaction, "chain")) },
+            { "network", this.networkIdToCode(this.safeString(transaction, "chain"), code) },
             { "address", null },
             { "addressTo", toAddress },
             { "addressFrom", null },
@@ -6817,7 +6820,7 @@ public partial class bybit : Exchange
         var networkCodequeryVariable = this.handleNetworkCodeAndParams(parameters);
         var networkCode = ((IList<object>) networkCodequeryVariable)[0];
         var query = ((IList<object>) networkCodequeryVariable)[1];
-        object networkId = this.networkCodeToId(networkCode);
+        object networkId = this.networkCodeToId(networkCode, code);
         if (isTrue(!isEqual(networkId, null)))
         {
             ((IDictionary<string,object>)request)["chain"] = ((string)networkId).ToUpper();

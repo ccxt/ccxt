@@ -25,6 +25,7 @@ interface kucoin {
     publicGetConvertCurrencies(params?: {}): Promise<implicitReturnType>;
     publicPostBulletPublic(params?: {}): Promise<implicitReturnType>;
     privateGetUserInfo(params?: {}): Promise<implicitReturnType>;
+    privateGetUserApiKey(params?: {}): Promise<implicitReturnType>;
     privateGetAccounts(params?: {}): Promise<implicitReturnType>;
     privateGetAccountsAccountId(params?: {}): Promise<implicitReturnType>;
     privateGetAccountsLedgers(params?: {}): Promise<implicitReturnType>;
@@ -329,6 +330,7 @@ interface kucoin {
     utaPrivateGetAccountModeOrderExecution(params?: {}): Promise<implicitReturnType>;
     utaPrivateGetAccountModePositionOpenList(params?: {}): Promise<implicitReturnType>;
     utaPrivateGetAccountModePositionHistory(params?: {}): Promise<implicitReturnType>;
+    utaPrivateGetPositionHistory(params?: {}): Promise<implicitReturnType>;
     utaPrivateGetAccountModePositionTiers(params?: {}): Promise<implicitReturnType>;
     utaPrivateGetSubAccountBalance(params?: {}): Promise<implicitReturnType>;
     utaPrivateGetUserFeeRate(params?: {}): Promise<implicitReturnType>;

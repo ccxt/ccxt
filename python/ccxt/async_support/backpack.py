@@ -479,7 +479,7 @@ class backpack(Exchange, ImplicitAPI):
                     'INSUFFICIENT_SUPPLY': InsufficientFunds,
                     'INVALID_ASSET': BadRequest,
                     'INVALID_MARKET': BadSymbol,
-                    'INVALID_PRICE': BadRequest,
+                    'INVALID_PRICE': InvalidOrder,  # {"code":"INVALID_PRICE","message":"Price is too far from the last active price"}
                     'INVALID_POSITION_ID': BadRequest,
                     'INVALID_QUANTITY': BadRequest,
                     'INVALID_RANGE': BadRequest,

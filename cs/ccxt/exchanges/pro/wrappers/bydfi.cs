@@ -10,7 +10,7 @@ public partial class bydfi
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/websocket-market#ticker-by-symbol"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/websocket-market#ticker-by-symbol"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -30,8 +30,8 @@ public partial class bydfi
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/websocket-market#ticker-by-symbol"/>  <br/>
-    /// See <see href="https://developers.bydfi.com/en/swap/websocket-market#market-wide-ticker"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/websocket-market#ticker-by-symbol"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/websocket-market#market-wide-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -51,7 +51,7 @@ public partial class bydfi
     /// watches historical candlestick data containing the open, high, low, close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/websocket-market#candlestick-data"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/websocket-market#candlestick-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -85,7 +85,7 @@ public partial class bydfi
     /// watches historical candlestick data containing the open, high, low, close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/websocket-market#candlestick-data"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/websocket-market#candlestick-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -119,7 +119,7 @@ public partial class bydfi
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/websocket-market#limited-depth-information"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -146,7 +146,7 @@ public partial class bydfi
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/websocket-market#limited-depth-information"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -173,7 +173,7 @@ public partial class bydfi
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/websocket-account#order-trade-update-push"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/websocket-account#order-trade-update-push"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -207,7 +207,7 @@ public partial class bydfi
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/websocket-account#order-trade-update-push"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/websocket-account#order-trade-update-push"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -241,7 +241,7 @@ public partial class bydfi
     /// watch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/websocket-account#balance-and-position-update-push"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/websocket-account#balance-and-position-update-push"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -269,7 +269,7 @@ public partial class bydfi
     /// watch balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bydfi.com/en/swap/websocket-account#balance-and-position-update-push"/>  <br/>
+    /// See <see href="https://developers.bydfi.com/en/futures/websocket-account#balance-and-position-update-push"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

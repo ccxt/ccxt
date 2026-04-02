@@ -3336,6 +3336,52 @@ class bitmex(Exchange, ImplicitAPI):
             'datetime': datetime,
         }
 
+    def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
+        """
+        closes open positions for a market
+
+        https://docs.bitmex.com/api-explorer/order-new
+        https://docs.bitmex.com/api-explorer/order-close-position
+
+        :param str symbol: Unified CCXT market symbol
+        :param str side: the buy or sell side of the closing order, if the position is long set the side to sell, reduceOnly is implied
+        :param dict [params]: extra parameters specific to the bingx api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'symbol': market['id'],
+            'side': self.capitalize(side),
+            'execInst': 'Close',
+        }
+        response = self.privatePostOrder(self.extend(request, params))
+        #
+        #     {
+        #         "account": 395724,
+        #         "avgPx": 66358.8,
+        #         "cumQty": 200,
+        #         "currency": "USDT",
+        #         "execInst": "Close",
+        #         "leavesQty": 0,
+        #         "ordStatus": "Filled",
+        #         "ordType": "Market",
+        #         "orderID": "4e1ef998-33c1-4736-b58b-9d8b4d085c49",
+        #         "orderQty": 200,
+        #         "pool": "Primary",
+        #         "settlCurrency": "USDt",
+        #         "side": "Sell",
+        #         "strategy": "OneWay",
+        #         "symbol": "XBTUSDT",
+        #         "text": "Submitted via API.",
+        #         "timeInForce": "ImmediateOrCancel",
+        #         "timestamp": "2026-04-02T05:20:26.607Z",
+        #         "transactTime": "2026-04-02T05:20:26.606Z",
+        #         "workingIndicator": False
+        #     }
+        #
+        return self.parse_order(response, market)
+
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None

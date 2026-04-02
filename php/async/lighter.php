@@ -525,7 +525,7 @@ class lighter extends Exchange {
     public function set_sandbox_mode(bool $enable) {
         parent::set_sandbox_mode($enable);
         $this->options['sandboxMode'] = $enable;
-        $this->options['chainId'] = 300;
+        $this->options['chainId'] = $enable ? 300 : 304;
     }
 
     public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): array {
@@ -1177,7 +1177,7 @@ class lighter extends Exchange {
         //         "daily_chart" => array(),
         //         "market_config" => {
         //             "market_margin_mode" => 0,
-        //             "insurance_fund_account_index" => 281474976710655,
+        //             "insurance_fund_account_index" => 281474976710654,
         //             "liquidation_mode" => 0,
         //             "force_reduce_only" => false,
         //             "trading_hours" => ""

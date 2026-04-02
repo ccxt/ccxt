@@ -1,4 +1,8 @@
 {
+    "aftermath": {
+        "skip": "exchange doesn't function for some reasons during last few days",
+        "until": "2026-04-07"
+    },
     "alp": {
         "skipMethods": {
             "fetchCurrencies": {
@@ -1352,6 +1356,9 @@
     "hollaex": {
         "skipWs": "temp",
         "skipMethods": {
+            "orderBook": {
+                "timestamp": "temporary issue at 31.03.2026, should revisit fixed obs in few weeks https://forum.hollaex.com/t/bug-in-orderbooks-api/2156"
+            },
             "watchOrderBook": {
                 "nonce": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4957"
             },
@@ -1395,7 +1402,6 @@
         }
     },
     "bittrade": {
-        "skipWs": "timeouts",
         "skipMethods": {
             "loadMarkets": {
                 "limits": "messed"
@@ -2277,6 +2283,9 @@
             "orderBook": {
                 "spread":"bids[0][0] is not < asks[0][0]",
                 "timestamp": "not provided"
+            },
+            "fetchTickers": {
+                "compareOHLC": "broken https://github.com/ccxt/ccxt/actions/runs/23807522040/job/69385956136?pr=28306#step:11:315"
             }
         }
     }

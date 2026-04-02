@@ -79,6 +79,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     public function private_get_user_info($params = array()) {
         return $this->request('user-info', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
+    public function private_get_user_api_key($params = array()) {
+        return $this->request('user/api-key', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function private_get_accounts($params = array()) {
         return $this->request('accounts', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -991,6 +994,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     public function utaprivate_get_accountmode_position_history($params = array()) {
         return $this->request('{accountMode}/position/history', 'utaPrivate', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function utaprivate_get_position_history($params = array()) {
+        return $this->request('position/history', 'utaPrivate', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function utaprivate_get_accountmode_position_tiers($params = array()) {
         return $this->request('{accountMode}/position/tiers', 'utaPrivate', 'GET', $params, null, null, array("cost" => 40));
     }
@@ -1104,6 +1110,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     }
     public function privateGetUserInfo($params = array()) {
         return $this->request('user-info', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function privateGetUserApiKey($params = array()) {
+        return $this->request('user/api-key', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
     public function privateGetAccounts($params = array()) {
         return $this->request('accounts', 'private', 'GET', $params, null, null, array("cost" => 5));
@@ -2016,6 +2025,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     }
     public function utaPrivateGetAccountModePositionHistory($params = array()) {
         return $this->request('{accountMode}/position/history', 'utaPrivate', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function utaPrivateGetPositionHistory($params = array()) {
+        return $this->request('position/history', 'utaPrivate', 'GET', $params, null, null, array("cost" => 4));
     }
     public function utaPrivateGetAccountModePositionTiers($params = array()) {
         return $this->request('{accountMode}/position/tiers', 'utaPrivate', 'GET', $params, null, null, array("cost" => 40));

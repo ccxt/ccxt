@@ -38,6 +38,7 @@
 * [fetchLiquidations](#fetchliquidations)
 * [fetchPositionsADLRank](#fetchpositionsadlrank)
 * [fetchSettlementHistory](#fetchsettlementhistory)
+* [closePosition](#closeposition)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
 * [watchLiquidations](#watchliquidations)
@@ -796,6 +797,32 @@ fetches historical settlement records
 
 ```javascript
 bitmex.fetchSettlementHistory (symbol[, since, limit, params])
+```
+
+
+<a name="closePosition" id="closeposition"></a>
+
+### closePosition{docsify-ignore}
+closes open positions for a market
+
+**Kind**: instance method of [<code>bitmex</code>](#bitmex)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://docs.bitmex.com/api-explorer/order-new
+- https://docs.bitmex.com/api-explorer/order-close-position
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | Unified CCXT market symbol |
+| side | <code>string</code> | Yes | the buy or sell side of the closing order, if the position is long set the side to sell, reduceOnly is implied |
+| params | <code>object</code> | No | extra parameters specific to the bingx api endpoint |
+
+
+```javascript
+bitmex.closePosition (symbol, side[, params])
 ```
 
 

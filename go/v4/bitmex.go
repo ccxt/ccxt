@@ -4123,6 +4123,70 @@ func (this *BitmexCore) ParseSettlement(settlement interface{}, optionalArgs ...
 		"datetime":  datetime,
 	}
 }
+
+/**
+ * @method
+ * @name bitmex#closePosition
+ * @description closes open positions for a market
+ * @see https://docs.bitmex.com/api-explorer/order-new
+ * @see https://docs.bitmex.com/api-explorer/order-close-position
+ * @param {string} symbol Unified CCXT market symbol
+ * @param {string} side the buy or sell side of the closing order, if the position is long set the side to sell, reduceOnly is implied
+ * @param {object} [params] extra parameters specific to the bingx api endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *BitmexCore) ClosePosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		side := GetArg(optionalArgs, 0, nil)
+		_ = side
+		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		_ = params
+
+		retRes35278 := (<-this.LoadMarkets())
+		PanicOnError(retRes35278)
+		var market interface{} = this.Market(symbol)
+		var request interface{} = map[string]interface{}{
+			"symbol":   GetValue(market, "id"),
+			"side":     this.Capitalize(side),
+			"execInst": "Close",
+		}
+
+		response := (<-this.PrivatePostOrder(this.Extend(request, params)))
+		PanicOnError(response)
+
+		//
+		//     {
+		//         "account": 395724,
+		//         "avgPx": 66358.8,
+		//         "cumQty": 200,
+		//         "currency": "USDT",
+		//         "execInst": "Close",
+		//         "leavesQty": 0,
+		//         "ordStatus": "Filled",
+		//         "ordType": "Market",
+		//         "orderID": "4e1ef998-33c1-4736-b58b-9d8b4d085c49",
+		//         "orderQty": 200,
+		//         "pool": "Primary",
+		//         "settlCurrency": "USDt",
+		//         "side": "Sell",
+		//         "strategy": "OneWay",
+		//         "symbol": "XBTUSDT",
+		//         "text": "Submitted via API.",
+		//         "timeInForce": "ImmediateOrCancel",
+		//         "timestamp": "2026-04-02T05:20:26.607Z",
+		//         "transactTime": "2026-04-02T05:20:26.606Z",
+		//         "workingIndicator": false
+		//     }
+		//
+		ch <- this.ParseOrder(response, market)
+		return nil
+
+	}()
+	return ch
+}
 func (this *BitmexCore) HandleErrors(code interface{}, reason interface{}, url interface{}, method interface{}, headers interface{}, body interface{}, response interface{}, requestHeaders interface{}, requestBody interface{}) interface{} {
 	if IsTrue(IsEqual(response, nil)) {
 		return nil

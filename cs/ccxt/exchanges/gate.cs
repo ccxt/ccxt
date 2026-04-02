@@ -5336,6 +5336,42 @@ public partial class gate : Exchange
         //   order_type: '',
         //   in_dual_mode: false,
         //   parent_id: '0',
+        //
+        // unified spot: watchOrders
+        //
+        //     {
+        //         "id": "1036717689726",
+        //         "text": "apiv4",
+        //         "create_time": "1774613210",
+        //         "update_time": "1774613210",
+        //         "currency_pair": "BTC_USDT",
+        //         "type": "limit",
+        //         "account": "unified",
+        //         "side": "buy",
+        //         "amount": "0.1",
+        //         "price": "200",
+        //         "time_in_force": "gtc",
+        //         "left": "0.1",
+        //         "filled_amount": "0",
+        //         "filled_total": "0",
+        //         "avg_deal_price": "0",
+        //         "fee": "0",
+        //         "fee_currency": "BTC",
+        //         "point_fee": "0",
+        //         "gt_fee": "0",
+        //         "rebated_fee": "0",
+        //         "rebated_fee_currency": "BTC",
+        //         "create_time_ms": "1774613210391",
+        //         "update_time_ms": "1774613210391",
+        //         "user": 10406147,
+        //         "event": "put",
+        //         "stp_id": 0,
+        //         "stp_act": "-",
+        //         "finish_as": "open",
+        //         "biz_info": "ch:ccxt",
+        //         "amend_text": "-"
+        //     }
+        //
         object succeeded = this.safeBool(order, "succeeded", true);
         if (!isTrue(succeeded))
         {
@@ -5423,7 +5459,6 @@ public partial class gate : Exchange
         }
         object exchangeSymbol = this.safeString2(order, "currency_pair", "market", contract);
         object symbol = this.safeSymbol(exchangeSymbol, market, "_", marketType);
-        // Everything below this(above return) is related to fees
         object fees = new List<object>() {};
         object gtFee = this.safeString(order, "gt_fee");
         if (isTrue(!isEqual(gtFee, null)))
@@ -5455,7 +5490,7 @@ public partial class gate : Exchange
         object remaining = Precise.stringAbs(remainingString);
         // handle spot market buy
         object account = this.safeString(order, "account"); // using this instead of market type because of the conflicting ids
-        if (isTrue(isEqual(account, "spot")))
+        if (isTrue(isTrue((isEqual(account, "spot"))) || isTrue((isEqual(account, "unified")))))
         {
             object averageString = this.safeString(order, "avg_deal_price");
             average = this.parseNumber(averageString);

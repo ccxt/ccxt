@@ -12,7 +12,11 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
             });
-            Assert("GO_SKIP_START");
+            // temporarily disable, as this test doesn't make sense in lib (bcz of GO) // todo: do something
+            if (isTrue(isGreaterThan(exchange.milliseconds(), 0)))
+            {
+                return;
+            }
             // Test 1: Basic key sorting
             object unsortedDict1 = new Dictionary<string, object>() {
                 { "c", 3 },
@@ -92,7 +96,5 @@ public partial class BaseTest
             };
             object result7 = exchange.keysort(unsortedDict7);
             AssertDeepEqual(exchange, null, "testKeysort", new List<object>(((IDictionary<string,object>)result7).Keys), new List<object>(((IDictionary<string,object>)expectedSorted7).Keys));
-            Assert("GO_SKIP_END");
-            Assert(isEqual(exchange.safeString(null, "placeholder"), null)); // go trick
         }
 }

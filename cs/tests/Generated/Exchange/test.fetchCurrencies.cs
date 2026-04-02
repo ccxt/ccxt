@@ -47,7 +47,7 @@ public partial class testMainClass : BaseTest
                 object deposit = exchange.safeBool(currency, "deposit");
                 if (isTrue(exchange.inArray(code, requiredActiveCurrencies)))
                 {
-                    assert(isTrue(skipMajorCurrencyCheck) || isTrue((isTrue(withdraw) && isTrue(deposit))), add(add("Major currency ", code), " should have withdraw and deposit flags enabled"));
+                    assert(isTrue(skipMajorCurrencyCheck) || isTrue((isTrue(withdraw) && isTrue(deposit))), add(add(add("Major currency ", code), " should have withdraw and deposit flags enabled ::: "), exchange.json(currency)));
                 }
             }
             // check at least X% of currencies are active

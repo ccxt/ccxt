@@ -765,11 +765,11 @@ func (this *Gate) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.Tr
 /**
  * @method
  * @name gate#watchBalance
+ * @description watch balance and get the amount of funds available for trading or funds locked in orders
  * @see https://www.gate.com/docs/developers/apiv4/ws/en/#spot-balance-channel
  * @see https://www.gate.com/docs/developers/futures/ws/en/#balances-api
  * @see https://www.gate.com/docs/developers/delivery/ws/en/#balances-api
  * @see https://www.gate.com/docs/developers/options/ws/en/#balances-channel
- * @description watch balance and get the amount of funds available for trading or funds locked in orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
@@ -829,11 +829,11 @@ func (this *Gate) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt.
 /**
  * @method
  * @name gate#watchOrders
+ * @description watches information on multiple orders made by the user
  * @see https://www.gate.com/docs/developers/apiv4/ws/en/#orders-channel
  * @see https://www.gate.com/docs/developers/futures/ws/en/#orders-api
  * @see https://www.gate.com/docs/developers/delivery/ws/en/#orders-api
  * @see https://www.gate.com/docs/developers/options/ws/en/#orders-channel
- * @description watches information on multiple orders made by the user
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve

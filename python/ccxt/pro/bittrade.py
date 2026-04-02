@@ -294,6 +294,7 @@ class bittrade(ccxt.async_support.bittrade):
         #     {
         #         "id": 1583473663565,
         #         "rep": "market.btcusdt.mbp.150",
+        #         "ts": 1774979531056,
         #         "status": "ok",
         #         "data": {
         #             "seqNum": 104999417756,
@@ -312,10 +313,13 @@ class bittrade(ccxt.async_support.bittrade):
         #
         symbol = self.safe_string(subscription, 'symbol')
         messageHash = self.safe_string(subscription, 'messageHash')
+        timestamp = self.safe_integer(message, 'ts')
         orderbook = self.orderbooks[symbol]
         data = self.safe_value(message, 'data')
         snapshot = self.parse_order_book(data, symbol)
         snapshot['nonce'] = self.safe_integer(data, 'seqNum')
+        snapshot['timestamp'] = timestamp
+        snapshot['datetime'] = self.iso8601(timestamp)
         orderbook.reset(snapshot)
         # unroll the accumulated deltas
         messages = orderbook.cache
