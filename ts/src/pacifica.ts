@@ -247,11 +247,11 @@ export default class pacifica extends Exchange {
                 'apiKey': undefined,
                 'walletAddress': undefined,
                 'builderCode': 'CCXT', // case sensitive
-                'feeRate': "0.01", // default rate for builder fee approval 0.01%
+                'feeRate': '0.01', // default rate for builder fee approval 0.01%
                 'builderFee': true,
                 'batchOrdersMax': 10,
                 'defaultType': 'swap',
-                'defaultSlippage': 0.5,
+                'defaultSlippage': '0.5',
                 'expiryWindow': 5000,
                 'maxCostHugeWithApiKey': 3,
                 'marketHelperProps': [ ],
@@ -379,10 +379,9 @@ export default class pacifica extends Exchange {
         });
     }
 
-    
     async initializeClient () {
         try {
-            await this.handleBuilderFeeApproval ()
+            await this.handleBuilderFeeApproval ();
         } catch (e) {
             return false;
         }
