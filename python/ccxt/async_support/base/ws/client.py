@@ -134,7 +134,10 @@ class Client(object):
             task = self.asyncio_loop.create_task(self.receive())
 
             def after_interrupt(resolved: asyncioFuture):
-                exception = resolved.exception()
+                try:
+                    exception = resolved.exception()
+                except asyncio.CancelledError:
+                    return
                 if exception is None:
                     self.handle_message(resolved.result())
                     self.asyncio_loop.call_soon(self.receive_loop)
