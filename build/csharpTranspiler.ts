@@ -782,6 +782,7 @@ class NewTranspiler {
 
             const file = fileHeader + baseMethods + "\n";
             fs.writeFileSync (csharpExchangeBase, file);
+            log.green ('Transpiled base methods to', (csharpExchangeBase as any).yellow)
         }
     }
 
@@ -1450,13 +1451,16 @@ async function runMain () {
     const examples = process.argv.includes ('--examples');
     const force = process.argv.includes ('--force')
     const child = process.argv.includes ('--child')
+    const baseClassOnly = process.argv.includes ('--baseClass')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
     shouldTranspileTests = process.argv.includes ('--noTests') ? false : true
     if (!child && !multiprocess) {
         log.bright.green ({ force })
     }
     const transpiler = new NewTranspiler ();
-    if (ws) {
+    if (baseClassOnly) {
+        transpiler.transpileBaseMethods ('./ts/src/base/Exchange.ts')
+    } else if (ws) {
         await transpiler.transpileWS (force)
     } else if (test) {
         transpiler.transpileTests ()
