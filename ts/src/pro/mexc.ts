@@ -1444,7 +1444,7 @@ export default class mexc extends mexcRest {
         //
         const timestamp = this.safeInteger (order, 'createTime');
         const side = this.safeString (order, 'tradeType');
-        const status = this.safeString (order, 'status');
+        const status = this.safeString2 (order, 'status', 'state');
         const type = this.safeString (order, 'orderType');
         let fee = undefined;
         const feeCurrency = this.safeString (order, 'N');
@@ -1466,8 +1466,8 @@ export default class mexc extends mexcRest {
             'timeInForce': this.parseWsTimeInForce (type),
             'side': (side === '1') ? 'buy' : 'sell',
             'price': this.safeString (order, 'price'),
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'stopPrice': this.safeString2 (order, 'triggerPrice', 'P'),
+            'triggerPrice': this.safeString2 (order, 'triggerPrice', 'P'),
             'average': this.safeString (order, 'avgPrice'),
             'amount': this.safeString (order, 'quantity'),
             'cost': this.safeString (order, 'amount'),
@@ -1481,6 +1481,7 @@ export default class mexc extends mexcRest {
 
     parseWsOrderStatus (status, market = undefined) {
         const statuses: Dict = {
+            '0': 'open',     // new/pending (OCO orders)
             '1': 'open',     // new order
             '2': 'closed',   // filled
             '3': 'open',     // partially filled
@@ -1502,6 +1503,8 @@ export default class mexc extends mexcRest {
             '4': undefined, // FILL_OR_KILL
             '5': 'market',  // MARKET_ORDER
             '100': 'limit', // STOP_LIMIT
+            '101': 'limit', // OCO_STOP_LIMIT
+            '102': 'limit', // OCO_LIMIT
         };
         return this.safeString (types, type);
     }
@@ -1514,6 +1517,8 @@ export default class mexc extends mexcRest {
             '4': 'FOK', // FILL_OR_KILL
             '5': 'GTC',  // MARKET_ORDER
             '100': 'GTC', // STOP_LIMIT
+            '101': 'GTC', // OCO_STOP_LIMIT
+            '102': 'GTC', // OCO_LIMIT
         };
         return this.safeString (timeInForceIds, timeInForce);
     }

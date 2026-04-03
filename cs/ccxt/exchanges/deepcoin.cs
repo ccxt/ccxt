@@ -973,7 +973,7 @@ public partial class deepcoin : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object marketType = "spot";
+        object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters, marketType);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];

@@ -927,7 +927,7 @@ export default class deepcoin extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let marketType = 'spot';
+        let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params, marketType);
         const request: Dict = {
             'instType': this.convertToInstrumentType (marketType),

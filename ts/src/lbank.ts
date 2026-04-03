@@ -2383,7 +2383,7 @@ export default class lbank extends Exchange {
         //          "result":true,
         //          "data": {
         //              "fee":10.00000000000000000000,
-        //              "withdrawId":1900376
+        //              "withdrawId":1900377
         //              },
         //          "error_code":0,
         //          "ts":1648992501414

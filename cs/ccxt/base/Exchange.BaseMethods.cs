@@ -1504,6 +1504,11 @@ public partial class Exchange
         return isEqual(res, 0);
     }
 
+    public virtual object isEmptyString(object value)
+    {
+        return !isTrue(this.valueIsDefined(value)) || isTrue(isEqual(value, ""));
+    }
+
     public virtual object safeNumberOmitZero(object obj, object key, object defaultValue = null)
     {
         object value = this.safeString(obj, key);
@@ -2940,6 +2945,11 @@ public partial class Exchange
         return reversed;
     }
 
+    public virtual object stringToBase16(object str)
+    {
+        return add("0x", this.binaryToBase16(this.base64ToBinary(this.stringToBase64(str))));
+    }
+
     public virtual object reduceFeesByCurrency(object fees)
     {
         //
@@ -3197,6 +3207,20 @@ public partial class Exchange
             message = ". If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see \"build-ohlcv-bars\" file";
         }
         throw new NotSupported ((string)add(add(this.id, " fetchOHLCV() is not supported yet"), message)) ;
+    }
+
+    public async virtual Task<object> fetchSpotOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    {
+        timeframe ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchSpotOHLCV() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchContractOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    {
+        timeframe ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchContractOHLCV() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchOHLCVWs(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -4173,6 +4197,38 @@ public partial class Exchange
         return results;
     }
 
+    public virtual object filterOutByArray(object objects, object key, object values = null, object indexed = null)
+    {
+        indexed ??= true;
+        objects = this.toArray(objects);
+        // return all of them if no values were passed
+        if (isTrue(isTrue(isEqual(values, null)) || !isTrue(values)))
+        {
+            // return indexed ? this.indexBy (objects, key) : objects;
+            if (isTrue(indexed))
+            {
+                return this.indexBy(objects, key);
+            } else
+            {
+                return objects;
+            }
+        }
+        object results = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(objects)); postFixIncrement(ref i))
+        {
+            if (!isTrue(this.inArray(getValue(getValue(objects, i), key), values)))
+            {
+                ((IList<object>)results).Add(getValue(objects, i));
+            }
+        }
+        // return indexed ? this.indexBy (results, key) : results;
+        if (isTrue(indexed))
+        {
+            return this.indexBy(results, key);
+        }
+        return results;
+    }
+
     public async virtual Task<object> fetch2(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null, object config = null)
     {
         api ??= "public";
@@ -5018,6 +5074,18 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchTickers() is not supported yet")) ;
     }
 
+    public async virtual Task<object> fetchSpotTickers(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchSpotTickers() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchContractTickers(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchContractTickers() is not supported yet")) ;
+    }
+
     public async virtual Task<object> fetchMarkPrices(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -5027,7 +5095,7 @@ public partial class Exchange
     public async virtual Task<object> fetchTickersWs(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " fetchTickers() is not supported yet")) ;
+        throw new NotSupported ((string)add(this.id, " fetchTickersWs() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchOrderBooks(object symbols = null, object limit = null, object parameters = null)
@@ -5689,6 +5757,18 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " createOrders() is not supported yet")) ;
     }
 
+    public async virtual Task<object> createSpotOrders(object orders, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " createSpotOrders() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> createContractOrders(object orders, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " createContractOrders() is not supported yet")) ;
+    }
+
     public async virtual Task<object> editOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -5705,6 +5785,18 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " cancelOrder() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> cancelSpotOrder(object id, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " cancelSpotOrder() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> cancelContractOrder(object id, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " cancelContractOrder() is not supported yet")) ;
     }
 
     /**
@@ -5765,6 +5857,18 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " cancelAllOrders() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> cancelAllSpotOrders(object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " cancelAllSpotOrders() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> cancelAllContractOrders(object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " cancelAllContractOrders() is not supported yet")) ;
     }
 
     public async virtual Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
@@ -6032,6 +6136,12 @@ public partial class Exchange
         {
             throw new NotSupported ((string)add(this.id, " fetchDepositAddress() is not supported yet")) ;
         }
+    }
+
+    public async virtual Task<object> fetchContractDepositAddress(object code, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchContractDepositAddress() is not supported yet")) ;
     }
 
     public virtual object account()

@@ -145,6 +145,9 @@ abstract class kraken extends \ccxt\Exchange {
     public function private_post_wallettransfer($params = array()) {
         return $this->request('WalletTransfer', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
+    public function private_post_getapikeyinfo($params = array()) {
+        return $this->request('GetApiKeyInfo', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
     public function private_post_createsubaccount($params = array()) {
         return $this->request('CreateSubaccount', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
@@ -306,6 +309,9 @@ abstract class kraken extends \ccxt\Exchange {
     }
     public function privatePostWalletTransfer($params = array()) {
         return $this->request('WalletTransfer', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function privatePostGetApiKeyInfo($params = array()) {
+        return $this->request('GetApiKeyInfo', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostCreateSubaccount($params = array()) {
         return $this->request('CreateSubaccount', 'private', 'POST', $params, null, null, array("cost" => 3));

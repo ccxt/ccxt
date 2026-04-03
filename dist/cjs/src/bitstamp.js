@@ -524,7 +524,6 @@ class bitstamp extends bitstamp$1["default"] {
                     'Your account is frozen': errors.PermissionDenied,
                     'Please update your profile with your FATCA information, before using API.': errors.PermissionDenied,
                     'Order not found.': errors.OrderNotFound,
-                    'Price is more than 20% below market price.': errors.InvalidOrder,
                     "Bitstamp.net is under scheduled maintenance. We'll be back soon.": errors.OnMaintenance,
                     'Order could not be placed.': errors.ExchangeNotAvailable,
                     'Invalid offset.': errors.BadRequest,
@@ -532,6 +531,7 @@ class bitstamp extends bitstamp$1["default"] {
                 },
                 'broad': {
                     'Minimum order size is': errors.InvalidOrder,
+                    'Price is more than': errors.InvalidOrder,
                     'Check your account balance for details.': errors.InsufficientFunds,
                     'Ensure this value has at least': errors.InvalidAddress,
                     'Ensure that there are no more than': errors.InvalidOrder, // {"status": "error", "reason": {"amount": ["Ensure that there are no more than 0 decimal places."], "__all__": [""]}}

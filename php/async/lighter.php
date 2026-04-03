@@ -385,6 +385,33 @@ class lighter extends Exchange {
         }) ();
     }
 
+    public function pre_load_lighter_library($params = array ()) {
+        return Async\async(function () use ($params) {
+            /**
+             * if the required credentials are available in options, it will pre-load the lighter Signer to avoid delaying sensitive calls like createOrder the first time they're executed
+             * @param $params
+             * @return {boolean} true if the $signer was loaded, false otherwise
+             */
+            $signer = $this->safe_dict($this->options, 'signer');
+            if ($signer !== null) {
+                return true;
+            }
+            $libraryPath = null;
+            list($libraryPath, $params) = $this->handle_option_and_params($params, 'loadAccount', 'libraryPath');
+            $apiKeyIndex = null;
+            list($apiKeyIndex, $params) = $this->handle_option_and_params_2($params, 'loadAccount', 'apiKeyIndex', 'api_key_index');
+            $accountIndex = null;
+            list($accountIndex, $params) = $this->handle_option_and_params_2($params, 'loadAccount', 'accountIndex', 'account_index');
+            $privateKeyIsSet = ($this->privateKey !== null) && ($this->privateKey !== '');
+            if ($privateKeyIsSet && ($libraryPath !== null) && ($apiKeyIndex !== null) && ($accountIndex !== null)) {
+                $signer = Async\await($this->load_lighter_library($libraryPath, $this->options['chainId'], $this->privateKey, $apiKeyIndex, $accountIndex));
+                $this->options['signer'] = $signer;
+                return true;
+            }
+            return false;
+        }) ();
+    }
+
     public function handle_account_index(array $params, string $methodName1, string $optionName1, string $optionName2, $defaultValue = null) {
         return Async\async(function () use ($params, $methodName1, $optionName1, $optionName2, $defaultValue) {
             $accountIndex = null;
@@ -498,7 +525,7 @@ class lighter extends Exchange {
     public function set_sandbox_mode(bool $enable) {
         parent::set_sandbox_mode($enable);
         $this->options['sandboxMode'] = $enable;
-        $this->options['chainId'] = 300;
+        $this->options['chainId'] = $enable ? 300 : 304;
     }
 
     public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): array {
@@ -996,6 +1023,7 @@ class lighter extends Exchange {
              * @return {array} an associative dictionary of currencies
              */
             $response = Async\await($this->publicGetAssetDetails ($params));
+            Async\await($this->pre_load_lighter_library());
             //
             //     {
             //         "code" => 200,
@@ -1149,7 +1177,7 @@ class lighter extends Exchange {
         //         "daily_chart" => array(),
         //         "market_config" => {
         //             "market_margin_mode" => 0,
-        //             "insurance_fund_account_index" => 281474976710655,
+        //             "insurance_fund_account_index" => 281474976710654,
         //             "liquidation_mode" => 0,
         //             "force_reduce_only" => false,
         //             "trading_hours" => ""

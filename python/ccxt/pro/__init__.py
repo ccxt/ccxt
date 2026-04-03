@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.43'
+__version__ = '4.5.46'
 
 # ----------------------------------------------------------------------------
 
@@ -96,7 +96,6 @@ from ccxt.pro.coinex import coinex                                        # noqa
 from ccxt.pro.coinone import coinone                                      # noqa: F401
 from ccxt.pro.cryptocom import cryptocom                                  # noqa: F401
 from ccxt.pro.deepcoin import deepcoin                                    # noqa: F401
-from ccxt.pro.defx import defx                                            # noqa: F401
 from ccxt.pro.deribit import deribit                                      # noqa: F401
 from ccxt.pro.derive import derive                                        # noqa: F401
 from ccxt.pro.dydx import dydx                                            # noqa: F401
@@ -104,6 +103,7 @@ from ccxt.pro.exmo import exmo                                            # noqa
 from ccxt.pro.gate import gate                                            # noqa: F401
 from ccxt.pro.gateio import gateio                                        # noqa: F401
 from ccxt.pro.gemini import gemini                                        # noqa: F401
+from ccxt.pro.grvt import grvt                                            # noqa: F401
 from ccxt.pro.hashkey import hashkey                                      # noqa: F401
 from ccxt.pro.hitbtc import hitbtc                                        # noqa: F401
 from ccxt.pro.hollaex import hollaex                                      # noqa: F401
@@ -177,7 +177,6 @@ exchanges = [
     'coinone',
     'cryptocom',
     'deepcoin',
-    'defx',
     'deribit',
     'derive',
     'dydx',
@@ -185,6 +184,7 @@ exchanges = [
     'gate',
     'gateio',
     'gemini',
+    'grvt',
     'hashkey',
     'hitbtc',
     'hollaex',

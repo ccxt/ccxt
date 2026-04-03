@@ -871,30 +871,25 @@ class bitfinex extends Exchange {
             $pool = $this->safe_list($indexed['pool'], $id, array());
             $rawType = $this->safe_string($pool, 1);
             $isCryptoCoin = ($rawType !== null) || (is_array($indexed['explorer']) && array_key_exists($id, $indexed['explorer'])); // "hacky" solution
-            $type = null;
-            if ($isCryptoCoin) {
-                $type = 'crypto';
-            }
+            $type = $isCryptoCoin ? 'crypto' : null;
             $feeValues = $this->safe_list($indexed['fees'], $id, array());
             $fees = $this->safe_list($feeValues, 1, array());
             $fee = $this->safe_number($fees, 1);
             $undl = $this->safe_list($indexed['undl'], $id, array());
             $precision = '8'; // default $precision, todo => fix "magic constants"
-            $dwStatuses = $this->safe_list($indexed['statuses'], $id, array());
-            $depositEnabled = $this->safe_integer($dwStatuses, 1) === 1;
-            $withdrawEnabled = $this->safe_integer($dwStatuses, 2) === 1;
             $networks = array();
             $netwokIds = $this->safe_list($indexedNetworks, $id, array());
             for ($j = 0; $j < count($netwokIds); $j++) {
                 $networkId = $netwokIds[$j];
                 $network = $this->network_id_to_code($networkId);
+                $dwStatuses = $this->safe_list($indexed['statuses'], $networkId, array());
                 $networks[$network] = array(
                     'info' => $networkId,
                     'id' => strtolower($networkId),
                     'network' => $networkId,
                     'active' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
+                    'deposit' => $this->safe_integer($dwStatuses, 1) === 1,
+                    'withdraw' => $this->safe_integer($dwStatuses, 2) === 1,
                     'fee' => null,
                     'precision' => null,
                     'limits' => array(
@@ -912,8 +907,8 @@ class bitfinex extends Exchange {
                 'type' => $type,
                 'name' => $name,
                 'active' => true,
-                'deposit' => $depositEnabled,
-                'withdraw' => $withdrawEnabled,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => $fee,
                 'precision' => intval($precision),
                 'limits' => array(

@@ -2861,6 +2861,9 @@ export default class Exchange {
         const res = this.parseToNumeric((value % 1));
         return res === 0;
     }
+    isEmptyString(value) {
+        return !this.valueIsDefined(value) || value === '';
+    }
     safeNumberOmitZero(obj, key, defaultValue = undefined) {
         const value = this.safeString(obj, key);
         const final = this.parseNumber(this.omitZero(value));
@@ -4059,6 +4062,9 @@ export default class Exchange {
         }
         return reversed;
     }
+    stringToBase16(str) {
+        return '0x' + this.binaryToBase16(this.base64ToBinary(this.stringToBase64(str)));
+    }
     reduceFeesByCurrency(fees) {
         //
         // this function takes a list of fee structures having the following format
@@ -4266,6 +4272,12 @@ export default class Exchange {
             message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file';
         }
         throw new NotSupported(this.id + ' fetchOHLCV() is not supported yet' + message);
+    }
+    async fetchSpotOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchSpotOHLCV() is not supported yet');
+    }
+    async fetchContractOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchContractOHLCV() is not supported yet');
     }
     async fetchOHLCVWs(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         let message = '';
@@ -5000,6 +5012,30 @@ export default class Exchange {
         }
         return results;
     }
+    filterOutByArray(objects, key, values = undefined, indexed = true) {
+        objects = this.toArray(objects);
+        // return all of them if no values were passed
+        if (values === undefined || !values) {
+            // return indexed ? this.indexBy (objects, key) : objects;
+            if (indexed) {
+                return this.indexBy(objects, key);
+            }
+            else {
+                return objects;
+            }
+        }
+        const results = [];
+        for (let i = 0; i < objects.length; i++) {
+            if (!this.inArray(objects[i][key], values)) {
+                results.push(objects[i]);
+            }
+        }
+        // return indexed ? this.indexBy (results, key) : results;
+        if (indexed) {
+            return this.indexBy(results, key);
+        }
+        return results;
+    }
     async fetch2(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
         if (this.enableRateLimit) {
             const cost = this.calculateRateLimiterCost(api, method, path, params, config);
@@ -5601,11 +5637,17 @@ export default class Exchange {
     async fetchTickers(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchTickers() is not supported yet');
     }
+    async fetchSpotTickers(symbols = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchSpotTickers() is not supported yet');
+    }
+    async fetchContractTickers(symbols = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchContractTickers() is not supported yet');
+    }
     async fetchMarkPrices(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchMarkPrices() is not supported yet');
     }
     async fetchTickersWs(symbols = undefined, params = {}) {
-        throw new NotSupported(this.id + ' fetchTickers() is not supported yet');
+        throw new NotSupported(this.id + ' fetchTickersWs() is not supported yet');
     }
     async fetchOrderBooks(symbols = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOrderBooks() is not supported yet');
@@ -6110,6 +6152,12 @@ export default class Exchange {
     async createOrders(orders, params = {}) {
         throw new NotSupported(this.id + ' createOrders() is not supported yet');
     }
+    async createSpotOrders(orders, params = {}) {
+        throw new NotSupported(this.id + ' createSpotOrders() is not supported yet');
+    }
+    async createContractOrders(orders, params = {}) {
+        throw new NotSupported(this.id + ' createContractOrders() is not supported yet');
+    }
     async editOrders(orders, params = {}) {
         throw new NotSupported(this.id + ' editOrders() is not supported yet');
     }
@@ -6118,6 +6166,12 @@ export default class Exchange {
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' cancelOrder() is not supported yet');
+    }
+    async cancelSpotOrder(id, symbol = undefined, params = {}) {
+        throw new NotSupported(this.id + ' cancelSpotOrder() is not supported yet');
+    }
+    async cancelContractOrder(id, symbol = undefined, params = {}) {
+        throw new NotSupported(this.id + ' cancelContractOrder() is not supported yet');
     }
     /**
      * @method
@@ -6156,6 +6210,12 @@ export default class Exchange {
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' cancelAllOrders() is not supported yet');
+    }
+    async cancelAllSpotOrders(symbol = undefined, params = {}) {
+        throw new NotSupported(this.id + ' cancelAllSpotOrders() is not supported yet');
+    }
+    async cancelAllContractOrders(symbol = undefined, params = {}) {
+        throw new NotSupported(this.id + ' cancelAllContractOrders() is not supported yet');
     }
     async cancelAllOrdersAfter(timeout, params = {}) {
         throw new NotSupported(this.id + ' cancelAllOrdersAfter() is not supported yet');
@@ -6318,6 +6378,9 @@ export default class Exchange {
         else {
             throw new NotSupported(this.id + ' fetchDepositAddress() is not supported yet');
         }
+    }
+    async fetchContractDepositAddress(code, params = {}) {
+        throw new NotSupported(this.id + ' fetchContractDepositAddress() is not supported yet');
     }
     account() {
         return {

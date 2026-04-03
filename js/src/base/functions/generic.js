@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ----------------------------------------------------------------------------
-import { isNumber, isArray } from './type.js';
+import { isNumber, isDictionary, isArray } from './type.js';
 // ----------------------------------------------------------------------------
 const keys = Object.keys; // eslint-disable-line padding-line-between-statements
 const values = (x) => ((!isArray(x)) ? Object.values(x) : x); // don't copy arrays if they're already arrays
@@ -20,10 +20,16 @@ const arrayConcat = (a, b) => a.concat(b);
 const inArray = (needle, haystack) => haystack.includes(needle);
 const toArray = (object) => Object.values(object);
 const isEmpty = (object) => {
-    if (!object) {
+    if (object === null || object === undefined) {
         return true;
     }
-    return (Array.isArray(object) ? object : Object.keys(object)).length < 1;
+    if (Array.isArray(object)) {
+        return object.length < 1;
+    }
+    if (isDictionary(object)) {
+        return Object.keys(object).length < 1;
+    }
+    return false;
 };
 const keysort = (x, out = {}) => {
     for (const k of keys(x).sort()) {

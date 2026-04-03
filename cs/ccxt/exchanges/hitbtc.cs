@@ -559,6 +559,7 @@ public partial class hitbtc : Exchange
                 { "XMT", "MTL" },
                 { "XPNT", "PNT" },
             } },
+            { "rollingWindowSize", 1000 },
         });
     }
 

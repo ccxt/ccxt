@@ -1471,7 +1471,7 @@ class mexc extends \ccxt\async\mexc {
         //
         $timestamp = $this->safe_integer($order, 'createTime');
         $side = $this->safe_string($order, 'tradeType');
-        $status = $this->safe_string($order, 'status');
+        $status = $this->safe_string_2($order, 'status', 'state');
         $type = $this->safe_string($order, 'orderType');
         $fee = null;
         $feeCurrency = $this->safe_string($order, 'N');
@@ -1493,8 +1493,8 @@ class mexc extends \ccxt\async\mexc {
             'timeInForce' => $this->parse_ws_time_in_force($type),
             'side' => ($side === '1') ? 'buy' : 'sell',
             'price' => $this->safe_string($order, 'price'),
-            'stopPrice' => null,
-            'triggerPrice' => null,
+            'stopPrice' => $this->safe_string_2($order, 'triggerPrice', 'P'),
+            'triggerPrice' => $this->safe_string_2($order, 'triggerPrice', 'P'),
             'average' => $this->safe_string($order, 'avgPrice'),
             'amount' => $this->safe_string($order, 'quantity'),
             'cost' => $this->safe_string($order, 'amount'),
@@ -1508,6 +1508,7 @@ class mexc extends \ccxt\async\mexc {
 
     public function parse_ws_order_status($status, $market = null) {
         $statuses = array(
+            '0' => 'open',     // new/pending (OCO orders)
             '1' => 'open',     // new order
             '2' => 'closed',   // filled
             '3' => 'open',     // partially filled
@@ -1529,6 +1530,8 @@ class mexc extends \ccxt\async\mexc {
             '4' => null, // FILL_OR_KILL
             '5' => 'market',  // MARKET_ORDER
             '100' => 'limit', // STOP_LIMIT
+            '101' => 'limit', // OCO_STOP_LIMIT
+            '102' => 'limit', // OCO_LIMIT
         );
         return $this->safe_string($types, $type);
     }
@@ -1541,6 +1544,8 @@ class mexc extends \ccxt\async\mexc {
             '4' => 'FOK', // FILL_OR_KILL
             '5' => 'GTC',  // MARKET_ORDER
             '100' => 'GTC', // STOP_LIMIT
+            '101' => 'GTC', // OCO_STOP_LIMIT
+            '102' => 'GTC', // OCO_LIMIT
         );
         return $this->safe_string($timeInForceIds, $timeInForce);
     }

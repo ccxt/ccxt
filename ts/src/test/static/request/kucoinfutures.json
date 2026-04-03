@@ -9,6 +9,22 @@
     "methods": {
         "createOrder": [
             {
+                "description": "swap order with cross marginMode",
+                "method": "createOrder",
+                "url": "https://api-futures.kucoin.com/api/v1/orders",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "output": "{\"clientOid\":\"acae117f-1012-4f82-b375-d4e9df756f2a\",\"side\":\"buy\",\"symbol\":\"LTCUSDTM\",\"type\":\"market\",\"leverage\":1,\"marginMode\":\"CROSS\",\"size\":1}"
+            },
+            {
                 "description": "create isolated order by using the unified syntax",
                 "method": "createOrder",
                 "url": "https://api-futures.kucoin.com/api/v1/orders",
@@ -333,19 +349,9 @@
         ],
         "fetchBalance": [
             {
-                "description": "Fetch spot Balance",
-                "method": "fetchBalance",
-                "url": "https://api-futures.kucoin.com/api/v1/account-overview?currency=USDT&type=spot",
-                "input": [
-                    {
-                        "type": "spot"
-                    }
-                ]
-            },
-            {
                 "description": "Fetch swap Balance",
                 "method": "fetchBalance",
-                "url": "https://api-futures.kucoin.com/api/v1/account-overview?currency=USDT&type=swap",
+                "url": "https://api-futures.kucoin.com/api/v1/account-overview?currency=USDT",
                 "input": [
                     {
                         "type": "swap"
@@ -383,15 +389,11 @@
         ],
         "fetchLedger": [
             {
-                "description": "fetch USDT ledger",
+                "description": "fetch ledger",
                 "method": "fetchLedger",
-                "options": {
-                    "hfMigrated": false
-                },
-                "url": "https://openapi-v2.kucoin.com/api/v1/accounts/ledgers?currency=USDT",
-                "input": [
-                    "USDT"
-                ]
+                "url": "https://api-futures.kucoin.com/api/v1/transaction-history",
+                "input": [],
+                "output": null
             }
         ],
         "fetchDepositAddress": [
@@ -442,7 +444,7 @@
             {
                 "description": "Fetch order by client order id",
                 "method": "fetchOrder",
-                "url": "https://api-futures.kucoin.com/api/v1/orders/?clientOid=2234567890",
+                "url": "https://api-futures.kucoin.com/api/v1/orders/byClientOid?clientOid=2234567890",
                 "input": [
                     "",
                     "LTC/USDT:USDT",
@@ -584,7 +586,7 @@
             {
                 "description": "fetchTradingFee",
                 "method": "fetchTradingFee",
-                "url": "https://openapi-v2.kucoin.com/api/v1/trade-fees?symbols=XBTUSDTM",
+                "url": "https://openapi-v2.kucoin.com/api/v1/trade-fees?symbol=XBTUSDTM",
                 "input": [
                   "BTC/USDT:USDT"
                 ]

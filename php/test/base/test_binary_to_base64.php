@@ -9,6 +9,11 @@ namespace ccxt;
 // -----------------------------------------------------------------------------
 
 
+function helper_str_to_binary($exchange, $str) {
+    return $exchange->base64_to_binary($exchange->string_to_base64($str));
+}
+
+
 function test_binary_to_base64() {
     $exchange = new \ccxt\async\Exchange(array(
         'id' => 'sampleexchange',
@@ -17,34 +22,34 @@ function test_binary_to_base64() {
     // The encode() method converts string to bytes
     assert('GO_SKIP_START');
     // Test 1: Simple binary from string
-    $binary1 = $exchange->encode('hello');
+    $binary1 = helper_str_to_binary($exchange, 'hello');
     assert($exchange->binary_to_base64($binary1) === 'aGVsbG8=');
     // Test 2: Binary with space in original
-    $binary2 = $exchange->encode('hello world');
+    $binary2 = helper_str_to_binary($exchange, 'hello world');
     assert($exchange->binary_to_base64($binary2) === 'aGVsbG8gd29ybGQ=');
     // Test 3: Short binary
-    $binary3 = $exchange->encode('test');
+    $binary3 = helper_str_to_binary($exchange, 'test');
     assert($exchange->binary_to_base64($binary3) === 'dGVzdA==');
     // Test 4: Empty binary
-    $binary4 = $exchange->encode('');
+    $binary4 = helper_str_to_binary($exchange, '');
     assert($exchange->binary_to_base64($binary4) === '');
     // Test 5: Single byte
-    $binary5 = $exchange->encode('a');
+    $binary5 = helper_str_to_binary($exchange, 'a');
     assert($exchange->binary_to_base64($binary5) === 'YQ==');
     // Test 6: Two bytes
-    $binary6 = $exchange->encode('ab');
+    $binary6 = helper_str_to_binary($exchange, 'ab');
     assert($exchange->binary_to_base64($binary6) === 'YWI=');
     // Test 7: Three bytes (no padding)
-    $binary7 = $exchange->encode('abc');
+    $binary7 = helper_str_to_binary($exchange, 'abc');
     assert($exchange->binary_to_base64($binary7) === 'YWJj');
     // Test 8: JSON-like binary
-    $binary8 = $exchange->encode('{"key":"value"}');
+    $binary8 = helper_str_to_binary($exchange, '{"key":"value"}');
     assert($exchange->binary_to_base64($binary8) === 'eyJrZXkiOiJ2YWx1ZSJ9');
     // Test 9: Numbers as binary
-    $binary9 = $exchange->encode('123456');
+    $binary9 = helper_str_to_binary($exchange, '123456');
     assert($exchange->binary_to_base64($binary9) === 'MTIzNDU2');
     // Test 10: Special characters
-    $binary10 = $exchange->encode('hello+world/test');
+    $binary10 = helper_str_to_binary($exchange, 'hello+world/test');
     assert($exchange->binary_to_base64($binary10) === 'aGVsbG8rd29ybGQvdGVzdA==');
     assert('GO_SKIP_END');
     assert($exchange->safe_string(null, 'key') === null, 'GO_WORKAROUND');

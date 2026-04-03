@@ -382,6 +382,28 @@ class lighter(Exchange, ImplicitAPI):
         self.options['signer'] = signer
         return signer
 
+    def pre_load_lighter_library(self, params={}):
+        """
+        if the required credentials are available in options, it will pre-load the lighter Signer to avoid delaying sensitive calls like createOrder the first time they're executed
+ @param params
+        :returns boolean: True if the signer was loaded, False otherwise
+        """
+        signer = self.safe_dict(self.options, 'signer')
+        if signer is not None:
+            return True
+        libraryPath = None
+        libraryPath, params = self.handle_option_and_params(params, 'loadAccount', 'libraryPath')
+        apiKeyIndex = None
+        apiKeyIndex, params = self.handle_option_and_params_2(params, 'loadAccount', 'apiKeyIndex', 'api_key_index')
+        accountIndex = None
+        accountIndex, params = self.handle_option_and_params_2(params, 'loadAccount', 'accountIndex', 'account_index')
+        privateKeyIsSet = (self.privateKey is not None) and (self.privateKey != '')
+        if privateKeyIsSet and (libraryPath is not None) and (apiKeyIndex is not None) and (accountIndex is not None):
+            signer = self.load_lighter_library(libraryPath, self.options['chainId'], self.privateKey, apiKeyIndex, accountIndex)
+            self.options['signer'] = signer
+            return True
+        return False
+
     def handle_account_index(self, params: object, methodName1: str, optionName1: str, optionName2: str, defaultValue=None):
         accountIndex = None
         accountIndex, params = self.handle_option_and_params_2(params, methodName1, optionName1, optionName2, defaultValue)
@@ -476,7 +498,7 @@ class lighter(Exchange, ImplicitAPI):
     def set_sandbox_mode(self, enable: bool):
         super(lighter, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
-        self.options['chainId'] = 300
+        self.options['chainId'] = 300 if enable else 304
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> List[Any]:
         """
@@ -928,6 +950,7 @@ class lighter(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         response = self.publicGetAssetDetails(params)
+        self.pre_load_lighter_library()
         #
         #     {
         #         "code": 200,
@@ -1072,7 +1095,7 @@ class lighter(Exchange, ImplicitAPI):
         #         "daily_chart": {},
         #         "market_config": {
         #             "market_margin_mode": 0,
-        #             "insurance_fund_account_index": 281474976710655,
+        #             "insurance_fund_account_index": 281474976710654,
         #             "liquidation_mode": 0,
         #             "force_reduce_only": False,
         #             "trading_hours": ""

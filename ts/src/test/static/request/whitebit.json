@@ -10,6 +10,19 @@
     },
     "outputType": "json",
     "methods": {
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetch funding rate history",
+                "method": "fetchFundingRateHistory",
+                "url": "https://whitebit.com/api/v4/public/funding-history/ETH_PERP?limit=1",
+                "input": [
+                    "ETH/USDT:USDT",
+                    null,
+                    1
+                ],
+                "output": null
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",

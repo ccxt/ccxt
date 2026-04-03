@@ -214,6 +214,8 @@ export default class kraken extends Exchange {
                         'WithdrawAddresses': 3,
                         'WithdrawStatus': 3,
                         'WalletTransfer': 3,
+                        // account
+                        'GetApiKeyInfo': 3,
                         // sub accounts
                         'CreateSubaccount': 3,
                         'AccountTransfer': 3,
@@ -524,6 +526,7 @@ export default class kraken extends Exchange {
                 },
             },
             'precisionMode': TICK_SIZE,
+            'rollingWindowSize': 10000.0,  // https://docs.kraken.com/api/docs/guides/custody-rest-ratelimits
             'exceptions': {
                 'exact': {
                     'EQuery:Invalid asset pair': BadSymbol, // {"error":["EQuery:Invalid asset pair"]}
@@ -3565,7 +3568,7 @@ export default class kraken extends Exchange {
         let url = '/' + this.version + '/' + api + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {
-                // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
+                // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 url += '?' + this.urlencodeNested (params);
             }
         } else if (api === 'private') {
@@ -3578,10 +3581,10 @@ export default class kraken extends Exchange {
             const isBatchOrder = (path === 'AddOrderBatch');
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
-            // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
             if (isCancelOrderBatch || isTriggerPercent || isBatchOrder) {
                 body = this.json (this.extend ({ 'nonce': nonce }, params));
             } else {
+                // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 body = this.urlencodeNested (this.extend ({ 'nonce': nonce }, params));
             }
             const auth = this.encode (nonce + body);

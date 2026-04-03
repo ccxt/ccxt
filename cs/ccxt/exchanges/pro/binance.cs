@@ -234,6 +234,34 @@ public partial class binance : ccxt.binance
         return stream;
     }
 
+    public virtual object getWsUrl(object type, object category)
+    {
+        object baseUrl = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
+        if (isTrue(isEqual(type, "future")))
+        {
+            return ((string)baseUrl).Replace((string)"/ws", (string)add(add("/", category), "/ws"));
+        }
+        return baseUrl;
+    }
+
+    public virtual object getFutureWsCategory(object channel)
+    {
+        if (isTrue(isTrue(isTrue(isTrue(isTrue(isEqual(channel, "depth")) || isTrue(isEqual(channel, "rpiDepth"))) || isTrue(isEqual(channel, "bookTicker"))) || isTrue(isEqual(channel, "trade"))) || isTrue(isEqual(channel, "aggTrade"))))
+        {
+            return "public";
+        }
+        return "market";
+    }
+
+    public virtual object getPrivateWsUrl(object type, object listenKey)
+    {
+        if (isTrue(isEqual(type, "future")))
+        {
+            return add(add(this.getWsUrl(type, "private"), "?listenKey="), listenKey);
+        }
+        return add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), listenKey);
+    }
+
     /**
      * @method
      * @name binance#watchLiquidations
@@ -307,7 +335,7 @@ public partial class binance : ccxt.binance
             type = "delivery";
         }
         object numSubscriptions = getArrayLength(subscriptionHashes);
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), this.stream(type, streamHash, numSubscriptions));
+        object url = add(add(this.getWsUrl(type, this.getFutureWsCategory("forceOrder")), "/"), this.stream(type, streamHash, numSubscriptions));
         object requestId = this.requestId(url);
         object request = new Dictionary<string, object>() {
             { "method", "SUBSCRIBE" },
@@ -536,7 +564,8 @@ public partial class binance : ccxt.binance
             type = "delivery";
         }
         await this.authenticate(parameters);
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), getValue(getValue(this.options, type), "listenKey"));
+        object listenKey = getValue(getValue(this.options, type), "listenKey");
+        object url = this.getPrivateWsUrl(type, listenKey);
         object message = null;
         object newLiquidations = await this.watchMultiple(url, messageHashes, message, new List<object>() {type});
         if (isTrue(this.newUpdates))
@@ -736,7 +765,7 @@ public partial class binance : ccxt.binance
             ((IList<object>)subParams).Add(symbolHash);
         }
         object messageHashesLength = getArrayLength(messageHashes);
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), this.stream(type, streamHash, messageHashesLength));
+        object url = add(add(this.getWsUrl(type, this.getFutureWsCategory(name)), "/"), this.stream(type, streamHash, messageHashesLength));
         object requestId = this.requestId(url);
         object request = new Dictionary<string, object>() {
             { "method", "SUBSCRIBE" },
@@ -802,7 +831,7 @@ public partial class binance : ccxt.binance
             ((IList<object>)subParams).Add(symbolHash);
         }
         object messageHashesLength = getArrayLength(subMessageHashes);
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), this.stream(type, streamHash, messageHashesLength));
+        object url = add(add(this.getWsUrl(type, this.getFutureWsCategory("depth")), "/"), this.stream(type, streamHash, messageHashesLength));
         object requestId = this.requestId(url);
         object request = new Dictionary<string, object>() {
             { "method", "UNSUBSCRIBE" },
@@ -1247,7 +1276,7 @@ public partial class binance : ccxt.binance
         }
         object query = this.omit(parameters, "type");
         object subParamsLength = getArrayLength(subParams);
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), this.stream(type, streamHash, subParamsLength));
+        object url = add(add(this.getWsUrl(type, this.getFutureWsCategory(name)), "/"), this.stream(type, streamHash, subParamsLength));
         object requestId = this.requestId(url);
         object request = new Dictionary<string, object>() {
             { "method", "SUBSCRIBE" },
@@ -1320,7 +1349,7 @@ public partial class binance : ccxt.binance
         }
         object query = this.omit(parameters, "type");
         object subParamsLength = getArrayLength(subParams);
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), this.stream(type, streamHash, subParamsLength));
+        object url = add(add(this.getWsUrl(type, this.getFutureWsCategory(name)), "/"), this.stream(type, streamHash, subParamsLength));
         object requestId = this.requestId(url);
         object request = new Dictionary<string, object>() {
             { "method", "UNSUBSCRIBE" },
@@ -1657,7 +1686,7 @@ public partial class binance : ccxt.binance
             ((IList<object>)rawHashes).Add(add(add(add(add(add(marketId, "@"), klineType), "_"), interval), utcSuffix));
             ((IList<object>)messageHashes).Add(add(add(add("ohlcv::", getValue(market, "symbol")), "::"), timeframeString));
         }
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), this.stream(type, "multipleOHLCV"));
+        object url = add(add(this.getWsUrl(type, this.getFutureWsCategory(klineType)), "/"), this.stream(type, "multipleOHLCV"));
         object requestId = this.requestId(url);
         object request = new Dictionary<string, object>() {
             { "method", "SUBSCRIBE" },
@@ -1738,7 +1767,7 @@ public partial class binance : ccxt.binance
             ((IList<object>)subMessageHashes).Add(add(add(add("ohlcv::", getValue(market, "symbol")), "::"), timeframeString));
             ((IList<object>)messageHashes).Add(add(add(add("unsubscribe::ohlcv::", getValue(market, "symbol")), "::"), timeframeString));
         }
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), this.stream(type, "multipleOHLCV"));
+        object url = add(add(this.getWsUrl(type, this.getFutureWsCategory(klineType)), "/"), this.stream(type, "multipleOHLCV"));
         object requestId = this.requestId(url);
         object request = new Dictionary<string, object>() {
             { "method", "UNSUBSCRIBE" },
@@ -2309,7 +2338,7 @@ public partial class binance : ccxt.binance
         {
             streamHash = add(add(channelName, "::"), String.Join(",", ((IList<object>)symbols).ToArray()));
         }
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), rawMarketType), "/"), this.stream(rawMarketType, streamHash));
+        object url = add(add(this.getWsUrl(rawMarketType, this.getFutureWsCategory(channelName)), "/"), this.stream(rawMarketType, streamHash));
         object requestId = this.requestId(url);
         object request = new Dictionary<string, object>() {
             { "method", ((bool) isTrue(isUnsubscribe)) ? "UNSUBSCRIBE" : "SUBSCRIBE" },
@@ -2974,7 +3003,8 @@ public partial class binance : ccxt.binance
             {
                 urlType = "papi";
             }
-            object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), urlType), "/"), getValue(getValue(this.options, type), "listenKey"));
+            object cachedListenKey = getValue(getValue(this.options, type), "listenKey");
+            object url = this.getPrivateWsUrl(urlType, cachedListenKey);
             var client = this.client(url);
             object messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
@@ -3343,7 +3373,7 @@ public partial class binance : ccxt.binance
             {
                 urlType = "papi";
             }
-            url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), urlType), "/"), getValue(getValue(this.options, type), "listenKey"));
+            url = this.getPrivateWsUrl(urlType, getValue(getValue(this.options, type), "listenKey"));
         }
         var client = this.client(url);
         this.setBalanceCache(client as WebSocketClient, type, isPortfolioMargin);
@@ -4235,7 +4265,7 @@ public partial class binance : ccxt.binance
             {
                 urlType = "papi";
             }
-            url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), urlType), "/"), getValue(getValue(this.options, type), "listenKey"));
+            url = this.getPrivateWsUrl(urlType, getValue(getValue(this.options, type), "listenKey"));
         }
         var client = this.client(url);
         this.setBalanceCache(client as WebSocketClient, type, isPortfolioMargin);
@@ -4612,7 +4642,7 @@ public partial class binance : ccxt.binance
         {
             urlType = "papi";
         }
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), urlType), "/"), getValue(getValue(this.options, type), "listenKey"));
+        object url = this.getPrivateWsUrl(urlType, getValue(getValue(this.options, type), "listenKey"));
         var client = this.client(url);
         this.setBalanceCache(client as WebSocketClient, type, isPortfolioMargin);
         this.setPositionsCache(client as WebSocketClient, type, symbols, isPortfolioMargin);
@@ -5060,7 +5090,7 @@ public partial class binance : ccxt.binance
             {
                 urlType = "papi";
             }
-            url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), urlType), "/"), getValue(getValue(this.options, type), "listenKey"));
+            url = this.getPrivateWsUrl(urlType, getValue(getValue(this.options, type), "listenKey"));
         }
         var client = this.client(url);
         this.setBalanceCache(client as WebSocketClient, type, isPortfolioMargin);

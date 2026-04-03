@@ -387,3 +387,22 @@ For example, while orders can be placed normally, cancelling an order on dYdX do
 - subAccountId, ccxt assumes 0 as default
 
 CCXT provides sensible defaults for the most common use cases; however, you may need to override these values (using params or options) depending on your specific requirements.
+
+### How to use the GRVT Exchange in CCXT?
+
+GRVT works similarly to any other CCXT DEX and only requires the l1 private key of the wallet.
+
+An example on how to instantiate the GRVT exchange:
+
+```
+exchange = ccxt.grvt({
+	'privateKey': 'XXXXXXX', // the l1 private key (hex)
+})
+```
+
+CCXT is also a builder on GRVT meaning that by default users will pay 1bps (0.01%) extra for using it through CCXT, however this fee is totally optional and can be disabled by providing the option `builderFee: False` in options. Your contribution is much appreciated.
+
+```
+exchange.options['builderFee'] = False
+```
+

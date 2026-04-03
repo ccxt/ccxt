@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Reflection;
+using System.Threading.Tasks;
 
 using ccxt;
 namespace Tests; // Note: actual namespace depends on the project name.
@@ -99,29 +100,42 @@ public class Tests
 
     static void Main(string[] args)
     {
+        MainAsync(args).GetAwaiter().GetResult();
+    }
 
+    static async Task MainAsync(string[] args)
+    {
         Console.WriteLine("C# version: " + Environment.Version.ToString());
-        Tests.args = args;
-        ReadConfig();
-        InitOptions(args);
-
-        RunBaseTests().Wait();
-
-        if (raceCondition)
+        try
         {
-            RaceConditionTests();
-            return;
-        }
+            Tests.args = args;
+            ReadConfig();
+            InitOptions(args);
 
-        if (isExchangeTests || isReqResTests || isAllTest) {
-            var testClass = new testMainClass();
-            testClass.init(exchangeId, symbol, methodName).Wait();
+            await RunBaseTests();
+
+            if (raceCondition)
+            {
+                RaceConditionTests();
+                return;
+            }
+
+            if (isExchangeTests || isReqResTests || isAllTest)
+            {
+                var testClass = new testMainClass();
+                await testClass.init(exchangeId, symbol, methodName);
+            }
+        }
+        catch (Exception ex)
+        {
+            testMainClass.dump("[TEST_FAILURE] " + ex.ToString()); // tell the wrapper this is failure
+            testMainClass.exitScript(1);
         }
     }
 
-    static Task RunBaseTests()
+    static async Task<Task> RunBaseTests()
     {
-        
+
         if (isBaseTests)
         {
             if (isWs)
@@ -130,25 +144,26 @@ public class Tests
                 WsOrderBookTests();
                 Helper.Green("[C#] base WS tests passed");
             }
-            else 
+            else
             {
-                RestBaseTests();
+                await RestBaseTests();
                 Helper.Green("[C#] base REST tests passed");
             }
         }
         return Task.CompletedTask;
     }
 
-    static void RestBaseTests()
+    static async Task RestBaseTests()
     {
         baseTestInstance.testCryptography();
         Helper.Green(" [C#] Crypto tests passed");
-        
+
         // run auto-transpiled tests (all of them start by 'testFunction')
-        RunAutoTranspiledBaseTests (baseTestInstance);
+        await RunAutoTranspiledBaseTests (baseTestInstance);
     }
 
-    static async void RunAutoTranspiledBaseTests(object testsInstance) {
+    static async Task RunAutoTranspiledBaseTests(object testsInstance)
+    {
         MethodInfo[] methods = testsInstance.GetType()
                         .GetMethods(BindingFlags.Instance | BindingFlags.Public)
                         .Where(m => m.Name.StartsWith("test") && m.ReturnType == typeof(void))

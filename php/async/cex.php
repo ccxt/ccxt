@@ -247,6 +247,7 @@ class cex extends Exchange {
                     'Get deposit address for main account is not allowed' => '\\ccxt\\PermissionDenied',
                     'Market Trigger orders are not allowed' => '\\ccxt\\BadRequest', // for some reason, triggerPrice does not work for market orders
                     'key not passed or incorrect' => '\\ccxt\\AuthenticationError',
+                    'API rate limit reached' => '\\ccxt\\RateLimitExceeded', // array("error":"API rate limit reached")
                 ),
             ),
             'timeframes' => array(

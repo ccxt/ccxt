@@ -7,274 +7,274 @@
 
 package ccxt
 
-func (this *BitrueCore) SpotKlinePublicGetPublicJson (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotKlinePublicGetPublicJson", args...)
+func (this *BitrueCore) SpotKlinePublicGetPublicJson(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotKlinePublicGetPublicJson", args...)
 }
 
-func (this *BitrueCore) SpotKlinePublicGetPublicCurrencyJson (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotKlinePublicGetPublicCurrencyJson", args...)
+func (this *BitrueCore) SpotKlinePublicGetPublicCurrencyJson(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotKlinePublicGetPublicCurrencyJson", args...)
 }
 
-func (this *BitrueCore) SpotV1PublicGetPing (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotV1PublicGetPing", args...)
+func (this *BitrueCore) SpotV1PublicGetPing(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PublicGetPing", args...)
 }
 
-func (this *BitrueCore) SpotV1PublicGetTime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotV1PublicGetTime", args...)
+func (this *BitrueCore) SpotV1PublicGetTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PublicGetTime", args...)
 }
 
-func (this *BitrueCore) SpotV1PublicGetExchangeInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotV1PublicGetExchangeInfo", args...)
+func (this *BitrueCore) SpotV1PublicGetExchangeInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PublicGetExchangeInfo", args...)
 }
 
-func (this *BitrueCore) SpotV1PublicGetDepth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotV1PublicGetDepth", args...)
+func (this *BitrueCore) SpotV1PublicGetDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PublicGetDepth", args...)
 }
 
-func (this *BitrueCore) SpotV1PublicGetTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotV1PublicGetTrades", args...)
+func (this *BitrueCore) SpotV1PublicGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PublicGetTrades", args...)
 }
 
-func (this *BitrueCore) SpotV1PublicGetHistoricalTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotV1PublicGetHistoricalTrades", args...)
+func (this *BitrueCore) SpotV1PublicGetHistoricalTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PublicGetHistoricalTrades", args...)
 }
 
-func (this *BitrueCore) SpotV1PublicGetAggTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotV1PublicGetAggTrades", args...)
+func (this *BitrueCore) SpotV1PublicGetAggTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PublicGetAggTrades", args...)
 }
 
-func (this *BitrueCore) SpotV1PublicGetTicker24hr (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotV1PublicGetTicker24hr", args...)
+func (this *BitrueCore) SpotV1PublicGetTicker24hr(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PublicGetTicker24hr", args...)
 }
 
-func (this *BitrueCore) SpotV1PublicGetTickerPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotV1PublicGetTickerPrice", args...)
+func (this *BitrueCore) SpotV1PublicGetTickerPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PublicGetTickerPrice", args...)
 }
 
-func (this *BitrueCore) SpotV1PublicGetTickerBookTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotV1PublicGetTickerBookTicker", args...)
+func (this *BitrueCore) SpotV1PublicGetTickerBookTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PublicGetTickerBookTicker", args...)
 }
 
-func (this *BitrueCore) SpotV1PublicGetMarketKline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotV1PublicGetMarketKline", args...)
+func (this *BitrueCore) SpotV1PublicGetMarketKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PublicGetMarketKline", args...)
 }
 
-func (this *BitrueCore) SpotV1PrivateGetOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotV1PrivateGetOrder", args...)
+func (this *BitrueCore) SpotV1PrivateGetOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivateGetOrder", args...)
 }
 
-func (this *BitrueCore) SpotV1PrivateGetOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotV1PrivateGetOpenOrders", args...)
+func (this *BitrueCore) SpotV1PrivateGetOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivateGetOpenOrders", args...)
 }
 
-func (this *BitrueCore) SpotV1PrivateGetAllOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotV1PrivateGetAllOrders", args...)
+func (this *BitrueCore) SpotV1PrivateGetAllOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivateGetAllOrders", args...)
 }
 
-func (this *BitrueCore) SpotV1PrivateGetAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotV1PrivateGetAccount", args...)
+func (this *BitrueCore) SpotV1PrivateGetAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivateGetAccount", args...)
 }
 
-func (this *BitrueCore) SpotV1PrivateGetMyTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotV1PrivateGetMyTrades", args...)
+func (this *BitrueCore) SpotV1PrivateGetMyTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivateGetMyTrades", args...)
 }
 
-func (this *BitrueCore) SpotV1PrivateGetEtfNetValueSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotV1PrivateGetEtfNetValueSymbol", args...)
+func (this *BitrueCore) SpotV1PrivateGetEtfNetValueSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivateGetEtfNetValueSymbol", args...)
 }
 
-func (this *BitrueCore) SpotV1PrivateGetWithdrawHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotV1PrivateGetWithdrawHistory", args...)
+func (this *BitrueCore) SpotV1PrivateGetWithdrawHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivateGetWithdrawHistory", args...)
 }
 
-func (this *BitrueCore) SpotV1PrivateGetDepositHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotV1PrivateGetDepositHistory", args...)
+func (this *BitrueCore) SpotV1PrivateGetDepositHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivateGetDepositHistory", args...)
 }
 
-func (this *BitrueCore) SpotV1PrivatePostOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotV1PrivatePostOrder", args...)
+func (this *BitrueCore) SpotV1PrivatePostOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivatePostOrder", args...)
 }
 
-func (this *BitrueCore) SpotV1PrivatePostWithdrawCommit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotV1PrivatePostWithdrawCommit", args...)
+func (this *BitrueCore) SpotV1PrivatePostWithdrawCommit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivatePostWithdrawCommit", args...)
 }
 
-func (this *BitrueCore) SpotV1PrivateDeleteOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotV1PrivateDeleteOrder", args...)
+func (this *BitrueCore) SpotV1PrivateDeleteOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivateDeleteOrder", args...)
 }
 
-func (this *BitrueCore) SpotV2PrivateGetMyTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotV2PrivateGetMyTrades", args...)
+func (this *BitrueCore) SpotV2PrivateGetMyTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV2PrivateGetMyTrades", args...)
 }
 
-func (this *BitrueCore) FapiV1PublicGetPing (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiV1PublicGetPing", args...)
+func (this *BitrueCore) FapiV1PublicGetPing(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiV1PublicGetPing", args...)
 }
 
-func (this *BitrueCore) FapiV1PublicGetTime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiV1PublicGetTime", args...)
+func (this *BitrueCore) FapiV1PublicGetTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiV1PublicGetTime", args...)
 }
 
-func (this *BitrueCore) FapiV1PublicGetContracts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiV1PublicGetContracts", args...)
+func (this *BitrueCore) FapiV1PublicGetContracts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiV1PublicGetContracts", args...)
 }
 
-func (this *BitrueCore) FapiV1PublicGetDepth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiV1PublicGetDepth", args...)
+func (this *BitrueCore) FapiV1PublicGetDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiV1PublicGetDepth", args...)
 }
 
-func (this *BitrueCore) FapiV1PublicGetTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiV1PublicGetTicker", args...)
+func (this *BitrueCore) FapiV1PublicGetTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiV1PublicGetTicker", args...)
 }
 
-func (this *BitrueCore) FapiV1PublicGetKlines (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiV1PublicGetKlines", args...)
+func (this *BitrueCore) FapiV1PublicGetKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiV1PublicGetKlines", args...)
 }
 
-func (this *BitrueCore) FapiV2PrivateGetMyTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiV2PrivateGetMyTrades", args...)
+func (this *BitrueCore) FapiV2PrivateGetMyTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiV2PrivateGetMyTrades", args...)
 }
 
-func (this *BitrueCore) FapiV2PrivateGetOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiV2PrivateGetOpenOrders", args...)
+func (this *BitrueCore) FapiV2PrivateGetOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiV2PrivateGetOpenOrders", args...)
 }
 
-func (this *BitrueCore) FapiV2PrivateGetOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiV2PrivateGetOrder", args...)
+func (this *BitrueCore) FapiV2PrivateGetOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiV2PrivateGetOrder", args...)
 }
 
-func (this *BitrueCore) FapiV2PrivateGetAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiV2PrivateGetAccount", args...)
+func (this *BitrueCore) FapiV2PrivateGetAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiV2PrivateGetAccount", args...)
 }
 
-func (this *BitrueCore) FapiV2PrivateGetLeverageBracket (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiV2PrivateGetLeverageBracket", args...)
+func (this *BitrueCore) FapiV2PrivateGetLeverageBracket(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiV2PrivateGetLeverageBracket", args...)
 }
 
-func (this *BitrueCore) FapiV2PrivateGetCommissionRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiV2PrivateGetCommissionRate", args...)
+func (this *BitrueCore) FapiV2PrivateGetCommissionRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiV2PrivateGetCommissionRate", args...)
 }
 
-func (this *BitrueCore) FapiV2PrivateGetFuturesTransferHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiV2PrivateGetFuturesTransferHistory", args...)
+func (this *BitrueCore) FapiV2PrivateGetFuturesTransferHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiV2PrivateGetFuturesTransferHistory", args...)
 }
 
-func (this *BitrueCore) FapiV2PrivateGetForceOrdersHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiV2PrivateGetForceOrdersHistory", args...)
+func (this *BitrueCore) FapiV2PrivateGetForceOrdersHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiV2PrivateGetForceOrdersHistory", args...)
 }
 
-func (this *BitrueCore) FapiV2PrivatePostPositionMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiV2PrivatePostPositionMargin", args...)
+func (this *BitrueCore) FapiV2PrivatePostPositionMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiV2PrivatePostPositionMargin", args...)
 }
 
-func (this *BitrueCore) FapiV2PrivatePostLevelEdit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiV2PrivatePostLevelEdit", args...)
+func (this *BitrueCore) FapiV2PrivatePostLevelEdit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiV2PrivatePostLevelEdit", args...)
 }
 
-func (this *BitrueCore) FapiV2PrivatePostCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiV2PrivatePostCancel", args...)
+func (this *BitrueCore) FapiV2PrivatePostCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiV2PrivatePostCancel", args...)
 }
 
-func (this *BitrueCore) FapiV2PrivatePostOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiV2PrivatePostOrder", args...)
+func (this *BitrueCore) FapiV2PrivatePostOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiV2PrivatePostOrder", args...)
 }
 
-func (this *BitrueCore) FapiV2PrivatePostAllOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiV2PrivatePostAllOpenOrders", args...)
+func (this *BitrueCore) FapiV2PrivatePostAllOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiV2PrivatePostAllOpenOrders", args...)
 }
 
-func (this *BitrueCore) FapiV2PrivatePostFuturesTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiV2PrivatePostFuturesTransfer", args...)
+func (this *BitrueCore) FapiV2PrivatePostFuturesTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiV2PrivatePostFuturesTransfer", args...)
 }
 
-func (this *BitrueCore) DapiV1PublicGetPing (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiV1PublicGetPing", args...)
+func (this *BitrueCore) DapiV1PublicGetPing(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiV1PublicGetPing", args...)
 }
 
-func (this *BitrueCore) DapiV1PublicGetTime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiV1PublicGetTime", args...)
+func (this *BitrueCore) DapiV1PublicGetTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiV1PublicGetTime", args...)
 }
 
-func (this *BitrueCore) DapiV1PublicGetContracts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiV1PublicGetContracts", args...)
+func (this *BitrueCore) DapiV1PublicGetContracts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiV1PublicGetContracts", args...)
 }
 
-func (this *BitrueCore) DapiV1PublicGetDepth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiV1PublicGetDepth", args...)
+func (this *BitrueCore) DapiV1PublicGetDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiV1PublicGetDepth", args...)
 }
 
-func (this *BitrueCore) DapiV1PublicGetTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiV1PublicGetTicker", args...)
+func (this *BitrueCore) DapiV1PublicGetTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiV1PublicGetTicker", args...)
 }
 
-func (this *BitrueCore) DapiV1PublicGetKlines (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiV1PublicGetKlines", args...)
+func (this *BitrueCore) DapiV1PublicGetKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiV1PublicGetKlines", args...)
 }
 
-func (this *BitrueCore) DapiV2PrivateGetMyTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiV2PrivateGetMyTrades", args...)
+func (this *BitrueCore) DapiV2PrivateGetMyTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiV2PrivateGetMyTrades", args...)
 }
 
-func (this *BitrueCore) DapiV2PrivateGetOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiV2PrivateGetOpenOrders", args...)
+func (this *BitrueCore) DapiV2PrivateGetOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiV2PrivateGetOpenOrders", args...)
 }
 
-func (this *BitrueCore) DapiV2PrivateGetOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiV2PrivateGetOrder", args...)
+func (this *BitrueCore) DapiV2PrivateGetOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiV2PrivateGetOrder", args...)
 }
 
-func (this *BitrueCore) DapiV2PrivateGetAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiV2PrivateGetAccount", args...)
+func (this *BitrueCore) DapiV2PrivateGetAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiV2PrivateGetAccount", args...)
 }
 
-func (this *BitrueCore) DapiV2PrivateGetLeverageBracket (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiV2PrivateGetLeverageBracket", args...)
+func (this *BitrueCore) DapiV2PrivateGetLeverageBracket(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiV2PrivateGetLeverageBracket", args...)
 }
 
-func (this *BitrueCore) DapiV2PrivateGetCommissionRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiV2PrivateGetCommissionRate", args...)
+func (this *BitrueCore) DapiV2PrivateGetCommissionRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiV2PrivateGetCommissionRate", args...)
 }
 
-func (this *BitrueCore) DapiV2PrivateGetFuturesTransferHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiV2PrivateGetFuturesTransferHistory", args...)
+func (this *BitrueCore) DapiV2PrivateGetFuturesTransferHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiV2PrivateGetFuturesTransferHistory", args...)
 }
 
-func (this *BitrueCore) DapiV2PrivateGetForceOrdersHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiV2PrivateGetForceOrdersHistory", args...)
+func (this *BitrueCore) DapiV2PrivateGetForceOrdersHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiV2PrivateGetForceOrdersHistory", args...)
 }
 
-func (this *BitrueCore) DapiV2PrivatePostPositionMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiV2PrivatePostPositionMargin", args...)
+func (this *BitrueCore) DapiV2PrivatePostPositionMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiV2PrivatePostPositionMargin", args...)
 }
 
-func (this *BitrueCore) DapiV2PrivatePostLevelEdit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiV2PrivatePostLevelEdit", args...)
+func (this *BitrueCore) DapiV2PrivatePostLevelEdit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiV2PrivatePostLevelEdit", args...)
 }
 
-func (this *BitrueCore) DapiV2PrivatePostCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiV2PrivatePostCancel", args...)
+func (this *BitrueCore) DapiV2PrivatePostCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiV2PrivatePostCancel", args...)
 }
 
-func (this *BitrueCore) DapiV2PrivatePostOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiV2PrivatePostOrder", args...)
+func (this *BitrueCore) DapiV2PrivatePostOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiV2PrivatePostOrder", args...)
 }
 
-func (this *BitrueCore) DapiV2PrivatePostAllOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiV2PrivatePostAllOpenOrders", args...)
+func (this *BitrueCore) DapiV2PrivatePostAllOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiV2PrivatePostAllOpenOrders", args...)
 }
 
-func (this *BitrueCore) DapiV2PrivatePostFuturesTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiV2PrivatePostFuturesTransfer", args...)
+func (this *BitrueCore) DapiV2PrivatePostFuturesTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiV2PrivatePostFuturesTransfer", args...)
 }
 
-func (this *BitrueCore) OpenV1PrivatePostPoseidonApiV1ListenKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openV1PrivatePostPoseidonApiV1ListenKey", args...)
+func (this *BitrueCore) OpenV1PrivatePostPoseidonApiV1ListenKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("openV1PrivatePostPoseidonApiV1ListenKey", args...)
 }
 
-func (this *BitrueCore) OpenV1PrivatePutPoseidonApiV1ListenKeyListenKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openV1PrivatePutPoseidonApiV1ListenKeyListenKey", args...)
+func (this *BitrueCore) OpenV1PrivatePutPoseidonApiV1ListenKeyListenKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("openV1PrivatePutPoseidonApiV1ListenKeyListenKey", args...)
 }
 
-func (this *BitrueCore) OpenV1PrivateDeletePoseidonApiV1ListenKeyListenKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openV1PrivateDeletePoseidonApiV1ListenKeyListenKey", args...)
+func (this *BitrueCore) OpenV1PrivateDeletePoseidonApiV1ListenKeyListenKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("openV1PrivateDeletePoseidonApiV1ListenKeyListenKey", args...)
 }

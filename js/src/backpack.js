@@ -470,7 +470,7 @@ export default class backpack extends Exchange {
                     'INSUFFICIENT_SUPPLY': InsufficientFunds,
                     'INVALID_ASSET': BadRequest,
                     'INVALID_MARKET': BadSymbol,
-                    'INVALID_PRICE': BadRequest,
+                    'INVALID_PRICE': InvalidOrder,
                     'INVALID_POSITION_ID': BadRequest,
                     'INVALID_QUANTITY': BadRequest,
                     'INVALID_RANGE': BadRequest,

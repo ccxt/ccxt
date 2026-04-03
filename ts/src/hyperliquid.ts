@@ -224,6 +224,7 @@ export default class hyperliquid extends Exchange {
             'options': {
                 'defaultType': 'swap',
                 'sandboxMode': false,
+                'builderFee': true,
                 'defaultSlippage': 0.05,
                 'marketHelperProps': [ 'hip3TokensByName', 'cachedCurrenciesById' ],
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
@@ -358,6 +359,7 @@ export default class hyperliquid extends Exchange {
                     },
                 },
             },
+            'rollingWindowSize': 0.0,
         });
     }
 
@@ -581,7 +583,8 @@ export default class hyperliquid extends Exchange {
         for (let i = 1; i < fetchDexes.length; i++) {
             // builder-deployed perp dexs start at 110000
             const dex = fetchDexes[i];
-            const offset = 110000 + (i - 1) * 10000;
+            const secondPart = (i - 1) * 10000;
+            const offset = this.sum (110000, secondPart);
             perpDexesOffset[dex['name']] = offset;
         }
         let fetchDexesList = [];
@@ -881,6 +884,10 @@ export default class hyperliquid extends Exchange {
             const quoteTokenInfo = this.safeDict (tokens, quoteTokenPos, {});
             const baseName = this.safeString (baseTokenInfo, 'name');
             const quoteId = this.safeString (quoteTokenInfo, 'name');
+            if (baseName === undefined || quoteId === undefined) {
+                continue;
+                // why sandbox sending this? check it later
+            }
             // do spot currency mapping
             const spotCurrencyMapping = this.safeDict (this.options, 'spotCurrencyMapping', {});
             const mappedBaseName = this.safeString (spotCurrencyMapping, baseName, baseName);
@@ -1103,6 +1110,8 @@ export default class hyperliquid extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
+        // if user provides a different address in params and does not provide the enableUnifiedMargin we assume we need to request the info again
+        const shouldRefresh = (this.safeString2 (params, 'user', 'address') !== undefined) && this.safeBool (params, 'enableUnifiedMargin') === undefined;
         let userAddress = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchBalance', params);
         let type = undefined;
@@ -1110,7 +1119,7 @@ export default class hyperliquid extends Exchange {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
         let isUnifiedEnabled = undefined;
-        [ isUnifiedEnabled, params ] = await this.isUnifiedEnabled ('fetchBalance', params);
+        [ isUnifiedEnabled, params ] = await this.isUnifiedEnabled ('fetchBalance', userAddress, shouldRefresh, params);
         const dex = this.safeString (params, 'dex');
         const isSpot = ((type === 'spot') || isUnifiedEnabled) && (dex === undefined);
         const request: Dict = {
@@ -1835,7 +1844,7 @@ export default class hyperliquid extends Exchange {
 
     async initializeClient () {
         try {
-            await Promise.all ([ this.handleBuilderFeeApproval (), this.setRef (), this.isUnifiedEnabled ('fetchBalance', {}) ]); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
+            await Promise.all ([ this.handleBuilderFeeApproval (), this.setRef (), this.isUnifiedEnabled ('fetchBalance', undefined, false, {}) ]); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
         } catch (e) {
             return false;
         }
@@ -1868,15 +1877,21 @@ export default class hyperliquid extends Exchange {
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-abstraction-state
      * @description returns enableUnifiedMargin so the user can check if unified account is enabled
      * @param {string} method the method for which we want to check if unified margin is enabled, this is used to check options for specific methods (e.g. fetchBalance can have a specific option to enable unified margin)
+     * @param address
+     * @param shouldRefresh
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {bool} enableUnifiedMargin
      */
-    async isUnifiedEnabled (method: string, params = {}) {
+    async isUnifiedEnabled (method: string, address: Str = undefined, shouldRefresh = false, params = {}) {
         let userAddress = undefined;
-        [ userAddress, params ] = this.handlePublicAddress ('isUnifiedEnabled', params);
+        if (address !== undefined) {
+            userAddress = address;
+        } else {
+            [ userAddress, params ] = this.handlePublicAddress ('isUnifiedEnabled', params);
+        }
         let enableUnifiedMargin = undefined;
         [ enableUnifiedMargin, params ] = this.handleOptionAndParams (params, method, 'enableUnifiedMargin');
-        if (enableUnifiedMargin === undefined) {
+        if (enableUnifiedMargin === undefined || shouldRefresh) {
             const request: Dict = {
                 'type': 'userAbstraction',
                 'user': userAddress,
@@ -1891,6 +1906,7 @@ export default class hyperliquid extends Exchange {
             // "unifiedAccount" | "portfolioMargin" | "disabled" | "default" | "dexAbstraction"
             //
             enableUnifiedMargin = response === '"unifiedAccount"';
+            // don't cache this result if this is a different addresss
             this.options['enableUnifiedMargin'] = enableUnifiedMargin; // cache this for future calls
         }
         return [ enableUnifiedMargin, params ];
@@ -4675,16 +4691,18 @@ export default class hyperliquid extends Exchange {
         const id = this.safeString (income, 'hash');
         const timestamp = this.safeInteger (income, 'time');
         const delta = this.safeDict (income, 'delta');
-        const baseId = this.safeString (delta, 'coin');
-        const marketSymbol = baseId + '/USDC:USDC';
-        market = this.safeMarket (marketSymbol);
-        const symbol = market['symbol'];
+        const coin = this.safeString (delta, 'coin');
+        let marketId = undefined;
+        if (coin !== undefined) {
+            marketId = this.coinToMarketId (coin);
+        }
+        market = this.safeMarket (marketId, market);
         const amount = this.safeString (delta, 'usdc');
-        const code = this.safeCurrencyCode ('USDC');
+        const code = this.safeString (market, 'settle', 'USDC');
         const rate = this.safeNumber (delta, 'fundingRate');
         return {
             'info': income,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'code': code,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

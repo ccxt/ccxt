@@ -92,6 +92,7 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     "fetchAccounts": true,
     "fetchBalance": true,
     "fetchClosedOrders": true,
+    "fetchDepositAddressesByNetwork": true,
     "fetchDeposits": true,
     "fetchDepositsWithdrawals": true,
     "fetchDepositWithdrawFees": true,
@@ -166,6 +167,7 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     "safeCurrencyCode": false,
     "parseConversion": false,
     "sign": false,
+    "signIn": true,
     // ws methods
     'cancelAllOrdersWs': true,
     'cancelOrdersWs': true,
@@ -201,6 +203,7 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     'fetchOrdersByStatusWs': true,
     'fetchOrdersWs': true,
     'fetchOrderWs': true,
+    'fetchOpenInterests': true,
     'fetchPositionsForSymbolWs': true,
     'fetchPositionsWs': true,
     'fetchPositionWs': true,
@@ -462,7 +465,7 @@ class NewTranspiler {
     oldTranspiler = new OldTranspiler();
     private _extendedExchanges: { [key: string]: string } | null = null;
     futuresExchanges = new Set<string>([  // futures exchanges that extend a spot exchange class
-        'kucoinfutures'
+        // 'kucoinfutures'
     ]);
 
     constructor(isWs: boolean = false) {

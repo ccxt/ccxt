@@ -49,6 +49,9 @@ abstract class blofin extends \ccxt\async\Exchange {
     public function private_get_asset_bills($params = array()) {
         return $this->request('asset/bills', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_spot_trade_fills_history($params = array()) {
+        return $this->request('spot/trade/fills-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_account_balance($params = array()) {
         return $this->request('account/balance', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -237,6 +240,9 @@ abstract class blofin extends \ccxt\async\Exchange {
     }
     public function privateGetAssetBills($params = array()) {
         return $this->request('asset/bills', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetSpotTradeFillsHistory($params = array()) {
+        return $this->request('spot/trade/fills-history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetAccountBalance($params = array()) {
         return $this->request('account/balance', 'private', 'GET', $params, null, null, array("cost" => 1));

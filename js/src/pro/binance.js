@@ -231,6 +231,25 @@ export default class binance extends binanceRest {
         }
         return stream;
     }
+    getWsUrl(type, category) {
+        const baseUrl = this.urls['api']['ws'][type];
+        if (type === 'future') {
+            return baseUrl.replace('/ws', '/' + category + '/ws');
+        }
+        return baseUrl;
+    }
+    getFutureWsCategory(channel) {
+        if (channel === 'depth' || channel === 'rpiDepth' || channel === 'bookTicker' || channel === 'trade' || channel === 'aggTrade') {
+            return 'public';
+        }
+        return 'market';
+    }
+    getPrivateWsUrl(type, listenKey) {
+        if (type === 'future') {
+            return this.getWsUrl(type, 'private') + '?listenKey=' + listenKey;
+        }
+        return this.urls['api']['ws'][type] + '/' + listenKey;
+    }
     /**
      * @method
      * @name binance#watchLiquidations
@@ -291,7 +310,7 @@ export default class binance extends binanceRest {
             type = 'delivery';
         }
         const numSubscriptions = subscriptionHashes.length;
-        const url = this.urls['api']['ws'][type] + '/' + this.stream(type, streamHash, numSubscriptions);
+        const url = this.getWsUrl(type, this.getFutureWsCategory('forceOrder')) + '/' + this.stream(type, streamHash, numSubscriptions);
         const requestId = this.requestId(url);
         const request = {
             'method': 'SUBSCRIBE',
@@ -501,7 +520,8 @@ export default class binance extends binanceRest {
             type = 'delivery';
         }
         await this.authenticate(params);
-        const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
+        const listenKey = this.options[type]['listenKey'];
+        const url = this.getPrivateWsUrl(type, listenKey);
         const message = undefined;
         const newLiquidations = await this.watchMultiple(url, messageHashes, message, [type]);
         if (this.newUpdates) {
@@ -681,7 +701,7 @@ export default class binance extends binanceRest {
             subParams.push(symbolHash);
         }
         const messageHashesLength = messageHashes.length;
-        const url = this.urls['api']['ws'][type] + '/' + this.stream(type, streamHash, messageHashesLength);
+        const url = this.getWsUrl(type, this.getFutureWsCategory(name)) + '/' + this.stream(type, streamHash, messageHashesLength);
         const requestId = this.requestId(url);
         const request = {
             'method': 'SUBSCRIBE',
@@ -741,7 +761,7 @@ export default class binance extends binanceRest {
             subParams.push(symbolHash);
         }
         const messageHashesLength = subMessageHashes.length;
-        const url = this.urls['api']['ws'][type] + '/' + this.stream(type, streamHash, messageHashesLength);
+        const url = this.getWsUrl(type, this.getFutureWsCategory('depth')) + '/' + this.stream(type, streamHash, messageHashesLength);
         const requestId = this.requestId(url);
         const request = {
             'method': 'UNSUBSCRIBE',
@@ -1122,7 +1142,7 @@ export default class binance extends binanceRest {
         }
         const query = this.omit(params, 'type');
         const subParamsLength = subParams.length;
-        const url = this.urls['api']['ws'][type] + '/' + this.stream(type, streamHash, subParamsLength);
+        const url = this.getWsUrl(type, this.getFutureWsCategory(name)) + '/' + this.stream(type, streamHash, subParamsLength);
         const requestId = this.requestId(url);
         const request = {
             'method': 'SUBSCRIBE',
@@ -1185,7 +1205,7 @@ export default class binance extends binanceRest {
         }
         const query = this.omit(params, 'type');
         const subParamsLength = subParams.length;
-        const url = this.urls['api']['ws'][type] + '/' + this.stream(type, streamHash, subParamsLength);
+        const url = this.getWsUrl(type, this.getFutureWsCategory(name)) + '/' + this.stream(type, streamHash, subParamsLength);
         const requestId = this.requestId(url);
         const request = {
             'method': 'UNSUBSCRIBE',
@@ -1490,7 +1510,7 @@ export default class binance extends binanceRest {
             rawHashes.push(marketId + '@' + klineType + '_' + interval + utcSuffix);
             messageHashes.push('ohlcv::' + market['symbol'] + '::' + timeframeString);
         }
-        const url = this.urls['api']['ws'][type] + '/' + this.stream(type, 'multipleOHLCV');
+        const url = this.getWsUrl(type, this.getFutureWsCategory(klineType)) + '/' + this.stream(type, 'multipleOHLCV');
         const requestId = this.requestId(url);
         const request = {
             'method': 'SUBSCRIBE',
@@ -1557,7 +1577,7 @@ export default class binance extends binanceRest {
             subMessageHashes.push('ohlcv::' + market['symbol'] + '::' + timeframeString);
             messageHashes.push('unsubscribe::ohlcv::' + market['symbol'] + '::' + timeframeString);
         }
-        const url = this.urls['api']['ws'][type] + '/' + this.stream(type, 'multipleOHLCV');
+        const url = this.getWsUrl(type, this.getFutureWsCategory(klineType)) + '/' + this.stream(type, 'multipleOHLCV');
         const requestId = this.requestId(url);
         const request = {
             'method': 'UNSUBSCRIBE',
@@ -2044,7 +2064,7 @@ export default class binance extends binanceRest {
         if (symbolsDefined) {
             streamHash = channelName + '::' + symbols.join(',');
         }
-        const url = this.urls['api']['ws'][rawMarketType] + '/' + this.stream(rawMarketType, streamHash);
+        const url = this.getWsUrl(rawMarketType, this.getFutureWsCategory(channelName)) + '/' + this.stream(rawMarketType, streamHash);
         const requestId = this.requestId(url);
         const request = {
             'method': isUnsubscribe ? 'UNSUBSCRIBE' : 'SUBSCRIBE',
@@ -2620,7 +2640,8 @@ export default class binance extends binanceRest {
             if (isPortfolioMargin) {
                 urlType = 'papi';
             }
-            const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
+            const cachedListenKey = this.options[type]['listenKey'];
+            const url = this.getPrivateWsUrl(urlType, cachedListenKey);
             const client = this.client(url);
             const messageHashes = Object.keys(client.futures);
             for (let i = 0; i < messageHashes.length; i++) {
@@ -2934,7 +2955,7 @@ export default class binance extends binanceRest {
             if (isPortfolioMargin) {
                 urlType = 'papi';
             }
-            url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
+            url = this.getPrivateWsUrl(urlType, this.options[type]['listenKey']);
         }
         const client = this.client(url);
         this.setBalanceCache(client, type, isPortfolioMargin);
@@ -3719,7 +3740,7 @@ export default class binance extends binanceRest {
             if (isPortfolioMargin) {
                 urlType = 'papi';
             }
-            url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
+            url = this.getPrivateWsUrl(urlType, this.options[type]['listenKey']);
         }
         const client = this.client(url);
         this.setBalanceCache(client, type, isPortfolioMargin);
@@ -4072,7 +4093,7 @@ export default class binance extends binanceRest {
         if (isPortfolioMargin) {
             urlType = 'papi';
         }
-        const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
+        const url = this.getPrivateWsUrl(urlType, this.options[type]['listenKey']);
         const client = this.client(url);
         this.setBalanceCache(client, type, isPortfolioMargin);
         this.setPositionsCache(client, type, symbols, isPortfolioMargin);
@@ -4452,7 +4473,7 @@ export default class binance extends binanceRest {
             if (isPortfolioMargin) {
                 urlType = 'papi';
             }
-            url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
+            url = this.getPrivateWsUrl(urlType, this.options[type]['listenKey']);
         }
         const client = this.client(url);
         this.setBalanceCache(client, type, isPortfolioMargin);

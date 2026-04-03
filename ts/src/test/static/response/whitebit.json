@@ -2,6 +2,41 @@
     "exchange": "whitebit",
     "skipKeys": [],
     "methods": {
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetch funding rate history",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "ETH/USDT:USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "fundingTime": "1773648000",
+                        "fundingRate": "-0.00004593",
+                        "market": "ETH_PERP",
+                        "settlementPrice": "2248.47",
+                        "rateCalculatedTime": "1773619200"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "fundingTime": "1773648000",
+                            "fundingRate": "-0.00004593",
+                            "market": "ETH_PERP",
+                            "settlementPrice": "2248.47",
+                            "rateCalculatedTime": "1773619200"
+                        },
+                        "symbol": "ETH/USDT:USDT",
+                        "fundingRate": -0.00004593,
+                        "timestamp": 1773648000000,
+                        "datetime": "2026-03-16T08:00:00.000Z"
+                    }
+                ]
+            }
+        ],
         "fetchTickers": [
             {
                 "description": "swap tickers",

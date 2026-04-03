@@ -308,8 +308,8 @@ class coincatch extends Exchange {
                     'ERC20' => 'ERC20',
                     'TRC20' => 'TRC20',
                     'BEP20' => 'BEP20',
-                    'ARB' => 'ArbitrumOne',
-                    'OPTIMISM' => 'Optimism',
+                    'ARBONE' => 'ArbitrumOne',
+                    'OP' => 'Optimism',
                     'LTC' => 'LTC',
                     'BCH' => 'BCH',
                     'ETC' => 'ETC',
@@ -342,7 +342,7 @@ class coincatch extends Exchange {
                     'CFX' => 'CFX',
                     'STRAT' => 'StratisEVM',
                     'TIA' => 'Celestia',
-                    'ChilizChain' => 'ChilizChain',
+                    'CHZ' => 'ChilizChain',
                     'APT' => 'Aptos',
                     'ONT' => 'Ontology',
                     'ICP' => 'ICP',
@@ -357,18 +357,6 @@ class coincatch extends Exchange {
                 'networksById' => array(
                     'TRC20' => 'TRC20',
                     'TRX(TRC20)' => 'TRC20',
-                    'ArbitrumOne' => 'ARB', // todo check
-                    'THORChain' => 'RUNE', // todo check
-                    'Solar' => 'SXP', // todo check
-                    'C-Chain' => 'AVAX', // todo check
-                    'CAP20' => 'CAP20', // todo check
-                    'CFXeSpace' => 'CFX', // todo check
-                    'CFX' => 'CFX',
-                    'StratisEVM' => 'STRAT', // todo check
-                    'ChilizChain' => 'ChilizChain', // todo check
-                    'StellarLumens' => 'XLM', // todo check
-                    'CronosChain' => 'CRO', // todo check
-                    'Optimism' => 'Optimism',
                 ),
             ),
             'features' => array(

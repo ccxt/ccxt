@@ -316,6 +316,7 @@ class bittrade extends \ccxt\async\bittrade {
         //     {
         //         "id" => 1583473663565,
         //         "rep" => "market.btcusdt.mbp.150",
+        //         "ts" => 1774979531056,
         //         "status" => "ok",
         //         "data" => {
         //             "seqNum" => 104999417756,
@@ -334,10 +335,13 @@ class bittrade extends \ccxt\async\bittrade {
         //
         $symbol = $this->safe_string($subscription, 'symbol');
         $messageHash = $this->safe_string($subscription, 'messageHash');
+        $timestamp = $this->safe_integer($message, 'ts');
         $orderbook = $this->orderbooks[$symbol];
         $data = $this->safe_value($message, 'data');
         $snapshot = $this->parse_order_book($data, $symbol);
         $snapshot['nonce'] = $this->safe_integer($data, 'seqNum');
+        $snapshot['timestamp'] = $timestamp;
+        $snapshot['datetime'] = $this->iso8601($timestamp);
         $orderbook->reset ($snapshot);
         // unroll the accumulated deltas
         $messages = $orderbook->cache;

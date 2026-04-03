@@ -46,11 +46,11 @@ use Lighter\Signer;
 
 use Exception;
 
-$version = '4.5.43';
+$version = '4.5.46';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.43';
+    const VERSION = '4.5.46';
 
     public $browser;
     public $marketsLoading = null;
@@ -1631,6 +1631,10 @@ class Exchange extends \ccxt\Exchange {
         return $res === 0;
     }
 
+    public function is_empty_string($value) {
+        return !$this->value_is_defined($value) || $value === '';
+    }
+
     public function safe_number_omit_zero(array $obj, int|string $key, ?float $defaultValue = null) {
         $value = $this->safe_string($obj, $key);
         $final = $this->parse_number($this->omit_zero($value));
@@ -2827,6 +2831,10 @@ class Exchange extends \ccxt\Exchange {
         return $reversed;
     }
 
+    public function string_to_base16($str) {
+        return '0x' . bin2hex(base64_decode(base64_encode($str)));
+    }
+
     public function reduce_fees_by_currency($fees) {
         //
         // this function takes a list of $fee structures having the following format
@@ -3039,6 +3047,14 @@ class Exchange extends \ccxt\Exchange {
             $message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file';
         }
         throw new NotSupported($this->id . ' fetchOHLCV() is not supported yet' . $message);
+    }
+
+    public function fetch_spot_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchSpotOHLCV() is not supported yet');
+    }
+
+    public function fetch_contract_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchContractOHLCV() is not supported yet');
     }
 
     public function fetch_ohlcv_ws(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -3812,6 +3828,30 @@ class Exchange extends \ccxt\Exchange {
         return $results;
     }
 
+    public function filter_out_by_array($objects, int|string $key, $values = null, $indexed = true) {
+        $objects = $this->to_array($objects);
+        // return all of them if no $values were passed
+        if ($values === null || !$values) {
+            // return $indexed ? $this->index_by($objects, $key) : $objects;
+            if ($indexed) {
+                return $this->index_by($objects, $key);
+            } else {
+                return $objects;
+            }
+        }
+        $results = array();
+        for ($i = 0; $i < count($objects); $i++) {
+            if (!$this->in_array($objects[$i][$key], $values)) {
+                $results[] = $objects[$i];
+            }
+        }
+        // return $indexed ? $this->index_by($results, $key) : $results;
+        if ($indexed) {
+            return $this->index_by($results, $key);
+        }
+        return $results;
+    }
+
     public function fetch2($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null, $config = array ()) {
         return Async\async(function () use ($path, $api, $method, $params, $headers, $body, $config) {
             if ($this->enableRateLimit) {
@@ -4488,12 +4528,20 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
     }
 
+    public function fetch_spot_tickers(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchSpotTickers() is not supported yet');
+    }
+
+    public function fetch_contract_tickers(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchContractTickers() is not supported yet');
+    }
+
     public function fetch_mark_prices(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchMarkPrices() is not supported yet');
     }
 
     public function fetch_tickers_ws(?array $symbols = null, $params = array ()) {
-        throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
+        throw new NotSupported($this->id . ' fetchTickersWs() is not supported yet');
     }
 
     public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()) {
@@ -5040,6 +5088,14 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' createOrders() is not supported yet');
     }
 
+    public function create_spot_orders(array $orders, $params = array ()) {
+        throw new NotSupported($this->id . ' createSpotOrders() is not supported yet');
+    }
+
+    public function create_contract_orders(array $orders, $params = array ()) {
+        throw new NotSupported($this->id . ' createContractOrders() is not supported yet');
+    }
+
     public function edit_orders(array $orders, $params = array ()) {
         throw new NotSupported($this->id . ' editOrders() is not supported yet');
     }
@@ -5050,6 +5106,14 @@ class Exchange extends \ccxt\Exchange {
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' cancelOrder() is not supported yet');
+    }
+
+    public function cancel_spot_order(string $id, ?string $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelSpotOrder() is not supported yet');
+    }
+
+    public function cancel_contract_order(string $id, ?string $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelContractOrder() is not supported yet');
     }
 
     public function cancel_order_with_client_order_id(string $clientOrderId, ?string $symbol = null, $params = array ()) {
@@ -5094,6 +5158,14 @@ class Exchange extends \ccxt\Exchange {
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' cancelAllOrders() is not supported yet');
+    }
+
+    public function cancel_all_spot_orders(?string $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelAllSpotOrders() is not supported yet');
+    }
+
+    public function cancel_all_contract_orders(?string $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelAllContractOrders() is not supported yet');
     }
 
     public function cancel_all_orders_after(?int $timeout, $params = array ()) {
@@ -5296,6 +5368,10 @@ class Exchange extends \ccxt\Exchange {
                 throw new NotSupported($this->id . ' fetchDepositAddress() is not supported yet');
             }
         }) ();
+    }
+
+    public function fetch_contract_deposit_address(string $code, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchContractDepositAddress() is not supported yet');
     }
 
     public function account(): array {

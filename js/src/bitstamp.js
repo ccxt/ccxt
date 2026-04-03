@@ -525,7 +525,6 @@ export default class bitstamp extends Exchange {
                     'Your account is frozen': PermissionDenied,
                     'Please update your profile with your FATCA information, before using API.': PermissionDenied,
                     'Order not found.': OrderNotFound,
-                    'Price is more than 20% below market price.': InvalidOrder,
                     "Bitstamp.net is under scheduled maintenance. We'll be back soon.": OnMaintenance,
                     'Order could not be placed.': ExchangeNotAvailable,
                     'Invalid offset.': BadRequest,
@@ -533,6 +532,7 @@ export default class bitstamp extends Exchange {
                 },
                 'broad': {
                     'Minimum order size is': InvalidOrder,
+                    'Price is more than': InvalidOrder,
                     'Check your account balance for details.': InsufficientFunds,
                     'Ensure this value has at least': InvalidAddress,
                     'Ensure that there are no more than': InvalidOrder, // {"status": "error", "reason": {"amount": ["Ensure that there are no more than 0 decimal places."], "__all__": [""]}}

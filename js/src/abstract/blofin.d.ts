@@ -15,6 +15,7 @@ interface Exchange {
     privateGetAssetDepositHistory(params?: {}): Promise<implicitReturnType>;
     privateGetAssetWithdrawalHistory(params?: {}): Promise<implicitReturnType>;
     privateGetAssetBills(params?: {}): Promise<implicitReturnType>;
+    privateGetSpotTradeFillsHistory(params?: {}): Promise<implicitReturnType>;
     privateGetAccountBalance(params?: {}): Promise<implicitReturnType>;
     privateGetAccountPositions(params?: {}): Promise<implicitReturnType>;
     privateGetAccountLeverageInfo(params?: {}): Promise<implicitReturnType>;

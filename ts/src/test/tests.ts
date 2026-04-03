@@ -1371,6 +1371,10 @@ class testMainClass {
                 "wasmExecPath": wasmExecPath
             }
         };
+        if (exchangeName === 'grvt') {
+            options['apiKey'] = "";
+            options['secret'] = "";
+        }
         const exchange = initExchange (exchangeName, options);
         exchange.currencies = currencies;
         // not working in python if assigned  in the config dict
@@ -1384,22 +1388,22 @@ class testMainClass {
 
         // read apiKey/secret from the test file
         const apiKey = exchange.safeString (exchangeData, 'apiKey');
-        if (apiKey) {
+        if (!exchange.isEmptyString (apiKey)) {
             // c# to string requirement
             exchange.apiKey = apiKey.toString ();
         }
         const secret = exchange.safeString (exchangeData, 'secret');
-        if (secret) {
+        if (!exchange.isEmptyString (secret)) {
             // c# to string requirement
             exchange.secret = secret.toString ();
         }
         const privateKey = exchange.safeString (exchangeData, 'privateKey');
-        if (privateKey) {
+        if (!exchange.isEmptyString (privateKey)) {
             // c# to string requirement
             exchange.privateKey = privateKey.toString ();
         }
         const walletAddress = exchange.safeString (exchangeData, 'walletAddress');
-        if (walletAddress) {
+        if (!exchange.isEmptyString (walletAddress)) {
             // c# to string requirement
             exchange.walletAddress = walletAddress.toString ();
         }
@@ -1458,22 +1462,22 @@ class testMainClass {
         const exchange = this.initOfflineExchange (exchangeName);
         // read apiKey/secret from the test file
         const apiKey = exchange.safeString (exchangeData, 'apiKey');
-        if (apiKey) {
+        if (!exchange.isEmptyString (apiKey)) {
             // c# to string requirement
             exchange.apiKey = apiKey.toString ();
         }
         const secret = exchange.safeString (exchangeData, 'secret');
-        if (secret) {
+        if (!exchange.isEmptyString (secret)) {
             // c# to string requirement
             exchange.secret = secret.toString ();
         }
         const privateKey = exchange.safeString (exchangeData, 'privateKey');
-        if (privateKey) {
+        if (!exchange.isEmptyString (privateKey)) {
             // c# to string requirement
             exchange.privateKey = privateKey.toString ();
         }
         const walletAddress = exchange.safeString (exchangeData, 'walletAddress');
-        if (walletAddress) {
+        if (!exchange.isEmptyString (walletAddress)) {
             // c# to string requirement
             exchange.walletAddress = walletAddress.toString ();
         }
@@ -1660,7 +1664,6 @@ class testMainClass {
             this.testParadex (),
             this.testHashkey (),
             this.testCoincatch (),
-            this.testDefx (),
             this.testCryptomus (),
             this.testDerive (),
             this.testModeTrade (),
@@ -1822,19 +1825,43 @@ class testMainClass {
 
     async testKucoin () {
         const exchange = this.initOfflineExchange ('kucoin');
+        exchange.options['uta'] = false; // prevents fetching account mode inside createOrder
         let reqHeaders = undefined;
         const spotId =  exchange.options['partner']['spot']['id'];
         const spotKey =  exchange.options['partner']['spot']['key'];
         assert (spotId === 'ccxt', 'kucoin - id: ' + spotId + ' not in options');
         assert (spotKey === '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'kucoin - key: ' + spotKey + ' not in options.');
+        const futureId = exchange.options['partner']['future']['id'];
+        const futureKey = exchange.options['partner']['future']['key'];
+        assert (futureId === 'ccxtfutures', 'kucoin - id: ' + futureId + ' not in options.');
+        assert (futureKey === '1b327198-f30c-4f14-a0ac-918871282f15', 'kucoin - key: ' + futureKey + ' not in options.');
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
             // we expect an error here, we're only interested in the headers
             reqHeaders = exchange.last_request_headers;
         }
-        const id = 'ccxt';
-        assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers.');
+        let id = 'ccxt';
+        assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for spot orders.');
+        try {
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000, { 'uta': true });
+        } catch (e) {
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for spot uta orders.');
+        id = 'ccxtfutures';
+        try {
+            await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for swap orders.');
+        try {
+            await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, { 'uta': true });
+        } catch (e) {
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for swap uta orders.');
         if (!isSync ()) {
             await close (exchange);
         }
@@ -1855,6 +1882,12 @@ class testMainClass {
             reqHeaders = exchange.last_request_headers;
         }
         assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoinfutures - id: ' + id + ' not in headers.');
+        try {
+            await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, { 'uta': true });
+        } catch (e) {
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoinfutures - id: ' + id + ' not in headers for uta orders.');
         if (!isSync ()) {
             await close (exchange);
         }
@@ -2218,24 +2251,6 @@ class testMainClass {
             reqHeaders = exchange.last_request_headers;
         }
         assert (reqHeaders['X-CHANNEL-API-CODE'] === id, 'coincatch - id: ' + id + ' not in headers.');
-        if (!isSync ()) {
-            await close (exchange);
-        }
-        return true;
-    }
-
-
-    async testDefx () {
-        const exchange = this.initOfflineExchange ('defx');
-        let reqHeaders = undefined;
-        try {
-            await exchange.createOrder ('DOGE/USDC:USDC', 'limit', 'buy', 100, 1);
-        } catch (e) {
-            // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
-        }
-        const id = 'ccxt';
-        assert (reqHeaders['X-DEFX-SOURCE'] === id, 'defx - id: ' + id + ' not in headers.');
         if (!isSync ()) {
             await close (exchange);
         }

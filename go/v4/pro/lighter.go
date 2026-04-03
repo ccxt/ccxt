@@ -1136,7 +1136,7 @@ func  (this *LighterCore) HandleErrorMessage(client interface{}, message interfa
                 }()
     		    // try block:
                         if ccxt.IsTrue(!ccxt.IsEqual(error, nil)) {
-                var code interface{} = this.SafeString(message, "code")
+                var code interface{} = this.SafeString(error, "code")
                 if ccxt.IsTrue(!ccxt.IsEqual(code, nil)) {
                     var feedback interface{} = ccxt.Add(ccxt.Add(this.Id, " "), this.Json(message))
                     this.ThrowExactlyMatchedException(ccxt.GetValue(this.Exceptions, "exact"), code, feedback)

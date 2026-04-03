@@ -835,32 +835,26 @@ public partial class bitfinex : Exchange
             object pool = this.safeList(getValue(indexed, "pool"), id, new List<object>() {});
             object rawType = this.safeString(pool, 1);
             object isCryptoCoin = isTrue((!isEqual(rawType, null))) || isTrue((inOp(getValue(indexed, "explorer"), id))); // "hacky" solution
-            object type = null;
-            if (isTrue(isCryptoCoin))
-            {
-                type = "crypto";
-            }
+            object type = ((bool) isTrue(isCryptoCoin)) ? "crypto" : null;
             object feeValues = this.safeList(getValue(indexed, "fees"), id, new List<object>() {});
             object fees = this.safeList(feeValues, 1, new List<object>() {});
             object fee = this.safeNumber(fees, 1);
             object undl = this.safeList(getValue(indexed, "undl"), id, new List<object>() {});
             object precision = "8"; // default precision, todo: fix "magic constants"
-            object dwStatuses = this.safeList(getValue(indexed, "statuses"), id, new List<object>() {});
-            object depositEnabled = isEqual(this.safeInteger(dwStatuses, 1), 1);
-            object withdrawEnabled = isEqual(this.safeInteger(dwStatuses, 2), 1);
             object networks = new Dictionary<string, object>() {};
             object netwokIds = this.safeList(indexedNetworks, id, new List<object>() {});
             for (object j = 0; isLessThan(j, getArrayLength(netwokIds)); postFixIncrement(ref j))
             {
                 object networkId = getValue(netwokIds, j);
                 object network = this.networkIdToCode(networkId);
+                object dwStatuses = this.safeList(getValue(indexed, "statuses"), networkId, new List<object>() {});
                 ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
                     { "info", networkId },
                     { "id", ((string)networkId).ToLower() },
                     { "network", networkId },
                     { "active", null },
-                    { "deposit", null },
-                    { "withdraw", null },
+                    { "deposit", isEqual(this.safeInteger(dwStatuses, 1), 1) },
+                    { "withdraw", isEqual(this.safeInteger(dwStatuses, 2), 1) },
                     { "fee", null },
                     { "precision", null },
                     { "limits", new Dictionary<string, object>() {
@@ -878,8 +872,8 @@ public partial class bitfinex : Exchange
                 { "type", type },
                 { "name", name },
                 { "active", true },
-                { "deposit", depositEnabled },
-                { "withdraw", withdrawEnabled },
+                { "deposit", null },
+                { "withdraw", null },
                 { "fee", fee },
                 { "precision", parseInt(precision) },
                 { "limits", new Dictionary<string, object>() {

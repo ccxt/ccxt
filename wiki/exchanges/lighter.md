@@ -5,6 +5,7 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
+* [preLoadLighterLibrary](#preloadlighterlibrary)
 * [createOrder](#createorder)
 * [editOrder](#editorder)
 * [fetchStatus](#fetchstatus)
@@ -50,6 +51,25 @@
 * [watchMyTrades](#watchmytrades)
 * [unWatchMyTrades](#unwatchmytrades)
 * [watchLiquidations](#watchliquidations)
+
+<a name="preLoadLighterLibrary" id="preloadlighterlibrary"></a>
+
+### preLoadLighterLibrary{docsify-ignore}
+if the required credentials are available in options, it will pre-load the lighter Signer to avoid delaying sensitive calls like createOrder the first time they're executed
+
+**Kind**: instance method of [<code>lighter</code>](#lighter)  
+**Returns**: <code>boolean</code> - true if the signer was loaded, false otherwise
+
+
+| Param |
+| --- |
+| params | 
+
+
+```javascript
+lighter.preLoadLighterLibrary (params, [undefined])
+```
+
 
 <a name="createOrder" id="createorder"></a>
 
