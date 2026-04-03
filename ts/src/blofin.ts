@@ -255,7 +255,6 @@ export default class blofin extends Exchange {
                         'trade/cancel-tpsl': 1,
                         'trade/cancel-algo': 1,
                         'trade/close-position': 1,
-
                         'copytrading/account/set-position-mode': 1,
                         'copytrading/account/set-leverage': 1,
                         'copytrading/trade/place-order': 1,
