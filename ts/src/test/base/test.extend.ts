@@ -94,7 +94,7 @@ function testExtend () {
     // --- mutation check: first result must NOT be mutated by second extend ---
     assert (extended["a"] === 2,            "extended['a'] was mutated by second extend");
     assert (extended["b"][0] === 3,         "extended['b'][0] was mutated by second extend");
-    assert (extended["other3"] === undefined, "extended['other3'] should not exist after second extend");
+    assert (!("other3" in extended),           "extended['other3'] should not exist after second extend");
 
     // --- test 3: four-step chained extend on same base object ---
     const base = { "x": 0, "keep": "yes" };
@@ -132,12 +132,6 @@ function testExtend () {
     // original must not be touched
     assert (withValues["keep1"] === "A",      "withValues['keep1'] was mutated");
     assert (withValues["keep2"] === "B",      "withValues['keep2'] was mutated");
-
-    // deepExtend
-    // const deepExtended = exchange.deepExtend (obj1, obj2);
-    // tbfeCheckExtended (extended, true);
-    // todo !
-    // tbfeCheckExtended (deepExtended["sub"], false);
 }
 
 function tbfeCheckExtended (extended: any, hasSub: boolean) {
