@@ -237,8 +237,9 @@ export default class blofin extends Exchange {
                         'copytrading/trade/position-history-by-order': 1,
                         'copytrading/trade/orders-history': 1,
                         'copytrading/trade/pending-tpsl-by-order': 1,
-                        'spot/trade/fills-history': 1,
+                        // user
                         'user/query-apikey': 1,
+                        'spot/trade/fills-history': 1,
                     },
                     'post': {
                         // account
