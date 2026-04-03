@@ -223,9 +223,9 @@ export default class blofin extends Exchange {
                         'affiliate/sub-invitees': 1,
                         'affiliate/sub-affiliates': 1,
                         'affiliate/invitees/daily/info': 1,
-                        'spot/trade/fills-history': 1,
-                        'user/query-apikey': 1,
+                        // copy trading
                         'copytrading/instruments': 1,
+                        'copytrading/config': 1,
                         'copytrading/account/balance': 1,
                         'copytrading/account/positions-by-order': 1,
                         'copytrading/account/positions-details-by-order': 1,
@@ -237,6 +237,8 @@ export default class blofin extends Exchange {
                         'copytrading/trade/position-history-by-order': 1,
                         'copytrading/trade/orders-history': 1,
                         'copytrading/trade/pending-tpsl-by-order': 1,
+                        'spot/trade/fills-history': 1,
+                        'user/query-apikey': 1,
                     },
                     'post': {
                         // account
@@ -255,6 +257,7 @@ export default class blofin extends Exchange {
                         'trade/cancel-tpsl': 1,
                         'trade/cancel-algo': 1,
                         'trade/close-position': 1,
+                        // copy trading
                         'copytrading/account/set-position-mode': 1,
                         'copytrading/account/set-leverage': 1,
                         'copytrading/trade/place-order': 1,
