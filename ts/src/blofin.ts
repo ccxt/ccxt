@@ -191,12 +191,15 @@ export default class blofin extends Exchange {
                 },
                 'private': {
                     'get': {
+                        // account
                         'asset/balances': 1,
+                        'asset/bills': 1,
+                        'asset/withdrawal-history': 1,
+                        'asset/deposit-history': 1,
+                        'account/config': 1,
+                        'asset/currencies': 1,
                         'trade/orders-pending': 1,
                         'trade/fills-history': 1,
-                        'asset/deposit-history': 1,
-                        'asset/withdrawal-history': 1,
-                        'asset/bills': 1,
                         'spot/trade/fills-history': 1,
                         'account/balance': 1,
                         'account/positions': 1,
@@ -226,6 +229,9 @@ export default class blofin extends Exchange {
                         'copytrading/trade/pending-tpsl-by-order': 1,
                     },
                     'post': {
+                        // account
+                        'asset/transfer': 1,
+                        'asset/demo-apply-money': 1,
                         'account/set-margin-mode': 1,
                         'account/set-position-mode': 1,
                         'trade/order': 1,
@@ -238,7 +244,6 @@ export default class blofin extends Exchange {
                         'trade/cancel-batch-orders': 1,
                         'trade/cancel-tpsl': 1,
                         'trade/close-position': 1,
-                        'asset/transfer': 1,
                         'copytrading/account/set-position-mode': 1,
                         'copytrading/account/set-leverage': 1,
                         'copytrading/trade/place-order': 1,
