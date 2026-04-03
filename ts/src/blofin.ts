@@ -1692,7 +1692,7 @@ export default class blofin extends Exchange {
             request['limit'] = limit; // default 100, max 100
         }
         let type = 'swap';
-        [ type, params ] = this.handleOptionAndParams2 (params, 'fetchMyTrades', 'type', 'defaultType', type);
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params, type);
         let response = undefined;
         if (type === 'spot') {
             request['instType'] = 'SPOT';
