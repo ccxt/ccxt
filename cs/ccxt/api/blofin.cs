@@ -81,6 +81,11 @@ public partial class blofin : Exchange
         return await this.callAsync ("privateGetAssetBills",parameters);
     }
 
+    public async Task<object> privateGetSpotTradeFillsHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetSpotTradeFillsHistory",parameters);
+    }
+
     public async Task<object> privateGetAccountBalance (object parameters = null)
     {
         return await this.callAsync ("privateGetAccountBalance",parameters);

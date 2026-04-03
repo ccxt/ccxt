@@ -185,6 +185,7 @@ public partial class blofin : Exchange
                         { "asset/deposit-history", 1 },
                         { "asset/withdrawal-history", 1 },
                         { "asset/bills", 1 },
+                        { "spot/trade/fills-history", 1 },
                         { "account/balance", 1 },
                         { "account/positions", 1 },
                         { "account/leverage-info", 1 },

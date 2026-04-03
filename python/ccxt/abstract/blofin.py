@@ -16,6 +16,7 @@ class ImplicitAPI:
     private_get_asset_deposit_history = privateGetAssetDepositHistory = Entry('asset/deposit-history', 'private', 'GET', {'cost': 1})
     private_get_asset_withdrawal_history = privateGetAssetWithdrawalHistory = Entry('asset/withdrawal-history', 'private', 'GET', {'cost': 1})
     private_get_asset_bills = privateGetAssetBills = Entry('asset/bills', 'private', 'GET', {'cost': 1})
+    private_get_spot_trade_fills_history = privateGetSpotTradeFillsHistory = Entry('spot/trade/fills-history', 'private', 'GET', {'cost': 1})
     private_get_account_balance = privateGetAccountBalance = Entry('account/balance', 'private', 'GET', {'cost': 1})
     private_get_account_positions = privateGetAccountPositions = Entry('account/positions', 'private', 'GET', {'cost': 1})
     private_get_account_leverage_info = privateGetAccountLeverageInfo = Entry('account/leverage-info', 'private', 'GET', {'cost': 1})
