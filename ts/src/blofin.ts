@@ -216,9 +216,15 @@ export default class blofin extends Exchange {
                         'trade/orders-algo-history': 1, // todo new
                         'trade/fills-history': 1,
                         'trade/order/price-range': 1,
+                        // affiliate
+                        'affiliate/basic': 1,
+                        'affiliate/referral-code': 1,
+                        'affiliate/invitees': 1,
+                        'affiliate/sub-invitees': 1,
+                        'affiliate/sub-affiliates': 1,
+                        'affiliate/invitees/daily/info': 1,
                         'spot/trade/fills-history': 1,
                         'user/query-apikey': 1,
-                        'affiliate/basic': 1,
                         'copytrading/instruments': 1,
                         'copytrading/account/balance': 1,
                         'copytrading/account/positions-by-order': 1,
@@ -249,6 +255,7 @@ export default class blofin extends Exchange {
                         'trade/cancel-tpsl': 1,
                         'trade/cancel-algo': 1,
                         'trade/close-position': 1,
+
                         'copytrading/account/set-position-mode': 1,
                         'copytrading/account/set-leverage': 1,
                         'copytrading/trade/place-order': 1,
