@@ -470,7 +470,7 @@ export default class lighter extends lighterRest {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'size');
         const isMakerAsk = this.safeBool (trade, 'is_maker_ask');
-        const side = (isMakerAsk === true) ? 'sell' : 'buy';
+        const side = isMakerAsk ? 'buy' : 'sell';
         const makerFeeRate = this.safeString (market, 'maker_fee');
         const maker = Precise.stringDiv (makerFeeRate, '100');
         const feeAmount = Precise.stringMul (maker, makerFeeRate);
@@ -483,7 +483,7 @@ export default class lighter extends lighterRest {
             'symbol': this.safeSymbol (undefined, market),
             'type': undefined,
             'side': side,
-            'takerOrMaker': 'maker',
+            'takerOrMaker': 'taker',
             'price': priceString,
             'amount': amountString,
             'cost': this.safeString (trade, 'usd_amount'),
