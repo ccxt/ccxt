@@ -471,9 +471,6 @@ export default class lighter extends lighterRest {
         const amountString = this.safeString (trade, 'size');
         const isMakerAsk = this.safeBool (trade, 'is_maker_ask');
         const side = isMakerAsk ? 'buy' : 'sell';
-        const makerFeeRate = this.safeString (market, 'maker_fee');
-        const maker = Precise.stringDiv (makerFeeRate, '100');
-        const feeAmount = Precise.stringMul (maker, makerFeeRate);
         return this.safeTrade ({
             'info': trade,
             'id': tradeId,
@@ -487,10 +484,7 @@ export default class lighter extends lighterRest {
             'price': priceString,
             'amount': amountString,
             'cost': this.safeString (trade, 'usd_amount'),
-            'fee': {
-                'cost': feeAmount,
-                'currency': 'USDC',
-            },
+            'fee': undefined,
         }, market);
     }
 
