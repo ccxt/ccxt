@@ -166,15 +166,17 @@ export default class kraken extends Exchange {
                 'public': {
                     'get': {
                         // rate-limits explained in comment in the top of this file
+                        'Time': 1,
+                        'SystemStatus': 1,
                         'Assets': 1,
                         'AssetPairs': 1,
-                        'Depth': 1.2,
-                        'OHLC': 1.2, // 1.2 because 1 triggers too many requests immediately
-                        'Spread': 1,
-                        'SystemStatus': 1,
                         'Ticker': 1,
-                        'Time': 1,
+                        'OHLC': 1.2, // 1.2 because 1 triggers too many requests immediately
+                        'Depth': 1.2,
+                        'Level3': 1.2,
+                        'GroupedBook': 1.2,
                         'Trades': 1.2,
+                        'Spread': 1,
                     },
                 },
                 'private': {
