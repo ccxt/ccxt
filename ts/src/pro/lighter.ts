@@ -807,7 +807,8 @@ export default class lighter extends lighterRest {
             stored = this.liquidations;
         }
         for (let i = 0; i < data.length; i++) {
-            const liquidation = this.parseWsLiquidation (data[i], market);
+            const j = data.length - 1 - i;
+            const liquidation = this.parseWsLiquidation (data[j], market);
             stored.append (liquidation);
         }
         const messageHash = this.getMessageHash ('liquidations', symbol);
