@@ -36,41 +36,6 @@
                 ],
                 "parsedResponse": [
                     {
-                        "id": "429472576",
-                        "info": {
-                            "id": 429472576,
-                            "datetime": "2025-07-02 16:35:09.224000",
-                            "type": "2",
-                            "fee": "0.05988",
-                            "link": "-1.10000000",
-                            "usd": "14.971",
-                            "link_usd": 13.61,
-                            "btc": 0,
-                            "eur": 0,
-                            "order_id": 1894969895186432
-                        },
-                        "timestamp": 1751474109224,
-                        "datetime": "2025-07-02T16:35:09.224Z",
-                        "symbol": "LINK/USD",
-                        "order": "1894969895186432",
-                        "type": null,
-                        "side": "sell",
-                        "takerOrMaker": null,
-                        "price": 13.61,
-                        "amount": 1.1,
-                        "cost": 14.971,
-                        "fee": {
-                            "currency": "USD",
-                            "cost": 0.05988
-                        },
-                        "fees": [
-                            {
-                                "currency": "USD",
-                                "cost": 0.05988
-                            }
-                        ]
-                    },
-                    {
                         "id": "556005200",
                         "info": {
                             "id": 556005200,
