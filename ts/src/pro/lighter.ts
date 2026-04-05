@@ -544,7 +544,8 @@ export default class lighter extends lighterRest {
             this.trades[symbol] = stored;
         }
         for (let i = 0; i < data.length; i++) {
-            const trade = this.parseWsTrade (data[i], market);
+            const j = data.length - 1 - i;
+            const trade = this.parseWsTrade (data[j], market);
             stored.append (trade);
         }
         const messageHash = this.getMessageHash ('trade', symbol);
