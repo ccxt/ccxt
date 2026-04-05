@@ -2047,7 +2047,7 @@ export default class lighter extends Exchange {
                 takeProfitPrice = triggerPrice;
             }
         }
-        // Try to parse to integer first, because parsing an integer to a string would not result in undefined
+        // Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
         let tif = undefined;
         const tifAsInteger = this.safeInteger (order, 'time_in_force');
         if (tifAsInteger !== undefined) {
@@ -2130,6 +2130,9 @@ export default class lighter extends Exchange {
     }
 
     parseOrderTypeInteger (typeInteger) {
+        if (typeInteger === undefined) {
+            return undefined;
+        }
         const types: Dict = {
             '0': 'limit',
             '1': 'market',
