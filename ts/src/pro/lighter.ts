@@ -644,7 +644,8 @@ export default class lighter extends lighterRest {
             const market = this.safeMarket (marketId);
             const trades = this.safeList (data, marketId, []);
             for (let j = 0; j < trades.length; j++) {
-                const trade = this.parseWsTrade (trades[j], market);
+                const jReversed = trades.length - 1 - j;
+                const trade = this.parseWsTrade (trades[jReversed], market);
                 stored.append (trade);
                 const symbol = trade['symbol'];
                 if (symbol !== undefined) {
