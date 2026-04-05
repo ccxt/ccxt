@@ -177,6 +177,8 @@ export default class kraken extends Exchange {
                         'GroupedBook': 1.2,
                         'Trades': 1.2,
                         'Spread': 1,
+                        'PreTrade': 1,
+                        'PostTrade': 1,
                     },
                 },
                 'private': {
