@@ -7315,6 +7315,15 @@ export default class Exchange {
         return value;
     }
 
+    stringToBinary (content) {
+        // same as: this.base64ToBinary (this.stringToBase64 (str));
+        return this.encode (content);
+    }
+
+    binaryToString (binary) {
+        return this.decode (binary);
+    }
+
     isTickPrecision () {
         return this.precisionMode === TICK_SIZE;
     }
