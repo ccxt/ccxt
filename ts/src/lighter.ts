@@ -1584,9 +1584,11 @@ export default class lighter extends Exchange {
                     result[code] = balance;
                 }
             } else {
-                const perpUSDC = this.safeString (account, 'collateral');
-                const perpBalance = this.safeDict (result, 'USDC(PERP)', this.account ());
-                perpBalance['total'] = Precise.stringAdd (perpBalance['total'], perpUSDC);
+                const perpBalance = this.safeDict (result, 'USDC', this.account ());
+                const perpUSDCTotal = this.safeString (account, 'collateral');
+                const perpUSDCFree = this.safeString (account, 'available_balance');
+                perpBalance['total'] = Precise.stringAdd (perpBalance['total'], perpUSDCTotal);
+                perpBalance['free'] = Precise.stringAdd (perpBalance['free'], perpUSDCFree);
                 result['USDC'] = perpBalance;
             }
         }
