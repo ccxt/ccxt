@@ -478,7 +478,7 @@
                         "tagFrom": null,
                         "tagTo": null,
                         "tag": null,
-                        "status": "pending",
+                        "status": "ok",
                         "type": "withdrawal",
                         "updated": null,
                         "txid": "1fd5ac5dsfkldfjsdkfl207f9858fd96",
