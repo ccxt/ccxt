@@ -13,6 +13,7 @@ var FunctionsMap = map[string]interface{}{
 	"binaryToBase58":                  TestBinaryToBase58,
 	"binaryToBase64":                  TestBinaryToBase64,
 	"capitalize":                      TestCapitalize,
+	"clone":                           TestClone,
 	"constants":                       TestConstants,
 	"datetime":                        TestDatetime,
 	"decimalToPrecision":              TestDecimalToPrecision,

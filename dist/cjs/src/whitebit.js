@@ -427,6 +427,7 @@ class whitebit extends whitebit$1["default"] {
                     '422': errors.OrderNotFound, // {"response":null,"status":422,"errors":{"orderId":["Finished order id 1295772653 not found on your account"]},"notification":null,"warning":"Finished order id 1295772653 not found on your account","_token":null}
                 },
                 'broad': {
+                    'limit must be less than or equal to': errors.BadRequest,
                     'This action is unauthorized': errors.PermissionDenied,
                     'Given amount is less than min amount': errors.InvalidOrder,
                     'Min amount step': errors.InvalidOrder,
@@ -4020,7 +4021,7 @@ class whitebit extends whitebit$1["default"] {
      * @see https://docs.whitebit.com/api-reference/market-data/funding-history
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch (default 100, max 1000)
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch (default 100, max 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
@@ -4029,7 +4030,7 @@ class whitebit extends whitebit$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        const maxLimit = 1000;
+        const maxLimit = 100;
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
@@ -4144,6 +4145,24 @@ class whitebit extends whitebit$1["default"] {
                         errorInfo = (errorMessageLength > 0) ? errorMessageArray[0] : body;
                     }
                 }
+                this.throwExactlyMatchedException(this.exceptions['exact'], errorInfo, feedback);
+                this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
+                throw new errors.ExchangeError(feedback);
+            }
+            // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
+            const success = this.safeBool(response, 'success', true);
+            if (!success) {
+                const errMsg = this.safeDict(response, 'message', {});
+                const errKeys = Object.keys(errMsg);
+                const errKeysLength = errKeys.length;
+                let errorInfo = body;
+                if (errKeysLength > 0) {
+                    const errorKey = errKeys[0];
+                    const errorMessageArray = this.safeList(errMsg, errorKey, []);
+                    const errorMessageLength = errorMessageArray.length;
+                    errorInfo = (errorMessageLength > 0) ? errorMessageArray[0] : body;
+                }
+                const feedback = this.id + ' ' + body;
                 this.throwExactlyMatchedException(this.exceptions['exact'], errorInfo, feedback);
                 this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
                 throw new errors.ExchangeError(feedback);

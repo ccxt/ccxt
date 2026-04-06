@@ -37,6 +37,7 @@ public partial class BaseTest
             testUrlencode();
             testOmit();
             testGroupBy();
+            testClone();
             testIndexBy();
             testInArray();
             testFilterBy();

@@ -768,26 +768,6 @@
             }
         }
     },
-    "coincatch": {
-        "skipMethods": {
-            "fetchCurrencies": {
-                "precision": "not provided",
-                "type": "todo",
-                "withdraw":"todo, needs fix",
-                "deposit":"todo, needs fix",
-                "active" : "todo, needs fix",
-                "activeMajorCurrencies": "todo",
-                "activeCurrenciesQuota": "activeCurrenciesQuota"
-            },
-            "fetchTickers": {
-                "checkActiveSymbols": "todo"
-            },
-            "watchTickers": {
-                "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16077301099/job/45375495181?pr=26334#step:9:438"
-            },
-            "loadMarkets": "linear and inverse values are same"
-        }
-    },
     "coinmetro": {
         "skipMethods": {
             "loadMarkets": {

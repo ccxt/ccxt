@@ -64,6 +64,7 @@ from ccxt.test.base.test_timeframes import test_timeframes  # noqa E402
 from ccxt.test.base.test_keysort import test_keysort  # noqa E402
 from ccxt.test.base.test_implode_params import test_implode_params  # noqa E402
 from ccxt.test.base.test_urlencode_nested import test_urlencode_nested  # noqa E402
+from ccxt.test.base.test_clone import test_clone  # noqa E402
 from ccxt.test.base.test_string_to_base16 import test_string_to_base16  # noqa E402
 from ccxt.test.base.test_capitalize import test_capitalize  # noqa E402
 from ccxt.test.base.test_constants import test_constants  # noqa E402
@@ -100,6 +101,7 @@ async def base_tests_init():
     test_urlencode()
     test_omit()
     test_group_by()
+    test_clone()
     test_index_by()
     test_in_array()
     test_filter_by()
