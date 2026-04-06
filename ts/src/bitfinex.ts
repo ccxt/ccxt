@@ -750,6 +750,7 @@ export default class bitfinex extends Exchange {
             'pub:map:currency:tx:fee', // maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745,
             'pub:map:tx:method', // maps withdrawal/deposit methods to their API symbols
             'pub:info:tx:status', // maps withdrawal/deposit statuses, coins: 1 = enabled, 0 = maintenance
+            'pub:list:currency:margin', // margin enabled currencies
         ];
         const config = labels.join (',');
         const request: Dict = {
@@ -849,6 +850,7 @@ export default class bitfinex extends Exchange {
             'fees': this.indexBy (this.safeList (response, 7, []), 0),
             'networks': this.safeList (response, 8, []),
             'statuses': this.indexBy (this.safeList (response, 9, []), 0),
+            'marginables': this.safeList (response, 10, []),
         };
         const indexedNetworks: Dict = {};
         for (let i = 0; i < indexed['networks'].length; i++) {
@@ -926,6 +928,7 @@ export default class bitfinex extends Exchange {
                     },
                 },
                 'networks': networks,
+                'margin': this.inArray (id, indexed['marginables']),
             });
         }
         return result;
