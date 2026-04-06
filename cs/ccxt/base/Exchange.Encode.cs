@@ -239,7 +239,7 @@ public partial class Exchange
         return Encoding.UTF8.GetBytes(buff);
     }
 
-    public static string BinaryToString(byte[] buff)
+    public static string binaryToString(byte[] buff)
     {
         return Encoding.UTF8.GetString(buff);
     }
