@@ -340,6 +340,7 @@ export default class bitfinex extends Exchange {
             'precisionMode': SIGNIFICANT_DIGITS,
             'options': {
                 'precision': 'R0', // P0, P1, P2, P3, P4, R0
+                'defaultCurrencyPrecision': 8, // default currency precision
                 // convert 'EXCHANGE MARKET' to lowercase 'market'
                 // convert 'EXCHANGE LIMIT' to lowercase 'limit'
                 // everything else remains uppercase
@@ -879,7 +880,7 @@ export default class bitfinex extends Exchange {
             const fees = this.safeList (feeValues, 1, []);
             const fee = this.safeNumber (fees, 1);
             const undl = this.safeList (indexed['undl'], id, []);
-            const precision = '8'; // default precision, todo: fix "magic constants"
+            const precision = this.safeString (this.options, 'defaultCurrencyPrecision', '8');
             const networks: Dict = {};
             const netwokIds = this.safeList (indexedNetworks, id, []);
             for (let j = 0; j < netwokIds.length; j++) {
@@ -913,10 +914,10 @@ export default class bitfinex extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': fee,
-                'precision': parseInt (precision),
+                'precision': this.parseNumber (precision),
                 'limits': {
                     'amount': {
-                        'min': this.parseNumber (this.parsePrecision (precision)),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
