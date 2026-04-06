@@ -864,7 +864,8 @@ export default class lighter extends lighterRest {
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
+        let type = undefined;
+        [ type, params ] = this.handleParamString (params, 'type', defaultType);
         let accountIndex = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'watchBalance', 'accountIndex', 'account_index');
         const messageHash = this.getMessageHash ('balances');
