@@ -1388,7 +1388,8 @@
             },
             "fetchCurrencies": {
                 "fee": "not defined",
-                "networks": "missing"
+                "networks": "missing",
+                "activeMajorCurrencies": "usdt trx is frozen temporarily, todo recheck in 2-4 weeks"
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing"
