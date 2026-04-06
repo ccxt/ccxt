@@ -439,6 +439,7 @@ class whitebit(Exchange, ImplicitAPI):
                     '422': OrderNotFound,  # {"response":null,"status":422,"errors":{"orderId":["Finished order id 1295772653 not found on your account"]},"notification":null,"warning":"Finished order id 1295772653 not found on your account","_token":null}
                 },
                 'broad': {
+                    'limit must be less than or equal to': BadRequest,
                     'This action is unauthorized': PermissionDenied,  # {"code":2,"message":"This action is unauthorized. Enable your key in API settings"}
                     'Given amount is less than min amount': InvalidOrder,  # {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
                     'Min amount step': InvalidOrder,  # {"code":32,"errors":{"amount":["Min amount step = 0.01"]},"message":"Validation failed"}
@@ -3863,14 +3864,14 @@ class whitebit(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
-        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>` to fetch(default 100, max 1000)
+        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>` to fetch(default 100, max 100)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest funding rate
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        maxLimit = 1000
+        maxLimit = 100
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
@@ -3973,6 +3974,22 @@ class whitebit(Exchange, ImplicitAPI):
                         errorMessageArray = self.safe_value(errorObject, errorKey, [])
                         errorMessageLength = len(errorMessageArray)
                         errorInfo = errorMessageArray[0] if (errorMessageLength > 0) else body
+                self.throw_exactly_matched_exception(self.exceptions['exact'], errorInfo, feedback)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
+                raise ExchangeError(feedback)
+            # {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
+            success = self.safe_bool(response, 'success', True)
+            if not success:
+                errMsg = self.safe_dict(response, 'message', {})
+                errKeys = list(errMsg.keys())
+                errKeysLength = len(errKeys)
+                errorInfo = body
+                if errKeysLength > 0:
+                    errorKey = errKeys[0]
+                    errorMessageArray = self.safe_list(errMsg, errorKey, [])
+                    errorMessageLength = len(errorMessageArray)
+                    errorInfo = errorMessageArray[0] if (errorMessageLength > 0) else body
+                feedback = self.id + ' ' + body
                 self.throw_exactly_matched_exception(self.exceptions['exact'], errorInfo, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
                 raise ExchangeError(feedback)

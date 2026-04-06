@@ -422,6 +422,7 @@ class whitebit extends Exchange {
                     '422' => '\\ccxt\\OrderNotFound', // array("response":null,"status":422,"errors":array("orderId":["Finished order id 1295772653 not found on your account"]),"notification":null,"warning":"Finished order id 1295772653 not found on your account","_token":null)
                 ),
                 'broad' => array(
+                    'limit must be less than or equal to' => '\\ccxt\\BadRequest',
                     'This action is unauthorized' => '\\ccxt\\PermissionDenied', // array("code":2,"message":"This action is unauthorized. Enable your key in API settings")
                     'Given amount is less than min amount' => '\\ccxt\\InvalidOrder', // array("code":0,"message":"Validation failed","errors":array("amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]))
                     'Min amount step' => '\\ccxt\\InvalidOrder', // array("code":32,"errors":array("amount":["Min amount step = 0.01"]),"message":"Validation failed")
@@ -4053,7 +4054,7 @@ class whitebit extends Exchange {
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
-         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch (default 100, max 1000)
+         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch (default 100, max 100)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest funding rate
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
@@ -4061,7 +4062,7 @@ class whitebit extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
         }
-        $maxLimit = 1000;
+        $maxLimit = 100;
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
         if ($paginate) {
@@ -4179,6 +4180,24 @@ class whitebit extends Exchange {
                         $errorInfo = ($errorMessageLength > 0) ? $errorMessageArray[0] : $body;
                     }
                 }
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorInfo, $feedback);
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
+                throw new ExchangeError($feedback);
+            }
+            // array("success":false,"message":array("limit":["limit must be less than or equal to 100"]),"result":null)
+            $success = $this->safe_bool($response, 'success', true);
+            if (!$success) {
+                $errMsg = $this->safe_dict($response, 'message', array());
+                $errKeys = is_array($errMsg) ? array_keys($errMsg) : array();
+                $errKeysLength = count($errKeys);
+                $errorInfo = $body;
+                if ($errKeysLength > 0) {
+                    $errorKey = $errKeys[0];
+                    $errorMessageArray = $this->safe_list($errMsg, $errorKey, array());
+                    $errorMessageLength = count($errorMessageArray);
+                    $errorInfo = ($errorMessageLength > 0) ? $errorMessageArray[0] : $body;
+                }
+                $feedback = $this->id . ' ' . $body;
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorInfo, $feedback);
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
                 throw new ExchangeError($feedback);

@@ -18,6 +18,7 @@ public partial class BaseTest
             testCryptography();
             testBinaryToBase64();
             testBase64ToBinary();
+            testNumberToBE();
             testDatetime();
             testDecimalToPrecision();
             testCapitalize();
@@ -25,7 +26,9 @@ public partial class BaseTest
             testPrecise();
             testSafeMethods();
             testSafeTicker();
+            testBase58ToBinary();
             testToArray();
+            testBinaryToBase58();
             testJson();
             testSortBy();
             testSum();
@@ -34,6 +37,7 @@ public partial class BaseTest
             testUrlencode();
             testOmit();
             testGroupBy();
+            testClone();
             testIndexBy();
             testInArray();
             testFilterBy();

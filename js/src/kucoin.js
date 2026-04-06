@@ -894,9 +894,7 @@ export default class kucoin extends Exchange {
                 'timeDifference': 0,
                 'adjustForTimeDifference': false,
                 'fetchCurrencies': {
-                    'webApiEnable': true,
-                    'webApiRetries': 1,
-                    'webApiMuteFailure': true,
+                    'brokenCurrencies': ['00', 'OPEN_ERROR', 'HUF', 'BDT'], // skip buggy entries: https://t.me/KuCoin_API/217798
                 },
                 'fetchMarkets': {
                     'types': ['spot', 'swap', 'future', 'contract'],
@@ -1099,10 +1097,14 @@ export default class kucoin extends Exchange {
                     'unified': 'unified',
                 },
                 'networks': {
+                    'BTC': 'btc',
                     'BRC20': 'btc',
                     'BTCNATIVESEGWIT': 'bech32',
+                    'ETH': 'eth',
                     'ERC20': 'eth',
+                    'TRX': 'trx',
                     'TRC20': 'trx',
+                    'HECO': 'heco',
                     'HRC20': 'heco',
                     'MATIC': 'matic',
                     'KCC': 'kcc',
@@ -1117,6 +1119,7 @@ export default class kucoin extends Exchange {
                     'TLOS': 'tlos',
                     'CFX': 'cfx',
                     'ACA': 'aca',
+                    'OP': 'optimism',
                     'OPTIMISM': 'optimism',
                     'ONT': 'ont',
                     'GLMR': 'glmr',
@@ -1306,6 +1309,14 @@ export default class kucoin extends Exchange {
                     // 'AURORACHAIN': 'aoa',
                     // 'KLEVER': 'klv',
                     // undetermined: xns(insolar), rhoc, luk (luniverse), kts (klimatas), bchn (bitcoin cash node), god (shallow entry), lit (litmus),
+                },
+                'networksById': {
+                    'btc': 'BTC',
+                    'trx': 'TRC20',
+                    'eth': 'ERC20',
+                    'heco': 'HRC20',
+                    'optimism': 'OP',
+                    'op': 'OP',
                 },
                 'marginModes': {
                     'cross': 'MARGIN_TRADE',
@@ -2207,6 +2218,7 @@ export default class kucoin extends Exchange {
         [uta, params] = this.handleOptionAndParams(params, 'fetchCurrencies', 'uta', uta);
         let response = undefined;
         if (uta) {
+            response = await this.utaGetAssetCurrencies(params);
             //
             //     {
             //         "code": "200000",
@@ -2241,7 +2253,6 @@ export default class kucoin extends Exchange {
             //         ]
             //     }
             //
-            response = await this.utaGetAssetCurrencies(params);
         }
         else {
             //
@@ -2284,64 +2295,61 @@ export default class kucoin extends Exchange {
             response = await this.publicGetCurrencies(params);
         }
         const currenciesData = this.safeList(response, 'data', []);
-        const brokenCurrencies = this.safeList(this.options, 'brokenCurrencies', ['00', 'OPEN_ERROR', 'HUF', 'BDT']);
-        const result = {};
-        for (let i = 0; i < currenciesData.length; i++) {
-            const entry = currenciesData[i];
-            const id = this.safeString(entry, 'currency');
-            if (this.inArray(id, brokenCurrencies)) {
-                continue; // skip buggy entries: https://t.me/KuCoin_API/217798
-            }
-            const code = this.safeCurrencyCode(id);
-            const networks = {};
-            const chains = this.safeList2(entry, 'chains', 'items', []);
-            const chainsLength = chains.length;
-            for (let j = 0; j < chainsLength; j++) {
-                const chain = chains[j];
-                const chainId = this.safeString(chain, 'chainId');
-                const networkCode = this.networkIdToCode(chainId, code);
-                networks[networkCode] = {
-                    'info': chain,
-                    'id': chainId,
-                    'name': this.safeString(chain, 'chainName'),
-                    'code': networkCode,
-                    'active': undefined,
-                    'fee': this.safeNumber2(chain, 'withdrawalMinFee', 'minWithdrawFee'),
-                    'deposit': this.safeBool(chain, 'isDepositEnabled'),
-                    'withdraw': this.safeBool(chain, 'isWithdrawEnabled'),
-                    'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'withdrawPrecision'))),
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber2(chain, 'withdrawalMinSize', 'minWithdrawSize'),
-                            'max': this.safeNumber2(chain, 'maxWithdraw', 'maxWithdrawSize'),
-                        },
-                        'deposit': {
-                            'min': this.safeNumber2(chain, 'depositMinSize', 'minDepositSize'),
-                            'max': this.safeNumber2(chain, 'maxDeposit', 'maxDepositSize'),
-                        },
-                    },
-                };
-            }
-            // kucoin has determined 'fiat' currencies with below logic
-            const rawPrecision = this.safeString(entry, 'precision');
-            const precision = this.parseNumber(this.parsePrecision(rawPrecision));
-            const isFiat = chainsLength === 0;
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'name': this.safeString(entry, 'fullName'),
-                'code': code,
-                'type': isFiat ? 'fiat' : 'crypto',
-                'precision': precision,
-                'info': entry,
-                'networks': networks,
-                'deposit': undefined,
-                'withdraw': undefined,
+        const brokenCurrencies = this.handleOption('fetchCurrencies', 'brokenCurrencies', []);
+        const filteredCurrencies = this.filterOutByArray(currenciesData, 'currency', brokenCurrencies); // remove broken entries
+        return this.parseCurrencies(filteredCurrencies);
+    }
+    parseCurrency(currency) {
+        const entry = currency;
+        const id = this.safeString(entry, 'currency');
+        const code = this.safeCurrencyCode(id);
+        const networks = {};
+        const chains = this.safeList2(entry, 'chains', 'items', []);
+        const chainsLength = chains.length;
+        for (let j = 0; j < chainsLength; j++) {
+            const chain = chains[j];
+            const chainId = this.safeString(chain, 'chainId');
+            const networkCode = this.networkIdToCode(chainId, code);
+            networks[networkCode] = {
+                'info': chain,
+                'id': chainId,
+                'name': this.safeString(chain, 'chainName'),
+                'code': networkCode,
                 'active': undefined,
-                'fee': undefined,
-                'limits': undefined,
-            });
+                'fee': this.safeNumber2(chain, 'withdrawalMinFee', 'minWithdrawFee'),
+                'deposit': this.safeBool(chain, 'isDepositEnabled'),
+                'withdraw': this.safeBool(chain, 'isWithdrawEnabled'),
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'withdrawPrecision'))),
+                'limits': {
+                    'withdraw': {
+                        'min': this.safeNumber2(chain, 'withdrawalMinSize', 'minWithdrawSize'),
+                        'max': this.safeNumber2(chain, 'maxWithdraw', 'maxWithdrawSize'),
+                    },
+                    'deposit': {
+                        'min': this.safeNumber2(chain, 'depositMinSize', 'minDepositSize'),
+                        'max': this.safeNumber2(chain, 'maxDeposit', 'maxDepositSize'),
+                    },
+                },
+            };
         }
-        return result;
+        // kucoin has determined 'fiat' currencies with below logic
+        const rawPrecision = this.safeString(entry, 'precision');
+        const precision = this.parseNumber(this.parsePrecision(rawPrecision));
+        const isFiat = chainsLength === 0;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'name': this.safeString(entry, 'fullName'),
+            'code': code,
+            'type': isFiat ? 'fiat' : 'crypto',
+            'precision': precision,
+            'info': entry,
+            'networks': networks,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'active': undefined,
+            'fee': undefined,
+            'limits': undefined,
+        });
     }
     /**
      * @method
@@ -2439,7 +2447,7 @@ export default class kucoin extends Exchange {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId(networkCode).toLowerCase();
+            request['chain'] = this.networkCodeToId(networkCode, currency['code']).toLowerCase();
         }
         const response = await this.privateGetWithdrawalsQuotas(this.extend(request, params));
         const data = this.safeDict(response, 'data', {});
@@ -2470,7 +2478,7 @@ export default class kucoin extends Exchange {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId(networkCode).toLowerCase();
+            request['chain'] = this.networkCodeToId(networkCode, currency['code']).toLowerCase();
         }
         const response = await this.privateGetWithdrawalsQuotas(this.extend(request, params));
         //
@@ -2527,7 +2535,8 @@ export default class kucoin extends Exchange {
             const chains = this.safeList(fee, 'chains', []);
             for (let i = 0; i < chains.length; i++) {
                 const chain = chains[i];
-                const networkCodeNew = this.networkIdToCode(this.safeString(chain, 'chainId'), this.safeString(currency, 'code'));
+                const chainId = this.safeString(chain, 'chainId');
+                const networkCodeNew = this.networkIdToCode(chainId, this.safeString(currency, 'code'));
                 resultNew['networks'][networkCodeNew] = {
                     'withdraw': {
                         'fee': this.safeNumber2(chain, 'withdrawalMinFee', 'withdrawMinFee'),
@@ -2555,7 +2564,9 @@ export default class kucoin extends Exchange {
             'networks': {},
         };
         const networkId = this.safeString(fee, 'chain');
-        const networkCode = this.networkIdToCode(networkId, this.safeString(currency, 'code'));
+        const currencyId = this.safeString(fee, 'currency');
+        currency = this.safeCurrency(currencyId, currency);
+        const networkCode = this.networkIdToCode(networkId, currency['code']);
         result['networks'][networkCode] = {
             'withdraw': minWithdrawFee,
             'deposit': {
@@ -3437,7 +3448,7 @@ export default class kucoin extends Exchange {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId(networkCode); // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
+            request['chain'] = this.networkCodeToId(networkCode, currency['code']); // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
         }
         const response = await this.privatePostDepositAddressCreate(this.extend(request, params));
         // {"code":"260000","msg":"Deposit address already exists."}
@@ -3495,7 +3506,7 @@ export default class kucoin extends Exchange {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId(networkCode).toLowerCase();
+            request['chain'] = this.networkCodeToId(networkCode, currency['code']).toLowerCase();
         }
         const version = this.options['versions']['private']['GET']['deposit-addresses'];
         this.options['versions']['private']['GET']['deposit-addresses'] = 'v1';
@@ -3563,10 +3574,11 @@ export default class kucoin extends Exchange {
                 this.checkAddress(address);
             }
         }
+        const chainId = this.safeString(depositAddress, 'chainId');
         return {
             'info': depositAddress,
             'currency': code,
-            'network': this.networkIdToCode(this.safeString(depositAddress, 'chainId')),
+            'network': this.networkIdToCode(chainId, code),
             'address': address,
             'tag': this.safeString(depositAddress, 'memo'),
         };
@@ -7416,7 +7428,7 @@ export default class kucoin extends Exchange {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId(networkCode).toLowerCase();
+            request['chain'] = this.networkCodeToId(networkCode, currency['code']).toLowerCase();
         }
         request['amount'] = parseFloat(this.currencyToPrecision(code, amount, networkCode));
         let includeFee = undefined;
@@ -7537,12 +7549,13 @@ export default class kucoin extends Exchange {
         }
         const internal = this.safeBool(transaction, 'isInner');
         const tag = this.safeString(transaction, 'memo');
+        const chainId = this.safeString(transaction, 'chain');
         return {
             'info': transaction,
             'id': this.safeString2(transaction, 'id', 'withdrawalId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': this.networkIdToCode(this.safeString(transaction, 'chain')),
+            'network': this.networkIdToCode(chainId, code),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,

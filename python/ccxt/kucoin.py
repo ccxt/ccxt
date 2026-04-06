@@ -911,9 +911,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'timeDifference': 0,  # the difference between system clock and Binance clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'fetchCurrencies': {
-                    'webApiEnable': True,  # fetches from WEB
-                    'webApiRetries': 1,
-                    'webApiMuteFailure': True,
+                    'brokenCurrencies': ['00', 'OPEN_ERROR', 'HUF', 'BDT'],  # skip buggy entries: https://t.me/KuCoin_API/217798
                 },
                 'fetchMarkets': {
                     'types': ['spot', 'swap', 'future', 'contract'],
@@ -1116,10 +1114,14 @@ class kucoin(Exchange, ImplicitAPI):
                     'unified': 'unified',
                 },
                 'networks': {
+                    'BTC': 'btc',
                     'BRC20': 'btc',
                     'BTCNATIVESEGWIT': 'bech32',
+                    'ETH': 'eth',
                     'ERC20': 'eth',
+                    'TRX': 'trx',
                     'TRC20': 'trx',
+                    'HECO': 'heco',
                     'HRC20': 'heco',
                     'MATIC': 'matic',
                     'KCC': 'kcc',  # kucoin community chain
@@ -1134,6 +1136,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'TLOS': 'tlos',  # tlosevm is different
                     'CFX': 'cfx',
                     'ACA': 'aca',
+                    'OP': 'optimism',
                     'OPTIMISM': 'optimism',
                     'ONT': 'ont',
                     'GLMR': 'glmr',
@@ -1323,6 +1326,14 @@ class kucoin(Exchange, ImplicitAPI):
                     # 'AURORACHAIN': 'aoa',
                     # 'KLEVER': 'klv',
                     # undetermined: xns(insolar), rhoc, luk(luniverse), kts(klimatas), bchn(bitcoin cash node), god(shallow entry), lit(litmus),
+                },
+                'networksById': {
+                    'btc': 'BTC',
+                    'trx': 'TRC20',
+                    'eth': 'ERC20',
+                    'heco': 'HRC20',
+                    'optimism': 'OP',
+                    'op': 'OP',
                 },
                 'marginModes': {
                     'cross': 'MARGIN_TRADE',
@@ -2186,6 +2197,7 @@ class kucoin(Exchange, ImplicitAPI):
         uta, params = self.handle_option_and_params(params, 'fetchCurrencies', 'uta', uta)
         response = None
         if uta:
+            response = self.utaGetAssetCurrencies(params)
             #
             #     {
             #         "code": "200000",
@@ -2220,7 +2232,6 @@ class kucoin(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-            response = self.utaGetAssetCurrencies(params)
         else:
             #
             #    {
@@ -2261,61 +2272,60 @@ class kucoin(Exchange, ImplicitAPI):
             #
             response = self.publicGetCurrencies(params)
         currenciesData = self.safe_list(response, 'data', [])
-        brokenCurrencies = self.safe_list(self.options, 'brokenCurrencies', ['00', 'OPEN_ERROR', 'HUF', 'BDT'])
-        result: dict = {}
-        for i in range(0, len(currenciesData)):
-            entry = currenciesData[i]
-            id = self.safe_string(entry, 'currency')
-            if self.in_array(id, brokenCurrencies):
-                continue  # skip buggy entries: https://t.me/KuCoin_API/217798
-            code = self.safe_currency_code(id)
-            networks: dict = {}
-            chains = self.safe_list_2(entry, 'chains', 'items', [])
-            chainsLength = len(chains)
-            for j in range(0, chainsLength):
-                chain = chains[j]
-                chainId = self.safe_string(chain, 'chainId')
-                networkCode = self.network_id_to_code(chainId, code)
-                networks[networkCode] = {
-                    'info': chain,
-                    'id': chainId,
-                    'name': self.safe_string(chain, 'chainName'),
-                    'code': networkCode,
-                    'active': None,
-                    'fee': self.safe_number_2(chain, 'withdrawalMinFee', 'minWithdrawFee'),
-                    'deposit': self.safe_bool(chain, 'isDepositEnabled'),
-                    'withdraw': self.safe_bool(chain, 'isWithdrawEnabled'),
-                    'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawPrecision'))),
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number_2(chain, 'withdrawalMinSize', 'minWithdrawSize'),
-                            'max': self.safe_number_2(chain, 'maxWithdraw', 'maxWithdrawSize'),
-                        },
-                        'deposit': {
-                            'min': self.safe_number_2(chain, 'depositMinSize', 'minDepositSize'),
-                            'max': self.safe_number_2(chain, 'maxDeposit', 'maxDepositSize'),
-                        },
-                    },
-                }
-            # kucoin has determined 'fiat' currencies with below logic
-            rawPrecision = self.safe_string(entry, 'precision')
-            precision = self.parse_number(self.parse_precision(rawPrecision))
-            isFiat = chainsLength == 0
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'name': self.safe_string(entry, 'fullName'),
-                'code': code,
-                'type': 'fiat' if isFiat else 'crypto',
-                'precision': precision,
-                'info': entry,
-                'networks': networks,
-                'deposit': None,
-                'withdraw': None,
+        brokenCurrencies = self.handle_option('fetchCurrencies', 'brokenCurrencies', [])
+        filteredCurrencies = self.filter_out_by_array(currenciesData, 'currency', brokenCurrencies)  # remove broken entries
+        return self.parse_currencies(filteredCurrencies)
+
+    def parse_currency(self, currency: dict) -> Currency:
+        entry = currency
+        id = self.safe_string(entry, 'currency')
+        code = self.safe_currency_code(id)
+        networks: dict = {}
+        chains = self.safe_list_2(entry, 'chains', 'items', [])
+        chainsLength = len(chains)
+        for j in range(0, chainsLength):
+            chain = chains[j]
+            chainId = self.safe_string(chain, 'chainId')
+            networkCode = self.network_id_to_code(chainId, code)
+            networks[networkCode] = {
+                'info': chain,
+                'id': chainId,
+                'name': self.safe_string(chain, 'chainName'),
+                'code': networkCode,
                 'active': None,
-                'fee': None,
-                'limits': None,
-            })
-        return result
+                'fee': self.safe_number_2(chain, 'withdrawalMinFee', 'minWithdrawFee'),
+                'deposit': self.safe_bool(chain, 'isDepositEnabled'),
+                'withdraw': self.safe_bool(chain, 'isWithdrawEnabled'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawPrecision'))),
+                'limits': {
+                    'withdraw': {
+                        'min': self.safe_number_2(chain, 'withdrawalMinSize', 'minWithdrawSize'),
+                        'max': self.safe_number_2(chain, 'maxWithdraw', 'maxWithdrawSize'),
+                    },
+                    'deposit': {
+                        'min': self.safe_number_2(chain, 'depositMinSize', 'minDepositSize'),
+                        'max': self.safe_number_2(chain, 'maxDeposit', 'maxDepositSize'),
+                    },
+                },
+            }
+        # kucoin has determined 'fiat' currencies with below logic
+        rawPrecision = self.safe_string(entry, 'precision')
+        precision = self.parse_number(self.parse_precision(rawPrecision))
+        isFiat = chainsLength == 0
+        return self.safe_currency_structure({
+            'id': id,
+            'name': self.safe_string(entry, 'fullName'),
+            'code': code,
+            'type': 'fiat' if isFiat else 'crypto',
+            'precision': precision,
+            'info': entry,
+            'networks': networks,
+            'deposit': None,
+            'withdraw': None,
+            'active': None,
+            'fee': None,
+            'limits': None,
+        })
 
     def fetch_accounts(self, params={}) -> List[Account]:
         """
@@ -2410,7 +2420,7 @@ class kucoin(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['chain'] = self.network_code_to_id(networkCode).lower()
+            request['chain'] = self.network_code_to_id(networkCode, currency['code']).lower()
         response = self.privateGetWithdrawalsQuotas(self.extend(request, params))
         data = self.safe_dict(response, 'data', {})
         withdrawFees: dict = {}
@@ -2440,7 +2450,7 @@ class kucoin(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['chain'] = self.network_code_to_id(networkCode).lower()
+            request['chain'] = self.network_code_to_id(networkCode, currency['code']).lower()
         response = self.privateGetWithdrawalsQuotas(self.extend(request, params))
         #
         #    {
@@ -2496,7 +2506,8 @@ class kucoin(Exchange, ImplicitAPI):
             chains = self.safe_list(fee, 'chains', [])
             for i in range(0, len(chains)):
                 chain = chains[i]
-                networkCodeNew = self.network_id_to_code(self.safe_string(chain, 'chainId'), self.safe_string(currency, 'code'))
+                chainId = self.safe_string(chain, 'chainId')
+                networkCodeNew = self.network_id_to_code(chainId, self.safe_string(currency, 'code'))
                 resultNew['networks'][networkCodeNew] = {
                     'withdraw': {
                         'fee': self.safe_number_2(chain, 'withdrawalMinFee', 'withdrawMinFee'),
@@ -2522,7 +2533,9 @@ class kucoin(Exchange, ImplicitAPI):
             'networks': {},
         }
         networkId = self.safe_string(fee, 'chain')
-        networkCode = self.network_id_to_code(networkId, self.safe_string(currency, 'code'))
+        currencyId = self.safe_string(fee, 'currency')
+        currency = self.safe_currency(currencyId, currency)
+        networkCode = self.network_id_to_code(networkId, currency['code'])
         result['networks'][networkCode] = {
             'withdraw': minWithdrawFee,
             'deposit': {
@@ -3367,7 +3380,7 @@ class kucoin(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['chain'] = self.network_code_to_id(networkCode)  # docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
+            request['chain'] = self.network_code_to_id(networkCode, currency['code'])  # docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
         response = self.privatePostDepositAddressCreate(self.extend(request, params))
         # {"code":"260000","msg":"Deposit address already exists."}
         #
@@ -3422,7 +3435,7 @@ class kucoin(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['chain'] = self.network_code_to_id(networkCode).lower()
+            request['chain'] = self.network_code_to_id(networkCode, currency['code']).lower()
         version = self.options['versions']['private']['GET']['deposit-addresses']
         self.options['versions']['private']['GET']['deposit-addresses'] = 'v1'
         response = self.privateGetDepositAddresses(self.extend(request, params))
@@ -3484,10 +3497,11 @@ class kucoin(Exchange, ImplicitAPI):
             if code != 'NIM':
                 # contains spaces
                 self.check_address(address)
+        chainId = self.safe_string(depositAddress, 'chainId')
         return {
             'info': depositAddress,
             'currency': code,
-            'network': self.network_id_to_code(self.safe_string(depositAddress, 'chainId')),
+            'network': self.network_id_to_code(chainId, code),
             'address': address,
             'tag': self.safe_string(depositAddress, 'memo'),
         }
@@ -6994,7 +7008,7 @@ class kucoin(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['chain'] = self.network_code_to_id(networkCode).lower()
+            request['chain'] = self.network_code_to_id(networkCode, currency['code']).lower()
         request['amount'] = float(self.currency_to_precision(code, amount, networkCode))
         includeFee = None
         includeFee, params = self.handle_option_and_params(params, 'withdraw', 'includeFee', False)
@@ -7104,12 +7118,13 @@ class kucoin(Exchange, ImplicitAPI):
                 updated = updated * 1000
         internal = self.safe_bool(transaction, 'isInner')
         tag = self.safe_string(transaction, 'memo')
+        chainId = self.safe_string(transaction, 'chain')
         return {
             'info': transaction,
             'id': self.safe_string_2(transaction, 'id', 'withdrawalId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': self.network_id_to_code(self.safe_string(transaction, 'chain')),
+            'network': self.network_id_to_code(chainId, code),
             'address': address,
             'addressTo': address,
             'addressFrom': None,

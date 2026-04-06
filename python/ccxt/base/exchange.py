@@ -5304,6 +5304,24 @@ class Exchange(object):
             return self.index_by(results, key)
         return results
 
+    def filter_out_by_array(self, objects, key: IndexType, values=None, indexed=True):
+        objects = self.to_array(objects)
+        # return all of them if no values were passed
+        if values is None or not values:
+            # return self.index_by(objects, key) if indexed else objects
+            if indexed:
+                return self.index_by(objects, key)
+            else:
+                return objects
+        results = []
+        for i in range(0, len(objects)):
+            if not self.in_array(objects[i][key], values):
+                results.append(objects[i])
+        # return self.index_by(results, key) if indexed else results
+        if indexed:
+            return self.index_by(results, key)
+        return results
+
     def fetch2(self, path, api: Any = 'public', method='GET', params={}, headers: Any = None, body: Any = None, config={}):
         if self.enableRateLimit:
             cost = self.calculate_rate_limiter_cost(api, method, path, params, config)

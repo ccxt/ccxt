@@ -53,6 +53,7 @@ import testTimeframes from './test.timeframes.js';
 import testKeysort from './test.keysort.js';
 import testImplodeParams from './test.implodeParams.js';
 import testUrlencodeNested from './test.urlencodeNested.js';
+import testClone from './test.clone.js';
 import testStringToBase16 from './test.stringToBase16.js';
 import testCapitalize from './test.capitalize.js';
 import testConstants from './test.constants.js';
@@ -88,6 +89,7 @@ async function baseTestsInit() {
     testUrlencode();
     testOmit();
     testGroupBy();
+    testClone();
     testIndexBy();
     testInArray();
     testFilterBy();

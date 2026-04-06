@@ -537,6 +537,18 @@ public partial class blofin
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'swap' or 'spot' (defaults to 'swap'), required to fetch spot trade history
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.instId</term>
+    /// <description>
+    /// string : *spot markets only* the market id of the spot market to fetch the trade history for (e.g. 'BTC-USDT')
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.paginate</term>
     /// <description>
     /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)

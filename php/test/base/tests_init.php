@@ -59,6 +59,7 @@ include_once __DIR__ . '/test_timeframes.php';
 include_once __DIR__ . '/test_keysort.php';
 include_once __DIR__ . '/test_implode_params.php';
 include_once __DIR__ . '/test_urlencode_nested.php';
+include_once __DIR__ . '/test_clone.php';
 include_once __DIR__ . '/test_string_to_base16.php';
 include_once __DIR__ . '/test_capitalize.php';
 include_once __DIR__ . '/test_constants.php';
@@ -96,6 +97,7 @@ function base_tests_init() {
         test_urlencode();
         test_omit();
         test_group_by();
+        test_clone();
         test_index_by();
         test_in_array();
         test_filter_by();

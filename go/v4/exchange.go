@@ -661,11 +661,31 @@ func (this *Exchange) CallDynamically(name2 interface{}, args ...interface{}) <-
 
 // clone creates a deep copy of the input object. It supports arrays, slices, and maps.
 func (this *Exchange) Clone(object interface{}) interface{} {
-	return this.DeepCopy(reflect.ValueOf(object)).Interface()
+	if object == nil {
+		return nil
+	}
+	result := this.DeepCopy(reflect.ValueOf(object))
+	if !result.IsValid() {
+		return nil
+	}
+	return result.Interface()
 }
 
 func (this *Exchange) DeepCopy(value reflect.Value) reflect.Value {
+	if !value.IsValid() {
+		// zero / invalid reflect.Value – preserve as-is (callers use IsValid to detect nil)
+		return value
+	}
 	switch value.Kind() {
+	case reflect.Interface:
+		// unwrap the interface; if it holds nil, return a typed nil of the same interface type
+		if value.IsNil() {
+			return reflect.Zero(value.Type())
+		}
+		inner := this.DeepCopy(value.Elem())
+		result := reflect.New(value.Type()).Elem()
+		result.Set(inner)
+		return result
 	case reflect.Array, reflect.Slice:
 		// Create a new slice/array of the same type and length
 		copy := reflect.MakeSlice(value.Type(), value.Len(), value.Cap())
@@ -677,7 +697,12 @@ func (this *Exchange) DeepCopy(value reflect.Value) reflect.Value {
 		// Create a new map of the same type
 		copy := reflect.MakeMap(value.Type())
 		for _, key := range value.MapKeys() {
-			copy.SetMapIndex(key, this.DeepCopy(value.MapIndex(key)))
+			copiedVal := this.DeepCopy(value.MapIndex(key))
+			if !copiedVal.IsValid() {
+				// nil interface value: store as zero of the map's element type so the key is preserved
+				copiedVal = reflect.Zero(value.Type().Elem())
+			}
+			copy.SetMapIndex(key, copiedVal)
 		}
 		return copy
 	default:

@@ -3828,6 +3828,30 @@ class Exchange extends \ccxt\Exchange {
         return $results;
     }
 
+    public function filter_out_by_array($objects, int|string $key, $values = null, $indexed = true) {
+        $objects = $this->to_array($objects);
+        // return all of them if no $values were passed
+        if ($values === null || !$values) {
+            // return $indexed ? $this->index_by($objects, $key) : $objects;
+            if ($indexed) {
+                return $this->index_by($objects, $key);
+            } else {
+                return $objects;
+            }
+        }
+        $results = array();
+        for ($i = 0; $i < count($objects); $i++) {
+            if (!$this->in_array($objects[$i][$key], $values)) {
+                $results[] = $objects[$i];
+            }
+        }
+        // return $indexed ? $this->index_by($results, $key) : $results;
+        if ($indexed) {
+            return $this->index_by($results, $key);
+        }
+        return $results;
+    }
+
     public function fetch2($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null, $config = array ()) {
         return Async\async(function () use ($path, $api, $method, $params, $headers, $body, $config) {
             if ($this->enableRateLimit) {

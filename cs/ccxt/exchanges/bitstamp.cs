@@ -488,7 +488,6 @@ public partial class bitstamp : Exchange
                     { "Your account is frozen", typeof(PermissionDenied) },
                     { "Please update your profile with your FATCA information, before using API.", typeof(PermissionDenied) },
                     { "Order not found.", typeof(OrderNotFound) },
-                    { "Price is more than 20% below market price.", typeof(InvalidOrder) },
                     { "Bitstamp.net is under scheduled maintenance. We'll be back soon.", typeof(OnMaintenance) },
                     { "Order could not be placed.", typeof(ExchangeNotAvailable) },
                     { "Invalid offset.", typeof(BadRequest) },
@@ -496,6 +495,7 @@ public partial class bitstamp : Exchange
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "Minimum order size is", typeof(InvalidOrder) },
+                    { "Price is more than", typeof(InvalidOrder) },
                     { "Check your account balance for details.", typeof(InsufficientFunds) },
                     { "Ensure this value has at least", typeof(InvalidAddress) },
                     { "Ensure that there are no more than", typeof(InvalidOrder) },
@@ -1140,6 +1140,22 @@ public partial class bitstamp : Exchange
         priceString = this.safeString(trade, priceId, priceString);
         amountString = this.safeString(trade, getValue(market, "baseId"), amountString);
         costString = this.safeString(trade, getValue(market, "quoteId"), costString);
+        // this endpoint is not aligned with "markets" endpoint
+        object baseIdLower = ((string)getValue(market, "baseId")).ToLower();
+        object quoteIdLower = ((string)getValue(market, "quoteId")).ToLower();
+        object dashedIdLower = add(add(baseIdLower, "_"), quoteIdLower);
+        if (isTrue(isEqual(priceString, null)))
+        {
+            priceString = this.safeString(trade, dashedIdLower);
+        }
+        if (isTrue(isEqual(amountString, null)))
+        {
+            amountString = this.safeString(trade, baseIdLower);
+        }
+        if (isTrue(isEqual(costString, null)))
+        {
+            costString = this.safeString(trade, quoteIdLower);
+        }
         symbol = getValue(market, "symbol");
         object datetimeString = this.safeString2(trade, "date", "datetime");
         object timestamp = null;

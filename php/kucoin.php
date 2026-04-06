@@ -888,9 +888,7 @@ class kucoin extends Exchange {
                 'timeDifference' => 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'fetchCurrencies' => array(
-                    'webApiEnable' => true, // fetches from WEB
-                    'webApiRetries' => 1,
-                    'webApiMuteFailure' => true,
+                    'brokenCurrencies' => array( '00', 'OPEN_ERROR', 'HUF', 'BDT' ), // skip buggy entries => https://t.me/KuCoin_API/217798
                 ),
                 'fetchMarkets' => array(
                     'types' => array( 'spot', 'swap', 'future', 'contract' ),
@@ -1093,10 +1091,14 @@ class kucoin extends Exchange {
                     'unified' => 'unified',
                 ),
                 'networks' => array(
+                    'BTC' => 'btc',
                     'BRC20' => 'btc',
                     'BTCNATIVESEGWIT' => 'bech32',
+                    'ETH' => 'eth',
                     'ERC20' => 'eth',
+                    'TRX' => 'trx',
                     'TRC20' => 'trx',
+                    'HECO' => 'heco',
                     'HRC20' => 'heco',
                     'MATIC' => 'matic',
                     'KCC' => 'kcc', // kucoin community chain
@@ -1111,6 +1113,7 @@ class kucoin extends Exchange {
                     'TLOS' => 'tlos', // tlosevm is different
                     'CFX' => 'cfx',
                     'ACA' => 'aca',
+                    'OP' => 'optimism',
                     'OPTIMISM' => 'optimism',
                     'ONT' => 'ont',
                     'GLMR' => 'glmr',
@@ -1300,6 +1303,14 @@ class kucoin extends Exchange {
                     // 'AURORACHAIN' => 'aoa',
                     // 'KLEVER' => 'klv',
                     // undetermined => xns(insolar), rhoc, luk (luniverse), kts (klimatas), bchn (bitcoin cash node), god (shallow entry), lit (litmus),
+                ),
+                'networksById' => array(
+                    'btc' => 'BTC',
+                    'trx' => 'TRC20',
+                    'eth' => 'ERC20',
+                    'heco' => 'HRC20',
+                    'optimism' => 'OP',
+                    'op' => 'OP',
                 ),
                 'marginModes' => array(
                     'cross' => 'MARGIN_TRADE',
@@ -2203,6 +2214,7 @@ class kucoin extends Exchange {
         list($uta, $params) = $this->handle_option_and_params($params, 'fetchCurrencies', 'uta', $uta);
         $response = null;
         if ($uta) {
+            $response = $this->utaGetAssetCurrencies ($params);
             //
             //     {
             //         "code" => "200000",
@@ -2237,7 +2249,6 @@ class kucoin extends Exchange {
             //         )
             //     }
             //
-            $response = $this->utaGetAssetCurrencies ($params);
         } else {
             //
             //    {
@@ -2279,64 +2290,62 @@ class kucoin extends Exchange {
             $response = $this->publicGetCurrencies ($params);
         }
         $currenciesData = $this->safe_list($response, 'data', array());
-        $brokenCurrencies = $this->safe_list($this->options, 'brokenCurrencies', array( '00', 'OPEN_ERROR', 'HUF', 'BDT' ));
-        $result = array();
-        for ($i = 0; $i < count($currenciesData); $i++) {
-            $entry = $currenciesData[$i];
-            $id = $this->safe_string($entry, 'currency');
-            if ($this->in_array($id, $brokenCurrencies)) {
-                continue; // skip buggy entries => https://t.me/KuCoin_API/217798
-            }
-            $code = $this->safe_currency_code($id);
-            $networks = array();
-            $chains = $this->safe_list_2($entry, 'chains', 'items', array());
-            $chainsLength = count($chains);
-            for ($j = 0; $j < $chainsLength; $j++) {
-                $chain = $chains[$j];
-                $chainId = $this->safe_string($chain, 'chainId');
-                $networkCode = $this->network_id_to_code($chainId, $code);
-                $networks[$networkCode] = array(
-                    'info' => $chain,
-                    'id' => $chainId,
-                    'name' => $this->safe_string($chain, 'chainName'),
-                    'code' => $networkCode,
-                    'active' => null,
-                    'fee' => $this->safe_number_2($chain, 'withdrawalMinFee', 'minWithdrawFee'),
-                    'deposit' => $this->safe_bool($chain, 'isDepositEnabled'),
-                    'withdraw' => $this->safe_bool($chain, 'isWithdrawEnabled'),
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'withdrawPrecision'))),
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $this->safe_number_2($chain, 'withdrawalMinSize', 'minWithdrawSize'),
-                            'max' => $this->safe_number_2($chain, 'maxWithdraw', 'maxWithdrawSize'),
-                        ),
-                        'deposit' => array(
-                            'min' => $this->safe_number_2($chain, 'depositMinSize', 'minDepositSize'),
-                            'max' => $this->safe_number_2($chain, 'maxDeposit', 'maxDepositSize'),
-                        ),
-                    ),
-                );
-            }
-            // kucoin has determined 'fiat' currencies with below logic
-            $rawPrecision = $this->safe_string($entry, 'precision');
-            $precision = $this->parse_number($this->parse_precision($rawPrecision));
-            $isFiat = $chainsLength === 0;
-            $result[$code] = $this->safe_currency_structure(array(
-                'id' => $id,
-                'name' => $this->safe_string($entry, 'fullName'),
-                'code' => $code,
-                'type' => $isFiat ? 'fiat' : 'crypto',
-                'precision' => $precision,
-                'info' => $entry,
-                'networks' => $networks,
-                'deposit' => null,
-                'withdraw' => null,
+        $brokenCurrencies = $this->handle_option('fetchCurrencies', 'brokenCurrencies', array());
+        $filteredCurrencies = $this->filter_out_by_array($currenciesData, 'currency', $brokenCurrencies); // remove broken entries
+        return $this->parse_currencies($filteredCurrencies);
+    }
+
+    public function parse_currency(array $currency): array {
+        $entry = $currency;
+        $id = $this->safe_string($entry, 'currency');
+        $code = $this->safe_currency_code($id);
+        $networks = array();
+        $chains = $this->safe_list_2($entry, 'chains', 'items', array());
+        $chainsLength = count($chains);
+        for ($j = 0; $j < $chainsLength; $j++) {
+            $chain = $chains[$j];
+            $chainId = $this->safe_string($chain, 'chainId');
+            $networkCode = $this->network_id_to_code($chainId, $code);
+            $networks[$networkCode] = array(
+                'info' => $chain,
+                'id' => $chainId,
+                'name' => $this->safe_string($chain, 'chainName'),
+                'code' => $networkCode,
                 'active' => null,
-                'fee' => null,
-                'limits' => null,
-            ));
+                'fee' => $this->safe_number_2($chain, 'withdrawalMinFee', 'minWithdrawFee'),
+                'deposit' => $this->safe_bool($chain, 'isDepositEnabled'),
+                'withdraw' => $this->safe_bool($chain, 'isWithdrawEnabled'),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'withdrawPrecision'))),
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number_2($chain, 'withdrawalMinSize', 'minWithdrawSize'),
+                        'max' => $this->safe_number_2($chain, 'maxWithdraw', 'maxWithdrawSize'),
+                    ),
+                    'deposit' => array(
+                        'min' => $this->safe_number_2($chain, 'depositMinSize', 'minDepositSize'),
+                        'max' => $this->safe_number_2($chain, 'maxDeposit', 'maxDepositSize'),
+                    ),
+                ),
+            );
         }
-        return $result;
+        // kucoin has determined 'fiat' currencies with below logic
+        $rawPrecision = $this->safe_string($entry, 'precision');
+        $precision = $this->parse_number($this->parse_precision($rawPrecision));
+        $isFiat = $chainsLength === 0;
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'name' => $this->safe_string($entry, 'fullName'),
+            'code' => $code,
+            'type' => $isFiat ? 'fiat' : 'crypto',
+            'precision' => $precision,
+            'info' => $entry,
+            'networks' => $networks,
+            'deposit' => null,
+            'withdraw' => null,
+            'active' => null,
+            'fee' => null,
+            'limits' => null,
+        ));
     }
 
     public function fetch_accounts($params = array ()): array {
@@ -2435,7 +2444,7 @@ class kucoin extends Exchange {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
-            $request['chain'] = strtolower($this->network_code_to_id($networkCode));
+            $request['chain'] = strtolower($this->network_code_to_id($networkCode, $currency['code']));
         }
         $response = $this->privateGetWithdrawalsQuotas ($this->extend($request, $params));
         $data = $this->safe_dict($response, 'data', array());
@@ -2467,7 +2476,7 @@ class kucoin extends Exchange {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
-            $request['chain'] = strtolower($this->network_code_to_id($networkCode));
+            $request['chain'] = strtolower($this->network_code_to_id($networkCode, $currency['code']));
         }
         $response = $this->privateGetWithdrawalsQuotas ($this->extend($request, $params));
         //
@@ -2525,7 +2534,8 @@ class kucoin extends Exchange {
             $chains = $this->safe_list($fee, 'chains', array());
             for ($i = 0; $i < count($chains); $i++) {
                 $chain = $chains[$i];
-                $networkCodeNew = $this->network_id_to_code($this->safe_string($chain, 'chainId'), $this->safe_string($currency, 'code'));
+                $chainId = $this->safe_string($chain, 'chainId');
+                $networkCodeNew = $this->network_id_to_code($chainId, $this->safe_string($currency, 'code'));
                 $resultNew['networks'][$networkCodeNew] = array(
                     'withdraw' => array(
                         'fee' => $this->safe_number_2($chain, 'withdrawalMinFee', 'withdrawMinFee'),
@@ -2553,7 +2563,9 @@ class kucoin extends Exchange {
             'networks' => array(),
         );
         $networkId = $this->safe_string($fee, 'chain');
-        $networkCode = $this->network_id_to_code($networkId, $this->safe_string($currency, 'code'));
+        $currencyId = $this->safe_string($fee, 'currency');
+        $currency = $this->safe_currency($currencyId, $currency);
+        $networkCode = $this->network_id_to_code($networkId, $currency['code']);
         $result['networks'][$networkCode] = array(
             'withdraw' => $minWithdrawFee,
             'deposit' => array(
@@ -3437,7 +3449,7 @@ class kucoin extends Exchange {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
-            $request['chain'] = $this->network_code_to_id($networkCode); // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
+            $request['chain'] = $this->network_code_to_id($networkCode, $currency['code']); // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
         }
         $response = $this->privatePostDepositAddressCreate ($this->extend($request, $params));
         // array("code":"260000","msg":"Deposit address already exists.")
@@ -3495,7 +3507,7 @@ class kucoin extends Exchange {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
-            $request['chain'] = strtolower($this->network_code_to_id($networkCode));
+            $request['chain'] = strtolower($this->network_code_to_id($networkCode, $currency['code']));
         }
         $version = $this->options['versions']['private']['GET']['deposit-addresses'];
         $this->options['versions']['private']['GET']['deposit-addresses'] = 'v1';
@@ -3565,10 +3577,11 @@ class kucoin extends Exchange {
                 $this->check_address($address);
             }
         }
+        $chainId = $this->safe_string($depositAddress, 'chainId');
         return array(
             'info' => $depositAddress,
             'currency' => $code,
-            'network' => $this->network_id_to_code($this->safe_string($depositAddress, 'chainId')),
+            'network' => $this->network_id_to_code($chainId, $code),
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'memo'),
         );
@@ -7348,7 +7361,7 @@ class kucoin extends Exchange {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
-            $request['chain'] = strtolower($this->network_code_to_id($networkCode));
+            $request['chain'] = strtolower($this->network_code_to_id($networkCode, $currency['code']));
         }
         $request['amount'] = floatval($this->currency_to_precision($code, $amount, $networkCode));
         $includeFee = null;
@@ -7471,12 +7484,13 @@ class kucoin extends Exchange {
         }
         $internal = $this->safe_bool($transaction, 'isInner');
         $tag = $this->safe_string($transaction, 'memo');
+        $chainId = $this->safe_string($transaction, 'chain');
         return array(
             'info' => $transaction,
             'id' => $this->safe_string_2($transaction, 'id', 'withdrawalId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $this->network_id_to_code($this->safe_string($transaction, 'chain')),
+            'network' => $this->network_id_to_code($chainId, $code),
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,
