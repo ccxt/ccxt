@@ -1527,7 +1527,7 @@ export default class bitbaby extends Exchange {
         if ((stopLossPrice !== undefined) || (takeProfitPrice !== undefined)) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() does not support stopLossPrice or takeProfitPrice parameters');
         }
-        return await super.createMarketBuyOrderWithCost (symbol, cost, params);
+        return await this.createOrder (symbol, 'market', 'buy', cost, 1, this.extend ({ 'cost': cost }, params));
     }
 
     async createMarketSellOrderWithCost (symbol: string, cost: number, params = {}): Promise<Order> {
@@ -1545,7 +1545,7 @@ export default class bitbaby extends Exchange {
         if ((stopLossPrice !== undefined) || (takeProfitPrice !== undefined)) {
             throw new NotSupported (this.id + ' createMarketSellOrderWithCost() does not support stopLossPrice or takeProfitPrice parameters');
         }
-        return await super.createMarketSellOrderWithCost (symbol, cost, params);
+        return await this.createOrder (symbol, 'market', 'sell', cost, 1, this.extend ({ 'cost': cost }, params));
     }
 
     async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params = {}) {
@@ -1563,7 +1563,7 @@ export default class bitbaby extends Exchange {
         if ((stopLossPrice !== undefined) || (takeProfitPrice !== undefined)) {
             throw new NotSupported (this.id + ' createMarketOrderWithCost() does not support stopLossPrice or takeProfitPrice parameters');
         }
-        return await super.createMarketOrderWithCost (symbol, side, cost, params);
+        return await this.createOrder (symbol, 'market', side, cost, 1, this.extend ({ 'cost': cost }, params));
     }
 
     /**
@@ -1662,8 +1662,8 @@ export default class bitbaby extends Exchange {
         const marketId = market['id'];
         const isContract = market['contract'];
         const request: Dict = {};
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'newClientOrderId');
-        params = this.omit (params, [ 'clientOrderId', 'newClientOrderId' ]);
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        params = this.omit (params, [ 'clientOrderId' ]);
         if (clientOrderId === undefined) {
             if (id === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOrder() requires an id argument or a clientOrderId in params');
@@ -1673,7 +1673,7 @@ export default class bitbaby extends Exchange {
         } else if (isContract) {
             request['clientOrderId'] = clientOrderId;
         } else {
-            request['newClientOrderId'] = clientOrderId; // todo check fetching by clientOrderId
+            request['newClientOrderId'] = clientOrderId;
         }
         let response = undefined;
         if (isContract) {
