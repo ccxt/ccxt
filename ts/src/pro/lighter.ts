@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Precise from '../base/Precise.js';
-import type { Dict, Int, Liquidation, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, Liquidation, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import lighterRest from '../lighter.js';
@@ -22,7 +22,7 @@ export default class lighter extends lighterRest {
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchOrderBookForSymbols': false,
-                'watchBalance': false,
+                'watchBalance': true,
                 'watchLiquidations': true,
                 'watchLiquidationsForSymbols': false,
                 'watchMyLiquidations': false,
@@ -101,6 +101,11 @@ export default class lighter extends lighterRest {
             'params': params,
         };
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+    }
+
+    async subscribePrivate (messageHash, params = {}) {
+        params['auth'] = this.createAuth (params);
+        return await this.subscribePublic (messageHash, params);
     }
 
     handleDelta (bookside, delta) {
@@ -847,6 +852,123 @@ export default class lighter extends lighterRest {
         return await this.subscribePublic (messageHash, this.extend (request, params));
     }
 
+    /**
+     * @method
+     * @name lighter#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-assets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', default is 'spot'
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    async watchBalance (params = {}): Promise<Balances> {
+        await this.loadMarkets ();
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params, 'spot');
+        let accountIndex = undefined;
+        [ accountIndex, params ] = await this.handleAccountIndex (params, 'watchBalance', 'accountIndex', 'account_index');
+        const messageHash = this.getMessageHash ('balances');
+        const request = {};
+        if (type === 'spot') {
+            request['channel'] = 'account_all_assets/' + this.numberToString (accountIndex);
+            return await this.subscribePrivate (messageHash, this.extend (request, params));
+        } else {
+            request['channel'] = 'user_stats/' + this.numberToString (accountIndex);
+            return await this.subscribePublic (messageHash, this.extend (request, params));
+        }
+    }
+
+    handleBalance (client: Client, message) {
+        //
+        //    spot balance
+        //    {
+        //        "assets": {
+        //              "1": {
+        //                    "symbol": "ETH",
+        //                    "asset_id": 1,
+        //                    "balance": "7.1072",
+        //                    "locked_balance": "0.0000"
+        //              },
+        //              "3": {
+        //                    "symbol": "USDC",
+        //                    "asset_id": 3,
+        //                    "balance": "6343.581906",
+        //                    "locked_balance": "297.000000"
+        //              }
+        //        },
+        //        "channel": "account_all_assets:1234",
+        //        "timestamp": 1773158679717,
+        //        "type": "update/account_all_assets"
+        //    }
+        //
+        //    swap balance
+        //    {
+        //        "channel": "user_stats:10",
+        //        "stats": {
+        //            "collateral": "5000.00",
+        //            "portfolio_value": "15000.00",
+        //            "leverage": "3.0",
+        //            "available_balance": "2000.00",
+        //            "margin_usage": "0.80",
+        //            "buying_power": "4000.00",
+        //            "account_trading_mode": 1,
+        //            "cross_stats":{
+        //               "collateral":"0.000000",
+        //               "portfolio_value":"0.000000",
+        //               "leverage":"0.00",
+        //               "available_balance":"0.000000",
+        //               "margin_usage":"0.00",
+        //               "buying_power":"0"
+        //            },
+        //            "total_stats":{
+        //               "collateral":"0.000000",
+        //               "portfolio_value":"0.000000",
+        //               "leverage":"0.00",
+        //               "available_balance":"0.000000",
+        //               "margin_usage":"0.00",
+        //               "buying_power":"0"
+        //            }
+        //        },
+        //        "timestamp": 1773158679717,
+        //        "type": "update/user_stats"
+        //    }
+        //
+        const channel = this.safeString (message, 'channel', '');
+        let type = 'spot';
+        if (channel.indexOf ('user_stats:') >= 0) {
+            type = 'swap';
+        }
+        const balance = this.safeDict (this.balance, type, {});
+        if (type === 'spot') {
+            const assets = this.safeDict (message, 'assets', {});
+            const assetIds = Object.keys (assets);
+            for (let i = 0; i < assetIds.length; i++) {
+                const assetId = assetIds[i];
+                const asset = assets[assetId];
+                const codeId = this.safeString (asset, 'symbol');
+                const code = this.safeCurrencyCode (codeId);
+                const account = this.account ();
+                account['used'] = this.safeString (asset, 'locked_balance');
+                account['total'] = this.safeString (asset, 'balance');
+                balance[code] = account;
+            }
+        } else {
+            const stats = this.safeDict (message, 'stats', {});
+            const account = this.account ();
+            account['free'] = this.safeString (stats, 'available_balance');
+            account['total'] = this.safeString (stats, 'collateral');
+            account['info'] = stats;
+            balance['USDC'] = account;
+        }
+        const timestamp = this.safeInteger (message, 'timestamp');
+        balance['timestamp'] = timestamp;
+        balance['datetime'] = this.iso8601 (timestamp);
+        this.balance[type] = this.safeBalance (balance);
+        const messageHash = this.getMessageHash ('balances');
+        client.resolve (this.balance[type], messageHash);
+        return true;
+    }
+
     handleErrorMessage (client, message) {
         //
         //     {
@@ -895,6 +1017,14 @@ export default class lighter extends lighterRest {
         }
         if (channel.indexOf ('account_all_trades:') >= 0) {
             this.handleMyTrades (client, message);
+            return;
+        }
+        if (channel.indexOf ('account_all_assets:') >= 0) {
+            this.handleBalance (client, message);
+            return;
+        }
+        if (channel.indexOf ('user_stats:') >= 0) {
+            this.handleBalance (client, message);
             return;
         }
         if (channel === '') {
