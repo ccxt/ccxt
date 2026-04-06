@@ -164,6 +164,10 @@ func (e *Exchange) StringToBinary(buff string) []byte {
 	return []byte(buff)
 }
 
+func (e *Exchange) BinaryToString(buff []byte) string {
+	return string(buff)
+}
+
 func (e *Exchange) Encode(data interface{}) string {
 	return data.(string) // stub
 }

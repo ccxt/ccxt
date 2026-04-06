@@ -239,6 +239,11 @@ public partial class Exchange
         return Encoding.UTF8.GetBytes(buff);
     }
 
+    public static string BinaryToString(byte[] buff)
+    {
+        return Encoding.UTF8.GetString(buff);
+    }
+
     public string encode(object data)
     {
         return (string)data; // stub for python

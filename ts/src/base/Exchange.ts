@@ -868,6 +868,15 @@ export default class Exchange {
     isBinaryMessage (msg) {
         return msg instanceof Uint8Array || msg instanceof ArrayBuffer;
     }
+    
+    stringToBinary (content) {
+        // same as: this.base64ToBinary (this.stringToBase64 (str));
+        return this.encode (content);
+    }
+
+    binaryToString (binary) {
+        return this.decode (binary);
+    }
 
     decodeProtoMsg (data) {
         if (!protobufMexc) {
@@ -7313,15 +7322,6 @@ export default class Exchange {
             return this.numberToString (value);
         }
         return value;
-    }
-
-    stringToBinary (content) {
-        // same as: this.base64ToBinary (this.stringToBase64 (str));
-        return this.encode (content);
-    }
-
-    binaryToString (binary) {
-        return this.decode (binary);
     }
 
     isTickPrecision () {
