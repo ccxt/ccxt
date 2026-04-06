@@ -7,6 +7,13 @@
     "methods": {
         "fetchMarkets": [
             {
+                "description": "default",
+                "method": "fetchMarkets",
+                "url": "https://api-pub.bitfinex.com/v2/conf/pub:info:pair,pub:info:pair:futures,pub:list:pair:securities,pub:list:pair:margin",
+                "input": [],
+                "output": null
+            },
+            {
                 "disabledGO": true,
                 "description": "default",
                 "method": "fetchMarkets",
