@@ -633,9 +633,6 @@ export default class bitfinex extends Exchange {
             if (id.indexOf ('F0') >= 0) {
                 spot = false;
                 type = 'swap';
-            } else if (this.inArray (id, securitiesMarketsIds)) {
-                spot = false;
-                type = 'other';
             } else {
                 type = 'spot';
             }
@@ -679,12 +676,13 @@ export default class bitfinex extends Exchange {
                 'settleId': settleId,
                 'type': type,
                 'spot': spot,
+                'tradfi': this.inArray (id, securitiesMarketsIds),
                 'margin': (spot && this.inArray (id, marginIds)),
                 'swap': swap,
                 'future': false,
                 'option': false,
                 'active': true,
-                'contract': swap,
+                'contract': !spot,
                 'linear': swap ? true : undefined,
                 'inverse': swap ? false : undefined,
                 'contractSize': swap ? this.parseNumber ('1') : undefined,
