@@ -625,9 +625,9 @@ export default class bitfinex extends Exchange {
         const markets = this.arrayConcat (spotMarketsInfo, futuresMarketsInfo);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const pair = markets[i];
-            const id = this.safeStringUpper (pair, 0);
-            const market = this.safeValue (pair, 1, {});
+            const pairObj = markets[i];
+            const id = this.safeStringUpper (pairObj, 0);
+            const market = this.safeValue (pairObj, 1, {});
             let spot = true;
             let type: Str = undefined;
             if (id.indexOf ('F0') >= 0) {
@@ -668,10 +668,6 @@ export default class bitfinex extends Exchange {
             }
             const minOrderSizeString = this.safeString (market, 3);
             const maxOrderSizeString = this.safeString (market, 4);
-            let margin = false;
-            if (spot && this.inArray (id, marginIds)) {
-                margin = true;
-            }
             result.push ({
                 'id': 't' + id,
                 'symbol': symbol,
@@ -683,7 +679,7 @@ export default class bitfinex extends Exchange {
                 'settleId': settleId,
                 'type': type,
                 'spot': spot,
-                'margin': margin,
+                'margin': (spot && this.inArray (id, marginIds)),
                 'swap': swap,
                 'future': false,
                 'option': false,
