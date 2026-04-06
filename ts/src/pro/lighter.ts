@@ -846,7 +846,7 @@ export default class lighter extends lighterRest {
         const error = this.safeDict (message, 'error');
         try {
             if (error !== undefined) {
-                const code = this.safeString (message, 'code');
+                const code = this.safeString (error, 'code');
                 if (code !== undefined) {
                     const feedback = this.id + ' ' + this.json (message);
                     this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);

@@ -1079,7 +1079,6 @@ class okx extends Exchange {
                 ),
                 'networks' => array(
                     'BTC' => 'Bitcoin',
-                    'BTCLN' => 'Lightning',
                     'BTCLIGHTNING' => 'Lightning',
                     'BSC' => 'BSC',
                     'BEP20' => 'BSC',

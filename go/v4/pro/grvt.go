@@ -692,7 +692,7 @@ func  (this *GrvtCore) WatchOrderBookForSymbols(symbols interface{}, optionalArg
                 var symbol interface{} = ccxt.GetValue(symbols, i)
                 var market interface{} = this.Market(symbol)
                 var marketId interface{} = ccxt.GetValue(market, "id")
-                ccxt.AppendToArray(&rawHashes, ccxt.Add(ccxt.Add(marketId, "@"), extraPart))
+                ccxt.AppendToArray(&rawHashes, ccxt.Add(ccxt.Add(marketId, "@"), ccxt.ToString(extraPart)))
                 ccxt.AppendToArray(&messageHashes, ccxt.Add("orderbook::", ccxt.GetValue(market, "symbol")))
             }
             var request interface{} = map[string]interface{} {

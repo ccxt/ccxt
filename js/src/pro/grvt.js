@@ -515,7 +515,7 @@ export default class grvt extends grvtRest {
             const symbol = symbols[i];
             const market = this.market(symbol);
             const marketId = market['id'];
-            rawHashes.push(marketId + '@' + extraPart);
+            rawHashes.push(marketId + '@' + extraPart.toString());
             messageHashes.push('orderbook::' + market['symbol']);
         }
         const request = {

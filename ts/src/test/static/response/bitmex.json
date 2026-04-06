@@ -944,6 +944,88 @@
                 ]
               }
         ],
+        "closePosition":[
+            {
+                "description": "linear swap sell closePosition",
+                "method": "closePosition",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "sell"
+                ],
+                "httpResponse": {
+                    "account": "395724",
+                    "avgPx": "66358.8",
+                    "cumQty": "200",
+                    "currency": "USDT",
+                    "execInst": "Close",
+                    "leavesQty": "0",
+                    "ordStatus": "Filled",
+                    "ordType": "Market",
+                    "orderID": "4e1ef998-33c1-4736-b58b-9d8b4d085c49",
+                    "orderQty": "200",
+                    "pool": "Primary",
+                    "settlCurrency": "USDt",
+                    "side": "Sell",
+                    "strategy": "OneWay",
+                    "symbol": "XBTUSDT",
+                    "text": "Submitted via API.",
+                    "timeInForce": "ImmediateOrCancel",
+                    "timestamp": "2026-04-02T05:20:26.607Z",
+                    "transactTime": "2026-04-02T05:20:26.606Z",
+                    "workingIndicator": false
+                },
+                "parsedResponse": {
+                    "info": {
+                        "account": "395724",
+                        "avgPx": "66358.8",
+                        "cumQty": "200",
+                        "currency": "USDT",
+                        "execInst": "Close",
+                        "leavesQty": "0",
+                        "ordStatus": "Filled",
+                        "ordType": "Market",
+                        "orderID": "4e1ef998-33c1-4736-b58b-9d8b4d085c49",
+                        "orderQty": "200",
+                        "pool": "Primary",
+                        "settlCurrency": "USDt",
+                        "side": "Sell",
+                        "strategy": "OneWay",
+                        "symbol": "XBTUSDT",
+                        "text": "Submitted via API.",
+                        "timeInForce": "ImmediateOrCancel",
+                        "timestamp": "2026-04-02T05:20:26.607Z",
+                        "transactTime": "2026-04-02T05:20:26.606Z",
+                        "workingIndicator": false
+                    },
+                    "id": "4e1ef998-33c1-4736-b58b-9d8b4d085c49",
+                    "clientOrderId": null,
+                    "timestamp": 1775107226607,
+                    "datetime": "2026-04-02T05:20:26.607Z",
+                    "lastTradeTimestamp": 1775107226606,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": false,
+                    "reduceOnly": true,
+                    "side": "sell",
+                    "price": 66358.8,
+                    "triggerPrice": null,
+                    "amount": 200,
+                    "cost": 13.27176,
+                    "average": 66358.8,
+                    "filled": 200,
+                    "remaining": 0,
+                    "status": "closed",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
         "fetchPositionADLRank":[
             {
                 "description": "linear swap fetch position ADL rank",

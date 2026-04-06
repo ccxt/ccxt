@@ -1097,7 +1097,6 @@ class okx(Exchange, ImplicitAPI):
                 },
                 'networks': {
                     'BTC': 'Bitcoin',
-                    'BTCLN': 'Lightning',
                     'BTCLIGHTNING': 'Lightning',
                     'BSC': 'BSC',
                     'BEP20': 'BSC',

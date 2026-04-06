@@ -553,7 +553,7 @@ class grvt extends \ccxt\async\grvt {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
                 $marketId = $market['id'];
-                $rawHashes[] = $marketId . '@' . $extraPart;
+                $rawHashes[] = $marketId . '@' . (string) $extraPart;
                 $messageHashes[] = 'orderbook::' . $market['symbol'];
             }
             $request = array(

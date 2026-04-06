@@ -877,29 +877,25 @@ class bitfinex(Exchange, ImplicitAPI):
             pool = self.safe_list(indexed['pool'], id, [])
             rawType = self.safe_string(pool, 1)
             isCryptoCoin = (rawType is not None) or (id in indexed['explorer'])  # "hacky" solution
-            type = None
-            if isCryptoCoin:
-                type = 'crypto'
+            type = 'crypto' if isCryptoCoin else None
             feeValues = self.safe_list(indexed['fees'], id, [])
             fees = self.safe_list(feeValues, 1, [])
             fee = self.safe_number(fees, 1)
             undl = self.safe_list(indexed['undl'], id, [])
             precision = '8'  # default precision, todo: fix "magic constants"
-            dwStatuses = self.safe_list(indexed['statuses'], id, [])
-            depositEnabled = self.safe_integer(dwStatuses, 1) == 1
-            withdrawEnabled = self.safe_integer(dwStatuses, 2) == 1
             networks: dict = {}
             netwokIds = self.safe_list(indexedNetworks, id, [])
             for j in range(0, len(netwokIds)):
                 networkId = netwokIds[j]
                 network = self.network_id_to_code(networkId)
+                dwStatuses = self.safe_list(indexed['statuses'], networkId, [])
                 networks[network] = {
                     'info': networkId,
                     'id': networkId.lower(),
                     'network': networkId,
                     'active': None,
-                    'deposit': None,
-                    'withdraw': None,
+                    'deposit': self.safe_integer(dwStatuses, 1) == 1,
+                    'withdraw': self.safe_integer(dwStatuses, 2) == 1,
                     'fee': None,
                     'precision': None,
                     'limits': {
@@ -916,8 +912,8 @@ class bitfinex(Exchange, ImplicitAPI):
                 'type': type,
                 'name': name,
                 'active': True,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
+                'deposit': None,
+                'withdraw': None,
                 'fee': fee,
                 'precision': int(precision),
                 'limits': {

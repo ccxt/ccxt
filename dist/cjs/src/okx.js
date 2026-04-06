@@ -1073,7 +1073,6 @@ class okx extends okx$1["default"] {
                 },
                 'networks': {
                     'BTC': 'Bitcoin',
-                    'BTCLN': 'Lightning',
                     'BTCLIGHTNING': 'Lightning',
                     'BSC': 'BSC',
                     'BEP20': 'BSC',
