@@ -858,13 +858,13 @@ export default class lighter extends lighterRest {
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-assets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'spot' or 'swap', default is 'spot'
+     * @param {string} [params.type] 'spot' or 'swap', default is 'swap'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params, 'spot');
+        const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
         let accountIndex = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'watchBalance', 'accountIndex', 'account_index');
         const messageHash = this.getMessageHash ('balances');
