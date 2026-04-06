@@ -868,7 +868,7 @@ export default class lighter extends lighterRest {
         [ type, params ] = this.handleParamString (params, 'type', defaultType);
         let accountIndex = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'watchBalance', 'accountIndex', 'account_index');
-        const messageHash = this.getMessageHash ('balances');
+        const messageHash = this.getMessageHash ('balances', undefined, type);
         const request = {};
         if (type === 'spot') {
             request['channel'] = 'account_all_assets/' + this.numberToString (accountIndex);
@@ -965,7 +965,7 @@ export default class lighter extends lighterRest {
         balance['timestamp'] = timestamp;
         balance['datetime'] = this.iso8601 (timestamp);
         this.balance[type] = this.safeBalance (balance);
-        const messageHash = this.getMessageHash ('balances');
+        const messageHash = this.getMessageHash ('balances', undefined, type);
         client.resolve (this.balance[type], messageHash);
         return true;
     }
