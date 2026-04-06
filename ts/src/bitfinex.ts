@@ -635,7 +635,7 @@ export default class bitfinex extends Exchange {
                 type = 'swap';
             } else if (this.inArray (id, securitiesMarketsIds)) {
                 spot = false;
-                type = 'stock';
+                type = 'other';
             } else {
                 type = 'spot';
             }
