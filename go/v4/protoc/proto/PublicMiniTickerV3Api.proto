@@ -1,0 +1,21 @@
+syntax = "proto3";
+option java_package = "com.mxc.push.common.protobuf";
+option java_outer_classname = "PublicMiniTickerV3ApiProto";
+option java_multiple_files = true;
+option java_generate_equals_and_hash = true;
+option go_package = "github.com/mtan11/ccxt/go/v4/protoc";
+
+message PublicMiniTickerV3Api {
+  string symbol = 1;
+  string price = 2;
+  string rate = 3;
+  string zonedRate = 4;
+  string high = 5;
+  string low = 6;
+  string volume = 7;
+  string quantity = 8;
+  string lastCloseRate = 9;
+  string lastCloseZonedRate = 10;
+  string lastCloseHigh = 11;
+  string lastCloseLow = 12;
+}

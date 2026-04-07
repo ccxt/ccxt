@@ -1,0 +1,35 @@
+syntax = "proto3";
+option java_package = "com.mxc.push.common.protobuf";
+option java_outer_classname = "PrivateOrdersV3ApiProto";
+option java_multiple_files = true;
+option java_generate_equals_and_hash = true;
+option go_package = "github.com/mtan11/ccxt/go/v4/protoc";
+
+message PrivateOrdersV3Api {
+  string id = 1;
+  string clientId = 2;
+  string price = 3;
+  string quantity = 4;
+  string amount = 5;
+  string avgPrice = 6;
+  int32 orderType = 7;
+  int32 tradeType = 8;
+  bool isMaker = 9;
+  string remainAmount = 10;
+  string remainQuantity = 11;
+  optional string lastDealQuantity = 12;
+  string cumulativeQuantity = 13;
+  string cumulativeAmount = 14;
+  int32 status = 15;
+  int64 createTime = 16;
+  optional string market = 17;
+  optional int32 triggerType = 18;
+  optional string triggerPrice = 19;
+  optional int32 state = 20;
+  optional string ocoId = 21;
+  optional string routeFactor = 22;
+  optional string symbolId = 23;
+  optional string marketId = 24;
+  optional string marketCurrencyId = 25;
+  optional string currencyId = 26;
+}

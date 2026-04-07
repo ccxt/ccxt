@@ -1,0 +1,11 @@
+syntax = "proto3";
+option java_package = "com.mxc.push.common.protobuf";
+option java_outer_classname = "PublicBookTickerBatchV3ApiProto";
+option java_multiple_files = true;
+option java_generate_equals_and_hash = true;
+option go_package = "github.com/mtan11/ccxt/go/v4/protoc";
+import "PublicBookTickerV3Api.proto";
+
+message PublicBookTickerBatchV3Api {
+  repeated PublicBookTickerV3Api items = 1;
+}

@@ -1,0 +1,21 @@
+syntax = "proto3";
+option java_package = "com.mxc.push.common.protobuf";
+option java_outer_classname = "PrivateDealsV3ApiProto";
+option java_multiple_files = true;
+option java_generate_equals_and_hash = true;
+option go_package = "github.com/mtan11/ccxt/go/v4/protoc";
+
+message PrivateDealsV3Api {
+  string price = 1;
+  string quantity = 2;
+  string amount = 3;
+  int32 tradeType = 4;
+  bool isMaker = 5;
+  bool isSelfTrade = 6;
+  string tradeId = 7;
+  string clientOrderId = 8;
+  string orderId = 9;
+  string feeAmount = 10;
+  string feeCurrency = 11;
+  int64 time = 12;
+}

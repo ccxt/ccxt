@@ -1,0 +1,12 @@
+syntax = "proto3";
+option java_package = "com.mxc.push.common.protobuf";
+option java_outer_classname = "PublicIncreaseDepthsBatchV3ApiProto";
+option java_multiple_files = true;
+option java_generate_equals_and_hash = true;
+option go_package = "github.com/mtan11/ccxt/go/v4/protoc";
+import "PublicIncreaseDepthsV3Api.proto";
+
+message PublicIncreaseDepthsBatchV3Api {
+  repeated PublicIncreaseDepthsV3Api items = 1;
+  string eventType = 2;
+}

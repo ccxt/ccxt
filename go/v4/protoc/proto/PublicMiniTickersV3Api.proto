@@ -1,0 +1,11 @@
+syntax = "proto3";
+option java_package = "com.mxc.push.common.protobuf";
+option java_outer_classname = "PublicMiniTickersV3ApiProto";
+option java_multiple_files = true;
+option java_generate_equals_and_hash = true;
+option go_package = "github.com/mtan11/ccxt/go/v4/protoc";
+import "PublicMiniTickerV3Api.proto";
+
+message PublicMiniTickersV3Api {
+  repeated PublicMiniTickerV3Api items = 1;
+}
