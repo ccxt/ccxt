@@ -6,6 +6,26 @@
     ],
     "options": {},
     "methods": {
+        "fetchFundingRates": [
+            {
+                "description": "fetch funding rates",
+                "method": "fetchFundingRates",
+                "url": "https://api-contract.weex.com/capi/v3/market/premiumIndex",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetch funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://api-contract.weex.com/capi/v3/market/premiumIndex?symbol=ETHUSDT",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "fetchOpenInterest": [
             {
                 "description": "fetch open interest",
