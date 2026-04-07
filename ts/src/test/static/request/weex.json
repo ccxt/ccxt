@@ -3,6 +3,27 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchBidsAsks": [
+            {
+                "description": "fetch swap bids asks",
+                "method": "fetchBidsAsks",
+                "url": "https://api-contract.weex.com/capi/v3/market/ticker/bookTicker",
+                "input": [
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch spot bids asks",
+                "method": "fetchBidsAsks",
+                "url": "https://api-spot.weex.com/api/v3/market/ticker/bookTicker",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchTickers": [
             {
                 "description": "fetch swap tickers",
