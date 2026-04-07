@@ -345,7 +345,11 @@ export default class lighter extends lighterRest {
             'channel': 'market_stats/all',
         };
         const messageHashes = [];
-        if (symbols === undefined || symbols.length === 0) {
+        let symbolsLength = 0;
+        if (symbols !== undefined) {
+            symbolsLength = symbols.length;
+        }
+        if (symbolsLength === 0) {
             messageHashes.push (this.getMessageHash ('ticker'));
         } else {
             for (let i = 0; i < symbols.length; i++) {
