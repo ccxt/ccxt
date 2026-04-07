@@ -2278,8 +2278,16 @@
             "fetchCurrencies": {
                 "precision": "not provided if currency has no networks"
             },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo",
+                "maxIncrease": "change should be above -price is failing"
+            },
             "ticker": {
-                "compareOHLC": "open could be lower than low"
+                "compareOHLC": "open could be lower than low",
+                "spread": "messed bid-ask"
+            },
+            "fetchOrderBook": {
+                "timestamp": "not provided"
             }
         }
     }
