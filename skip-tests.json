@@ -2274,6 +2274,9 @@
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "i.e. weex does not have currency code AXL"
+            },
+            "fetchCurrencies": {
+                "precision": "not provided if currency has no networks"
             }
         }
     }
