@@ -1,6 +1,9 @@
 {
     "exchange": "weex",
-    "skipKeys": [],
+    "skipKeys": [
+        "startTime",
+        "endTime"
+    ],
     "options": {},
     "methods": {
         "fetchMarkOHLCV": [
