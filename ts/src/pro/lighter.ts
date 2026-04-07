@@ -702,7 +702,7 @@ export default class lighter extends lighterRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
-        let accountIndex;
+        let accountIndex = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'unWatchMyTrades', 'accountIndex', 'account_index');
         let messageHash = this.getMessageHash ('unsubscribe', 'myTrades');
         if (symbol !== undefined) {
