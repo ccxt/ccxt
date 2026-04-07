@@ -10,9 +10,9 @@ function helperTestInitThrottler () {
     });
     // todo: assert (exchange.MAX_VALUE !== undefined);
 
-    const tokenBucket = exchange.getProp ('tokenBucket'); // trick for uncamelcase transpilation
+    const tokenBucket = testSharedMethods.exchangeProp (exchange, 'tokenBucket'); // trick for uncamelcase transpilation
     assert (tokenBucket !== undefined);
-    const rateLimit = exchange.getProp ('rateLimit');
+    const rateLimit = testSharedMethods.exchangeProp (exchange, 'rateLimit');
     assert (rateLimit === 10.8);
     assert (tokenBucket['delay'] === 0.001);
     assert (tokenBucket['refillRate'] === 1 / rateLimit);
@@ -29,7 +29,7 @@ function helperTestInitThrottler () {
 function helperTestSandboxState (exchange, shouldBeEnabled = true) {
     assert (exchange.urls !== undefined);
     assert ('test' in exchange.urls);
-    const isSandboxModeEnabled = exchange.getProp ('isSandboxModeEnabled');
+    const isSandboxModeEnabled = testSharedMethods.exchangeProp (exchange, 'isSandboxModeEnabled');
     if (shouldBeEnabled) {
         assert (isSandboxModeEnabled);
         assert (exchange.urls['api']['public'] === 'https://example.org');
