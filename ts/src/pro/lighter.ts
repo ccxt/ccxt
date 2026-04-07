@@ -933,7 +933,8 @@ export default class lighter extends lighterRest {
         //
         const data = this.safeDict (message, 'orders', {});
         const marketIds = Object.keys (data);
-        if (data.length === 0) {
+        const idsLength = marketIds.length;
+        if (idsLength === 0) {
             return false; // nothing to process
         }
         if (this.orders === undefined) {
