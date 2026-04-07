@@ -6,7 +6,7 @@ import { ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Currencies, Dict, FundingRate, FundingRateHistory, FundingRates, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Currencies, Dict, FundingRate, FundingRateHistory, FundingRates, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -69,7 +69,7 @@ export default class weex extends Exchange {
                 'editOrderWithClientOrderId': false,
                 'fetchAccounts': false,
                 'fetchADLRank': false,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchBidsAsks': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRate': false,
@@ -219,9 +219,7 @@ export default class weex extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'api/v3/account': 5,
-                        'api/v3/account/bills': 5,
-                        'api/v3/account/fundingBills': 5,
+                        'api/v3/account/': 5, // done
                         'api/v3/account/transferRecords': 3,
                         'api/v3/order': 2,
                         'api/v3/openOrders': 3,
@@ -237,6 +235,8 @@ export default class weex extends Exchange {
                         'api/v3/agency/getDealData': 20,
                     },
                     'post': {
+                        'api/v3/account/bills': 5,
+                        'api/v3/account/fundingBills': 5,
                         'api/v3/order': 5,
                         'api/v3/order/batch': 50,
                         'api/v3/rebate/affiliate/internalWithdrawal': 100,
@@ -269,11 +269,10 @@ export default class weex extends Exchange {
                 },
                 'contractPrivate': {
                     'get': {
-                        'capi/v3/account/balance': 10,
+                        'capi/v3/account/balance': 10, // done
                         'capi/v3/account/commissionRate': 10,
                         'capi/v3/account/accountConfig': 10,
                         'capi/v3/account/symbolConfig': 10,
-                        'capi/v3/account/income': 5,
                         'capi/v3/account/position/allPosition': 15,
                         'capi/v3/account/position/singlePosition': 3,
                         'capi/v3/order': 3,
@@ -284,6 +283,7 @@ export default class weex extends Exchange {
                         'capi/v3/allAlgoOrders': 10,
                     },
                     'post': {
+                        'capi/v3/account/income': 5,
                         'capi/v3/account/marginType': 50,
                         'capi/v3/account/leverage': 20,
                         'capi/v3/account/positionMargin': 30,
@@ -330,6 +330,10 @@ export default class weex extends Exchange {
                     // {"code":-1000,"msg":"An unknown error occurred."}
                     // {"code":-1142,"msg":"Parameter 'interval' is invalid."}
                     // {"code":-1142,"msg":"Parameter 'limit' is invalid."}
+                    // {"code":-1150,"msg":"Request method 'GET' not supported"}
+                    // {"code":-1044,"msg":"Invalid ACCESS_KEY."}
+                    // {"code":-1052,"msg":"Insufficient permissions for this action."}
+                    // {"code":-1047,"msg":"API authentication failed."}
                 },
                 'broad': {
                 },
@@ -1637,6 +1641,83 @@ export default class weex extends Exchange {
         };
     }
 
+    /**
+     * @method
+     * @name weex#fetchBalance
+     * @see https://www.weex.com/api-doc/spot/AccountAPI/GetAccountBalance // spot
+     * @see https://www.weex.com/api-doc/contract/Account_API/GetAccountBalance // contract
+     * @description query for balance and get the amount of funds available for trading or funds locked in positions
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap' (default is 'spot')
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    async fetchBalance (params = {}): Promise<Balances> {
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        let response = undefined;
+        if (type === 'spot') {
+            //
+            //     {
+            //         "makerCommission": 0,
+            //         "takerCommission": 0,
+            //         "commissionRates": {
+            //             "maker": "0.00000000",
+            //             "taker": "0.00000000"
+            //         },
+            //         "canTrade": true,
+            //         "canWithdraw": true,
+            //         "canDeposit": true,
+            //         "updateTime": 1775601317093,
+            //         "accountType": "SPOT",
+            //         "balances": [
+            //             {
+            //                 "asset": "USDT",
+            //                 "free": "20.00000000",
+            //                 "locked": "0"
+            //             }
+            //         ],
+            //         "permissions": [
+            //             "SPOT"
+            //         ],
+            //         "uid": 8886281669
+            //     }
+            //
+            response = await this.privateGetApiV3Account (params);
+        } else {
+            //
+            //     [
+            //         {
+            //             "asset": "USDT",
+            //             "balance": "20.00000000",
+            //             "availableBalance": "20.00000000",
+            //             "frozen": "0",
+            //             "unrealizePnl": "0"
+            //         }
+            //     ]
+            //
+            response = await this.contractPrivateGetCapiV3AccountBalance (params);
+        }
+        return this.parseBalance (response);
+    }
+
+    parseBalance (response): Balances {
+        const result: Dict = {
+            'info': response,
+        };
+        const balances = this.safeList (response, 'balances', response);
+        for (let i = 0; i < balances.length; i++) {
+            const entry = this.safeDict (balances, i);
+            const id = this.safeString (entry, 'asset');
+            const code = this.safeCurrencyCode (id);
+            const account = this.account ();
+            account['free'] = this.safeString2 (entry, 'availableBalance', 'free');
+            account['used'] = this.safeString2 (entry, 'frozen', 'locked');
+            account['total'] = this.safeString (entry, 'balance');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
@@ -1645,21 +1726,20 @@ export default class weex extends Exchange {
                 endpoint += '?' + this.urlencode (query);
             }
         }
-        if (api === 'private') {
+        if ((api === 'private') || (api === 'contractPrivate')) {
             this.checkRequiredCredentials ();
             const timestamp = this.nonce ().toString ();
-            let signaturePath = endpoint.replace ('spot/open', '');
-            signaturePath = signaturePath.replace ('futures/open', '');
-            let payload = timestamp + method + signaturePath;
+            let payload = timestamp + method + '/' + endpoint;
             if (method === 'POST') {
                 body = this.json (query);
                 payload += body;
             }
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256);
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
             headers = {
-                'X-CH-APIKEY': this.apiKey,
-                'X-CH-SIGN': signature,
-                'X-CH-TS': timestamp,
+                'ACCESS-KEY': this.apiKey,
+                'ACCESS-SIGN': signature,
+                'ACCESS-PASSPHRASE': this.password,
+                'ACCESS-TIMESTAMP': timestamp,
             };
             if (method === 'POST') {
                 headers['Content-Type'] = 'application/json';
