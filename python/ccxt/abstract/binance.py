@@ -515,25 +515,27 @@ class ImplicitAPI:
     sapi_get_simple_earn_flexible_history_collateralrecord = sapiGetSimpleEarnFlexibleHistoryCollateralRecord = Entry(
         'simple-earn/flexible/history/collateralRecord', 'sapi', 'GET', {'cost': 0.1}
     )
-    sapi_get_eth_staking_account = sapiGetEthStakingAccount = Entry('eth-staking/account', 'sapi', 'GET', {'cost': 150})
+    sapi_get_eth_staking_account = sapiGetEthStakingAccount = Entry(
+        'eth-staking/account', 'sapiV2', 'GET', {'cost': 150}
+    )
     sapi_get_eth_staking_eth_history_staking_history = sapiGetEthStakingEthHistoryStakingHistory = Entry(
-        'eth-staking/eth/history/stakingHistory', 'sapi', 'GET', {'cost': 150}
+        'eth-staking/eth/history/stakingHistory', 'sapiV2', 'GET', {'cost': 150}
     )
     sapi_get_eth_staking_eth_history_redemption_history = sapiGetEthStakingEthHistoryRedemptionHistory = Entry(
-        'eth-staking/eth/history/redemptionHistory', 'sapi', 'GET', {'cost': 150}
+        'eth-staking/eth/history/redemptionHistory', 'sapiV2', 'GET', {'cost': 150}
     )
     # NOTE: Get BETH rewards distribution history
     # sapi_get_eth_staking_eth_history_rewards_history = sapiGetEthStakingEthHistoryRewardsHistory = Entry(
-    #     'eth-staking/eth/history/rewardsHistory', 'sapi', 'GET', {'cost': 150}
+    #     'eth-staking/eth/history/rewardsHistory', 'sapiV2', 'GET', {'cost': 150}
     # )
     sapi_get_eth_staking_eth_history_wbeth_rewards_history = sapiGetEthStakingEthHistoryWbethRewardsHistory = Entry(
-        'eth-staking/eth/history/wbethRewardsHistory', 'sapi', 'GET', {'cost': 150}
+        'eth-staking/eth/history/wbethRewardsHistory', 'sapiV2', 'GET', {'cost': 150}
     )
     sapi_get_eth_staking_eth_history_rate_history = sapiGetEthStakingEthHistoryRateHistory = Entry(
-        'eth-staking/eth/history/rateHistory', 'sapi', 'GET', {'cost': 150}
+        'eth-staking/eth/history/rateHistory', 'sapiV2', 'GET', {'cost': 150}
     )
     sapi_get_eth_staking_eth_quota = sapiGetEthStakingEthQuota = Entry(
-        'eth-staking/eth/quota', 'sapi', 'GET', {'cost': 150}
+        'eth-staking/eth/quota', 'sapiV2', 'GET', {'cost': 150}
     )
     sapi_get_sol_staking_account = sapiGetSolStakingAccount = Entry('sol-staking/account', 'sapi', 'GET', {'cost': 150})
     sapi_get_sol_staking_sol_history_staking_history = sapiGetSolStakingSolHistoryStakingHistory = Entry(
