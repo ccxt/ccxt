@@ -2714,6 +2714,7 @@ if (isMainEntry(import.meta.url)) {
     const examples = process.argv.includes ('--examples');
     const force = process.argv.includes ('--force');
     const child = process.argv.includes ('--child');
+    const baseClassOnly = process.argv.includes ('--baseClass')
     const exchange = process.argv.includes ('--exchange');
     if (exchange) {
         transpiledExchanges = [ exchange ];
@@ -2724,7 +2725,9 @@ if (isMainEntry(import.meta.url)) {
         log.bright.green ({ force });
     }
     const transpiler = new NewTranspiler (ws);
-    if (ws) {
+    if (baseClassOnly) {
+        transpiler.transpileBaseMethods (TS_BASE_FILE)
+    } else if (ws) {
         await transpiler.transpileWS (force);
     } else if (test) {
         transpiler.transpileTests ();
