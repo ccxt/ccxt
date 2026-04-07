@@ -488,15 +488,14 @@ export default class lighter extends Exchange {
             const res = this.handleOptionAndParams2 ({}, 'createAuth', 'accountIndex', 'account_index');
             accountIndex = this.safeInteger (res, 0);
         }
-        const deadlines = this.safeDict (this.options, 'authDeadlines');
-        const accountDeadlines = this.safeDict (deadlines, accountIndex);
-        const cachedDeadline = this.safeInteger (accountDeadlines, apiKeyIndex);
+        const auths = this.safeDict (this.options, 'auths');
+        const accountAuths = this.safeDict (auths, accountIndex);
+        const cachedAuth = this.safeDict (accountAuths, apiKeyIndex, accountAuths);
+        const cachedDeadline = this.safeInteger (cachedAuth, 'deadline');
         if (cachedDeadline !== undefined) {
             const minimumDeadline = this.seconds () + this.safeInteger (this.options, 'authDeadlineMinimumRemaining');
             if (cachedDeadline >= minimumDeadline) {
-                const authTokens = this.safeDict (this.options, 'authTokens');
-                const accountAuthTokens = this.safeDict (authTokens, accountIndex);
-                return this.safeString (accountAuthTokens, apiKeyIndex);
+                return this.safeString (cachedAuth, 'token');
             }
         }
         const deadline = this.seconds () + this.safeInteger (this.options, 'authDeadlineExpiry');
@@ -505,18 +504,18 @@ export default class lighter extends Exchange {
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
-        const authToken = this.lighterCreateAuthToken (this.safeValue (this.options, 'signer'), request);
-        if (!('authTokens' in this.options)) {
-            this.options['authTokens'] = {};
-            this.options['authDeadlines'] = {};
+        const token = this.lighterCreateAuthToken (this.safeValue (this.options, 'signer'), request);
+        if (!('auths' in this.options)) {
+            this.options['auths'] = {};
         }
-        if (!(accountIndex in this.options['authTokens'])) {
-            this.options['authTokens'][accountIndex] = {};
-            this.options['authDeadlines'][accountIndex] = {};
+        if (!(accountIndex in this.options['auths'])) {
+            this.options['auths'][accountIndex] = {};
         }
-        this.options['authTokens'][accountIndex][apiKeyIndex] = authToken;
-        this.options['authDeadlines'][accountIndex][apiKeyIndex] = deadline;
-        return authToken;
+        this.options['auths'][accountIndex][apiKeyIndex] = {
+            'deadline': deadline,
+            'token': token,
+        };
+        return token;
     }
 
     pow (n: string, m: string) {
