@@ -1,0 +1,137 @@
+{
+    "exchange": "weex",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchTicker": [
+            {
+                "description": "fetch swap ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "ETHUSDT",
+                        "priceChange": "-78.74",
+                        "priceChangePercent": "-0.036439",
+                        "lastPrice": "2082.10",
+                        "openPrice": "2160.84",
+                        "highPrice": "2167.51",
+                        "lowPrice": "2059.17",
+                        "volume": "625460.957",
+                        "quoteVolume": "1315153556.72753",
+                        "openTime": "1775493900000",
+                        "closeTime": "1775580300000",
+                        "markPrice": "2082.1",
+                        "indexPrice": "2083.06"
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "ETH/USDT:USDT",
+                    "timestamp": 1775580300000,
+                    "datetime": "2026-04-07T16:45:00.000Z",
+                    "high": 2167.51,
+                    "low": 2059.17,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": 2102.694887680303,
+                    "open": 2160.84,
+                    "close": 2082.1,
+                    "last": 2082.1,
+                    "previousClose": null,
+                    "change": -78.74,
+                    "percentage": -0.036439,
+                    "average": 2121.47,
+                    "baseVolume": 625460.957,
+                    "quoteVolume": 1315153556.72753,
+                    "markPrice": 2082.1,
+                    "indexPrice": 2083.06,
+                    "info": {
+                        "symbol": "ETHUSDT",
+                        "priceChange": "-78.74",
+                        "priceChangePercent": "-0.036439",
+                        "lastPrice": "2082.10",
+                        "openPrice": "2160.84",
+                        "highPrice": "2167.51",
+                        "lowPrice": "2059.17",
+                        "volume": "625460.957",
+                        "quoteVolume": "1315153556.72753",
+                        "openTime": "1775493900000",
+                        "closeTime": "1775580300000",
+                        "markPrice": "2082.1",
+                        "indexPrice": "2083.06"
+                    }
+                }
+            },
+            {
+                "description": "fetch spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "httpResponse": {
+                    "symbol": "ETHUSDT",
+                    "priceChange": "-79.39",
+                    "priceChangePercent": "-0.036720",
+                    "lastPrice": "2082.61",
+                    "bidPrice": "2082.59",
+                    "bidQty": "2.83347",
+                    "askPrice": "2082.62",
+                    "askQty": "1.57531",
+                    "openPrice": "2162.00",
+                    "highPrice": "2168.40",
+                    "lowPrice": "2061.12",
+                    "volume": "156881.02843",
+                    "quoteVolume": "330174828.5566097",
+                    "openTime": "1775493900000",
+                    "closeTime": "1775580300000",
+                    "count": "59597"
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDT",
+                    "timestamp": 1775580300000,
+                    "datetime": "2026-04-07T16:45:00.000Z",
+                    "high": 2168.4,
+                    "low": 2061.12,
+                    "bid": 2082.59,
+                    "bidVolume": 2.83347,
+                    "ask": 2082.62,
+                    "askVolume": 1.57531,
+                    "vwap": 2104.619225542195,
+                    "open": 2162,
+                    "close": 2082.61,
+                    "last": 2082.61,
+                    "previousClose": null,
+                    "change": -79.39,
+                    "percentage": -0.03672,
+                    "average": 2122.3,
+                    "baseVolume": 156881.02843,
+                    "quoteVolume": 330174828.5566097,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "symbol": "ETHUSDT",
+                        "priceChange": "-79.39",
+                        "priceChangePercent": "-0.036720",
+                        "lastPrice": "2082.61",
+                        "bidPrice": "2082.59",
+                        "bidQty": "2.83347",
+                        "askPrice": "2082.62",
+                        "askQty": "1.57531",
+                        "openPrice": "2162.00",
+                        "highPrice": "2168.40",
+                        "lowPrice": "2061.12",
+                        "volume": "156881.02843",
+                        "quoteVolume": "330174828.5566097",
+                        "openTime": "1775493900000",
+                        "closeTime": "1775580300000",
+                        "count": "59597"
+                    }
+                }
+            }
+        ]
+  }
+}
