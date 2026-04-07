@@ -6,7 +6,7 @@ import Exchange from './abstract/weex.js';
 // import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Currencies, Dict, Int, Market, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
+import type { Currencies, Dict, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -103,7 +103,7 @@ export default class weex extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchGreeks': false,
-                'fetchIndexOHLCV': false,
+                'fetchIndexOHLCV': true,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchIsolatedPositions': false,
@@ -123,7 +123,7 @@ export default class weex extends Exchange {
                 'fetchMarginModes': false,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
-                'fetchMarkOHLCV': false,
+                'fetchMarkOHLCV': true,
                 'fetchMarkPrices': false,
                 'fetchMyLiquidations': false,
                 'fetchMySettlementHistory': false,
@@ -212,7 +212,7 @@ export default class weex extends Exchange {
                         'api/v3/market/ticker/price': 20, // not unified
                         'api/v3/market/ticker/24hr': 10, // done
                         'api/v3/market/trades': 125,
-                        'api/v3/market/klines': 10,
+                        'api/v3/market/klines': 10, // done
                         'api/v3/market/depth': 25, // done
                         'api/v3/market/ticker/bookTicker': 20, // done
                     },
@@ -256,10 +256,10 @@ export default class weex extends Exchange {
                         'capi/v3/market/ticker/24hr': 200, // done
                         'capi/v3/market/ticker/bookTicker': 5, // done
                         'capi/v3/market/trades': 25,
-                        'capi/v3/market/klines': 5,
-                        'capi/v3/market/indexPriceKlines': 5,
-                        'capi/v3/market/markPriceKlines': 5,
-                        'capi/v3/market/historyKlines': 25,
+                        'capi/v3/market/klines': 5, // done
+                        'capi/v3/market/indexPriceKlines': 5, // done
+                        'capi/v3/market/markPriceKlines': 5, // done
+                        'capi/v3/market/historyKlines': 25, // done
                         'capi/v3/market/symbolPrice': 5, // not unified
                         'capi/v3/market/openInterest': 10,
                         'capi/v3/market/premiumIndex': 5,
@@ -310,19 +310,26 @@ export default class weex extends Exchange {
                 'password': true,
             },
             'timeframes': {
-                '1m': '1min',
-                '5m': '5min',
-                '15m': '15min',
-                '30m': '30min',
+                '1m': '1m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
                 '1h': '1h',
+                '2h': '2h',
                 '4h': '4h',
+                '6h': '6h',
+                '8h': '8h',
                 '12h': '12h',
-                '1d': '1day',
-                '1w': '1week',
+                '1d': '1d',
+                '1w': '1w',
+                '1M': '1M',
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    // {"code":-1000,"msg":"An unknown error occurred."}
+                    // {"code":-1142,"msg":"Parameter 'interval' is invalid."}
+                    // {"code":-1142,"msg":"Parameter 'limit' is invalid."}
                 },
                 'broad': {
                 },
@@ -454,6 +461,34 @@ export default class weex extends Exchange {
                     'SOLANA(SOL)': 'SOL',
                     'OPTIMISM(OP)': 'OP',
                     'AVALANCHE_C(AVAX_C)': 'AVAXC',
+                },
+                'timeframes': {
+                    'spot': {
+                        '1m': '1m',
+                        '5m': '5m',
+                        '15m': '15m',
+                        '30m': '30m',
+                        '1h': '1h',
+                        '2h': '2h',
+                        '4h': '4h',
+                        '6h': '6h',
+                        '8h': '8h',
+                        '12h': '12h',
+                        '1d': '1d',
+                        '1w': '1w',
+                        '1M': '1M',
+                    },
+                    'contract': {
+                        '1m': '1m',
+                        '5m': '5m',
+                        '15m': '15m',
+                        '30m': '30m',
+                        '1h': '1h',
+                        '4h': '4h',
+                        '12h': '12h',
+                        '1d': '1d',
+                        '1w': '1w',
+                    },
                 },
             },
             'features': {
@@ -911,13 +946,16 @@ export default class weex extends Exchange {
         let symbol = base + '/' + quote;
         let isSpot = true;
         let isLinear = undefined;
+        let isInverse = undefined;
         if (settle !== undefined) {
             symbol += ':' + settle;
             isSpot = false;
             if (settle === quote) {
                 isLinear = true;
+                isInverse = false;
             } else if (settle === base) {
                 isLinear = false;
+                isInverse = true;
             }
         } else {
             active = this.safeBool (market, 'enableTrade');
@@ -951,7 +989,7 @@ export default class weex extends Exchange {
             'active': active,
             'contract': !isSpot,
             'linear': isLinear,
-            'inverse': isLinear === undefined ? undefined : !isLinear,
+            'inverse': isInverse,
             'taker': this.safeNumber (market, 'takerFeeRate'),
             'maker': this.safeNumber (market, 'makerFeeRate'),
             'feeSide': fees['feeSide'],
@@ -1215,6 +1253,152 @@ export default class weex extends Exchange {
         const orderbook = this.parseOrderBook (response, symbol);
         orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
         return orderbook;
+    }
+
+    /**
+     * @method
+     * @name weex#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.weex.com/api-doc/spot/MarketDataAPI/GetKLineData // spot
+     * @see https://www.weex.com/api-doc/contract/Market_API/GetKlines // contract last price
+     * @see https://www.weex.com/api-doc/contract/Market_API/GetIndexPriceKlines // contract index price
+     * @see https://www.weex.com/api-doc/contract/Market_API/GetMarkPriceKlines // contract mark price
+     * @see https://www.weex.com/api-doc/contract/Market_API/GetHistoryKlines // contract historical klines
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch (default 100, max 300)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * Check fetchSpotOHLCV() and fetchContractOHLCV() for more details on the extra parameters that can be used in params
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['spot']) {
+            return await this.fetchSpotOHLCV (symbol, timeframe, since, limit, params);
+        } else {
+            return await this.fetchContractOHLCV (symbol, timeframe, since, limit, params);
+        }
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name weex#fetchSpotOHLCV
+     * @description helper method for fetchOHLCV
+     * @see https://www.weex.com/api-doc/spot/MarketDataAPI/GetKLineData
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async fetchSpotOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
+        };
+        const response = await this.publicGetApiV3MarketKlines (this.extend (request, params));
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name kucoin#fetchContractOHLCV
+     * @description helper method for fetchOHLCV
+     * @see https://www.weex.com/api-doc/contract/Market_API/GetKlines // contract last price
+     * @see https://www.weex.com/api-doc/contract/Market_API/GetIndexPriceKlines // contract index price
+     * @see https://www.weex.com/api-doc/contract/Market_API/GetMarkPriceKlines // contract mark price
+     * @see https://www.weex.com/api-doc/contract/Market_API/GetHistoryKlines // contract historical klines
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch (default 100, max 100 for historical klines, max 1000 for other contract klines)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {bool} [params.paginate] whether to automatically paginate requests until the required number of candles is returned
+     * @param {bool} [params.historical] whether to fetch historical klines (only applicable for contract markets, default is false). If false, will fetch last price klines
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async fetchContractOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const maxHistoricalLimit = 100;
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        if (paginate) {
+            params = this.extend (params, { 'historical': true });
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxHistoricalLimit) as OHLCV[];
+        }
+        const until = this.safeInteger (params, 'until');
+        let isHistorical = this.safeBool (params, 'historical', false);
+        if ((since !== undefined) || (until !== undefined) || (limit > 200)) {
+            isHistorical = true;
+        }
+        const timeframeOption = this.safeDict (this.options, 'timeframes', {});
+        const contractTimeframes = this.safeDict (timeframeOption, 'contract', {});
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+            'interval': this.safeString (contractTimeframes, timeframe, timeframe),
+        };
+        const priceType = this.safeStringUpper (params, 'price');
+        params = this.omit (params, [ 'historical', 'until', 'price' ]);
+        let response = undefined;
+        if (isHistorical) {
+            if (priceType !== undefined) {
+                request['priceType'] = priceType;
+            }
+            let startTime = since;
+            let endTime = until;
+            if ((since === undefined) || (until === undefined)) {
+                const now = this.milliseconds ();
+                const duration = this.parseTimeframe (timeframe) * 1000;
+                const numberOfCandles = limit ? limit : maxHistoricalLimit;
+                const timeDelta = numberOfCandles * duration;
+                if ((since === undefined) && (until === undefined)) {
+                    endTime = now;
+                    startTime = now - timeDelta;
+                } else if (since === undefined) {
+                    startTime = until - timeDelta;
+                } else {
+                    endTime = since + timeDelta;
+                }
+            }
+            request['startTime'] = startTime;
+            request['endTime'] = endTime;
+            response = await this.contractGetCapiV3MarketHistoryKlines (this.extend (request, params));
+        } else {
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            if (priceType === 'MARK') {
+                response = await this.contractGetCapiV3MarketMarkPriceKlines (this.extend (request, params));
+            } else if (priceType === 'INDEX') {
+                response = await this.contractGetCapiV3MarketIndexPriceKlines (this.extend (request, params));
+            } else {
+                response = await this.contractGetCapiV3MarketKlines (this.extend (request, params));
+            }
+        }
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        //
+        // spot
+        //
+        return [
+            this.safeInteger (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
+        ];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
