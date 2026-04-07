@@ -3,6 +3,93 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchMarkOHLCV": [
+            {
+                "description": "fetch mark ohlcv historical",
+                "method": "fetchMarkOHLCV",
+                "url": "https://api-contract.weex.com/capi/v3/market/historyKlines?symbol=ETHUSDT&interval=1m&priceType=MARK&startTime=1775584147487&endTime=1775590147487",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1m",
+                    null,
+                    null,
+                    {
+                        "historical": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch mark ohlcv",
+                "method": "fetchMarkOHLCV",
+                "url": "https://api-contract.weex.com/capi/v3/market/markPriceKlines?symbol=ETHUSDT&interval=1m",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchIndexOHLCV": [
+            {
+                "description": "fetch index ohlcv historical",
+                "method": "fetchIndexOHLCV",
+                "url": "https://api-contract.weex.com/capi/v3/market/historyKlines?symbol=ETHUSDT&interval=1m&priceType=INDEX&startTime=1775584186168&endTime=1775590186168",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1m",
+                    null,
+                    null,
+                    {
+                        "historical": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch index ohlcv",
+                "method": "fetchIndexOHLCV",
+                "url": "https://api-contract.weex.com/capi/v3/market/indexPriceKlines?symbol=ETHUSDT&interval=1m",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch swap ohlcv historical",
+                "method": "fetchOHLCV",
+                "url": "https://api-contract.weex.com/capi/v3/market/historyKlines?symbol=ETHUSDT&interval=1m&startTime=1775584101844&endTime=1775590101844",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1m",
+                    null,
+                    null,
+                    {
+                        "historical": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch swap ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api-contract.weex.com/capi/v3/market/klines?symbol=ETHUSDT&interval=1m",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api-spot.weex.com/api/v3/market/klines?symbol=ETHUSDT&interval=1m",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            }
+        ],
         "fetchOrderBook": [
             {
                 "description": "fetch spot orderbook",
