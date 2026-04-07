@@ -536,7 +536,6 @@ class bitstamp(Exchange, ImplicitAPI):
                     'Your account is frozen': PermissionDenied,
                     'Please update your profile with your FATCA information, before using API.': PermissionDenied,
                     'Order not found.': OrderNotFound,
-                    'Price is more than 20% below market price.': InvalidOrder,
                     "Bitstamp.net is under scheduled maintenance. We'll be back soon.": OnMaintenance,  # {"error": "Bitstamp.net is under scheduled maintenance. We'll be back soon."}
                     'Order could not be placed.': ExchangeNotAvailable,  # Order could not be placed(perhaps due to internal error or trade halt). Please retry placing order.
                     'Invalid offset.': BadRequest,
@@ -544,6 +543,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 },
                 'broad': {
                     'Minimum order size is': InvalidOrder,  # Minimum order size is 5.0 EUR.
+                    'Price is more than': InvalidOrder,
                     'Check your account balance for details.': InsufficientFunds,  # You have only 0.00100000 BTC available. Check your account balance for details.
                     'Ensure self value has at least': InvalidAddress,  # Ensure self value has at least 25 characters(it has 4).
                     'Ensure that there are no more than': InvalidOrder,  # {"status": "error", "reason": {"amount": ["Ensure that there are no more than 0 decimal places."], "__all__": [""]}}
@@ -1127,6 +1127,16 @@ class bitstamp(Exchange, ImplicitAPI):
         priceString = self.safe_string(trade, priceId, priceString)
         amountString = self.safe_string(trade, market['baseId'], amountString)
         costString = self.safe_string(trade, market['quoteId'], costString)
+        # self endpoint is not aligned with "markets" endpoint
+        baseIdLower = market['baseId'].lower()
+        quoteIdLower = market['quoteId'].lower()
+        dashedIdLower = baseIdLower + '_' + quoteIdLower
+        if priceString is None:
+            priceString = self.safe_string(trade, dashedIdLower)
+        if amountString is None:
+            amountString = self.safe_string(trade, baseIdLower)
+        if costString is None:
+            costString = self.safe_string(trade, quoteIdLower)
         symbol = market['symbol']
         datetimeString = self.safe_string_2(trade, 'date', 'datetime')
         timestamp = None

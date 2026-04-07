@@ -5073,7 +5073,7 @@ class bitget extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much you want to trade in units of the base currency
-         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders, and used execution $price for contract stop-loss / take-profit orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->cost] *spot only* how much you want to trade in units of the quote currency, for $market buy orders only
          * @param {float} [$params->triggerPrice] *swap only* The $price at which a trigger order is triggered at
@@ -5381,8 +5381,11 @@ class bitget extends Exchange {
                     $request['stopSurplusTriggerType'] = $tpType;
                 }
             } elseif ($isStopLossOrTakeProfitTrigger) {
-                if (!$isMarketOrder) {
-                    throw new ExchangeError($this->id . ' createOrder() bitget $stopLoss or $takeProfit orders must be $market orders');
+                if ($price !== null) {
+                    $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                    if (is_array($request) && array_key_exists('price', $request)) {
+                        unset($request['price']);
+                    }
                 }
                 if ($hedged) {
                     $request['holdSide'] = ($side === 'sell') ? 'long' : 'short';

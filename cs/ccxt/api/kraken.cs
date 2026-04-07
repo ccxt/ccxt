@@ -21,6 +21,16 @@ public partial class kraken : Exchange
         return await this.callAsync ("zendeskGet201893608",parameters);
     }
 
+    public async Task<object> publicGetTime (object parameters = null)
+    {
+        return await this.callAsync ("publicGetTime",parameters);
+    }
+
+    public async Task<object> publicGetSystemStatus (object parameters = null)
+    {
+        return await this.callAsync ("publicGetSystemStatus",parameters);
+    }
+
     public async Task<object> publicGetAssets (object parameters = null)
     {
         return await this.callAsync ("publicGetAssets",parameters);
@@ -31,9 +41,9 @@ public partial class kraken : Exchange
         return await this.callAsync ("publicGetAssetPairs",parameters);
     }
 
-    public async Task<object> publicGetDepth (object parameters = null)
+    public async Task<object> publicGetTicker (object parameters = null)
     {
-        return await this.callAsync ("publicGetDepth",parameters);
+        return await this.callAsync ("publicGetTicker",parameters);
     }
 
     public async Task<object> publicGetOHLC (object parameters = null)
@@ -41,24 +51,19 @@ public partial class kraken : Exchange
         return await this.callAsync ("publicGetOHLC",parameters);
     }
 
-    public async Task<object> publicGetSpread (object parameters = null)
+    public async Task<object> publicGetDepth (object parameters = null)
     {
-        return await this.callAsync ("publicGetSpread",parameters);
+        return await this.callAsync ("publicGetDepth",parameters);
     }
 
-    public async Task<object> publicGetSystemStatus (object parameters = null)
+    public async Task<object> publicGetLevel3 (object parameters = null)
     {
-        return await this.callAsync ("publicGetSystemStatus",parameters);
+        return await this.callAsync ("publicGetLevel3",parameters);
     }
 
-    public async Task<object> publicGetTicker (object parameters = null)
+    public async Task<object> publicGetGroupedBook (object parameters = null)
     {
-        return await this.callAsync ("publicGetTicker",parameters);
-    }
-
-    public async Task<object> publicGetTime (object parameters = null)
-    {
-        return await this.callAsync ("publicGetTime",parameters);
+        return await this.callAsync ("publicGetGroupedBook",parameters);
     }
 
     public async Task<object> publicGetTrades (object parameters = null)
@@ -66,24 +71,19 @@ public partial class kraken : Exchange
         return await this.callAsync ("publicGetTrades",parameters);
     }
 
-    public async Task<object> privatePostAddOrder (object parameters = null)
+    public async Task<object> publicGetSpread (object parameters = null)
     {
-        return await this.callAsync ("privatePostAddOrder",parameters);
+        return await this.callAsync ("publicGetSpread",parameters);
     }
 
-    public async Task<object> privatePostAddOrderBatch (object parameters = null)
+    public async Task<object> publicGetPreTrade (object parameters = null)
     {
-        return await this.callAsync ("privatePostAddOrderBatch",parameters);
+        return await this.callAsync ("publicGetPreTrade",parameters);
     }
 
-    public async Task<object> privatePostAddExport (object parameters = null)
+    public async Task<object> publicGetPostTrade (object parameters = null)
     {
-        return await this.callAsync ("privatePostAddExport",parameters);
-    }
-
-    public async Task<object> privatePostAmendOrder (object parameters = null)
-    {
-        return await this.callAsync ("privatePostAmendOrder",parameters);
+        return await this.callAsync ("publicGetPostTrade",parameters);
     }
 
     public async Task<object> privatePostBalance (object parameters = null)
@@ -91,64 +91,19 @@ public partial class kraken : Exchange
         return await this.callAsync ("privatePostBalance",parameters);
     }
 
-    public async Task<object> privatePostCancelAll (object parameters = null)
+    public async Task<object> privatePostBalanceEx (object parameters = null)
     {
-        return await this.callAsync ("privatePostCancelAll",parameters);
+        return await this.callAsync ("privatePostBalanceEx",parameters);
     }
 
-    public async Task<object> privatePostCancelAllOrdersAfter (object parameters = null)
+    public async Task<object> privatePostCreditLines (object parameters = null)
     {
-        return await this.callAsync ("privatePostCancelAllOrdersAfter",parameters);
+        return await this.callAsync ("privatePostCreditLines",parameters);
     }
 
-    public async Task<object> privatePostCancelOrder (object parameters = null)
+    public async Task<object> privatePostTradeBalance (object parameters = null)
     {
-        return await this.callAsync ("privatePostCancelOrder",parameters);
-    }
-
-    public async Task<object> privatePostCancelOrderBatch (object parameters = null)
-    {
-        return await this.callAsync ("privatePostCancelOrderBatch",parameters);
-    }
-
-    public async Task<object> privatePostClosedOrders (object parameters = null)
-    {
-        return await this.callAsync ("privatePostClosedOrders",parameters);
-    }
-
-    public async Task<object> privatePostDepositAddresses (object parameters = null)
-    {
-        return await this.callAsync ("privatePostDepositAddresses",parameters);
-    }
-
-    public async Task<object> privatePostDepositMethods (object parameters = null)
-    {
-        return await this.callAsync ("privatePostDepositMethods",parameters);
-    }
-
-    public async Task<object> privatePostDepositStatus (object parameters = null)
-    {
-        return await this.callAsync ("privatePostDepositStatus",parameters);
-    }
-
-    public async Task<object> privatePostEditOrder (object parameters = null)
-    {
-        return await this.callAsync ("privatePostEditOrder",parameters);
-    }
-
-    public async Task<object> privatePostExportStatus (object parameters = null)
-    {
-        return await this.callAsync ("privatePostExportStatus",parameters);
-    }
-
-    public async Task<object> privatePostGetWebSocketsToken (object parameters = null)
-    {
-        return await this.callAsync ("privatePostGetWebSocketsToken",parameters);
-    }
-
-    public async Task<object> privatePostLedgers (object parameters = null)
-    {
-        return await this.callAsync ("privatePostLedgers",parameters);
+        return await this.callAsync ("privatePostTradeBalance",parameters);
     }
 
     public async Task<object> privatePostOpenOrders (object parameters = null)
@@ -156,14 +111,9 @@ public partial class kraken : Exchange
         return await this.callAsync ("privatePostOpenOrders",parameters);
     }
 
-    public async Task<object> privatePostOpenPositions (object parameters = null)
+    public async Task<object> privatePostClosedOrders (object parameters = null)
     {
-        return await this.callAsync ("privatePostOpenPositions",parameters);
-    }
-
-    public async Task<object> privatePostQueryLedgers (object parameters = null)
-    {
-        return await this.callAsync ("privatePostQueryLedgers",parameters);
+        return await this.callAsync ("privatePostClosedOrders",parameters);
     }
 
     public async Task<object> privatePostQueryOrders (object parameters = null)
@@ -171,9 +121,49 @@ public partial class kraken : Exchange
         return await this.callAsync ("privatePostQueryOrders",parameters);
     }
 
+    public async Task<object> privatePostOrderAmends (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOrderAmends",parameters);
+    }
+
+    public async Task<object> privatePostTradesHistory (object parameters = null)
+    {
+        return await this.callAsync ("privatePostTradesHistory",parameters);
+    }
+
     public async Task<object> privatePostQueryTrades (object parameters = null)
     {
         return await this.callAsync ("privatePostQueryTrades",parameters);
+    }
+
+    public async Task<object> privatePostOpenPositions (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOpenPositions",parameters);
+    }
+
+    public async Task<object> privatePostLedgers (object parameters = null)
+    {
+        return await this.callAsync ("privatePostLedgers",parameters);
+    }
+
+    public async Task<object> privatePostQueryLedgers (object parameters = null)
+    {
+        return await this.callAsync ("privatePostQueryLedgers",parameters);
+    }
+
+    public async Task<object> privatePostTradeVolume (object parameters = null)
+    {
+        return await this.callAsync ("privatePostTradeVolume",parameters);
+    }
+
+    public async Task<object> privatePostAddExport (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAddExport",parameters);
+    }
+
+    public async Task<object> privatePostExportStatus (object parameters = null)
+    {
+        return await this.callAsync ("privatePostExportStatus",parameters);
     }
 
     public async Task<object> privatePostRetrieveExport (object parameters = null)
@@ -186,39 +176,69 @@ public partial class kraken : Exchange
         return await this.callAsync ("privatePostRemoveExport",parameters);
     }
 
-    public async Task<object> privatePostBalanceEx (object parameters = null)
+    public async Task<object> privatePostGetApiKeyInfo (object parameters = null)
     {
-        return await this.callAsync ("privatePostBalanceEx",parameters);
+        return await this.callAsync ("privatePostGetApiKeyInfo",parameters);
     }
 
-    public async Task<object> privatePostTradeBalance (object parameters = null)
+    public async Task<object> privatePostAddOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradeBalance",parameters);
+        return await this.callAsync ("privatePostAddOrder",parameters);
     }
 
-    public async Task<object> privatePostTradesHistory (object parameters = null)
+    public async Task<object> privatePostAmendOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradesHistory",parameters);
+        return await this.callAsync ("privatePostAmendOrder",parameters);
     }
 
-    public async Task<object> privatePostTradeVolume (object parameters = null)
+    public async Task<object> privatePostCancelOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradeVolume",parameters);
+        return await this.callAsync ("privatePostCancelOrder",parameters);
     }
 
-    public async Task<object> privatePostWithdraw (object parameters = null)
+    public async Task<object> privatePostCancelAll (object parameters = null)
     {
-        return await this.callAsync ("privatePostWithdraw",parameters);
+        return await this.callAsync ("privatePostCancelAll",parameters);
     }
 
-    public async Task<object> privatePostWithdrawCancel (object parameters = null)
+    public async Task<object> privatePostCancelAllOrdersAfter (object parameters = null)
     {
-        return await this.callAsync ("privatePostWithdrawCancel",parameters);
+        return await this.callAsync ("privatePostCancelAllOrdersAfter",parameters);
     }
 
-    public async Task<object> privatePostWithdrawInfo (object parameters = null)
+    public async Task<object> privatePostGetWebSocketsToken (object parameters = null)
     {
-        return await this.callAsync ("privatePostWithdrawInfo",parameters);
+        return await this.callAsync ("privatePostGetWebSocketsToken",parameters);
+    }
+
+    public async Task<object> privatePostAddOrderBatch (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAddOrderBatch",parameters);
+    }
+
+    public async Task<object> privatePostCancelOrderBatch (object parameters = null)
+    {
+        return await this.callAsync ("privatePostCancelOrderBatch",parameters);
+    }
+
+    public async Task<object> privatePostEditOrder (object parameters = null)
+    {
+        return await this.callAsync ("privatePostEditOrder",parameters);
+    }
+
+    public async Task<object> privatePostDepositMethods (object parameters = null)
+    {
+        return await this.callAsync ("privatePostDepositMethods",parameters);
+    }
+
+    public async Task<object> privatePostDepositAddresses (object parameters = null)
+    {
+        return await this.callAsync ("privatePostDepositAddresses",parameters);
+    }
+
+    public async Task<object> privatePostDepositStatus (object parameters = null)
+    {
+        return await this.callAsync ("privatePostDepositStatus",parameters);
     }
 
     public async Task<object> privatePostWithdrawMethods (object parameters = null)
@@ -231,19 +251,29 @@ public partial class kraken : Exchange
         return await this.callAsync ("privatePostWithdrawAddresses",parameters);
     }
 
+    public async Task<object> privatePostWithdrawInfo (object parameters = null)
+    {
+        return await this.callAsync ("privatePostWithdrawInfo",parameters);
+    }
+
+    public async Task<object> privatePostWithdraw (object parameters = null)
+    {
+        return await this.callAsync ("privatePostWithdraw",parameters);
+    }
+
     public async Task<object> privatePostWithdrawStatus (object parameters = null)
     {
         return await this.callAsync ("privatePostWithdrawStatus",parameters);
     }
 
+    public async Task<object> privatePostWithdrawCancel (object parameters = null)
+    {
+        return await this.callAsync ("privatePostWithdrawCancel",parameters);
+    }
+
     public async Task<object> privatePostWalletTransfer (object parameters = null)
     {
         return await this.callAsync ("privatePostWalletTransfer",parameters);
-    }
-
-    public async Task<object> privatePostGetApiKeyInfo (object parameters = null)
-    {
-        return await this.callAsync ("privatePostGetApiKeyInfo",parameters);
     }
 
     public async Task<object> privatePostCreateSubaccount (object parameters = null)

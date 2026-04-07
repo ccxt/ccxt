@@ -338,6 +338,7 @@ interface kucoin {
     utaPrivateGetAccountModeOrderExecution (params?: {}): Promise<implicitReturnType>;
     utaPrivateGetAccountModePositionOpenList (params?: {}): Promise<implicitReturnType>;
     utaPrivateGetAccountModePositionHistory (params?: {}): Promise<implicitReturnType>;
+    utaPrivateGetPositionHistory (params?: {}): Promise<implicitReturnType>;
     utaPrivateGetAccountModePositionTiers (params?: {}): Promise<implicitReturnType>;
     utaPrivateGetSubAccountBalance (params?: {}): Promise<implicitReturnType>;
     utaPrivateGetUserFeeRate (params?: {}): Promise<implicitReturnType>;

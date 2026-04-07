@@ -2,6 +2,77 @@
     "exchange": "bitstamp",
     "skipKeys": [],
     "methods": {
+        "fetchMyTrades": [
+            {
+                "description": "default",
+                "method": "fetchMyTrades",
+                "input": [
+                    "LINK/USD"
+                ],
+                "httpResponse": [
+                    {
+                        "id": 556005200,
+                        "datetime": "2026-04-03 20:07:58.823000",
+                        "type": "2",
+                        "fee": "0.07724",
+                        "link": "2.22465437",
+                        "usd": "-19.30999993",
+                        "link_usd": 8.68,
+                        "btc": 0,
+                        "eur": 0,
+                        "order_id": 1992343159463936
+                    },
+                    {
+                        "id": 556005171,
+                        "datetime": "2026-04-03 20:07:36.394273",
+                        "type": "36",
+                        "fee": "0.00",
+                        "link": "-1.10000000",
+                        "usd": "9.36",
+                        "link_usd": 8.51,
+                        "btc": 0,
+                        "eur": 0
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "556005200",
+                        "info": {
+                            "id": 556005200,
+                            "datetime": "2026-04-03 20:07:58.823000",
+                            "type": "2",
+                            "fee": "0.07724",
+                            "link": "2.22465437",
+                            "usd": "-19.30999993",
+                            "link_usd": 8.68,
+                            "btc": 0,
+                            "eur": 0,
+                            "order_id": 1992343159463936
+                        },
+                        "timestamp": 1775246878823,
+                        "datetime": "2026-04-03T20:07:58.823Z",
+                        "symbol": "LINK/USD",
+                        "order": "1992343159463936",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 8.68,
+                        "amount": 2.22465437,
+                        "cost": 19.30999993,
+                        "fee": {
+                            "currency": "USD",
+                            "cost": 0.07724
+                        },
+                        "fees": [
+                            {
+                                "currency": "USD",
+                                "cost": 0.07724
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
         "fetchFundingRateHistory": [
             {
                 "description": "+limit +since",

@@ -349,9 +349,6 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	case "coinbaseinternational":
 		itf := NewCoinbaseinternational(options)
 		return itf
-	case "coincatch":
-		itf := NewCoincatch(options)
-		return itf
 	case "coincheck":
 		itf := NewCoincheck(options)
 		return itf

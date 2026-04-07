@@ -761,9 +761,7 @@ public partial class kucoin : Exchange
                 { "timeDifference", 0 },
                 { "adjustForTimeDifference", false },
                 { "fetchCurrencies", new Dictionary<string, object>() {
-                    { "webApiEnable", true },
-                    { "webApiRetries", 1 },
-                    { "webApiMuteFailure", true },
+                    { "brokenCurrencies", new List<object>() {"00", "OPEN_ERROR", "HUF", "BDT"} },
                 } },
                 { "fetchMarkets", new Dictionary<string, object>() {
                     { "types", new List<object>() {"spot", "swap", "future", "contract"} },
@@ -951,10 +949,14 @@ public partial class kucoin : Exchange
                     { "unified", "unified" },
                 } },
                 { "networks", new Dictionary<string, object>() {
+                    { "BTC", "btc" },
                     { "BRC20", "btc" },
                     { "BTCNATIVESEGWIT", "bech32" },
+                    { "ETH", "eth" },
                     { "ERC20", "eth" },
+                    { "TRX", "trx" },
                     { "TRC20", "trx" },
+                    { "HECO", "heco" },
                     { "HRC20", "heco" },
                     { "MATIC", "matic" },
                     { "KCC", "kcc" },
@@ -969,6 +971,7 @@ public partial class kucoin : Exchange
                     { "TLOS", "tlos" },
                     { "CFX", "cfx" },
                     { "ACA", "aca" },
+                    { "OP", "optimism" },
                     { "OPTIMISM", "optimism" },
                     { "ONT", "ont" },
                     { "GLMR", "glmr" },
@@ -1087,6 +1090,14 @@ public partial class kucoin : Exchange
                     { "ORAI", "orai" },
                     { "BASE", "base" },
                     { "TARA", "tara" },
+                } },
+                { "networksById", new Dictionary<string, object>() {
+                    { "btc", "BTC" },
+                    { "trx", "TRC20" },
+                    { "eth", "ERC20" },
+                    { "heco", "HRC20" },
+                    { "optimism", "OP" },
+                    { "op", "OP" },
                 } },
                 { "marginModes", new Dictionary<string, object>() {
                     { "cross", "MARGIN_TRADE" },
@@ -1992,40 +2003,6 @@ public partial class kucoin : Exchange
         object response = null;
         if (isTrue(uta))
         {
-            //
-            //     {
-            //         "code": "200000",
-            //         "data": [
-            //             {
-            //                 "currency": "CSP",
-            //                 "name": "CSP",
-            //                 "fullName": "Caspian",
-            //                 "precision": 8,
-            //                 "isMarginEnabled": false,
-            //                 "isDebitEnabled": false,
-            //                 "items": [
-            //                     {
-            //                         "chainName": "ERC20",
-            //                         "minWithdrawSize": "2999",
-            //                         "minDepositSize": null,
-            //                         "withdrawFeeRate": "0",
-            //                         "minWithdrawFee": "2999",
-            //                         "isWithdrawEnabled": false,
-            //                         "isDepositEnabled": false,
-            //                         "confirms": 96,
-            //                         "preConfirms": 32,
-            //                         "contractAddress": "0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
-            //                         "withdrawPrecision": 8,
-            //                         "maxWithdrawSize": null,
-            //                         "maxDepositSize": null,
-            //                         "isMemoRequired": false,
-            //                         "chainId": "eth"
-            //                     }
-            //                 ]
-            //             }
-            //         ]
-            //     }
-            //
             response = await this.utaGetAssetCurrencies(parameters);
         } else
         {
@@ -2069,67 +2046,64 @@ public partial class kucoin : Exchange
             response = await this.publicGetCurrencies(parameters);
         }
         object currenciesData = this.safeList(response, "data", new List<object>() {});
-        object brokenCurrencies = this.safeList(this.options, "brokenCurrencies", new List<object>() {"00", "OPEN_ERROR", "HUF", "BDT"});
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(currenciesData)); postFixIncrement(ref i))
+        object brokenCurrencies = this.handleOption("fetchCurrencies", "brokenCurrencies", new List<object>() {});
+        object filteredCurrencies = this.filterOutByArray(currenciesData, "currency", brokenCurrencies); // remove broken entries
+        return this.parseCurrencies(filteredCurrencies);
+    }
+
+    public override object parseCurrency(object currency)
+    {
+        object entry = currency;
+        object id = this.safeString(entry, "currency");
+        object code = this.safeCurrencyCode(id);
+        object networks = new Dictionary<string, object>() {};
+        object chains = this.safeList2(entry, "chains", "items", new List<object>() {});
+        object chainsLength = getArrayLength(chains);
+        for (object j = 0; isLessThan(j, chainsLength); postFixIncrement(ref j))
         {
-            object entry = getValue(currenciesData, i);
-            object id = this.safeString(entry, "currency");
-            if (isTrue(this.inArray(id, brokenCurrencies)))
-            {
-                continue;
-            }
-            object code = this.safeCurrencyCode(id);
-            object networks = new Dictionary<string, object>() {};
-            object chains = this.safeList2(entry, "chains", "items", new List<object>() {});
-            object chainsLength = getArrayLength(chains);
-            for (object j = 0; isLessThan(j, chainsLength); postFixIncrement(ref j))
-            {
-                object chain = getValue(chains, j);
-                object chainId = this.safeString(chain, "chainId");
-                object networkCode = this.networkIdToCode(chainId, code);
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "info", chain },
-                    { "id", chainId },
-                    { "name", this.safeString(chain, "chainName") },
-                    { "code", networkCode },
-                    { "active", null },
-                    { "fee", this.safeNumber2(chain, "withdrawalMinFee", "minWithdrawFee") },
-                    { "deposit", this.safeBool(chain, "isDepositEnabled") },
-                    { "withdraw", this.safeBool(chain, "isWithdrawEnabled") },
-                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "withdrawPrecision"))) },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.safeNumber2(chain, "withdrawalMinSize", "minWithdrawSize") },
-                            { "max", this.safeNumber2(chain, "maxWithdraw", "maxWithdrawSize") },
-                        } },
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", this.safeNumber2(chain, "depositMinSize", "minDepositSize") },
-                            { "max", this.safeNumber2(chain, "maxDeposit", "maxDepositSize") },
-                        } },
-                    } },
-                };
-            }
-            // kucoin has determined 'fiat' currencies with below logic
-            object rawPrecision = this.safeString(entry, "precision");
-            object precision = this.parseNumber(this.parsePrecision(rawPrecision));
-            object isFiat = isEqual(chainsLength, 0);
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", id },
-                { "name", this.safeString(entry, "fullName") },
-                { "code", code },
-                { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
-                { "precision", precision },
-                { "info", entry },
-                { "networks", networks },
-                { "deposit", null },
-                { "withdraw", null },
+            object chain = getValue(chains, j);
+            object chainId = this.safeString(chain, "chainId");
+            object networkCode = this.networkIdToCode(chainId, code);
+            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "info", chain },
+                { "id", chainId },
+                { "name", this.safeString(chain, "chainName") },
+                { "code", networkCode },
                 { "active", null },
-                { "fee", null },
-                { "limits", null },
-            });
+                { "fee", this.safeNumber2(chain, "withdrawalMinFee", "minWithdrawFee") },
+                { "deposit", this.safeBool(chain, "isDepositEnabled") },
+                { "withdraw", this.safeBool(chain, "isWithdrawEnabled") },
+                { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "withdrawPrecision"))) },
+                { "limits", new Dictionary<string, object>() {
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", this.safeNumber2(chain, "withdrawalMinSize", "minWithdrawSize") },
+                        { "max", this.safeNumber2(chain, "maxWithdraw", "maxWithdrawSize") },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", this.safeNumber2(chain, "depositMinSize", "minDepositSize") },
+                        { "max", this.safeNumber2(chain, "maxDeposit", "maxDepositSize") },
+                    } },
+                } },
+            };
         }
-        return result;
+        // kucoin has determined 'fiat' currencies with below logic
+        object rawPrecision = this.safeString(entry, "precision");
+        object precision = this.parseNumber(this.parsePrecision(rawPrecision));
+        object isFiat = isEqual(chainsLength, 0);
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "name", this.safeString(entry, "fullName") },
+            { "code", code },
+            { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
+            { "precision", precision },
+            { "info", entry },
+            { "networks", networks },
+            { "deposit", null },
+            { "withdraw", null },
+            { "active", null },
+            { "fee", null },
+            { "limits", null },
+        });
     }
 
     /**
@@ -2242,7 +2216,7 @@ public partial class kucoin : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
-            ((IDictionary<string,object>)request)["chain"] = ((string)this.networkCodeToId(networkCode)).ToLower();
+            ((IDictionary<string,object>)request)["chain"] = ((string)this.networkCodeToId(networkCode, getValue(currency, "code"))).ToLower();
         }
         object response = await this.privateGetWithdrawalsQuotas(this.extend(request, parameters));
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
@@ -2279,7 +2253,7 @@ public partial class kucoin : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
-            ((IDictionary<string,object>)request)["chain"] = ((string)this.networkCodeToId(networkCode)).ToLower();
+            ((IDictionary<string,object>)request)["chain"] = ((string)this.networkCodeToId(networkCode, getValue(currency, "code"))).ToLower();
         }
         object response = await this.privateGetWithdrawalsQuotas(this.extend(request, parameters));
         //
@@ -2340,7 +2314,8 @@ public partial class kucoin : Exchange
             for (object i = 0; isLessThan(i, getArrayLength(chains)); postFixIncrement(ref i))
             {
                 object chain = getValue(chains, i);
-                object networkCodeNew = this.networkIdToCode(this.safeString(chain, "chainId"), this.safeString(currency, "code"));
+                object chainId = this.safeString(chain, "chainId");
+                object networkCodeNew = this.networkIdToCode(chainId, this.safeString(currency, "code"));
                 ((IDictionary<string,object>)getValue(resultNew, "networks"))[(string)networkCodeNew] = new Dictionary<string, object>() {
                     { "withdraw", new Dictionary<string, object>() {
                         { "fee", this.safeNumber2(chain, "withdrawalMinFee", "withdrawMinFee") },
@@ -2368,7 +2343,9 @@ public partial class kucoin : Exchange
             { "networks", new Dictionary<string, object>() {} },
         };
         object networkId = this.safeString(fee, "chain");
-        object networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
+        object currencyId = this.safeString(fee, "currency");
+        currency = this.safeCurrency(currencyId, currency);
+        object networkCode = this.networkIdToCode(networkId, getValue(currency, "code"));
         ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
             { "withdraw", minWithdrawFee },
             { "deposit", new Dictionary<string, object>() {
@@ -3274,7 +3251,7 @@ public partial class kucoin : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
-            ((IDictionary<string,object>)request)["chain"] = this.networkCodeToId(networkCode); // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
+            ((IDictionary<string,object>)request)["chain"] = this.networkCodeToId(networkCode, getValue(currency, "code")); // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
         }
         object response = await this.privatePostDepositAddressCreate(this.extend(request, parameters));
         // {"code":"260000","msg":"Deposit address already exists."}
@@ -3342,7 +3319,7 @@ public partial class kucoin : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
-            ((IDictionary<string,object>)request)["chain"] = ((string)this.networkCodeToId(networkCode)).ToLower();
+            ((IDictionary<string,object>)request)["chain"] = ((string)this.networkCodeToId(networkCode, getValue(currency, "code"))).ToLower();
         }
         object version = getValue(getValue(getValue(getValue(this.options, "versions"), "private"), "GET"), "deposit-addresses");
         ((IDictionary<string,object>)getValue(getValue(getValue(this.options, "versions"), "private"), "GET"))["deposit-addresses"] = "v1";
@@ -3420,10 +3397,11 @@ public partial class kucoin : Exchange
                 this.checkAddress(address);
             }
         }
+        object chainId = this.safeString(depositAddress, "chainId");
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", code },
-            { "network", this.networkIdToCode(this.safeString(depositAddress, "chainId")) },
+            { "network", this.networkIdToCode(chainId, code) },
             { "address", address },
             { "tag", this.safeString(depositAddress, "memo") },
         };
@@ -7681,7 +7659,7 @@ public partial class kucoin : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
-            ((IDictionary<string,object>)request)["chain"] = ((string)this.networkCodeToId(networkCode)).ToLower();
+            ((IDictionary<string,object>)request)["chain"] = ((string)this.networkCodeToId(networkCode, getValue(currency, "code"))).ToLower();
         }
         ((IDictionary<string,object>)request)["amount"] = parseFloat(this.currencyToPrecision(code, amount, networkCode));
         object includeFee = null;
@@ -7818,12 +7796,13 @@ public partial class kucoin : Exchange
         }
         object intern = this.safeBool(transaction, "isInner");
         object tag = this.safeString(transaction, "memo");
+        object chainId = this.safeString(transaction, "chain");
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", this.safeString2(transaction, "id", "withdrawalId") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "network", this.networkIdToCode(this.safeString(transaction, "chain")) },
+            { "network", this.networkIdToCode(chainId, code) },
             { "address", address },
             { "addressTo", address },
             { "addressFrom", null },
@@ -10719,7 +10698,7 @@ public partial class kucoin : Exchange
             //         }
             //     }
             //
-            response = await ((Task<object>)callDynamically(this, "utaPrivateGetPositionHistory", new object[] { this.extend(request, parameters) }));
+            response = await this.utaPrivateGetPositionHistory(this.extend(request, parameters));
         } else
         {
             if (isTrue(isEqual(limit, null)))

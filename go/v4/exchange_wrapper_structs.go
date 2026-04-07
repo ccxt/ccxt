@@ -5812,138 +5812,6 @@ func WithFetchDepositMethodIdParams(params map[string]any) FetchDepositMethodIdO
 	}
 }
 
-type FetchOpenSpotOrdersOptionsStruct struct {
-	Symbol *string
-	Since  *int64
-	Limit  *int64
-	Params *map[string]any
-}
-
-type FetchOpenSpotOrdersOptions func(opts *FetchOpenSpotOrdersOptionsStruct)
-
-func WithFetchOpenSpotOrdersSymbol(symbol string) FetchOpenSpotOrdersOptions {
-	return func(opts *FetchOpenSpotOrdersOptionsStruct) {
-		opts.Symbol = &symbol
-	}
-}
-
-func WithFetchOpenSpotOrdersSince(since int64) FetchOpenSpotOrdersOptions {
-	return func(opts *FetchOpenSpotOrdersOptionsStruct) {
-		opts.Since = &since
-	}
-}
-
-func WithFetchOpenSpotOrdersLimit(limit int64) FetchOpenSpotOrdersOptions {
-	return func(opts *FetchOpenSpotOrdersOptionsStruct) {
-		opts.Limit = &limit
-	}
-}
-
-func WithFetchOpenSpotOrdersParams(params map[string]any) FetchOpenSpotOrdersOptions {
-	return func(opts *FetchOpenSpotOrdersOptionsStruct) {
-		opts.Params = &params
-	}
-}
-
-type FetchOpenSwapOrdersOptionsStruct struct {
-	Symbol *string
-	Since  *int64
-	Limit  *int64
-	Params *map[string]any
-}
-
-type FetchOpenSwapOrdersOptions func(opts *FetchOpenSwapOrdersOptionsStruct)
-
-func WithFetchOpenSwapOrdersSymbol(symbol string) FetchOpenSwapOrdersOptions {
-	return func(opts *FetchOpenSwapOrdersOptionsStruct) {
-		opts.Symbol = &symbol
-	}
-}
-
-func WithFetchOpenSwapOrdersSince(since int64) FetchOpenSwapOrdersOptions {
-	return func(opts *FetchOpenSwapOrdersOptionsStruct) {
-		opts.Since = &since
-	}
-}
-
-func WithFetchOpenSwapOrdersLimit(limit int64) FetchOpenSwapOrdersOptions {
-	return func(opts *FetchOpenSwapOrdersOptionsStruct) {
-		opts.Limit = &limit
-	}
-}
-
-func WithFetchOpenSwapOrdersParams(params map[string]any) FetchOpenSwapOrdersOptions {
-	return func(opts *FetchOpenSwapOrdersOptionsStruct) {
-		opts.Params = &params
-	}
-}
-
-type FetchCanceledAndClosedSpotOrdersOptionsStruct struct {
-	Symbol *string
-	Since  *int64
-	Limit  *int64
-	Params *map[string]any
-}
-
-type FetchCanceledAndClosedSpotOrdersOptions func(opts *FetchCanceledAndClosedSpotOrdersOptionsStruct)
-
-func WithFetchCanceledAndClosedSpotOrdersSymbol(symbol string) FetchCanceledAndClosedSpotOrdersOptions {
-	return func(opts *FetchCanceledAndClosedSpotOrdersOptionsStruct) {
-		opts.Symbol = &symbol
-	}
-}
-
-func WithFetchCanceledAndClosedSpotOrdersSince(since int64) FetchCanceledAndClosedSpotOrdersOptions {
-	return func(opts *FetchCanceledAndClosedSpotOrdersOptionsStruct) {
-		opts.Since = &since
-	}
-}
-
-func WithFetchCanceledAndClosedSpotOrdersLimit(limit int64) FetchCanceledAndClosedSpotOrdersOptions {
-	return func(opts *FetchCanceledAndClosedSpotOrdersOptionsStruct) {
-		opts.Limit = &limit
-	}
-}
-
-func WithFetchCanceledAndClosedSpotOrdersParams(params map[string]any) FetchCanceledAndClosedSpotOrdersOptions {
-	return func(opts *FetchCanceledAndClosedSpotOrdersOptionsStruct) {
-		opts.Params = &params
-	}
-}
-
-type FetchCanceledAndClosedSwapOrdersOptionsStruct struct {
-	Symbol *string
-	Since  *int64
-	Limit  *int64
-	Params *map[string]any
-}
-
-type FetchCanceledAndClosedSwapOrdersOptions func(opts *FetchCanceledAndClosedSwapOrdersOptionsStruct)
-
-func WithFetchCanceledAndClosedSwapOrdersSymbol(symbol string) FetchCanceledAndClosedSwapOrdersOptions {
-	return func(opts *FetchCanceledAndClosedSwapOrdersOptionsStruct) {
-		opts.Symbol = &symbol
-	}
-}
-
-func WithFetchCanceledAndClosedSwapOrdersSince(since int64) FetchCanceledAndClosedSwapOrdersOptions {
-	return func(opts *FetchCanceledAndClosedSwapOrdersOptionsStruct) {
-		opts.Since = &since
-	}
-}
-
-func WithFetchCanceledAndClosedSwapOrdersLimit(limit int64) FetchCanceledAndClosedSwapOrdersOptions {
-	return func(opts *FetchCanceledAndClosedSwapOrdersOptionsStruct) {
-		opts.Limit = &limit
-	}
-}
-
-func WithFetchCanceledAndClosedSwapOrdersParams(params map[string]any) FetchCanceledAndClosedSwapOrdersOptions {
-	return func(opts *FetchCanceledAndClosedSwapOrdersOptionsStruct) {
-		opts.Params = &params
-	}
-}
-
 type FetchMarketsByTypeOptionsStruct struct {
 	Params *map[string]any
 }
@@ -6087,6 +5955,72 @@ type FetchTickerV1AndV2Options func(opts *FetchTickerV1AndV2OptionsStruct)
 
 func WithFetchTickerV1AndV2Params(params map[string]any) FetchTickerV1AndV2Options {
 	return func(opts *FetchTickerV1AndV2OptionsStruct) {
+		opts.Params = &params
+	}
+}
+
+type FetchOpenSpotOrdersOptionsStruct struct {
+	Symbol *string
+	Since  *int64
+	Limit  *int64
+	Params *map[string]any
+}
+
+type FetchOpenSpotOrdersOptions func(opts *FetchOpenSpotOrdersOptionsStruct)
+
+func WithFetchOpenSpotOrdersSymbol(symbol string) FetchOpenSpotOrdersOptions {
+	return func(opts *FetchOpenSpotOrdersOptionsStruct) {
+		opts.Symbol = &symbol
+	}
+}
+
+func WithFetchOpenSpotOrdersSince(since int64) FetchOpenSpotOrdersOptions {
+	return func(opts *FetchOpenSpotOrdersOptionsStruct) {
+		opts.Since = &since
+	}
+}
+
+func WithFetchOpenSpotOrdersLimit(limit int64) FetchOpenSpotOrdersOptions {
+	return func(opts *FetchOpenSpotOrdersOptionsStruct) {
+		opts.Limit = &limit
+	}
+}
+
+func WithFetchOpenSpotOrdersParams(params map[string]any) FetchOpenSpotOrdersOptions {
+	return func(opts *FetchOpenSpotOrdersOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
+type FetchOpenSwapOrdersOptionsStruct struct {
+	Symbol *string
+	Since  *int64
+	Limit  *int64
+	Params *map[string]any
+}
+
+type FetchOpenSwapOrdersOptions func(opts *FetchOpenSwapOrdersOptionsStruct)
+
+func WithFetchOpenSwapOrdersSymbol(symbol string) FetchOpenSwapOrdersOptions {
+	return func(opts *FetchOpenSwapOrdersOptionsStruct) {
+		opts.Symbol = &symbol
+	}
+}
+
+func WithFetchOpenSwapOrdersSince(since int64) FetchOpenSwapOrdersOptions {
+	return func(opts *FetchOpenSwapOrdersOptionsStruct) {
+		opts.Since = &since
+	}
+}
+
+func WithFetchOpenSwapOrdersLimit(limit int64) FetchOpenSwapOrdersOptions {
+	return func(opts *FetchOpenSwapOrdersOptionsStruct) {
+		opts.Limit = &limit
+	}
+}
+
+func WithFetchOpenSwapOrdersParams(params map[string]any) FetchOpenSwapOrdersOptions {
+	return func(opts *FetchOpenSwapOrdersOptionsStruct) {
 		opts.Params = &params
 	}
 }
@@ -6652,12 +6586,12 @@ func WithFetchContractWithdrawalsParams(params map[string]any) FetchContractWith
 }
 
 type TransferClassicOptionsStruct struct {
-	Params *map[string]interface{}
+	Params *map[string]any
 }
 
 type TransferClassicOptions func(opts *TransferClassicOptionsStruct)
 
-func WithTransferClassicParams(params map[string]interface{}) TransferClassicOptions {
+func WithTransferClassicParams(params map[string]any) TransferClassicOptions {
 	return func(opts *TransferClassicOptionsStruct) {
 		opts.Params = &params
 	}

@@ -1434,7 +1434,7 @@ public partial class whitebit
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch (default 100, max 1000)
+    /// int : the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch (default 100, max 100)
     /// </description>
     /// </item>
     /// <item>

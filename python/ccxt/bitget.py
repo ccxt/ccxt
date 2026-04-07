@@ -4943,7 +4943,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders, and used execution price for contract stop-loss / take-profit orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.cost]: *spot only* how much you want to trade in units of the quote currency, for market buy orders only
         :param float [params.triggerPrice]: *swap only* The price at which a trigger order is triggered at
@@ -5217,8 +5217,10 @@ class bitget(Exchange, ImplicitAPI):
                     tpType = self.safe_string(takeProfit, 'type', 'mark_price')
                     request['stopSurplusTriggerType'] = tpType
             elif isStopLossOrTakeProfitTrigger:
-                if not isMarketOrder:
-                    raise ExchangeError(self.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders')
+                if price is not None:
+                    request['executePrice'] = self.price_to_precision(symbol, price)
+                    if 'price' in request:
+                        del request['price']
                 if hedged:
                     request['holdSide'] = 'long' if (side == 'sell') else 'short'
                 else:

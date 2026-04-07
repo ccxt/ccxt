@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.46'
+__version__ = '4.5.47'
 
 # ----------------------------------------------------------------------------
 
@@ -90,7 +90,6 @@ from ccxt.pro.coinbase import coinbase                                    # noqa
 from ccxt.pro.coinbaseadvanced import coinbaseadvanced                    # noqa: F401
 from ccxt.pro.coinbaseexchange import coinbaseexchange                    # noqa: F401
 from ccxt.pro.coinbaseinternational import coinbaseinternational          # noqa: F401
-from ccxt.pro.coincatch import coincatch                                  # noqa: F401
 from ccxt.pro.coincheck import coincheck                                  # noqa: F401
 from ccxt.pro.coinex import coinex                                        # noqa: F401
 from ccxt.pro.coinone import coinone                                      # noqa: F401
@@ -171,7 +170,6 @@ exchanges = [
     'coinbaseadvanced',
     'coinbaseexchange',
     'coinbaseinternational',
-    'coincatch',
     'coincheck',
     'coinex',
     'coinone',
