@@ -6,7 +6,7 @@ import Exchange from './abstract/weex.js';
 // import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int } from './base/types.js';
+import type { Currencies, Dict, Int, Market } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -87,7 +87,7 @@ export default class weex extends Exchange {
                 'fetchConvertTradeHistory': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDeposit': false,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
@@ -204,11 +204,11 @@ export default class weex extends Exchange {
                 'public': {
                     // multiply public endpoints weight by 5
                     'get': {
-                        'api/v3/time': 5,
+                        'api/v3/time': 5, // done
                         'api/v3/coins': 25,
-                        'api/v3/exchangeInfo': 100,
-                        'api/v3/ping': 5,
-                        'api/v3/apiTradingSymbols': 25,
+                        'api/v3/exchangeInfo': 100, // done
+                        'api/v3/ping': 5, // done
+                        'api/v3/apiTradingSymbols': 25, // not unified
                         'api/v3/market/ticker/price': 20,
                         'api/v3/market/ticker/24hr': 10,
                         'api/v3/market/trades': 125,
@@ -250,8 +250,8 @@ export default class weex extends Exchange {
                 'contract': {
                     // multiply public endpoints weight by 5
                     'get': {
-                        'capi/v3/market/time': 5,
-                        'capi/v3/market/exchangeInfo': 5,
+                        'capi/v3/market/time': 5, // done
+                        'capi/v3/market/exchangeInfo': 5, // done
                         'capi/v3/market/depth': 5,
                         'capi/v3/market/ticker/24hr': 200,
                         'capi/v3/market/ticker/bookTicker': 5,
@@ -329,6 +329,7 @@ export default class weex extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     'tierBased': true,
                     'percentage': true,
                     'taker': this.parseNumber ('0.1'),
@@ -359,6 +360,7 @@ export default class weex extends Exchange {
                     },
                 },
                 'spot': {
+                    'feeSide': 'get',
                     'tierBased': true,
                     'percentage': true,
                     'taker': this.parseNumber ('0.1'),
@@ -389,6 +391,7 @@ export default class weex extends Exchange {
                     },
                 },
                 'contract': {
+                    'feeSide': 'quote',
                     'tierBased': true,
                     'percentage': true,
                     'taker': this.parseNumber ('0.08'),
@@ -429,6 +432,20 @@ export default class weex extends Exchange {
                 'accountsByType': {
                 },
                 'networks': {
+                    'BEP20': 'BEP20(BSC)',
+                    'BSC': 'BEP20(BSC)',
+                    'ERC20': 'ERC20',
+                    'ETH': 'ERC20',
+                    'POLYGON': 'POLYGON(MATIC)',
+                    'MATIC': 'POLYGON(MATIC)',
+                    'ARBITRUM': 'ARBITRUM(ARB)',
+                    'ARB': 'ARBITRUM(ARB)',
+                    'SOLANA': 'SOLANA(SOL)',
+                    'SOL': 'SOLANA(SOL)',
+                    'OP': 'OPTIMISM(OP)',
+                    'OPTIMISM': 'OPTIMISM(OP)',
+                    'AVALANCHEC': 'AVALANCHE_C(AVAX_C)',
+                    'AVAXC': 'AVALANCHE_C(AVAX_C)',
                 },
             },
             'features': {
@@ -598,8 +615,371 @@ export default class weex extends Exchange {
             response = await this.publicGetApiV3Time (params);
         }
         //
+        //     {
+        //         "serverTime": 1764505776347
+        //     }
         //
         return this.safeInteger (response, 'serverTime');
+    }
+
+    /**
+     * @method
+     * @name weex#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://www.weex.com/api-doc/spot/ConfigAPI/CurrencyInfo
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    async fetchCurrencies (params = {}): Promise<Currencies> {
+        const response = await this.publicGetApiV3Coins (params);
+        //
+        //     [
+        //         {
+        //             "coin": "BTC",
+        //             "depositAllEnable": true,
+        //             "withdrawAllEnable": true,
+        //             "name": "BTC",
+        //             "networkList": [
+        //                 {
+        //                     "network": "BTC",
+        //                     "coin": "BTC",
+        //                     "withdrawIntegerMultiple": 1E-8,
+        //                     "isDefault": true,
+        //                     "depositEnable": true,
+        //                     "withdrawEnable": true,
+        //                     "depositDesc": null,
+        //                     "withdrawDesc": null,
+        //                     "name": "BTC",
+        //                     "withdrawFee": "0.00016",
+        //                     "withdrawMin": "0.002",
+        //                     "depositDust": "0.00001",
+        //                     "minConfirm": 3,
+        //                     "withdrawTag": false,
+        //                     "contractAddressUrl": "https://www.blockchain.com/explorer/mempool/",
+        //                     "contractAddress": "btc"
+        //                 },
+        //                 {
+        //                     "network": "BEP20(BSC)",
+        //                     "coin": "BTC",
+        //                     "withdrawIntegerMultiple": 1E-8,
+        //                     "isDefault": false,
+        //                     "depositEnable": true,
+        //                     "withdrawEnable": false,
+        //                     "depositDesc": null,
+        //                     "withdrawDesc": null,
+        //                     "name": "BEP20(BSC)",
+        //                     "withdrawFee": "0.00001",
+        //                     "withdrawMin": "0.00006",
+        //                     "depositDust": "0.00003",
+        //                     "minConfirm": 61,
+        //                     "withdrawTag": false,
+        //                     "contractAddressUrl": "",
+        //                     "contractAddress": ""
+        //                 }
+        //             ]
+        //         },
+        //         {
+        //             "coin": "USDT",
+        //             "depositAllEnable": true,
+        //             "withdrawAllEnable": true,
+        //             "name": "USDT",
+        //             "networkList": [
+        //                 {
+        //                     "network": "TRC20",
+        //                     "coin": "USDT",
+        //                     "withdrawIntegerMultiple": 1E-8,
+        //                     "isDefault": true,
+        //                     "depositEnable": true,
+        //                     "withdrawEnable": true,
+        //                     "depositDesc": null,
+        //                     "withdrawDesc": null,
+        //                     "name": "TRC20",
+        //                     "withdrawFee": "1.5",
+        //                     "withdrawMin": "10",
+        //                     "depositDust": "0.1",
+        //                     "minConfirm": 20,
+        //                     "withdrawTag": false,
+        //                     "contractAddressUrl": "https://tronscan.org/#/token20/",
+        //                     "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+        //                 },
+        //                 {
+        //                     "network": "ERC20",
+        //                     "coin": "USDT",
+        //                     "withdrawIntegerMultiple": 1E-8,
+        //                     "isDefault": false,
+        //                     "depositEnable": true,
+        //                     "withdrawEnable": true,
+        //                     "depositDesc": null,
+        //                     "withdrawDesc": null,
+        //                     "name": "ERC20",
+        //                     "withdrawFee": "1",
+        //                     "withdrawMin": "20",
+        //                     "depositDust": "0.1",
+        //                     "minConfirm": 12,
+        //                     "withdrawTag": false,
+        //                     "contractAddressUrl": "https://etherscan.io/token/",
+        //                     "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+        //                 },
+        //                 {
+        //                     "network": "AVALANCHE_C(AVAX_C)",
+        //                     "coin": "USDT",
+        //                     "withdrawIntegerMultiple": 1E-8,
+        //                     "isDefault": false,
+        //                     "depositEnable": true,
+        //                     "withdrawEnable": true,
+        //                     "depositDesc": null,
+        //                     "withdrawDesc": null,
+        //                     "name": "AVALANCHE_C(AVAX_C)",
+        //                     "withdrawFee": "0.5",
+        //                     "withdrawMin": "10",
+        //                     "depositDust": "0.1",
+        //                     "minConfirm": 35,
+        //                     "withdrawTag": false,
+        //                     "contractAddressUrl": "https://avascan.info/blockchain/c/token/",
+        //                     "contractAddress": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7"
+        //                 }
+        //             ]
+        //         }
+        //     ]
+        //
+        const result: Dict = {};
+        for (let i = 0; i < response.length; i++) {
+            const currency = this.safeDict (response, i);
+            const currencyId = this.safeString (currency, 'coin');
+            const code = this.safeCurrencyCode (currencyId);
+            const name = this.safeString (currency, 'name');
+            const networks: Dict = {};
+            const chains = this.safeList (currency, 'networkList', []);
+            for (let j = 0; j < chains.length; j++) {
+                const chain = this.safeDict (chains, j);
+                const networkId = this.safeString (chain, 'network');
+                const networkCode = this.networkIdToCode (networkId);
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeBool (chain, 'depositEnable'),
+                    'withdraw': this.safeBool (chain, 'withdrawEnable'),
+                    'fee': this.safeNumber (chain, 'withdrawFee'),
+                    'precision': this.safeNumber (chain, 'withdrawIntegerMultiple'),
+                    'isDefault': this.safeBool (chain, 'isDefault', false),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (chain, 'withdrawMin'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber (chain, 'depositDust'),
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+            const networkKeys = Object.keys (networks);
+            const networksLength = networkKeys.length;
+            const emptyChains = networksLength === 0; // non-functional coins
+            const valueForEmpty = emptyChains ? false : undefined;
+            result[code] = this.safeCurrencyStructure ({
+                'info': currency,
+                'code': code,
+                'id': currencyId,
+                'type': 'crypto',
+                'name': name,
+                'active': undefined,
+                'deposit': valueForEmpty,
+                'withdraw': valueForEmpty,
+                'fee': undefined,
+                'precision': undefined,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'networks': networks,
+            });
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name weex#fetchMarkets
+     * @description retrieves data on all markets for exchagne
+     * @see https://www.weex.com/api-doc/spot/ConfigAPI/GetProductInfo // spot
+     * @see https://www.weex.com/api-doc/contract/Market_API/GetContractInfo // contract
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    async fetchMarkets (params = {}): Promise<Market[]> {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference ();
+        }
+        const promises = [
+            this.publicGetApiV3ExchangeInfo (params),
+            this.contractGetCapiV3MarketExchangeInfo (params),
+        ];
+        const [ spotResponse, contractResponse ] = await Promise.all (promises);
+        const spotArray = this.safeList (spotResponse, 'symbols', []);
+        const contractArray = this.safeList (contractResponse, 'symbols', []);
+        const result = this.arrayConcat (spotArray, contractArray);
+        return this.parseMarkets (result);
+    }
+
+    parseMarket (market: Dict): Market {
+        //
+        // spot
+        //     {
+        //         "symbol": "ETHUSDT",
+        //         "status": "TRADING",
+        //         "baseAsset": "ETH",
+        //         "baseAssetPrecision": "8",
+        //         "quoteAsset": "USDT",
+        //         "quoteAssetPrecision": "8",
+        //         "tickSize": "0.01",
+        //         "stepSize": "0.00001",
+        //         "minTradeAmount": "0.0001",
+        //         "maxTradeAmount": "99999",
+        //         "takerFeeRate": "0.001",
+        //         "makerFeeRate": "0.001",
+        //         "buyLimitPriceRatio": "0.1",
+        //         "sellLimitPriceRatio": "0.1",
+        //         "marketBuyLimitSize": "99999",
+        //         "marketSellLimitSize": "99999",
+        //         "marketFallbackPriceRatio": "0",
+        //         "enableTrade": true,
+        //         "enableDisplay": true,
+        //         "displayDigitMerge": "0.01,0.1,0.5,1,5",
+        //         "displayNew": false,
+        //         "displayHot": false
+        //     }
+        //
+        // contract
+        //     {
+        //         "symbol": "ETHUSDT",
+        //         "baseAsset": "ETH",
+        //         "quoteAsset": "USDT",
+        //         "marginAsset": "USDT",
+        //         "pricePrecision": "2",
+        //         "quantityPrecision": "3",
+        //         "baseAssetPrecision": "2",
+        //         "quotePrecision": "8",
+        //         "contractVal": "0.001",
+        //         "delivery": [
+        //             "00:00:00",
+        //             "08:00:00",
+        //             "16:00:00"
+        //         ],
+        //         "forwardContractFlag": true,
+        //         "minLeverage": "1",
+        //         "maxLeverage": "400",
+        //         "buyLimitPriceRatio": "0.01",
+        //         "sellLimitPriceRatio": "0.01",
+        //         "makerFeeRate": "0.0002",
+        //         "takerFeeRate": "0.0008",
+        //         "minOrderSize": "0.001",
+        //         "maxOrderSize": "1000000",
+        //         "maxPositionSize": "5000000",
+        //         "marketOpenLimitSize": "2300"
+        //     }
+        //
+        const id = this.safeString (market, 'symbol');
+        const baseId = this.safeString (market, 'baseAsset');
+        const quoteId = this.safeString (market, 'quoteAsset');
+        const settleId = this.safeString (market, 'marginAsset');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const settle = this.safeCurrencyCode (settleId);
+        let active = true;
+        let symbol = base + '/' + quote;
+        let isSpot = true;
+        let isLinear = undefined;
+        if (settle !== undefined) {
+            symbol += ':' + settle;
+            isSpot = false;
+            if (settle === quote) {
+                isLinear = true;
+            } else if (settle === base) {
+                isLinear = false;
+            }
+        } else {
+            active = this.safeBool (market, 'enableTrade');
+        }
+        let amountPrecision = this.safeNumber (market, 'stepSize');
+        let pricePrecision = this.safeNumber (market, 'tickSize');
+        if (amountPrecision === undefined) {
+            const amountPrecisionString = this.parsePrecision (this.safeString (market, 'quantityPrecision'));
+            const pricePrecisionString = this.parsePrecision (this.safeString (market, 'pricePrecision'));
+            amountPrecision = this.parseNumber (amountPrecisionString);
+            pricePrecision = this.parseNumber (pricePrecisionString);
+        }
+        const fees = this.safeDict (this.fees, isSpot ? 'spot' : 'contract', {});
+        return this.safeMarketStructure ({
+            'id': id,
+            'lowercaseId': id.toLowerCase (),
+            'numericId': this.safeInteger (market, 'contractId'),
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': isSpot ? 'spot' : 'swap',
+            'spot': isSpot,
+            'margin': false,
+            'swap': !isSpot,
+            'future': false,
+            'option': false,
+            'active': active,
+            'contract': !isSpot,
+            'linear': isLinear,
+            'inverse': isLinear === undefined ? undefined : !isLinear,
+            'taker': this.safeNumber (market, 'takerFeeRate'),
+            'maker': this.safeNumber (market, 'makerFeeRate'),
+            'feeSide': fees['feeSide'],
+            'contractSize': this.safeNumber (market, 'contractVal'),
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': amountPrecision,
+                'price': pricePrecision,
+            },
+            'limits': {
+                'leverage': {
+                    'min': this.safeNumber (market, 'minLeverage'),
+                    'max': this.safeNumber (market, 'maxLeverage'),
+                },
+                'amount': {
+                    'min': this.safeNumber2 (market, 'minTradeAmount', 'minOrderSize'),
+                    'max': this.safeNumber2 (market, 'maxTradeAmount', 'maxOrderSize'),
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'percentage': fees['percentage'],
+            'tierBased': fees['tierBased'],
+            'tiers': fees['tiers'],
+            'info': market,
+        });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
