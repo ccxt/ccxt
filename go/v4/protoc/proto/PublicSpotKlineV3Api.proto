@@ -1,0 +1,18 @@
+syntax = "proto3";
+option java_package = "com.mxc.push.common.protobuf";
+option java_outer_classname = "PublicSpotKlineV3ApiProto";
+option java_multiple_files = true;
+option java_generate_equals_and_hash = true;
+option go_package = "github.com/mtan11/ccxt/go/v4/protoc";
+
+message PublicSpotKlineV3Api {
+  string interval = 1;
+  int64 windowStart = 2;
+  string openingPrice = 3;
+  string closingPrice = 4;
+  string highestPrice = 5;
+  string lowestPrice = 6;
+  string volume = 7;
+  string amount = 8;
+  int64 windowEnd = 9;
+}

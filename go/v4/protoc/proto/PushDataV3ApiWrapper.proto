@@ -1,0 +1,47 @@
+syntax = "proto3";
+option java_package = "com.mxc.push.common.protobuf";
+option java_outer_classname = "PushDataV3ApiWrapperProto";
+option java_multiple_files = true;
+option java_generate_equals_and_hash = true;
+option go_package = "github.com/mtan11/ccxt/go/v4/protoc";
+
+import "PublicDealsV3Api.proto";
+import "PublicIncreaseDepthsV3Api.proto";
+import "PublicLimitDepthsV3Api.proto";
+import "PrivateOrdersV3Api.proto";
+import "PublicBookTickerV3Api.proto";
+import "PrivateDealsV3Api.proto";
+import "PrivateAccountV3Api.proto";
+import "PublicSpotKlineV3Api.proto";
+import "PublicMiniTickerV3Api.proto";
+import "PublicMiniTickersV3Api.proto";
+import "PublicBookTickerBatchV3Api.proto";
+import "PublicIncreaseDepthsBatchV3Api.proto";
+import "PublicAggreDepthsV3Api.proto";
+import "PublicAggreDealsV3Api.proto";
+import "PublicAggreBookTickerV3Api.proto";
+
+message PushDataV3ApiWrapper {
+  string channel = 1;
+  oneof body {
+    PublicDealsV3Api publicDeals = 301;
+    PublicIncreaseDepthsV3Api publicIncreaseDepths = 302;
+    PublicLimitDepthsV3Api publicLimitDepths = 303;
+    PrivateOrdersV3Api privateOrders = 304;
+    PublicBookTickerV3Api publicBookTicker = 305;
+    PrivateDealsV3Api privateDeals = 306;
+    PrivateAccountV3Api privateAccount = 307;
+    PublicSpotKlineV3Api publicSpotKline = 308;
+    PublicMiniTickerV3Api publicMiniTicker = 309;
+    PublicMiniTickersV3Api publicMiniTickers = 310;
+    PublicBookTickerBatchV3Api publicBookTickerBatch = 311;
+    PublicIncreaseDepthsBatchV3Api publicIncreaseDepthsBatch = 312;
+    PublicAggreDepthsV3Api publicAggreDepths = 313;
+    PublicAggreDealsV3Api publicAggreDeals = 314;
+    PublicAggreBookTickerV3Api publicAggreBookTicker = 315;
+  }
+  optional string symbol = 3;
+  optional string symbolId = 4;
+  optional int64 createTime = 5;
+  optional int64 sendTime = 6;
+}
