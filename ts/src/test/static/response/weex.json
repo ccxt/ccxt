@@ -69,7 +69,7 @@
                         "symbol": "ETH/USDT:USDT",
                         "type": null,
                         "takerOrMaker": null,
-                        "side": "buy",
+                        "side": null,
                         "price": 2113.69,
                         "amount": 0.002,
                         "cost": 4.22738,
