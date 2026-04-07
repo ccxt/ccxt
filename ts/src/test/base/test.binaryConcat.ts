@@ -1,0 +1,29 @@
+
+import assert from 'assert';
+import ccxt from '../../../ccxt.js';
+
+function testBinaryConcat () {
+
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleexchange',
+    });
+
+    // Test 1: Concat two binaries
+    const binary1 = exchange.stringToBinary ('hello');
+    const binary2 = exchange.stringToBinary (' world');
+    const result1 = exchange.binaryConcat (binary1, binary2);
+    assert (exchange.binaryToString (result1) === 'hello world');
+
+    // Test 2: Concat three binaries
+    const binary3 = exchange.stringToBinary ('foo');
+    const binary4 = exchange.stringToBinary ('bar');
+    const binary5 = exchange.stringToBinary ('baz');
+    const result2 = exchange.binaryConcat (binary3, binary4, binary5);
+    assert (exchange.binaryToString (result2) === 'foobarbaz');
+
+    // Test 3: Concat with hex bytes
+    const result3 = exchange.binaryConcat (exchange.base16ToBinary ('68656c6c6f'), exchange.stringToBinary (' world'));
+    assert (exchange.binaryToString (result3) === 'hello world');
+}
+
+export default testBinaryConcat;

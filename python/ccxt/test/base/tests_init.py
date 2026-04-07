@@ -69,6 +69,7 @@ from ccxt.test.base.test_urlencode_nested import test_urlencode_nested  # noqa E
 from ccxt.test.base.test_clone import test_clone  # noqa E402
 from ccxt.test.base.test_string_to_base16 import test_string_to_base16  # noqa E402
 from ccxt.test.base.test_capitalize import test_capitalize  # noqa E402
+from ccxt.test.base.test_binary_concat import test_binary_concat  # noqa E402
 from ccxt.test.base.test_constants import test_constants  # noqa E402
 from ccxt.test.base.test_base58_to_binary import test_base58_to_binary  # noqa E402
 from ccxt.test.base.test_is_json_encoded_object import test_is_json_encoded_object  # noqa E402
@@ -112,6 +113,7 @@ async def base_tests_init():
     test_handle_methods()
     test_remove_repeated_elements_from_array()
     test_is_empty()
+    test_binary_concat()
     test_urlencode_with_array_repeat()
     test_parse_precision()
     test_precision_from_string()

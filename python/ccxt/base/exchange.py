@@ -1407,6 +1407,14 @@ class Exchange(object):
         return binary
 
     @staticmethod
+    def string_to_binary(buff: str) -> bytes:
+        return buff.encode('utf-8')
+
+    @staticmethod
+    def binary_to_string(buff: bytes) -> str:
+        return buff.decode('utf-8')
+
+    @staticmethod
     def binary_concat(*args):
         result = bytes()
         for arg in args:

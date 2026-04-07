@@ -779,15 +779,22 @@ class lighter extends \ccxt\async\lighter {
         //     }
         //
         $timestamp = $this->safe_integer($liquidation, 'timestamp');
+        $isMakerAsk = $this->safe_bool($liquidation, 'is_maker_ask');
+        $side = $isMakerAsk ? 'buy' : 'sell';
+        $contracts = $this->safe_string($liquidation, 'size');
+        $contractSize = $this->safe_string($market, 'contractSize');
+        $price = $this->safe_string($liquidation, 'price');
+        $baseValue = Precise::string_mul($contracts, $contractSize);
+        $quoteValue = Precise::string_mul($baseValue, $price);
         return $this->safe_liquidation(array(
             'info' => $liquidation,
             'symbol' => $market['symbol'],
-            'contracts' => null,
-            'contractSize' => null,
-            'price' => $this->safe_string($liquidation, 'price'),
-            'side' => $this->safe_string($liquidation, 'size'),
-            'baseValue' => null,
-            'quoteValue' => null,
+            'contracts' => $contracts,
+            'contractSize' => $contractSize,
+            'price' => $price,
+            'side' => $side,
+            'baseValue' => $baseValue,
+            'quoteValue' => $quoteValue,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         ));

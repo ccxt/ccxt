@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class bittrade
@@ -1217,7 +1217,7 @@ class bittrade extends bittrade$1["default"] {
         const response = await this[method](this.extend(request, params));
         //
         //     { "status":   "ok",
-        //         "data": [ {                  id:  13997833015,
+        //         "data": [ {                  id:  13997833016,
         //                                "symbol": "ethbtc",
         //                          "account-id":  3398321,
         //                                "amount": "0.045000000000000000",

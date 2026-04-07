@@ -1072,6 +1072,15 @@ class Exchange {
     public static function ymdhms($timestamp, $infix = ' ') {
         return gmdate('Y-m-d\\' . $infix . 'H:i:s', (int) round($timestamp / 1000));
     }
+    public static function string_to_binary(string $buff): string
+    {
+        return mb_convert_encoding($buff, 'UTF-8');
+    }
+
+    public static function binary_to_string(string $buff): string
+    {
+        return mb_convert_encoding($buff, 'UTF-8');
+    }
 
     public static function binary_concat() {
         return implode('', func_get_args());

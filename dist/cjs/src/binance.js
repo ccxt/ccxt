@@ -11,7 +11,7 @@ var rsa = require('./base/functions/rsa.js');
 var crypto = require('./base/functions/crypto.js');
 var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class binance
@@ -2863,9 +2863,6 @@ class binance extends binance$1["default"] {
             return this.createExpiredOptionMarket(marketId);
         }
         return super.safeMarket(marketId, market, delimiter, marketType);
-    }
-    costToPrecision(symbol, cost) {
-        return this.decimalToPrecision(cost, number.TRUNCATE, this.markets[symbol]['precision']['quote'], this.precisionMode, this.paddingMode);
     }
     nonce() {
         return this.milliseconds() - this.options['timeDifference'];

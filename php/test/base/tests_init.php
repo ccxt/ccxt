@@ -64,6 +64,7 @@ include_once __DIR__ . '/test_urlencode_nested.php';
 include_once __DIR__ . '/test_clone.php';
 include_once __DIR__ . '/test_string_to_base16.php';
 include_once __DIR__ . '/test_capitalize.php';
+include_once __DIR__ . '/test_binary_concat.php';
 include_once __DIR__ . '/test_constants.php';
 include_once __DIR__ . '/test_base58_to_binary.php';
 include_once __DIR__ . '/test_is_json_encoded_object.php';
@@ -108,6 +109,7 @@ function base_tests_init() {
         test_handle_methods();
         test_remove_repeated_elements_from_array();
         test_is_empty();
+        test_binary_concat();
         test_urlencode_with_array_repeat();
         test_parse_precision();
         test_precision_from_string();

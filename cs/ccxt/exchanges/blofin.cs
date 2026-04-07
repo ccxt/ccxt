@@ -2052,6 +2052,7 @@ public partial class blofin : Exchange
         //
         object type = null;
         object id = null;
+        object status = null;
         object withdrawalId = this.safeString(transaction, "withdrawId");
         object depositId = this.safeString(transaction, "depositId");
         object addressTo = this.safeString(transaction, "address");
@@ -2061,15 +2062,16 @@ public partial class blofin : Exchange
         {
             type = "withdrawal";
             id = withdrawalId;
+            status = this.parseTransactionWithdrawalStatus(this.safeString(transaction, "state"));
         } else
         {
             id = depositId;
             type = "deposit";
+            status = this.parseTransactionDepositStatus(this.safeString(transaction, "state"));
         }
         object currencyId = this.safeString(transaction, "currency");
         object code = this.safeCurrencyCode(currencyId);
         object amount = this.safeNumber(transaction, "amount");
-        object status = this.parseTransactionStatus(this.safeString(transaction, "state"));
         object txid = this.safeString(transaction, "txId");
         object timestamp = this.safeInteger(transaction, "ts");
         object feeCurrencyId = this.safeString(transaction, "feeCurrency");
@@ -2102,7 +2104,20 @@ public partial class blofin : Exchange
         };
     }
 
-    public virtual object parseTransactionStatus(object status)
+    public virtual object parseTransactionWithdrawalStatus(object status)
+    {
+        object statuses = new Dictionary<string, object>() {
+            { "0", "pending" },
+            { "2", "failed" },
+            { "3", "ok" },
+            { "4", "failed" },
+            { "6", "pending" },
+            { "7", "pending" },
+        };
+        return this.safeString(statuses, status, status);
+    }
+
+    public virtual object parseTransactionDepositStatus(object status)
     {
         object statuses = new Dictionary<string, object>() {
             { "0", "pending" },

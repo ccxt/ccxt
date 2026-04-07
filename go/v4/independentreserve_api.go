@@ -7,158 +7,158 @@
 
 package ccxt
 
-func (this *IndependentreserveCore) PublicGetGetValidPrimaryCurrencyCodes (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetValidPrimaryCurrencyCodes", args...)
+func (this *IndependentreserveCore) PublicGetGetValidPrimaryCurrencyCodes(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetValidPrimaryCurrencyCodes", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetValidSecondaryCurrencyCodes (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetValidSecondaryCurrencyCodes", args...)
+func (this *IndependentreserveCore) PublicGetGetValidSecondaryCurrencyCodes(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetValidSecondaryCurrencyCodes", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetValidLimitOrderTypes (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetValidLimitOrderTypes", args...)
+func (this *IndependentreserveCore) PublicGetGetValidLimitOrderTypes(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetValidLimitOrderTypes", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetValidMarketOrderTypes (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetValidMarketOrderTypes", args...)
+func (this *IndependentreserveCore) PublicGetGetValidMarketOrderTypes(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetValidMarketOrderTypes", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetValidOrderTypes (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetValidOrderTypes", args...)
+func (this *IndependentreserveCore) PublicGetGetValidOrderTypes(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetValidOrderTypes", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetValidTransactionTypes (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetValidTransactionTypes", args...)
+func (this *IndependentreserveCore) PublicGetGetValidTransactionTypes(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetValidTransactionTypes", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetMarketSummary (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetMarketSummary", args...)
+func (this *IndependentreserveCore) PublicGetGetMarketSummary(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetMarketSummary", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetOrderBook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetOrderBook", args...)
+func (this *IndependentreserveCore) PublicGetGetOrderBook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetOrderBook", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetAllOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetAllOrders", args...)
+func (this *IndependentreserveCore) PublicGetGetAllOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetAllOrders", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetTradeHistorySummary (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetTradeHistorySummary", args...)
+func (this *IndependentreserveCore) PublicGetGetTradeHistorySummary(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetTradeHistorySummary", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetRecentTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetRecentTrades", args...)
+func (this *IndependentreserveCore) PublicGetGetRecentTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetRecentTrades", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetFxRates (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetFxRates", args...)
+func (this *IndependentreserveCore) PublicGetGetFxRates(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetFxRates", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetOrderMinimumVolumes (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetOrderMinimumVolumes", args...)
+func (this *IndependentreserveCore) PublicGetGetOrderMinimumVolumes(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetOrderMinimumVolumes", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetCryptoWithdrawalFees (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetCryptoWithdrawalFees", args...)
+func (this *IndependentreserveCore) PublicGetGetCryptoWithdrawalFees(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetCryptoWithdrawalFees", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetCryptoWithdrawalFees2 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetCryptoWithdrawalFees2", args...)
+func (this *IndependentreserveCore) PublicGetGetCryptoWithdrawalFees2(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetCryptoWithdrawalFees2", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetNetworks (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetNetworks", args...)
+func (this *IndependentreserveCore) PublicGetGetNetworks(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetNetworks", args...)
 }
 
-func (this *IndependentreserveCore) PublicGetGetPrimaryCurrencyConfig2 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetPrimaryCurrencyConfig2", args...)
+func (this *IndependentreserveCore) PublicGetGetPrimaryCurrencyConfig2(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetPrimaryCurrencyConfig2", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostGetOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGetOpenOrders", args...)
+func (this *IndependentreserveCore) PrivatePostGetOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetOpenOrders", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostGetClosedOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGetClosedOrders", args...)
+func (this *IndependentreserveCore) PrivatePostGetClosedOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetClosedOrders", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostGetClosedFilledOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGetClosedFilledOrders", args...)
+func (this *IndependentreserveCore) PrivatePostGetClosedFilledOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetClosedFilledOrders", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostGetOrderDetails (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGetOrderDetails", args...)
+func (this *IndependentreserveCore) PrivatePostGetOrderDetails(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetOrderDetails", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostGetAccounts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGetAccounts", args...)
+func (this *IndependentreserveCore) PrivatePostGetAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetAccounts", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostGetTransactions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGetTransactions", args...)
+func (this *IndependentreserveCore) PrivatePostGetTransactions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetTransactions", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostGetFiatBankAccounts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGetFiatBankAccounts", args...)
+func (this *IndependentreserveCore) PrivatePostGetFiatBankAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetFiatBankAccounts", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostGetDigitalCurrencyDepositAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGetDigitalCurrencyDepositAddress", args...)
+func (this *IndependentreserveCore) PrivatePostGetDigitalCurrencyDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetDigitalCurrencyDepositAddress", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostGetDigitalCurrencyDepositAddress2 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGetDigitalCurrencyDepositAddress2", args...)
+func (this *IndependentreserveCore) PrivatePostGetDigitalCurrencyDepositAddress2(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetDigitalCurrencyDepositAddress2", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostGetDigitalCurrencyDepositAddresses (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGetDigitalCurrencyDepositAddresses", args...)
+func (this *IndependentreserveCore) PrivatePostGetDigitalCurrencyDepositAddresses(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetDigitalCurrencyDepositAddresses", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostGetDigitalCurrencyDepositAddresses2 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGetDigitalCurrencyDepositAddresses2", args...)
+func (this *IndependentreserveCore) PrivatePostGetDigitalCurrencyDepositAddresses2(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetDigitalCurrencyDepositAddresses2", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostGetTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGetTrades", args...)
+func (this *IndependentreserveCore) PrivatePostGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetTrades", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostGetBrokerageFees (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGetBrokerageFees", args...)
+func (this *IndependentreserveCore) PrivatePostGetBrokerageFees(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetBrokerageFees", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostGetDigitalCurrencyWithdrawal (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGetDigitalCurrencyWithdrawal", args...)
+func (this *IndependentreserveCore) PrivatePostGetDigitalCurrencyWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetDigitalCurrencyWithdrawal", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostPlaceLimitOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostPlaceLimitOrder", args...)
+func (this *IndependentreserveCore) PrivatePostPlaceLimitOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPlaceLimitOrder", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostPlaceMarketOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostPlaceMarketOrder", args...)
+func (this *IndependentreserveCore) PrivatePostPlaceMarketOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPlaceMarketOrder", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostCancelOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostCancelOrder", args...)
+func (this *IndependentreserveCore) PrivatePostCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCancelOrder", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostSynchDigitalCurrencyDepositAddressWithBlockchain (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSynchDigitalCurrencyDepositAddressWithBlockchain", args...)
+func (this *IndependentreserveCore) PrivatePostSynchDigitalCurrencyDepositAddressWithBlockchain(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSynchDigitalCurrencyDepositAddressWithBlockchain", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostRequestFiatWithdrawal (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostRequestFiatWithdrawal", args...)
+func (this *IndependentreserveCore) PrivatePostRequestFiatWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRequestFiatWithdrawal", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostWithdrawFiatCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWithdrawFiatCurrency", args...)
+func (this *IndependentreserveCore) PrivatePostWithdrawFiatCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWithdrawFiatCurrency", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostWithdrawDigitalCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWithdrawDigitalCurrency", args...)
+func (this *IndependentreserveCore) PrivatePostWithdrawDigitalCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWithdrawDigitalCurrency", args...)
 }
 
-func (this *IndependentreserveCore) PrivatePostWithdrawCrypto (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWithdrawCrypto", args...)
+func (this *IndependentreserveCore) PrivatePostWithdrawCrypto(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWithdrawCrypto", args...)
 }

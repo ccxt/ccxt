@@ -1812,6 +1812,7 @@ class blofin(Exchange, ImplicitAPI):
         #
         type = None
         id = None
+        status = None
         withdrawalId = self.safe_string(transaction, 'withdrawId')
         depositId = self.safe_string(transaction, 'depositId')
         addressTo = self.safe_string(transaction, 'address')
@@ -1820,13 +1821,14 @@ class blofin(Exchange, ImplicitAPI):
         if withdrawalId is not None:
             type = 'withdrawal'
             id = withdrawalId
+            status = self.parse_transaction_withdrawal_status(self.safe_string(transaction, 'state'))
         else:
             id = depositId
             type = 'deposit'
+            status = self.parse_transaction_deposit_status(self.safe_string(transaction, 'state'))
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId)
         amount = self.safe_number(transaction, 'amount')
-        status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
         txid = self.safe_string(transaction, 'txId')
         timestamp = self.safe_integer(transaction, 'ts')
         feeCurrencyId = self.safe_string(transaction, 'feeCurrency')
@@ -1858,7 +1860,18 @@ class blofin(Exchange, ImplicitAPI):
             },
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_withdrawal_status(self, status: Str):
+        statuses: dict = {
+            '0': 'pending',
+            '2': 'failed',
+            '3': 'ok',
+            '4': 'failed',
+            '6': 'pending',
+            '7': 'pending',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction_deposit_status(self, status: Str):
         statuses: dict = {
             '0': 'pending',
             '1': 'ok',

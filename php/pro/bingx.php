@@ -350,7 +350,7 @@ class bingx extends \ccxt\async\bingx {
         if ($symbol !== null) {
             $hash .= '::' . $symbol;
         } else {
-            $hash .= 's'; // tickers, orderbooks, ohlcvs ...
+            $hash .= 's'; // tickers, orderbooks, ohlcvs, etc ...
         }
         if ($extra !== null) {
             $hash .= '::' . $extra;

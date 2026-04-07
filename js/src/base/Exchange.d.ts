@@ -326,6 +326,8 @@ export default class Exchange {
     loadHttpProxyAgent(): Promise<any>;
     getHttpAgentIfNeeded(url: any): any;
     isBinaryMessage(msg: any): boolean;
+    stringToBinary(content: any): Uint8Array;
+    binaryToString(binary: any): string;
     decodeProtoMsg(data: any): any;
     fetch(url: any, method?: string, headers?: any, body?: any): Promise<any>;
     jsonStringifyWithNull(obj: any): string;

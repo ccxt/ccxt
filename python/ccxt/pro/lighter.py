@@ -698,15 +698,22 @@ class lighter(ccxt.async_support.lighter):
         #     }
         #
         timestamp = self.safe_integer(liquidation, 'timestamp')
+        isMakerAsk = self.safe_bool(liquidation, 'is_maker_ask')
+        side = 'buy' if isMakerAsk else 'sell'
+        contracts = self.safe_string(liquidation, 'size')
+        contractSize = self.safe_string(market, 'contractSize')
+        price = self.safe_string(liquidation, 'price')
+        baseValue = Precise.string_mul(contracts, contractSize)
+        quoteValue = Precise.string_mul(baseValue, price)
         return self.safe_liquidation({
             'info': liquidation,
             'symbol': market['symbol'],
-            'contracts': None,
-            'contractSize': None,
-            'price': self.safe_string(liquidation, 'price'),
-            'side': self.safe_string(liquidation, 'size'),
-            'baseValue': None,
-            'quoteValue': None,
+            'contracts': contracts,
+            'contractSize': contractSize,
+            'price': price,
+            'side': side,
+            'baseValue': baseValue,
+            'quoteValue': quoteValue,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         })

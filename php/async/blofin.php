@@ -1940,6 +1940,7 @@ class blofin extends Exchange {
         //
         $type = null;
         $id = null;
+        $status = null;
         $withdrawalId = $this->safe_string($transaction, 'withdrawId');
         $depositId = $this->safe_string($transaction, 'depositId');
         $addressTo = $this->safe_string($transaction, 'address');
@@ -1948,14 +1949,15 @@ class blofin extends Exchange {
         if ($withdrawalId !== null) {
             $type = 'withdrawal';
             $id = $withdrawalId;
+            $status = $this->parse_transaction_withdrawal_status($this->safe_string($transaction, 'state'));
         } else {
             $id = $depositId;
             $type = 'deposit';
+            $status = $this->parse_transaction_deposit_status($this->safe_string($transaction, 'state'));
         }
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
         $amount = $this->safe_number($transaction, 'amount');
-        $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
         $txid = $this->safe_string($transaction, 'txId');
         $timestamp = $this->safe_integer($transaction, 'ts');
         $feeCurrencyId = $this->safe_string($transaction, 'feeCurrency');
@@ -1988,7 +1990,19 @@ class blofin extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_withdrawal_status(?string $status) {
+        $statuses = array(
+            '0' => 'pending',
+            '2' => 'failed',
+            '3' => 'ok',
+            '4' => 'failed',
+            '6' => 'pending',
+            '7' => 'pending',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction_deposit_status(?string $status) {
         $statuses = array(
             '0' => 'pending',
             '1' => 'ok',
