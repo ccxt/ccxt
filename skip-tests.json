@@ -2288,6 +2288,9 @@
             },
             "fetchOrderBook": {
                 "timestamp": "not provided"
+            },
+            "fetchTrades": {
+                "side":"side is undefined"
             }
         }
     }
