@@ -6,6 +6,17 @@
     ],
     "options": {},
     "methods": {
+        "fetchOpenInterest": [
+            {
+                "description": "fetch open interest",
+                "method": "fetchOpenInterest",
+                "url": "https://api-contract.weex.com/capi/v3/market/openInterest?symbol=ETHUSDT",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "fetch swap trades",
