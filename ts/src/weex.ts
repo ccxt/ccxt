@@ -129,7 +129,7 @@ export default class weex extends Exchange {
                 'fetchMySettlementHistory': false,
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
-                'fetchOpenInterest': false,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenInterests': false,
                 'fetchOpenOrder': false,
@@ -261,7 +261,7 @@ export default class weex extends Exchange {
                         'capi/v3/market/markPriceKlines': 5, // done
                         'capi/v3/market/historyKlines': 25, // done
                         'capi/v3/market/symbolPrice': 5, // not unified
-                        'capi/v3/market/openInterest': 10,
+                        'capi/v3/market/openInterest': 10, // done
                         'capi/v3/market/premiumIndex': 5,
                         'capi/v3/market/fundingRate': 25,
                         'capi/v3/market/apiTradingSymbols': 25, // not unified
@@ -1452,12 +1452,6 @@ export default class weex extends Exchange {
         //         "isBestMatch": true
         //     }
         //
-        const side = 'buy';
-        const isBuyerMaker = this.safeBool (trade, 'isBuyerMaker');
-        let takerOrMaker = undefined;
-        if (isBuyerMaker !== undefined) {
-            takerOrMaker = isBuyerMaker ? 'maker' : 'taker';
-        }
         const timestamp = this.safeInteger (trade, 'time');
         return this.safeTrade ({
             'info': trade,
@@ -1467,12 +1461,52 @@ export default class weex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
-            'takerOrMaker': takerOrMaker,
-            'side': side,
+            'takerOrMaker': undefined,
+            'side': undefined,
             'price': this.safeString (trade, 'price'),
             'amount': this.safeString (trade, 'qty'),
             'cost': this.safeString (trade, 'quoteQty'),
             'fee': undefined,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name weex#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://www.weex.com/api-doc/contract/Market_API/GetOpenInterest
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    async fetchOpenInterest (symbol: string, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.contractGetCapiV3MarketOpenInterest (this.extend (request, params));
+        return this.parseOpenInterest (response, market);
+    }
+
+    parseOpenInterest (interest, market: Market = undefined) {
+        //
+        //     {
+        //         "symbol": "ETHUSDT",
+        //         "openInterest": "1772356.352",
+        //         "time": 1775595582598
+        //     }
+        //
+        const marketId = this.safeString (interest, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const timestamp = this.safeInteger (interest, 'time');
+        return this.safeOpenInterest ({
+            'symbol': symbol,
+            'openInterestAmount': this.safeString (interest, 'openInterest'),
+            'openInterestValue': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
         }, market);
     }
 
