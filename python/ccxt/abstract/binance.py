@@ -807,6 +807,12 @@ class ImplicitAPI:
     sapi_post_simple_earn_locked_setautosubscribe = sapiPostSimpleEarnLockedSetAutoSubscribe = Entry(
         'simple-earn/locked/setAutoSubscribe', 'sapi', 'POST', {'cost': 15}
     )
+    sapi_post_eth_staking_eth_redeem = sapiPostEthStakingEthRedeem = Entry(
+        'eth-staking/eth/redeem', 'sapiV2', 'POST', {'cost': 150}
+    )
+    sapi_post_eth_staking_eth_stake = sapiPostEthStakingEthStake = Entry(
+        'eth-staking/eth/stake', 'sapiV2', 'POST', {'cost': 150}
+    )
     sapi_post_sol_staking_sol_claim = sapiPostSolStakingSolClaim = Entry(
         'sol-staking/sol/claim', 'sapi', 'POST', {'cost': 150}
     )
