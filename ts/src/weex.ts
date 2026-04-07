@@ -407,7 +407,6 @@ export default class weex extends Exchange {
                             [ this.parseNumber ('100000000'), this.parseNumber ('0.045') ],
                             [ this.parseNumber ('300000000'), this.parseNumber ('0.042') ],
                             [ this.parseNumber ('500000000'), this.parseNumber ('0.04') ],
-
                         ],
                         'maker': [
                             [ this.parseNumber ('0'), this.parseNumber ('0.02') ],
@@ -419,7 +418,6 @@ export default class weex extends Exchange {
                             [ this.parseNumber ('100000000'), this.parseNumber ('0.014') ],
                             [ this.parseNumber ('300000000'), this.parseNumber ('0.012') ],
                             [ this.parseNumber ('500000000'), this.parseNumber ('0.01') ],
-
                         ],
                     },
                 },
