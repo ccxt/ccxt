@@ -2945,6 +2945,11 @@ public partial class Exchange
         return reversed;
     }
 
+    public virtual object stringToBase16(object str)
+    {
+        return add("0x", this.binaryToBase16(this.base64ToBinary(this.stringToBase64(str))));
+    }
+
     public virtual object reduceFeesByCurrency(object fees)
     {
         //
@@ -4180,6 +4185,38 @@ public partial class Exchange
         for (object i = 0; isLessThan(i, getArrayLength(objects)); postFixIncrement(ref i))
         {
             if (isTrue(this.inArray(getValue(getValue(objects, i), key), values)))
+            {
+                ((IList<object>)results).Add(getValue(objects, i));
+            }
+        }
+        // return indexed ? this.indexBy (results, key) : results;
+        if (isTrue(indexed))
+        {
+            return this.indexBy(results, key);
+        }
+        return results;
+    }
+
+    public virtual object filterOutByArray(object objects, object key, object values = null, object indexed = null)
+    {
+        indexed ??= true;
+        objects = this.toArray(objects);
+        // return all of them if no values were passed
+        if (isTrue(isTrue(isEqual(values, null)) || !isTrue(values)))
+        {
+            // return indexed ? this.indexBy (objects, key) : objects;
+            if (isTrue(indexed))
+            {
+                return this.indexBy(objects, key);
+            } else
+            {
+                return objects;
+            }
+        }
+        object results = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(objects)); postFixIncrement(ref i))
+        {
+            if (!isTrue(this.inArray(getValue(getValue(objects, i), key), values)))
             {
                 ((IList<object>)results).Add(getValue(objects, i));
             }

@@ -221,6 +221,13 @@ public partial class bitmart : Exchange
                         { "spot/v4/cancel_orders", 3 },
                         { "spot/v4/cancel_all", 90 },
                         { "spot/v4/batch_orders", 3 },
+                        { "spot/v4/algo/submit_order", 6 },
+                        { "spot/v4/algo/cancel_order", 6 },
+                        { "spot/v4/algo/cancel_all", 12 },
+                        { "spot/v4/query/algo/order", 1.5 },
+                        { "spot/v4/query/algo/client-order", 1.5 },
+                        { "spot/v4/query/algo/open-orders", 3 },
+                        { "spot/v4/query/algo/history-orders", 3 },
                         { "spot/v3/cancel_order", 1 },
                         { "spot/v2/batch_orders", 1 },
                         { "spot/v2/submit_order", 1 },
@@ -833,7 +840,7 @@ public partial class bitmart : Exchange
         {
             type = "contract";
         }
-        object service = this.safeString(servicesByType, type);
+        object service = this.safeDict(servicesByType, type);
         object status = null;
         object eta = null;
         if (isTrue(!isEqual(service, null)))
@@ -2695,6 +2702,7 @@ public partial class bitmart : Exchange
      * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-sl-order-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-trail-order-signed
+     * @see https://developer-pro.bitmart.com/en/spot/#new-algo-order-v4-signed
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market', 'limit' or 'trailing' for swap markets only
      * @param {string} side 'buy' or 'sell'
@@ -2735,7 +2743,10 @@ public partial class bitmart : Exchange
         if (isTrue(getValue(market, "spot")))
         {
             object spotRequest = this.createSpotOrderRequest(symbol, type, side, amount, price, parameters);
-            if (isTrue(isEqual(marginMode, "isolated")))
+            if (isTrue(isTrue(isTrue(isStopLoss) || isTrue(isTakeProfit)) || isTrue(isTriggerOrder)))
+            {
+                response = await this.privatePostSpotV4AlgoSubmitOrder(spotRequest);
+            } else if (isTrue(isEqual(marginMode, "isolated")))
             {
                 response = await this.privatePostSpotV1MarginSubmitOrder(spotRequest);
             } else
@@ -3053,6 +3064,7 @@ public partial class bitmart : Exchange
         * @description create a spot order request
         * @see https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
         * @see https://developer-pro.bitmart.com/en/spot/#new-margin-order-v1-signed
+        * @see https://developer-pro.bitmart.com/en/spot/#new-algo-order-v4-signed
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
@@ -3060,14 +3072,24 @@ public partial class bitmart : Exchange
         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.marginMode] 'cross' or 'isolated'
+        * @param {string} [params.clientOrderId] client order id of the order
+        * @param {string} [params.triggerPrice] the price to trigger a stop order
+        * @param {string} [params.stopLossPrice] the price to trigger a stop-loss order
+        * @param {string} [params.takeProfitPrice] the price to trigger a take-profit order
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
+        object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "trigger_price"});
+        object stopLossPrice = this.safeString(parameters, "stopLossPrice");
+        object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
+        object isStopLoss = !isEqual(stopLossPrice, null);
+        object isTakeProfit = !isEqual(takeProfitPrice, null);
+        object isTriggerOrder = !isEqual(triggerPrice, null);
+        object isAlgoOrder = isTrue(isTrue(isStopLoss) || isTrue(isTakeProfit)) || isTrue(isTriggerOrder);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "side", side },
-            { "type", type },
         };
         object timeInForce = this.safeString(parameters, "timeInForce");
         if (isTrue(isEqual(timeInForce, "FOK")))
@@ -3084,7 +3106,36 @@ public partial class bitmart : Exchange
         parameters = this.omit(parameters, new List<object>() {"timeInForce", "postOnly"});
         object ioc = (isTrue((isEqual(timeInForce, "IOC"))) || isTrue((isEqual(type, "ioc"))));
         object isLimitOrder = isTrue(isTrue((isEqual(type, "limit"))) || isTrue(postOnly)) || isTrue(ioc);
-        // method = 'privatePostSpotV2SubmitOrder';
+        if (isTrue(isAlgoOrder))
+        {
+            if (isTrue(isTriggerOrder))
+            {
+                ((IDictionary<string,object>)request)["type"] = "trigger";
+            } else
+            {
+                ((IDictionary<string,object>)request)["type"] = "tp/sl";
+            }
+            if (isTrue(isLimitOrder))
+            {
+                ((IDictionary<string,object>)request)["trigger_type"] = "limit";
+            } else
+            {
+                ((IDictionary<string,object>)request)["trigger_type"] = "market";
+            }
+            if (isTrue(isStopLoss))
+            {
+                ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, stopLossPrice);
+            } else if (isTrue(isTakeProfit))
+            {
+                ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, takeProfitPrice);
+            } else if (isTrue(isTriggerOrder))
+            {
+                ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, triggerPrice);
+            }
+        } else
+        {
+            ((IDictionary<string,object>)request)["type"] = type;
+        }
         if (isTrue(isLimitOrder))
         {
             ((IDictionary<string,object>)request)["size"] = this.amountToPrecision(symbol, amount);
@@ -3147,12 +3198,14 @@ public partial class bitmart : Exchange
      * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-plan-order-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-order-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-trail-order-signed
+     * @see https://developer-pro.bitmart.com/en/spot/#cancel-algo-order-v4-signed
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] *spot only* the client order id of the order to cancel
-     * @param {boolean} [params.trigger] *swap only* whether the order is a trigger order
      * @param {boolean} [params.trailing] *swap only* whether the order is a stop order
+     * @param {boolean} [params.trigger] whether the order is a trigger order
+     * @param {boolean} [params.stopLossTakeProfit] whether the order is a stopLossPrice or takeProfitPrice order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
@@ -3175,16 +3228,29 @@ public partial class bitmart : Exchange
         {
             ((IDictionary<string,object>)request)["order_id"] = ((object)id).ToString();
         }
-        parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        object stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
+        object trailing = this.safeBool(parameters, "trailing");
+        parameters = this.omit(parameters, new List<object>() {"clientOrderId", "stop", "trigger", "trailing", "stopLossTakeProfit"});
         object response = null;
         if (isTrue(getValue(market, "spot")))
         {
-            response = await this.privatePostSpotV3CancelOrder(this.extend(request, parameters));
+            if (isTrue(isTrue(trigger) || isTrue(stopLossTakeProfit)))
+            {
+                if (isTrue(stopLossTakeProfit))
+                {
+                    ((IDictionary<string,object>)request)["type"] = "tp/sl";
+                } else if (isTrue(trigger))
+                {
+                    ((IDictionary<string,object>)request)["type"] = "trigger";
+                }
+                response = await this.privatePostSpotV4AlgoCancelOrder(this.extend(request, parameters));
+            } else
+            {
+                response = await this.privatePostSpotV3CancelOrder(this.extend(request, parameters));
+            }
         } else
         {
-            object trigger = this.safeBool2(parameters, "stop", "trigger");
-            object trailing = this.safeBool(parameters, "trailing");
-            parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
             if (isTrue(trigger))
             {
                 response = await this.privatePostContractPrivateCancelPlanOrder(this.extend(request, parameters));
@@ -3338,9 +3404,12 @@ public partial class bitmart : Exchange
      * @description cancel all open orders in a market
      * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-order-v4-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed
+     * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-algo-order-v4-signed
      * @param {string} symbol unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.side] *spot only* 'buy' or 'sell'
+     * @param {boolean} [params.trigger] whether the orders are trigger orders
+     * @param {boolean} [params.stopLossTakeProfit] whether the orders are stopLossPrice or takeProfitPrice orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -3361,7 +3430,23 @@ public partial class bitmart : Exchange
         parameters = ((IList<object>)typeparametersVariable)[1];
         if (isTrue(isEqual(type, "spot")))
         {
-            response = await this.privatePostSpotV4CancelAll(this.extend(request, parameters));
+            object trigger = this.safeBool2(parameters, "stop", "trigger");
+            object stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
+            parameters = this.omit(parameters, new List<object>() {"stop", "trigger", "stopLossTakeProfit"});
+            if (isTrue(isTrue(trigger) || isTrue(stopLossTakeProfit)))
+            {
+                if (isTrue(stopLossTakeProfit))
+                {
+                    ((IDictionary<string,object>)request)["type"] = "tp/sl";
+                } else if (isTrue(trigger))
+                {
+                    ((IDictionary<string,object>)request)["type"] = "trigger";
+                }
+                response = await this.privatePostSpotV4AlgoCancelAll(this.extend(request, parameters));
+            } else
+            {
+                response = await this.privatePostSpotV4CancelAll(this.extend(request, parameters));
+            }
         } else if (isTrue(isEqual(type, "swap")))
         {
             if (isTrue(isEqual(symbol, null)))
@@ -3461,10 +3546,11 @@ public partial class bitmart : Exchange
     /**
      * @method
      * @name bitmart#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
      * @see https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-all-open-orders-keyed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-all-current-plan-orders-keyed
-     * @description fetch all unfilled currently open orders
+     * @see https://developer-pro.bitmart.com/en/spot/#current-algo-open-orders-v4-signed
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -3475,7 +3561,8 @@ public partial class bitmart : Exchange
      * @param {string} [params.order_state] *swap* the order state, 'all' or 'partially_filled', default is 'all'
      * @param {string} [params.orderType] *swap only* 'limit', 'market', or 'trailing'
      * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch trailing orders
-     * @param {boolean} [params.trigger] *swap only* set to true if you want to fetch trigger orders
+     * @param {boolean} [params.trigger] set to true if you want to fetch trigger orders
+     * @param {boolean} [params.stopLossTakeProfit] set to true if you want to fetch stopLossPrice or takeProfitPrice orders
      * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -3495,6 +3582,9 @@ public partial class bitmart : Exchange
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
+        object isTrigger = this.safeBool2(parameters, "stop", "trigger");
+        object stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
+        parameters = this.omit(parameters, new List<object>() {"stop", "trigger", "stopLossTakeProfit"});
         if (isTrue(isEqual(type, "spot")))
         {
             if (isTrue(!isEqual(limit, null)))
@@ -3519,15 +3609,26 @@ public partial class bitmart : Exchange
                 parameters = this.omit(parameters, new List<object>() {"endTime"});
                 ((IDictionary<string,object>)request)["endTime"] = until;
             }
-            response = await this.privatePostSpotV4QueryOpenOrders(this.extend(request, parameters));
+            if (isTrue(isTrue(isTrigger) || isTrue(stopLossTakeProfit)))
+            {
+                if (isTrue(isTrigger))
+                {
+                    ((IDictionary<string,object>)request)["orderMode"] = "trigger";
+                } else if (isTrue(stopLossTakeProfit))
+                {
+                    ((IDictionary<string,object>)request)["orderMode"] = "tp/sl";
+                }
+                response = await this.privatePostSpotV4QueryAlgoOpenOrders(this.extend(request, parameters));
+            } else
+            {
+                response = await this.privatePostSpotV4QueryOpenOrders(this.extend(request, parameters));
+            }
         } else if (isTrue(isEqual(type, "swap")))
         {
             if (isTrue(!isEqual(limit, null)))
             {
                 ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100);
             }
-            object isTrigger = this.safeBool2(parameters, "stop", "trigger");
-            parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
             if (isTrue(isTrigger))
             {
                 response = await this.privateGetContractPrivateCurrentPlanOrder(this.extend(request, parameters));
@@ -3611,9 +3712,10 @@ public partial class bitmart : Exchange
     /**
      * @method
      * @name bitmart#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
      * @see https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed
-     * @description fetches information on multiple closed orders made by the user
+     * @see https://developer-pro.bitmart.com/en/spot/#account-algo-orders-v4-signed
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3621,6 +3723,8 @@ public partial class bitmart : Exchange
      * @param {int} [params.until] timestamp in ms of the latest entry
      * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated', for margin trading
      * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+     * @param {boolean} [params.trigger] set to true if you want to fetch trigger orders
+     * @param {boolean} [params.stopLossTakeProfit] set to true if you want to fetch stopLossPrice or takeProfitPrice orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -3657,6 +3761,9 @@ public partial class bitmart : Exchange
             parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)[(string)endTimeKey] = until;
         }
+        object isTrigger = this.safeBool2(parameters, "stop", "trigger");
+        object stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
+        parameters = this.omit(parameters, new List<object>() {"stop", "trigger", "stopLossTakeProfit"});
         object response = null;
         if (isTrue(isEqual(type, "spot")))
         {
@@ -3668,7 +3775,20 @@ public partial class bitmart : Exchange
             {
                 ((IDictionary<string,object>)request)["orderMode"] = "iso_margin";
             }
-            response = await this.privatePostSpotV4QueryHistoryOrders(this.extend(request, parameters));
+            if (isTrue(isTrue(isTrigger) || isTrue(stopLossTakeProfit)))
+            {
+                if (isTrue(isTrigger))
+                {
+                    ((IDictionary<string,object>)request)["orderMode"] = "trigger";
+                } else if (isTrue(stopLossTakeProfit))
+                {
+                    ((IDictionary<string,object>)request)["orderMode"] = "tp/sl";
+                }
+                response = await this.privatePostSpotV4QueryAlgoHistoryOrders(this.extend(request, parameters));
+            } else
+            {
+                response = await this.privatePostSpotV4QueryHistoryOrders(this.extend(request, parameters));
+            }
         } else
         {
             response = await this.privateGetContractPrivateOrderHistory(this.extend(request, parameters));
@@ -3700,6 +3820,8 @@ public partial class bitmart : Exchange
      * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-id-v4-signed
      * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-clientorderid-v4-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-detail-keyed
+     * @see https://developer-pro.bitmart.com/en/spot/#query-algo-order-by-id-v4-signed
+     * @see https://developer-pro.bitmart.com/en/spot/#query-algo-order-by-clientorderid-v4-signed
      * @param {string} id the id of the order
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3707,6 +3829,7 @@ public partial class bitmart : Exchange
      * @param {string} [params.orderType] *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing'
      * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch a trailing order
      * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+     * @param {boolean} [params.trigger] whether the orders is a trigger, stopLossPrice or takeProfitPrice order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
@@ -3727,16 +3850,30 @@ public partial class bitmart : Exchange
         if (isTrue(isEqual(type, "spot")))
         {
             object clientOrderId = this.safeString(parameters, "clientOrderId");
+            object trigger = this.safeBool2(parameters, "stop", "trigger");
+            parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
             if (!isTrue(clientOrderId))
             {
                 ((IDictionary<string,object>)request)["orderId"] = id;
             }
-            if (isTrue(!isEqual(clientOrderId, null)))
+            if (isTrue(trigger))
             {
-                response = await this.privatePostSpotV4QueryClientOrder(this.extend(request, parameters));
+                if (isTrue(!isEqual(clientOrderId, null)))
+                {
+                    response = await this.privatePostSpotV4QueryAlgoClientOrder(this.extend(request, parameters));
+                } else
+                {
+                    response = await this.privatePostSpotV4QueryAlgoOrder(this.extend(request, parameters));
+                }
             } else
             {
-                response = await this.privatePostSpotV4QueryOrder(this.extend(request, parameters));
+                if (isTrue(!isEqual(clientOrderId, null)))
+                {
+                    response = await this.privatePostSpotV4QueryClientOrder(this.extend(request, parameters));
+                } else
+                {
+                    response = await this.privatePostSpotV4QueryOrder(this.extend(request, parameters));
+                }
             }
         } else if (isTrue(isEqual(type, "swap")))
         {

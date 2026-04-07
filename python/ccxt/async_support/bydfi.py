@@ -208,16 +208,16 @@ class bydfi(Exchange, ImplicitAPI):
                 'public': {
                     'get': {
                         'v1/public/api_limits': 1,  # https://developers.bydfi.com/en/public#inquiry-into-api-rate-limit-configuration
-                        'v1/swap/market/exchange_info': 1,
-                        'v1/swap/market/depth': 1,
-                        'v1/swap/market/trades': 1,
-                        'v1/swap/market/klines': 1,
-                        'v1/swap/market/ticker/24hr': 1,
-                        'v1/swap/market/ticker/price': 1,  # https://developers.bydfi.com/en/swap/market#latest-price
-                        'v1/swap/market/mark_price': 1,  # https://developers.bydfi.com/en/swap/market#mark-price
-                        'v1/swap/market/funding_rate': 1,
-                        'v1/swap/market/funding_rate_history': 1,
-                        'v1/swap/market/risk_limit': 1,  # https://developers.bydfi.com/en/swap/market#risk-limit
+                        'v1/fapi/market/exchange_info': 1,
+                        'v1/fapi/market/depth': 1,
+                        'v1/fapi/market/trades': 1,
+                        'v1/fapi/market/klines': 1,
+                        'v1/fapi/market/ticker/24hr': 1,
+                        'v1/fapi/market/ticker/price': 1,  # https://developers.bydfi.com/en/futures/market#latest-price
+                        'v1/fapi/market/mark_price': 1,  # https://developers.bydfi.com/en/futures/market#mark-price
+                        'v1/fapi/market/funding_rate': 1,
+                        'v1/fapi/market/funding_rate_history': 1,
+                        'v1/fapi/market/risk_limit': 1,  # https://developers.bydfi.com/en/futures/market#risk-limit
                     },
                 },
                 'private': {
@@ -226,16 +226,16 @@ class bydfi(Exchange, ImplicitAPI):
                         'v1/account/transfer_records': 1,
                         'v1/spot/deposit_records': 1,
                         'v1/spot/withdraw_records': 1,
-                        'v1/swap/trade/open_order': 1,
-                        'v1/swap/trade/plan_order': 1,
-                        'v1/swap/trade/leverage': 1,
-                        'v1/swap/trade/history_order': 1,
-                        'v1/swap/trade/history_trade': 1,
-                        'v1/swap/trade/position_history': 1,
-                        'v1/swap/trade/positions': 1,
-                        'v1/swap/account/balance': 1,
-                        'v1/swap/user_data/assets_margin': 1,
-                        'v1/swap/user_data/position_side/dual': 1,
+                        'v1/fapi/trade/open_order': 1,
+                        'v1/fapi/trade/plan_order': 1,
+                        'v1/fapi/trade/leverage': 1,
+                        'v1/fapi/trade/history_order': 1,
+                        'v1/fapi/trade/history_trade': 1,
+                        'v1/fapi/trade/position_history': 1,
+                        'v1/fapi/trade/positions': 1,
+                        'v1/fapi/account/balance': 1,
+                        'v1/fapi/user_data/assets_margin': 1,
+                        'v1/fapi/user_data/position_side/dual': 1,
                         'v1/agent/teams': 1,  # https://developers.bydfi.com/en/agent/#query-kol-subordinate-team-information
                         'v1/agent/agent_links': 1,  # https://developers.bydfi.com/en/agent/#query-kol-invitation-code-list
                         'v1/agent/regular_overview': 1,  # https://developers.bydfi.com/en/agent/#query-kol-direct-client-data-list
@@ -248,15 +248,15 @@ class bydfi(Exchange, ImplicitAPI):
                     },
                     'post': {
                         'v1/account/transfer': 1,
-                        'v1/swap/trade/place_order': 1,
-                        'v1/swap/trade/batch_place_order': 1,
-                        'v1/swap/trade/edit_order': 1,
-                        'v1/swap/trade/batch_edit_order': 1,
-                        'v1/swap/trade/cancel_all_order': 1,
-                        'v1/swap/trade/leverage': 1,
-                        'v1/swap/trade/batch_leverage_margin': 1,  # https://developers.bydfi.com/en/swap/trade#modify-leverage-and-margin-type-with-one-click
-                        'v1/swap/user_data/margin_type': 1,
-                        'v1/swap/user_data/position_side/dual': 1,
+                        'v1/fapi/trade/place_order': 1,
+                        'v1/fapi/trade/batch_place_order': 1,
+                        'v1/fapi/trade/edit_order': 1,
+                        'v1/fapi/trade/batch_edit_order': 1,
+                        'v1/fapi/trade/cancel_all_order': 1,
+                        'v1/fapi/trade/leverage': 1,
+                        'v1/fapi/trade/batch_leverage_margin': 1,  # https://developers.bydfi.com/en/futures/trade#modify-leverage-and-margin-type-with-one-click
+                        'v1/fapi/user_data/margin_type': 1,
+                        'v1/fapi/user_data/position_side/dual': 1,
                         'v1/agent/internal_withdrawal': 1,  # https://developers.bydfi.com/en/agent/#internal-withdrawal
                     },
                 },
@@ -389,13 +389,15 @@ class bydfi(Exchange, ImplicitAPI):
                 },
                 'accountsByType': {
                     'spot': 'SPOT',
-                    'swap': 'SWAP',
-                    'funding': 'FUND',
+                    'swap': 'UMFUTURE',
+                    'funding': 'FUNDING',
+                    'inverse': 'CMFUTURE',
                 },
                 'accountsById': {
                     'SPOT': 'spot',
-                    'SWAP': 'swap',
-                    'FUND': 'funding',
+                    'UMFUTURE': 'swap',
+                    'FUNDING': 'funding',
+                    'CMFUTURE': 'inverse',
                 },
             },
         })
@@ -404,12 +406,12 @@ class bydfi(Exchange, ImplicitAPI):
         """
         retrieves data on all markets for bydfi
 
-        https://developers.bydfi.com/en/swap/market#fetching-trading-rules-and-pairs
+        https://developers.bydfi.com/en/futures/market#fetching-trading-rules-and-pairs
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        response = await self.publicGetV1SwapMarketExchangeInfo(params)
+        response = await self.publicGetV1FapiMarketExchangeInfo(params)
         #
         #     {
         #         "code": "200",
@@ -564,7 +566,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://developers.bydfi.com/en/swap/market#depth-information
+        https://developers.bydfi.com/en/futures/market#depth-information
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return, could be 5, 10, 20, 50, 100, 500 or 1000(default 500)
@@ -579,7 +581,7 @@ class bydfi(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = self.get_closest_limit(limit)
-        response = await self.publicGetV1SwapMarketDepth(self.extend(request, params))
+        response = await self.publicGetV1FapiMarketDepth(self.extend(request, params))
         #
         #     {
         #         "code": 200,
@@ -625,7 +627,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         get the list of most recent trades for a particular symbol
 
-        https://developers.bydfi.com/en/swap/market#recent-trades
+        https://developers.bydfi.com/en/futures/market#recent-trades
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -641,7 +643,7 @@ class bydfi(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit
-        response = await self.publicGetV1SwapMarketTrades(self.extend(request, params))
+        response = await self.publicGetV1FapiMarketTrades(self.extend(request, params))
         #
         #     {
         #         "code": 200,
@@ -666,7 +668,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         fetch all trades made by the user
 
-        https://developers.bydfi.com/en/swap/trade#historical-trades-query
+        https://developers.bydfi.com/en/futures/trade#historical-trades-query
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -698,7 +700,7 @@ class bydfi(Exchange, ImplicitAPI):
         params = self.handle_since_and_until('fetchMyTrades', since, params)
         if limit is not None:
             request['limit'] = limit
-        response = await self.privateGetV1SwapTradeHistoryTrade(self.extend(request, params))
+        response = await self.privateGetV1FapiTradeHistoryTrade(self.extend(request, params))
         #
         #     {
         #         "code": 200,
@@ -803,7 +805,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://developers.bydfi.com/en/swap/market#candlestick-data
+        https://developers.bydfi.com/en/futures/market#candlestick-data
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -845,7 +847,7 @@ class bydfi(Exchange, ImplicitAPI):
         request['endTime'] = until
         if limit is not None:
             request['limit'] = limit
-        response = await self.publicGetV1SwapMarketKlines(self.extend(request, params))
+        response = await self.publicGetV1FapiMarketKlines(self.extend(request, params))
         #
         #     {
         #         "code": 200,
@@ -892,7 +894,7 @@ class bydfi(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
 
-        https://developers.bydfi.com/en/swap/market#24hr-price-change-statistics
+        https://developers.bydfi.com/en/futures/market#24hr-price-change-statistics
 
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -900,7 +902,7 @@ class bydfi(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
-        response = await self.publicGetV1SwapMarketTicker24hr(params)
+        response = await self.publicGetV1FapiMarketTicker24hr(params)
         #
         #     {
         #         "code": 200,
@@ -926,7 +928,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://developers.bydfi.com/en/swap/market#24hr-price-change-statistics
+        https://developers.bydfi.com/en/futures/market#24hr-price-change-statistics
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -937,7 +939,7 @@ class bydfi(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        response = await self.publicGetV1SwapMarketTicker24hr(self.extend(request, params))
+        response = await self.publicGetV1FapiMarketTicker24hr(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
         ticker = self.safe_dict(data, 0, {})
         return self.parse_ticker(ticker, market)
@@ -988,7 +990,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         fetch the current funding rate
 
-        https://developers.bydfi.com/en/swap/market#recent-funding-rate
+        https://developers.bydfi.com/en/futures/market#recent-funding-rate
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -999,7 +1001,7 @@ class bydfi(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        response = await self.publicGetV1SwapMarketFundingRate(self.extend(request, params))
+        response = await self.publicGetV1FapiMarketFundingRate(self.extend(request, params))
         #
         #     {
         #         "code": 200,
@@ -1054,7 +1056,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         fetches historical funding rate prices
 
-        https://developers.bydfi.com/en/swap/market#historical-funding-rates
+        https://developers.bydfi.com/en/futures/market#historical-funding-rates
 
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
@@ -1078,7 +1080,7 @@ class bydfi(Exchange, ImplicitAPI):
         until, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'until')
         if until is not None:
             request['endTime'] = until
-        response = await self.publicGetV1SwapMarketFundingRateHistory(self.extend(request, params))
+        response = await self.publicGetV1FapiMarketFundingRateHistory(self.extend(request, params))
         #
         #     {
         #         "code": 200,
@@ -1120,7 +1122,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         create a trade order
 
-        https://developers.bydfi.com/en/swap/trade#placing-an-order
+        https://developers.bydfi.com/en/futures/trade#placing-an-order
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1148,7 +1150,7 @@ class bydfi(Exchange, ImplicitAPI):
         wallet = 'W001'
         wallet, params = self.handle_option_and_params(params, 'createOrder', 'wallet', wallet)
         orderRequest = self.extend(orderRequest, {'wallet': wallet})
-        response = await self.privatePostV1SwapTradePlaceOrder(orderRequest)
+        response = await self.privatePostV1FapiTradePlaceOrder(orderRequest)
         #
         #     {
         #         "code": 200,
@@ -1281,7 +1283,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         create a list of trade orders
 
-        https://developers.bydfi.com/en/swap/trade#batch-order-placement
+        https://developers.bydfi.com/en/futures/trade#batch-order-placement
 
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1309,7 +1311,7 @@ class bydfi(Exchange, ImplicitAPI):
             'wallet': wallet,
             'orders': ordersRequests,
         }
-        response = await self.privatePostV1SwapTradeBatchPlaceOrder(self.extend(request, params))
+        response = await self.privatePostV1FapiTradeBatchPlaceOrder(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data)
 
@@ -1317,7 +1319,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         edit a trade order
 
-        https://developers.bydfi.com/en/swap/trade#order-modification
+        https://developers.bydfi.com/en/futures/trade#order-modification
 
         :param str id: order id(mandatory if params.clientOrderId is not provided)
         :param str [symbol]: unified symbol of the market to create an order in
@@ -1335,7 +1337,7 @@ class bydfi(Exchange, ImplicitAPI):
         wallet = 'W001'
         wallet, params = self.handle_option_and_params(params, 'editOrder', 'wallet', wallet)
         request['wallet'] = wallet
-        response = await self.privatePostV1SwapTradeEditOrder(request)
+        response = await self.privatePostV1FapiTradeEditOrder(request)
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data)
 
@@ -1343,7 +1345,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         edit a list of trade orders
 
-        https://developers.bydfi.com/en/swap/trade#batch-order-modification
+        https://developers.bydfi.com/en/futures/trade#batch-order-modification
 
         :param Array orders: list of orders to edit, each object should contain the parameters required by editOrder, namely id, symbol, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1371,7 +1373,7 @@ class bydfi(Exchange, ImplicitAPI):
             'wallet': wallet,
             'editOrders': ordersRequests,
         }
-        response = await self.privatePostV1SwapTradeBatchEditOrder(self.extend(request, params))
+        response = await self.privatePostV1FapiTradeBatchEditOrder(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data)
 
@@ -1396,7 +1398,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         cancel all open orders in a market
 
-        https://developers.bydfi.com/en/swap/trade#complete-order-cancellation
+        https://developers.bydfi.com/en/futures/trade#complete-order-cancellation
 
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1413,7 +1415,7 @@ class bydfi(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'wallet': wallet,
         }
-        response = await self.privatePostV1SwapTradeCancelAllOrder(self.extend(request, params))
+        response = await self.privatePostV1FapiTradeCancelAllOrder(self.extend(request, params))
         #
         #     {
         #         "code": 200,
@@ -1453,8 +1455,8 @@ class bydfi(Exchange, ImplicitAPI):
         """
         fetch all unfilled currently open orders
 
-        https://developers.bydfi.com/en/swap/trade#pending-order-query
-        https://developers.bydfi.com/en/swap/trade#planned-order-query
+        https://developers.bydfi.com/en/futures/trade#pending-order-query
+        https://developers.bydfi.com/en/futures/trade#planned-order-query
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1510,9 +1512,9 @@ class bydfi(Exchange, ImplicitAPI):
             #         "success": True
             #     }
             #
-            response = await self.privateGetV1SwapTradeOpenOrder(self.extend(request, params))
+            response = await self.privateGetV1FapiTradeOpenOrder(self.extend(request, params))
         else:
-            response = await self.privateGetV1SwapTradePlanOrder(self.extend(request, params))
+            response = await self.privateGetV1FapiTradePlanOrder(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
@@ -1520,8 +1522,8 @@ class bydfi(Exchange, ImplicitAPI):
         """
         fetch an open order by the id
 
-        https://developers.bydfi.com/en/swap/trade#pending-order-query
-        https://developers.bydfi.com/en/swap/trade#planned-order-query
+        https://developers.bydfi.com/en/futures/trade#pending-order-query
+        https://developers.bydfi.com/en/futures/trade#planned-order-query
 
         :param str id: order id(mandatory if params.clientOrderId is not provided)
         :param str symbol: unified market symbol
@@ -1550,9 +1552,9 @@ class bydfi(Exchange, ImplicitAPI):
         trigger = False
         trigger, params = self.handle_option_and_params(params, 'fetchOpenOrder', 'trigger', trigger)
         if not trigger:
-            response = await self.privateGetV1SwapTradeOpenOrder(self.extend(request, params))
+            response = await self.privateGetV1FapiTradeOpenOrder(self.extend(request, params))
         else:
-            response = await self.privateGetV1SwapTradePlanOrder(self.extend(request, params))
+            response = await self.privateGetV1FapiTradePlanOrder(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
         order = self.safe_dict(data, 0, {})
         return self.parse_order(order, market)
@@ -1561,7 +1563,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         fetches information on multiple canceled and closed orders made by the user
 
-        https://developers.bydfi.com/en/swap/trade#historical-orders-query
+        https://developers.bydfi.com/en/futures/trade#historical-orders-query
 
         :param str symbol: unified market symbol of the closed orders
         :param int [since]: timestamp in ms of the earliest order
@@ -1593,7 +1595,7 @@ class bydfi(Exchange, ImplicitAPI):
         params = self.handle_since_and_until('fetchCanceledAndClosedOrders', since, params)
         if limit is not None:
             request['limit'] = limit
-        response = await self.privateGetV1SwapTradeHistoryOrder(self.extend(request, params))
+        response = await self.privateGetV1FapiTradeHistoryOrder(self.extend(request, params))
         #
         #     {
         #         "code": 200,
@@ -1819,7 +1821,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         set the level of leverage for a market
 
-        https://developers.bydfi.com/en/swap/trade#set-leverage-for-single-trading-pair
+        https://developers.bydfi.com/en/futures/trade#set-leverage-for-single-trading-pair
 
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
@@ -1838,7 +1840,7 @@ class bydfi(Exchange, ImplicitAPI):
             'leverage': leverage,
             'wallet': wallet,
         }
-        response = await self.privatePostV1SwapTradeLeverage(self.extend(request, params))
+        response = await self.privatePostV1FapiTradeLeverage(self.extend(request, params))
         data = self.safe_dict(response, 'data', {})
         return data
 
@@ -1846,7 +1848,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         fetch the set leverage for a market
 
-        https://developers.bydfi.com/en/swap/trade#get-leverage-for-single-trading-pair
+        https://developers.bydfi.com/en/futures/trade#get-leverage-for-single-trading-pair
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1863,7 +1865,7 @@ class bydfi(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'wallet': wallet,
         }
-        response = await self.privateGetV1SwapTradeLeverage(self.extend(request, params))
+        response = await self.privateGetV1FapiTradeLeverage(self.extend(request, params))
         #
         #     {
         #         "code": 200,
@@ -1893,7 +1895,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         fetch all open positions
 
-        https://developers.bydfi.com/en/swap/trade#positions-query
+        https://developers.bydfi.com/en/futures/trade#positions-query
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1907,7 +1909,7 @@ class bydfi(Exchange, ImplicitAPI):
         request: dict = {
             'contractType': contractType,
         }
-        response = await self.privateGetV1SwapTradePositions(self.extend(request, params))
+        response = await self.privateGetV1FapiTradePositions(self.extend(request, params))
         #
         #     {
         #         "code": 200,
@@ -1937,7 +1939,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         fetch open positions for a single market
 
-        https://developers.bydfi.com/en/swap/trade#positions-query
+        https://developers.bydfi.com/en/futures/trade#positions-query
 
         fetch all open positions for specific symbol
         :param str symbol: unified market symbol
@@ -1953,7 +1955,7 @@ class bydfi(Exchange, ImplicitAPI):
             'contractType': contractType,
             'symbol': market['id'],
         }
-        response = await self.privateGetV1SwapTradePositions(self.extend(request, params))
+        response = await self.privateGetV1FapiTradePositions(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
         return self.parse_positions(data, [market['symbol']])
 
@@ -2069,7 +2071,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         fetches historical positions
 
-        https://developers.bydfi.com/en/swap/trade#query-historical-position-profit-and-loss-records
+        https://developers.bydfi.com/en/futures/trade#query-historical-position-profit-and-loss-records
 
         :param str symbol: a unified market symbol
         :param int [since]: timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
@@ -2091,7 +2093,7 @@ class bydfi(Exchange, ImplicitAPI):
         params = self.handle_since_and_until('fetchPositionsHistory', since, params)
         if limit is not None:
             request['limit'] = limit
-        response = await self.privateGetV1SwapTradePositionHistory(self.extend(request, params))
+        response = await self.privateGetV1FapiTradePositionHistory(self.extend(request, params))
         #
         #
         data = self.safe_list(response, 'data', [])
@@ -2102,7 +2104,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         fetches historical positions
 
-        https://developers.bydfi.com/en/swap/trade#query-historical-position-profit-and-loss-records
+        https://developers.bydfi.com/en/futures/trade#query-historical-position-profit-and-loss-records
 
         :param str[] symbols: a list of unified market symbols
         :param int [since]: timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
@@ -2122,7 +2124,7 @@ class bydfi(Exchange, ImplicitAPI):
         params = self.handle_since_and_until('fetchPositionsHistory', since, params)
         if limit is not None:
             request['limit'] = limit
-        response = await self.privateGetV1SwapTradePositionHistory(self.extend(request, params))
+        response = await self.privateGetV1FapiTradePositionHistory(self.extend(request, params))
         #
         #     {
         #         "code": 200,
@@ -2173,7 +2175,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         fetches the margin mode of a trading pair
 
-        https://developers.bydfi.com/en/swap/user#margin-mode-query
+        https://developers.bydfi.com/en/futures/user#margin-mode-query
 
         :param str symbol: unified symbol of the market to fetch the margin mode for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2192,7 +2194,7 @@ class bydfi(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'wallet': wallet,
         }
-        response = await self.privateGetV1SwapUserDataAssetsMargin(self.extend(request, params))
+        response = await self.privateGetV1FapiUserDataAssetsMargin(self.extend(request, params))
         #
         #     {
         #         "code": 200,
@@ -2220,7 +2222,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         set margin mode to 'cross' or 'isolated'
 
-        https://developers.bydfi.com/en/swap/user#change-margin-type-cross-margin
+        https://developers.bydfi.com/en/futures/user#change-margin-type-cross-margin
 
         :param str marginMode: 'cross' or 'isolated'
         :param str symbol: unified market symbol
@@ -2246,13 +2248,13 @@ class bydfi(Exchange, ImplicitAPI):
             'marginType': marginMode.upper(),
             'wallet': wallet,
         }
-        return await self.privatePostV1SwapUserDataMarginType(self.extend(request, params))
+        return await self.privatePostV1FapiUserDataMarginType(self.extend(request, params))
 
     async def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         """
         set hedged to True or False for a market, hedged for bydfi is set identically for all markets with same settle currency
 
-        https://developers.bydfi.com/en/swap/user#change-position-mode-dual
+        https://developers.bydfi.com/en/futures/user#change-position-mode-dual
 
         :param bool hedged: set to True to use dualSidePosition
         :param str [symbol]: not used by bydfi setPositionMode()
@@ -2285,13 +2287,13 @@ class bydfi(Exchange, ImplicitAPI):
         #         "success": True
         #     }
         #
-        return await self.privatePostV1SwapUserDataPositionSideDual(self.extend(request, params))
+        return await self.privatePostV1FapiUserDataPositionSideDual(self.extend(request, params))
 
     async def fetch_position_mode(self, symbol: Str = None, params={}):
         """
         fetchs the position mode, hedged or one way, hedged for bydfi is set identically for all markets with same settle currency
 
-        https://developers.bydfi.com/en/swap/user#get-position-mode
+        https://developers.bydfi.com/en/futures/user#get-position-mode
 
         :param str [symbol]: unified symbol of the market to fetch the order book for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2316,7 +2318,7 @@ class bydfi(Exchange, ImplicitAPI):
             'settleCoin': settleCoin,
             'wallet': wallet,
         }
-        response = await self.privateGetV1SwapUserDataPositionSideDual(self.extend(request, params))
+        response = await self.privateGetV1FapiUserDataPositionSideDual(self.extend(request, params))
         #
         #     {
         #         "code": 200,
@@ -2346,22 +2348,24 @@ class bydfi(Exchange, ImplicitAPI):
         query for balance and get the amount of funds available for trading or funds locked in orders
 
         https://developers.bydfi.com/en/account#asset-inquiry
-        https://developers.bydfi.com/en/swap/user#asset-query
+        https://developers.bydfi.com/en/futures/user#asset-query
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.accountType]: the type of account to fetch the balance for, either 'spot' or 'swap'  or 'funding'(default is 'spot')
+        :param str [params.account]: the type of account to fetch the balance for, either 'SPOT' or 'UMFUTURE'  or 'CMFUTURE'  or 'COPY'  or 'GRID'  or 'FUNDING'(default is 'SPOT')
         :param str [params.wallet]: *swap only* The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
         :param str [params.asset]: currency id for the balance to fetch
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
-        accountType = 'spot'
-        accountType, params = self.handle_option_and_params_2(params, 'fetchBalance', 'accountType', 'type', accountType)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchBalance', None, params)
+        wallet = None
+        wallet, params = self.handle_option_and_params(params, 'fetchBalance', 'wallet')
         request: dict = {}
         response = None
-        if accountType != 'swap':
+        if wallet is None:
             options = self.safe_dict(self.options, 'accountsByType', {})
-            parsedAccountType = self.safe_string(options, accountType, accountType)
+            parsedAccountType = self.safe_string_upper(options, type, type)
             request['walletType'] = parsedAccountType
             #
             #     {
@@ -2381,8 +2385,6 @@ class bydfi(Exchange, ImplicitAPI):
             #
             response = await self.privateGetV1AccountAssets(self.extend(request, params))
         else:
-            wallet = 'W001'
-            wallet, params = self.handle_option_and_params(params, 'fetchBalance', 'wallet', wallet)
             request['wallet'] = wallet
             #
             #     {
@@ -2412,7 +2414,7 @@ class bydfi(Exchange, ImplicitAPI):
             #         ],
             #         "success": True
             #     }
-            response = await self.privateGetV1SwapAccountBalance(self.extend(request, params))
+            response = await self.privateGetV1FapiAccountBalance(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
         return self.parse_balance(data)
 

@@ -418,6 +418,8 @@ fetch all trades made by the user
 | limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | Timestamp in ms of the latest time to retrieve trades for |
+| params.type | <code>string</code> | No | 'swap' or 'spot' (defaults to 'swap'), required to fetch spot trade history |
+| params.instId | <code>string</code> | No | *spot markets only* the market id of the spot market to fetch the trade history for (e.g. 'BTC-USDT') |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 

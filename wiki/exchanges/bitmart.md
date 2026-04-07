@@ -476,6 +476,7 @@ create a trade order
 - https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
 - https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-sl-order-signed
 - https://developer-pro.bitmart.com/en/futuresv2/#submit-trail-order-signed
+- https://developer-pro.bitmart.com/en/spot/#new-algo-order-v4-signed
 
 
 | Param | Type | Required | Description |
@@ -545,6 +546,7 @@ cancels an open order
 - https://developer-pro.bitmart.com/en/futuresv2/#cancel-plan-order-signed
 - https://developer-pro.bitmart.com/en/futuresv2/#cancel-order-signed
 - https://developer-pro.bitmart.com/en/futuresv2/#cancel-trail-order-signed
+- https://developer-pro.bitmart.com/en/spot/#cancel-algo-order-v4-signed
 
 
 | Param | Type | Required | Description |
@@ -553,8 +555,9 @@ cancels an open order
 | symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.clientOrderId | <code>string</code> | No | *spot only* the client order id of the order to cancel |
-| params.trigger | <code>boolean</code> | No | *swap only* whether the order is a trigger order |
 | params.trailing | <code>boolean</code> | No | *swap only* whether the order is a stop order |
+| params.trigger | <code>boolean</code> | No | whether the order is a trigger order |
+| params.stopLossTakeProfit | <code>boolean</code> | No | whether the order is a stopLossPrice or takeProfitPrice order |
 
 
 ```javascript
@@ -597,6 +600,7 @@ cancel all open orders in a market
 
 - https://developer-pro.bitmart.com/en/spot/#cancel-all-order-v4-signed
 - https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed
+- https://developer-pro.bitmart.com/en/spot/#cancel-all-algo-order-v4-signed
 
 
 | Param | Type | Required | Description |
@@ -604,6 +608,8 @@ cancel all open orders in a market
 | symbol | <code>string</code> | Yes | unified market symbol of the market to cancel orders in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.side | <code>string</code> | No | *spot only* 'buy' or 'sell' |
+| params.trigger | <code>boolean</code> | No | whether the orders are trigger orders |
+| params.stopLossTakeProfit | <code>boolean</code> | No | whether the orders are stopLossPrice or takeProfitPrice orders |
 
 
 ```javascript
@@ -624,6 +630,7 @@ fetch all unfilled currently open orders
 - https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
 - https://developer-pro.bitmart.com/en/futuresv2/#get-all-open-orders-keyed
 - https://developer-pro.bitmart.com/en/futuresv2/#get-all-current-plan-orders-keyed
+- https://developer-pro.bitmart.com/en/spot/#current-algo-open-orders-v4-signed
 
 
 | Param | Type | Required | Description |
@@ -638,7 +645,8 @@ fetch all unfilled currently open orders
 | params.order_state | <code>string</code> | No | *swap* the order state, 'all' or 'partially_filled', default is 'all' |
 | params.orderType | <code>string</code> | No | *swap only* 'limit', 'market', or 'trailing' |
 | params.trailing | <code>boolean</code> | No | *swap only* set to true if you want to fetch trailing orders |
-| params.trigger | <code>boolean</code> | No | *swap only* set to true if you want to fetch trigger orders |
+| params.trigger | <code>boolean</code> | No | set to true if you want to fetch trigger orders |
+| params.stopLossTakeProfit | <code>boolean</code> | No | set to true if you want to fetch stopLossPrice or takeProfitPrice orders |
 | params.stpMode | <code>string</code> | No | self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both'] |
 
 
@@ -659,6 +667,7 @@ fetches information on multiple closed orders made by the user
 
 - https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
 - https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed
+- https://developer-pro.bitmart.com/en/spot/#account-algo-orders-v4-signed
 
 
 | Param | Type | Required | Description |
@@ -670,6 +679,8 @@ fetches information on multiple closed orders made by the user
 | params.until | <code>int</code> | No | timestamp in ms of the latest entry |
 | params.marginMode | <code>string</code> | No | *spot only* 'cross' or 'isolated', for margin trading |
 | params.stpMode | <code>string</code> | No | self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both'] |
+| params.trigger | <code>boolean</code> | No | set to true if you want to fetch trigger orders |
+| params.stopLossTakeProfit | <code>boolean</code> | No | set to true if you want to fetch stopLossPrice or takeProfitPrice orders |
 
 
 ```javascript
@@ -712,6 +723,8 @@ fetches information on an order made by the user
 - https://developer-pro.bitmart.com/en/spot/#query-order-by-id-v4-signed
 - https://developer-pro.bitmart.com/en/spot/#query-order-by-clientorderid-v4-signed
 - https://developer-pro.bitmart.com/en/futuresv2/#get-order-detail-keyed
+- https://developer-pro.bitmart.com/en/spot/#query-algo-order-by-id-v4-signed
+- https://developer-pro.bitmart.com/en/spot/#query-algo-order-by-clientorderid-v4-signed
 
 
 | Param | Type | Required | Description |
@@ -723,6 +736,7 @@ fetches information on an order made by the user
 | params.orderType | <code>string</code> | No | *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing' |
 | params.trailing | <code>boolean</code> | No | *swap only* set to true if you want to fetch a trailing order |
 | params.stpMode | <code>string</code> | No | self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both'] |
+| params.trigger | <code>boolean</code> | No | whether the orders is a trigger, stopLossPrice or takeProfitPrice order |
 
 
 ```javascript

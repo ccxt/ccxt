@@ -59,6 +59,7 @@ export default class bybit extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(currency: Dict): Currency;
     /**
      * @method
      * @name bybit#fetchMarkets

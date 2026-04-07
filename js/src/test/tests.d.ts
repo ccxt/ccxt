@@ -92,7 +92,6 @@ declare class testMainClass {
     testXT(): Promise<boolean>;
     testParadex(): Promise<boolean>;
     testHashkey(): Promise<boolean>;
-    testCoincatch(): Promise<boolean>;
     testCryptomus(): Promise<boolean>;
     testDerive(): Promise<boolean>;
     testModeTrade(): Promise<boolean>;

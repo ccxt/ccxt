@@ -17,6 +17,8 @@ function test_urlencode_with_array_repeat() {
         'a' => 1,
         'product_ids' => ['AA', 'BB'],
     );
-    $expected2 = 'a=1&product_ids=AA&product_ids=BB';
-    assert($exchange->urlencode_with_array_repeat($dict2) === $expected2, 'urlencodeWithArrayRepeat: expected ' . $expected2 . ' but got ' . $exchange->urlencode_with_array_repeat($dict2));
+    $expected2a = 'a=1&product_ids=AA&product_ids=BB';
+    $expected2b = 'product_ids=AA&product_ids=BB&a=1';
+    $result2 = $exchange->urlencode_with_array_repeat($dict2);
+    assert($result2 === $expected2a || $result2 === $expected2b, 'urlencodeWithArrayRepeat: expected ' . $expected2a . ' or ' . $expected2b . ' but got ' . $result2);
 }

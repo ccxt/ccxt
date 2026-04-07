@@ -1492,7 +1492,7 @@ class testMainClass {
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_coincatch(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit()];
+        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit()];
         ($promises);
         $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
         dump('[INFO]' . $success_message);
@@ -1646,11 +1646,16 @@ class testMainClass {
 
     public function test_kucoin() {
         $exchange = $this->init_offline_exchange('kucoin');
+        $exchange->options['uta'] = false; // prevents fetching account mode inside createOrder
         $req_headers = null;
         $spot_id = $exchange->options['partner']['spot']['id'];
         $spot_key = $exchange->options['partner']['spot']['key'];
         assert($spot_id === 'ccxt', 'kucoin - id: ' . $spot_id . ' not in options');
         assert($spot_key === '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'kucoin - key: ' . $spot_key . ' not in options.');
+        $future_id = $exchange->options['partner']['future']['id'];
+        $future_key = $exchange->options['partner']['future']['key'];
+        assert($future_id === 'ccxtfutures', 'kucoin - id: ' . $future_id . ' not in options.');
+        assert($future_key === '1b327198-f30c-4f14-a0ac-918871282f15', 'kucoin - key: ' . $future_key . ' not in options.');
         try {
             $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch(\Throwable $e) {
@@ -1658,7 +1663,30 @@ class testMainClass {
             $req_headers = $exchange->last_request_headers;
         }
         $id = 'ccxt';
-        assert($req_headers['KC-API-PARTNER'] === $id, 'kucoin - id: ' . $id . ' not in headers.');
+        assert($req_headers['KC-API-PARTNER'] === $id, 'kucoin - id: ' . $id . ' not in headers for spot orders.');
+        try {
+            $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000, array(
+                'uta' => true,
+            ));
+        } catch(\Throwable $e) {
+            $req_headers = $exchange->last_request_headers;
+        }
+        assert($req_headers['KC-API-PARTNER'] === $id, 'kucoin - id: ' . $id . ' not in headers for spot uta orders.');
+        $id = 'ccxtfutures';
+        try {
+            $exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
+        } catch(\Throwable $e) {
+            $req_headers = $exchange->last_request_headers;
+        }
+        assert($req_headers['KC-API-PARTNER'] === $id, 'kucoin - id: ' . $id . ' not in headers for swap orders.');
+        try {
+            $exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, array(
+                'uta' => true,
+            ));
+        } catch(\Throwable $e) {
+            $req_headers = $exchange->last_request_headers;
+        }
+        assert($req_headers['KC-API-PARTNER'] === $id, 'kucoin - id: ' . $id . ' not in headers for swap uta orders.');
         if (!is_sync()) {
             close($exchange);
         }
@@ -1679,6 +1707,14 @@ class testMainClass {
             $req_headers = $exchange->last_request_headers;
         }
         assert($req_headers['KC-API-PARTNER'] === $id, 'kucoinfutures - id: ' . $id . ' not in headers.');
+        try {
+            $exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, array(
+                'uta' => true,
+            ));
+        } catch(\Throwable $e) {
+            $req_headers = $exchange->last_request_headers;
+        }
+        assert($req_headers['KC-API-PARTNER'] === $id, 'kucoinfutures - id: ' . $id . ' not in headers for uta orders.');
         if (!is_sync()) {
             close($exchange);
         }
@@ -2048,23 +2084,6 @@ class testMainClass {
             $req_headers = $exchange->last_request_headers;
         }
         assert($req_headers['INPUT-SOURCE'] === $id, 'hashkey - id: ' . $id . ' not in headers.');
-        if (!is_sync()) {
-            close($exchange);
-        }
-        return true;
-    }
-
-    public function test_coincatch() {
-        $exchange = $this->init_offline_exchange('coincatch');
-        $req_headers = null;
-        $id = '47cfy';
-        try {
-            $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);
-        } catch(\Throwable $e) {
-            // we expect an error here, we're only interested in the headers
-            $req_headers = $exchange->last_request_headers;
-        }
-        assert($req_headers['X-CHANNEL-API-CODE'] === $id, 'coincatch - id: ' . $id . ' not in headers.');
         if (!is_sync()) {
             close($exchange);
         }

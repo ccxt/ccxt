@@ -1,4 +1,8 @@
 {
+    "aftermath": {
+        "skip": "exchange doesn't function for some reasons during last few days",
+        "until": "2026-04-07"
+    },
     "alp": {
         "skipMethods": {
             "fetchCurrencies": {
@@ -764,26 +768,6 @@
             }
         }
     },
-    "coincatch": {
-        "skipMethods": {
-            "fetchCurrencies": {
-                "precision": "not provided",
-                "type": "todo",
-                "withdraw":"todo, needs fix",
-                "deposit":"todo, needs fix",
-                "active" : "todo, needs fix",
-                "activeMajorCurrencies": "todo",
-                "activeCurrenciesQuota": "activeCurrenciesQuota"
-            },
-            "fetchTickers": {
-                "checkActiveSymbols": "todo"
-            },
-            "watchTickers": {
-                "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16077301099/job/45375495181?pr=26334#step:9:438"
-            },
-            "loadMarkets": "linear and inverse values are same"
-        }
-    },
     "coinmetro": {
         "skipMethods": {
             "loadMarkets": {
@@ -1352,6 +1336,9 @@
     "hollaex": {
         "skipWs": "temp",
         "skipMethods": {
+            "orderBook": {
+                "timestamp": "temporary issue at 31.03.2026, should revisit fixed obs in few weeks https://forum.hollaex.com/t/bug-in-orderbooks-api/2156"
+            },
             "watchOrderBook": {
                 "nonce": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4957"
             },
@@ -1395,14 +1382,14 @@
         }
     },
     "bittrade": {
-        "skipWs": "timeouts",
         "skipMethods": {
             "loadMarkets": {
                 "limits": "messed"
             },
             "fetchCurrencies": {
                 "fee": "not defined",
-                "networks": "missing"
+                "networks": "missing",
+                "activeMajorCurrencies": "usdt trx is frozen temporarily, todo recheck in 2-4 weeks"
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing"
@@ -2277,6 +2264,9 @@
             "orderBook": {
                 "spread":"bids[0][0] is not < asks[0][0]",
                 "timestamp": "not provided"
+            },
+            "fetchTickers": {
+                "compareOHLC": "broken https://github.com/ccxt/ccxt/actions/runs/23807522040/job/69385956136?pr=28306#step:11:315"
             }
         }
     }

@@ -281,10 +281,6 @@ node path/to/example.js # substitute for actual filename here
 
 - [Watch Tickers](./examples/js/watch-tickers.md)
 
-- [Watchohlcvforsymbols](./examples/js/watchOHLCVForSymbols.md)
-
-- [Watchorderbookforsymbols](./examples/js/watchOrderBookForSymbols.md)
-
 - [Watchpositions Many Exchanges Continuosly.d](./examples/js/watchPositions-many-exchanges-continuosly.d.md)
 
 - [Watchpositions Many Exchanges Continuosly.d.ts](./examples/js/watchPositions-many-exchanges-continuosly.d.ts.md)

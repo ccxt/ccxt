@@ -175,6 +175,83 @@ type ReserveRequestWeightMessage struct {
 	Weight int    `mapstructure:"weight" msgpack:"weight"`
 }
 
+// SetReferrer message
+
+type SetReferrerMessage struct {
+	Type string `mapstructure:"type" msgpack:"type"`
+	Code string `mapstructure:"code" msgpack:"code"`
+}
+
+// AgentSetAbstraction message
+
+type AgentSetAbstractionMessage struct {
+	Type        string `mapstructure:"type" msgpack:"type"`
+	Abstraction string `mapstructure:"abstraction" msgpack:"abstraction"`
+}
+
+// TwapOrder message
+
+type TwapOrderSpec struct {
+	A int    `mapstructure:"a" msgpack:"a"`
+	B bool   `mapstructure:"b" msgpack:"b"`
+	S string `mapstructure:"s" msgpack:"s"`
+	R bool   `mapstructure:"r" msgpack:"r"`
+	M int    `mapstructure:"m" msgpack:"m"`
+	T bool   `mapstructure:"t" msgpack:"t"`
+}
+
+type TwapOrderMessage struct {
+	Type string        `mapstructure:"type" msgpack:"type"`
+	Twap TwapOrderSpec `mapstructure:"twap" msgpack:"twap"`
+}
+
+// TwapCancel message
+
+type TwapCancelMessage struct {
+	Type string `mapstructure:"type" msgpack:"type"`
+	A    int    `mapstructure:"a" msgpack:"a"`
+	T    int    `mapstructure:"t" msgpack:"t"`
+}
+
+// ScheduleCancel message
+
+type ScheduleCancelMessage struct {
+	Type string `mapstructure:"type" msgpack:"type"`
+	Time int    `mapstructure:"time" msgpack:"time"`
+}
+
+// CreateVault message
+
+type CreateVaultMessage struct {
+	Type        string `mapstructure:"type" msgpack:"type"`
+	Name        string `mapstructure:"name" msgpack:"name"`
+	Description string `mapstructure:"description" msgpack:"description"`
+	InitialUsd  int    `mapstructure:"initialUsd" msgpack:"initialUsd"`
+	Nonce       int    `mapstructure:"nonce" msgpack:"nonce"`
+}
+
+// SubAccountSpotTransfer message
+
+type SubAccountSpotTransferMessage struct {
+	Type           string `mapstructure:"type" msgpack:"type"`
+	SubAccountUser string `mapstructure:"subAccountUser" msgpack:"subAccountUser"`
+	IsDeposit      bool   `mapstructure:"isDeposit" msgpack:"isDeposit"`
+	Token          string `mapstructure:"token" msgpack:"token"`
+	Amount         string `mapstructure:"amount" msgpack:"amount"`
+}
+
+// CancelByCloid message
+
+type CancelByCloidItem struct {
+	Asset int    `mapstructure:"asset" msgpack:"asset"`
+	Cloid string `mapstructure:"cloid" msgpack:"cloid"`
+}
+
+type CancelByCloidMessage struct {
+	Type    string              `mapstructure:"type" msgpack:"type"`
+	Cancels []CancelByCloidItem `mapstructure:"cancels" msgpack:"cancels"`
+}
+
 // =====================================  Hyperliquid Structs ===================================== //
 
 func ethEncodeStructuredData(primaryType string, domain apitypes.TypedDataDomain, messageTypes map[string][]apitypes.Type, messageData map[string]interface{}) (string, error) {
@@ -570,6 +647,110 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 		}
 
 		packed, err := msgpack.Marshal(reserveRequestWeightMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "setReferrer":
+		var msg SetReferrerMessage
+
+		err := mapstructure.Decode(converted, &msg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(msg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "agentSetAbstraction":
+		var msg AgentSetAbstractionMessage
+
+		err := mapstructure.Decode(converted, &msg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(msg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "twapOrder":
+		var msg TwapOrderMessage
+
+		err := mapstructure.Decode(converted, &msg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(msg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "twapCancel":
+		var msg TwapCancelMessage
+
+		err := mapstructure.Decode(converted, &msg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(msg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "scheduleCancel":
+		var msg ScheduleCancelMessage
+
+		err := mapstructure.Decode(converted, &msg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(msg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "createVault":
+		var msg CreateVaultMessage
+
+		err := mapstructure.Decode(converted, &msg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(msg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "subAccountSpotTransfer":
+		var msg SubAccountSpotTransferMessage
+
+		err := mapstructure.Decode(converted, &msg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(msg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "cancelByCloid":
+		var msg CancelByCloidMessage
+
+		err := mapstructure.Decode(converted, &msg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(msg)
 		if err != nil {
 			panic(err)
 		}

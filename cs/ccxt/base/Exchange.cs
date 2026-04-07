@@ -561,7 +561,15 @@ public partial class Exchange
 
     public List<string> unique(object obj)
     {
-        return (obj as List<string>).ToList();
+        if (obj is List<string> stringList)
+        {
+            return stringList.Distinct().ToList();
+        }
+        if (obj is List<object> objectList)
+        {
+             return objectList.Select(x => x.ToString()).Distinct().ToList();
+        }
+        return new List<string>();
     }
 
     public int parseTimeframe(object timeframe2)
@@ -612,6 +620,21 @@ public partial class Exchange
 
     public object clone(object o)
     {
+        if (o is dict srcDict)
+        {
+            var result = new dict(srcDict.Count);
+            foreach (var kvp in srcDict)
+                result[kvp.Key] = clone(kvp.Value);
+            return result;
+        }
+        if (o is List<object> srcList)
+        {
+            var result = new List<object>(srcList.Count);
+            foreach (var item in srcList)
+                result.Add(clone(item));
+            return result;
+        }
+        // scalars (string, number, bool, null) are immutable – return as-is
         return o;
     }
 
@@ -820,6 +843,8 @@ public partial class Exchange
     {
         if (a == null)
             return true;
+        if (a is String)
+            return false; // disregard strings
         if (a is IList<object>)
             return ((IList<object>)a).Count == 0;
         if (a is IDictionary<string, object>)

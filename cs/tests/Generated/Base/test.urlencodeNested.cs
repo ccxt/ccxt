@@ -12,15 +12,20 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
             });
+            // todo: add nulls
+            // todo: add key sort (for different langs)
             object dict2 = new Dictionary<string, object>() {
-                { "a", 1 },
                 { "b", new Dictionary<string, object>() {
                     { "c", 2 },
                     { "target", "+&" },
                 } },
                 { "d", new List<object>() {1, 2} },
             };
-            object expected2 = "a=1&b[c]=2&b[target]=%2B%26&d[0]=1&d[1]=2";
-            Assert(isEqual(exchange.urlencodeNested(dict2), expected2), add(add(add("urlencodeNested: expected ", expected2), " but got "), exchange.urlencodeNested(dict2)));
+            object expected2a = "b[c]=2&b[target]=%2B%26&d[0]=1&d[1]=2";
+            object expected2c = "b[target]=%2B%26&b[c]=2&d[0]=1&d[1]=2";
+            object expected2b = "d[0]=1&d[1]=2&b[c]=2&b[target]=%2B%26";
+            object expected2d = "d[0]=1&d[1]=2&b[target]=%2B%26&b[c]=2";
+            object result2 = exchange.urlencodeNested(dict2);
+            Assert(isTrue(isTrue(isTrue(isEqual(result2, expected2a)) || isTrue(isEqual(result2, expected2b))) || isTrue(isEqual(result2, expected2c))) || isTrue(isEqual(result2, expected2d)), add(add(add(add(add(add(add(add(add("urlencodeNested: expected ", expected2a), " or "), expected2b), " or "), expected2c), " or "), expected2d), " but got "), result2));
         }
 }

@@ -2377,7 +2377,7 @@ class okx extends okx$1["default"] {
                         if (errorCode !== undefined) {
                             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
                         }
-                        messageString = this.safeValue(message, 'sMsg');
+                        messageString = this.safeValue(d, 'sMsg');
                         if (messageString !== undefined) {
                             this.throwBroadlyMatchedException(this.exceptions['broad'], messageString, feedback);
                         }

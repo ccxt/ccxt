@@ -572,7 +572,7 @@ func (this *LighterCore) Pow(n interface{}, m interface{}) interface{} {
 func (this *LighterCore) SetSandboxMode(enable interface{}) {
 	this.Exchange.SetSandboxMode(enable)
 	AddElementToObject(this.Options, "sandboxMode", enable)
-	AddElementToObject(this.Options, "chainId", 300)
+	AddElementToObject(this.Options, "chainId", Ternary(IsTrue(enable), 300, 304))
 }
 func (this *LighterCore) CreateOrderRequest(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{} {
 	/**
@@ -1370,7 +1370,7 @@ func (this *LighterCore) ParseTicker(ticker interface{}, optionalArgs ...interfa
 	//         "daily_chart": {},
 	//         "market_config": {
 	//             "market_margin_mode": 0,
-	//             "insurance_fund_account_index": 281474976710655,
+	//             "insurance_fund_account_index": 281474976710654,
 	//             "liquidation_mode": 0,
 	//             "force_reduce_only": false,
 	//             "trading_hours": ""

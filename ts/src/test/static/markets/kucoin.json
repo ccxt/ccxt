@@ -2691,5 +2691,266 @@
                 ]
             ]
         }
+    },
+    "DOGE/USDT:USDT": {
+        "id": "DOGEUSDTM",
+        "lowercaseId": null,
+        "symbol": "DOGE/USDT:USDT",
+        "base": "DOGE",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "DOGE",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0006,
+        "maker": 0.0002,
+        "contractSize": 100,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.00001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 75
+            },
+            "amount": {
+                "min": 1,
+                "max": 1000000
+            },
+            "price": {
+                "min": 0.00001,
+                "max": 1000000
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1611910200000,
+        "info": {
+            "symbol": "DOGEUSDTM",
+            "displaySymbol": "DOGEUSDTM",
+            "rootSymbol": "USDT",
+            "type": "FFWCSX",
+            "firstOpenDate": 1611910200000,
+            "expireDate": null,
+            "settleDate": null,
+            "baseCurrency": "DOGE",
+            "displayBaseCurrency": "DOGE",
+            "quoteCurrency": "USDT",
+            "settleCurrency": "USDT",
+            "maxOrderQty": 1000000,
+            "marketMaxOrderQty": 1000000,
+            "maxPrice": 1000000,
+            "lotSize": 1,
+            "tickSize": 0.00001,
+            "indexPriceTickSize": 0.00001,
+            "multiplier": 100,
+            "initialMargin": 0.014,
+            "maintainMargin": 0.007,
+            "maxRiskLimit": 60000,
+            "minRiskLimit": 60000,
+            "riskStep": 30000,
+            "makerFeeRate": 0.0002,
+            "takerFeeRate": 0.0006,
+            "takerFixFee": 0,
+            "makerFixFee": 0,
+            "settlementFee": null,
+            "isDeleverage": true,
+            "isQuanto": false,
+            "isInverse": false,
+            "markMethod": "FairPrice",
+            "fairMethod": "FundingRate",
+            "fundingBaseSymbol": ".DOGEINT8H",
+            "fundingQuoteSymbol": ".USDTINT8H",
+            "fundingRateSymbol": ".DOGEUSDTMFPI8H",
+            "indexSymbol": ".KDOGEUSDT",
+            "settlementSymbol": "",
+            "status": "Open",
+            "fundingFeeRate": 0.000095,
+            "predictedFundingFeeRate": null,
+            "dailyInterestRate": 0.0003,
+            "fundingRateGranularity": 28800000,
+            "fundingRateCap": 0.00525,
+            "fundingRateFloor": -0.00525,
+            "period": 1,
+            "effectiveFundingRateCycleStartTime": null,
+            "currentFundingRateGranularity": null,
+            "openInterest": "7709320",
+            "turnoverOf24h": 17154187.21645605,
+            "volumeOf24h": 178327000,
+            "markPrice": 0.09575,
+            "indexPrice": 0.09576,
+            "lastTradePrice": 0.09575,
+            "nextFundingRateTime": 12261670,
+            "nextFundingRateDateTime": 1774483200000,
+            "maxLeverage": 75,
+            "sourceExchanges": [
+                "binance",
+                "okex",
+                "gateio",
+                "kucoin",
+                "bybit",
+                "bitget"
+            ],
+            "premiumsSymbol1M": ".DOGEUSDTMPI",
+            "premiumsSymbol8H": ".DOGEUSDTMPI8H",
+            "fundingBaseSymbol1M": ".DOGEINT",
+            "fundingQuoteSymbol1M": ".USDTINT",
+            "lowPrice": 0.09409,
+            "highPrice": 0.09793,
+            "priceChgPct": 0.0125,
+            "priceChg": 0.00119,
+            "k": 19200000,
+            "m": 12400000,
+            "f": 1.3,
+            "mmrLimit": 0.3,
+            "mmrLevConstant": 75,
+            "supportCross": true,
+            "buyLimit": 0.10532,
+            "sellLimit": 0.08618,
+            "adjustK": null,
+            "adjustM": null,
+            "adjustMmrLevConstant": null,
+            "adjustActiveTime": null,
+            "crossRiskLimit": 150000000,
+            "marketStage": "NORMAL",
+            "preMarketToPerpDate": null,
+            "orderPriceRange": 0.1,
+            "marketType": "CRYPTO"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    50,
+                    0.001
+                ],
+                [
+                    200,
+                    0.0009
+                ],
+                [
+                    500,
+                    0.0008
+                ],
+                [
+                    1000,
+                    0.0007
+                ],
+                [
+                    2000,
+                    0.0007
+                ],
+                [
+                    4000,
+                    0.0006
+                ],
+                [
+                    8000,
+                    0.0005
+                ],
+                [
+                    15000,
+                    0.00045
+                ],
+                [
+                    25000,
+                    0.0004
+                ],
+                [
+                    40000,
+                    0.00035
+                ],
+                [
+                    60000,
+                    0.0003
+                ],
+                [
+                    80000,
+                    0.00025
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    50,
+                    0.0009
+                ],
+                [
+                    200,
+                    0.0007
+                ],
+                [
+                    500,
+                    0.0005
+                ],
+                [
+                    1000,
+                    0.0003
+                ],
+                [
+                    2000,
+                    0
+                ],
+                [
+                    4000,
+                    0
+                ],
+                [
+                    8000,
+                    0
+                ],
+                [
+                    15000,
+                    -0.00005
+                ],
+                [
+                    25000,
+                    -0.00005
+                ],
+                [
+                    40000,
+                    -0.00005
+                ],
+                [
+                    60000,
+                    -0.00005
+                ],
+                [
+                    80000,
+                    -0.00005
+                ]
+            ]
+        }
     }
 }

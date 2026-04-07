@@ -797,7 +797,7 @@ class lighter(ccxt.async_support.lighter):
         error = self.safe_dict(message, 'error')
         try:
             if error is not None:
-                code = self.safe_string(message, 'code')
+                code = self.safe_string(error, 'code')
                 if code is not None:
                     feedback = self.id + ' ' + self.json(message)
                     self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)

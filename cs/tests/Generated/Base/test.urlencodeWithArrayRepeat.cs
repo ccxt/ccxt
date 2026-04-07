@@ -16,7 +16,9 @@ public partial class BaseTest
                 { "a", 1 },
                 { "product_ids", new List<object>() {"AA", "BB"} },
             };
-            object expected2 = "a=1&product_ids=AA&product_ids=BB";
-            Assert(isEqual(exchange.urlencodeWithArrayRepeat(dict2), expected2), add(add(add("urlencodeWithArrayRepeat: expected ", expected2), " but got "), exchange.urlencodeWithArrayRepeat(dict2)));
+            object expected2a = "a=1&product_ids=AA&product_ids=BB";
+            object expected2b = "product_ids=AA&product_ids=BB&a=1";
+            object result2 = exchange.urlencodeWithArrayRepeat(dict2);
+            Assert(isTrue(isEqual(result2, expected2a)) || isTrue(isEqual(result2, expected2b)), add(add(add(add(add("urlencodeWithArrayRepeat: expected ", expected2a), " or "), expected2b), " but got "), result2));
         }
 }

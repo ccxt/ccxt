@@ -4073,6 +4073,9 @@ class Exchange {
         }
         return reversed;
     }
+    stringToBase16(str) {
+        return '0x' + this.binaryToBase16(this.base64ToBinary(this.stringToBase64(str)));
+    }
     reduceFeesByCurrency(fees) {
         //
         // this function takes a list of fee structures having the following format
@@ -5011,6 +5014,30 @@ class Exchange {
         const results = [];
         for (let i = 0; i < objects.length; i++) {
             if (this.inArray(objects[i][key], values)) {
+                results.push(objects[i]);
+            }
+        }
+        // return indexed ? this.indexBy (results, key) : results;
+        if (indexed) {
+            return this.indexBy(results, key);
+        }
+        return results;
+    }
+    filterOutByArray(objects, key, values = undefined, indexed = true) {
+        objects = this.toArray(objects);
+        // return all of them if no values were passed
+        if (values === undefined || !values) {
+            // return indexed ? this.indexBy (objects, key) : objects;
+            if (indexed) {
+                return this.indexBy(objects, key);
+            }
+            else {
+                return objects;
+            }
+        }
+        const results = [];
+        for (let i = 0; i < objects.length; i++) {
+            if (!this.inArray(objects[i][key], values)) {
                 results.push(objects[i]);
             }
         }

@@ -1458,7 +1458,9 @@ export default class bitget extends Exchange {
                     '20003': ExchangeError,
                     '01001': ExchangeError,
                     '40024': RestrictedLocation,
-                    '43111': PermissionDenied, // {"code":"43111","msg":"参数错误 address not in address book","requestTime":1665394201164,"data":null}
+                    '41117': InvalidOrder,
+                    '43111': PermissionDenied,
+                    '45113': InvalidOrder, // {"code":"45113","msg":"Maximum order value limit triggered","requestTime":1774884278712,"data":null}
                 },
                 'broad': {
                     'invalid size, valid range': ExchangeError,
@@ -5108,7 +5110,7 @@ export default class bitget extends Exchange {
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much you want to trade in units of the base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders, and used as the execution price for contract stop-loss / take-profit orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.cost] *spot only* how much you want to trade in units of the quote currency, for market buy orders only
      * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
@@ -5439,8 +5441,11 @@ export default class bitget extends Exchange {
                 }
             }
             else if (isStopLossOrTakeProfitTrigger) {
-                if (!isMarketOrder) {
-                    throw new ExchangeError(this.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders');
+                if (price !== undefined) {
+                    request['executePrice'] = this.priceToPrecision(symbol, price);
+                    if ('price' in request) {
+                        delete request['price'];
+                    }
                 }
                 if (hedged) {
                     request['holdSide'] = (side === 'sell') ? 'long' : 'short';

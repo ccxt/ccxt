@@ -103,6 +103,10 @@ func (this *KucoinfuturesCore) PrivateGetUserInfo(args ...interface{}) <-chan in
 	return this.callEndpointAsync("privateGetUserInfo", args...)
 }
 
+func (this *KucoinfuturesCore) PrivateGetUserApiKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserApiKey", args...)
+}
+
 func (this *KucoinfuturesCore) PrivateGetAccounts(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccounts", args...)
 }
@@ -1317,6 +1321,10 @@ func (this *KucoinfuturesCore) UtaPrivateGetAccountModePositionOpenList(args ...
 
 func (this *KucoinfuturesCore) UtaPrivateGetAccountModePositionHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("utaPrivateGetAccountModePositionHistory", args...)
+}
+
+func (this *KucoinfuturesCore) UtaPrivateGetPositionHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("utaPrivateGetPositionHistory", args...)
 }
 
 func (this *KucoinfuturesCore) UtaPrivateGetAccountModePositionTiers(args ...interface{}) <-chan interface{} {

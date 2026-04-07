@@ -60,6 +60,19 @@ class gate(ccxt.async_support.gate):
                 'watchMyLiquidations': True,
                 'watchMyLiquidationsForSymbols': True,
                 'watchPositions': True,
+                'unWatchTicker': False,
+                'unWatchTickers': False,
+                'unWatchOHLCV': False,
+                'unWatchOHLCVForSymbols': False,
+                'unWatchOrderBook': True,
+                'unWatchOrderBookForSymbols': False,
+                'unWatchTrades': True,
+                'unWatchTradesForSymbols': True,
+                'unWatchMyTrades': False,
+                'unWatchOrders': False,
+                'unWatchPositions': False,
+                'unWatchMarkPrices': False,
+                'unWatchMarkPrice': False,
             },
             'urls': {
                 'api': {
@@ -990,13 +1003,13 @@ class gate(ccxt.async_support.gate):
 
     async def watch_balance(self, params={}) -> Balances:
         """
+        watch balance and get the amount of funds available for trading or funds locked in orders
 
         https://www.gate.com/docs/developers/apiv4/ws/en/#spot-balance-channel
         https://www.gate.com/docs/developers/futures/ws/en/#balances-api
         https://www.gate.com/docs/developers/delivery/ws/en/#balances-api
         https://www.gate.com/docs/developers/options/ws/en/#balances-channel
 
-        watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
@@ -1023,22 +1036,26 @@ class gate(ccxt.async_support.gate):
     def handle_balance(self, client: Client, message):
         #
         # spot order fill
-        #   {
-        #       "time": 1653664351,
-        #       "channel": "spot.balances",
-        #       "event": "update",
-        #       "result": [
-        #         {
-        #           "timestamp": "1653664351",
-        #           "timestamp_ms": "1653664351017",
-        #           "user": "10406147",
-        #           "currency": "LTC",
-        #           "change": "-0.0002000000000000",
-        #           "total": "0.09986000000000000000",
-        #           "available": "0.09986000000000000000"
-        #         }
-        #       ]
-        #   }
+        #     {
+        #         "time": 1653664351,
+        #         "time_ms": 1605248616763,
+        #         "channel": "spot.balances",
+        #         "event": "update",
+        #         "result": [
+        #             {
+        #                 "timestamp": "1667556323",
+        #                 "timestamp_ms": "1667556323730",
+        #                 "user": "1000001",
+        #                 "currency": "USDT",
+        #                 "change": "0",
+        #                 "total": "222244.3827652",
+        #                 "available": "222244.3827",
+        #                 "freeze": "5",
+        #                 "freeze_change": "5.000000",
+        #                 "change_type": "order-create"
+        #             }
+        #         ]
+        #     }
         #
         # account transfer
         #
@@ -1082,15 +1099,16 @@ class gate(ccxt.async_support.gate):
         #   }
         #
         result = self.safe_value(message, 'result', [])
-        timestamp = self.safe_integer(message, 'time_ms')
         self.balance['info'] = result
-        self.balance['timestamp'] = timestamp
-        self.balance['datetime'] = self.iso8601(timestamp)
         for i in range(0, len(result)):
             rawBalance = result[i]
             account = self.account()
             currencyId = self.safe_string(rawBalance, 'currency', 'USDT')  # when not present it is USDT
             code = self.safe_currency_code(currencyId)
+            timestamp = self.safe_integer_2(rawBalance, 'time_ms', 'timestamp_ms')
+            self.balance['timestamp'] = timestamp
+            self.balance['datetime'] = self.iso8601(timestamp)
+            account['used'] = self.safe_string(rawBalance, 'freeze')
             account['free'] = self.safe_string(rawBalance, 'available')
             account['total'] = self.safe_string_2(rawBalance, 'total', 'balance')
             self.balance[code] = account
@@ -1258,13 +1276,13 @@ class gate(ccxt.async_support.gate):
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
+        watches information on multiple orders made by the user
 
         https://www.gate.com/docs/developers/apiv4/ws/en/#orders-channel
         https://www.gate.com/docs/developers/futures/ws/en/#orders-api
         https://www.gate.com/docs/developers/delivery/ws/en/#orders-api
         https://www.gate.com/docs/developers/options/ws/en/#orders-channel
 
-        watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -1307,39 +1325,46 @@ class gate(ccxt.async_support.gate):
 
     def handle_order(self, client: Client, message):
         #
-        # {
-        #     "time": 1605175506,
-        #     "channel": "spot.orders",
-        #     "event": "update",
-        #     "result": [
-        #       {
-        #         "id": "30784435",
-        #         "user": 123456,
-        #         "text": "t-abc",
-        #         "create_time": "1605175506",
-        #         "create_time_ms": "1605175506123",
-        #         "update_time": "1605175506",
-        #         "update_time_ms": "1605175506123",
-        #         "event": "put",
-        #         "currency_pair": "BTC_USDT",
-        #         "type": "limit",
-        #         "account": "spot",
-        #         "side": "sell",
-        #         "amount": "1",
-        #         "price": "10001",
-        #         "time_in_force": "gtc",
-        #         "left": "1",
-        #         "filled_total": "0",
-        #         "fee": "0",
-        #         "fee_currency": "USDT",
-        #         "point_fee": "0",
-        #         "gt_fee": "0",
-        #         "gt_discount": True,
-        #         "rebated_fee": "0",
-        #         "rebated_fee_currency": "USDT"
-        #       }
-        #     ]
-        # }
+        #     {
+        #         "time": 1774613210,
+        #         "time_ms": 1774613210392,
+        #         "channel": "spot.orders",
+        #         "event": "update",
+        #         "result": [
+        #             {
+        #                 "id": "1036717689726",
+        #                 "text": "apiv4",
+        #                 "create_time": "1774613210",
+        #                 "update_time": "1774613210",
+        #                 "currency_pair": "BTC_USDT",
+        #                 "type": "limit",
+        #                 "account": "unified",
+        #                 "side": "buy",
+        #                 "amount": "0.1",
+        #                 "price": "200",
+        #                 "time_in_force": "gtc",
+        #                 "left": "0.1",
+        #                 "filled_amount": "0",
+        #                 "filled_total": "0",
+        #                 "avg_deal_price": "0",
+        #                 "fee": "0",
+        #                 "fee_currency": "BTC",
+        #                 "point_fee": "0",
+        #                 "gt_fee": "0",
+        #                 "rebated_fee": "0",
+        #                 "rebated_fee_currency": "BTC",
+        #                 "create_time_ms": "1774613210391",
+        #                 "update_time_ms": "1774613210391",
+        #                 "user": 10406147,
+        #                 "event": "put",
+        #                 "stp_id": 0,
+        #                 "stp_act": "-",
+        #                 "finish_as": "open",
+        #                 "biz_info": "ch:ccxt",
+        #                 "amend_text": "-"
+        #             }
+        #         ]
+        #     }
         #
         orders = self.safe_value(message, 'result', [])
         limit = self.safe_integer(self.options, 'ordersLimit', 1000)

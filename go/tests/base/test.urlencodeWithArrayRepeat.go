@@ -15,6 +15,8 @@ func TestUrlencodeWithArrayRepeat() {
 		"a":           1,
 		"product_ids": []interface{}{"AA", "BB"},
 	}
-	var expected2 interface{} = "a=1&product_ids=AA&product_ids=BB"
-	assert(ccxt.IsEqual(exchange.UrlencodeWithArrayRepeat(dict2), expected2), ccxt.Add(ccxt.Add(ccxt.Add("urlencodeWithArrayRepeat: expected ", expected2), " but got "), exchange.UrlencodeWithArrayRepeat(dict2)))
+	var expected2a interface{} = "a=1&product_ids=AA&product_ids=BB"
+	var expected2b interface{} = "product_ids=AA&product_ids=BB&a=1"
+	var result2 interface{} = exchange.UrlencodeWithArrayRepeat(dict2)
+	assert(ccxt.IsTrue(ccxt.IsEqual(result2, expected2a)) || ccxt.IsTrue(ccxt.IsEqual(result2, expected2b)), ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("urlencodeWithArrayRepeat: expected ", expected2a), " or "), expected2b), " but got "), result2))
 }

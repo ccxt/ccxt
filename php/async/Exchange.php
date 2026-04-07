@@ -46,11 +46,11 @@ use Lighter\Signer;
 
 use Exception;
 
-$version = '4.5.44';
+$version = '4.5.47';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.44';
+    const VERSION = '4.5.47';
 
     public $browser;
     public $marketsLoading = null;
@@ -2831,6 +2831,10 @@ class Exchange extends \ccxt\Exchange {
         return $reversed;
     }
 
+    public function string_to_base16($str) {
+        return '0x' . bin2hex(base64_decode(base64_encode($str)));
+    }
+
     public function reduce_fees_by_currency($fees) {
         //
         // this function takes a list of $fee structures having the following format
@@ -3814,6 +3818,30 @@ class Exchange extends \ccxt\Exchange {
         $results = array();
         for ($i = 0; $i < count($objects); $i++) {
             if ($this->in_array($objects[$i][$key], $values)) {
+                $results[] = $objects[$i];
+            }
+        }
+        // return $indexed ? $this->index_by($results, $key) : $results;
+        if ($indexed) {
+            return $this->index_by($results, $key);
+        }
+        return $results;
+    }
+
+    public function filter_out_by_array($objects, int|string $key, $values = null, $indexed = true) {
+        $objects = $this->to_array($objects);
+        // return all of them if no $values were passed
+        if ($values === null || !$values) {
+            // return $indexed ? $this->index_by($objects, $key) : $objects;
+            if ($indexed) {
+                return $this->index_by($objects, $key);
+            } else {
+                return $objects;
+            }
+        }
+        $results = array();
+        for ($i = 0; $i < count($objects); $i++) {
+            if (!$this->in_array($objects[$i][$key], $values)) {
                 $results[] = $objects[$i];
             }
         }

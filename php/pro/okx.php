@@ -2493,7 +2493,7 @@ class okx extends \ccxt\async\okx {
                         if ($errorCode !== null) {
                             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
                         }
-                        $messageString = $this->safe_value($message, 'sMsg');
+                        $messageString = $this->safe_value($d, 'sMsg');
                         if ($messageString !== null) {
                             $this->throw_broadly_matched_exception($this->exceptions['broad'], $messageString, $feedback);
                         }
