@@ -164,8 +164,8 @@ func (e *Exchange) StringToBinary(buff string) []byte {
 	return []byte(buff)
 }
 
-func (e *Exchange) BinaryToString(buff []byte) string {
-	return string(buff)
+func (e *Exchange) BinaryToString(buff interface{}) string {
+	return string(buff.([]byte))
 }
 
 func (e *Exchange) Encode(data interface{}) string {
