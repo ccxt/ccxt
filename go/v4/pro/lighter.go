@@ -1001,15 +1001,22 @@ func  (this *LighterCore) ParseWsLiquidation(liquidation interface{}, optionalAr
     market := ccxt.GetArg(optionalArgs, 0, nil)
     _ = market
     var timestamp interface{} = this.SafeInteger(liquidation, "timestamp")
+    var isMakerAsk interface{} = this.SafeBool(liquidation, "is_maker_ask")
+    var side interface{} = ccxt.Ternary(ccxt.IsTrue(isMakerAsk), "buy", "sell")
+    var contracts interface{} = this.SafeString(liquidation, "size")
+    var contractSize interface{} = this.SafeString(market, "contractSize")
+    var price interface{} = this.SafeString(liquidation, "price")
+    var baseValue interface{} = ccxt.Precise.StringMul(contracts, contractSize)
+    var quoteValue interface{} = ccxt.Precise.StringMul(baseValue, price)
     return this.SafeLiquidation(map[string]interface{} {
         "info": liquidation,
         "symbol": ccxt.GetValue(market, "symbol"),
-        "contracts": nil,
-        "contractSize": nil,
-        "price": this.SafeString(liquidation, "price"),
-        "side": this.SafeString(liquidation, "size"),
-        "baseValue": nil,
-        "quoteValue": nil,
+        "contracts": contracts,
+        "contractSize": contractSize,
+        "price": price,
+        "side": side,
+        "baseValue": baseValue,
+        "quoteValue": quoteValue,
         "timestamp": timestamp,
         "datetime": this.Iso8601(timestamp),
     })
@@ -1093,17 +1100,17 @@ func  (this *LighterCore) WatchLiquidations(symbol interface{}, optionalArgs ...
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes8278 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes8278)
+            retRes8348 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes8348)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "channel": ccxt.Add("trade/", ccxt.GetValue(market, "id")),
             }
             var messageHash interface{} = this.GetMessageHash("liquidations", symbol)
         
-                retRes83315 :=  (<-this.SubscribePublic(messageHash, this.Extend(request, params)))
-                ccxt.PanicOnError(retRes83315)
-                ch <- retRes83315
+                retRes84015 :=  (<-this.SubscribePublic(messageHash, this.Extend(request, params)))
+                ccxt.PanicOnError(retRes84015)
+                ch <- retRes84015
                 return nil
         
             }()
@@ -1224,8 +1231,8 @@ func  (this *LighterCore) Pong(client interface{}, message interface{}) <- chan 
                 "type": "pong",
             }
         
-            retRes9358 := (<-client.(ccxt.ClientInterface).Send(request))
-            ccxt.PanicOnError(retRes9358)
+            retRes9428 := (<-client.(ccxt.ClientInterface).Send(request))
+            ccxt.PanicOnError(retRes9428)
                 return nil
             }()
             return ch

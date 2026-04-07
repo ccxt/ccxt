@@ -2865,9 +2865,6 @@ export default class binance extends Exchange {
         }
         return super.safeMarket(marketId, market, delimiter, marketType);
     }
-    costToPrecision(symbol, cost) {
-        return this.decimalToPrecision(cost, TRUNCATE, this.markets[symbol]['precision']['quote'], this.precisionMode, this.paddingMode);
-    }
     nonce() {
         return this.milliseconds() - this.options['timeDifference'];
     }

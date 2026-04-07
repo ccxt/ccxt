@@ -2867,10 +2867,6 @@ class binance extends Exchange {
         return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
-    public function cost_to_precision($symbol, $cost) {
-        return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['quote'], $this->precisionMode, $this->paddingMode);
-    }
-
     public function nonce() {
         return $this->milliseconds() - $this->options['timeDifference'];
     }

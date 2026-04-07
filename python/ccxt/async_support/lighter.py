@@ -1923,10 +1923,17 @@ class lighter(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market)
         timestamp = self.safe_timestamp(order, 'timestamp')
         isAsk = self.safe_bool(order, 'is_ask')
+        if isAsk is None:
+            isAskAsInteger = self.safe_integer(order, 'is_ask')
+            if isAskAsInteger is not None:
+                isAsk = isAskAsInteger == 1
         side = None
         if isAsk is not None:
             side = 'sell' if isAsk else 'buy'
         type = self.safe_string(order, 'type')
+        if type is None:
+            typeAsInteger = self.safe_integer(order, 'order_type')
+            type = self.parse_order_type_integer(typeAsInteger)
         triggerPrice = self.parse_number(self.omit_zero(self.safe_string(order, 'trigger_price')))
         stopLossPrice = None
         takeProfitPrice = None
@@ -1935,7 +1942,18 @@ class lighter(Exchange, ImplicitAPI):
                 stopLossPrice = triggerPrice
             if type.find('take-profit') >= 0:
                 takeProfitPrice = triggerPrice
-        tif = self.safe_string(order, 'time_in_force')
+        # Try to parse to integer first, because parsing an integer to a string wouldn't result in None
+        tif = None
+        tifAsInteger = self.safe_integer(order, 'time_in_force')
+        if tifAsInteger is not None:
+            tif = self.parse_order_time_in_force_integer(tifAsInteger)
+        else:
+            tif = self.safe_string(order, 'time_in_force')
+        reduceOnly = self.safe_bool(order, 'reduce_only')
+        if reduceOnly is None:
+            reduceOnlyAsInteger = self.safe_integer(order, 'reduce_only')
+            if reduceOnlyAsInteger is not None:
+                reduceOnly = reduceOnlyAsInteger == 1
         status = self.safe_string(order, 'status')
         return self.safe_order({
             'info': order,
@@ -1947,9 +1965,9 @@ class lighter(Exchange, ImplicitAPI):
             'lastUpdateTimestamp': self.safe_timestamp(order, 'updated_at'),
             'symbol': market['symbol'],
             'type': self.parse_order_type(type),
-            'timeInForce': self.parse_order_time_in_foreces(tif),
-            'postOnly': None,
-            'reduceOnly': self.safe_bool(order, 'reduce_only'),
+            'timeInForce': self.parse_order_time_in_force(tif),
+            'postOnly': tif == 'post-only',
+            'reduceOnly': reduceOnly,
             'side': side,
             'price': self.safe_string(order, 'price'),
             'triggerPrice': triggerPrice,
@@ -1986,8 +2004,8 @@ class lighter(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, status):
-        statuses: dict = {
+    def parse_order_type(self, type):
+        types: dict = {
             'limit': 'limit',
             'market': 'market',
             'stop-loss': 'market',
@@ -1998,16 +2016,40 @@ class lighter(Exchange, ImplicitAPI):
             'twap-sub': 'twap',
             'liquidation': 'market',
         }
-        return self.safe_string(statuses, status, status)
+        return self.safe_string(types, type, type)
 
-    def parse_order_time_in_foreces(self, tif):
+    def parse_order_type_integer(self, typeInteger):
+        if typeInteger is None:
+            return None
+        types: dict = {
+            '0': 'limit',
+            '1': 'market',
+            '2': 'stop-loss',
+            '3': 'stop-loss-limit',
+            '4': 'take-profit',
+            '5': 'take-profit-limit',
+            '6': 'twap',
+            '7': 'twap-sub',
+            '8': 'liquidation',
+        }
+        return self.safe_string(types, str(typeInteger))
+
+    def parse_order_time_in_force(self, tif):
         timeInForces: dict = {
-            'good-till-time': 'GTC',
             'immediate-or-cancel': 'IOC',
+            'good-till-time': 'GTC',
             'post-only': 'PO',
             'Unknown': None,
         }
         return self.safe_string(timeInForces, tif, tif)
+
+    def parse_order_time_in_force_integer(self, tifInteger):
+        timeInForces: dict = {
+            '0': 'immediate-or-cancel',
+            '1': 'good-till-time',
+            '2': 'post-only',
+        }
+        return self.safe_string(timeInForces, str(tifInteger))
 
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """

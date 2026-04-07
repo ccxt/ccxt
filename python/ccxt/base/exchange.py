@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.46'
+__version__ = '4.5.47'
 
 # -----------------------------------------------------------------------------
 
@@ -1405,6 +1405,14 @@ class Exchange(object):
         elif digest == 'base64':
             return Exchange.binary_to_base64(binary)
         return binary
+
+    @staticmethod
+    def string_to_binary(buff: str) -> bytes:
+        return buff.encode('utf-8')
+
+    @staticmethod
+    def binary_to_string(buff: bytes) -> str:
+        return buff.decode('utf-8')
 
     @staticmethod
     def binary_concat(*args):

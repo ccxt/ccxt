@@ -587,7 +587,7 @@ public partial class grvt : ccxt.grvt
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
             object marketId = getValue(market, "id");
-            ((IList<object>)rawHashes).Add(add(add(marketId, "@"), extraPart));
+            ((IList<object>)rawHashes).Add(add(add(marketId, "@"), ((object)extraPart).ToString()));
             ((IList<object>)messageHashes).Add(add("orderbook::", getValue(market, "symbol")));
         }
         object request = new Dictionary<string, object>() {

@@ -248,7 +248,7 @@ type CancelByCloidItem struct {
 }
 
 type CancelByCloidMessage struct {
-	Type    string             `mapstructure:"type" msgpack:"type"`
+	Type    string              `mapstructure:"type" msgpack:"type"`
 	Cancels []CancelByCloidItem `mapstructure:"cancels" msgpack:"cancels"`
 }
 

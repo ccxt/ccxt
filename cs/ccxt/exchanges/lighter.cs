@@ -2184,12 +2184,25 @@ public partial class lighter : Exchange
         market = this.safeMarket(marketId, market);
         object timestamp = this.safeTimestamp(order, "timestamp");
         object isAsk = this.safeBool(order, "is_ask");
+        if (isTrue(isEqual(isAsk, null)))
+        {
+            object isAskAsInteger = this.safeInteger(order, "is_ask");
+            if (isTrue(!isEqual(isAskAsInteger, null)))
+            {
+                isAsk = isEqual(isAskAsInteger, 1);
+            }
+        }
         object side = null;
         if (isTrue(!isEqual(isAsk, null)))
         {
             side = ((bool) isTrue(isAsk)) ? "sell" : "buy";
         }
         object type = this.safeString(order, "type");
+        if (isTrue(isEqual(type, null)))
+        {
+            object typeAsInteger = this.safeInteger(order, "order_type");
+            type = this.parseOrderTypeInteger(typeAsInteger);
+        }
         object triggerPrice = this.parseNumber(this.omitZero(this.safeString(order, "trigger_price")));
         object stopLossPrice = null;
         object takeProfitPrice = null;
@@ -2204,7 +2217,25 @@ public partial class lighter : Exchange
                 takeProfitPrice = triggerPrice;
             }
         }
-        object tif = this.safeString(order, "time_in_force");
+        // Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
+        object tif = null;
+        object tifAsInteger = this.safeInteger(order, "time_in_force");
+        if (isTrue(!isEqual(tifAsInteger, null)))
+        {
+            tif = this.parseOrderTimeInForceInteger(tifAsInteger);
+        } else
+        {
+            tif = this.safeString(order, "time_in_force");
+        }
+        object reduceOnly = this.safeBool(order, "reduce_only");
+        if (isTrue(isEqual(reduceOnly, null)))
+        {
+            object reduceOnlyAsInteger = this.safeInteger(order, "reduce_only");
+            if (isTrue(!isEqual(reduceOnlyAsInteger, null)))
+            {
+                reduceOnly = isEqual(reduceOnlyAsInteger, 1);
+            }
+        }
         object status = this.safeString(order, "status");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
@@ -2216,9 +2247,9 @@ public partial class lighter : Exchange
             { "lastUpdateTimestamp", this.safeTimestamp(order, "updated_at") },
             { "symbol", getValue(market, "symbol") },
             { "type", this.parseOrderType(type) },
-            { "timeInForce", this.parseOrderTimeInForeces(tif) },
-            { "postOnly", null },
-            { "reduceOnly", this.safeBool(order, "reduce_only") },
+            { "timeInForce", this.parseOrderTimeInForce(tif) },
+            { "postOnly", isEqual(tif, "post-only") },
+            { "reduceOnly", reduceOnly },
             { "side", side },
             { "price", this.safeString(order, "price") },
             { "triggerPrice", triggerPrice },
@@ -2258,9 +2289,9 @@ public partial class lighter : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual object parseOrderType(object status)
+    public virtual object parseOrderType(object type)
     {
-        object statuses = new Dictionary<string, object>() {
+        object types = new Dictionary<string, object>() {
             { "limit", "limit" },
             { "market", "market" },
             { "stop-loss", "market" },
@@ -2271,18 +2302,48 @@ public partial class lighter : Exchange
             { "twap-sub", "twap" },
             { "liquidation", "market" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(types, type, type);
     }
 
-    public virtual object parseOrderTimeInForeces(object tif)
+    public virtual object parseOrderTypeInteger(object typeInteger)
+    {
+        if (isTrue(isEqual(typeInteger, null)))
+        {
+            return null;
+        }
+        object types = new Dictionary<string, object>() {
+            { "0", "limit" },
+            { "1", "market" },
+            { "2", "stop-loss" },
+            { "3", "stop-loss-limit" },
+            { "4", "take-profit" },
+            { "5", "take-profit-limit" },
+            { "6", "twap" },
+            { "7", "twap-sub" },
+            { "8", "liquidation" },
+        };
+        return this.safeString(types, ((object)typeInteger).ToString());
+    }
+
+    public virtual object parseOrderTimeInForce(object tif)
     {
         object timeInForces = new Dictionary<string, object>() {
-            { "good-till-time", "GTC" },
             { "immediate-or-cancel", "IOC" },
+            { "good-till-time", "GTC" },
             { "post-only", "PO" },
             { "Unknown", null },
         };
         return this.safeString(timeInForces, tif, tif);
+    }
+
+    public virtual object parseOrderTimeInForceInteger(object tifInteger)
+    {
+        object timeInForces = new Dictionary<string, object>() {
+            { "0", "immediate-or-cancel" },
+            { "1", "good-till-time" },
+            { "2", "post-only" },
+        };
+        return this.safeString(timeInForces, ((object)tifInteger).ToString());
     }
 
     /**

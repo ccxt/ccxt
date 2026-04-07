@@ -10698,7 +10698,7 @@ public partial class kucoin : Exchange
             //         }
             //     }
             //
-            response = await ((Task<object>)callDynamically(this, "utaPrivateGetPositionHistory", new object[] { this.extend(request, parameters) }));
+            response = await this.utaPrivateGetPositionHistory(this.extend(request, parameters));
         } else
         {
             if (isTrue(isEqual(limit, null)))

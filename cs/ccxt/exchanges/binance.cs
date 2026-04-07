@@ -2780,11 +2780,6 @@ public partial class binance : Exchange
         return base.safeMarket(marketId, market, delimiter, marketType);
     }
 
-    public override object costToPrecision(object symbol, object cost)
-    {
-        return this.decimalToPrecision(cost, TRUNCATE, getValue(getValue(getValue(this.markets, symbol), "precision"), "quote"), this.precisionMode, this.paddingMode);
-    }
-
     public override object nonce()
     {
         return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));

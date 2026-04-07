@@ -2864,9 +2864,6 @@ class binance extends binance$1["default"] {
         }
         return super.safeMarket(marketId, market, delimiter, marketType);
     }
-    costToPrecision(symbol, cost) {
-        return this.decimalToPrecision(cost, number.TRUNCATE, this.markets[symbol]['precision']['quote'], this.precisionMode, this.paddingMode);
-    }
     nonce() {
         return this.milliseconds() - this.options['timeDifference'];
     }
