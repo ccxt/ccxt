@@ -515,6 +515,26 @@ class ImplicitAPI:
     sapi_get_simple_earn_flexible_history_collateralrecord = sapiGetSimpleEarnFlexibleHistoryCollateralRecord = Entry(
         'simple-earn/flexible/history/collateralRecord', 'sapi', 'GET', {'cost': 0.1}
     )
+    sapi_get_eth_staking_account = sapiGetEthStakingAccount = Entry('eth-staking/account', 'sapi', 'GET', {'cost': 150})
+    sapi_get_eth_staking_eth_history_staking_history = sapiGetEthStakingEthHistoryStakingHistory = Entry(
+        'eth-staking/eth/history/stakingHistory', 'sapi', 'GET', {'cost': 150}
+    )
+    sapi_get_eth_staking_eth_history_redemption_history = sapiGetEthStakingEthHistoryRedemptionHistory = Entry(
+        'eth-staking/eth/history/redemptionHistory', 'sapi', 'GET', {'cost': 150}
+    )
+    # NOTE: Get BETH rewards distribution history
+    # sapi_get_eth_staking_eth_history_rewards_history = sapiGetEthStakingEthHistoryRewardsHistory = Entry(
+    #     'eth-staking/eth/history/rewardsHistory', 'sapi', 'GET', {'cost': 150}
+    # )
+    sapi_get_eth_staking_eth_history_wbeth_rewards_history = sapiGetEthStakingEthHistoryWbethRewardsHistory = Entry(
+        'eth-staking/eth/history/wbethRewardsHistory', 'sapi', 'GET', {'cost': 150}
+    )
+    sapi_get_eth_staking_eth_history_rate_history = sapiGetEthStakingEthHistoryRateHistory = Entry(
+        'eth-staking/eth/history/rateHistory', 'sapi', 'GET', {'cost': 150}
+    )
+    sapi_get_eth_staking_eth_quota = sapiGetEthStakingEthQuota = Entry(
+        'eth-staking/eth/quota', 'sapi', 'GET', {'cost': 150}
+    )
     sapi_get_sol_staking_account = sapiGetSolStakingAccount = Entry('sol-staking/account', 'sapi', 'GET', {'cost': 150})
     sapi_get_sol_staking_sol_history_staking_history = sapiGetSolStakingSolHistoryStakingHistory = Entry(
         'sol-staking/sol/history/stakingHistory', 'sapi', 'GET', {'cost': 150}
@@ -537,7 +557,6 @@ class ImplicitAPI:
     sapi_get_sol_staking_sol_quota = sapiGetSolStakingSolQuota = Entry(
         'sol-staking/sol/quota', 'sapi', 'GET', {'cost': 150}
     )
-
     sapi_post_asset_dust = sapiPostAssetDust = Entry('asset/dust', 'sapi', 'POST', {'cost': 1})
     sapi_post_asset_dust_btc = sapiPostAssetDustBtc = Entry('asset/dust-btc', 'sapi', 'POST', {'cost': 0.1})
     sapi_post_asset_transfer = sapiPostAssetTransfer = Entry('asset/transfer', 'sapi', 'POST', {'cost': 0.1})
