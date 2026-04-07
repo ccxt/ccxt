@@ -2,12 +2,11 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/weex.js';
-// import { ArgumentsRequired, BadRequest, InvalidOrder, NotSupported } from './base/errors.js';
-// import { Precise } from './base/Precise.js';
+import { ArgumentsRequired } from './base/errors.js';
+import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Currencies, Dict, FundingRate, FundingRates, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
-import { Precise } from '../ccxt.js';
+import type { Currencies, Dict, FundingRate, FundingRateHistory, FundingRates, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -101,7 +100,7 @@ export default class weex extends Exchange {
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchGreeks': false,
                 'fetchIndexOHLCV': true,
@@ -264,7 +263,7 @@ export default class weex extends Exchange {
                         'capi/v3/market/symbolPrice': 5, // not unified
                         'capi/v3/market/openInterest': 10, // done
                         'capi/v3/market/premiumIndex': 5, // done
-                        'capi/v3/market/fundingRate': 25,
+                        'capi/v3/market/fundingRate': 25, // done
                         'capi/v3/market/apiTradingSymbols': 25, // not unified
                     },
                 },
@@ -1583,6 +1582,59 @@ export default class weex extends Exchange {
             'previousFundingDatetime': undefined,
             'interval': interval,
         } as FundingRate;
+    }
+
+    /**
+     * @method
+     * @name weex#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://www.weex.com/api-doc/contract/Market_API/GetFundingRateHistory
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of funding rate records to fetch (default 100, max 1000)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+     */
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let request: Dict = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const response = await this.contractGetCapiV3MarketFundingRate (this.extend (request, params));
+        return this.parseFundingRateHistories (response, market, since, limit) as FundingRateHistory[];
+    }
+
+    parseFundingRateHistory (contract, market: Market = undefined) {
+        //
+        //     {
+        //         "symbol": "ETHUSDT",
+        //         "fundingRate": "0.00001031",
+        //         "fundingTime": 1775577600000,
+        //         "markPrice": "2079.26"
+        //     }
+        //
+        const marketId = this.safeString (contract, 'symbol');
+        const symbol = this.safeSymbol (marketId, market, undefined, 'swap');
+        const timestamp = this.safeInteger (contract, 'fundingTime');
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'fundingRate': this.safeNumber (contract, 'fundingRate'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
