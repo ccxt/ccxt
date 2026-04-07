@@ -457,7 +457,6 @@ export default class weex extends Exchange {
                     'OPTIMISM(OP)': 'OP',
                     'AVALANCHE_C(AVAX_C)': 'AVAXC',
                 },
-
             },
             'features': {
                 'spot': {
