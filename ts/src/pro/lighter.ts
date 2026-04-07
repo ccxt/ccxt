@@ -532,7 +532,8 @@ export default class lighter extends lighterRest {
         //     }
         //
         const liquidationData = this.safeList (message, 'liquidation_trades', []);
-        if (liquidationData.length > 0) {
+        const liquidationDataLength = liquidationData.length;
+        if (liquidationDataLength > 0) {
             this.handleLiquidation (client, message);
         }
         const data = this.safeList (message, 'trades', []);
