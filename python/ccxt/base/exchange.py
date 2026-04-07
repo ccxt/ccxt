@@ -2423,7 +2423,6 @@ class Exchange(object):
         return [tx_type, tx_info]
 
     def lighter_create_auth_token(self, signer, request):
-        from ccxt.static_dependencies.lighter_client.signer import decode_tx_info
         auth, error = decode_auth(signer.CreateAuthToken(
             request['deadline'],
             request['api_key_index'],
