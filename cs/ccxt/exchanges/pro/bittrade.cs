@@ -340,6 +340,7 @@ public partial class bittrade : ccxt.bittrade
         //     {
         //         "id": 1583473663565,
         //         "rep": "market.btcusdt.mbp.150",
+        //         "ts": 1774979531056,
         //         "status": "ok",
         //         "data": {
         //             "seqNum": 104999417756,
@@ -358,10 +359,13 @@ public partial class bittrade : ccxt.bittrade
         //
         object symbol = this.safeString(subscription, "symbol");
         object messageHash = this.safeString(subscription, "messageHash");
+        object timestamp = this.safeInteger(message, "ts");
         object orderbook = getValue(this.orderbooks, symbol);
         object data = this.safeValue(message, "data");
         object snapshot = this.parseOrderBook(data, symbol);
         ((IDictionary<string,object>)snapshot)["nonce"] = this.safeInteger(data, "seqNum");
+        ((IDictionary<string,object>)snapshot)["timestamp"] = timestamp;
+        ((IDictionary<string,object>)snapshot)["datetime"] = this.iso8601(timestamp);
         (orderbook as IOrderBook).reset(snapshot);
         // unroll the accumulated deltas
         object messages = (orderbook as ccxt.pro.OrderBook).cache;

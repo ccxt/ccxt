@@ -566,48 +566,34 @@ public partial class bitfinex : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object spotMarketsInfoPromise = this.publicGetConfPubInfoPair(parameters);
-        object futuresMarketsInfoPromise = this.publicGetConfPubInfoPairFutures(parameters);
-        object marginIdsPromise = this.publicGetConfPubListPairMargin(parameters);
-        var spotMarketsInfofuturesMarketsInfomarginIdsVariable = await promiseAll(new List<object>() {spotMarketsInfoPromise, futuresMarketsInfoPromise, marginIdsPromise});
-        var spotMarketsInfo = ((IList<object>) spotMarketsInfofuturesMarketsInfomarginIdsVariable)[0];
-        var futuresMarketsInfo = ((IList<object>) spotMarketsInfofuturesMarketsInfomarginIdsVariable)[1];
-        var marginIds = ((IList<object>) spotMarketsInfofuturesMarketsInfomarginIdsVariable)[2];
-        spotMarketsInfo = this.safeList(spotMarketsInfo, 0, new List<object>() {});
-        futuresMarketsInfo = this.safeList(futuresMarketsInfo, 0, new List<object>() {});
+        object labels = new List<object>() {"pub:info:pair", "pub:info:pair:futures", "pub:list:pair:securities", "pub:list:pair:margin"};
+        object config = String.Join(",", ((IList<object>)labels).ToArray());
+        object request = new Dictionary<string, object>() {
+            { "config", config },
+        };
+        var spotMarketsInfofuturesMarketsInfosecuritiesMarketsIdsmarginIdsVariable = await this.publicGetConfConfig(this.extend(request, parameters));
+        var spotMarketsInfo = ((IList<object>) spotMarketsInfofuturesMarketsInfosecuritiesMarketsIdsmarginIdsVariable)[0];
+        var futuresMarketsInfo = ((IList<object>) spotMarketsInfofuturesMarketsInfosecuritiesMarketsIdsmarginIdsVariable)[1];
+        var securitiesMarketsIds = ((IList<object>) spotMarketsInfofuturesMarketsInfosecuritiesMarketsIdsmarginIdsVariable)[2];
+        var marginIds = ((IList<object>) spotMarketsInfofuturesMarketsInfosecuritiesMarketsIdsmarginIdsVariable)[3];
         object markets = this.arrayConcat(spotMarketsInfo, futuresMarketsInfo);
-        marginIds = this.safeValue(marginIds, 0, new List<object>() {});
-        //
-        //    [
-        //        "1INCH:USD",
-        //        [
-        //           null,
-        //           null,
-        //           null,
-        //           "2.0",
-        //           "100000.0",
-        //           null,
-        //           null,
-        //           null,
-        //           null,
-        //           null,
-        //           null,
-        //           null
-        //        ]
-        //    ]
-        //
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
-            object pair = getValue(markets, i);
-            object id = this.safeStringUpper(pair, 0);
-            object market = this.safeValue(pair, 1, new Dictionary<string, object>() {});
+            object pairObj = getValue(markets, i);
+            object id = this.safeStringUpper(pairObj, 0);
+            object market = this.safeValue(pairObj, 1, new Dictionary<string, object>() {});
             object spot = true;
+            object type = null;
             if (isTrue(isGreaterThanOrEqual(getIndexOf(id, "F0"), 0)))
             {
                 spot = false;
+                type = "swap";
+            } else
+            {
+                type = "spot";
             }
-            object swap = !isTrue(spot);
+            object swap = isEqual(type, "swap");
             object baseId = null;
             object quoteId = null;
             if (isTrue(isGreaterThanOrEqual(getIndexOf(id, ":"), 0)))
@@ -639,11 +625,6 @@ public partial class bitfinex : Exchange
             }
             object minOrderSizeString = this.safeString(market, 3);
             object maxOrderSizeString = this.safeString(market, 4);
-            object margin = false;
-            if (isTrue(isTrue(spot) && isTrue(this.inArray(id, marginIds))))
-            {
-                margin = true;
-            }
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", add("t", id) },
                 { "symbol", symbol },
@@ -653,14 +634,15 @@ public partial class bitfinex : Exchange
                 { "baseId", baseId },
                 { "quoteId", quoteId },
                 { "settleId", settleId },
-                { "type", ((bool) isTrue(spot)) ? "spot" : "swap" },
+                { "type", type },
                 { "spot", spot },
-                { "margin", margin },
+                { "tradfi", this.inArray(id, securitiesMarketsIds) },
+                { "margin", (isTrue(spot) && isTrue(this.inArray(id, marginIds))) },
                 { "swap", swap },
                 { "future", false },
                 { "option", false },
                 { "active", true },
-                { "contract", swap },
+                { "contract", !isTrue(spot) },
                 { "linear", ((bool) isTrue(swap)) ? true : null },
                 { "inverse", ((bool) isTrue(swap)) ? false : null },
                 { "contractSize", ((bool) isTrue(swap)) ? this.parseNumber("1") : null },

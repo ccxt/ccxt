@@ -618,42 +618,35 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        spotMarketsInfoPromise = self.publicGetConfPubInfoPair(params)
-        futuresMarketsInfoPromise = self.publicGetConfPubInfoPairFutures(params)
-        marginIdsPromise = self.publicGetConfPubListPairMargin(params)
-        spotMarketsInfo, futuresMarketsInfo, marginIds = [spotMarketsInfoPromise, futuresMarketsInfoPromise, marginIdsPromise]
-        spotMarketsInfo = self.safe_list(spotMarketsInfo, 0, [])
-        futuresMarketsInfo = self.safe_list(futuresMarketsInfo, 0, [])
+        labels = [
+            'pub:info:pair',
+            # [ ['AAVE:USD',      [null,null,null,"0.02","5000.0",null,null,null,null,null,null,null,]], ...]
+            'pub:info:pair:futures',
+            # [ ['AAVEF0:USTF0',  [null,null,null,"0.02","5000.0",null,null,null,0.01,0.005,]]]
+            'pub:list:pair:securities',
+            # ALT2612:USD","ALT2612:UST","BMN2:BTC","BMN2:USD","TITAN1:GBP","TITAN1:USD","TITAN2:GBP","TITAN2:USD","USTBL:USD","USTBL:UST"]]
+            'pub:list:pair:margin',
+            # ['ADABTC', 'AVAX:BTC', ...]  # delimiter inconsistency
+        ]
+        config = ','.join(labels)
+        request: dict = {
+            'config': config,
+        }
+        spotMarketsInfo, futuresMarketsInfo, securitiesMarketsIds, marginIds = self.publicGetConfConfig(self.extend(request, params))
         markets = self.array_concat(spotMarketsInfo, futuresMarketsInfo)
-        marginIds = self.safe_value(marginIds, 0, [])
-        #
-        #    [
-        #        "1INCH:USD",
-        #        [
-        #           null,
-        #           null,
-        #           null,
-        #           "2.0",
-        #           "100000.0",
-        #           null,
-        #           null,
-        #           null,
-        #           null,
-        #           null,
-        #           null,
-        #           null
-        #        ]
-        #    ]
-        #
         result = []
         for i in range(0, len(markets)):
-            pair = markets[i]
-            id = self.safe_string_upper(pair, 0)
-            market = self.safe_value(pair, 1, {})
+            pairObj = markets[i]
+            id = self.safe_string_upper(pairObj, 0)
+            market = self.safe_value(pairObj, 1, {})
             spot = True
+            type: Str = None
             if id.find('F0') >= 0:
                 spot = False
-            swap = not spot
+                type = 'swap'
+            else:
+                type = 'spot'
+            swap = type == 'swap'
             baseId = None
             quoteId = None
             if id.find(':') >= 0:
@@ -680,9 +673,6 @@ class bitfinex(Exchange, ImplicitAPI):
                 symbol = symbol + ':' + settle
             minOrderSizeString = self.safe_string(market, 3)
             maxOrderSizeString = self.safe_string(market, 4)
-            margin = False
-            if spot and self.in_array(id, marginIds):
-                margin = True
             result.append({
                 'id': 't' + id,
                 'symbol': symbol,
@@ -692,14 +682,15 @@ class bitfinex(Exchange, ImplicitAPI):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': 'spot' if spot else 'swap',
+                'type': type,
                 'spot': spot,
-                'margin': margin,
+                'tradfi': self.in_array(id, securitiesMarketsIds),
+                'margin': (spot and self.in_array(id, marginIds)),
                 'swap': swap,
                 'future': False,
                 'option': False,
                 'active': True,
-                'contract': swap,
+                'contract': not spot,
                 'linear': True if swap else None,
                 'inverse': False if swap else None,
                 'contractSize': self.parse_number('1') if swap else None,

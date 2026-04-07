@@ -15,7 +15,6 @@ use ccxt\NotSupported;
 use ccxt\RateLimitExceeded;
 use ccxt\Precise;
 use \React\Async;
-use \React\Promise;
 use \React\Promise\PromiseInterface;
 
 class bitfinex extends Exchange {
@@ -617,43 +616,36 @@ class bitfinex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
-            $spotMarketsInfoPromise = $this->publicGetConfPubInfoPair ($params);
-            $futuresMarketsInfoPromise = $this->publicGetConfPubInfoPairFutures ($params);
-            $marginIdsPromise = $this->publicGetConfPubListPairMargin ($params);
-            list($spotMarketsInfo, $futuresMarketsInfo, $marginIds) = Async\await(Promise\all(array( $spotMarketsInfoPromise, $futuresMarketsInfoPromise, $marginIdsPromise )));
-            $spotMarketsInfo = $this->safe_list($spotMarketsInfo, 0, array());
-            $futuresMarketsInfo = $this->safe_list($futuresMarketsInfo, 0, array());
+            $labels = [
+                'pub:info:pair',
+                // [  ['AAVE:USD',      [null,null,null,"0.02","5000.0",null,null,null,null,null,null,null,] ], ... ]
+                'pub:info:pair:futures',
+                // [  ['AAVEF0:USTF0',  [null,null,null,"0.02","5000.0",null,null,null,0.01,0.005,] ]]
+                'pub:list:pair:securities',
+                // ALT2612:USD","ALT2612:UST","BMN2:BTC","BMN2:USD","TITAN1:GBP","TITAN1:USD","TITAN2:GBP","TITAN2:USD","USTBL:USD","USTBL:UST"]]
+                'pub:list:pair:margin',
+                // array( 'ADABTC', 'AVAX:BTC', ... ) // delimiter inconsistency
+            ];
+            $config = implode(',', $labels);
+            $request = array(
+                'config' => $config,
+            );
+            list($spotMarketsInfo, $futuresMarketsInfo, $securitiesMarketsIds, $marginIds) = Async\await($this->publicGetConfConfig ($this->extend($request, $params)));
             $markets = $this->array_concat($spotMarketsInfo, $futuresMarketsInfo);
-            $marginIds = $this->safe_value($marginIds, 0, array());
-            //
-            //    array(
-            //        "1INCH:USD",
-            //        array(
-            //           null,
-            //           null,
-            //           null,
-            //           "2.0",
-            //           "100000.0",
-            //           null,
-            //           null,
-            //           null,
-            //           null,
-            //           null,
-            //           null,
-            //           null
-            //        )
-            //    )
-            //
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
-                $pair = $markets[$i];
-                $id = $this->safe_string_upper($pair, 0);
-                $market = $this->safe_value($pair, 1, array());
+                $pairObj = $markets[$i];
+                $id = $this->safe_string_upper($pairObj, 0);
+                $market = $this->safe_value($pairObj, 1, array());
                 $spot = true;
+                $type = null;
                 if (mb_strpos($id, 'F0') !== false) {
                     $spot = false;
+                    $type = 'swap';
+                } else {
+                    $type = 'spot';
                 }
-                $swap = !$spot;
+                $swap = $type === 'swap';
                 $baseId = null;
                 $quoteId = null;
                 if (mb_strpos($id, ':') !== false) {
@@ -682,10 +674,6 @@ class bitfinex extends Exchange {
                 }
                 $minOrderSizeString = $this->safe_string($market, 3);
                 $maxOrderSizeString = $this->safe_string($market, 4);
-                $margin = false;
-                if ($spot && $this->in_array($id, $marginIds)) {
-                    $margin = true;
-                }
                 $result[] = array(
                     'id' => 't' . $id,
                     'symbol' => $symbol,
@@ -695,14 +683,15 @@ class bitfinex extends Exchange {
                     'baseId' => $baseId,
                     'quoteId' => $quoteId,
                     'settleId' => $settleId,
-                    'type' => $spot ? 'spot' : 'swap',
+                    'type' => $type,
                     'spot' => $spot,
-                    'margin' => $margin,
+                    'tradfi' => $this->in_array($id, $securitiesMarketsIds),
+                    'margin' => ($spot && $this->in_array($id, $marginIds)),
                     'swap' => $swap,
                     'future' => false,
                     'option' => false,
                     'active' => true,
-                    'contract' => $swap,
+                    'contract' => !$spot,
                     'linear' => $swap ? true : null,
                     'inverse' => $swap ? false : null,
                     'contractSize' => $swap ? $this->parse_number('1') : null,

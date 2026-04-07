@@ -607,43 +607,36 @@ export default class bitfinex extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const spotMarketsInfoPromise = this.publicGetConfPubInfoPair (params);
-        const futuresMarketsInfoPromise = this.publicGetConfPubInfoPairFutures (params);
-        const marginIdsPromise = this.publicGetConfPubListPairMargin (params);
-        let [ spotMarketsInfo, futuresMarketsInfo, marginIds ] = await Promise.all ([ spotMarketsInfoPromise, futuresMarketsInfoPromise, marginIdsPromise ]);
-        spotMarketsInfo = this.safeList (spotMarketsInfo, 0, []);
-        futuresMarketsInfo = this.safeList (futuresMarketsInfo, 0, []);
+        const labels = [
+            'pub:info:pair',
+            // [  ['AAVE:USD',      [null,null,null,"0.02","5000.0",null,null,null,null,null,null,null,] ], ... ]
+            'pub:info:pair:futures',
+            // [  ['AAVEF0:USTF0',  [null,null,null,"0.02","5000.0",null,null,null,0.01,0.005,] ]]
+            'pub:list:pair:securities',
+            // ALT2612:USD","ALT2612:UST","BMN2:BTC","BMN2:USD","TITAN1:GBP","TITAN1:USD","TITAN2:GBP","TITAN2:USD","USTBL:USD","USTBL:UST"]]
+            'pub:list:pair:margin',
+            // [ 'ADABTC', 'AVAX:BTC', ... ] // delimiter inconsistency
+        ];
+        const config = labels.join (',');
+        const request: Dict = {
+            'config': config,
+        };
+        const [ spotMarketsInfo, futuresMarketsInfo, securitiesMarketsIds, marginIds ] = await this.publicGetConfConfig (this.extend (request, params));
         const markets = this.arrayConcat (spotMarketsInfo, futuresMarketsInfo);
-        marginIds = this.safeValue (marginIds, 0, []);
-        //
-        //    [
-        //        "1INCH:USD",
-        //        [
-        //           null,
-        //           null,
-        //           null,
-        //           "2.0",
-        //           "100000.0",
-        //           null,
-        //           null,
-        //           null,
-        //           null,
-        //           null,
-        //           null,
-        //           null
-        //        ]
-        //    ]
-        //
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const pair = markets[i];
-            const id = this.safeStringUpper (pair, 0);
-            const market = this.safeValue (pair, 1, {});
+            const pairObj = markets[i];
+            const id = this.safeStringUpper (pairObj, 0);
+            const market = this.safeValue (pairObj, 1, {});
             let spot = true;
+            let type: Str = undefined;
             if (id.indexOf ('F0') >= 0) {
                 spot = false;
+                type = 'swap';
+            } else {
+                type = 'spot';
             }
-            const swap = !spot;
+            const swap = type === 'swap';
             let baseId = undefined;
             let quoteId = undefined;
             if (id.indexOf (':') >= 0) {
@@ -672,10 +665,6 @@ export default class bitfinex extends Exchange {
             }
             const minOrderSizeString = this.safeString (market, 3);
             const maxOrderSizeString = this.safeString (market, 4);
-            let margin = false;
-            if (spot && this.inArray (id, marginIds)) {
-                margin = true;
-            }
             result.push ({
                 'id': 't' + id,
                 'symbol': symbol,
@@ -685,14 +674,15 @@ export default class bitfinex extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': spot ? 'spot' : 'swap',
+                'type': type,
                 'spot': spot,
-                'margin': margin,
+                'tradfi': this.inArray (id, securitiesMarketsIds),
+                'margin': (spot && this.inArray (id, marginIds)),
                 'swap': swap,
                 'future': false,
                 'option': false,
                 'active': true,
-                'contract': swap,
+                'contract': !spot,
                 'linear': swap ? true : undefined,
                 'inverse': swap ? false : undefined,
                 'contractSize': swap ? this.parseNumber ('1') : undefined,

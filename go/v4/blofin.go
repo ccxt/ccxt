@@ -2303,6 +2303,7 @@ func (this *BlofinCore) ParseTransaction(transaction interface{}, optionalArgs .
 	_ = currency
 	var typeVar interface{} = nil
 	var id interface{} = nil
+	var status interface{} = nil
 	var withdrawalId interface{} = this.SafeString(transaction, "withdrawId")
 	var depositId interface{} = this.SafeString(transaction, "depositId")
 	var addressTo interface{} = this.SafeString(transaction, "address")
@@ -2311,14 +2312,15 @@ func (this *BlofinCore) ParseTransaction(transaction interface{}, optionalArgs .
 	if IsTrue(!IsEqual(withdrawalId, nil)) {
 		typeVar = "withdrawal"
 		id = withdrawalId
+		status = this.ParseTransactionWithdrawalStatus(this.SafeString(transaction, "state"))
 	} else {
 		id = depositId
 		typeVar = "deposit"
+		status = this.ParseTransactionDepositStatus(this.SafeString(transaction, "state"))
 	}
 	var currencyId interface{} = this.SafeString(transaction, "currency")
 	var code interface{} = this.SafeCurrencyCode(currencyId)
 	var amount interface{} = this.SafeNumber(transaction, "amount")
-	var status interface{} = this.ParseTransactionStatus(this.SafeString(transaction, "state"))
 	var txid interface{} = this.SafeString(transaction, "txId")
 	var timestamp interface{} = this.SafeInteger(transaction, "ts")
 	var feeCurrencyId interface{} = this.SafeString(transaction, "feeCurrency")
@@ -2350,7 +2352,18 @@ func (this *BlofinCore) ParseTransaction(transaction interface{}, optionalArgs .
 		},
 	}
 }
-func (this *BlofinCore) ParseTransactionStatus(status interface{}) interface{} {
+func (this *BlofinCore) ParseTransactionWithdrawalStatus(status interface{}) interface{} {
+	var statuses interface{} = map[string]interface{}{
+		"0": "pending",
+		"2": "failed",
+		"3": "ok",
+		"4": "failed",
+		"6": "pending",
+		"7": "pending",
+	}
+	return this.SafeString(statuses, status, status)
+}
+func (this *BlofinCore) ParseTransactionDepositStatus(status interface{}) interface{} {
 	var statuses interface{} = map[string]interface{}{
 		"0": "pending",
 		"1": "ok",
@@ -2440,8 +2453,8 @@ func (this *BlofinCore) CancelOrders(ids interface{}, optionalArgs ...interface{
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
 		}
 
-		retRes20358 := (<-this.LoadMarkets())
-		PanicOnError(retRes20358)
+		retRes20498 := (<-this.LoadMarkets())
+		PanicOnError(retRes20498)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = []interface{}{}
 		var options interface{} = this.SafeDict(this.Options, "cancelOrders", map[string]interface{}{})
@@ -2523,8 +2536,8 @@ func (this *BlofinCore) Transfer(code interface{}, amount interface{}, fromAccou
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes21018 := (<-this.LoadMarkets())
-		PanicOnError(retRes21018)
+		retRes21158 := (<-this.LoadMarkets())
+		PanicOnError(retRes21158)
 		var currency interface{} = this.Currency(code)
 		var accountsByType interface{} = this.SafeDict(this.Options, "accountsByType", map[string]interface{}{})
 		var fromId interface{} = this.SafeString(accountsByType, fromAccount, fromAccount)
@@ -2581,8 +2594,8 @@ func (this *BlofinCore) FetchPosition(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes21438 := (<-this.LoadMarkets())
-		PanicOnError(retRes21438)
+		retRes21578 := (<-this.LoadMarkets())
+		PanicOnError(retRes21578)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"instId": GetValue(market, "id"),
@@ -2624,8 +2637,8 @@ func (this *BlofinCore) FetchPositions(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes21688 := (<-this.LoadMarkets())
-		PanicOnError(retRes21688)
+		retRes21828 := (<-this.LoadMarkets())
+		PanicOnError(retRes21828)
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.PrivateGetAccountPositions(params))
@@ -2775,8 +2788,8 @@ func (this *BlofinCore) FetchLeverages(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes23018 := (<-this.LoadMarkets())
-		PanicOnError(retRes23018)
+		retRes23158 := (<-this.LoadMarkets())
+		PanicOnError(retRes23158)
 		if IsTrue(IsEqual(symbols, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchLeverages() requires a symbols argument")))
 		}
@@ -2848,8 +2861,8 @@ func (this *BlofinCore) FetchLeverage(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes23578 := (<-this.LoadMarkets())
-		PanicOnError(retRes23578)
+		retRes23718 := (<-this.LoadMarkets())
+		PanicOnError(retRes23718)
 		var marginMode interface{} = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchLeverage", params)
 		marginMode = GetValue(marginModeparamsVariable, 0)
@@ -2931,8 +2944,8 @@ func (this *BlofinCore) SetLeverage(leverage interface{}, optionalArgs ...interf
 			panic(BadRequest(Add(this.Id, " setLeverage() leverage should be between 1 and 125")))
 		}
 
-		retRes24208 := (<-this.LoadMarkets())
-		PanicOnError(retRes24208)
+		retRes24348 := (<-this.LoadMarkets())
+		PanicOnError(retRes24348)
 		var market interface{} = this.Market(symbol)
 		var marginMode interface{} = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("setLeverage", params, "cross")
@@ -2984,8 +2997,8 @@ func (this *BlofinCore) ClosePosition(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes24548 := (<-this.LoadMarkets())
-		PanicOnError(retRes24548)
+		retRes24688 := (<-this.LoadMarkets())
+		PanicOnError(retRes24688)
 		var market interface{} = this.Market(symbol)
 		var clientOrderId interface{} = this.SafeString(params, "clientOrderId")
 		var marginMode interface{} = nil
@@ -3038,17 +3051,17 @@ func (this *BlofinCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes24858 := (<-this.LoadMarkets())
-		PanicOnError(retRes24858)
+		retRes24998 := (<-this.LoadMarkets())
+		PanicOnError(retRes24998)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes248919 := (<-this.FetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params))
-			PanicOnError(retRes248919)
-			ch <- retRes248919
+			retRes250319 := (<-this.FetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params))
+			PanicOnError(retRes250319)
+			ch <- retRes250319
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -3105,8 +3118,8 @@ func (this *BlofinCore) FetchMarginMode(symbol interface{}, optionalArgs ...inte
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes25288 := (<-this.LoadMarkets())
-		PanicOnError(retRes25288)
+		retRes25428 := (<-this.LoadMarkets())
+		PanicOnError(retRes25428)
 		var market interface{} = this.Market(symbol)
 
 		response := (<-this.PrivateGetAccountMarginMode(params))
@@ -3159,8 +3172,8 @@ func (this *BlofinCore) SetMarginMode(marginMode interface{}, optionalArgs ...in
 		_ = params
 		this.CheckRequiredArgument("setMarginMode", marginMode, "marginMode", []interface{}{"cross", "isolated"})
 
-		retRes25648 := (<-this.LoadMarkets())
-		PanicOnError(retRes25648)
+		retRes25788 := (<-this.LoadMarkets())
+		PanicOnError(retRes25788)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -3255,8 +3268,8 @@ func (this *BlofinCore) SetPositionMode(hedged interface{}, optionalArgs ...inte
 			"positionMode": Ternary(IsTrue(hedged), "long_short_mode", "net_mode"),
 		}
 
-		retRes263715 := (<-this.PrivatePostAccountSetPositionMode(this.Extend(request, params)))
-		PanicOnError(retRes263715)
+		retRes265115 := (<-this.PrivatePostAccountSetPositionMode(this.Extend(request, params)))
+		PanicOnError(retRes265115)
 		//
 		//     {
 		//         "code": "0",
@@ -3266,7 +3279,7 @@ func (this *BlofinCore) SetPositionMode(hedged interface{}, optionalArgs ...inte
 		//         }
 		//     }
 		//
-		ch <- retRes263715
+		ch <- retRes265115
 		return nil
 
 	}()
@@ -3292,8 +3305,8 @@ func (this *BlofinCore) FetchPositionsADLRank(optionalArgs ...interface{}) <-cha
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes26508 := (<-this.LoadMarkets())
-		PanicOnError(retRes26508)
+		retRes26648 := (<-this.LoadMarkets())
+		PanicOnError(retRes26648)
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 
 		response := (<-this.PrivateGetAccountPositions(params))

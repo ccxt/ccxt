@@ -16,10 +16,12 @@ public partial class BaseTest
             testExtend();
             testDeepExtend();
             testCryptography();
+            testBinaryToBase16();
+            testBase16ToBinary();
             testBinaryToBase64();
             testBase64ToBinary();
-            testNumberToBE();
             testDatetime();
+            testNumberToBE();
             testDecimalToPrecision();
             testCapitalize();
             testNumberToString();
@@ -44,6 +46,7 @@ public partial class BaseTest
             testHandleMethods();
             testRemoveRepeatedElementsFromArray();
             testIsEmpty();
+            testBinaryConcat();
             testUrlencodeWithArrayRepeat();
             testParsePrecision();
             testPrecisionFromString();

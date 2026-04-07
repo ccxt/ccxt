@@ -1888,6 +1888,7 @@ class blofin extends blofin$1["default"] {
         //
         let type = undefined;
         let id = undefined;
+        let status = undefined;
         const withdrawalId = this.safeString(transaction, 'withdrawId');
         const depositId = this.safeString(transaction, 'depositId');
         const addressTo = this.safeString(transaction, 'address');
@@ -1896,15 +1897,16 @@ class blofin extends blofin$1["default"] {
         if (withdrawalId !== undefined) {
             type = 'withdrawal';
             id = withdrawalId;
+            status = this.parseTransactionWithdrawalStatus(this.safeString(transaction, 'state'));
         }
         else {
             id = depositId;
             type = 'deposit';
+            status = this.parseTransactionDepositStatus(this.safeString(transaction, 'state'));
         }
         const currencyId = this.safeString(transaction, 'currency');
         const code = this.safeCurrencyCode(currencyId);
         const amount = this.safeNumber(transaction, 'amount');
-        const status = this.parseTransactionStatus(this.safeString(transaction, 'state'));
         const txid = this.safeString(transaction, 'txId');
         const timestamp = this.safeInteger(transaction, 'ts');
         const feeCurrencyId = this.safeString(transaction, 'feeCurrency');
@@ -1936,7 +1938,18 @@ class blofin extends blofin$1["default"] {
             },
         };
     }
-    parseTransactionStatus(status) {
+    parseTransactionWithdrawalStatus(status) {
+        const statuses = {
+            '0': 'pending',
+            '2': 'failed',
+            '3': 'ok',
+            '4': 'failed',
+            '6': 'pending',
+            '7': 'pending',
+        };
+        return this.safeString(statuses, status, status);
+    }
+    parseTransactionDepositStatus(status) {
         const statuses = {
             '0': 'pending',
             '1': 'ok',

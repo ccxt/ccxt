@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.46';
+const version = '4.5.47';
 
 (Exchange as any).ccxtVersion = version
 
@@ -89,7 +89,6 @@ import coinbase from  './src/coinbase.js'
 import coinbaseadvanced from  './src/coinbaseadvanced.js'
 import coinbaseexchange from  './src/coinbaseexchange.js'
 import coinbaseinternational from  './src/coinbaseinternational.js'
-import coincatch from  './src/coincatch.js'
 import coincheck from  './src/coincheck.js'
 import coinex from  './src/coinex.js'
 import coinmate from  './src/coinmate.js'
@@ -192,7 +191,6 @@ import coinbasePro from  './src/pro/coinbase.js'
 import coinbaseadvancedPro from  './src/pro/coinbaseadvanced.js'
 import coinbaseexchangePro from  './src/pro/coinbaseexchange.js'
 import coinbaseinternationalPro from  './src/pro/coinbaseinternational.js'
-import coincatchPro from  './src/pro/coincatch.js'
 import coincheckPro from  './src/pro/coincheck.js'
 import coinexPro from  './src/pro/coinex.js'
 import coinonePro from  './src/pro/coinone.js'
@@ -283,7 +281,6 @@ const exchanges = {
     'coinbaseadvanced':       coinbaseadvanced,
     'coinbaseexchange':       coinbaseexchange,
     'coinbaseinternational':  coinbaseinternational,
-    'coincatch':              coincatch,
     'coincheck':              coincheck,
     'coinex':                 coinex,
     'coinmate':               coinmate,
@@ -386,7 +383,6 @@ const pro = {
     'coinbaseadvanced':       coinbaseadvancedPro,
     'coinbaseexchange':       coinbaseexchangePro,
     'coinbaseinternational':  coinbaseinternationalPro,
-    'coincatch':              coincatchPro,
     'coincheck':              coincheckPro,
     'coinex':                 coinexPro,
     'coinone':                coinonePro,
@@ -620,7 +616,6 @@ export {
     coinbaseadvanced,
     coinbaseexchange,
     coinbaseinternational,
-    coincatch,
     coincheck,
     coinex,
     coinmate,

@@ -926,7 +926,7 @@ public partial class lighter : ccxt.lighter
         {
             if (isTrue(!isEqual(error, null)))
             {
-                object code = this.safeString(message, "code");
+                object code = this.safeString(error, "code");
                 if (isTrue(!isEqual(code, null)))
                 {
                     object feedback = add(add(this.id, " "), this.json(message));

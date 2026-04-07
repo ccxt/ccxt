@@ -618,6 +618,13 @@ class Exchange {
     isBinaryMessage(msg) {
         return msg instanceof Uint8Array || msg instanceof ArrayBuffer;
     }
+    stringToBinary(content) {
+        // same as: this.base64ToBinary (this.stringToBase64 (str));
+        return this.encode(content);
+    }
+    binaryToString(binary) {
+        return this.decode(binary);
+    }
     decodeProtoMsg(data) {
         if (!protobufMexc) {
             throw new errors.NotSupported(this.id + ' requires protobuf to decode messages, please install it with `npm install protobufjs`');

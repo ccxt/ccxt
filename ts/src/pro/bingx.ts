@@ -340,7 +340,7 @@ export default class bingx extends bingxRest {
         if (symbol !== undefined) {
             hash += '::' + symbol;
         } else {
-            hash += 's'; // tickers, orderbooks, ohlcvs ...
+            hash += 's'; // tickers, orderbooks, ohlcvs, etc ...
         }
         if (extra !== undefined) {
             hash += '::' + extra;
