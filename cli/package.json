@@ -25,11 +25,11 @@
     "as-table": "^1.0.55",
     "blessed": "^0.1.81",
     "ccxt": "^4.4.86",
-    "clipboardy": "^4.0.0",
     "commander": "^14.0.0",
     "ololog": "^1.1.175",
     "open": "^10.1.2",
-    "ora": "^8.2.0"
+    "ora": "^8.2.0",
+    "tinyclip": "^0.1.12"
   },
   "repository": {
     "type": "git",

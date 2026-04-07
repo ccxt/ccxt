@@ -2,7 +2,7 @@
 import ansi from 'ansicolor';
 import { Command, Option } from 'commander';
 import ololog from 'ololog';
-import clipboard from 'clipboardy';
+import * as clipboard from 'tinyclip';
 import { parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests, askForArgv, printMethodUsage, printExchangeMethods } from './helpers.js';
 import { changeConfigPath, checkCache, getCachePathForHelp, saveCommand } from './cache.js';
 import { plotOHLCVChart } from './charts/ohlcv.js';
@@ -325,7 +325,7 @@ async function executeCCXTCommand (exchange, params:any, methodName: string, cli
 
     const result = await exchange[methodName] (...args);
     if (cliOptions.clipboard) {
-        clipboard.writeSync (JSON.stringify (result, undefined, 2));
+        await clipboard.writeText (JSON.stringify (result, undefined, 2));
     }
     end = exchange.milliseconds ();
 
