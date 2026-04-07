@@ -3678,16 +3678,6 @@ export default class Exchange {
         };
     }
 
-    getProp (key: string, defaultValue: any = undefined) {
-        const value = this.getProperty (this, key.toString ());
-        if (value !== undefined) {
-            return value;
-        }
-        // try UpperCase key also, for other langs
-        const keyUpper = this.capitalize (key.toString ());
-        return this.getProperty (this, keyUpper, defaultValue);
-    }
-
     safeLedgerEntry (entry: object, currency: Currency = undefined) {
         currency = this.safeCurrency (undefined, currency);
         let direction = this.safeString (entry, 'direction');
