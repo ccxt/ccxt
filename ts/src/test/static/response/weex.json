@@ -3,6 +3,58 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchFundingRate": [
+            {
+                "description": "fetch funding rate",
+                "method": "fetchFundingRate",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "ETHUSDT",
+                        "markPrice": "2128.98",
+                        "indexPrice": "2129.575",
+                        "forecastFundingRate": "0.00005460",
+                        "lastFundingRate": "0.00001031",
+                        "interestRate": "0.001",
+                        "nextFundingTime": "1775606400000",
+                        "time": "1775597392681",
+                        "collectCycle": "480"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "ETHUSDT",
+                        "markPrice": "2128.98",
+                        "indexPrice": "2129.575",
+                        "forecastFundingRate": "0.00005460",
+                        "lastFundingRate": "0.00001031",
+                        "interestRate": "0.001",
+                        "nextFundingTime": "1775606400000",
+                        "time": "1775597392681",
+                        "collectCycle": "480"
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "markPrice": 2128.98,
+                    "indexPrice": 2129.575,
+                    "interestRate": 0.001,
+                    "estimatedSettlePrice": null,
+                    "timestamp": 1775597392681,
+                    "datetime": "2026-04-07T21:29:52.681Z",
+                    "fundingRate": 0.00001031,
+                    "fundingTimestamp": 1775597392681,
+                    "fundingDatetime": "2026-04-07T21:29:52.681Z",
+                    "nextFundingRate": 0.0000546,
+                    "nextFundingTimestamp": 1775606400000,
+                    "nextFundingDatetime": "2026-04-08T00:00:00.000Z",
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "8h"
+                }
+            }
+        ],
         "fetchOpenInterest": [
             {
                 "description": "fetch open interest",
