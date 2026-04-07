@@ -70,7 +70,7 @@ export default class weex extends Exchange {
                 'fetchAccounts': false,
                 'fetchADLRank': false,
                 'fetchBalance': false,
-                'fetchBidsAsks': false,
+                'fetchBidsAsks': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -214,7 +214,7 @@ export default class weex extends Exchange {
                         'api/v3/market/trades': 125,
                         'api/v3/market/klines': 10,
                         'api/v3/market/depth': 25,
-                        'api/v3/market/ticker/bookTicker': 20,
+                        'api/v3/market/ticker/bookTicker': 20, // done
                     },
                 },
                 'private': {
@@ -254,7 +254,7 @@ export default class weex extends Exchange {
                         'capi/v3/market/exchangeInfo': 5, // done
                         'capi/v3/market/depth': 5,
                         'capi/v3/market/ticker/24hr': 200, // done
-                        'capi/v3/market/ticker/bookTicker': 5,
+                        'capi/v3/market/ticker/bookTicker': 5, // done
                         'capi/v3/market/trades': 25,
                         'capi/v3/market/klines': 5,
                         'capi/v3/market/indexPriceKlines': 5,
@@ -998,7 +998,7 @@ export default class weex extends Exchange {
      * @see https://www.weex.com/api-doc/contract/Market_API/GetTicker24h // contract
      * @param {string} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'spot' or 'swap', default is 'spot'
+     * @param {string} [params.type] 'spot' or 'swap', default is 'spot' (used if symbols are not provided)
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -1061,6 +1061,34 @@ export default class weex extends Exchange {
             //     ]
             //
             response = await this.contractGetCapiV3MarketTicker24hr (this.extend (request, params));
+        }
+        if (!Array.isArray (response)) {
+            response = [ response ];
+        }
+        return this.parseTickers (response, symbols);
+    }
+
+    /**
+     * @method
+     * @name weex#fetchBidsAsks
+     * @description fetches the bid and ask price and volume for multiple markets
+     * @see https://www.weex.com/api-doc/spot/MarketDataAPI/GetBookTicker // spot
+     * @see https://www.weex.com/api-doc/contract/Market_API/GetBookTicker // contract
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', default is 'spot' (used if symbols are not provided)
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async fetchBidsAsks (symbols: Strings = undefined, params = {}) {
+        symbols = this.marketSymbols (symbols, undefined, true, true);
+        const market = this.getMarketFromSymbols (symbols);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        let response = undefined;
+        if (marketType === 'spot') {
+            response = await this.publicGetApiV3MarketTickerBookTicker (params);
+        } else {
+            response = await this.contractGetCapiV3MarketTickerBookTicker (params);
         }
         if (!Array.isArray (response)) {
             response = [ response ];
