@@ -425,6 +425,7 @@ export default class weex extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'XBT': 'XBT',
             },
             'options': {
                 'timeDifference': 0, // the difference between system clock and Binance clock
@@ -447,6 +448,16 @@ export default class weex extends Exchange {
                     'AVALANCHEC': 'AVALANCHE_C(AVAX_C)',
                     'AVAXC': 'AVALANCHE_C(AVAX_C)',
                 },
+                'networksById': {
+                    'BEP20(BSC)': 'BEP20',
+                    'ERC20': 'ERC20',
+                    'POLYGON(MATIC)': 'MATIC',
+                    'ARBITRUM(ARB)': 'ARB',
+                    'SOLANA(SOL)': 'SOL',
+                    'OPTIMISM(OP)': 'OP',
+                    'AVALANCHE_C(AVAX_C)': 'AVAXC',
+                },
+
             },
             'features': {
                 'spot': {
