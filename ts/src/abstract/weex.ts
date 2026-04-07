@@ -21,8 +21,6 @@ interface Exchange {
     publicGetApiV3MarketDepth (params?: {}): Promise<implicitReturnType>;
     publicGetApiV3MarketTickerBookTicker (params?: {}): Promise<implicitReturnType>;
     privateGetApiV3Account (params?: {}): Promise<implicitReturnType>;
-    privateGetApiV3AccountBills (params?: {}): Promise<implicitReturnType>;
-    privateGetApiV3AccountFundingBills (params?: {}): Promise<implicitReturnType>;
     privateGetApiV3AccountTransferRecords (params?: {}): Promise<implicitReturnType>;
     privateGetApiV3Order (params?: {}): Promise<implicitReturnType>;
     privateGetApiV3OpenOrders (params?: {}): Promise<implicitReturnType>;
@@ -36,6 +34,8 @@ interface Exchange {
     privateGetApiV3AgencyVerifyReferrals (params?: {}): Promise<implicitReturnType>;
     privateGetApiV3AgencyGetAssert (params?: {}): Promise<implicitReturnType>;
     privateGetApiV3AgencyGetDealData (params?: {}): Promise<implicitReturnType>;
+    privatePostApiV3AccountBills (params?: {}): Promise<implicitReturnType>;
+    privatePostApiV3AccountFundingBills (params?: {}): Promise<implicitReturnType>;
     privatePostApiV3Order (params?: {}): Promise<implicitReturnType>;
     privatePostApiV3OrderBatch (params?: {}): Promise<implicitReturnType>;
     privatePostApiV3RebateAffiliateInternalWithdrawal (params?: {}): Promise<implicitReturnType>;
@@ -61,7 +61,6 @@ interface Exchange {
     contractPrivateGetCapiV3AccountCommissionRate (params?: {}): Promise<implicitReturnType>;
     contractPrivateGetCapiV3AccountAccountConfig (params?: {}): Promise<implicitReturnType>;
     contractPrivateGetCapiV3AccountSymbolConfig (params?: {}): Promise<implicitReturnType>;
-    contractPrivateGetCapiV3AccountIncome (params?: {}): Promise<implicitReturnType>;
     contractPrivateGetCapiV3AccountPositionAllPosition (params?: {}): Promise<implicitReturnType>;
     contractPrivateGetCapiV3AccountPositionSinglePosition (params?: {}): Promise<implicitReturnType>;
     contractPrivateGetCapiV3Order (params?: {}): Promise<implicitReturnType>;
@@ -70,6 +69,7 @@ interface Exchange {
     contractPrivateGetCapiV3UserTrades (params?: {}): Promise<implicitReturnType>;
     contractPrivateGetCapiV3OpenAlgoOrders (params?: {}): Promise<implicitReturnType>;
     contractPrivateGetCapiV3AllAlgoOrders (params?: {}): Promise<implicitReturnType>;
+    contractPrivatePostCapiV3AccountIncome (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostCapiV3AccountMarginType (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostCapiV3AccountLeverage (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostCapiV3AccountPositionMargin (params?: {}): Promise<implicitReturnType>;
