@@ -3,6 +3,120 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchBalance": [
+            {
+                "description": "fetch spot balance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "makerCommission": "0",
+                    "takerCommission": "0",
+                    "commissionRates": {
+                        "maker": "0.00000000",
+                        "taker": "0.00000000"
+                    },
+                    "canTrade": true,
+                    "canWithdraw": true,
+                    "canDeposit": true,
+                    "updateTime": "1775601317093",
+                    "accountType": "SPOT",
+                    "balances": [
+                        {
+                            "asset": "USDT",
+                            "free": "20.00000000",
+                            "locked": "0"
+                        }
+                    ],
+                    "permissions": [
+                        "SPOT"
+                    ],
+                    "uid": "8886281669"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "makerCommission": "0",
+                        "takerCommission": "0",
+                        "commissionRates": {
+                            "maker": "0.00000000",
+                            "taker": "0.00000000"
+                        },
+                        "canTrade": true,
+                        "canWithdraw": true,
+                        "canDeposit": true,
+                        "updateTime": "1775601317093",
+                        "accountType": "SPOT",
+                        "balances": [
+                            {
+                                "asset": "USDT",
+                                "free": "20.00000000",
+                                "locked": "0"
+                            }
+                        ],
+                        "permissions": [
+                            "SPOT"
+                        ],
+                        "uid": "8886281669"
+                    },
+                    "USDT": {
+                        "free": 20,
+                        "used": 0,
+                        "total": 20
+                    },
+                    "free": {
+                        "USDT": 20
+                    },
+                    "used": {
+                        "USDT": 0
+                    },
+                    "total": {
+                        "USDT": 20
+                    }
+                }
+            },
+            {
+                "description": "fetch contract balance",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "asset": "USDT",
+                        "balance": "20.00000000",
+                        "availableBalance": "20.00000000",
+                        "frozen": "0",
+                        "unrealizePnl": "0"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "asset": "USDT",
+                            "balance": "20.00000000",
+                            "availableBalance": "20.00000000",
+                            "frozen": "0",
+                            "unrealizePnl": "0"
+                        }
+                    ],
+                    "USDT": {
+                        "free": 20,
+                        "used": 0,
+                        "total": 20
+                    },
+                    "free": {
+                        "USDT": 20
+                    },
+                    "used": {
+                        "USDT": 0
+                    },
+                    "total": {
+                        "USDT": 20
+                    }
+                }
+            }
+        ],
         "fetchFundingRateHistory": [
             {
                 "description": "fetch funding rate history",
