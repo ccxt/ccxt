@@ -6,7 +6,7 @@ import Exchange from './abstract/weex.js';
 // import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Currencies, Dict, Int, Market, Strings, Ticker, Tickers } from './base/types.js';
+import type { Currencies, Dict, Int, Market, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -137,7 +137,7 @@ export default class weex extends Exchange {
                 'fetchOption': false,
                 'fetchOptionChain': false,
                 'fetchOrder': false,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
                 'fetchOrdersByStatus': false,
@@ -213,7 +213,7 @@ export default class weex extends Exchange {
                         'api/v3/market/ticker/24hr': 10, // done
                         'api/v3/market/trades': 125,
                         'api/v3/market/klines': 10,
-                        'api/v3/market/depth': 25,
+                        'api/v3/market/depth': 25, // done
                         'api/v3/market/ticker/bookTicker': 20, // done
                     },
                 },
@@ -252,7 +252,7 @@ export default class weex extends Exchange {
                     'get': {
                         'capi/v3/market/time': 5, // done
                         'capi/v3/market/exchangeInfo': 5, // done
-                        'capi/v3/market/depth': 5,
+                        'capi/v3/market/depth': 5, // done
                         'capi/v3/market/ticker/24hr': 200, // done
                         'capi/v3/market/ticker/bookTicker': 5, // done
                         'capi/v3/market/trades': 25,
@@ -260,11 +260,11 @@ export default class weex extends Exchange {
                         'capi/v3/market/indexPriceKlines': 5,
                         'capi/v3/market/markPriceKlines': 5,
                         'capi/v3/market/historyKlines': 25,
-                        'capi/v3/market/symbolPrice': 5,
+                        'capi/v3/market/symbolPrice': 5, // not unified
                         'capi/v3/market/openInterest': 10,
                         'capi/v3/market/premiumIndex': 5,
                         'capi/v3/market/fundingRate': 25,
-                        'capi/v3/market/apiTradingSymbols': 25,
+                        'capi/v3/market/apiTradingSymbols': 25, // not unified
                     },
                 },
                 'contractPrivate': {
@@ -1167,6 +1167,54 @@ export default class weex extends Exchange {
             'indexPrice': this.safeString (ticker, 'indexPrice'),
             'info': ticker,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name weex#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.weex.com/api-doc/spot/MarketDataAPI/GetDepthData // spot
+     * @see https://www.weex.com/api-doc/contract/Market_API/GetDepthData // contract
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return (default 15, max 200)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     */
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        if ((limit !== undefined) && (limit > 15)) {
+            request['limit'] = 200; // default is 15, max is 200
+        }
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.publicGetApiV3MarketDepth (this.extend (request, params));
+        } else {
+            response = await this.contractGetCapiV3MarketDepth (this.extend (request, params));
+        }
+        //
+        //     {
+        //         "asks": [
+        //             [
+        //                 "2096.77",
+        //                 "45.592"
+        //             ]
+        //         ],
+        //         "bids": [
+        //             [
+        //                 "2096.76",
+        //                 "49.162"
+        //             ]
+        //         ],
+        //         "lastUpdateId": 14138610208
+        //     }
+        //
+        const orderbook = this.parseOrderBook (response, symbol);
+        orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
+        return orderbook;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
