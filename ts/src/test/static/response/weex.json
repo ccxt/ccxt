@@ -3,6 +3,57 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchTrades": [
+            {
+                "description": "fetch swap trades",
+                "method": "fetchTrades",
+                "input": [
+                    "ETH/USDT:USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "id": "c437b518-7dbb-4a57-8409-e91fdd18cfbf",
+                        "time": "1775595127994",
+                        "price": "2113.69",
+                        "qty": "0.002",
+                        "quoteQty": "4.22738",
+                        "isBestMatch": false,
+                        "isBuyerMaker": false
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "c437b518-7dbb-4a57-8409-e91fdd18cfbf",
+                            "time": "1775595127994",
+                            "price": "2113.69",
+                            "qty": "0.002",
+                            "quoteQty": "4.22738",
+                            "isBestMatch": false,
+                            "isBuyerMaker": false
+                        },
+                        "id": "c437b518-7dbb-4a57-8409-e91fdd18cfbf",
+                        "order": null,
+                        "timestamp": 1775595127994,
+                        "datetime": "2026-04-07T20:52:07.994Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": "buy",
+                        "price": 2113.69,
+                        "amount": 0.002,
+                        "cost": 4.22738,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "fetch swap ohlcv",
