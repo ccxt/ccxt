@@ -3,6 +3,43 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchOHLCV": [
+            {
+                "description": "fetch swap ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1m",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    [
+                        1775590200000,
+                        "2095.73",
+                        "2095.73",
+                        "2093.59",
+                        "2093.77",
+                        "324.399",
+                        1775590260000,
+                        "679525.46044",
+                        256,
+                        "161.723",
+                        "338745.90376"
+                    ]
+                ],
+                "parsedResponse": [
+                    [
+                        1775590200000,
+                        2095.73,
+                        2095.73,
+                        2093.59,
+                        2093.77,
+                        324.399
+                    ]
+                ]
+            }
+        ],
         "fetchOrderBook": [
             {
                 "description": "fetch spot orderbook",
