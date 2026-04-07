@@ -3,6 +3,39 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetch funding rate history",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "ETH/USDT:USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "ETHUSDT",
+                        "fundingRate": "0.00001031",
+                        "fundingTime": "1775577600000",
+                        "markPrice": "2079.26"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "ETHUSDT",
+                            "fundingRate": "0.00001031",
+                            "fundingTime": "1775577600000",
+                            "markPrice": "2079.26"
+                        },
+                        "symbol": "ETH/USDT:USDT",
+                        "fundingRate": 0.00001031,
+                        "timestamp": 1775577600000,
+                        "datetime": "2026-04-07T16:00:00.000Z"
+                    }
+                ]
+            }
+        ],
         "fetchFundingRate": [
             {
                 "description": "fetch funding rate",
