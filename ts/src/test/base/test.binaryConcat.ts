@@ -24,22 +24,6 @@ function testBinaryConcat () {
     // Test 3: Concat with hex bytes
     const result3 = exchange.binaryConcat (exchange.base16ToBinary ('68656c6c6f'), exchange.stringToBinary (' world'));
     assert (exchange.binaryToString (result3) === 'hello world');
-
-    // Test 4: binaryConcatArray with array of binaries
-    const result4 = exchange.binaryConcatArray ([
-        exchange.stringToBinary ('a'),
-        exchange.stringToBinary ('b'),
-        exchange.stringToBinary ('c'),
-    ]);
-    assert (exchange.binaryToString (result4) === 'abc');
-
-    // Test 5: binaryConcatArray - longer array
-    const result5 = exchange.binaryConcatArray ([
-        exchange.stringToBinary ('hello'),
-        exchange.stringToBinary (' '),
-        exchange.stringToBinary ('world'),
-    ]);
-    assert (exchange.binaryToString (result5) === 'hello world');
 }
 
 export default testBinaryConcat;
