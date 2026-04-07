@@ -3,6 +3,34 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchOpenInterest": [
+            {
+                "description": "fetch open interest",
+                "method": "fetchOpenInterest",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "symbol": "ETHUSDT",
+                    "openInterest": "1772356.352",
+                    "time": "1775595582598"
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDT:USDT",
+                    "openInterestAmount": 1772356.352,
+                    "openInterestValue": null,
+                    "timestamp": 1775595582598,
+                    "datetime": "2026-04-07T20:59:42.598Z",
+                    "info": {
+                        "symbol": "ETHUSDT",
+                        "openInterest": "1772356.352",
+                        "time": "1775595582598"
+                    },
+                    "baseVolume": null,
+                    "quoteVolume": null
+                }
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "fetch swap trades",
@@ -40,7 +68,7 @@
                         "datetime": "2026-04-07T20:52:07.994Z",
                         "symbol": "ETH/USDT:USDT",
                         "type": null,
-                        "takerOrMaker": "taker",
+                        "takerOrMaker": null,
                         "side": "buy",
                         "price": 2113.69,
                         "amount": 0.002,
