@@ -229,6 +229,69 @@
         ],
         "fetchMyTrades": [
             {
+                "description": "fetch my spot trades",
+                "method": "fetchMyTrades",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "spot"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": [
+                        {
+                            "instId": "DOGE-USDT",
+                            "tradeId": "6000001623870",
+                            "orderId": "6000011777113",
+                            "fillPrice": "0.091480000000000000",
+                            "fillSize": "30.000000000000000000",
+                            "fillPnl": null,
+                            "side": "buy",
+                            "fee": "0.030000000000000000",
+                            "ts": "1775213753407",
+                            "brokerId": null,
+                            "feeCurrency": "base_currency"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "instId": "DOGE-USDT",
+                            "tradeId": "6000001623870",
+                            "orderId": "6000011777113",
+                            "fillPrice": "0.091480000000000000",
+                            "fillSize": "30.000000000000000000",
+                            "fillPnl": null,
+                            "side": "buy",
+                            "fee": "0.030000000000000000",
+                            "ts": "1775213753407",
+                            "brokerId": null,
+                            "feeCurrency": "base_currency"
+                        },
+                        "timestamp": 1775213753407,
+                        "datetime": "2026-04-03T10:55:53.407Z",
+                        "symbol": "DOGE/USDT",
+                        "id": "6000001623870",
+                        "order": "6000011777113",
+                        "type": null,
+                        "takerOrMaker": null,
+                        "side": "buy",
+                        "price": 0.09148,
+                        "amount": 30,
+                        "cost": 2.7444,
+                        "fee": {
+                            "cost": 0.03,
+                            "currency": "DOGE"
+                        }
+                    }
+                ]
+            },
+            {
                 "description": "user trades",
                 "method": "fetchMyTrades",
                 "input": [
@@ -415,7 +478,7 @@
                         "tagFrom": null,
                         "tagTo": null,
                         "tag": null,
-                        "status": "pending",
+                        "status": "ok",
                         "type": "withdrawal",
                         "updated": null,
                         "txid": "1fd5ac5dsfkldfjsdkfl207f9858fd96",
@@ -1010,6 +1073,71 @@
                     "fees": [],
                     "stopPrice": null,
                     "triggerPrice": null
+                }
+            }
+        ],
+        "fetchPositionADLRank": [
+            {
+                "description": "linear swap fetchPositionADLRank",
+                "method": "fetchPositionADLRank",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": [
+                        {
+                            "positionId": "756786",
+                            "instId": "BTC-USDT",
+                            "instType": "SWAP",
+                            "marginMode": "cross",
+                            "positionSide": "net",
+                            "adl": "1",
+                            "positions": "0.1",
+                            "availablePositions": "0.1",
+                            "averagePrice": "88564.9",
+                            "markPrice": "88546.3696492756",
+                            "marginRatio": "822.305183525552961566",
+                            "liquidationPrice": "",
+                            "unrealizedPnl": "-0.00185303507244",
+                            "unrealizedPnlRatio": "-0.000627687178252332",
+                            "initialMargin": "2.951545654975853333",
+                            "maintenanceMargin": "0.02656391089478268",
+                            "createTime": "1767169876207",
+                            "updateTime": "1767169876207",
+                            "leverage": "3"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "positionId": "756786",
+                        "instId": "BTC-USDT",
+                        "instType": "SWAP",
+                        "marginMode": "cross",
+                        "positionSide": "net",
+                        "adl": "1",
+                        "positions": "0.1",
+                        "availablePositions": "0.1",
+                        "averagePrice": "88564.9",
+                        "markPrice": "88546.3696492756",
+                        "marginRatio": "822.305183525552961566",
+                        "liquidationPrice": "",
+                        "unrealizedPnl": "-0.00185303507244",
+                        "unrealizedPnlRatio": "-0.000627687178252332",
+                        "initialMargin": "2.951545654975853333",
+                        "maintenanceMargin": "0.02656391089478268",
+                        "createTime": "1767169876207",
+                        "updateTime": "1767169876207",
+                        "leverage": "3"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "rank": 1,
+                    "rating": null,
+                    "percentage": null,
+                    "timestamp": 1767169876207,
+                    "datetime": "2025-12-31T08:31:16.207Z"
                 }
             }
         ]

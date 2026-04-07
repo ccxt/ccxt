@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, FundingHistory, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Liquidation, LongShortRatio, MarginMode, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Any, ADL, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, FundingHistory, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Liquidation, LongShortRatio, MarginMode, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -132,8 +132,10 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
+                'fetchPositionADLRank': True,
                 'fetchPositionHistory': 'emulated',
                 'fetchPositions': True,
+                'fetchPositionsADLRank': True,
                 'fetchPositionsHistory': True,
                 'fetchPremiumIndexOHLCV': True,
                 'fetchSettlementHistory': True,
@@ -1144,8 +1146,12 @@ class bybit(Exchange, ImplicitAPI):
                     'FUND': 'fund',
                 },
                 'networks': {
+                    'BTC': 'BTC',
+                    'ETH': 'ETH',
                     'ERC20': 'ETH',
+                    'TRX': 'TRX',
                     'TRC20': 'TRX',
+                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'SOL': 'SOL',
                     'ACA': 'ACA',
@@ -1194,6 +1200,7 @@ class bybit(Exchange, ImplicitAPI):
                     'OASIS': 'ROSE',
                     'OMNI': 'OMNI',
                     'ONE': 'ONE',
+                    'OP': 'OP',
                     'OPTIMISM': 'OP',
                     'POKT': 'POKT',
                     'QTUM': 'QTUM',
@@ -1224,8 +1231,7 @@ class bybit(Exchange, ImplicitAPI):
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
                     'BSC': 'BEP20',
-                    'OMNI': 'OMNI',
-                    'SPL': 'SOL',
+                    'OP': 'OP',
                 },
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
@@ -1365,6 +1371,7 @@ class bybit(Exchange, ImplicitAPI):
                     'deposit': {},
                 },
             },
+            'rollingWindowSize': 5000.0,  # According to the docs(https://bybit-exchange.github.io/docs/v5/rate-limit), tested with 90000.0 with no errors
         })
 
     def enable_demo_trading(self, enable: bool):
@@ -1699,66 +1706,65 @@ class bybit(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'result', {})
         rows = self.safe_list(data, 'rows', [])
-        result: dict = {}
-        for i in range(0, len(rows)):
-            currency = rows[i]
-            currencyId = self.safe_string(currency, 'coin')
-            code = self.safe_currency_code(currencyId)
-            name = self.safe_string(currency, 'name')
-            chains = self.safe_list(currency, 'chains', [])
-            networks: dict = {}
-            for j in range(0, len(chains)):
-                chain = chains[j]
-                networkId = self.safe_string(chain, 'chain')
-                networkCode = self.network_id_to_code(networkId)
-                networks[networkCode] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': None,
-                    'deposit': self.safe_integer(chain, 'chainDeposit') == 1,
-                    'withdraw': self.safe_integer(chain, 'chainWithdraw') == 1,
-                    'fee': self.safe_number(chain, 'withdrawFee'),
-                    'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'minAccuracy'))),
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number(chain, 'withdrawMin'),
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': self.safe_number(chain, 'depositMin'),
-                            'max': None,
-                        },
-                    },
-                }
-            result[code] = self.safe_currency_structure({
-                'info': currency,
-                'code': code,
-                'id': currencyId,
-                'name': name,
+        return self.parse_currencies(rows)
+
+    def parse_currency(self, currency: dict) -> Currency:
+        currencyId = self.safe_string(currency, 'coin')
+        code = self.safe_currency_code(currencyId)
+        name = self.safe_string(currency, 'name')
+        chains = self.safe_list(currency, 'chains', [])
+        networks: dict = {}
+        for j in range(0, len(chains)):
+            chain = chains[j]
+            networkId = self.safe_string(chain, 'chain')
+            networkCode = self.network_id_to_code(networkId, code)
+            networks[networkCode] = {
+                'info': chain,
+                'id': networkId,
+                'network': networkCode,
                 'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
-                'precision': None,
+                'deposit': self.safe_integer(chain, 'chainDeposit') == 1,
+                'withdraw': self.safe_integer(chain, 'chainWithdraw') == 1,
+                'fee': self.safe_number(chain, 'withdrawFee'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'minAccuracy'))),
                 'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
-                        'min': None,
+                        'min': self.safe_number(chain, 'withdrawMin'),
                         'max': None,
                     },
                     'deposit': {
-                        'min': None,
+                        'min': self.safe_number(chain, 'depositMin'),
                         'max': None,
                     },
                 },
-                'networks': networks,
-                'type': 'crypto',  # atm exchange api provides only cryptos
-            })
-        return result
+            }
+        return self.safe_currency_structure({
+            'info': currency,
+            'code': code,
+            'id': currencyId,
+            'name': name,
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'precision': None,
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': networks,
+            'type': 'crypto',  # atm exchange api provides only cryptos
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -5759,7 +5765,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'txid': self.safe_string(transaction, 'txID'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': self.network_id_to_code(self.safe_string(transaction, 'chain')),
+            'network': self.network_id_to_code(self.safe_string(transaction, 'chain'), code),
             'address': None,
             'addressTo': toAddress,
             'addressFrom': None,
@@ -6081,7 +6087,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if tag is not None:
             request['tag'] = tag
         networkCode, query = self.handle_network_code_and_params(params)
-        networkId = self.network_code_to_id(networkCode)
+        networkId = self.network_code_to_id(networkCode, code)
         if networkId is not None:
             request['chain'] = networkId.upper()
         response = self.privatePostV5AssetWithdrawCreate(self.extend(request, query))
@@ -8977,6 +8983,137 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'datetime': self.iso8601(timestamp),
             'timeframe': None,
             'longShortRatio': self.parse_to_numeric(Precise.string_div(longString, shortString)),
+        }
+
+    def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> List[ADL]:
+        """
+        fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+        https://bybit-exchange.github.io/docs/v5/position#response-parameters
+
+        :param str[] [symbols]: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of `auto de leverage structures <https://docs.ccxt.com/?id=auto-de-leverage-structure>`
+        """
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' fetchPositionsADLRank() requires a symbols argument')
+        self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True, True)
+        market = self.get_market_from_symbols(symbols)
+        request: dict = {}
+        if market is not None:
+            request['symbol'] = market['id']
+        type = None
+        type, params = self.get_bybit_type('fetchPositionsADLRank', market, params)
+        request['category'] = type
+        response = self.privateGetV5PositionList(self.extend(request, params))
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "OK",
+        #         "result": {
+        #             "nextPageCursor": "BTCUSDT%2C1767085496112%2C0",
+        #             "category": "linear",
+        #             "list": [
+        #                 {
+        #                     "symbol": "BTCUSDT",
+        #                     "leverage": "",
+        #                     "autoAddMargin": 0,
+        #                     "avgPrice": "177489.6",
+        #                     "liqPrice": "",
+        #                     "riskLimitValue": "",
+        #                     "takeProfit": "",
+        #                     "positionValue": "1774.896",
+        #                     "isReduceOnly": False,
+        #                     "positionIMByMp": "",
+        #                     "tpslMode": "Full",
+        #                     "riskId": 0,
+        #                     "trailingStop": "0",
+        #                     "unrealisedPnl": "-3.016",
+        #                     "markPrice": "177188",
+        #                     "adlRankIndicator": 2,
+        #                     "cumRealisedPnl": "-9782.391468",
+        #                     "positionMM": "",
+        #                     "createdTime": "1699928551230",
+        #                     "positionIdx": 0,
+        #                     "positionIM": "",
+        #                     "positionMMByMp": "",
+        #                     "seq": 9558506126,
+        #                     "updatedTime": "1767085496112",
+        #                     "side": "Buy",
+        #                     "bustPrice": "",
+        #                     "positionBalance": "",
+        #                     "leverageSysUpdatedTime": "",
+        #                     "curRealisedPnl": "-0.9761928",
+        #                     "size": "0.01",
+        #                     "positionStatus": "Normal",
+        #                     "mmrSysUpdatedTime": "",
+        #                     "stopLoss": "",
+        #                     "tradeMode": 0,
+        #                     "sessionAvgPrice": ""
+        #                 }
+        #             ]
+        #         },
+        #         "retExtInfo": {},
+        #         "time": 1767085741416
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        ranks = self.safe_list(result, 'list', [])
+        return self.parse_adl_ranks(ranks, symbols)
+
+    def parse_adl_rank(self, info: dict, market: Market = None) -> ADL:
+        #
+        # fetchPositionsADLRank
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "leverage": "",
+        #         "autoAddMargin": 0,
+        #         "avgPrice": "177489.6",
+        #         "liqPrice": "",
+        #         "riskLimitValue": "",
+        #         "takeProfit": "",
+        #         "positionValue": "1774.896",
+        #         "isReduceOnly": False,
+        #         "positionIMByMp": "",
+        #         "tpslMode": "Full",
+        #         "riskId": 0,
+        #         "trailingStop": "0",
+        #         "unrealisedPnl": "-3.016",
+        #         "markPrice": "177188",
+        #         "adlRankIndicator": 2,
+        #         "cumRealisedPnl": "-9782.391468",
+        #         "positionMM": "",
+        #         "createdTime": "1699928551230",
+        #         "positionIdx": 0,
+        #         "positionIM": "",
+        #         "positionMMByMp": "",
+        #         "seq": 9558506126,
+        #         "updatedTime": "1767085496112",
+        #         "side": "Buy",
+        #         "bustPrice": "",
+        #         "positionBalance": "",
+        #         "leverageSysUpdatedTime": "",
+        #         "curRealisedPnl": "-0.9761928",
+        #         "size": "0.01",
+        #         "positionStatus": "Normal",
+        #         "mmrSysUpdatedTime": "",
+        #         "stopLoss": "",
+        #         "tradeMode": 0,
+        #         "sessionAvgPrice": ""
+        #     }
+        #
+        marketId = self.safe_string(info, 'symbol')
+        timestamp = self.safe_integer(info, 'updatedTime')
+        return {
+            'info': info,
+            'symbol': self.safe_symbol(marketId, market, None, 'contract'),
+            'rank': self.safe_integer(info, 'adlRankIndicator'),
+            'rating': None,
+            'percentage': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
         }
 
     def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:

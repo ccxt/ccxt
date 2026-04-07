@@ -7,7 +7,7 @@ var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class htx extends htx$1["default"] {
     describe() {
@@ -32,10 +32,10 @@ class htx extends htx$1["default"] {
                 'watchMyTrades': true,
                 'watchBalance': true,
                 'watchOHLCV': true,
-                'unwatchTicker': true,
-                'unwatchOHLCV': true,
-                'unwatchTrades': true,
-                'unwatchOrderBook': true,
+                'unWatchTicker': true,
+                'unWatchOHLCV': true,
+                'unWatchTrades': true,
+                'unWatchOrderBook': true,
             },
             'urls': {
                 'api': {

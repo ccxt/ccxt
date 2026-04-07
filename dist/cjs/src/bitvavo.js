@@ -401,6 +401,7 @@ class bitvavo extends bitvavo$1["default"] {
             'commonCurrencies': {
                 'MIOTA': 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
             },
+            'rollingWindowSize': 60000.0,
         });
     }
     /**

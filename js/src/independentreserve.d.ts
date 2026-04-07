@@ -45,6 +45,7 @@ export default class independentreserve extends Exchange {
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderStatus(status: Str): string;
+    parseTimeInForce(timeInForce: Str): string;
     /**
      * @method
      * @name independentreserve#fetchOrder

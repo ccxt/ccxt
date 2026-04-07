@@ -373,7 +373,7 @@ public partial class coinmetro : Exchange
             object code = this.safeCurrencyCode(id);
             object typeRaw = this.safeString(currency, "type");
             object type = null;
-            if (isTrue(isTrue(isTrue(isEqual(typeRaw, "coin")) || isTrue(isEqual(typeRaw, "token"))) || isTrue(isEqual(typeRaw, "erc20"))))
+            if (isTrue(isTrue(isTrue(isTrue(isEqual(typeRaw, "coin")) || isTrue(isEqual(typeRaw, "token"))) || isTrue(isEqual(typeRaw, "erc20"))) || isTrue(isEqual(typeRaw, "crypto"))))
             {
                 type = "crypto";
             } else if (isTrue(isEqual(typeRaw, "fiat")))

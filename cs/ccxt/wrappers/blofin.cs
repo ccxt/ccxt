@@ -537,6 +537,18 @@ public partial class blofin
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'swap' or 'spot' (defaults to 'swap'), required to fetch spot trade history
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.instId</term>
+    /// <description>
+    /// string : *spot markets only* the market id of the spot market to fetch the trade history for (e.g. 'BTC-USDT')
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.paginate</term>
     /// <description>
     /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -1028,5 +1040,25 @@ public partial class blofin
     {
         var res = await this.setPositionMode(hedged, symbol, parameters);
         return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetches the auto deleveraging rank and risk percentage for a list of symbols
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.blofin.com/index.html#get-positions"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}.</returns>
+    public async Task<List<ADL>> FetchPositionsADLRank(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionsADLRank(symbols, parameters);
+        return ((IList<object>)res).Select(item => new ADL(item)).ToList<ADL>();
     }
 }

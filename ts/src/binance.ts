@@ -4,7 +4,7 @@
 import Exchange from './abstract/binance.js';
 import { ExchangeError, ArgumentsRequired, OperationFailed, OperationRejected, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet, MarketClosed } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, Position } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, Position, ADL } from './base/types.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
@@ -66,6 +66,7 @@ export default class binance extends Exchange {
                 'editOrder': true,
                 'editOrders': true,
                 'fetchAccounts': undefined,
+                'fetchADLRank': true,
                 'fetchAllGreeks': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
@@ -135,9 +136,11 @@ export default class binance extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPositionADLRank': true,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': true,
                 'fetchPositions': true,
+                'fetchPositionsADLRank': true,
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': true,
                 'fetchPremiumIndexOHLCV': true,
@@ -1381,16 +1384,74 @@ export default class binance extends Exchange {
                 },
                 'networks': {
                     'ERC20': 'ETH',
+                    'ETH': 'ETH',
                     'TRC20': 'TRX',
+                    'TRX': 'TRX',
                     'BEP2': 'BNB',
+                    'BSC': 'BSC',
                     'BEP20': 'BSC',
-                    'OMNI': 'OMNI',
                     'EOS': 'EOS',
                     'SPL': 'SOL', // temporarily keep support for SPL (old name)
                     'SOL': 'SOL', // we shouldn't rename SOL
+                    // 'FIAT': 'FIAT_MONEY', // not unified atm
+                    // 'LEVERAGE_TOKEN': 'ETF', // not unified atm
+                    // 'STAKING': 'STAKING', // not unified atm
+                    'ARBONE': 'ARBITRUM',
+                    'AVAXC': 'AVAXC',
+                    'MATIC': 'MATIC',
+                    'BASE': 'BASE',
+                    'SUI': 'SUI',
+                    'OP': 'OPTIMISM',
+                    'OPTIMISM': 'OPTIMISM',
+                    'NEAR': 'NEAR',
+                    'APT': 'APT',
+                    'SCROLL': 'SCROLL',
+                    'KAVA': 'KAVA',
+                    'XLM': 'XLM',
+                    // BLAST - not supported
+                    // LINEA - not supported
+                    // CRO - not supported
+                    // TAIKO - not supported
+                    'RSK': 'RSK', // RBTC
+                    'SEI': 'SEI',
+                    // MNT - not supported
+                    'TON': 'TON',
+                    'ADA': 'ADA',
+                    // HYPE - not supported
+                    // CORE - not supported
+                    'ALGO': 'ALGO',
+                    'RUNE': 'RUNE',
+                    'OSMO': 'OSMO',
+                    // XIN - not supported
+                    'CELO': 'CELO',
+                    'HBAR': 'HBAR',
+                    // FTM - renamed
+                    // WEMIX - not supported
+                    'ZKSYNCERA': 'ZKSYNCERA',
+                    'KLAY': 'KLAY',
+                    // HECO - not supported
+                    // FSN - not supported
+                    'ACA': 'ACA',
+                    'STX': 'STX', // STACKS
+                    'XTZ': 'XTZ',
+                    // 'NEO': 'NEO', // tbd NEO3
+                    'METIS': 'METIS',
+                    // TLOS - not supported
+                    'EGLD': 'EGLD',
+                    'ASTR': 'ASTR',
+                    'CFX': 'CFX',
+                    // 'GLMR': 'GLMR', GLIMMER vs MOONBEAM
+                    // CANTO - not supported
+                    'SCRT': 'SCRT',
+                    // AUR - not supported
+                    'ONT': 'ONT', // ontology
                 },
                 'networksById': {
+                    'TRX': 'TRC20',
+                    'BSC': 'BEP20',
+                    'ETH': 'ERC20',
                     'SOL': 'SOL', // temporary fix for SPL definition
+                    'OPTIMISM': 'OP',
                 },
                 'impliedNetworks': {
                     'ETH': { 'ERC20': 'ETH' },
@@ -3014,7 +3075,7 @@ export default class binance extends Exchange {
             for (let j = 0; j < networkList.length; j++) {
                 const networkItem = networkList[j];
                 const network = this.safeString (networkItem, 'network');
-                const networkCode = this.networkIdToCode (network);
+                const networkCode = this.networkIdToCode (network, code);
                 const isETF = (network === 'ETF'); // e.g. BTCUP, ETHDOWN
                 // const name = this.safeString (networkItem, 'name');
                 const withdrawFee = this.safeNumber (networkItem, 'withdrawFee');
@@ -6351,6 +6412,7 @@ export default class binance extends Exchange {
      * @param {string} [params.stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
      * @param {string} [params.positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
      * @param {bool} [params.hedged] *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
+     * @param {string} [params.clientOrderId] the clientOrderId of the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -8748,7 +8810,8 @@ export default class binance extends Exchange {
         if (internalInteger !== undefined) {
             internal = (internalInteger !== 0) ? true : false;
         }
-        const network = this.safeString (transaction, 'network');
+        const networkId = this.safeString (transaction, 'network');
+        const network = this.networkIdToCode (networkId, code);
         return {
             'info': transaction,
             'id': id,
@@ -9175,12 +9238,10 @@ export default class binance extends Exchange {
             'coin': currency['id'],
             // 'network': 'ETH', // 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
         };
-        const networks = this.safeDict (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            request['network'] = network;
-            params = this.omit (params, 'network');
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            request['network'] = this.networkCodeToId (networkCode, currency['code']);
         }
         // has support for the 'network' parameter
         const response = await this.sapiGetCapitalDepositAddress (this.extend (request, params));
@@ -9444,12 +9505,13 @@ export default class binance extends Exchange {
         //        ]
         //    }
         //
+        const code = this.safeString (currency, 'code');
         const networkList = this.safeList (fee, 'networkList', []);
         const result = this.depositWithdrawFee (fee);
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
             const networkId = this.safeString (networkEntry, 'network');
-            const networkCode = this.networkIdToCode (networkId);
+            const networkCode = this.networkIdToCode (networkId, code);
             const withdrawFee = this.safeNumber (networkEntry, 'withdrawFee');
             const isDefault = this.safeBool (networkEntry, 'isDefault');
             if (isDefault === true) {
@@ -9498,14 +9560,12 @@ export default class binance extends Exchange {
         if (tag !== undefined) {
             request['addressTag'] = tag;
         }
-        const networks = this.safeDict (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            request['network'] = network;
-            params = this.omit (params, 'network');
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            request['network'] = this.networkCodeToId (networkCode, currency['code']);
         }
-        request['amount'] = this.currencyToPrecision (code, amount, network);
+        request['amount'] = this.currencyToPrecision (currency['code'], amount, networkCode);
         const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, params));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
         return this.parseTransaction (response, currency);
@@ -14422,5 +14482,140 @@ export default class binance extends Exchange {
             'timeframe': undefined,
             'longShortRatio': this.safeNumber (info, 'longShortRatio'),
         } as LongShortRatio;
+    }
+
+    /**
+     * @method
+     * @name binance#fetchADLRank
+     * @description fetches the auto deleveraging rank and risk percentage for a symbol
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/ADL-Risk
+     * @param {string} symbol unified symbol of the market to fetch the auto deleveraging rank for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+     */
+    async fetchADLRank (symbol: string, params = {}): Promise<ADL> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchADLRank', market, params);
+        let response = undefined;
+        if (subType === 'linear') {
+            response = await this.fapiPublicGetSymbolAdlRisk (this.extend (request, params));
+            //
+            //     {
+            //         "symbol": "BTCUSDT",
+            //         "adlRisk": "LOW",
+            //         "updateTime": 1766827800453
+            //     }
+            //
+        } else {
+            throw new BadRequest (this.id + ' fetchADLRank() supports linear subTypes only');
+        }
+        return this.parseADLRank (response, market);
+    }
+
+    /**
+     * @method
+     * @name binance#fetchPositionsADLRank
+     * @description fetches the auto deleveraging rank and risk percentage for a list of symbols that have open positions
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation
+     * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Position-ADL-Quantile-Estimation
+     * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Position-ADL-Quantile-Estimation
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.portfolioMargin] set to true for the portfolio margin account
+     * @returns {object[]} an array of [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+     */
+    async fetchPositionsADLRank (symbols: Strings = undefined, params = {}): Promise<ADL[]> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        const market = this.getMarketFromSymbols (symbols);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionsADLRank', market, params);
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchPositionsADLRank', 'papi', 'portfolioMargin', false);
+        let response = undefined;
+        if (subType === 'linear') {
+            if (isPortfolioMargin) {
+                response = await this.papiGetUmAdlQuantile (params);
+            } else {
+                response = await this.fapiPrivateGetAdlQuantile (params);
+            }
+        } else if (subType === 'inverse') {
+            if (isPortfolioMargin) {
+                response = await this.papiGetCmAdlQuantile (params);
+            } else {
+                response = await this.dapiPrivateGetAdlQuantile (params);
+            }
+        } else {
+            throw new BadRequest (this.id + ' fetchPositionsADLRank() supports linear and inverse subTypes only');
+        }
+        //
+        //     [
+        //         {
+        //             "symbol": "BTCUSDT",
+        //             "adlQuantile": {
+        //                 "LONG": 0,
+        //                 "SHORT": 0,
+        //                 "BOTH": 1
+        //             }
+        //         }
+        //     ]
+        //
+        return this.parseADLRanks (response, symbols);
+    }
+
+    parseADLRank (info: Dict, market: Market = undefined): ADL {
+        //
+        // fetchADLRank
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "adlRisk": "LOW",
+        //         "updateTime": 1766827800453
+        //     }
+        //
+        // fetchPositionADLRank
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "adlQuantile": {
+        //             "LONG": 0,
+        //             "SHORT": 0,
+        //             "BOTH": 1
+        //         }
+        //     }
+        //
+        const adlQuantile = this.safeDict (info, 'adlQuantile', {});
+        const longNum = this.safeNumber (adlQuantile, 'LONG');
+        const shortNum = this.safeNumber (adlQuantile, 'SHORT');
+        const both = this.safeNumber (adlQuantile, 'BOTH');
+        let rank = undefined;
+        if (both !== undefined) {
+            rank = both;
+        } else {
+            if (longNum !== undefined && shortNum !== undefined) {
+                if (longNum > shortNum) {
+                    rank = longNum;
+                } else {
+                    rank = shortNum;
+                }
+            }
+        }
+        const marketId = this.safeString (info, 'symbol');
+        const timestamp = this.safeInteger2 (info, 'timestamp', 'updateTime');
+        return {
+            'info': info,
+            'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
+            'rank': rank,
+            'rating': this.safeStringLower (info, 'adlRisk'),
+            'percentage': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        } as ADL;
     }
 }

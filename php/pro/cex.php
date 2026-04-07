@@ -45,6 +45,9 @@ class cex extends \ccxt\async\cex {
             ),
             'options' => array(
                 'orderbook' => array(),
+                'watchTrades' => array(
+                    'symbol' => null,
+                ),
             ),
             'streaming' => array(
             ),
@@ -138,13 +141,17 @@ class cex extends \ccxt\async\cex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
+            $currentSymbol = $this->safe_string($this->options['watchTrades'], 'symbol');
+            if ($currentSymbol !== null && $currentSymbol !== $symbol) {
+                throw new ArgumentsRequired($this->id . ' : this exchange only supports watching $trades for one $symbol per instance. You should either set .options["watchTrades"]["symbol"] to new $symbol, or create a new instance');
+            }
+            $this->options['watchTrades']['symbol'] = $symbol;
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $url = $this->urls['api']['ws'];
             $messageHash = 'trades';
             $subscriptionHash = 'old:' . $symbol;
-            $this->options['currentWatchTradeSymbol'] = $symbol; // exchange supports only 1 $symbol for this watchTrades channel
             $client = $this->safe_value($this->clients, $url);
             if ($client !== null) {
                 $subscriptionKeys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
@@ -165,10 +172,6 @@ class cex extends \ccxt\async\cex {
             );
             $request = $this->deep_extend($message, $params);
             $trades = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash));
-            // assing $symbol to the $trades does not contain $symbol information
-            for ($i = 0; $i < count($trades); $i++) {
-                $trades[$i]['symbol'] = $symbol;
-            }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
@@ -185,30 +188,14 @@ class cex extends \ccxt\async\cex {
         //         )
         //     }
         //
-        $data = $this->safe_list($message, 'data', array());
-        $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-        $stored = new ArrayCache ($limit);
-        $symbol = $this->safe_string($this->options, 'currentWatchTradeSymbol');
-        if ($symbol === null) {
-            return;
-        }
-        $market = $this->market($symbol);
-        $dataLength = count($data);
-        for ($i = 0; $i < $dataLength; $i++) {
-            $index = $dataLength - 1 - $i;
-            $rawTrade = $data[$index];
-            $parsed = $this->parse_ws_old_trade($rawTrade, $market);
-            $stored->append ($parsed);
-        }
-        $messageHash = 'trades';
-        $this->trades = $stored; // trades don't have $symbol
-        $client->resolve ($this->trades, $messageHash);
+        $this->handle_trades_inner($client, $message);
     }
 
     public function parse_ws_old_trade($trade, $market = null) {
         //
         //  snapshot $trade
         //    "sell:1665467367741:3888551:19058.8:14541219"
+        //
         //  update $trade
         //    ['buy', '1665467516704', '98070', "19057.7", "14541220"]
         //
@@ -246,18 +233,28 @@ class cex extends \ccxt\async\cex {
         //         ]
         //     }
         //
-        $data = $this->safe_value($message, 'data', array());
-        $stored = $this->trades; // to do fix this, $this->trades is not meant to be used like this
+        $this->handle_trades_inner($client, $message);
+    }
+
+    public function handle_trades_inner(Client $client, $message) {
+        $data = $this->safe_list($message, 'data', array());
+        $symbol = $this->safe_string($this->options['watchTrades'], 'symbol');
+        if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
+            $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+            $this->trades[$symbol] = new ArrayCache ($limit);
+        }
+        $stored = $this->trades[$symbol];
+        $market = $this->market($symbol);
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
             $index = $dataLength - 1 - $i;
             $rawTrade = $data[$index];
-            $parsed = $this->parse_ws_old_trade($rawTrade);
+            $parsed = $this->parse_ws_old_trade($rawTrade, $market);
             $stored->append ($parsed);
         }
         $messageHash = 'trades';
-        $this->trades = $stored;
-        $client->resolve ($this->trades, $messageHash);
+        $this->trades[$symbol] = $stored;
+        $client->resolve ($this->trades[$symbol], $messageHash);
     }
 
     public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {

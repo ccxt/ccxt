@@ -1324,10 +1324,6 @@ class paradex(Exchange, ImplicitAPI):
         }
         return self.safe_string_lower(types, type, type)
 
-    def convert_short_string(self, str: str):
-        # TODO: add stringToBase16 in exchange
-        return '0x' + self.binary_to_base16(self.base64_to_binary(self.string_to_base64(str)))
-
     def scale_number(self, num: str):
         return Precise.string_mul(num, '100000000')
 
@@ -1427,9 +1423,9 @@ class paradex(Exchange, ImplicitAPI):
         now = self.nonce()
         orderReq = {
             'timestamp': now * 1000,
-            'market': self.convert_short_string(request['market']),
+            'market': self.string_to_base16(request['market']),
             'side': '1' if (orderSide == 'BUY') else '2',
-            'orderType': self.convert_short_string(request['type']),
+            'orderType': self.string_to_base16(request['type']),
             'size': self.scale_number(request['size']),
             'price': '0' if (isMarket) else self.scale_number(request['price']),
         }

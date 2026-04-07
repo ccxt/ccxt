@@ -282,6 +282,7 @@ public partial class luno : Exchange
                     { "inverse", null },
                 } },
             } },
+            { "rollingWindowSize", 60000 },
         });
     }
 

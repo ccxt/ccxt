@@ -265,3 +265,144 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
   3. `nextFundingRate` is only supported on a few exchanges and is the predicted funding rate after the upcoming rate. This value is two funding rates from now.
 
   As an example, say it is 12:30. The `previousFundingRate` happened at 12:00 and we're looking to see what the upcoming funding rate will be by checking the `fundingRate` value. In this example, given 4-hour intervals, the `fundingRate` will happen in the future at 4:00 and the `nextFundingRate` is the predicted rate that will happen at 8:00.
+
+## How to use the Lighter Exchange in CCXT?
+
+
+Lighter is available as part of CCXT and it works similarly to any other CCXT exchange, but it has some particularities that might be confusing for some users but we will explain it in detail below. We just need to set some basic credentials and dependencies.
+
+## Credentials requirements
+
+Lighter requires the following :
+- `privateKey`: the API key private key (hex) from Lighter’s API keys page, not the l1 privateKey (https://app.lighter.xyz/apikeys)
+- `apiKeyIndex` (an integer) in `exchange.options`: the index assigned to the API key you generated (typically 0–254) you can get it from the API Keys page as well
+- `accountIndex` (an integer) in `exchange.options`: — the Lighter internal account index (master account or sub-account). Each internal account has its own API key indices. You can checking by opening this link in the browser using your l1 address https://mainnet.zklighter.elliot.ai/api/v1/accountsByL1Address?l1_address=0xYOUR_ADDRESS_here
+
+
+
+![image](https://github.com/user-attachments/assets/f50602be-31eb-497c-a6df-e9b2803defdf)
+
+Example
+
+```Python
+lighter = ccxt.lighter({
+	'privateKey': 'XXXXXXX',
+	'options': {
+		'apiKeyIndex': 3,
+		'accountIndex': 715085
+	}
+})
+```
+
+### Dependencies requirements
+
+Since the signing algorithms and structs are not supported natively in all languages CCXT is using the officially distributed binaries and interacting with them in order to do the signing process (via FFI/WASM), so depending on the language you need to provide a path for that binary.
+
+### Python/C#/PHP users:
+
+- The binaries can be downloaded here: https://github.com/elliottech/lighter-python/tree/main/lighter/signers
+- The path to the binary needs to be provided as `libraryPath`
+- You need to choose the binary according to your OS/architecture
+
+```Python
+lighter = ccxt.lighter({
+	'options': {
+		'libraryPath': 'path/to/lighter-signer-linux-arm64.so',
+	}
+})
+```
+
+### Javascript/Typescript users
+
+- CCXT is using the WASM binary built from the official package and it can be downloaded here https://github.com/ccxt/lighter-wasm or built from the source
+- You also need to provide the path to `exec_wasm.js`, you can either download it from the same repo or check the path to your local file (assuming Go is installed)
+
+```Javacript
+lighter = ccxt.lighter({
+	'options': {
+		'libraryPath': '/user/cjg/Git/lighter-wasm/lighter.wasm',
+		'wasmExecPath': '/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js'
+	}
+})
+```
+
+### GO users
+
+- Nothing is required, CCXT is consuming the official GO package you just need to provide the credentials
+
+
+## How to use the DyDx Exchange in CCXT?
+
+DyDx is available as part of CCXT and it works similarly to any other CCXT exchange, but it has some particularities that might be confusing for some users but we will explain it in detail below. We just need to set some basic credentials and dependencies.
+
+Due to current signing-related dependency requirements, the exchange is available only in Python and JavaScript. Support for additional languages will be introduced once the necessary dependencies have been ported.
+
+
+## Credentials requirements
+
+DyDx requires one of the following :
+- `privateKey`: the l1 private key (hex) used on dydx, or you can set l2 mnemonic in options
+- `mnemonic` in `exchange.options`: the 24 words to retrieve your l2 private key, you can find it on the web UI
+
+Example
+
+```Python
+dydx = ccxt.dydx({
+	'privateKey': 'XXXXXXX',
+})
+
+# or
+dydx = ccxt.dydx({
+	'options': {
+		'mnemonic': 'test test ...',
+	}
+})
+```
+
+### Dependencies requirements
+
+DyDx requires another dependency for python users. Before use it, you need to install pycryptodom locally.
+
+```BASH
+$ pip3 install pycryptodom
+```
+
+
+Additionally, protobuf is also required, but it is not a direct dependency of CCXT. You will need to install it manually:
+
+```
+npm install protobufjs // javascript/typescript
+pip install "protobuf==5.29.5" // python
+```
+
+### Usage
+
+Usage is largely consistent with other exchanges, though certain behaviors differ.
+
+For example, while orders can be placed normally, cancelling an order on dYdX does not use the traditional orderId. Instead, dYdX requires additional fields such as:
+
+- clientOrderId, not the orderId
+- orderFlags (0 for market and non-limit GTT orders, 64 for limit GTT orders, and 32 for conditional orders), ccxt assumes 64 as default
+- goodTillBlockTimeInSeconds (required for long-term and conditional orders; CCXT assumes a default of 30 days)
+- subAccountId, ccxt assumes 0 as default
+
+CCXT provides sensible defaults for the most common use cases; however, you may need to override these values (using params or options) depending on your specific requirements.
+
+### How to use the GRVT Exchange in CCXT?
+
+GRVT works similarly to any other CCXT DEX and only requires the l1 private key of the wallet.
+
+An example on how to instantiate the GRVT exchange:
+
+```
+exchange = ccxt.grvt({
+	'privateKey': 'XXXXXXX', // the l1 private key (hex)
+})
+```
+
+CCXT is also a builder on GRVT meaning that by default users will pay 1bps (0.01%) extra for using it through CCXT, however this fee is totally optional and can be disabled by providing the option `builderFee: False` in options. Your contribution is much appreciated.
+
+```
+exchange.options['builderFee'] = False
+```
+

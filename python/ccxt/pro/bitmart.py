@@ -7,11 +7,12 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 from ccxt.async_support.base.ws.order_book_side import Asks, Bids
 import hashlib
-from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
 
 
@@ -29,6 +30,8 @@ class bitmart(ccxt.async_support.bitmart):
                 'cancelAllOrdersWs': False,
                 'ws': True,
                 'watchBalance': True,
+                'watchFundingRate': True,
+                'watchFundingRates': True,
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchBidsAsks': True,
@@ -1638,6 +1641,67 @@ class bitmart(ccxt.async_support.bitmart):
         params = self.extend(params, {'unsubscribe': True})
         return await self.subscribe_multiple(channel, type, symbols, params)
 
+    async def watch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+        """
+        watch the current funding rate
+
+        https://developer-pro.bitmart.com/en/futuresv2/#public-funding-rate-channel
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
+        """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
+        fundingRate = await self.watch_funding_rates([symbol], params)
+        return fundingRate[symbol]
+
+    async def watch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+        """
+        watch the funding rate for multiple markets
+
+        https://developer-pro.bitmart.com/en/futuresv2/#public-funding-rate-channel
+
+        :param str[] symbols: a list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-structure>`, indexed by market symbols
+        """
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' watchFundingRates() requires an array of symbols')
+        await self.load_markets()
+        market = self.get_market_from_symbols(symbols)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('watchFundingRates', market, params)
+        fundingRate = await self.subscribe_multiple('fundingRate', marketType, symbols, params)
+        if self.newUpdates:
+            fundingRates: dict = {}
+            fundingRates[fundingRate['symbol']] = fundingRate
+            return fundingRates
+        return self.filter_by_array(self.fundingRates, 'symbol', symbols)
+
+    def handle_funding_rate(self, client: Client, message):
+        #
+        #     {
+        #         "data": {
+        #             "symbol": "BTCUSDT",
+        #             "fundingRate": "0.0000561",
+        #             "fundingTime": 1770978448000,
+        #             "nextFundingRate": "-0.0000195",
+        #             "nextFundingTime": 1770998400000,
+        #             "funding_upper_limit": "0.0375",
+        #             "funding_lower_limit": "-0.0375",
+        #             "ts": 1770978448970
+        #         },
+        #         "group": "futures/fundingRate:BTCUSDT"
+        #     }
+        #
+        data = self.safe_dict(message, 'data', {})
+        fundingRate = self.parse_funding_rate(data)
+        symbol = fundingRate['symbol']
+        self.fundingRates[symbol] = fundingRate
+        messageHash = 'fundingRate:' + symbol
+        client.resolve(fundingRate, messageHash)
+
     async def authenticate(self, type, params={}):
         self.check_required_credentials()
         url = self.implode_hostname(self.urls['api']['ws'][type]['private'])
@@ -1906,6 +1970,8 @@ class bitmart(ccxt.async_support.bitmart):
                 'balance': self.handle_balance,
                 'asset': self.handle_balance,
             }
+            if channel.find('fundingRate') >= 0:
+                self.handle_funding_rate(client, message)
             keys = list(methods.keys())
             for i in range(0, len(keys)):
                 key = keys[i]

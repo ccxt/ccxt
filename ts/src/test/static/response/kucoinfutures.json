@@ -3,6 +3,59 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchFundingRate": [
+            {
+                "description": "fetch funding rate",
+                "method": "fetchFundingRate",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "symbol": ".ETHUSDTMFPI8H",
+                        "granularity": 28800000,
+                        "timePoint": 1773273600000,
+                        "value": -0.000028,
+                        "dailyInterestRate": 0.0003,
+                        "fundingRateCap": 0.00375,
+                        "fundingRateFloor": -0.00375,
+                        "period": 1,
+                        "fundingTime": 1773302400000
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": ".ETHUSDTMFPI8H",
+                        "granularity": 28800000,
+                        "timePoint": 1773273600000,
+                        "value": -0.000028,
+                        "dailyInterestRate": 0.0003,
+                        "fundingRateCap": 0.00375,
+                        "fundingRateFloor": -0.00375,
+                        "period": 1,
+                        "fundingTime": 1773302400000
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": 0.0003,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": -0.000028,
+                    "fundingTimestamp": 1773302400000,
+                    "fundingDatetime": "2026-03-12T08:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": 1773273600000,
+                    "previousFundingDatetime": "2026-03-12T00:00:00.000Z",
+                    "interval": "8h"
+                }
+            }
+        ],
         "fetchOpenOrders": [
             {
                 "description": "Fetch open orders",
@@ -131,7 +184,7 @@
         ],
         "fetchMyTrades": [
             {
-                "description": "fethc swap trade",
+                "description": "fetch swap trade",
                 "method": "fetchMyTrades",
                 "input": [
                     "LTC/USDT:USDT"
@@ -332,51 +385,6 @@
                     "fees": [],
                     "takeProfitPrice": null,
                     "stopLossPrice": null
-                }
-            }
-        ],
-        "fetchFundingRate": [
-            {
-                "description": "funding rate",
-                "method": "fetchFundingRate",
-                "input": [
-                    "BTC/USDT:USDT"
-                ],
-                "httpResponse": {
-                    "code": "200000",
-                    "data": {
-                        "symbol": ".XBTUSDTMFPI8H",
-                        "granularity": 28800000,
-                        "timePoint": 1705896000000,
-                        "value": 0.000136,
-                        "predictedValue": 0.00008
-                    }
-                },
-                "parsedResponse": {
-                    "info": {
-                        "symbol": ".XBTUSDTMFPI8H",
-                        "granularity": 28800000,
-                        "timePoint": 1705896000000,
-                        "value": 0.000136,
-                        "predictedValue": 0.00008
-                    },
-                    "symbol": "BTC/USDT:USDT",
-                    "markPrice": null,
-                    "indexPrice": null,
-                    "interestRate": null,
-                    "estimatedSettlePrice": null,
-                    "timestamp": null,
-                    "datetime": null,
-                    "fundingRate": 0.000136,
-                    "fundingTimestamp": 1705896000000,
-                    "fundingDatetime": "2024-01-22T04:00:00.000Z",
-                    "nextFundingRate": 0.00008,
-                    "nextFundingTimestamp": null,
-                    "nextFundingDatetime": null,
-                    "previousFundingRate": null,
-                    "previousFundingTimestamp": null,
-                    "previousFundingDatetime": null,
-                    "interval": "8h"
                 }
             }
         ],
@@ -787,6 +795,106 @@
                     "data": {
                         "positionMode": 0
                     }
+                }
+            }
+        ],
+        "fetchPositionADLRank": [
+            {
+                "description": "linear swap fetch position adl rank",
+                "method": "fetchPositionADLRank",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        {
+                            "id": "600000000001260912",
+                            "symbol": "XBTUSDTM",
+                            "crossMode": true,
+                            "maintMarginReq": 0.0040000133,
+                            "delevPercentage": 0.21,
+                            "openingTimestamp": 1768481882915,
+                            "currentTimestamp": 1768482325065,
+                            "currentQty": 1,
+                            "currentCost": 96.9768,
+                            "currentComm": 0.05818608,
+                            "unrealisedCost": 96.9768,
+                            "realisedGrossCost": 0,
+                            "realisedCost": 0.05818608,
+                            "isOpen": true,
+                            "markPrice": 96927.6,
+                            "markValue": 96.9276,
+                            "posCost": 96.9768,
+                            "posInit": 4.84884,
+                            "posMargin": 4.84638,
+                            "posMaint": 0.3877116892,
+                            "realisedGrossPnl": 0,
+                            "realisedPnl": -0.05818608,
+                            "unrealisedPnl": -0.0492,
+                            "unrealisedPnlPcnt": -0.0005,
+                            "unrealisedRoePcnt": -0.0101,
+                            "avgEntryPrice": 96976.8,
+                            "liquidationPrice": 52351.69,
+                            "bankruptPrice": 52110.87,
+                            "settleCurrency": "USDT",
+                            "isInverse": false,
+                            "maintainMargin": 0.0040000133,
+                            "marginMode": "CROSS",
+                            "positionSide": "LONG",
+                            "leverage": 20,
+                            "dealComm": -0.05818608,
+                            "fundingFee": 0,
+                            "tax": 0
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "id": "600000000001260912",
+                        "symbol": "XBTUSDTM",
+                        "crossMode": true,
+                        "maintMarginReq": 0.0040000133,
+                        "delevPercentage": 0.21,
+                        "openingTimestamp": 1768481882915,
+                        "currentTimestamp": 1768482325065,
+                        "currentQty": 1,
+                        "currentCost": 96.9768,
+                        "currentComm": 0.05818608,
+                        "unrealisedCost": 96.9768,
+                        "realisedGrossCost": 0,
+                        "realisedCost": 0.05818608,
+                        "isOpen": true,
+                        "markPrice": 96927.6,
+                        "markValue": 96.9276,
+                        "posCost": 96.9768,
+                        "posInit": 4.84884,
+                        "posMargin": 4.84638,
+                        "posMaint": 0.3877116892,
+                        "realisedGrossPnl": 0,
+                        "realisedPnl": -0.05818608,
+                        "unrealisedPnl": -0.0492,
+                        "unrealisedPnlPcnt": -0.0005,
+                        "unrealisedRoePcnt": -0.0101,
+                        "avgEntryPrice": 96976.8,
+                        "liquidationPrice": 52351.69,
+                        "bankruptPrice": 52110.87,
+                        "settleCurrency": "USDT",
+                        "isInverse": false,
+                        "maintainMargin": 0.0040000133,
+                        "marginMode": "CROSS",
+                        "positionSide": "LONG",
+                        "leverage": 20,
+                        "dealComm": -0.05818608,
+                        "fundingFee": 0,
+                        "tax": 0
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "rank": null,
+                    "rating": null,
+                    "percentage": 21,
+                    "timestamp": 1768481882915,
+                    "datetime": "2026-01-15T12:58:02.915Z"
                 }
             }
         ]

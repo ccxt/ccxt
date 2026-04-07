@@ -10,7 +10,8 @@ public partial class kucoin
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/market-snapshot"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470063w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470081w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -30,7 +31,9 @@ public partial class kucoin
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/ticker"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470063w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470064w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470081w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -41,7 +44,7 @@ public partial class kucoin
     /// <item>
     /// <term>params.method</term>
     /// <description>
-    /// string : either '/market/snapshot' or '/market/ticker' default is '/market/ticker'
+    /// string : *spot markets only* either '/market/snapshot' or '/market/ticker' default is '/market/ticker'
     /// </description>
     /// </item>
     /// </list>
@@ -56,7 +59,8 @@ public partial class kucoin
     /// watches best bid & ask for symbols
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470067w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470080w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -81,7 +85,8 @@ public partial class kucoin
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/klines"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470071w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470086w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -115,7 +120,8 @@ public partial class kucoin
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470072w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470084w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -149,7 +155,8 @@ public partial class kucoin
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470072w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470084w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -219,10 +226,12 @@ public partial class kucoin
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470069w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470070w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470068w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470083w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470097w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470082w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -234,12 +243,6 @@ public partial class kucoin
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.method</term>
-    /// <description>
-    /// string : either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
     /// </description>
     /// </item>
     /// </list>
@@ -255,8 +258,10 @@ public partial class kucoin
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/private-channels/stop-order-event"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470074w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470139w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470090w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470091w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -282,6 +287,12 @@ public partial class kucoin
     /// boolean : trigger orders are watched if true
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'spot' or 'swap' (default is 'spot' if symbol is not provided)
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
@@ -293,10 +304,11 @@ public partial class kucoin
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
-    /// watches information on multiple trades made by the user
+    /// watches information on multiple trades made by the user on spot
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470074w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470090w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -319,7 +331,7 @@ public partial class kucoin
     /// <item>
     /// <term>params.method</term>
     /// <description>
-    /// string : '/spotMarket/tradeOrders' or '/spot/tradeFills' default is '/spotMarket/tradeOrders'
+    /// string : '/spotMarket/tradeOrders' or '/spot/tradeFills' or '/contractMarket/tradeOrders', default is '/spotMarket/tradeOrders'
     /// </description>
     /// </item>
     /// </list>
@@ -336,12 +348,19 @@ public partial class kucoin
     /// watch balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/private-channels/account-balance-change"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470075w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470092w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'spot' or 'swap' (default is 'spot')
     /// </description>
     /// </item>
     /// </list>
@@ -351,5 +370,19 @@ public partial class kucoin
     {
         var res = await this.watchBalance(parameters);
         return new Balances(res);
+    }
+    /// <summary>
+    /// watch open positions for a specific symbol
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/3470093w0"/>  <br/>
+    /// <list type="table">
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}.</returns>
+    public async Task<Position> WatchPosition(string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchPosition(symbol, parameters);
+        return new Position(res);
     }
 }

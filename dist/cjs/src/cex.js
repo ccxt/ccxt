@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class cex
@@ -245,6 +245,7 @@ class cex extends cex$1["default"] {
                     'Get deposit address for main account is not allowed': errors.PermissionDenied,
                     'Market Trigger orders are not allowed': errors.BadRequest,
                     'key not passed or incorrect': errors.AuthenticationError,
+                    'API rate limit reached': errors.RateLimitExceeded, // {"error":"API rate limit reached"}
                 },
             },
             'timeframes': {

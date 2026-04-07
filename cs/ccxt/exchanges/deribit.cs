@@ -17,7 +17,7 @@ public partial class deribit : Exchange
             { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", true },
-                { "spot", false },
+                { "spot", true },
                 { "margin", false },
                 { "swap", true },
                 { "future", true },

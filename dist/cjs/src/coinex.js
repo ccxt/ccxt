@@ -9,7 +9,7 @@ var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var md5 = require('./static_dependencies/noble-hashes/md5.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class coinex
@@ -681,6 +681,7 @@ class coinex extends coinex$1["default"] {
                     'Service is not available during funding fee settlement': errors.OperationFailed,
                 },
             },
+            'rollingWindowSize': 1000.0, // docs say 1000.0: https://docs.coinex.com/api/v2/rate-limit#ip-rate-limit, tested with 60000.0 and received no errors
         });
     }
     /**

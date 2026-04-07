@@ -556,7 +556,7 @@ function exportBuilderCodeExchanges(exchangePath, exchanges) {
 
     const beginning = "<!--- init builder codes list --->\n";
     const allExchangesReplacement = beginning + table + "\n<!--- end list -->"
-    const allExchangesRegex = new RegExp (/<!--- init builder codes list -->([\s\S]*?)<!--- end list -->/)
+    const allExchangesRegex = new RegExp (/<!--- init builder codes list --->([\s\S]*?)<!--- end list -->/)
 
     logExportExchanges (exchangePath, allExchangesRegex, allExchangesReplacement)
 }

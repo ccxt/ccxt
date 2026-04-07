@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class hollaex
@@ -640,7 +640,7 @@ class hollaex extends hollaex$1["default"] {
         //         "low": 8607,
         //         "last": 8841.05,
         //         "volume": 20.2802,
-        //         "timestamp": "2020-03-03T03:11:18.964Z"
+        //         "timestamp": "2020-03-03T03:11:18.965Z"
         //     }
         //
         return this.parseTicker(response, market);

@@ -99,8 +99,10 @@ class blofin extends Exchange {
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionADLRank' => true,
                 'fetchPositionMode' => true,
                 'fetchPositions' => true,
+                'fetchPositionsADLRank' => true,
                 'fetchPositionsForSymbol' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -173,35 +175,52 @@ class blofin extends Exchange {
                         'market/tickers' => 1,
                         'market/books' => 1,
                         'market/trades' => 1,
-                        'market/candles' => 1,
                         'market/mark-price' => 1,
                         'market/funding-rate' => 1,
                         'market/funding-rate-history' => 1,
+                        'market/candles' => 1,
+                        'market/index-candles' => 1,
+                        'market/mark-price-candles' => 1,
+                        'market/position-tiers' => 1,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
+                        // account
                         'asset/balances' => 1,
-                        'trade/orders-pending' => 1,
-                        'trade/fills-history' => 1,
-                        'asset/deposit-history' => 1,
-                        'asset/withdrawal-history' => 1,
                         'asset/bills' => 1,
+                        'asset/withdrawal-history' => 1,
+                        'asset/deposit-history' => 1,
+                        'account/config' => 1,
+                        'asset/currencies' => 1,
+                        // trading
                         'account/balance' => 1,
                         'account/positions' => 1,
-                        'account/leverage-info' => 1,
+                        'account/positions-history' => 1,
                         'account/margin-mode' => 1,
                         'account/position-mode' => 1,
+                        'account/leverage-info' => 1,
                         'account/batch-leverage-info' => 1,
+                        'trade/orders-pending' => 1,
+                        'trade/order-detail' => 1,
                         'trade/orders-tpsl-pending' => 1,
+                        'trade/order-tpsl-detail' => 1,
                         'trade/orders-algo-pending' => 1,
                         'trade/orders-history' => 1,
                         'trade/orders-tpsl-history' => 1,
                         'trade/orders-algo-history' => 1, // todo new
+                        'trade/fills-history' => 1,
                         'trade/order/price-range' => 1,
-                        'user/query-apikey' => 1,
+                        // affiliate
                         'affiliate/basic' => 1,
+                        'affiliate/referral-code' => 1,
+                        'affiliate/invitees' => 1,
+                        'affiliate/sub-invitees' => 1,
+                        'affiliate/sub-affiliates' => 1,
+                        'affiliate/invitees/daily/info' => 1,
+                        // copy trading
                         'copytrading/instruments' => 1,
+                        'copytrading/config' => 1,
                         'copytrading/account/balance' => 1,
                         'copytrading/account/positions-by-order' => 1,
                         'copytrading/account/positions-details-by-order' => 1,
@@ -213,21 +232,29 @@ class blofin extends Exchange {
                         'copytrading/trade/position-history-by-order' => 1,
                         'copytrading/trade/orders-history' => 1,
                         'copytrading/trade/pending-tpsl-by-order' => 1,
+                        // user
+                        'user/query-apikey' => 1,
+                        // tax
+                        'spot/trade/fills-history' => 1,
                     ),
                     'post' => array(
+                        // account
+                        'asset/transfer' => 1,
+                        'asset/demo-apply-money' => 1,
+                        // trading
                         'account/set-margin-mode' => 1,
                         'account/set-position-mode' => 1,
-                        'trade/order' => 1,
-                        'trade/order-algo' => 1,
-                        'trade/cancel-order' => 1,
-                        'trade/cancel-algo' => 1,
                         'account/set-leverage' => 1,
+                        'trade/order' => 1,
                         'trade/batch-orders' => 1,
                         'trade/order-tpsl' => 1,
+                        'trade/order-algo' => 1,
+                        'trade/cancel-order' => 1,
                         'trade/cancel-batch-orders' => 1,
                         'trade/cancel-tpsl' => 1,
+                        'trade/cancel-algo' => 1,
                         'trade/close-position' => 1,
-                        'asset/transfer' => 1,
+                        // copy trading
                         'copytrading/account/set-position-mode' => 1,
                         'copytrading/account/set-leverage' => 1,
                         'copytrading/trade/place-order' => 1,
@@ -767,6 +794,21 @@ class blofin extends Exchange {
         //       "brokerId" => ""
         //   }
         //
+        // fetchMyTrades spot
+        //     {
+        //         "instId" => "DOGE-USDT",
+        //         "tradeId" => "6000001623870",
+        //         "orderId" => "6000011777113",
+        //         "fillPrice" => "0.091480000000000000",
+        //         "fillSize" => "30.000000000000000000",
+        //         "fillPnl" => null,
+        //         "side" => "buy",
+        //         "fee" => "0.030000000000000000",
+        //         "ts" => "1775213753407",
+        //         "brokerId" => null,
+        //         "feeCurrency" => "base_currency"
+        //     }
+        //
         $id = $this->safe_string($trade, 'tradeId');
         $marketId = $this->safe_string($trade, 'instId');
         $market = $this->safe_market($marketId, $market, '-');
@@ -778,27 +820,60 @@ class blofin extends Exchange {
         $orderId = $this->safe_string($trade, 'orderId');
         $feeCost = $this->safe_string($trade, 'fee');
         $fee = null;
+        $feeCurrency = $this->safe_string($trade, 'feeCurrency');
+        $isSpot = $feeCurrency !== null;
+        if ($feeCurrency === null) {
+            $feeCurrency = $market['settle'];
+        } elseif ($feeCurrency === 'base_currency') {
+            $feeCurrency = $market['base'];
+        } elseif ($feeCurrency === 'quote_currency') {
+            $feeCurrency = $market['quote'];
+        }
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,
-                'currency' => $market['settle'],
+                'currency' => $feeCurrency,
             );
         }
-        return $this->safe_trade(array(
-            'info' => $trade,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
-            'id' => $id,
-            'order' => $orderId,
-            'type' => null,
-            'takerOrMaker' => null,
-            'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => null,
-            'fee' => $fee,
-        ), $market);
+        if ($isSpot) {
+            $spotSymbol = $market['base'] . '/' . $market['quote'];
+            $cost = $this->parse_number(Precise::string_mul($price, $amount));
+            $result = array(
+                'info' => $trade,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'symbol' => $spotSymbol,
+                'id' => $id,
+                'order' => $orderId,
+                'type' => null,
+                'takerOrMaker' => null,
+                'side' => $side,
+                'price' => $this->parse_number($price),
+                'amount' => $this->parse_number($amount),
+                'cost' => $cost,
+                'fee' => array(
+                    'cost' => $this->parse_number($feeCost),
+                    'currency' => $feeCurrency,
+                ),
+            );
+            return $result;
+        } else {
+            return $this->safe_trade(array(
+                'info' => $trade,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'symbol' => $symbol,
+                'id' => $id,
+                'order' => $orderId,
+                'type' => null,
+                'takerOrMaker' => null,
+                'side' => $side,
+                'price' => $price,
+                'amount' => $amount,
+                'cost' => null,
+                'fee' => $fee,
+            ), $market);
+        }
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -1613,6 +1688,8 @@ class blofin extends Exchange {
          * @param {int} [$limit] the maximum number of trades structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] Timestamp in ms of the latest time to retrieve trades for
+         * @param {string} [$params->type] 'swap' or 'spot' (defaults to 'swap'), required to fetch spot trade history
+         * @param {string} [$params->instId] *spot markets only* the $market id of the spot $market to fetch the trade history for (e.g. 'BTC-USDT')
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
@@ -1633,7 +1710,36 @@ class blofin extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100
         }
-        $response = $this->privateGetTradeFillsHistory ($this->extend($request, $params));
+        $type = 'swap';
+        list($type, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params, $type);
+        $response = null;
+        if ($type === 'spot') {
+            $request['instType'] = 'SPOT';
+            //
+            //     {
+            //         "code" => "0",
+            //         "msg" => "success",
+            //         "data" => array(
+            //             {
+            //                 "instId" => "DOGE-USDT",
+            //                 "tradeId" => "6000001623870",
+            //                 "orderId" => "6000011777113",
+            //                 "fillPrice" => "0.091480000000000000",
+            //                 "fillSize" => "30.000000000000000000",
+            //                 "fillPnl" => null,
+            //                 "side" => "buy",
+            //                 "fee" => "0.030000000000000000",
+            //                 "ts" => "1775213753407",
+            //                 "brokerId" => null,
+            //                 "feeCurrency" => "base_currency"
+            //             }
+            //         )
+            //     }
+            //
+            $response = $this->privateGetSpotTradeFillsHistory ($this->extend($request, $params));
+        } else {
+            $response = $this->privateGetTradeFillsHistory ($this->extend($request, $params));
+        }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
     }
@@ -1762,7 +1868,7 @@ class blofin extends Exchange {
         //     {
         //         "currency" => "USDT",
         //         "chain" => "TRC20",
-        //         "address" => "TGfJLtnsh3B9EqekFEBZ1nR14QanBUf5Bi",
+        //         "address" => "TGfJLtnsh3B9EqekFEBZ1nR14QanBUf5Be",
         //         "txId" => "892f4e0c32268b29b2e541ef30d32a30bbf10f902adcc4b1428319ed7c3758fd",
         //         "type" => "0",
         //         "amount" => "86.975843",
@@ -2523,6 +2629,91 @@ class blofin extends Exchange {
         //     }
         //
         return $this->privatePostAccountSetPositionMode ($this->extend($request, $params));
+    }
+
+    public function fetch_positions_adl_rank(?array $symbols = null, $params = array ()): array {
+        /**
+         * fetches the auto deleveraging rank and risk percentage for a list of $symbols
+         *
+         * @see https://docs.blofin.com/index.html#get-positions
+         *
+         * @param {string[]} [$symbols] a list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structures~
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        $response = $this->privateGetAccountPositions ($params);
+        //
+        //     {
+        //         "code" => "0",
+        //         "msg" => "success",
+        //         "data" => array(
+        //             {
+        //                 "positionId" => "756786",
+        //                 "instId" => "BTC-USDT",
+        //                 "instType" => "SWAP",
+        //                 "marginMode" => "cross",
+        //                 "positionSide" => "net",
+        //                 "adl" => "1",
+        //                 "positions" => "0.1",
+        //                 "availablePositions" => "0.1",
+        //                 "averagePrice" => "88564.9",
+        //                 "markPrice" => "88546.3696492756",
+        //                 "marginRatio" => "822.305183525552961566",
+        //                 "liquidationPrice" => "",
+        //                 "unrealizedPnl" => "-0.00185303507244",
+        //                 "unrealizedPnlRatio" => "-0.000627687178252332",
+        //                 "initialMargin" => "2.951545654975853333",
+        //                 "maintenanceMargin" => "0.02656391089478268",
+        //                 "createTime" => "1767169876207",
+        //                 "updateTime" => "1767169876207",
+        //                 "leverage" => "3"
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_adl_ranks($data, $symbols);
+    }
+
+    public function parse_adl_rank(array $info, ?array $market = null): array {
+        //
+        // fetchPositionsADLRank
+        //
+        //     {
+        //         "positionId" => "756786",
+        //         "instId" => "BTC-USDT",
+        //         "instType" => "SWAP",
+        //         "marginMode" => "cross",
+        //         "positionSide" => "net",
+        //         "adl" => "1",
+        //         "positions" => "0.1",
+        //         "availablePositions" => "0.1",
+        //         "averagePrice" => "88564.9",
+        //         "markPrice" => "88546.3696492756",
+        //         "marginRatio" => "822.305183525552961566",
+        //         "liquidationPrice" => "",
+        //         "unrealizedPnl" => "-0.00185303507244",
+        //         "unrealizedPnlRatio" => "-0.000627687178252332",
+        //         "initialMargin" => "2.951545654975853333",
+        //         "maintenanceMargin" => "0.02656391089478268",
+        //         "createTime" => "1767169876207",
+        //         "updateTime" => "1767169876207",
+        //         "leverage" => "3"
+        //     }
+        //
+        $marketId = $this->safe_string($info, 'instId');
+        $timestamp = $this->safe_integer_omit_zero($info, 'createTime');
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
+            'rank' => $this->safe_integer($info, 'adl'),
+            'rating' => null,
+            'percentage' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {

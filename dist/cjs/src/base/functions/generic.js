@@ -19,10 +19,16 @@ const arrayConcat = (a, b) => a.concat(b);
 const inArray = (needle, haystack) => haystack.includes(needle);
 const toArray = (object) => Object.values(object);
 const isEmpty = (object) => {
-    if (!object) {
+    if (object === null || object === undefined) {
         return true;
     }
-    return (Array.isArray(object) ? object : Object.keys(object)).length < 1;
+    if (Array.isArray(object)) {
+        return object.length < 1;
+    }
+    if (type.isDictionary(object)) {
+        return Object.keys(object).length < 1;
+    }
+    return false;
 };
 const keysort = (x, out = {}) => {
     for (const k of keys(x).sort()) {
@@ -175,6 +181,7 @@ const deepExtend = function (...args) {
     }
     return result;
 };
+// better "merge" func resides in static_dependencies/qs/utils.js
 const merge = (target, ...args) => {
     // doesn't overwrite defined keys with undefined
     const overwrite = {};

@@ -7,110 +7,110 @@
 
 package ccxt
 
-func (this *ApexCore) PublicGetV3Symbols (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV3Symbols", args...)
+func (this *ApexCore) PublicGetV3Symbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV3Symbols", args...)
 }
 
-func (this *ApexCore) PublicGetV3HistoryFunding (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV3HistoryFunding", args...)
+func (this *ApexCore) PublicGetV3HistoryFunding(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV3HistoryFunding", args...)
 }
 
-func (this *ApexCore) PublicGetV3Ticker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV3Ticker", args...)
+func (this *ApexCore) PublicGetV3Ticker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV3Ticker", args...)
 }
 
-func (this *ApexCore) PublicGetV3Klines (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV3Klines", args...)
+func (this *ApexCore) PublicGetV3Klines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV3Klines", args...)
 }
 
-func (this *ApexCore) PublicGetV3Trades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV3Trades", args...)
+func (this *ApexCore) PublicGetV3Trades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV3Trades", args...)
 }
 
-func (this *ApexCore) PublicGetV3Depth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV3Depth", args...)
+func (this *ApexCore) PublicGetV3Depth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV3Depth", args...)
 }
 
-func (this *ApexCore) PublicGetV3Time (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV3Time", args...)
+func (this *ApexCore) PublicGetV3Time(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV3Time", args...)
 }
 
-func (this *ApexCore) PublicGetV3DataAllTickerInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV3DataAllTickerInfo", args...)
+func (this *ApexCore) PublicGetV3DataAllTickerInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV3DataAllTickerInfo", args...)
 }
 
-func (this *ApexCore) PrivateGetV3Account (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV3Account", args...)
+func (this *ApexCore) PrivateGetV3Account(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV3Account", args...)
 }
 
-func (this *ApexCore) PrivateGetV3AccountBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV3AccountBalance", args...)
+func (this *ApexCore) PrivateGetV3AccountBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV3AccountBalance", args...)
 }
 
-func (this *ApexCore) PrivateGetV3Fills (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV3Fills", args...)
+func (this *ApexCore) PrivateGetV3Fills(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV3Fills", args...)
 }
 
-func (this *ApexCore) PrivateGetV3OrderFills (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV3OrderFills", args...)
+func (this *ApexCore) PrivateGetV3OrderFills(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV3OrderFills", args...)
 }
 
-func (this *ApexCore) PrivateGetV3Order (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV3Order", args...)
+func (this *ApexCore) PrivateGetV3Order(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV3Order", args...)
 }
 
-func (this *ApexCore) PrivateGetV3HistoryOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV3HistoryOrders", args...)
+func (this *ApexCore) PrivateGetV3HistoryOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV3HistoryOrders", args...)
 }
 
-func (this *ApexCore) PrivateGetV3OrderByClientOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV3OrderByClientOrderId", args...)
+func (this *ApexCore) PrivateGetV3OrderByClientOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV3OrderByClientOrderId", args...)
 }
 
-func (this *ApexCore) PrivateGetV3Funding (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV3Funding", args...)
+func (this *ApexCore) PrivateGetV3Funding(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV3Funding", args...)
 }
 
-func (this *ApexCore) PrivateGetV3HistoricalPnl (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV3HistoricalPnl", args...)
+func (this *ApexCore) PrivateGetV3HistoricalPnl(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV3HistoricalPnl", args...)
 }
 
-func (this *ApexCore) PrivateGetV3OpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV3OpenOrders", args...)
+func (this *ApexCore) PrivateGetV3OpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV3OpenOrders", args...)
 }
 
-func (this *ApexCore) PrivateGetV3Transfers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV3Transfers", args...)
+func (this *ApexCore) PrivateGetV3Transfers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV3Transfers", args...)
 }
 
-func (this *ApexCore) PrivateGetV3Transfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV3Transfer", args...)
+func (this *ApexCore) PrivateGetV3Transfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV3Transfer", args...)
 }
 
-func (this *ApexCore) PrivatePostV3DeleteOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV3DeleteOpenOrders", args...)
+func (this *ApexCore) PrivatePostV3DeleteOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV3DeleteOpenOrders", args...)
 }
 
-func (this *ApexCore) PrivatePostV3DeleteClientOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV3DeleteClientOrderId", args...)
+func (this *ApexCore) PrivatePostV3DeleteClientOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV3DeleteClientOrderId", args...)
 }
 
-func (this *ApexCore) PrivatePostV3DeleteOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV3DeleteOrder", args...)
+func (this *ApexCore) PrivatePostV3DeleteOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV3DeleteOrder", args...)
 }
 
-func (this *ApexCore) PrivatePostV3Order (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV3Order", args...)
+func (this *ApexCore) PrivatePostV3Order(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV3Order", args...)
 }
 
-func (this *ApexCore) PrivatePostV3SetInitialMarginRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV3SetInitialMarginRate", args...)
+func (this *ApexCore) PrivatePostV3SetInitialMarginRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV3SetInitialMarginRate", args...)
 }
 
-func (this *ApexCore) PrivatePostV3TransferOut (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV3TransferOut", args...)
+func (this *ApexCore) PrivatePostV3TransferOut(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV3TransferOut", args...)
 }
 
-func (this *ApexCore) PrivatePostV3ContractTransferOut (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV3ContractTransferOut", args...)
+func (this *ApexCore) PrivatePostV3ContractTransferOut(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV3ContractTransferOut", args...)
 }

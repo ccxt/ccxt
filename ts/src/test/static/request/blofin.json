@@ -256,6 +256,35 @@
         ],
         "fetchMyTrades": [
             {
+                "description": "fetch my spot trades",
+                "method": "fetchMyTrades",
+                "url": "https://openapi.blofin.com/api/v1/spot/trade/fills-history?instType=SPOT",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "spot"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch my spot trades for symbol (instId)",
+                "method": "fetchMyTrades",
+                "url": "https://openapi.blofin.com/api/v1/spot/trade/fills-history?instType=SPOT&instId=DOGE-USDT",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "spot",
+                        "instId": "DOGE-USDT"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "swap trades",
                 "method": "fetchMyTrades",
                 "url": "https://openapi.blofin.com/api/v1/trade/fills-history?instId=LTC-USDT",
@@ -565,6 +594,16 @@
                     true
                 ],
                 "output": "{\"positionMode\":\"long_short_mode\"}"
+            }
+        ],
+        "fetchPositionADLRank": [
+            {
+                "description": "linear swap fetch position ADL rank",
+                "method": "fetchPositionADLRank",
+                "url": "https://openapi.blofin.com/api/v1/account/positions",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
             }
         ]
     }

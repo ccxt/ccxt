@@ -61,6 +61,12 @@ jobs:
         done
     - name: Build Project
       run: npm run buildCS
+    # - name: Run request lighter tests multiple times
+    #   run: for i in {1..10}; do npm run request-cs -- lighter; done
+    # - name: Debug script remove later
+    #   run: bash all.sh
+    # - name: Setup tmate session
+    #   uses: mxschmitt/action-tmate@v3
     - name: Run Base Tests
       if: env.important_modified == 'true'
       run: npm run test-base-rest-cs
@@ -90,6 +96,16 @@ jobs:
         for exchange in $cleaned_rest_files; do
           npm run response-cs -- $exchange
         done
+    - name: Diagnostics (always) response tests
+      if: always()
+      shell: bash
+      run: |
+        set +e
+        echo "=== free -h ==="; free -h
+        echo "=== df -h ==="; df -h
+        echo "=== ulimit -a ==="; ulimit -a
+        echo "=== dmesg OOM/killed ==="
+        sudo dmesg -T | tail -n 300 | grep -i -E "oom|killed process|out of memory" || true
     - name: Upload shared_env.txt
       uses: actions/upload-artifact@v4
       with:

@@ -9,7 +9,7 @@ var Precise = require('./base/Precise.js');
 require('../ccxt.js');
 var errors = require('./base/errors.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class deepcoin
@@ -916,7 +916,7 @@ class deepcoin extends deepcoin$1["default"] {
      */
     async fetchBalance(params = {}) {
         await this.loadMarkets();
-        let marketType = 'spot';
+        let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params, marketType);
         const request = {
             'instType': this.convertToInstrumentType(marketType),

@@ -4,6 +4,163 @@
     "methods": {
         "createOrder": [
             {
+                "description": "trigger order with custom clientOrderId",
+                "method": "createOrder",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "sell",
+                    1,
+                    51,
+                    {
+                        "stopLossPrice": 50,
+                        "clientOrderId": "myCustomId"
+                    }
+                ],
+                "httpResponse": {
+                    "user": "10406147",
+                    "trigger": {
+                        "strategy_type": "0",
+                        "price_type": "0",
+                        "price": "50",
+                        "rule": "2",
+                        "expiration": "0"
+                    },
+                    "initial": {
+                        "contract": "LTC_USDT",
+                        "size": "-1",
+                        "price": "51",
+                        "tif": "gtc",
+                        "text": "myCustomId",
+                        "iceberg": "0",
+                        "is_close": false,
+                        "is_reduce_only": false,
+                        "auto_size": "",
+                        "amount": "-1",
+                        "iceberg_amount": "0"
+                    },
+                    "id": "2033851588807757824",
+                    "id_string": "2033851588807757824",
+                    "trigger_time": "0",
+                    "trade_id": "0",
+                    "trade_id_string": "",
+                    "status": "open",
+                    "reason": "",
+                    "create_time": "1773742980",
+                    "finish_time": "1773742980",
+                    "is_stop_order": false,
+                    "stop_trigger": {
+                        "rule": "0",
+                        "trigger_price": "",
+                        "order_price": ""
+                    },
+                    "me_order_id": "0",
+                    "me_order_id_string": "",
+                    "order_type": "",
+                    "in_dual_mode": false,
+                    "parent_id": "0",
+                    "parent_id_string": "",
+                    "stop_profit_price": "",
+                    "stop_loss_price": "",
+                    "batch_id": "",
+                    "mmr_trigger": {
+                        "mmr": "",
+                        "rate": "",
+                        "trigger_mark_price": ""
+                    },
+                    "direction": "short",
+                    "filled_size": "0",
+                    "broker": "ccxt",
+                    "pos_margin_mode": "",
+                    "position_mode": ""
+                },
+                "parsedResponse": {
+                    "id": "2033851588807757824",
+                    "clientOrderId": "myCustomId",
+                    "timestamp": 1773742980000,
+                    "datetime": "2026-03-17T10:23:00.000Z",
+                    "lastTradeTimestamp": 1773742980000,
+                    "status": "open",
+                    "symbol": "LTC/USDT:USDT",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "side": "sell",
+                    "price": 51,
+                    "triggerPrice": 50,
+                    "average": null,
+                    "amount": 1,
+                    "cost": 0,
+                    "filled": 0,
+                    "remaining": 1,
+                    "fee": null,
+                    "fees": [],
+                    "trades": [],
+                    "info": {
+                        "user": "10406147",
+                        "trigger": {
+                            "strategy_type": "0",
+                            "price_type": "0",
+                            "price": "50",
+                            "rule": "2",
+                            "expiration": "0"
+                        },
+                        "initial": {
+                            "contract": "LTC_USDT",
+                            "size": "-1",
+                            "price": "51",
+                            "tif": "gtc",
+                            "text": "myCustomId",
+                            "iceberg": "0",
+                            "is_close": false,
+                            "is_reduce_only": false,
+                            "auto_size": "",
+                            "amount": "-1",
+                            "iceberg_amount": "0"
+                        },
+                        "id": "2033851588807757824",
+                        "id_string": "2033851588807757824",
+                        "trigger_time": "0",
+                        "trade_id": "0",
+                        "trade_id_string": "",
+                        "status": "open",
+                        "reason": "",
+                        "create_time": "1773742980",
+                        "finish_time": "1773742980",
+                        "is_stop_order": false,
+                        "stop_trigger": {
+                            "rule": "0",
+                            "trigger_price": "",
+                            "order_price": ""
+                        },
+                        "me_order_id": "0",
+                        "me_order_id_string": "",
+                        "order_type": "",
+                        "in_dual_mode": false,
+                        "parent_id": "0",
+                        "parent_id_string": "",
+                        "stop_profit_price": "",
+                        "stop_loss_price": "",
+                        "batch_id": "",
+                        "mmr_trigger": {
+                            "mmr": "",
+                            "rate": "",
+                            "trigger_mark_price": ""
+                        },
+                        "direction": "short",
+                        "filled_size": "0",
+                        "broker": "ccxt",
+                        "pos_margin_mode": "",
+                        "position_mode": ""
+                    },
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": 50,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
                 "description": "order with non ascii symbol",
                 "method": "createOrder",
                 "input": [
@@ -2023,7 +2180,7 @@
                 "parsedResponse": [
                   {
                     "id": "85703616",
-                    "clientOrderId": null,
+                    "clientOrderId": "web",
                     "timestamp": 1729529406000,
                     "datetime": "2024-10-21T16:50:06.000Z",
                     "lastTradeTimestamp": 1729529407000,
@@ -2598,7 +2755,7 @@
                 "parsedResponse": [
                   {
                     "id": "85704026",
-                    "clientOrderId": null,
+                    "clientOrderId": "web",
                     "timestamp": 1729529822000,
                     "datetime": "2024-10-21T16:57:02.000Z",
                     "lastTradeTimestamp": 1729529822000,

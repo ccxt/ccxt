@@ -150,10 +150,6 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Watch Tickers](./examples/php/watch-tickers.md)
 
-- [Watchohlcvforsymbols](./examples/php/watchOHLCVForSymbols.md)
-
-- [Watchorderbookforsymbols](./examples/php/watchOrderBookForSymbols.md)
-
 - [Watchpositions Many Exchanges Continuosly](./examples/php/watchPositions-many-exchanges-continuosly.md)
 
 - [Watchpositions](./examples/php/watchPositions.md)

@@ -339,6 +339,16 @@
                 "url": "https://api.simnext.bullish-test.com/trading-api/v1/markets",
                 "input": []
             }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchOpenInterest",
+                "url": "https://api.exchange.bullish.com/trading-api/v1/markets/BTC-USDC-PERP/tick",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
         ]
     }
 }

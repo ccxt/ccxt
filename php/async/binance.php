@@ -71,6 +71,7 @@ class binance extends Exchange {
                 'editOrder' => true,
                 'editOrders' => true,
                 'fetchAccounts' => null,
+                'fetchADLRank' => true,
                 'fetchAllGreeks' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
@@ -140,9 +141,11 @@ class binance extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionADLRank' => true,
                 'fetchPositionHistory' => false,
                 'fetchPositionMode' => true,
                 'fetchPositions' => true,
+                'fetchPositionsADLRank' => true,
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => true,
                 'fetchPremiumIndexOHLCV' => true,
@@ -1386,16 +1389,74 @@ class binance extends Exchange {
                 ),
                 'networks' => array(
                     'ERC20' => 'ETH',
+                    'ETH' => 'ETH',
                     'TRC20' => 'TRX',
+                    'TRX' => 'TRX',
                     'BEP2' => 'BNB',
+                    'BSC' => 'BSC',
                     'BEP20' => 'BSC',
-                    'OMNI' => 'OMNI',
                     'EOS' => 'EOS',
                     'SPL' => 'SOL', // temporarily keep support for SPL (old name)
                     'SOL' => 'SOL', // we shouldn't rename SOL
+                    // 'FIAT' => 'FIAT_MONEY', // not unified atm
+                    // 'LEVERAGE_TOKEN' => 'ETF', // not unified atm
+                    // 'STAKING' => 'STAKING', // not unified atm
+                    'ARBONE' => 'ARBITRUM',
+                    'AVAXC' => 'AVAXC',
+                    'MATIC' => 'MATIC',
+                    'BASE' => 'BASE',
+                    'SUI' => 'SUI',
+                    'OP' => 'OPTIMISM',
+                    'OPTIMISM' => 'OPTIMISM',
+                    'NEAR' => 'NEAR',
+                    'APT' => 'APT',
+                    'SCROLL' => 'SCROLL',
+                    'KAVA' => 'KAVA',
+                    'XLM' => 'XLM',
+                    // BLAST - not supported
+                    // LINEA - not supported
+                    // CRO - not supported
+                    // TAIKO - not supported
+                    'RSK' => 'RSK', // RBTC
+                    'SEI' => 'SEI',
+                    // MNT - not supported
+                    'TON' => 'TON',
+                    'ADA' => 'ADA',
+                    // HYPE - not supported
+                    // CORE - not supported
+                    'ALGO' => 'ALGO',
+                    'RUNE' => 'RUNE',
+                    'OSMO' => 'OSMO',
+                    // XIN - not supported
+                    'CELO' => 'CELO',
+                    'HBAR' => 'HBAR',
+                    // FTM - renamed
+                    // WEMIX - not supported
+                    'ZKSYNCERA' => 'ZKSYNCERA',
+                    'KLAY' => 'KLAY',
+                    // HECO - not supported
+                    // FSN - not supported
+                    'ACA' => 'ACA',
+                    'STX' => 'STX', // STACKS
+                    'XTZ' => 'XTZ',
+                    // 'NEO' => 'NEO', // tbd NEO3
+                    'METIS' => 'METIS',
+                    // TLOS - not supported
+                    'EGLD' => 'EGLD',
+                    'ASTR' => 'ASTR',
+                    'CFX' => 'CFX',
+                    // 'GLMR' => 'GLMR', GLIMMER vs MOONBEAM
+                    // CANTO - not supported
+                    'SCRT' => 'SCRT',
+                    // AUR - not supported
+                    'ONT' => 'ONT', // ontology
                 ),
                 'networksById' => array(
+                    'TRX' => 'TRC20',
+                    'BSC' => 'BEP20',
+                    'ETH' => 'ERC20',
                     'SOL' => 'SOL', // temporary fix for SPL definition
+                    'OPTIMISM' => 'OP',
                 ),
                 'impliedNetworks' => array(
                     'ETH' => array( 'ERC20' => 'ETH' ),
@@ -3022,7 +3083,7 @@ class binance extends Exchange {
                 for ($j = 0; $j < count($networkList); $j++) {
                     $networkItem = $networkList[$j];
                     $network = $this->safe_string($networkItem, 'network');
-                    $networkCode = $this->network_id_to_code($network);
+                    $networkCode = $this->network_id_to_code($network, $code);
                     $isETF = ($network === 'ETF'); // e.g. BTCUP, ETHDOWN
                     // $name = $this->safe_string($networkItem, 'name');
                     $withdrawFee = $this->safe_number($networkItem, 'withdrawFee');
@@ -6396,6 +6457,7 @@ class binance extends Exchange {
              * @param {string} [$params->stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
              * @param {string} [$params->positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy $side of hedged mode, "SHORT" for sell $side of hedged mode
              * @param {bool} [$params->hedged] *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
+             * @param {string} [$params->clientOrderId] the clientOrderId of the order
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -8827,7 +8889,8 @@ class binance extends Exchange {
         if ($internalInteger !== null) {
             $internal = ($internalInteger !== 0) ? true : false;
         }
-        $network = $this->safe_string($transaction, 'network');
+        $networkId = $this->safe_string($transaction, 'network');
+        $network = $this->network_id_to_code($networkId, $code);
         return array(
             'info' => $transaction,
             'id' => $id,
@@ -9250,21 +9313,19 @@ class binance extends Exchange {
              *
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->network] $network for fetch deposit address
+             * @param {string} [$params->network] network for fetch deposit address
              * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $request = array(
                 'coin' => $currency['id'],
-                // 'network' => 'ETH', // 'BSC', 'XMR', you can get $network and isDefault in networkList in the $response of sapiGetCapitalConfigDetail
+                // 'network' => 'ETH', // 'BSC', 'XMR', you can get network and isDefault in networkList in the $response of sapiGetCapitalConfigDetail
             );
-            $networks = $this->safe_dict($this->options, 'networks', array());
-            $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
-            $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
-            if ($network !== null) {
-                $request['network'] = $network;
-                $params = $this->omit($params, 'network');
+            $networkCode = null;
+            list($networkCode, $params) = $this->handle_network_code_and_params($params);
+            if ($networkCode !== null) {
+                $request['network'] = $this->network_code_to_id($networkCode, $currency['code']);
             }
             // has support for the 'network' parameter
             $response = Async\await($this->sapiGetCapitalDepositAddress ($this->extend($request, $params)));
@@ -9533,12 +9594,13 @@ class binance extends Exchange {
         //        ]
         //    }
         //
+        $code = $this->safe_string($currency, 'code');
         $networkList = $this->safe_list($fee, 'networkList', array());
         $result = $this->deposit_withdraw_fee($fee);
         for ($j = 0; $j < count($networkList); $j++) {
             $networkEntry = $networkList[$j];
             $networkId = $this->safe_string($networkEntry, 'network');
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $withdrawFee = $this->safe_number($networkEntry, 'withdrawFee');
             $isDefault = $this->safe_bool($networkEntry, 'isDefault');
             if ($isDefault === true) {
@@ -9582,20 +9644,18 @@ class binance extends Exchange {
             $request = array(
                 'coin' => $currency['id'],
                 'address' => $address,
-                // issue sapiGetCapitalConfigGetall () to get $networks for withdrawing USDT ERC20 vs USDT Omni
+                // issue sapiGetCapitalConfigGetall () to get networks for withdrawing USDT ERC20 vs USDT Omni
                 // 'network' => 'ETH', // 'BTC', 'TRX', etc, optional
             );
             if ($tag !== null) {
                 $request['addressTag'] = $tag;
             }
-            $networks = $this->safe_dict($this->options, 'networks', array());
-            $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
-            $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
-            if ($network !== null) {
-                $request['network'] = $network;
-                $params = $this->omit($params, 'network');
+            $networkCode = null;
+            list($networkCode, $params) = $this->handle_network_code_and_params($params);
+            if ($networkCode !== null) {
+                $request['network'] = $this->network_code_to_id($networkCode, $currency['code']);
             }
-            $request['amount'] = $this->currency_to_precision($code, $amount, $network);
+            $request['amount'] = $this->currency_to_precision($currency['code'], $amount, $networkCode);
             $response = Async\await($this->sapiPostCapitalWithdrawApply ($this->extend($request, $params)));
             //     array( id => '9a67628b16ba4988ae20d329333f16bc' )
             return $this->parse_transaction($response, $currency);
@@ -14623,6 +14683,145 @@ class binance extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'timeframe' => null,
             'longShortRatio' => $this->safe_number($info, 'longShortRatio'),
+        );
+    }
+
+    public function fetch_adl_rank(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches the auto deleveraging rank and risk percentage for a $symbol
+             *
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/ADL-Risk
+             *
+             * @param {string} $symbol unified $symbol of the $market to fetch the auto deleveraging rank for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchADLRank', $market, $params);
+            $response = null;
+            if ($subType === 'linear') {
+                $response = Async\await($this->fapiPublicGetSymbolAdlRisk ($this->extend($request, $params)));
+                //
+                //     {
+                //         "symbol" => "BTCUSDT",
+                //         "adlRisk" => "LOW",
+                //         "updateTime" => 1766827800453
+                //     }
+                //
+            } else {
+                throw new BadRequest($this->id . ' fetchADLRank() supports linear subTypes only');
+            }
+            return $this->parse_adl_rank($response, $market);
+        }) ();
+    }
+
+    public function fetch_positions_adl_rank(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches the auto deleveraging rank and risk percentage for a list of $symbols that have open positions
+             *
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation
+             * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Position-ADL-Quantile-Estimation
+             * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Position-ADL-Quantile-Estimation
+             *
+             * @param {string[]} [$symbols] list of unified $market $symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->portfolioMargin] set to true for the portfolio margin account
+             * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true, true, true);
+            $market = $this->get_market_from_symbols($symbols);
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchPositionsADLRank', $market, $params);
+            $isPortfolioMargin = null;
+            list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchPositionsADLRank', 'papi', 'portfolioMargin', false);
+            $response = null;
+            if ($subType === 'linear') {
+                if ($isPortfolioMargin) {
+                    $response = Async\await($this->papiGetUmAdlQuantile ($params));
+                } else {
+                    $response = Async\await($this->fapiPrivateGetAdlQuantile ($params));
+                }
+            } elseif ($subType === 'inverse') {
+                if ($isPortfolioMargin) {
+                    $response = Async\await($this->papiGetCmAdlQuantile ($params));
+                } else {
+                    $response = Async\await($this->dapiPrivateGetAdlQuantile ($params));
+                }
+            } else {
+                throw new BadRequest($this->id . ' fetchPositionsADLRank() supports linear and inverse subTypes only');
+            }
+            //
+            //     array(
+            //         {
+            //             "symbol" => "BTCUSDT",
+            //             "adlQuantile" => {
+            //                 "LONG" => 0,
+            //                 "SHORT" => 0,
+            //                 "BOTH" => 1
+            //             }
+            //         }
+            //     )
+            //
+            return $this->parse_adl_ranks($response, $symbols);
+        }) ();
+    }
+
+    public function parse_adl_rank(array $info, ?array $market = null): array {
+        //
+        // fetchADLRank
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "adlRisk" => "LOW",
+        //         "updateTime" => 1766827800453
+        //     }
+        //
+        // fetchPositionADLRank
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "adlQuantile" => {
+        //             "LONG" => 0,
+        //             "SHORT" => 0,
+        //             "BOTH" => 1
+        //         }
+        //     }
+        //
+        $adlQuantile = $this->safe_dict($info, 'adlQuantile', array());
+        $longNum = $this->safe_number($adlQuantile, 'LONG');
+        $shortNum = $this->safe_number($adlQuantile, 'SHORT');
+        $both = $this->safe_number($adlQuantile, 'BOTH');
+        $rank = null;
+        if ($both !== null) {
+            $rank = $both;
+        } else {
+            if ($longNum !== null && $shortNum !== null) {
+                if ($longNum > $shortNum) {
+                    $rank = $longNum;
+                } else {
+                    $rank = $shortNum;
+                }
+            }
+        }
+        $marketId = $this->safe_string($info, 'symbol');
+        $timestamp = $this->safe_integer_2($info, 'timestamp', 'updateTime');
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
+            'rank' => $rank,
+            'rating' => $this->safe_string_lower($info, 'adlRisk'),
+            'percentage' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
         );
     }
 }

@@ -3817,7 +3817,7 @@
                         "txid": "FDSJHFKDSHFJ4KR5H4KJH3454JHK",
                         "timestamp": 1714923536000,
                         "datetime": "2024-05-05T15:38:56.000Z",
-                        "network": "TRX",
+                        "network": "TRC20",
                         "address": "TKRxCKea88FDKDSJFSDKJ43243K",
                         "addressTo": "TKRxCKea88FDKDSJFSDKJ43243K",
                         "addressFrom": null,
@@ -3884,7 +3884,7 @@
                         "txid": "435kl435jh4354j3k5",
                         "timestamp": 1714923704000,
                         "datetime": "2024-05-05T15:41:44.000Z",
-                        "network": "TRX",
+                        "network": "TRC20",
                         "address": "534j5h435j34hk",
                         "addressTo": "534j5h435j34hk",
                         "addressFrom": null,
@@ -4415,6 +4415,68 @@
                         "fee": null
                     }
                 ]
+            }
+        ],
+        "fetchADLRank": [
+            {
+                "description": "linear swap fetch adl risk rank",
+                "method": "fetchADLRank",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "symbol": "BTCUSDT",
+                    "adlRisk": "LOW",
+                    "updateTime": "1766827800453"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTCUSDT",
+                        "adlRisk": "LOW",
+                        "updateTime": "1766827800453"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "rank": null,
+                    "rating": "low",
+                    "percentage": null,
+                    "timestamp": 1766827800453,
+                    "datetime": "2025-12-27T09:30:00.453Z"
+                }
+            }
+        ],
+        "fetchPositionADLRank": [
+            {
+                "description": "linear swap fetchPositionADLRank",
+                "method": "fetchPositionADLRank",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTCUSDT",
+                        "adlQuantile": {
+                            "SHORT": "0",
+                            "LONG": "0",
+                            "BOTH": "1"
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTCUSDT",
+                        "adlQuantile": {
+                            "SHORT": "0",
+                            "LONG": "0",
+                            "BOTH": "1"
+                        }
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "rank": 1,
+                    "rating": null,
+                    "percentage": null,
+                    "timestamp": null,
+                    "datetime": null
+                }
             }
         ]
     }

@@ -7,66 +7,66 @@
 
 package ccxt
 
-func (this *BtcturkCore) PublicGetOrderbook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetOrderbook", args...)
+func (this *BtcturkCore) PublicGetOrderbook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOrderbook", args...)
 }
 
-func (this *BtcturkCore) PublicGetTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTicker", args...)
+func (this *BtcturkCore) PublicGetTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *BtcturkCore) PublicGetTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTrades", args...)
+func (this *BtcturkCore) PublicGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTrades", args...)
 }
 
-func (this *BtcturkCore) PublicGetOhlc (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetOhlc", args...)
+func (this *BtcturkCore) PublicGetOhlc(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOhlc", args...)
 }
 
-func (this *BtcturkCore) PublicGetServerExchangeinfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetServerExchangeinfo", args...)
+func (this *BtcturkCore) PublicGetServerExchangeinfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetServerExchangeinfo", args...)
 }
 
-func (this *BtcturkCore) PrivateGetUsersBalances (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUsersBalances", args...)
+func (this *BtcturkCore) PrivateGetUsersBalances(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUsersBalances", args...)
 }
 
-func (this *BtcturkCore) PrivateGetOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOpenOrders", args...)
+func (this *BtcturkCore) PrivateGetOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOpenOrders", args...)
 }
 
-func (this *BtcturkCore) PrivateGetAllOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAllOrders", args...)
+func (this *BtcturkCore) PrivateGetAllOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAllOrders", args...)
 }
 
-func (this *BtcturkCore) PrivateGetUsersTransactionsTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUsersTransactionsTrade", args...)
+func (this *BtcturkCore) PrivateGetUsersTransactionsTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUsersTransactionsTrade", args...)
 }
 
-func (this *BtcturkCore) PrivatePostUsersTransactionsCrypto (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUsersTransactionsCrypto", args...)
+func (this *BtcturkCore) PrivatePostUsersTransactionsCrypto(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUsersTransactionsCrypto", args...)
 }
 
-func (this *BtcturkCore) PrivatePostUsersTransactionsFiat (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUsersTransactionsFiat", args...)
+func (this *BtcturkCore) PrivatePostUsersTransactionsFiat(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUsersTransactionsFiat", args...)
 }
 
-func (this *BtcturkCore) PrivatePostOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrder", args...)
+func (this *BtcturkCore) PrivatePostOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrder", args...)
 }
 
-func (this *BtcturkCore) PrivatePostCancelOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostCancelOrder", args...)
+func (this *BtcturkCore) PrivatePostCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCancelOrder", args...)
 }
 
-func (this *BtcturkCore) PrivateDeleteOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOrder", args...)
+func (this *BtcturkCore) PrivateDeleteOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrder", args...)
 }
 
-func (this *BtcturkCore) GraphGetOhlcs (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("graphGetOhlcs", args...)
+func (this *BtcturkCore) GraphGetOhlcs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("graphGetOhlcs", args...)
 }
 
-func (this *BtcturkCore) GraphGetKlinesHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("graphGetKlinesHistory", args...)
+func (this *BtcturkCore) GraphGetKlinesHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("graphGetKlinesHistory", args...)
 }

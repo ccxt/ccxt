@@ -1001,4 +1001,24 @@ public partial class bullish
         var res = await this.fetchBorrowRateHistory(code, since, limit, parameters);
         return ((Dictionary<string, object>)res);
     }
+    /// <summary>
+    /// fetches the open interest of a specific market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-symbol-/tick"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [open interest structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
+    public async Task<OpenInterest> FetchOpenInterest(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOpenInterest(symbol, parameters);
+        return new OpenInterest(res);
+    }
 }

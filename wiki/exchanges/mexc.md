@@ -67,6 +67,8 @@
 * [watchMyTrades](#watchmytrades)
 * [watchOrders](#watchorders)
 * [watchBalance](#watchbalance)
+* [watchFundingRate](#watchfundingrate)
+* [unWatchFundingRate](#unwatchfundingrate)
 * [unWatchTicker](#unwatchticker)
 * [unWatchTickers](#unwatchtickers)
 * [unWatchBidsAsks](#unwatchbidsasks)
@@ -1589,6 +1591,48 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 ```javascript
 mexc.watchBalance ([params])
+```
+
+
+<a name="watchFundingRate" id="watchfundingrate"></a>
+
+### watchFundingRate{docsify-ignore}
+watch the current funding rate
+
+**Kind**: instance method of [<code>mexc</code>](#mexc)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
+
+**See**: https://www.mexc.com/api-docs/futures/websocket-api#funding-rate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+mexc.watchFundingRate (symbol[, params])
+```
+
+
+<a name="unWatchFundingRate" id="unwatchfundingrate"></a>
+
+### unWatchFundingRate{docsify-ignore}
+unWatches the current funding rate for a symbol
+
+**Kind**: instance method of [<code>mexc</code>](#mexc)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
+
+**See**: https://www.mexc.com/api-docs/futures/websocket-api#funding-rate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+mexc.unWatchFundingRate (symbol[, params])
 ```
 
 

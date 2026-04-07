@@ -7,7 +7,7 @@ var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitteam
@@ -828,7 +828,7 @@ class bitteam extends bitteam$1["default"] {
         const response = await this.publicGetTradeApiCmcOrderbookPair(this.extend(request, params));
         //
         //     {
-        //         "timestamp": 1701166703285,
+        //         "timestamp": 1701166703284,
         //         "bids": [
         //             [
         //                 2019.334988,

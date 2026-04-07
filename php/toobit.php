@@ -3023,6 +3023,7 @@ class toobit extends Exchange {
             $headers = array(
                 'Referrer' => 'CCXT',
                 'X-BB-APIKEY' => $this->apiKey,
+                'X-BB-API-PLATFORM' => $this->safe_string($this->options, 'brokerId', '177321641268789'),
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }

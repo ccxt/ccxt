@@ -5,7 +5,7 @@ import mexcRest from '../mexc.js';
 import { ArgumentsRequired, AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances, Dict, Tickers, Strings } from '../base/types.js';
+import type { Int, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances, Dict, Tickers, Strings, FundingRate } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -25,6 +25,8 @@ export default class mexc extends mexcRest {
                 'fetchOrderWs': false,
                 'fetchTradesWs': false,
                 'watchBalance': true,
+                'watchFundingRate': true,
+                'watchFundingRates': false,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
@@ -729,13 +731,19 @@ export default class mexc extends mexcRest {
         //       "amount":"366804.43",
         //       "windowEnd":"1754737980"
         //
+        let volume = this.safeNumber2 (ohlcv, 'v', 'volume');
+        // MEXC swap websocket klines publish contracts volume in `q`,
+        // while spot/protobuf uses `v`/`volume`.
+        if ((market !== undefined) && (!this.safeBool (market, 'spot')) && (volume === undefined)) {
+            volume = this.safeNumber2 (ohlcv, 'q', 'v');
+        }
         return [
             this.safeTimestamp2 (ohlcv, 't', 'windowStart'),
             this.safeNumber2 (ohlcv, 'o', 'openingPrice'),
             this.safeNumber2 (ohlcv, 'h', 'highestPrice'),
             this.safeNumber2 (ohlcv, 'l', 'lowestPrice'),
             this.safeNumber2 (ohlcv, 'c', 'closingPrice'),
-            this.safeNumber2 (ohlcv, 'v', 'volume'),
+            volume,
         ];
     }
 
@@ -1436,7 +1444,7 @@ export default class mexc extends mexcRest {
         //
         const timestamp = this.safeInteger (order, 'createTime');
         const side = this.safeString (order, 'tradeType');
-        const status = this.safeString (order, 'status');
+        const status = this.safeString2 (order, 'status', 'state');
         const type = this.safeString (order, 'orderType');
         let fee = undefined;
         const feeCurrency = this.safeString (order, 'N');
@@ -1458,8 +1466,8 @@ export default class mexc extends mexcRest {
             'timeInForce': this.parseWsTimeInForce (type),
             'side': (side === '1') ? 'buy' : 'sell',
             'price': this.safeString (order, 'price'),
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'stopPrice': this.safeString2 (order, 'triggerPrice', 'P'),
+            'triggerPrice': this.safeString2 (order, 'triggerPrice', 'P'),
             'average': this.safeString (order, 'avgPrice'),
             'amount': this.safeString (order, 'quantity'),
             'cost': this.safeString (order, 'amount'),
@@ -1473,6 +1481,7 @@ export default class mexc extends mexcRest {
 
     parseWsOrderStatus (status, market = undefined) {
         const statuses: Dict = {
+            '0': 'open',     // new/pending (OCO orders)
             '1': 'open',     // new order
             '2': 'closed',   // filled
             '3': 'open',     // partially filled
@@ -1494,6 +1503,8 @@ export default class mexc extends mexcRest {
             '4': undefined, // FILL_OR_KILL
             '5': 'market',  // MARKET_ORDER
             '100': 'limit', // STOP_LIMIT
+            '101': 'limit', // OCO_STOP_LIMIT
+            '102': 'limit', // OCO_LIMIT
         };
         return this.safeString (types, type);
     }
@@ -1506,6 +1517,8 @@ export default class mexc extends mexcRest {
             '4': 'FOK', // FILL_OR_KILL
             '5': 'GTC',  // MARKET_ORDER
             '100': 'GTC', // STOP_LIMIT
+            '101': 'GTC', // OCO_STOP_LIMIT
+            '102': 'GTC', // OCO_LIMIT
         };
         return this.safeString (timeInForceIds, timeInForce);
     }
@@ -1563,7 +1576,7 @@ export default class mexc extends mexcRest {
         //             "frozenBalance": 0,
         //             "positionMargin": 1.36945756
         //         },
-        //         "ts": 1680059188190
+        //         "ts": 1680059188191
         //     }
         //
         const channel = this.safeString (message, 'channel');
@@ -1586,6 +1599,72 @@ export default class mexc extends mexcRest {
         this.balance[type][code] = account;
         this.balance[type] = this.safeBalance (this.balance[type]);
         client.resolve (this.balance[type], messageHash);
+    }
+
+    /**
+     * @method
+     * @name mexc#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://www.mexc.com/api-docs/futures/websocket-api#funding-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const messageHash = 'fundingRate:' + market['symbol'];
+        const channel = 'sub.funding.rate';
+        const requestParams: Dict = {
+            'symbol': market['id'],
+        };
+        return await this.watchSwapPublic (channel, messageHash, requestParams, params);
+    }
+
+    /**
+     * @method
+     * @name mexc#unWatchFundingRate
+     * @description unWatches the current funding rate for a symbol
+     * @see https://www.mexc.com/api-docs/futures/websocket-api#funding-rate
+     * @param {string} symbol unified symbol of the market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async unWatchFundingRate (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const messageHash = 'unsubscribe:fundingRate:' + market['symbol'];
+        let url = undefined;
+        const channel = 'unsub.funding.rate';
+        const requestParams: Dict = {
+            'symbol': market['id'],
+        };
+        url = this.urls['api']['ws']['swap'];
+        this.watchSwapPublic (channel, messageHash, requestParams, params);
+        const client = this.client (url);
+        this.handleUnsubscriptions (client, [ messageHash ]);
+        return undefined;
+    }
+
+    handleFundingRate (client: Client, message) {
+        //
+        //     {
+        //         "symbol": "BTC_USDT",
+        //         "data": {
+        //             "symbol": "BTC_USDT",
+        //             "rate": -0.000021,
+        //             "nextSettleTime": 1771084800000
+        //         },
+        //         "channel": "push.funding.rate",
+        //         "ts": 1771069020506
+        //     }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const fundingRate = this.parseFundingRate (data);
+        const symbol = fundingRate['symbol'];
+        this.fundingRates[symbol] = fundingRate;
+        const messageHash = 'fundingRate:' + symbol;
+        client.resolve (fundingRate, messageHash);
     }
 
     /**
@@ -1867,6 +1946,11 @@ export default class mexc extends mexcRest {
                 if (symbol in this.trades) {
                     delete this.trades[symbol];
                 }
+            } else if (messageHash.indexOf ('fundingRate') >= 0) {
+                const symbol = messageHash.replace ('unsubscribe:fundingRate:', '');
+                if (symbol in this.fundingRates) {
+                    delete this.fundingRates[symbol];
+                }
             }
         }
     }
@@ -2024,6 +2108,7 @@ export default class mexc extends mexcRest {
             'private.deals.v3.api': this.handleMyTrade,
             'push.personal.order.deal': this.handleMyTrade,
             'pong': this.handlePong,
+            'push.funding.rate': this.handleFundingRate,
         };
         if (channel in methods) {
             const method = methods[channel];

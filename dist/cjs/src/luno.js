@@ -7,7 +7,7 @@ var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class luno
@@ -303,6 +303,7 @@ class luno extends luno$1["default"] {
                     'inverse': undefined,
                 },
             },
+            'rollingWindowSize': 60000.0,
         });
     }
     /**
