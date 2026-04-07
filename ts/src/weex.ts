@@ -6,7 +6,7 @@ import Exchange from './abstract/weex.js';
 // import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Currencies, Dict, Int, Market } from './base/types.js';
+import type { Currencies, Dict, Int, Market, Strings, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -155,8 +155,8 @@ export default class weex extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': false,
                 'fetchStatus': true,
-                'fetchTicker': false,
-                'fetchTickers': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': false,
                 'fetchTradingFee': false,
@@ -205,12 +205,12 @@ export default class weex extends Exchange {
                     // multiply public endpoints weight by 5
                     'get': {
                         'api/v3/time': 5, // done
-                        'api/v3/coins': 25,
+                        'api/v3/coins': 25, // done
                         'api/v3/exchangeInfo': 100, // done
                         'api/v3/ping': 5, // done
                         'api/v3/apiTradingSymbols': 25, // not unified
-                        'api/v3/market/ticker/price': 20,
-                        'api/v3/market/ticker/24hr': 10,
+                        'api/v3/market/ticker/price': 20, // not unified
+                        'api/v3/market/ticker/24hr': 10, // done
                         'api/v3/market/trades': 125,
                         'api/v3/market/klines': 10,
                         'api/v3/market/depth': 25,
@@ -253,7 +253,7 @@ export default class weex extends Exchange {
                         'capi/v3/market/time': 5, // done
                         'capi/v3/market/exchangeInfo': 5, // done
                         'capi/v3/market/depth': 5,
-                        'capi/v3/market/ticker/24hr': 200,
+                        'capi/v3/market/ticker/24hr': 200, // done
                         'capi/v3/market/ticker/bookTicker': 5,
                         'capi/v3/market/trades': 25,
                         'capi/v3/market/klines': 5,
@@ -988,6 +988,157 @@ export default class weex extends Exchange {
             'tiers': fees['tiers'],
             'info': market,
         });
+    }
+
+    /**
+     * @method
+     * @name weex#fetchTickers
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://www.weex.com/api-doc/spot/MarketDataAPI/GetAllTickerInfo // spot
+     * @see https://www.weex.com/api-doc/contract/Market_API/GetTicker24h // contract
+     * @param {string} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', default is 'spot'
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, true);
+        const market = this.getMarketFromSymbols (symbols);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        let symbolsLength = 0;
+        if (symbols !== undefined) {
+            symbolsLength = symbols.length;
+        }
+        const request: Dict = {};
+        if (symbolsLength === 1) {
+            request['symbol'] = market['id'];
+        }
+        let response = undefined;
+        if (marketType === 'spot') {
+            //
+            //     [
+            //         {
+            //             "symbol": "ETHUSDT",
+            //             "priceChange": "-72.98",
+            //             "priceChangePercent": "-0.033811",
+            //             "lastPrice": "2085.46",
+            //             "bidPrice": "2085.44",
+            //             "bidQty": "1.53848",
+            //             "askPrice": "2085.47",
+            //             "askQty": "1.87504",
+            //             "openPrice": "2158.44",
+            //             "highPrice": "2168.40",
+            //             "lowPrice": "2061.12",
+            //             "volume": "157359.56105",
+            //             "quoteVolume": "331284305.7193626",
+            //             "openTime": 1775493000000,
+            //             "closeTime": 1775579400000,
+            //             "count": 59727
+            //         }
+            //     ]
+            //
+            response = await this.publicGetApiV3MarketTicker24hr (this.extend (request, params));
+        } else {
+            //
+            //     [
+            //         {
+            //             "symbol": "ETHUSDT",
+            //             "priceChange": "-75.49",
+            //             "priceChangePercent": "-0.034992",
+            //             "lastPrice": "2081.80",
+            //             "openPrice": "2157.29",
+            //             "highPrice": "2167.51",
+            //             "lowPrice": "2059.17",
+            //             "volume": "623160.426",
+            //             "quoteVolume": "1310647345.19346",
+            //             "openTime": 1775493000000,
+            //             "closeTime": 1775579400000,
+            //             "markPrice": "2081.8",
+            //             "indexPrice": "2082.75"
+            //         }
+            //     ]
+            //
+            response = await this.contractGetCapiV3MarketTicker24hr (this.extend (request, params));
+        }
+        if (!Array.isArray (response)) {
+            response = [ response ];
+        }
+        return this.parseTickers (response, symbols);
+    }
+
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        //
+        // spot
+        //     {
+        //         "symbol": "ETHUSDT",
+        //         "priceChange": "-72.98",
+        //         "priceChangePercent": "-0.033811",
+        //         "lastPrice": "2085.46",
+        //         "bidPrice": "2085.44",
+        //         "bidQty": "1.53848",
+        //         "askPrice": "2085.47",
+        //         "askQty": "1.87504",
+        //         "openPrice": "2158.44",
+        //         "highPrice": "2168.40",
+        //         "lowPrice": "2061.12",
+        //         "volume": "157359.56105",
+        //         "quoteVolume": "331284305.7193626",
+        //         "openTime": 1775493000000,
+        //         "closeTime": 1775579400000,
+        //         "count": 59727
+        //     }
+        //
+        // swap
+        //     {
+        //         "symbol": "ETHUSDT",
+        //         "priceChange": "-75.49",
+        //         "priceChangePercent": "-0.034992",
+        //         "lastPrice": "2081.80",
+        //         "openPrice": "2157.29",
+        //         "highPrice": "2167.51",
+        //         "lowPrice": "2059.17",
+        //         "volume": "623160.426",
+        //         "quoteVolume": "1310647345.19346",
+        //         "openTime": 1775493000000,
+        //         "closeTime": 1775579400000,
+        //         "markPrice": "2081.8",
+        //         "indexPrice": "2082.75"
+        //     }
+        //
+        const marketId = this.safeString (ticker, 'symbol');
+        const markPrice = this.safeString (ticker, 'markPrice');
+        let marketType = 'spot';
+        if (markPrice !== undefined) {
+            marketType = 'swap';
+        }
+        market = this.safeMarket (marketId, market, undefined, marketType);
+        const timestamp = this.safeInteger (ticker, 'closeTime');
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'highPrice'),
+            'low': this.safeString (ticker, 'lowPrice'),
+            'bid': this.safeString (ticker, 'bidPrice'),
+            'bidVolume': this.safeString (ticker, 'bidQty'),
+            'ask': this.safeString (ticker, 'askPrice'),
+            'askVolume': this.safeString (ticker, 'askQty'),
+            'vwap': undefined,
+            'open': this.safeString (ticker, 'openPrice'),
+            'close': this.safeString (ticker, 'lastPrice'),
+            'last': this.safeString (ticker, 'lastPrice'),
+            'previousClose': undefined,
+            'change': this.safeString (ticker, 'priceChange'),
+            'percentage': this.safeString (ticker, 'priceChangePercent'),
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'volume'),
+            'quoteVolume': this.safeString (ticker, 'quoteVolume'),
+            'markPrice': markPrice,
+            'indexPrice': this.safeString (ticker, 'indexPrice'),
+            'info': ticker,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
