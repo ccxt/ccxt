@@ -1336,7 +1336,7 @@ export default class weex extends Exchange {
         }
         const until = this.safeInteger (params, 'until');
         let isHistorical = this.safeBool (params, 'historical', false);
-        if ((since !== undefined) || (until !== undefined) || (limit > 200)) {
+        if ((since !== undefined) || (until !== undefined)) {
             isHistorical = true;
         }
         const timeframeOption = this.safeDict (this.options, 'timeframes', {});
@@ -1388,9 +1388,6 @@ export default class weex extends Exchange {
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
-        //
-        // spot
-        //
         return [
             this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
