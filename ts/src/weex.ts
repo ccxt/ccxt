@@ -1142,7 +1142,7 @@ export default class weex extends Exchange {
             marketType = 'swap';
         }
         market = this.safeMarket (marketId, market, undefined, marketType);
-        const timestamp = this.safeInteger (ticker, 'closeTime');
+        const timestamp = this.safeInteger2 (ticker, 'closeTime', 'time');
         return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
