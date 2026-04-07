@@ -543,8 +543,9 @@ export default class lighter extends lighterRest {
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        for (let i = 0; i < data.length; i++) {
-            const iReversed = data.length - 1 - i;
+        const dataLength = data.length;
+        for (let i = 0; i < dataLength; i++) {
+            const iReversed = dataLength - 1 - i;
             const trade = this.parseWsTrade (data[iReversed], market);
             stored.append (trade);
         }
@@ -643,8 +644,9 @@ export default class lighter extends lighterRest {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
             const trades = this.safeList (data, marketId, []);
-            for (let j = 0; j < trades.length; j++) {
-                const jReversed = trades.length - 1 - j;
+            const tradesLength = trades.length;
+            for (let j = 0; j < tradesLength; j++) {
+                const jReversed = tradesLength - 1 - j;
                 const trade = this.parseWsTrade (trades[jReversed], market);
                 stored.append (trade);
                 const symbol = trade['symbol'];
@@ -807,8 +809,9 @@ export default class lighter extends lighterRest {
             this.liquidations = new ArrayCache (limit);
             stored = this.liquidations;
         }
-        for (let i = 0; i < data.length; i++) {
-            const iReversed = data.length - 1 - i;
+        const dataLength = data.length;
+        for (let i = 0; i < dataLength; i++) {
+            const iReversed = dataLength - 1 - i;
             const liquidation = this.parseWsLiquidation (data[iReversed], market);
             stored.append (liquidation);
         }
