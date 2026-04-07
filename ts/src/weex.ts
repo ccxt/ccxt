@@ -6,7 +6,7 @@ import Exchange from './abstract/weex.js';
 // import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Currencies, Dict, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
+import type { Currencies, Dict, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -158,7 +158,7 @@ export default class weex extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTradingLimits': false,
@@ -211,7 +211,7 @@ export default class weex extends Exchange {
                         'api/v3/apiTradingSymbols': 25, // not unified
                         'api/v3/market/ticker/price': 20, // not unified
                         'api/v3/market/ticker/24hr': 10, // done
-                        'api/v3/market/trades': 125,
+                        'api/v3/market/trades': 125, // done
                         'api/v3/market/klines': 10, // done
                         'api/v3/market/depth': 25, // done
                         'api/v3/market/ticker/bookTicker': 20, // done
@@ -255,7 +255,7 @@ export default class weex extends Exchange {
                         'capi/v3/market/depth': 5, // done
                         'capi/v3/market/ticker/24hr': 200, // done
                         'capi/v3/market/ticker/bookTicker': 5, // done
-                        'capi/v3/market/trades': 25,
+                        'capi/v3/market/trades': 25, // done
                         'capi/v3/market/klines': 5, // done
                         'capi/v3/market/indexPriceKlines': 5, // done
                         'capi/v3/market/markPriceKlines': 5, // done
@@ -1309,7 +1309,7 @@ export default class weex extends Exchange {
     /**
      * @method
      * @ignore
-     * @name kucoin#fetchContractOHLCV
+     * @name weex#fetchContractOHLCV
      * @description helper method for fetchOHLCV
      * @see https://www.weex.com/api-doc/contract/Market_API/GetKlines // contract last price
      * @see https://www.weex.com/api-doc/contract/Market_API/GetIndexPriceKlines // contract index price
@@ -1322,7 +1322,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {bool} [params.paginate] whether to automatically paginate requests until the required number of candles is returned
-     * @param {bool} [params.historical] whether to fetch historical klines (only applicable for contract markets, default is false). If false, will fetch last price klines
+     * @param {bool} [params.historical] whether to fetch historical klines (default is false). If false, will fetch last price klines
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchContractOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -1335,10 +1335,8 @@ export default class weex extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxHistoricalLimit) as OHLCV[];
         }
         const until = this.safeInteger (params, 'until');
-        let isHistorical = this.safeBool (params, 'historical', false);
-        if ((since !== undefined) || (until !== undefined)) {
-            isHistorical = true;
-        }
+        let historical = false;
+        [ historical, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'historical');
         const timeframeOption = this.safeDict (this.options, 'timeframes', {});
         const contractTimeframes = this.safeDict (timeframeOption, 'contract', {});
         const market = this.market (symbol);
@@ -1349,7 +1347,7 @@ export default class weex extends Exchange {
         const priceType = this.safeStringUpper (params, 'price');
         params = this.omit (params, [ 'historical', 'until', 'price' ]);
         let response = undefined;
-        if (isHistorical) {
+        if (historical) {
             if (priceType !== undefined) {
                 request['priceType'] = priceType;
             }
@@ -1396,6 +1394,86 @@ export default class weex extends Exchange {
             this.safeNumber (ohlcv, 4),
             this.safeNumber (ohlcv, 5),
         ];
+    }
+
+    /**
+     * @method
+     * @name weex#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://www.weex.com/api-doc/spot/MarketDataAPI/GetTradeData // spot
+     * @see https://www.weex.com/api-doc/contract/Market_API/GetRecentTrades // contract
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch (default 100, max 1000)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.publicGetApiV3MarketTrades (this.extend (request, params));
+        } else {
+            response = await this.contractGetCapiV3MarketTrades (this.extend (request, params));
+        }
+        //
+        //     [
+        //         {
+        //             "id": "875fba11-f8a1-42ad-915d-012ccb375e8a",
+        //             "price": "2114.77",
+        //             "qty": "0.01000",
+        //             "quoteQty": "21.1477000",
+        //             "time": 1775594995485,
+        //             "isBuyerMaker": false,
+        //             "isBestMatch": true
+        //         }
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        // fetchTrades
+        //     {
+        //         "id": "875fba11-f8a1-42ad-915d-012ccb375e8a",
+        //         "price": "2114.77",
+        //         "qty": "0.01000",
+        //         "quoteQty": "21.1477000",
+        //         "time": 1775594995485,
+        //         "isBuyerMaker": false,
+        //         "isBestMatch": true
+        //     }
+        //
+        const side = 'buy';
+        const isBuyerMaker = this.safeBool (trade, 'isBuyerMaker');
+        let takerOrMaker = undefined;
+        if (isBuyerMaker !== undefined) {
+            takerOrMaker = isBuyerMaker ? 'maker' : 'taker';
+        }
+        const timestamp = this.safeInteger (trade, 'time');
+        return this.safeTrade ({
+            'info': trade,
+            'id': this.safeString (trade, 'id'),
+            'order': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'qty'),
+            'cost': this.safeString (trade, 'quoteQty'),
+            'fee': undefined,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
