@@ -569,7 +569,8 @@ export default class lighter extends lighterRest {
             'channel': 'trade/' + market['id'],
         };
         const messageHash = this.getMessageHash ('trade', market['symbol']);
-        return await this.subscribePublic (messageHash, this.extend (request, params));
+        const trades = await this.subscribePublic (messageHash, this.extend (request, params));
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     /**
