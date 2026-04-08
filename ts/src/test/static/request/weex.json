@@ -6,6 +6,49 @@
     ],
     "options": {},
     "methods": {
+        "createOrder": [
+            {
+                "description": "create spot limit buy order",
+                "method": "createOrder",
+                "url": "https://api-spot.weex.com/api/v3/order",
+                "input": [
+                    "DOGE/USDT",
+                    "limit",
+                    "buy",
+                    300,
+                    0.08
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"quantity\":\"300\",\"price\":\"0.08\"}"
+            },
+            {
+                "description": "create spot market buy order with clientOrderId",
+                "method": "createOrder",
+                "url": "https://api-spot.weex.com/api/v3/order",
+                "input": [
+                    "DOGE/USDT",
+                    "market",
+                    "buy",
+                    290,
+                    null,
+                    {
+                        "clientOrderId": "test_market_buy"
+                    }
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"BUY\",\"type\":\"MARKET\",\"quantity\":\"290\",\"newClientOrderId\":\"test_market_buy\"}"
+            },
+            {
+                "description": "create spot market sell order",
+                "method": "createOrder",
+                "url": "https://api-spot.weex.com/api/v3/order",
+                "input": [
+                    "DOGE/USDT",
+                    "market",
+                    "sell",
+                    299
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"SELL\",\"type\":\"MARKET\",\"quantity\":\"299\"}"
+            }
+        ],
         "fetchTransfers": [
             {
                 "description": "fetch transfers",
