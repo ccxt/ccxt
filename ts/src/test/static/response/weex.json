@@ -3,6 +3,449 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchLedger": [
+            {
+                "description": "fetch ledger for spot",
+                "method": "fetchLedger",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "billId": "736825748291061726",
+                        "coinId": "82",
+                        "coinName": "DOGE",
+                        "bizType": "trade_out",
+                        "fillSize": "250.0",
+                        "fillValue": "23.372500",
+                        "deltaAmount": "-250.0",
+                        "afterAmount": "49.70000000",
+                        "fees": "0",
+                        "cTime": "1775672947953"
+                    },
+                    {
+                        "billId": "736825748291062750",
+                        "coinId": "2",
+                        "coinName": "USDT",
+                        "bizType": "trade_in",
+                        "fillSize": "250.0",
+                        "fillValue": "23.372500",
+                        "deltaAmount": "23.34912750",
+                        "afterAmount": "85.25412750",
+                        "fees": "0.02337250",
+                        "cTime": "1775672947953"
+                    },
+                    {
+                        "billId": "736806838460221406",
+                        "coinId": "2",
+                        "coinName": "USDT",
+                        "bizType": "trade_out",
+                        "fillSize": "300.0",
+                        "fillValue": "28.095000",
+                        "deltaAmount": "-28.095000",
+                        "afterAmount": "61.90500000",
+                        "fees": "0",
+                        "cTime": "1775668439498"
+                    },
+                    {
+                        "billId": "736806838460222430",
+                        "coinId": "82",
+                        "coinName": "DOGE",
+                        "bizType": "trade_in",
+                        "fillSize": "300.0",
+                        "fillValue": "28.095000",
+                        "deltaAmount": "299.70000000",
+                        "afterAmount": "299.70000000",
+                        "fees": "0.30000000",
+                        "cTime": "1775668439498"
+                    },
+                    {
+                        "billId": "736791763770934238",
+                        "coinId": "2",
+                        "coinName": "USDT",
+                        "bizType": "transfer_in",
+                        "fillSize": "0",
+                        "fillValue": "0",
+                        "deltaAmount": "90.00000000",
+                        "afterAmount": "90.00000000",
+                        "fees": "0",
+                        "cTime": "1775664845412"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "736791763770934238",
+                        "timestamp": 1775664845412,
+                        "datetime": "2026-04-08T16:14:05.412Z",
+                        "direction": "in",
+                        "account": null,
+                        "referenceId": null,
+                        "referenceAccount": null,
+                        "type": "transfer",
+                        "currency": "USDT",
+                        "amount": 90,
+                        "before": 0,
+                        "after": 90,
+                        "status": null,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0
+                        },
+                        "info": {
+                            "billId": "736791763770934238",
+                            "coinId": "2",
+                            "coinName": "USDT",
+                            "bizType": "transfer_in",
+                            "fillSize": "0",
+                            "fillValue": "0",
+                            "deltaAmount": "90.00000000",
+                            "afterAmount": "90.00000000",
+                            "fees": "0",
+                            "cTime": "1775664845412"
+                        }
+                    },
+                    {
+                        "id": "736806838460221406",
+                        "timestamp": 1775668439498,
+                        "datetime": "2026-04-08T17:13:59.498Z",
+                        "direction": "out",
+                        "account": null,
+                        "referenceId": null,
+                        "referenceAccount": null,
+                        "type": "trade",
+                        "currency": "USDT",
+                        "amount": 28.095,
+                        "before": 90,
+                        "after": 61.905,
+                        "status": null,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0
+                        },
+                        "info": {
+                            "billId": "736806838460221406",
+                            "coinId": "2",
+                            "coinName": "USDT",
+                            "bizType": "trade_out",
+                            "fillSize": "300.0",
+                            "fillValue": "28.095000",
+                            "deltaAmount": "-28.095000",
+                            "afterAmount": "61.90500000",
+                            "fees": "0",
+                            "cTime": "1775668439498"
+                        }
+                    },
+                    {
+                        "id": "736806838460222430",
+                        "timestamp": 1775668439498,
+                        "datetime": "2026-04-08T17:13:59.498Z",
+                        "direction": "in",
+                        "account": null,
+                        "referenceId": null,
+                        "referenceAccount": null,
+                        "type": "trade",
+                        "currency": "DOGE",
+                        "amount": 299.7,
+                        "before": 0,
+                        "after": 299.7,
+                        "status": null,
+                        "fee": {
+                            "currency": "DOGE",
+                            "cost": 0.3
+                        },
+                        "info": {
+                            "billId": "736806838460222430",
+                            "coinId": "82",
+                            "coinName": "DOGE",
+                            "bizType": "trade_in",
+                            "fillSize": "300.0",
+                            "fillValue": "28.095000",
+                            "deltaAmount": "299.70000000",
+                            "afterAmount": "299.70000000",
+                            "fees": "0.30000000",
+                            "cTime": "1775668439498"
+                        }
+                    },
+                    {
+                        "id": "736825748291061726",
+                        "timestamp": 1775672947953,
+                        "datetime": "2026-04-08T18:29:07.953Z",
+                        "direction": "out",
+                        "account": null,
+                        "referenceId": null,
+                        "referenceAccount": null,
+                        "type": "trade",
+                        "currency": "DOGE",
+                        "amount": 250,
+                        "before": 299.7,
+                        "after": 49.7,
+                        "status": null,
+                        "fee": {
+                            "currency": "DOGE",
+                            "cost": 0
+                        },
+                        "info": {
+                            "billId": "736825748291061726",
+                            "coinId": "82",
+                            "coinName": "DOGE",
+                            "bizType": "trade_out",
+                            "fillSize": "250.0",
+                            "fillValue": "23.372500",
+                            "deltaAmount": "-250.0",
+                            "afterAmount": "49.70000000",
+                            "fees": "0",
+                            "cTime": "1775672947953"
+                        }
+                    },
+                    {
+                        "id": "736825748291062750",
+                        "timestamp": 1775672947953,
+                        "datetime": "2026-04-08T18:29:07.953Z",
+                        "direction": "in",
+                        "account": null,
+                        "referenceId": null,
+                        "referenceAccount": null,
+                        "type": "trade",
+                        "currency": "USDT",
+                        "amount": 23.3491275,
+                        "before": 61.905,
+                        "after": 85.2541275,
+                        "status": null,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.0233725
+                        },
+                        "info": {
+                            "billId": "736825748291062750",
+                            "coinId": "2",
+                            "coinName": "USDT",
+                            "bizType": "trade_in",
+                            "fillSize": "250.0",
+                            "fillValue": "23.372500",
+                            "deltaAmount": "23.34912750",
+                            "afterAmount": "85.25412750",
+                            "fees": "0.02337250",
+                            "cTime": "1775672947953"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetch my spot trades",
+                "method": "fetchMyTrades",
+                "input": [
+                    "DOGE/USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "DOGEUSDT",
+                        "id": "736825748291060702",
+                        "orderId": "736825748215563230",
+                        "price": "0.09349",
+                        "qty": "250.0",
+                        "quoteQty": "23.3725",
+                        "commission": "0.0233725",
+                        "time": "1775672947953",
+                        "isBuyer": false
+                    },
+                    {
+                        "symbol": "DOGEUSDT",
+                        "id": "736806838460220382",
+                        "orderId": "736806838401500126",
+                        "price": "0.09365",
+                        "qty": "300.0",
+                        "quoteQty": "28.095",
+                        "commission": "0.3",
+                        "time": "1775668439498",
+                        "isBuyer": true
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "DOGEUSDT",
+                            "id": "736806838460220382",
+                            "orderId": "736806838401500126",
+                            "price": "0.09365",
+                            "qty": "300.0",
+                            "quoteQty": "28.095",
+                            "commission": "0.3",
+                            "time": "1775668439498",
+                            "isBuyer": true
+                        },
+                        "id": "736806838460220382",
+                        "order": "736806838401500126",
+                        "timestamp": 1775668439498,
+                        "datetime": "2026-04-08T17:13:59.498Z",
+                        "symbol": "DOGE/USDT",
+                        "type": null,
+                        "takerOrMaker": null,
+                        "side": "buy",
+                        "price": 0.09365,
+                        "amount": 300,
+                        "cost": 28.095,
+                        "fee": {
+                            "currency": "DOGE",
+                            "cost": 0.3
+                        },
+                        "fees": [
+                            {
+                                "currency": "DOGE",
+                                "cost": 0.3
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "symbol": "DOGEUSDT",
+                            "id": "736825748291060702",
+                            "orderId": "736825748215563230",
+                            "price": "0.09349",
+                            "qty": "250.0",
+                            "quoteQty": "23.3725",
+                            "commission": "0.0233725",
+                            "time": "1775672947953",
+                            "isBuyer": false
+                        },
+                        "id": "736825748291060702",
+                        "order": "736825748215563230",
+                        "timestamp": 1775672947953,
+                        "datetime": "2026-04-08T18:29:07.953Z",
+                        "symbol": "DOGE/USDT",
+                        "type": null,
+                        "takerOrMaker": null,
+                        "side": "sell",
+                        "price": 0.09349,
+                        "amount": 250,
+                        "cost": 23.3725,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.0233725
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.0233725
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch spot order",
+                "method": "fetchOrder",
+                "input": [
+                    "736807745679786974"
+                ],
+                "httpResponse": {
+                    "symbol": "DOGEUSDT",
+                    "orderId": "736807745679786974",
+                    "clientOrderId": "e6dc41082bf342f580a19264d82dab31",
+                    "price": "0.12000",
+                    "origQty": "299.0",
+                    "executedQty": "0",
+                    "cummulativeQuoteQty": "0",
+                    "status": "NEW",
+                    "timeInForce": "GTC",
+                    "type": "LIMIT",
+                    "side": "SELL",
+                    "time": "1775668655796",
+                    "updateTime": "1775668655810",
+                    "isWorking": true
+                },
+                "parsedResponse": {
+                    "id": "736807745679786974",
+                    "clientOrderId": "e6dc41082bf342f580a19264d82dab31",
+                    "symbol": "DOGE/USDT",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": "sell",
+                    "amount": 299,
+                    "price": 0.12,
+                    "triggerPrice": null,
+                    "cost": 0,
+                    "filled": 0,
+                    "remaining": 299,
+                    "timestamp": 1775668655796,
+                    "datetime": "2026-04-08T17:17:35.796Z",
+                    "fee": null,
+                    "status": "open",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1775668655810,
+                    "average": null,
+                    "trades": [],
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "info": {
+                        "symbol": "DOGEUSDT",
+                        "orderId": "736807745679786974",
+                        "clientOrderId": "e6dc41082bf342f580a19264d82dab31",
+                        "price": "0.12000",
+                        "origQty": "299.0",
+                        "executedQty": "0",
+                        "cummulativeQuoteQty": "0",
+                        "status": "NEW",
+                        "timeInForce": "GTC",
+                        "type": "LIMIT",
+                        "side": "SELL",
+                        "time": "1775668655796",
+                        "updateTime": "1775668655810",
+                        "isWorking": true
+                    },
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel spot order",
+                "method": "cancelOrder",
+                "input": [
+                    "736775987680772200"
+                ],
+                "httpResponse": {
+                    "orderId": "736775987680772200",
+                    "status": "CANCELED"
+                },
+                "parsedResponse": {
+                    "id": "736775987680772200",
+                    "clientOrderId": null,
+                    "symbol": null,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "amount": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fee": null,
+                    "status": "canceled",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "average": null,
+                    "trades": [],
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "info": {
+                        "orderId": "736775987680772200",
+                        "status": "CANCELED"
+                    },
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
+        ],
         "createOrder": [
             {
                 "description": "create spot market sell order",
