@@ -318,6 +318,16 @@
         ],
         "fetchOrder": [
             {
+                "description": "rejected order due to margin",
+                "method": "fetchOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders/1753283663020201709198660003?",
+                "input": [
+                    "1753283663020201709198660003",
+                    "SOL/USD:USDC"
+                ],
+                "output": null
+            },
+            {
                 "description": "fetchOrder",
                 "method": "fetchOrder",
                 "url": "https://api.testnet.paradex.trade/v1/orders/1721905029980201703994490000?",
