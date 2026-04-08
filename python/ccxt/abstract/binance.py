@@ -519,10 +519,10 @@ class ImplicitAPI:
         'eth-staking/account', 'sapiV2', 'GET', {'cost': 150}
     )
     sapi_get_eth_staking_eth_history_staking_history = sapiGetEthStakingEthHistoryStakingHistory = Entry(
-        'eth-staking/eth/history/stakingHistory', 'sapiV2', 'GET', {'cost': 150}
+        'eth-staking/eth/history/stakingHistory', 'sapi', 'GET', {'cost': 150}
     )
     sapi_get_eth_staking_eth_history_redemption_history = sapiGetEthStakingEthHistoryRedemptionHistory = Entry(
-        'eth-staking/eth/history/redemptionHistory', 'sapiV2', 'GET', {'cost': 150}
+        'eth-staking/eth/history/redemptionHistory', 'sapi', 'GET', {'cost': 150}
     )
     # NOTE: Get BETH rewards distribution history
     # sapi_get_eth_staking_eth_history_rewards_history = sapiGetEthStakingEthHistoryRewardsHistory = Entry(
@@ -535,7 +535,7 @@ class ImplicitAPI:
         'eth-staking/eth/history/rateHistory', 'sapiV2', 'GET', {'cost': 150}
     )
     sapi_get_eth_staking_eth_quota = sapiGetEthStakingEthQuota = Entry(
-        'eth-staking/eth/quota', 'sapiV2', 'GET', {'cost': 150}
+        'eth-staking/eth/quota', 'sapi', 'GET', {'cost': 150}
     )
     sapi_get_sol_staking_account = sapiGetSolStakingAccount = Entry('sol-staking/account', 'sapi', 'GET', {'cost': 150})
     sapi_get_sol_staking_sol_history_staking_history = sapiGetSolStakingSolHistoryStakingHistory = Entry(
@@ -808,7 +808,7 @@ class ImplicitAPI:
         'simple-earn/locked/setAutoSubscribe', 'sapi', 'POST', {'cost': 15}
     )
     sapi_post_eth_staking_eth_redeem = sapiPostEthStakingEthRedeem = Entry(
-        'eth-staking/eth/redeem', 'sapiV2', 'POST', {'cost': 150}
+        'eth-staking/eth/redeem', 'sapi', 'POST', {'cost': 150}
     )
     sapi_post_eth_staking_eth_stake = sapiPostEthStakingEthStake = Entry(
         'eth-staking/eth/stake', 'sapiV2', 'POST', {'cost': 150}
