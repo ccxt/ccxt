@@ -670,3 +670,14 @@ func AssertDeepEqual(exchange ccxt.ICoreExchange, skippedProperties interface{},
 	var logText interface{} = LogTemplate(exchange, method, map[string]interface{}{})
 	Assert(DeepEqual(exchange, a, b), Add(Add(Add(Add("two dicts do not match: ", JsonStringify(a)), " != "), JsonStringify(b)), logText))
 }
+func ExchangeProp(exchange ccxt.ICoreExchange, key interface{}, optionalArgs ...interface{}) interface{} {
+	defaultValue := GetArg(optionalArgs, 0, nil)
+	_ = defaultValue
+	var value interface{} = exchange.GetProperty(exchange, ToString(key))
+	if IsTrue(!IsEqual(value, nil)) {
+		return value
+	}
+	// try UpperCase key also, for other langs
+	var keyUpper interface{} = exchange.Capitalize(ToString(key))
+	return exchange.GetProperty(exchange, keyUpper, defaultValue)
+}

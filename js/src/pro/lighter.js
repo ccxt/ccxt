@@ -335,7 +335,11 @@ export default class lighter extends lighterRest {
             'channel': 'market_stats/all',
         };
         const messageHashes = [];
-        if (symbols === undefined || symbols.length === 0) {
+        let symbolsLength = 0;
+        if (symbols !== undefined) {
+            symbolsLength = symbols.length;
+        }
+        if (symbolsLength === 0) {
             messageHashes.push(this.getMessageHash('ticker'));
         }
         else {
@@ -512,7 +516,8 @@ export default class lighter extends lighterRest {
         //     }
         //
         const liquidationData = this.safeList(message, 'liquidation_trades', []);
-        if (liquidationData.length > 0) {
+        const liquidationDataLength = liquidationData.length;
+        if (liquidationDataLength > 0) {
             this.handleLiquidation(client, message);
         }
         const data = this.safeList(message, 'trades', []);
@@ -552,7 +557,8 @@ export default class lighter extends lighterRest {
             'channel': 'trade/' + market['id'],
         };
         const messageHash = this.getMessageHash('trade', market['symbol']);
-        return await this.subscribePublic(messageHash, this.extend(request, params));
+        const trades = await this.subscribePublic(messageHash, this.extend(request, params));
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     /**
      * @method
@@ -676,7 +682,7 @@ export default class lighter extends lighterRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async unWatchMyTrades(symbol = undefined, params = {}) {
-        let accountIndex;
+        let accountIndex = undefined;
         [accountIndex, params] = await this.handleAccountIndex(params, 'unWatchMyTrades', 'accountIndex', 'account_index');
         let messageHash = this.getMessageHash('unsubscribe', 'myTrades');
         if (symbol !== undefined) {
