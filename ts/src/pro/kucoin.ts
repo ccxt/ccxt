@@ -251,9 +251,7 @@ export default class kucoin extends kucoinRest {
         const now = this.milliseconds ();
         const expired = (now - lastUpdate) >= refreshInterval;
         const isFetching = this.safeBool (this.options, 'utaTokenIsFetching', false);
-        if (isFetching && (utaToken !== undefined)) {
-            return await utaToken;
-        } else if ((utaToken === undefined) || expired) {
+        if ((!isFetching && ((utaToken === undefined) || expired))) {
             this.options['utaToken'] = await this.handleUtaToken (now);
         }
         return this.options['utaToken'];
