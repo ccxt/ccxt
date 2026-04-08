@@ -2039,7 +2039,6 @@ export default class weex extends Exchange {
      * @description cancels an open order
      * @see https://www.weex.com/api-doc/spot/orderApi/CancelOrder // spot
      * @see https://www.weex.com/api-doc/contract/Transaction_API/CancelOrder // contract
-     * @see https://www.weex.com/api-doc/contract/Transaction_API/CancelPendingOrder // contract trigger
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2564,7 +2563,7 @@ export default class weex extends Exchange {
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
