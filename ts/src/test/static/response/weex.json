@@ -3,6 +3,58 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "createOrder": [
+            {
+                "description": "create spot market sell order",
+                "method": "createOrder",
+                "input": [
+                    "DOGE/USDT",
+                    "market",
+                    "sell",
+                    299
+                ],
+                "httpResponse": {
+                    "symbol": "DOGEUSDT",
+                    "orderId": "736559136619102312",
+                    "clientOrderId": "9d71a6bd93684ecea451d1e03fe382c7",
+                    "transactTime": "1775609382779"
+                },
+                "parsedResponse": {
+                    "id": "736559136619102312",
+                    "clientOrderId": "9d71a6bd93684ecea451d1e03fe382c7",
+                    "symbol": "DOGE/USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "amount": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timestamp": 1775609382779,
+                    "datetime": "2026-04-08T00:49:42.779Z",
+                    "fee": null,
+                    "status": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "average": null,
+                    "trades": [],
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "info": {
+                        "symbol": "DOGEUSDT",
+                        "orderId": "736559136619102312",
+                        "clientOrderId": "9d71a6bd93684ecea451d1e03fe382c7",
+                        "transactTime": "1775609382779"
+                    },
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "fetch spot balance",
