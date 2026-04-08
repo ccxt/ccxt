@@ -6,6 +6,186 @@
     ],
     "options": {},
     "methods": {
+        "fetchLedger": [
+            {
+                "description": "fetch ledger for funding",
+                "method": "fetchLedger",
+                "url": "https://api-spot.weex.com/api/v3/account/fundingBills",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "funding"
+                    }
+                ],
+                "output": "{}"
+            },
+            {
+                "description": "fetch ledger for funding",
+                "method": "fetchLedger",
+                "url": "https://api-spot.weex.com/api/v3/account/fundingBills",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "funding"
+                    }
+                ],
+                "output": "{}"
+            },
+            {
+                "description": "fetch ledger for funding",
+                "method": "fetchLedger",
+                "url": "https://api-spot.weex.com/api/v3/account/fundingBills",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "funding"
+                    }
+                ],
+                "output": "{}"
+            },
+            {
+                "description": "fetch ledger for spot",
+                "method": "fetchLedger",
+                "url": "https://api-spot.weex.com/api/v3/account/bills",
+                "input": [],
+                "output": "{}"
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetch my spot trades",
+                "method": "fetchMyTrades",
+                "url": "https://api-spot.weex.com/api/v3/myTrades?symbol=DOGEUSDT",
+                "input": [
+                    "DOGE/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetch spot orders",
+                "method": "fetchOrders",
+                "url": "https://api-spot.weex.com/api/v3/allOrders?symbol=DOGEUSDT",
+                "input": [
+                    "DOGE/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetch open orders for swap with symbol",
+                "method": "fetchOpenOrders",
+                "url": "https://api-spot.weex.com/api/v3/openOrders?symbol=ETHUSDT",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch open orders for swap",
+                "method": "fetchOpenOrders",
+                "url": "https://api-spot.weex.com/api/v3/openOrders",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch spot order by clientOrderId",
+                "method": "fetchOrder",
+                "url": "https://api-spot.weex.com/api/v3/order?origClientOrderId=e6dc41082bf342f580a19264d82dab31",
+                "input": [
+                    "",
+                    null,
+                    {
+                        "clientOrderId": "e6dc41082bf342f580a19264d82dab31"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch spot order",
+                "method": "fetchOrder",
+                "url": "https://api-spot.weex.com/api/v3/order?orderId=736807745679786974",
+                "input": [
+                    "736807745679786974"
+                ],
+                "output": null
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "cancel orders in spot market by clientOrderIds",
+                "method": "cancelOrders",
+                "url": "https://api-spot.weex.com/api/v3/order/batch",
+                "input": [
+                    [
+                        ""
+                    ],
+                    null,
+                    {
+                        "clientOrderIds": [
+                            "5472590c1e7f4970bedecfe83798708a"
+                        ]
+                    }
+                ],
+                "output": "{\"origClientOrderIds\":[\"5472590c1e7f4970bedecfe83798708a\"]}"
+            },
+            {
+                "description": "cancel orders in spot market",
+                "method": "cancelOrders",
+                "url": "https://api-spot.weex.com/api/v3/order/batch",
+                "input": [
+                    [
+                        "736792282333709278"
+                    ]
+                ],
+                "output": "{\"orderIds\":[\"736792282333709278\"]}"
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancel all spot orders for market",
+                "method": "cancelAllOrders",
+                "url": "https://api-spot.weex.com/api/v3/openOrders?symbol=DOGEUSDT",
+                "input": [
+                    "DOGE/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel spot order by clientOrderId",
+                "method": "cancelOrder",
+                "url": "https://api-spot.weex.com/api/v3/order?origClientOrderId=test_cancel_order",
+                "input": [
+                    "",
+                    null,
+                    {
+                        "clientOrderId": "test_cancel_order"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "cancel spot order",
+                "method": "cancelOrder",
+                "url": "https://api-spot.weex.com/api/v3/order?orderId=736775987680772200",
+                "input": [
+                    "736775987680772200"
+                ],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "create spot limit buy order",
