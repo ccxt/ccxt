@@ -52,6 +52,9 @@ export default class kucoin extends kucoinRest {
                 },
             },
             'options': {
+                'utaToken': undefined,
+                'utaTokenLastUpdate': 0,
+                'utaTokenRefreshInterval': 1000 * 60 * 60 * 24, // 24 hours
                 'tradesLimit': 1000,
                 'watchTicker': {
                     'spotMethod': '/market/snapshot', // '/market/ticker'
@@ -241,13 +244,28 @@ export default class kucoin extends kucoinRest {
 
     async authenticateUta () {
         this.checkRequiredCredentials ();
-        let utaToken = this.safeString (this.options, 'utaToken');
-        if (utaToken === undefined) {
-            const response = await this.privatePostBulletPrivate ({ 'version': 'v2' });
-            const data = this.safeDict (response, 'data', {});
-            utaToken = this.safeString (data, 'token');
-            this.options['utaToken'] = utaToken;
+        const utaToken = this.safeValue (this.options, 'utaToken');
+        const lastUpdate = this.safeInteger (this.options, 'utaTokenLastUpdate', 0);
+        let refreshInterval = 1000 * 60 * 60 * 24; // 24 hours
+        refreshInterval = this.safeInteger (this.options, 'utaTokenRefreshInterval', refreshInterval);
+        const now = this.milliseconds ();
+        const expired = (now - lastUpdate) >= refreshInterval;
+        const isFetching = this.safeBool (this.options, 'utaTokenIsFetching', false);
+        if (isFetching && (utaToken !== undefined)) {
+            return await utaToken;
+        } else if ((utaToken === undefined) || expired) {
+            this.options['utaToken'] = await this.handleUtaToken (now);
         }
+        return this.options['utaToken'];
+    }
+
+    async handleUtaToken (now) {
+        this.options['utaTokenIsFetching'] = true;
+        const response = await this.privatePostBulletPrivate ({ 'version': 'v2' });
+        const data = this.safeDict (response, 'data', {});
+        const utaToken = this.safeString (data, 'token');
+        this.options['utaTokenIsFetching'] = false;
+        this.options['utaTokenLastUpdate'] = now;
         return utaToken;
     }
 
