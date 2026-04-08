@@ -1,0 +1,442 @@
+{
+    "BTC": {
+        "id": "BTC",
+        "code": "BTC",
+        "info": {
+            "name": "BTC/USD",
+            "market_symbol": "btcusd",
+            "base_currency": "BTC",
+            "base_decimals": 8,
+            "counter_currency": "USD",
+            "counter_decimals": 0,
+            "minimum_order_value": "10",
+            "trading": "Enabled",
+            "instant_order_counter_decimals": 2,
+            "instant_and_market_orders": "Enabled",
+            "description": "Bitcoin / U.S. dollar",
+            "market_type": "SPOT"
+        },
+        "type": "crypto",
+        "name": "Bitcoin",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {
+                "min": 1e-8,
+                "max": null
+            },
+            "price": {
+                "min": 1e-8,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        },
+        "networks": {}
+    },
+    "USDT": {
+        "id": "USDT",
+        "code": "USDT",
+        "info": {
+            "name": "USDT/USD",
+            "market_symbol": "usdtusd",
+            "base_currency": "USDT",
+            "base_decimals": 5,
+            "counter_currency": "USD",
+            "counter_decimals": 5,
+            "minimum_order_value": "10.00000",
+            "trading": "Enabled",
+            "instant_order_counter_decimals": 5,
+            "instant_and_market_orders": "Enabled",
+            "description": "Tether / U.S. dollar",
+            "market_type": "SPOT"
+        },
+        "type": "crypto",
+        "name": "Tether",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "precision": 0.00001,
+        "limits": {
+            "amount": {
+                "min": 0.00001,
+                "max": null
+            },
+            "price": {
+                "min": 0.00001,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        },
+        "networks": {}
+    },
+    "EUR": {
+        "id": "EUR",
+        "code": "EUR",
+        "info": {
+            "name": "BTC/EUR",
+            "market_symbol": "btceur",
+            "base_currency": "BTC",
+            "base_decimals": 8,
+            "counter_currency": "EUR",
+            "counter_decimals": 0,
+            "minimum_order_value": "10",
+            "trading": "Enabled",
+            "instant_order_counter_decimals": 2,
+            "instant_and_market_orders": "Enabled",
+            "description": "Bitcoin / Euro",
+            "market_type": "SPOT"
+        },
+        "type": "fiat",
+        "name": "Euro",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "precision": 1,
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": null
+            },
+            "price": {
+                "min": 1,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        },
+        "networks": {}
+    },
+    "USD": {
+        "id": "USD",
+        "code": "USD",
+        "info": {
+            "name": "BTC/USD",
+            "market_symbol": "btcusd",
+            "base_currency": "BTC",
+            "base_decimals": 8,
+            "counter_currency": "USD",
+            "counter_decimals": 0,
+            "minimum_order_value": "10",
+            "trading": "Enabled",
+            "instant_order_counter_decimals": 2,
+            "instant_and_market_orders": "Enabled",
+            "description": "Bitcoin / U.S. dollar",
+            "market_type": "SPOT"
+        },
+        "type": "fiat",
+        "name": "U.S. dollar",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "precision": 1,
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": null
+            },
+            "price": {
+                "min": 1,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        },
+        "networks": {}
+    },
+    "LTC": {
+        "id": "LTC",
+        "code": "LTC",
+        "info": {
+            "name": "LTC/BTC",
+            "market_symbol": "ltcbtc",
+            "base_currency": "LTC",
+            "base_decimals": 8,
+            "counter_currency": "BTC",
+            "counter_decimals": 8,
+            "minimum_order_value": "0.00005000",
+            "trading": "Enabled",
+            "instant_order_counter_decimals": 8,
+            "instant_and_market_orders": "Enabled",
+            "description": "Litecoin / Bitcoin",
+            "market_type": "SPOT"
+        },
+        "type": "crypto",
+        "name": "Litecoin",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {
+                "min": 1e-8,
+                "max": null
+            },
+            "price": {
+                "min": 1e-8,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        },
+        "networks": {}
+    },
+    "ETH": {
+        "id": "ETH",
+        "code": "ETH",
+        "info": {
+            "name": "ETH/BTC",
+            "market_symbol": "ethbtc",
+            "base_currency": "ETH",
+            "base_decimals": 8,
+            "counter_currency": "BTC",
+            "counter_decimals": 8,
+            "minimum_order_value": "0.00005000",
+            "trading": "Enabled",
+            "instant_order_counter_decimals": 8,
+            "instant_and_market_orders": "Enabled",
+            "description": "Ethereum / Bitcoin",
+            "market_type": "SPOT"
+        },
+        "type": "crypto",
+        "name": "Ethereum",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {
+                "min": 1e-8,
+                "max": null
+            },
+            "price": {
+                "min": 1e-8,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        },
+        "networks": {}
+    },
+    "ADA": {
+        "id": "ADA",
+        "code": "ADA",
+        "info": {
+            "name": "ADA/USD",
+            "market_symbol": "adausd",
+            "base_currency": "ADA",
+            "base_decimals": 8,
+            "counter_currency": "USD",
+            "counter_decimals": 5,
+            "minimum_order_value": "10.00000",
+            "trading": "Enabled",
+            "instant_order_counter_decimals": 5,
+            "instant_and_market_orders": "Enabled",
+            "description": "Cardano / U.S. dollar",
+            "market_type": "SPOT"
+        },
+        "type": "crypto",
+        "name": "Cardano",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {
+                "min": 1e-8,
+                "max": null
+            },
+            "price": {
+                "min": 1e-8,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        },
+        "networks": {}
+    },
+    "XRP": {
+        "id": "XRP",
+        "code": "XRP",
+        "info": {
+            "name": "XRP/USD",
+            "market_symbol": "xrpusd",
+            "base_currency": "XRP",
+            "base_decimals": 8,
+            "counter_currency": "USD",
+            "counter_decimals": 5,
+            "minimum_order_value": "10.00000",
+            "trading": "Enabled",
+            "instant_order_counter_decimals": 5,
+            "instant_and_market_orders": "Enabled",
+            "description": "XRP / U.S. dollar",
+            "market_type": "SPOT"
+        },
+        "type": "crypto",
+        "name": "XRP",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {
+                "min": 1e-8,
+                "max": null
+            },
+            "price": {
+                "min": 1e-8,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        },
+        "networks": {}
+    },
+    "USDC": {
+        "id": "USDC",
+        "code": "USDC",
+        "info": {
+            "name": "USDC/USD",
+            "market_symbol": "usdcusd",
+            "base_currency": "USDC",
+            "base_decimals": 5,
+            "counter_currency": "USD",
+            "counter_decimals": 5,
+            "minimum_order_value": "10.00000",
+            "trading": "Enabled",
+            "instant_order_counter_decimals": 5,
+            "instant_and_market_orders": "Enabled",
+            "description": "USDC / U.S. dollar",
+            "market_type": "SPOT"
+        },
+        "type": "crypto",
+        "name": "USDC",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "precision": 0.00001,
+        "limits": {
+            "amount": {
+                "min": 0.00001,
+                "max": null
+            },
+            "price": {
+                "min": 0.00001,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        },
+        "networks": {}
+    },
+    "LINK": {
+        "id": "LINK",
+        "code": "LINK",
+        "info": {
+            "name": "LINK/USD",
+            "market_symbol": "linkusd",
+            "base_currency": "LINK",
+            "base_decimals": 8,
+            "counter_currency": "USD",
+            "counter_decimals": 2,
+            "minimum_order_value": "10.00",
+            "trading": "Enabled",
+            "instant_order_counter_decimals": 2,
+            "instant_and_market_orders": "Enabled",
+            "description": "Chainlink / U.S. dollar",
+            "market_type": "SPOT"
+        },
+        "type": "crypto",
+        "name": "Chainlink",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {
+                "min": 1e-8,
+                "max": null
+            },
+            "price": {
+                "min": 1e-8,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        },
+        "networks": {}
+    }
+}

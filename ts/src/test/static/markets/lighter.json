@@ -1,0 +1,206 @@
+{
+    "ETH/USDC:USDC": {
+        "id": "0",
+        "lowercaseId": null,
+        "symbol": "ETH/USDC:USDC",
+        "base": "ETH",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "ETH",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0,
+        "maker": 0,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.005,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "symbol": "ETH",
+            "market_id": "0",
+            "market_type": "perp",
+            "base_asset_id": "0",
+            "quote_asset_id": "0",
+            "status": "active",
+            "taker_fee": "0.0000",
+            "maker_fee": "0.0000",
+            "liquidation_fee": "1.0000",
+            "min_base_amount": "0.0050",
+            "min_quote_amount": "10.000000",
+            "order_quote_limit": "281474976.710655",
+            "supported_size_decimals": "4",
+            "supported_price_decimals": "2",
+            "supported_quote_decimals": "6",
+            "size_decimals": "4",
+            "price_decimals": "2",
+            "quote_multiplier": "1",
+            "default_initial_margin_fraction": "500",
+            "min_initial_margin_fraction": "200",
+            "maintenance_margin_fraction": "120",
+            "closeout_margin_fraction": "80",
+            "last_trade_price": "2035.73",
+            "daily_trades_count": "417093",
+            "daily_base_token_volume": "253396.5903",
+            "daily_quote_token_volume": "515653651.581411",
+            "daily_price_low": "1974.61",
+            "daily_price_high": "2082.4",
+            "daily_price_change": "-0.8276701985141883",
+            "open_interest": "31856.6628",
+            "daily_chart": {},
+            "market_config": {
+                "market_margin_mode": "0",
+                "insurance_fund_account_index": "281474976710655",
+                "liquidation_mode": "0",
+                "force_reduce_only": false,
+                "trading_hours": "",
+                "funding_fee_discounts_enabled": true,
+                "hidden": false
+            },
+            "strategy_index": "2"
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "LTC/USDC:USDC": {
+        "id": "35",
+        "lowercaseId": null,
+        "symbol": "LTC/USDC:USDC",
+        "base": "LTC",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "LTC",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0,
+        "maker": 0,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.1,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "symbol": "LTC",
+            "market_id": "35",
+            "market_type": "perp",
+            "base_asset_id": "0",
+            "quote_asset_id": "0",
+            "status": "active",
+            "taker_fee": "0.0000",
+            "maker_fee": "0.0000",
+            "liquidation_fee": "1.0000",
+            "min_base_amount": "0.100",
+            "min_quote_amount": "10.000000",
+            "order_quote_limit": "281474976.710655",
+            "supported_size_decimals": "3",
+            "supported_price_decimals": "3",
+            "supported_quote_decimals": "6",
+            "size_decimals": "3",
+            "price_decimals": "3",
+            "quote_multiplier": "1",
+            "default_initial_margin_fraction": "1000",
+            "min_initial_margin_fraction": "1000",
+            "maintenance_margin_fraction": "600",
+            "closeout_margin_fraction": "400",
+            "last_trade_price": "56.065",
+            "daily_trades_count": "5148",
+            "daily_base_token_volume": "8527.562",
+            "daily_quote_token_volume": "474906.094642",
+            "daily_price_low": "54.352",
+            "daily_price_high": "56.563",
+            "daily_price_change": "-0.1833784361202108",
+            "open_interest": "21416.459",
+            "daily_chart": {},
+            "market_config": {
+                "market_margin_mode": "0",
+                "insurance_fund_account_index": "281474976710655",
+                "liquidation_mode": "0",
+                "force_reduce_only": false,
+                "trading_hours": "",
+                "funding_fee_discounts_enabled": true,
+                "hidden": false
+            },
+            "strategy_index": "2"
+        },
+        "tierBased": null,
+        "percentage": null
+    }
+}

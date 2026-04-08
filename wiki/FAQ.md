@@ -1,78 +1,408 @@
 # Frequently Asked Questions
 
-## I'm trying to run the code, but it's not working, how do I fix it?
 
-If your question is formulated in a short manner like the above, we won't help. We don't teach programming. If you're unable to read and understand the [Manual](https://docs.ccxt.com) or you can't follow precisely the guides from the [CONTRIBUTING](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) doc on how to report an issue, we won't help either. Read the CONTRIBUTING guides on how to report an issue and read the Manual. You should not risk anyone's money and time without reading the entire Manual very carefully. You should not risk anything if you're not used to a lot of reading with tons of details. Also, if you don't have the confidence with the programming language you're using, there are much better places for coding fundamentals and practice. Search for `python tutorials`, `js videos`, play with examples, this is how other people climb up the learning curve. No shortcuts, if you want to learn something.
+  ## I'm trying to run the code, but it's not working, how do I fix it?
 
-## What is required to get help?
+  If your question is formulated in a short manner like the above, we won't help. We don't teach programming. If you're unable to read and understand the [Manual](https://github.com/ccxt/ccxt/wiki) or you can't follow precisely the guides from the [CONTRIBUTING](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) doc on how to report an issue, we won't help either. Read the CONTRIBUTING guides on how to report an issue and read the Manual. You should not risk anyone's money and time without reading the entire Manual very carefully. You should not risk anything if you're not used to a lot of reading with tons of details. Also, if you don't have the confidence with the programming language you're using, there are much better places for coding fundamentals and practice. Search for `python tutorials`, `js videos`, play with examples, this is how other people climb up the learning curve. No shortcuts, if you want to learn something.
 
-When asking a question:
+  ## What is required to get help?
 
-- Use the search button for duplicates first!
-- **Post your request and response in `verbose` mode!** Add `exchange.verbose = true` right before the line you're having issues with, and copypaste what you see on your screen. It's written and mentioned everywhere, in the [Troubleshooting](https://docs.ccxt.com/en/latest/manual.html#troubleshooting) section, in the [README](https://github.com/ccxt/ccxt/blob/master/README.md) and in many answers to similar questions among [previous issues](https://github.com/ccxt/ccxt/issues) and [pull requests](https://github.com/ccxt/ccxt/pulls). No excuses. The verbose output should include both the request and response from the exchange.
-- Include the full error callstack!
-- Write your programming language **and language version number**
-- Write the CCXT / CCXT Pro library version number
-- Which exchange it is
-- Which method you're trying to call
+  When asking a question:
 
-- **Post your code** to reproduce the problem. Make it a complete short runnable program, don't swallow the lines and make it as compact as you can (5-10 lines of code), including the exchange instantation code. Remove all irrelevant parts from it, leaving just the essence of the code to reproduce the issue.
-  - **DON'T POST SCREENSHOTS OF CODE OR ERRORS, POST THE OUTPUT AND CODE IN PLAIN TEXT!**
-  - **Surround code and output with triple backticks: &#096;&#096;&#096;GOOD&#096;&#096;&#096;**.
-  - Don't confuse the backtick symbol (&#096;) with the quote symbol (\'): '''BAD'''
-  - Don't confuse a single backtick with triple backticks: &#096;BAD&#096;
+  - Use the search button for duplicates first!
+  - **Post your request and response in `verbose` mode!** Add `exchange.verbose = true` right before the line you're having issues with, and copypaste what you see on your screen. It's written and mentioned everywhere, in the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section, in the [README](https://github.com/ccxt/ccxt/blob/master/README.md) and in many answers to similar questions among [previous issues](https://github.com/ccxt/ccxt/issues) and [pull requests](https://github.com/ccxt/ccxt/pulls). No excuses. The verbose output should include both the request and response from the exchange.
+  - Include the full error callstack!
+  - Write your programming language **and language version number**
+  - Write the CCXT / CCXT Pro library version number
+  - Which exchange it is
+  - Which method you're trying to call
 
-- **DO NOT POST YOUR `apiKey` AND `secret`!** Keep them safe (remove them before posting)!
+  - **Post your code** to reproduce the problem. Make it a complete short runnable program, don't swallow the lines and make it as compact as you can (5-10 lines of code), including the exchange instantation code. Remove all irrelevant parts from it, leaving just the essence of the code to reproduce the issue.
+    - **DON'T POST SCREENSHOTS OF CODE OR ERRORS, POST THE OUTPUT AND CODE IN PLAIN TEXT!**
+    - **Surround code and output with triple backticks: &#096;&#096;&#096;GOOD&#096;&#096;&#096;**.
+    - Don't confuse the backtick symbol (&#096;) with the quote symbol (\'): '''BAD'''
+    - Don't confuse a single backtick with triple backticks: &#096;BAD&#096;
 
-## I am calling a method and I get an error, what am I doing wrong?
+  - **DO NOT POST YOUR `apiKey` AND `secret`!** Keep them safe (remove them before posting)!
 
-You're not reporting the issue properly ) Please, help the community to help you ) Read this and follow the steps: https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-submit-an-issue. Once again, your code to reproduce the issue and your verbose request and response **ARE REQUIRED**. *Just the error traceback, or just the response, or just the request, or just the code – is not enough!*
+  ## I am calling a method and I get an error, what am I doing wrong?
 
-## I got an incorrect result from a method call, can you help?
+  You're not reporting the issue properly ) Please, help the community to help you ) Read this and follow the steps: https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-submit-an-issue. Once again, your code to reproduce the issue and your verbose request and response **ARE REQUIRED**. *Just the error traceback, or just the response, or just the request, or just the code – is not enough!*
 
-Basically the same answer as the previous question. Read and follow **precisely**: https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-submit-an-issue. Once again, your code to reproduce the issue and your verbose request and response **ARE REQUIRED**. *Just the error traceback, or just the response, or just the request, or just the code – is not enough!*
+  ## I got an incorrect result from a method call, can you help?
 
-## Can you implement feature `foo` in exchange `bar`?
+  Basically the same answer as the previous question. Read and follow **precisely**: https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-submit-an-issue. Once again, your code to reproduce the issue and your verbose request and response **ARE REQUIRED**. *Just the error traceback, or just the response, or just the request, or just the code – is not enough!*
 
-Yes, we can. And we will, if nobody else does that before us. There's very little point in asking this type of questions, because the answer is always positive. When someone asks if we can do this or that, the question is not about our abilities, it all boils down to time and management needed for implementing all accumulated feature requests.
+  ## Can you implement feature `foo` in exchange `bar`?
 
-Moreover, this is an open-source library which is a work in progress. This means, that this project is intended to be developed by the community of users, who are using it. What you're asking is not whether we can or cannot implement it, in fact you're actually telling us to go do that particular task and this is not how we see a voluntary collaboration. Your contributions, PRs and commits are welcome: https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code.
+  Yes, we can. And we will, if nobody else does that before us. There's very little point in asking this type of questions, because the answer is always positive. When someone asks if we can do this or that, the question is not about our abilities, it all boils down to time and management needed for implementing all accumulated feature requests.
 
-We don't give promises or estimates on the free open-source work. If you wish to speed it up, feel free to reach out to us via info@ccxt.trade.
+  Moreover, this is an open-source library which is a work in progress. This means, that this project is intended to be developed by the community of users, who are using it. What you're asking is not whether we can or cannot implement it, in fact you're actually telling us to go do that particular task and this is not how we see a voluntary collaboration. Your contributions, PRs and commits are welcome: https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code.
 
-## When will you add feature `foo` for exchange `bar` ? What's the estimated time? When should we expect this?
+  We don't give promises or estimates on the free open-source work. If you wish to speed it up, feel free to reach out to us via info@ccxt.trade.
 
-We don't give promises or estimates on the open-source work. The reasoning behind this is explained in the previous paragraph.
+  ## When will you add feature `foo` for exchange `bar` ? What's the estimated time? When should we expect this?
 
-## When will you add the support for an exchange requested in the Issues?
+  We don't give promises or estimates on the open-source work. The reasoning behind this is explained in the previous paragraph.
 
-Again, we can't promise on the dates for adding this or that exchange, due to reasons outlined above. The answer will always remain the same: _as soon as we can_.
+  ## When will you add the support for an exchange requested in the Issues?
 
-## How long should I wait for a feature to be added? I need to decide whether to implement it myself or to wait for the CCXT Dev Team to implement it for me.
+  Again, we can't promise on the dates for adding this or that exchange, due to reasons outlined above. The answer will always remain the same: _as soon as we can_.
 
-Please, go for implemeting it yourself, do not wait for us. We will add it as soon as we can. Also, your contributions are very welcome:
+  ## How long should I wait for a feature to be added? I need to decide whether to implement it myself or to wait for the CCXT Dev Team to implement it for me.
 
-- https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
+  Please, go for implemeting it yourself, do not wait for us. We will add it as soon as we can. Also, your contributions are very welcome:
 
-## What's your progress on adding the feature `foo` that was requested earlier? How do you do implementing exchange `bar`?
+  - https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
-This type of questions is usually a waste of time, because answering it usually requires too much time for context-switching, and it often takes more time to answer this question, than to actually satisfy the request with code for a new feature or a new exchange. The progress of this open-source project is also open, so, whenever you're wondering how it is doing, take a look into commit history.
+  ## What's your progress on adding the feature `foo` that was requested earlier? How do you do implementing exchange `bar`?
 
-## What is the status of this PR? Any update?
+  This type of questions is usually a waste of time, because answering it usually requires too much time for context-switching, and it often takes more time to answer this question, than to actually satisfy the request with code for a new feature or a new exchange. The progress of this open-source project is also open, so, whenever you're wondering how it is doing, take a look into commit history.
 
-If it is not merged, it means that the PR contains errors, that should be fixed first. If it could be merged as is – we would merge it, and you wouldn't have asked this question in the first place. The most frequent reason for not merging a PR is a violation of any of the [CONTRIBUTING guidelines](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#derived-exchange-classes). Those guidelines should be taken literally, cannot skip a single line or word from there if you want your PR to be merged quickly. Code contributions that do not break the guidelines get merged almost immediately (usually, within hours).
+  ## What is the status of this PR? Any update?
 
-## Can you point out the errors or what should I edit in my PR to get it merged into master branch?
+  If it is not merged, it means that the PR contains errors, that should be fixed first. If it could be merged as is – we would merge it, and you wouldn't have asked this question in the first place. The most frequent reason for not merging a PR is a violation of any of the [CONTRIBUTING guidelines](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#derived-exchange-classes). Those guidelines should be taken literally, cannot skip a single line or word from there if you want your PR to be merged quickly. Code contributions that do not break the guidelines get merged almost immediately (usually, within hours).
 
-Unfortunately, we don't always have the time to quickly list out each and every single error in the code that prevents it from merging. It is often easier and faster to just go and fix the error rather than explain what one should do to fix it. Most of them are already outlined in the [CONTRIBUTING guidelines](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#derived-exchange-classes). The main rule of thumb is to follow **all guidelines literally**.
+  ## Can you point out the errors or what should I edit in my PR to get it merged into master branch?
 
-## Hey! The fix you've uploaded is in JS, would you fix Python / PHP as well, please?
+  Unfortunately, we don't always have the time to quickly list out each and every single error in the code that prevents it from merging. It is often easier and faster to just go and fix the error rather than explain what one should do to fix it. Most of them are already outlined in the [CONTRIBUTING guidelines](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#derived-exchange-classes). The main rule of thumb is to follow **all guidelines literally**.
 
-Our build system generates exchange-specific Python and PHP code for us automatically, so it is transpiled from JS, and there's no need to fix all languages separately one by one.
+  ## Hey! The fix you've uploaded is in TypeScript, would you fix JavaScript / Python / PHP as well, please?
 
-Thus, if it is fixed in JS, it is fixed in Python pip and PHP Composer as well. The automatic build usually takes 15-20 minutes. Just upgrade your version with `pip` or `composer` **after the new version arrives** and you'll be fine.
+  Our build system generates exchange-specific JavaScript, Python and PHP code for us automatically, so it is transpiled from TypeScript, and there's no need to fix all languages separately one by one.
 
-More about it here:
+  Thus, if it is fixed in TypeScript, it is fixed in JavaScript NPM, Python pip and PHP Composer as well. The automatic build usually takes 15-20 minutes. Just upgrade your version with `npm`, `pip` or `composer` **after the new version arrives** and you'll be fine.
 
-- https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support
-- https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#transpiled-generated-files
+  More about it here:
+
+  - https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support
+  - https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#transpiled-generated-files
+
+
+
+  ## How to create an order with takeProfit+stopLoss?
+  Some exchanges support `createOrder` with the additional "attached" `stopLoss` & `takeProfit` sub-orders - view [StopLoss And TakeProfit Orders Attached To A Position](Manual.md#stoploss-and-takeprofit-orders-attached-to-a-position). 
+  However, some exchanges might not support that feature and you will need to run separate `createOrder` methods to add conditional order (e.g. ***trigger order | stoploss order | takeprofit order**) to the already open position - view [Conditional orders](Manual.md#Conditional Orders).
+  You can also check them by looking at `exchange.has['createOrderWithTakeProfitAndStopLoss']`, `exchange.has['createStopLossOrder']` and `exchange.has['createTakeProfitOrder']`, however they are not as precise as `.features` property.
+
+  ## What is the difference between `takeProfit/stopLoss` and `takeProfitPrice/stopLossPrice` orders
+
+  At CCXT, we distinguish between several types of takeProfit/stopLoss orders. If you want to place an order that opens a position and simultaneously attaches a take-profit or stop-loss order within the same request (provided the exchange supports this feature), you should use the `takeProfit/stopLoss` syntax.
+  We refer to these attached TP/SL orders **type 3**.
+
+  Example:
+  ```Python
+    params = {
+      'stopLoss': {
+          'triggerPrice': 12.34,  # at what price it will trigger
+          'price': 12.00,  # if exchange supports, 'price' param would be limit price (for market orders, don't include this param)
+        },
+        'takeProfit': {
+            # similar params here
+        }
+    }
+    order = exchange.create_order ('SOL/USDT', 'limit', 'buy', 0.5, 13, params)
+  ```
+
+  If the exchange does not support these attached orders, or you want to place an independent order that will act as a stop Loss/take profit order then you can place a `stopLossPrice` **or** `takeProfitPrice` order, we call these independent sl/tp orders **type 2**.
+
+  Example
+  ```Python
+      symbol = 'ADA/USDT:USDT'
+      main_order = await binance.create_order(symbol, 'market', 'buy', 50) # open position
+      tp_order = await binance.create_order(symbol, 'limit', 'sell', 50, 1.5, {"takeProfitPrice": 1.6}) # take profit order
+      sl_order = await binance.create_order(symbol, 'limit', 'sell', 50, 0.24, {"stopLossPrice": 0.25}) # stop loss order
+  ```
+
+ ## How do trailing orders work?
+  Some exchanges support using `createOrder` to create a `trailingPercent` or `trailingAmount` order - view: [Trailing Orders](Manual.md#trailing-orders)
+  
+  Trailing orders follow behind the current market price by either a percentange or a quote amount. The order trails in one direction but not the other so that it can eventually be executed. The executed order can be a market order or a limit order. A trailing order can usually be placed to open a position, or combined with the `reduceOnly` parameter set to true in order to close a position. These details about what orders are allowed depends on the exchange. Trailing orders often support a `trailingTriggerPrice` parameter and if the current market price crosses that value it will start the trailing function set by `trailingPercent` or `trailingAmount`.
+  
+  Some exchanges might not support this trailing feature. You can check the `.features` property. You can also check if `createOrder` on the exchange you're using has `trailingPercent` or `trailingAmount` as an available parameter in the docstring. Some exchanges might have `exchange.has['createTrailingPercentOrder']`, or `exchange.has['createTrailingAmountOrder']` set to true, which signals that the `trailingPercent` or `trailingAmount` parameters are available in `createOrder`.
+
+  Examples of creating `trailingPercent` and `trailingAmount` orders:
+  ```Python
+    params = {
+      'trailingPercent': 1.0, # percentage away from the current market price, 1.0 means 1%
+      # 'trailingAmount': 100.0, # quote amount away from the current market price, for a SOL/USDT pair this is 100 USDT away from the current market price.
+      # 'trailingTriggerPrice': 44500.0, # the price to trigger activating a trailing stop order
+      'reduceOnly': True, # set to true if you want to close a position, set to false if you want to open a new position
+    }
+    order = exchange.create_order ('SOL/USDT:USDT', 'market', 'sell', 0.5, None, params)
+  ```
+  ```Python
+    trailingAmount = 100.0
+    trailingTriggerPrice = 115.0
+    params = {
+        'reduceOnly': True,
+    }
+    order = exchange.create_trailing_amount_order ('SOL/USDT:USDT', 'market', 'sell', 0.5, None, trailingAmount, trailingTriggerPrice, params)
+  ```
+  ```Python
+    trailingPercent = 1.0
+    trailingTriggerPrice = 115.0
+    params = {
+        'reduceOnly': False,
+    }
+    order = exchange.create_trailing_percent_order ('SOL/USDT:USDT', 'limit', 'buy', 0.5, 13, trailingPercent, trailingTriggerPrice, params)
+  ```
+
+  ## How to create a spot market buy with cost?
+  To create a market-buy order with cost, first, you need to check if the exchange supports that feature (`exchange.has['createMarketBuyOrderWithCost']).
+  If it does, then you can use the `createMarketBuyOrderWithCost` method.
+  Example:
+  ```Python
+  order = await exchange.createMarketBuyOrderWithCost(symbol, cost)
+  ```
+
+## What does the `createMarketBuyRequiresPrice` option mean?
+
+Many exchanges require the amount to be in the quote currency (they don't accept the base amount) when placing spot-market buy orders. In those cases, the exchange will have the option `createMarketBuyRequiresPrice` set to `true`.
+
+Example: If you wanted to buy BTC/USDT with a market buy-order, you would need to provide an amount = 5 USDT instead of 0.000X. We have a check to prevent errors that explicitly require the price because users will usually provide the amount in the base currency.
+
+So by default, if you do, `create_order(symbol, 'market,' 'buy,' 10)` will throw an error if the exchange has that option (`createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false...`).
+
+If the exchange requires the cost and the user provided the base amount, we need to request an extra parameter **price** and multiply them to get the cost. If you're aware of this behavior, you can simply disable `createMarketBuyOrderRequiresPrice` and pass the cost in the amount parameter, but disabling it does not mean you can place the order using the base amount instead of the quote.
+
+If you do `create_order(symbol, 'market', 'buy', 0.001, 20000)`  ccxt will use the required price to calculate the cost by doing `0.01*20000` and send that value to the exchange.
+
+If you want to provide the cost directly in the amount argument, you can do `exchange.options['createMarketBuyOrderRequiresPrice'] = False` (you acknowledge that the amount will be the cost for market-buy) and then you can do `create_order(symbol, 'market', 'buy', 10)`
+
+This is basically to avoid a user doing this: `create_order('SHIB/USDT', market, buy, 1000000)` and thinking he's trying to buy 1kk of shib but in reality he's buying 1kk USDT worth of SHIB. For that reason, by default ccxt always accepts the base currency in the amount parameter.
+
+Alternatively, you can use the functions `createMarketBuyOrderWithCost`/ `createMarketSellOrderWithCost` if they are available.
+
+  See more: [Market Buys](Manual.md#market-buys)
+
+  ## What's the difference between trading spot and swap/perpetual futures?
+  Spot trading involves buying or selling a financial instrument (like a cryptocurrency) for immediate delivery. It's straightforward, involving the direct exchange of assets.
+
+  Swap trading, on the other hand, involves derivative contracts where two parties exchange financial instruments or cash flows at a set date in the future, based on the underlying asset. Swaps are often used for leverage, speculation, or hedging and do not necessarily involve the exchange of the underlying asset until the contract expires.
+
+
+  Besides that, you will be handling contracts if you're trading swaps and not the base currency (e.g., BTC) directly, so if you create an order with `amount = 1`, the amount in BTC will vary depending on the `contractSize`. You can check the contract size by doing:
+
+  ```Python
+  await exchange.loadMarkets()
+  symbol = 'XRP/USDT:USDT'
+  market = exchange.market(symbol)
+  print(market['contractSize'])
+  ```
+
+  ## Why am I getting an error that says "must be greater than minimum amount precision of 1"?
+  This is a common error that happens when creating orders for contract markets. This error happens when the exchange is expecting a natural number of contracts (1,2,3, etc) in the amount argument of createOrder.
+  
+  Each contract is worth a certain amount of the base asset, determined by the contractSize. You can retrieve the contractSize from a symbols market structure like this:
+  ```Python
+  await exchange.loadMarkets()
+  symbol = 'SOL/USDT:USDT'
+  market = exchange.market(symbol)
+  print(market['contractSize'])
+  ```
+
+  If you create an order with `amount = 1`, the amount of the base asset that is used for the order will vary depending on the symbols `contractSize`.
+
+  Below is a formula and example to find the number of `contracts` that you should use for the amount argument if you want to use 0.5 of the base asset:
+  ```Python
+  await exchange.loadMarkets()
+  symbol = 'SOL/USDT:USDT'
+  market = exchange.market(symbol)
+  # Converting a 0.5 base amount to the number of contracts:
+  # Formula: contracts = (base amount / contract size)
+  contracts = round(0.5 / market['contractSize'])
+  ```
+
+  Here is an example of finding the base amount that will be used with an amount argument of 1 contract:
+  ```Python
+  await exchange.loadMarkets()
+  symbol = 'SOL/USDT:USDT'
+  market = exchange.market(symbol)
+  # Finding the base amount that will be used with 1 contract:
+  # Formula: base amount = (contracts * contract size)
+  contracts = 1
+  base_amount = (contracts * market['contractSize'])
+  ```
+
+  ## How to place a reduceOnly order?
+  A reduceOnly order is a type of order that can only reduce a position, not increase it. To place a reduceOnly order, you typically use the createOrder method with a reduceOnly parameter set to true. This ensures that the order will only execute if it decreases the size of an open position, and it will either partially fill or not fill at all if executing it would increase the position size.
+
+<!-- tabs:start -->
+#### **Javascript**
+```javascript
+const params = {
+    'reduceOnly': true, // set to true if you want to close a position, set to false if you want to open a new position
+}
+const order = await exchange.createOrder (symbol, type, side, amount, price, params)
+```
+#### **Python**
+```python
+params = {
+    'reduceOnly': True, # set to True if you want to close a position, set to False if you want to open a new position
+}
+order = exchange.create_order (symbol, type, side, amount, price, params)
+```
+#### **PHP**
+```php
+$params = {
+    'reduceOnly': true, // set to true if you want to close a position, set to false if you want to open a new position
+}
+$order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
+```
+<!-- tabs:end -->
+
+
+  ## How to check the endpoint used by the unified method?
+  To check the endpoint used by a unified method in the CCXT library, you would typically need to refer to the source code of the library for the specific exchange implementation you're interested in. The unified methods in CCXT abstract away the details of the specific endpoints they interact with, so this information is not directly exposed via the library's API. For detailed inspection, you can look at the implementation of the method for the particular exchange in the CCXT library's source code on GitHub.
+
+  See more: [Unified API](Manual.md#unified-api)
+
+  ## How to differentiate between previousFundingRate, fundingRate and nextFundingRate in the funding rate structure?
+  The funding rate structure has three different funding rate values that can be returned:
+  1. `previousFundingRate`refers to the most recently completed rate.
+  2. `fundingRate` is the upcoming rate. This value is always changing until the funding time passes and then it becomes the previousFundingRate.
+  3. `nextFundingRate` is only supported on a few exchanges and is the predicted funding rate after the upcoming rate. This value is two funding rates from now.
+
+  As an example, say it is 12:30. The `previousFundingRate` happened at 12:00 and we're looking to see what the upcoming funding rate will be by checking the `fundingRate` value. In this example, given 4-hour intervals, the `fundingRate` will happen in the future at 4:00 and the `nextFundingRate` is the predicted rate that will happen at 8:00.
+
+## How to use the Lighter Exchange in CCXT?
+
+
+Lighter is available as part of CCXT and it works similarly to any other CCXT exchange, but it has some particularities that might be confusing for some users but we will explain it in detail below. We just need to set some basic credentials and dependencies.
+
+## Credentials requirements
+
+Lighter requires the following :
+- `privateKey`: the API key private key (hex) from Lighter’s API keys page, not the l1 privateKey (https://app.lighter.xyz/apikeys)
+- `apiKeyIndex` (an integer) in `exchange.options`: the index assigned to the API key you generated (typically 0–254) you can get it from the API Keys page as well
+- `accountIndex` (an integer) in `exchange.options`: — the Lighter internal account index (master account or sub-account). Each internal account has its own API key indices. You can checking by opening this link in the browser using your l1 address https://mainnet.zklighter.elliot.ai/api/v1/accountsByL1Address?l1_address=0xYOUR_ADDRESS_here
+
+
+
+![image](https://github.com/user-attachments/assets/f50602be-31eb-497c-a6df-e9b2803defdf)
+
+Example
+
+```Python
+lighter = ccxt.lighter({
+	'privateKey': 'XXXXXXX',
+	'options': {
+		'apiKeyIndex': 3,
+		'accountIndex': 715085
+	}
+})
+```
+
+### Dependencies requirements
+
+Since the signing algorithms and structs are not supported natively in all languages CCXT is using the officially distributed binaries and interacting with them in order to do the signing process (via FFI/WASM), so depending on the language you need to provide a path for that binary.
+
+### Python/C#/PHP users:
+
+- The binaries can be downloaded here: https://github.com/elliottech/lighter-python/tree/main/lighter/signers
+- The path to the binary needs to be provided as `libraryPath`
+- You need to choose the binary according to your OS/architecture
+
+```Python
+lighter = ccxt.lighter({
+	'options': {
+		'libraryPath': 'path/to/lighter-signer-linux-arm64.so',
+	}
+})
+```
+
+### Javascript/Typescript users
+
+- CCXT is using the WASM binary built from the official package and it can be downloaded here https://github.com/ccxt/lighter-wasm or built from the source
+- You also need to provide the path to `exec_wasm.js`, you can either download it from the same repo or check the path to your local file (assuming Go is installed)
+
+```Javacript
+lighter = ccxt.lighter({
+	'options': {
+		'libraryPath': '/user/cjg/Git/lighter-wasm/lighter.wasm',
+		'wasmExecPath': '/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js'
+	}
+})
+```
+
+### GO users
+
+- Nothing is required, CCXT is consuming the official GO package you just need to provide the credentials
+
+
+## How to use the DyDx Exchange in CCXT?
+
+DyDx is available as part of CCXT and it works similarly to any other CCXT exchange, but it has some particularities that might be confusing for some users but we will explain it in detail below. We just need to set some basic credentials and dependencies.
+
+Due to current signing-related dependency requirements, the exchange is available only in Python and JavaScript. Support for additional languages will be introduced once the necessary dependencies have been ported.
+
+
+## Credentials requirements
+
+DyDx requires one of the following :
+- `privateKey`: the l1 private key (hex) used on dydx, or you can set l2 mnemonic in options
+- `mnemonic` in `exchange.options`: the 24 words to retrieve your l2 private key, you can find it on the web UI
+
+Example
+
+```Python
+dydx = ccxt.dydx({
+	'privateKey': 'XXXXXXX',
+})
+
+# or
+dydx = ccxt.dydx({
+	'options': {
+		'mnemonic': 'test test ...',
+	}
+})
+```
+
+### Dependencies requirements
+
+DyDx requires another dependency for python users. Before use it, you need to install pycryptodom locally.
+
+```BASH
+$ pip3 install pycryptodom
+```
+
+
+Additionally, protobuf is also required, but it is not a direct dependency of CCXT. You will need to install it manually:
+
+```
+npm install protobufjs // javascript/typescript
+pip install "protobuf==5.29.5" // python
+```
+
+### Usage
+
+Usage is largely consistent with other exchanges, though certain behaviors differ.
+
+For example, while orders can be placed normally, cancelling an order on dYdX does not use the traditional orderId. Instead, dYdX requires additional fields such as:
+
+- clientOrderId, not the orderId
+- orderFlags (0 for market and non-limit GTT orders, 64 for limit GTT orders, and 32 for conditional orders), ccxt assumes 64 as default
+- goodTillBlockTimeInSeconds (required for long-term and conditional orders; CCXT assumes a default of 30 days)
+- subAccountId, ccxt assumes 0 as default
+
+CCXT provides sensible defaults for the most common use cases; however, you may need to override these values (using params or options) depending on your specific requirements.
+
+### How to use the GRVT Exchange in CCXT?
+
+GRVT works similarly to any other CCXT DEX and only requires the l1 private key of the wallet.
+
+An example on how to instantiate the GRVT exchange:
+
+```
+exchange = ccxt.grvt({
+	'privateKey': 'XXXXXXX', // the l1 private key (hex)
+})
+```
+
+CCXT is also a builder on GRVT meaning that by default users will pay 1bps (0.01%) extra for using it through CCXT, however this fee is totally optional and can be disabled by providing the option `builderFee: False` in options. Your contribution is much appreciated.
+
+```
+exchange.options['builderFee'] = False
+```
+

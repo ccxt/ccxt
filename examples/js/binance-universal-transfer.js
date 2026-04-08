@@ -1,6 +1,6 @@
-const ccxt = require ('../../ccxt.js')
+import ccxt from '../../js/ccxt.js';
 
-;(async () => {
+(async () => {
 
     // apiKey must have universal transfer permissions
     const binance = new ccxt.binance ({

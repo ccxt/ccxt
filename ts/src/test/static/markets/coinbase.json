@@ -1,0 +1,2814 @@
+{
+    "BTC/USDC": {
+        "id": "BTC-USDC",
+        "lowercaseId": null,
+        "symbol": "BTC/USDC",
+        "base": "BTC",
+        "quote": "USDC",
+        "settle": null,
+        "baseId": "BTC",
+        "quoteId": "USDC",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": null,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.012,
+        "maker": 0.006,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1e-8,
+                "max": 3400
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 1,
+                "max": 150000000
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "product_id": "BTC-USDC",
+            "price": "103459.11",
+            "price_percentage_change_24h": "-0.31484054621308",
+            "volume_24h": "9035.28731773",
+            "volume_percentage_change_24h": "7.92405208061416",
+            "base_increment": "0.00000001",
+            "quote_increment": "0.01",
+            "quote_min_size": "1",
+            "quote_max_size": "150000000",
+            "base_min_size": "0.00000001",
+            "base_max_size": "3400",
+            "base_name": "Bitcoin",
+            "quote_name": "USDC",
+            "watched": false,
+            "is_disabled": false,
+            "new": false,
+            "status": "online",
+            "cancel_only": false,
+            "limit_only": false,
+            "post_only": false,
+            "trading_disabled": false,
+            "auction_mode": false,
+            "product_type": "SPOT",
+            "quote_currency_id": "USDC",
+            "base_currency_id": "BTC",
+            "fcm_trading_session_details": null,
+            "mid_market_price": "",
+            "alias": "BTC-USD",
+            "alias_to": [],
+            "base_display_symbol": "BTC",
+            "quote_display_symbol": "USD",
+            "view_only": false,
+            "price_increment": "0.01",
+            "display_name": "BTC-USDC",
+            "product_venue": "CBE",
+            "approximate_quote_24h_volume": "934782784.49",
+            "new_at": "2023-01-01T00:00:00Z"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.006
+                ],
+                [
+                    10000,
+                    0.004
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    75000000,
+                    0.0012
+                ],
+                [
+                    250000000,
+                    0.0008
+                ],
+                [
+                    400000000,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0025
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    15000000,
+                    0.0006
+                ],
+                [
+                    75000000,
+                    0.0003
+                ],
+                [
+                    250000000,
+                    0
+                ],
+                [
+                    400000000,
+                    0
+                ]
+            ]
+        },
+        "alias": null
+    },
+    "BTC/USDT": {
+        "id": "BTC-USDT",
+        "lowercaseId": null,
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": null,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.012,
+        "maker": 0.006,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1e-8,
+                "max": 400
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 1,
+                "max": 10000000
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "product_id": "BTC-USDT",
+            "price": "103400.79",
+            "price_percentage_change_24h": "-0.30212852365164",
+            "volume_24h": "147.77271455",
+            "volume_percentage_change_24h": "-1.23256174164633",
+            "base_increment": "0.00000001",
+            "quote_increment": "0.01",
+            "quote_min_size": "1",
+            "quote_max_size": "10000000",
+            "base_min_size": "0.00000001",
+            "base_max_size": "400",
+            "base_name": "Bitcoin",
+            "quote_name": "Tether",
+            "watched": false,
+            "is_disabled": false,
+            "new": false,
+            "status": "online",
+            "cancel_only": false,
+            "limit_only": false,
+            "post_only": false,
+            "trading_disabled": false,
+            "auction_mode": false,
+            "product_type": "SPOT",
+            "quote_currency_id": "USDT",
+            "base_currency_id": "BTC",
+            "fcm_trading_session_details": null,
+            "mid_market_price": "",
+            "alias": "",
+            "alias_to": [],
+            "base_display_symbol": "BTC",
+            "quote_display_symbol": "USDT",
+            "view_only": false,
+            "price_increment": "0.01",
+            "display_name": "BTC-USDT",
+            "product_venue": "CBE",
+            "approximate_quote_24h_volume": "15279815.42",
+            "new_at": "2023-01-01T00:00:00Z"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.006
+                ],
+                [
+                    10000,
+                    0.004
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    75000000,
+                    0.0012
+                ],
+                [
+                    250000000,
+                    0.0008
+                ],
+                [
+                    400000000,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0025
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    15000000,
+                    0.0006
+                ],
+                [
+                    75000000,
+                    0.0003
+                ],
+                [
+                    250000000,
+                    0
+                ],
+                [
+                    400000000,
+                    0
+                ]
+            ]
+        },
+        "alias": null
+    },
+    "ETH/USDT": {
+        "id": "ETH-USDT",
+        "lowercaseId": null,
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": null,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.012,
+        "maker": 0.006,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1e-8,
+                "max": 6200
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 1,
+                "max": 10000000
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "product_id": "ETH-USDT",
+            "price": "2584.11",
+            "price_percentage_change_24h": "0.9966348916013",
+            "volume_24h": "10623.18175615",
+            "volume_percentage_change_24h": "30.15516305669346",
+            "base_increment": "0.00000001",
+            "quote_increment": "0.01",
+            "quote_min_size": "1",
+            "quote_max_size": "10000000",
+            "base_min_size": "0.00000001",
+            "base_max_size": "6200",
+            "base_name": "Ethereum",
+            "quote_name": "Tether",
+            "watched": false,
+            "is_disabled": false,
+            "new": false,
+            "status": "online",
+            "cancel_only": false,
+            "limit_only": false,
+            "post_only": false,
+            "trading_disabled": false,
+            "auction_mode": false,
+            "product_type": "SPOT",
+            "quote_currency_id": "USDT",
+            "base_currency_id": "ETH",
+            "fcm_trading_session_details": null,
+            "mid_market_price": "",
+            "alias": "",
+            "alias_to": [],
+            "base_display_symbol": "ETH",
+            "quote_display_symbol": "USDT",
+            "view_only": false,
+            "price_increment": "0.01",
+            "display_name": "ETH-USDT",
+            "product_venue": "CBE",
+            "approximate_quote_24h_volume": "27451470.21",
+            "new_at": "2023-01-01T00:00:00Z"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.006
+                ],
+                [
+                    10000,
+                    0.004
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    75000000,
+                    0.0012
+                ],
+                [
+                    250000000,
+                    0.0008
+                ],
+                [
+                    400000000,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0025
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    15000000,
+                    0.0006
+                ],
+                [
+                    75000000,
+                    0.0003
+                ],
+                [
+                    250000000,
+                    0
+                ],
+                [
+                    400000000,
+                    0
+                ]
+            ]
+        },
+        "alias": null
+    },
+    "ADA/USDT": {
+        "id": "ADA-USDT",
+        "lowercaseId": null,
+        "symbol": "ADA/USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": null,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.012,
+        "maker": 0.006,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.01,
+                "max": 30224000
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 1,
+                "max": 10000000
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "product_id": "ADA-USDT",
+            "price": "0.8027",
+            "price_percentage_change_24h": "-0.17410769804751",
+            "volume_24h": "3156487.39",
+            "volume_percentage_change_24h": "70.83044830862135",
+            "base_increment": "0.01",
+            "quote_increment": "0.0001",
+            "quote_min_size": "1",
+            "quote_max_size": "10000000",
+            "base_min_size": "0.01",
+            "base_max_size": "30224000",
+            "base_name": "Cardano",
+            "quote_name": "Tether",
+            "watched": false,
+            "is_disabled": false,
+            "new": false,
+            "status": "online",
+            "cancel_only": false,
+            "limit_only": false,
+            "post_only": false,
+            "trading_disabled": false,
+            "auction_mode": false,
+            "product_type": "SPOT",
+            "quote_currency_id": "USDT",
+            "base_currency_id": "ADA",
+            "fcm_trading_session_details": null,
+            "mid_market_price": "",
+            "alias": "",
+            "alias_to": [],
+            "base_display_symbol": "ADA",
+            "quote_display_symbol": "USDT",
+            "view_only": false,
+            "price_increment": "0.0001",
+            "display_name": "ADA-USDT",
+            "product_venue": "CBE",
+            "approximate_quote_24h_volume": "2533712.428",
+            "new_at": "2023-01-01T00:00:00Z"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.006
+                ],
+                [
+                    10000,
+                    0.004
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    75000000,
+                    0.0012
+                ],
+                [
+                    250000000,
+                    0.0008
+                ],
+                [
+                    400000000,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0025
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    15000000,
+                    0.0006
+                ],
+                [
+                    75000000,
+                    0.0003
+                ],
+                [
+                    250000000,
+                    0
+                ],
+                [
+                    400000000,
+                    0
+                ]
+            ]
+        },
+        "alias": null
+    },
+    "XRP/USDT": {
+        "id": "XRP-USDT",
+        "lowercaseId": null,
+        "symbol": "XRP/USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "XRP",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": null,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.012,
+        "maker": 0.006,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.000001,
+                "max": 11988060.17819876
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 1,
+                "max": 10000000
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "product_id": "XRP-USDT",
+            "price": "2.5631",
+            "price_percentage_change_24h": "0.71515580179968",
+            "volume_24h": "2443403.003755",
+            "volume_percentage_change_24h": "-30.48287160062053",
+            "base_increment": "0.000001",
+            "quote_increment": "0.0001",
+            "quote_min_size": "1",
+            "quote_max_size": "10000000",
+            "base_min_size": "0.000001",
+            "base_max_size": "11988060.178198761161369",
+            "base_name": "XRP",
+            "quote_name": "Tether",
+            "watched": false,
+            "is_disabled": false,
+            "new": false,
+            "status": "online",
+            "cancel_only": false,
+            "limit_only": false,
+            "post_only": false,
+            "trading_disabled": false,
+            "auction_mode": false,
+            "product_type": "SPOT",
+            "quote_currency_id": "USDT",
+            "base_currency_id": "XRP",
+            "fcm_trading_session_details": null,
+            "mid_market_price": "",
+            "alias": "",
+            "alias_to": [],
+            "base_display_symbol": "XRP",
+            "quote_display_symbol": "USDT",
+            "view_only": false,
+            "price_increment": "0.0001",
+            "display_name": "XRP-USDT",
+            "product_venue": "CBE",
+            "approximate_quote_24h_volume": "6262686.2389",
+            "new_at": "2023-07-13T19:48:00.692Z"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.006
+                ],
+                [
+                    10000,
+                    0.004
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    75000000,
+                    0.0012
+                ],
+                [
+                    250000000,
+                    0.0008
+                ],
+                [
+                    400000000,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0025
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    15000000,
+                    0.0006
+                ],
+                [
+                    75000000,
+                    0.0003
+                ],
+                [
+                    250000000,
+                    0
+                ],
+                [
+                    400000000,
+                    0
+                ]
+            ]
+        },
+        "alias": null
+    },
+    "DOGE/USDT": {
+        "id": "DOGE-USDT",
+        "lowercaseId": null,
+        "symbol": "DOGE/USDT",
+        "base": "DOGE",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "DOGE",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": null,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.012,
+        "maker": 0.006,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.1,
+                "max": 142083900
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 1,
+                "max": 10000000
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "product_id": "DOGE-USDT",
+            "price": "0.2322",
+            "price_percentage_change_24h": "1.00043497172684",
+            "volume_24h": "12098381.5",
+            "volume_percentage_change_24h": "-14.50836418616317",
+            "base_increment": "0.1",
+            "quote_increment": "0.0001",
+            "quote_min_size": "1",
+            "quote_max_size": "10000000",
+            "base_min_size": "0.1",
+            "base_max_size": "142083900",
+            "base_name": "Dogecoin",
+            "quote_name": "Tether",
+            "watched": false,
+            "is_disabled": false,
+            "new": false,
+            "status": "online",
+            "cancel_only": false,
+            "limit_only": false,
+            "post_only": false,
+            "trading_disabled": false,
+            "auction_mode": false,
+            "product_type": "SPOT",
+            "quote_currency_id": "USDT",
+            "base_currency_id": "DOGE",
+            "fcm_trading_session_details": null,
+            "mid_market_price": "",
+            "alias": "",
+            "alias_to": [],
+            "base_display_symbol": "DOGE",
+            "quote_display_symbol": "USDT",
+            "view_only": false,
+            "price_increment": "0.0001",
+            "display_name": "DOGE-USDT",
+            "product_venue": "CBE",
+            "approximate_quote_24h_volume": "2809244.1843",
+            "new_at": "2023-01-01T00:00:00Z"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.006
+                ],
+                [
+                    10000,
+                    0.004
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    75000000,
+                    0.0012
+                ],
+                [
+                    250000000,
+                    0.0008
+                ],
+                [
+                    400000000,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0025
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    15000000,
+                    0.0006
+                ],
+                [
+                    75000000,
+                    0.0003
+                ],
+                [
+                    250000000,
+                    0
+                ],
+                [
+                    400000000,
+                    0
+                ]
+            ]
+        },
+        "alias": null
+    },
+    "ADA/USDC:USDC": {
+        "id": "ADA-PERP-INTX",
+        "lowercaseId": null,
+        "symbol": "ADA/USDC:USDC",
+        "base": "ADA",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "ADA",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.06,
+        "maker": 0.04,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1,
+                "max": 1000000000000000000
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": 50000000
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "product_id": "ADA-PERP-INTX",
+            "price": "0.8034",
+            "price_percentage_change_24h": "-0.02488800398208",
+            "volume_24h": "32353485",
+            "volume_percentage_change_24h": "21.8212686286451",
+            "base_increment": "1",
+            "quote_increment": "0.0001",
+            "quote_min_size": "10",
+            "quote_max_size": "50000000",
+            "base_min_size": "1",
+            "base_max_size": "1000000000000000000",
+            "base_name": "",
+            "quote_name": "USDC",
+            "watched": false,
+            "is_disabled": false,
+            "new": false,
+            "status": "STANDARD",
+            "cancel_only": false,
+            "limit_only": false,
+            "post_only": false,
+            "trading_disabled": false,
+            "auction_mode": false,
+            "product_type": "FUTURE",
+            "quote_currency_id": "USDC",
+            "base_currency_id": "",
+            "fcm_trading_session_details": null,
+            "mid_market_price": "0.80335",
+            "alias": "",
+            "alias_to": [],
+            "base_display_symbol": "",
+            "quote_display_symbol": "USDC",
+            "view_only": false,
+            "price_increment": "0.0001",
+            "display_name": "ADA PERP",
+            "product_venue": "INTX",
+            "approximate_quote_24h_volume": "25992789.849",
+            "new_at": null,
+            "future_product_details": {
+                "venue": "",
+                "contract_code": "ADA",
+                "contract_expiry": null,
+                "contract_size": "1",
+                "contract_root_unit": "ADA",
+                "group_description": "",
+                "contract_expiry_timezone": "",
+                "group_short_description": "",
+                "risk_managed_by": "MANAGED_BY_VENUE",
+                "contract_expiry_type": "PERPETUAL",
+                "perpetual_details": {
+                    "open_interest": "12916171",
+                    "funding_rate": "0.000004",
+                    "funding_time": "2025-05-14T15:00:00.000034Z",
+                    "max_leverage": "20",
+                    "base_asset_uuid": "63062039-7afb-56ff-8e19-5e3215dc404a",
+                    "underlying_type": "SPOT"
+                },
+                "contract_display_name": "ADA PERPETUAL",
+                "time_to_expiry_ms": "0",
+                "non_crypto": false,
+                "contract_expiry_name": "",
+                "twenty_four_by_seven": false,
+                "funding_interval": null
+            }
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.006
+                ],
+                [
+                    10000,
+                    0.004
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    75000000,
+                    0.0012
+                ],
+                [
+                    250000000,
+                    0.0008
+                ],
+                [
+                    400000000,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0025
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    15000000,
+                    0.0006
+                ],
+                [
+                    75000000,
+                    0.0003
+                ],
+                [
+                    250000000,
+                    0
+                ],
+                [
+                    400000000,
+                    0
+                ]
+            ]
+        },
+        "alias": null
+    },
+    "BTC/USDC:USDC": {
+        "id": "BTC-PERP-INTX",
+        "lowercaseId": null,
+        "symbol": "BTC/USDC:USDC",
+        "base": "BTC",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "BTC",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.06,
+        "maker": 0.04,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.0001,
+                "max": 1000000000000000000
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": 50000000
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "product_id": "BTC-PERP-INTX",
+            "price": "103472",
+            "price_percentage_change_24h": "-0.32444262914127",
+            "volume_24h": "180453.1648",
+            "volume_percentage_change_24h": "51.75637128258243",
+            "base_increment": "0.0001",
+            "quote_increment": "0.1",
+            "quote_min_size": "10",
+            "quote_max_size": "50000000",
+            "base_min_size": "0.0001",
+            "base_max_size": "1000000000000000000",
+            "base_name": "",
+            "quote_name": "USDC",
+            "watched": false,
+            "is_disabled": false,
+            "new": false,
+            "status": "STANDARD",
+            "cancel_only": false,
+            "limit_only": false,
+            "post_only": false,
+            "trading_disabled": false,
+            "auction_mode": false,
+            "product_type": "FUTURE",
+            "quote_currency_id": "USDC",
+            "base_currency_id": "",
+            "fcm_trading_session_details": null,
+            "mid_market_price": "103471.95",
+            "alias": "",
+            "alias_to": [],
+            "base_display_symbol": "",
+            "quote_display_symbol": "USDC",
+            "view_only": false,
+            "price_increment": "0.1",
+            "display_name": "BTC PERP",
+            "product_venue": "INTX",
+            "approximate_quote_24h_volume": "18671849868.2",
+            "new_at": null,
+            "future_product_details": {
+                "venue": "",
+                "contract_code": "BTC",
+                "contract_expiry": null,
+                "contract_size": "1",
+                "contract_root_unit": "BTC",
+                "group_description": "",
+                "contract_expiry_timezone": "",
+                "group_short_description": "",
+                "risk_managed_by": "MANAGED_BY_VENUE",
+                "contract_expiry_type": "PERPETUAL",
+                "perpetual_details": {
+                    "open_interest": "3727.4571",
+                    "funding_rate": "0.000011",
+                    "funding_time": "2025-05-14T15:00:00.000072Z",
+                    "max_leverage": "20",
+                    "base_asset_uuid": "5b71fc48-3dd3-540c-809b-f8c94d0e68b5",
+                    "underlying_type": "SPOT"
+                },
+                "contract_display_name": "BTC PERPETUAL",
+                "time_to_expiry_ms": "0",
+                "non_crypto": false,
+                "contract_expiry_name": "",
+                "twenty_four_by_seven": false,
+                "funding_interval": null
+            }
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.006
+                ],
+                [
+                    10000,
+                    0.004
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    75000000,
+                    0.0012
+                ],
+                [
+                    250000000,
+                    0.0008
+                ],
+                [
+                    400000000,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0025
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    15000000,
+                    0.0006
+                ],
+                [
+                    75000000,
+                    0.0003
+                ],
+                [
+                    250000000,
+                    0
+                ],
+                [
+                    400000000,
+                    0
+                ]
+            ]
+        },
+        "alias": null
+    },
+    "ETH/USDC:USDC": {
+        "id": "ETH-PERP-INTX",
+        "lowercaseId": null,
+        "symbol": "ETH/USDC:USDC",
+        "base": "ETH",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "ETH",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.06,
+        "maker": 0.04,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.0001,
+                "max": 1000000000000000000
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": 50000000
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "product_id": "ETH-PERP-INTX",
+            "price": "2585.9",
+            "price_percentage_change_24h": "0.96320908313584",
+            "volume_24h": "241706.5643",
+            "volume_percentage_change_24h": "27.40857198723671",
+            "base_increment": "0.0001",
+            "quote_increment": "0.01",
+            "quote_min_size": "10",
+            "quote_max_size": "50000000",
+            "base_min_size": "0.0001",
+            "base_max_size": "1000000000000000000",
+            "base_name": "",
+            "quote_name": "USDC",
+            "watched": false,
+            "is_disabled": false,
+            "new": false,
+            "status": "STANDARD",
+            "cancel_only": false,
+            "limit_only": false,
+            "post_only": false,
+            "trading_disabled": false,
+            "auction_mode": false,
+            "product_type": "FUTURE",
+            "quote_currency_id": "USDC",
+            "base_currency_id": "",
+            "fcm_trading_session_details": null,
+            "mid_market_price": "2586.115",
+            "alias": "",
+            "alias_to": [],
+            "base_display_symbol": "",
+            "quote_display_symbol": "USDC",
+            "view_only": false,
+            "price_increment": "0.01",
+            "display_name": "ETH PERP",
+            "product_venue": "INTX",
+            "approximate_quote_24h_volume": "625029004.62",
+            "new_at": null,
+            "future_product_details": {
+                "venue": "",
+                "contract_code": "ETH",
+                "contract_expiry": null,
+                "contract_size": "1",
+                "contract_root_unit": "ETH",
+                "group_description": "",
+                "contract_expiry_timezone": "",
+                "group_short_description": "",
+                "risk_managed_by": "MANAGED_BY_VENUE",
+                "contract_expiry_type": "PERPETUAL",
+                "perpetual_details": {
+                    "open_interest": "43173.4801",
+                    "funding_rate": "0.000002",
+                    "funding_time": "2025-05-14T15:00:00.000059Z",
+                    "max_leverage": "20",
+                    "base_asset_uuid": "d85dce9b-5b73-5c3c-8978-522ce1d1c1b4",
+                    "underlying_type": "SPOT"
+                },
+                "contract_display_name": "ETH PERPETUAL",
+                "time_to_expiry_ms": "0",
+                "non_crypto": false,
+                "contract_expiry_name": "",
+                "twenty_four_by_seven": false,
+                "funding_interval": null
+            }
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.006
+                ],
+                [
+                    10000,
+                    0.004
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    75000000,
+                    0.0012
+                ],
+                [
+                    250000000,
+                    0.0008
+                ],
+                [
+                    400000000,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0025
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    15000000,
+                    0.0006
+                ],
+                [
+                    75000000,
+                    0.0003
+                ],
+                [
+                    250000000,
+                    0
+                ],
+                [
+                    400000000,
+                    0
+                ]
+            ]
+        },
+        "alias": null
+    },
+    "XRP/USDC:USDC": {
+        "id": "XRP-PERP-INTX",
+        "lowercaseId": null,
+        "symbol": "XRP/USDC:USDC",
+        "base": "XRP",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "XRP",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.06,
+        "maker": 0.04,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1,
+                "max": 1000000000000000000
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": 50000000
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "product_id": "XRP-PERP-INTX",
+            "price": "2.5647",
+            "price_percentage_change_24h": "0.72261713073872",
+            "volume_24h": "49394023",
+            "volume_percentage_change_24h": "-43.08165856102493",
+            "base_increment": "1",
+            "quote_increment": "0.0001",
+            "quote_min_size": "10",
+            "quote_max_size": "50000000",
+            "base_min_size": "1",
+            "base_max_size": "1000000000000000000",
+            "base_name": "",
+            "quote_name": "USDC",
+            "watched": false,
+            "is_disabled": false,
+            "new": false,
+            "status": "STANDARD",
+            "cancel_only": false,
+            "limit_only": false,
+            "post_only": false,
+            "trading_disabled": false,
+            "auction_mode": false,
+            "product_type": "FUTURE",
+            "quote_currency_id": "USDC",
+            "base_currency_id": "",
+            "fcm_trading_session_details": null,
+            "mid_market_price": "2.5646",
+            "alias": "",
+            "alias_to": [],
+            "base_display_symbol": "",
+            "quote_display_symbol": "USDC",
+            "view_only": false,
+            "price_increment": "0.0001",
+            "display_name": "XRP PERP",
+            "product_venue": "INTX",
+            "approximate_quote_24h_volume": "126680850.7881",
+            "new_at": null,
+            "future_product_details": {
+                "venue": "",
+                "contract_code": "XRP",
+                "contract_expiry": null,
+                "contract_size": "1",
+                "contract_root_unit": "XRP",
+                "group_description": "",
+                "contract_expiry_timezone": "",
+                "group_short_description": "",
+                "risk_managed_by": "MANAGED_BY_VENUE",
+                "contract_expiry_type": "PERPETUAL",
+                "perpetual_details": {
+                    "open_interest": "10586155",
+                    "funding_rate": "0.000006",
+                    "funding_time": "2025-05-14T15:00:00.000063Z",
+                    "max_leverage": "20",
+                    "base_asset_uuid": "e17a44c8-6ea1-564f-a02c-2a9ca1d8eec4",
+                    "underlying_type": "SPOT"
+                },
+                "contract_display_name": "XRP PERPETUAL",
+                "time_to_expiry_ms": "0",
+                "non_crypto": false,
+                "contract_expiry_name": "",
+                "twenty_four_by_seven": false,
+                "funding_interval": null
+            }
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.006
+                ],
+                [
+                    10000,
+                    0.004
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    75000000,
+                    0.0012
+                ],
+                [
+                    250000000,
+                    0.0008
+                ],
+                [
+                    400000000,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0025
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    15000000,
+                    0.0006
+                ],
+                [
+                    75000000,
+                    0.0003
+                ],
+                [
+                    250000000,
+                    0
+                ],
+                [
+                    400000000,
+                    0
+                ]
+            ]
+        },
+        "alias": null
+    },
+    "LTC/USDC:USDC": {
+        "id": "LTC-PERP-INTX",
+        "lowercaseId": null,
+        "symbol": "LTC/USDC:USDC",
+        "base": "LTC",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "LTC",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.06,
+        "maker": 0.04,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.01,
+                "max": 1000000000000000000
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": 50000000
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "product_id": "LTC-PERP-INTX",
+            "price": "99.65",
+            "price_percentage_change_24h": "-1.33663366336634",
+            "volume_24h": "207020.23",
+            "volume_percentage_change_24h": "12.38852771843725",
+            "base_increment": "0.01",
+            "quote_increment": "0.01",
+            "quote_min_size": "10",
+            "quote_max_size": "50000000",
+            "base_min_size": "0.01",
+            "base_max_size": "1000000000000000000",
+            "base_name": "",
+            "quote_name": "USDC",
+            "watched": false,
+            "is_disabled": false,
+            "new": false,
+            "status": "STANDARD",
+            "cancel_only": false,
+            "limit_only": false,
+            "post_only": false,
+            "trading_disabled": false,
+            "auction_mode": false,
+            "product_type": "FUTURE",
+            "quote_currency_id": "USDC",
+            "base_currency_id": "",
+            "fcm_trading_session_details": null,
+            "mid_market_price": "99.63",
+            "alias": "",
+            "alias_to": [],
+            "base_display_symbol": "",
+            "quote_display_symbol": "USDC",
+            "view_only": false,
+            "price_increment": "0.01",
+            "display_name": "LTC PERP",
+            "product_venue": "INTX",
+            "approximate_quote_24h_volume": "20629565.92",
+            "new_at": null,
+            "future_product_details": {
+                "venue": "",
+                "contract_code": "LTC",
+                "contract_expiry": null,
+                "contract_size": "1",
+                "contract_root_unit": "LTC",
+                "group_description": "",
+                "contract_expiry_timezone": "",
+                "group_short_description": "",
+                "risk_managed_by": "MANAGED_BY_VENUE",
+                "contract_expiry_type": "PERPETUAL",
+                "perpetual_details": {
+                    "open_interest": "99479.23",
+                    "funding_rate": "0.000009",
+                    "funding_time": "2025-05-14T15:00:00.000040Z",
+                    "max_leverage": "20",
+                    "base_asset_uuid": "c9c24c6e-c045-5fde-98a2-00ea7f520437",
+                    "underlying_type": "SPOT"
+                },
+                "contract_display_name": "LTC PERPETUAL",
+                "time_to_expiry_ms": "0",
+                "non_crypto": false,
+                "contract_expiry_name": "",
+                "twenty_four_by_seven": false,
+                "funding_interval": null
+            }
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.006
+                ],
+                [
+                    10000,
+                    0.004
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    75000000,
+                    0.0012
+                ],
+                [
+                    250000000,
+                    0.0008
+                ],
+                [
+                    400000000,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0025
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    15000000,
+                    0.0006
+                ],
+                [
+                    75000000,
+                    0.0003
+                ],
+                [
+                    250000000,
+                    0
+                ],
+                [
+                    400000000,
+                    0
+                ]
+            ]
+        },
+        "alias": null
+    },
+    "SOL/USDC:USDC": {
+        "id": "SOL-PERP-INTX",
+        "lowercaseId": null,
+        "symbol": "SOL/USDC:USDC",
+        "base": "SOL",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "SOL",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.06,
+        "maker": 0.04,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.001,
+                "max": 1000000000000000000
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": 50000000
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "product_id": "SOL-PERP-INTX",
+            "price": "176.916",
+            "price_percentage_change_24h": "1.0561670674656",
+            "volume_24h": "1206215.994",
+            "volume_percentage_change_24h": "10.75528838287483",
+            "base_increment": "0.001",
+            "quote_increment": "0.001",
+            "quote_min_size": "10",
+            "quote_max_size": "50000000",
+            "base_min_size": "0.001",
+            "base_max_size": "1000000000000000000",
+            "base_name": "",
+            "quote_name": "USDC",
+            "watched": false,
+            "is_disabled": false,
+            "new": false,
+            "status": "STANDARD",
+            "cancel_only": false,
+            "limit_only": false,
+            "post_only": false,
+            "trading_disabled": false,
+            "auction_mode": false,
+            "product_type": "FUTURE",
+            "quote_currency_id": "USDC",
+            "base_currency_id": "",
+            "fcm_trading_session_details": null,
+            "mid_market_price": "176.9195",
+            "alias": "",
+            "alias_to": [],
+            "base_display_symbol": "",
+            "quote_display_symbol": "USDC",
+            "view_only": false,
+            "price_increment": "0.001",
+            "display_name": "SOL PERP",
+            "product_venue": "INTX",
+            "approximate_quote_24h_volume": "213398908.795",
+            "new_at": null,
+            "future_product_details": {
+                "venue": "",
+                "contract_code": "SOL",
+                "contract_expiry": null,
+                "contract_size": "1",
+                "contract_root_unit": "SOL",
+                "group_description": "",
+                "contract_expiry_timezone": "",
+                "group_short_description": "",
+                "risk_managed_by": "MANAGED_BY_VENUE",
+                "contract_expiry_type": "PERPETUAL",
+                "perpetual_details": {
+                    "open_interest": "358963.372",
+                    "funding_rate": "-0.000003",
+                    "funding_time": "2025-05-14T15:00:00.000052Z",
+                    "max_leverage": "20",
+                    "base_asset_uuid": "4f039497-3af8-5bb3-951c-6df9afa9be1c",
+                    "underlying_type": "SPOT"
+                },
+                "contract_display_name": "SOL PERPETUAL",
+                "time_to_expiry_ms": "0",
+                "non_crypto": false,
+                "contract_expiry_name": "",
+                "twenty_four_by_seven": false,
+                "funding_interval": null
+            }
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.006
+                ],
+                [
+                    10000,
+                    0.004
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    75000000,
+                    0.0012
+                ],
+                [
+                    250000000,
+                    0.0008
+                ],
+                [
+                    400000000,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0025
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    15000000,
+                    0.0006
+                ],
+                [
+                    75000000,
+                    0.0003
+                ],
+                [
+                    250000000,
+                    0
+                ],
+                [
+                    400000000,
+                    0
+                ]
+            ]
+        },
+        "alias": null
+    },
+    "BTC/USD:USD-240426": {
+        "id": "BIT-26APR24-CDE",
+        "symbol": "BTC/USD:USD-240426",
+        "base": "BTC",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "future",
+        "spot": false,
+        "margin": false,
+        "swap": false,
+        "future": true,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0005,
+        "maker": 0.0005,
+        "contractSize": 0.01,
+        "expiry": 1714143600000,
+        "expiryDatetime": "2024-04-26T15:00:00Z",
+        "precision": {
+            "amount": 1,
+            "price": 5
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 1,
+                "max": 100000000
+            },
+            "price": {},
+            "cost": {
+                "min": 0,
+                "max": 100000000
+            }
+        },
+        "info": {
+            "product_id": "BIT-26APR24-CDE",
+            "price": "64940",
+            "price_percentage_change_24h": "-1.43431737117705",
+            "volume_24h": "82309",
+            "volume_percentage_change_24h": "0",
+            "base_increment": "1",
+            "quote_increment": "0.01",
+            "quote_min_size": "0",
+            "quote_max_size": "100000000",
+            "base_min_size": "1",
+            "base_max_size": "100000000",
+            "base_name": "",
+            "quote_name": "US Dollar",
+            "watched": false,
+            "is_disabled": false,
+            "new": false,
+            "status": "",
+            "cancel_only": false,
+            "limit_only": false,
+            "post_only": false,
+            "trading_disabled": false,
+            "auction_mode": false,
+            "product_type": "FUTURE",
+            "quote_currency_id": "USD",
+            "base_currency_id": "",
+            "fcm_trading_session_details": {
+                "is_session_open": true,
+                "open_time": "2024-04-14T22:00:00Z",
+                "close_time": "2024-04-15T21:00:00Z"
+            },
+            "mid_market_price": "65050",
+            "alias": "",
+            "alias_to": [],
+            "base_display_symbol": "",
+            "quote_display_symbol": "USD",
+            "view_only": false,
+            "price_increment": "5",
+            "display_name": "BTC 26 APR 24",
+            "product_venue": "FCM",
+            "future_product_details": {
+                "venue": "cde",
+                "contract_code": "BIT",
+                "contract_expiry": "2024-04-26T15:00:00Z",
+                "contract_size": "0.01",
+                "contract_root_unit": "BTC",
+                "group_description": "Nano Bitcoin Futures",
+                "contract_expiry_timezone": "Europe/London",
+                "group_short_description": "Nano BTC",
+                "risk_managed_by": "MANAGED_BY_FCM",
+                "contract_expiry_type": "EXPIRING",
+                "contract_display_name": "BTC 26 APR 24"
+            }
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.006
+                ],
+                [
+                    10000,
+                    0.004
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    75000000,
+                    0.0012
+                ],
+                [
+                    250000000,
+                    0.0008
+                ],
+                [
+                    400000000,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0025
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    15000000,
+                    0.0006
+                ],
+                [
+                    75000000,
+                    0.0003
+                ],
+                [
+                    250000000,
+                    0
+                ],
+                [
+                    400000000,
+                    0
+                ]
+            ]
+        }
+    },
+    "XRP/USDC": {
+        "id": "XRP-USDC",
+        "lowercaseId": null,
+        "symbol": "XRP/USDC",
+        "base": "XRP",
+        "quote": "USDC",
+        "settle": null,
+        "baseId": "XRP",
+        "quoteId": "USDC",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": null,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.012,
+        "maker": 0.006,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.000001,
+                "max": 11996772.84072922
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 1,
+                "max": 10000000
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "product_id": "XRP-USDC",
+            "price": "2.5634",
+            "price_percentage_change_24h": "0.7071580105288",
+            "volume_24h": "133711510.458795",
+            "volume_percentage_change_24h": "-25.31099326158376",
+            "base_increment": "0.000001",
+            "quote_increment": "0.0001",
+            "quote_min_size": "1",
+            "quote_max_size": "10000000",
+            "base_min_size": "0.000001",
+            "base_max_size": "11996772.8407292192545075",
+            "base_name": "XRP",
+            "quote_name": "USDC",
+            "watched": false,
+            "is_disabled": false,
+            "new": false,
+            "status": "online",
+            "cancel_only": false,
+            "limit_only": false,
+            "post_only": false,
+            "trading_disabled": false,
+            "auction_mode": false,
+            "product_type": "SPOT",
+            "quote_currency_id": "USDC",
+            "base_currency_id": "XRP",
+            "fcm_trading_session_details": null,
+            "mid_market_price": "",
+            "alias": "XRP-USD",
+            "alias_to": [],
+            "base_display_symbol": "XRP",
+            "quote_display_symbol": "USD",
+            "view_only": false,
+            "price_increment": "0.0001",
+            "display_name": "XRP-USDC",
+            "product_venue": "CBE",
+            "approximate_quote_24h_volume": "342756085.91",
+            "new_at": "2023-07-13T19:47:00.692Z"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.006
+                ],
+                [
+                    10000,
+                    0.004
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    75000000,
+                    0.0012
+                ],
+                [
+                    250000000,
+                    0.0008
+                ],
+                [
+                    400000000,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0025
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    15000000,
+                    0.0006
+                ],
+                [
+                    75000000,
+                    0.0003
+                ],
+                [
+                    250000000,
+                    0
+                ],
+                [
+                    400000000,
+                    0
+                ]
+            ]
+        },
+        "alias": null
+    },
+    "BTC/USD": {
+        "id": "BTC-USD",
+        "lowercaseId": null,
+        "symbol": "BTC/USD",
+        "base": "BTC",
+        "quote": "USD",
+        "settle": null,
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": null,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.012,
+        "maker": 0.006,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1e-8,
+                "max": 3400
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 1,
+                "max": 150000000
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "product_id": "BTC-USD",
+            "price": "103459.11",
+            "price_percentage_change_24h": "-0.31484054621308",
+            "volume_24h": "9035.28731773",
+            "volume_percentage_change_24h": "7.92405208061416",
+            "base_increment": "0.00000001",
+            "quote_increment": "0.01",
+            "quote_min_size": "1",
+            "quote_max_size": "150000000",
+            "base_min_size": "0.00000001",
+            "base_max_size": "3400",
+            "base_name": "Bitcoin",
+            "quote_name": "US Dollar",
+            "watched": false,
+            "is_disabled": false,
+            "new": false,
+            "status": "online",
+            "cancel_only": false,
+            "limit_only": false,
+            "post_only": false,
+            "trading_disabled": false,
+            "auction_mode": false,
+            "product_type": "SPOT",
+            "quote_currency_id": "USD",
+            "base_currency_id": "BTC",
+            "fcm_trading_session_details": null,
+            "mid_market_price": "",
+            "alias": "",
+            "alias_to": [
+                "BTC-USDC"
+            ],
+            "base_display_symbol": "BTC",
+            "quote_display_symbol": "USD",
+            "view_only": false,
+            "price_increment": "0.01",
+            "display_name": "BTC-USD",
+            "product_venue": "CBE",
+            "approximate_quote_24h_volume": "934782784.49",
+            "new_at": "2023-01-01T00:00:00Z"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.006
+                ],
+                [
+                    10000,
+                    0.004
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    75000000,
+                    0.0012
+                ],
+                [
+                    250000000,
+                    0.0008
+                ],
+                [
+                    400000000,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0025
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    15000000,
+                    0.0006
+                ],
+                [
+                    75000000,
+                    0.0003
+                ],
+                [
+                    250000000,
+                    0
+                ],
+                [
+                    400000000,
+                    0
+                ]
+            ]
+        },
+        "alias": "BTC-USDC"
+    }
+}

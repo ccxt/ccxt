@@ -1,18 +1,17 @@
-'use strict';
+import ccxt from '../../js/ccxt.js';
+import fs from 'fs';
+import ololog from 'ololog'
 
-const ccxt = require ('../../ccxt')
-    , log = require ('ololog').unlimited.noLocate
-    , verbose = process.argv.includes ('--verbose')
-    , fs = require ('fs')
-    , keysGlobal = 'keys.json'
-    , keysLocal = 'keys.local.json'
-    , keysFile = fs.existsSync (keysLocal) ? keysLocal : (fs.existsSync (keysGlobal) ? keysGlobal : false)
-    , config = keysFile ? require ('../../' + keysFile) : {}
-    , exchange = new ccxt.poloniex (ccxt.extend ({
-        verbose,
-    }, config.poloniex || {}))
-
-;(async () => {
+const log = ololog.configure.unlimited.noLocate,
+      verbose = process.argv.includes ('--verbose'),
+      keysGlobal = 'keys.json',
+      keysLocal = 'keys.local.json',
+      keysFile = fs.existsSync (keysLocal) ? keysLocal : (fs.existsSync (keysGlobal) ? keysGlobal : false),
+      config = keysFile ? require ('../../' + keysFile) : {},
+      exchange = new ccxt.poloniex (ccxt.extend ({
+              enableRateLimit: true,
+              verbose,
+          }, config.poloniex || {}));(async () => {
 
     const test = async function (symbol) {
 
