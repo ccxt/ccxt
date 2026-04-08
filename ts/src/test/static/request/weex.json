@@ -6,6 +6,15 @@
     ],
     "options": {},
     "methods": {
+        "fetchTransfers": [
+            {
+                "description": "fetch transfers",
+                "method": "fetchTransfers",
+                "url": "https://api-spot.weex.com/api/v3/account/transferRecords",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "fetch spot balance",
