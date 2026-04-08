@@ -2,11 +2,11 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/weex.js';
-import { ArgumentsRequired } from './base/errors.js';
+import { ArgumentsRequired, BadRequest, InvalidOrder, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, LedgerEntry, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -35,11 +35,11 @@ export default class weex extends Exchange {
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
                 'borrowMargin': false,
-                'cancelAllOrders': false,
-                'cancelOrder': false,
-                'cancelOrders': false,
-                'cancelOrdersWithClientOrderId': false,
-                'cancelOrderWithClientOrderId': false,
+                'cancelAllOrders': true,
+                'cancelOrder': true,
+                'cancelOrders': true,
+                'cancelOrdersWithClientOrderId': true,
+                'cancelOrderWithClientOrderId': true,
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createDepositAddress': false,
@@ -78,9 +78,9 @@ export default class weex extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledAndClosedOrders': false,
-                'fetchCanceledOrders': false,
+                'fetchCanceledOrders': true,
                 'fetchClosedOrder': false,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': true,
                 'fetchConvertCurrencies': false,
                 'fetchConvertQuote': false,
                 'fetchConvertTrade': false,
@@ -110,7 +110,7 @@ export default class weex extends Exchange {
                 'fetchL2OrderBook': false,
                 'fetchL3OrderBook': false,
                 'fetchLastPrices': false,
-                'fetchLedger': false,
+                'fetchLedger': true,
                 'fetchLedgerEntry': false,
                 'fetchLeverage': false,
                 'fetchLeverages': false,
@@ -127,8 +127,8 @@ export default class weex extends Exchange {
                 'fetchMarkPrices': false,
                 'fetchMyLiquidations': false,
                 'fetchMySettlementHistory': false,
-                'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenInterests': false,
@@ -136,10 +136,10 @@ export default class weex extends Exchange {
                 'fetchOpenOrders': false,
                 'fetchOption': false,
                 'fetchOptionChain': false,
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOrdersByStatus': false,
                 'fetchOrderTrades': false,
                 'fetchOrderWithClientOrderId': false,
@@ -221,30 +221,30 @@ export default class weex extends Exchange {
                     'get': {
                         'api/v3/account/': 5, // done
                         'api/v3/account/transferRecords': 3, // done
-                        'api/v3/order': 2,
-                        'api/v3/openOrders': 3,
-                        'api/v3/allOrders': 10,
-                        'api/v3/myTrades': 5,
-                        'api/v3/rebate/affiliate/getAffiliateUIDs': 20,
-                        'api/v3/rebate/affiliate/getChannelUserTradeAndAsset': 20,
-                        'api/v3/rebate/affiliate/getAffiliateCommission': 20,
-                        'api/v3/rebate/affiliate/getInternalWithdrawalStatus': 100,
-                        'api/v3/rebate/affiliate/querySubChannelTransactions': 10,
-                        'api/v3/agency/verifyReferrals': 20,
-                        'api/v3/agency/getAssert': 20,
-                        'api/v3/agency/getDealData': 20,
+                        'api/v3/order': 2, // done
+                        'api/v3/openOrders': 3, // done
+                        'api/v3/allOrders': 10, // done
+                        'api/v3/myTrades': 5, // done
+                        'api/v3/rebate/affiliate/getAffiliateUIDs': 20, // not unified
+                        'api/v3/rebate/affiliate/getChannelUserTradeAndAsset': 20, // not unified
+                        'api/v3/rebate/affiliate/getAffiliateCommission': 20, // not unified
+                        'api/v3/rebate/affiliate/getInternalWithdrawalStatus': 100, // not unified
+                        'api/v3/rebate/affiliate/querySubChannelTransactions': 10, // not unified
+                        'api/v3/agency/verifyReferrals': 20, // not unified
+                        'api/v3/agency/getAssert': 20, // not unified
+                        'api/v3/agency/getDealData': 20, // not unified
                     },
                     'post': {
-                        'api/v3/account/bills': 5,
-                        'api/v3/account/fundingBills': 5,
-                        'api/v3/order': 5,
-                        'api/v3/order/batch': 50,
+                        'api/v3/account/bills': 5, // done
+                        'api/v3/account/fundingBills': 5, // done
+                        'api/v3/order': 5, // done
+                        'api/v3/order/batch': 50, // todo check - bad response
                         'api/v3/rebate/affiliate/internalWithdrawal': 100,
                     },
                     'delete': {
-                        'api/v3/order': 1,
-                        'api/v3/openOrders': 1,
-                        'api/v3/order/batch': 10,
+                        'api/v3/order': 1, // done
+                        'api/v3/openOrders': 1, // done
+                        'api/v3/order/batch': 10, // done
                     },
                 },
                 'contract': {
@@ -283,7 +283,7 @@ export default class weex extends Exchange {
                         'capi/v3/allAlgoOrders': 10,
                     },
                     'post': {
-                        'capi/v3/account/income': 5,
+                        'capi/v3/account/income': 5, // done
                         'capi/v3/account/marginType': 50,
                         'capi/v3/account/leverage': 20,
                         'capi/v3/account/positionMargin': 30,
@@ -337,6 +337,10 @@ export default class weex extends Exchange {
                     // {"code":-1140,"msg":"FAILED_PRECONDITION: The order value exceed min order value 5USDT"}
                     // {"code":-1140,"msg":"FAILED_PRECONDITION: The order amount not enough. order need amount is 300.0, available amount is 299.70000000"}
                     // {"code":-1115,"msg":"Invalid timeInForce: postOnly"}
+                    // {"code":-1045,"msg":"Invalid Content-Type, please use application/json."}
+                    // {"orderId":121231,"status":"FAILED","errorMsg":"FAILED_ORDER_NOT_FOUND"}
+                    // {"code":-1140,"msg":"Either orderId or origClientOrderId must be sent."}
+                    // {"code":-1141,"msg":"Parameter 'symbol' cannot be empty."}
                 },
                 'broad': {
                 },
@@ -443,6 +447,13 @@ export default class weex extends Exchange {
                 'timeDifference': 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'accountsByType': {
+                    'spot': 'spot',
+                    'trading': 'spot',
+                    'fund': 'funding',
+                    'funding': 'funding',
+                    'swap': 'contract',
+                    'contract': 'contract',
+                    'futures': 'contract',
                 },
                 'networks': {
                     'BEP20': 'BEP20(BSC)',
@@ -529,25 +540,33 @@ export default class weex extends Exchange {
                     },
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'limit': undefined,
+                        'limit': 100,
                         'daysBack': undefined,
-                        'untilDays': 7, // per  implementation comments
+                        'untilDays': undefined,
                         'symbolRequired': true,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
-                        'symbolRequired': true,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
+                        'limit': 100,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
                         'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': true,
                     },
-                    'fetchOrders': undefined,
                     'fetchClosedOrders': undefined,
                     'fetchOHLCV': {
                         'limit': 300,
@@ -577,36 +596,39 @@ export default class weex extends Exchange {
                         'selfTradePrevention': false,
                         'iceberg': false,
                     },
-                    'createOrders': undefined,
+                    'createOrders': {
+                        'max': 10,
+                    },
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'limit': 1000,
+                        'limit': 100,
                         'daysBack': undefined,
                         'untilDays': undefined,
-                        'symbolRequired': true,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
-                        'trigger': true,
-                        'trailing': false,
-                        'symbolRequired': true,
-                    },
-                    'fetchOpenOrders': {
-                        'marginMode': false,
-                        'limit': 1000,
-                        'trigger': true,
-                        'trailing': false,
-                        'symbolRequired': true,
-                    },
-                    'fetchOrders': undefined,
-                    'fetchClosedOrders': undefined,
-                    'fetchCanceledAndClosedOrders': {
-                        'marginMode': false,
-                        'limit': 1000,
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
                     },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': undefined,
                     'fetchOHLCV': {
                         'limit': 1000, // 100 for historical
                     },
@@ -1328,8 +1350,8 @@ export default class weex extends Exchange {
      * @param {int} [limit] the maximum amount of candles to fetch (default 100, max 100 for historical klines, max 1000 for other contract klines)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-     * @param {bool} [params.paginate] whether to automatically paginate requests until the required number of candles is returned
-     * @param {bool} [params.historical] whether to fetch historical klines (default is false). If false, will fetch last price klines
+     * @param {boolean} [params.paginate] whether to automatically paginate requests until the required number of candles is returned
+     * @param {boolean} [params.historical] whether to fetch historical klines (default is false). If false, will fetch last price klines
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchContractOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -1459,21 +1481,65 @@ export default class weex extends Exchange {
         //         "isBestMatch": true
         //     }
         //
+        // fetchMyTrades (spot)
+        //     {
+        //         "symbol": "DOGEUSDT",
+        //         "id": 736825748291060702,
+        //         "orderId": 736825748215563230,
+        //         "price": "0.09349",
+        //         "qty": "250.0",
+        //         "quoteQty": "23.3725",
+        //         "commission": "0.0233725",
+        //         "time": 1775672947953,
+        //         "isBuyer": false
+        //     }
+        //
         const timestamp = this.safeInteger (trade, 'time');
+        const isBuyer = this.safeBool (trade, 'isBuyer');
+        let side = undefined;
+        if (isBuyer !== undefined) {
+            side = isBuyer ? 'buy' : 'sell';
+        }
+        let isSpot = true;
+        if (market === undefined) {
+            const marketId = this.safeString (trade, 'symbol');
+            const realizedPnl = this.safeString (trade, 'realizedPnl');
+            const marketType = (realizedPnl !== undefined) ? 'swap' : 'spot';
+            market = this.safeMarket (marketId, undefined, undefined, marketType); // todo check
+            isSpot = marketType === 'spot';
+        } else {
+            isSpot = market['spot'];
+        }
+        let fee = undefined;
+        const commission = this.safeString (trade, 'commission');
+        if (commission !== undefined) {
+            let feeCurrency = market['settle'];
+            if (isSpot) {
+                if (side === 'buy') {
+                    feeCurrency = market['base'];
+                } else {
+                    feeCurrency = market['quote'];
+                }
+            }
+            fee = {
+                'cost': commission,
+                'currency': feeCurrency,
+            };
+        }
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString (trade, 'id'),
-            'order': undefined,
+            'order': this.safeString (trade, 'orderId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
             'takerOrMaker': undefined,
-            'side': undefined,
+            'side': side,
             'price': this.safeString (trade, 'price'),
             'amount': this.safeString (trade, 'qty'),
             'cost': this.safeString (trade, 'quoteQty'),
-            'fee': undefined,
+            'fee': fee,
         }, market);
     }
 
@@ -1730,7 +1796,7 @@ export default class weex extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of transfers structures to retrieve (default 10, max 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] whether to paginate the results (default false)
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
@@ -1854,46 +1920,6 @@ export default class weex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
-        //
-        // createOrder (spot)
-        //     {
-        //         "symbol": "DOGEUSDT",
-        //         "orderId": 736557215397183592,
-        //         "clientOrderId": "c4551206d34641efbeb64abaa066946d",
-        //         "transactTime": 1775608924724
-        //     }
-        //
-        const timestamp = this.safeInteger (order, 'transactTime');
-        return this.safeOrder ({
-            'id': this.safeString (order, 'orderId'),
-            'clientOrderId': this.safeString (order, 'clientOrderId'),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'timeInForce': undefined,
-            'postOnly': undefined,
-            'reduceOnly': undefined,
-            'side': undefined,
-            'amount': undefined,
-            'price': undefined,
-            'triggerPrice': undefined,
-            'cost': undefined,
-            'filled': undefined,
-            'remaining': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'fee': undefined,
-            'status': undefined,
-            'lastTradeTimestamp': undefined,
-            'lastUpdateTimestamp': undefined,
-            'average': undefined,
-            'trades': undefined,
-            'stopLossPrice': undefined,
-            'takeProfitPrice': undefined,
-            'info': order,
-        }, market);
-    }
-
     createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Dict {
         const market = this.market (symbol);
         const request: Dict = {
@@ -1923,10 +1949,847 @@ export default class weex extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    /**
+     * @method
+     * @name weex#createOrders
+     * @description create a list of trade orders
+     * @see https://www.weex.com/api-doc/spot/orderApi/BulkOrder // spot
+     * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrdersBatch // contract
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params]  extra parameters specific to the exchange API endpoint
+     * Check createSpotOrders() and createContractOrders() for more details on the extra parameters that can be used in params
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async createOrders (orders: OrderRequest[], params = {}) {
+        await this.loadMarkets ();
+        let isSpot = false;
+        let isContract = false;
+        let differentSymbols = false;
+        let firstSymbol = undefined;
+        for (let i = 0; i < orders.length; i++) {
+            const order = this.safeDict (orders, i);
+            const symbol = this.safeString (order, 'symbol');
+            const market = this.market (symbol);
+            if (i === 0) {
+                firstSymbol = symbol;
+            } else if (symbol !== firstSymbol) {
+                differentSymbols = true;
+            }
+            if (market['spot']) {
+                isSpot = true;
+            } else if (market['contract']) {
+                isContract = true;
+            }
+        }
+        if (isSpot && isContract) {
+            throw new BadRequest (this.id + ' createOrders() requires all orders to be either spot or contract');
+        } else if (isSpot) {
+            if (differentSymbols) {
+                throw new BadRequest (this.id + ' createOrders() requires all orders to have the same symbol when creating spot orders in batch');
+            }
+            return await this.createSpotOrders (orders, params);
+        } else if (isContract) {
+            return await this.createContractOrders (orders, params); // todo implement createContractOrders()
+        } else {
+            throw new NotSupported (this.id + ' createOrders() does not support the markets of the orders provided');
+        }
+    }
+
+    /**
+     * @method
+     * @name weex#createSpotOrders
+     * @description helper method for creating spot orders in batch
+     * @see https://www.weex.com/api-doc/spot/orderApi/BulkOrder
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createSpotOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params]  extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async createSpotOrders (orders: OrderRequest[], params = {}) {
+        await this.loadMarkets ();
+        const firstOrder = this.safeDict (orders, 0);
+        const firstSymbol = this.safeString (firstOrder, 'symbol');
+        const market = this.market (firstSymbol);
+        const ordersRequest = [];
+        for (let i = 0; i < orders.length; i++) {
+            const order = this.safeDict (orders, i);
+            const symbol = this.safeString (order, 'symbol');
+            const type = this.safeString (order, 'type');
+            const side = this.safeString (order, 'side');
+            const amount = this.safeNumber (order, 'amount');
+            const price = this.safeNumber (order, 'price');
+            const orderParams = this.safeDict (order, 'params', {});
+            let orderRequest = this.createSpotOrderRequest (symbol, type, side, amount, price, orderParams);
+            orderRequest = this.omit (orderRequest, 'symbol');
+            ordersRequest.push (orderRequest);
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+            'orderList': ordersRequest,
+        };
+        const response = await this.privatePostApiV3OrderBatch (this.extend (request, params));
+        // todo check
+        // return {"code":-1150,"msg":"Request method 'POST' not supported"}
+        const ordersResponse = this.safeList (response, 'orderList', []);
+        return this.parseOrders (ordersResponse, market);
+    }
+
+    /**
+     * @method
+     * @name weex#cancelOrder
+     * @description cancels an open order
+     * @see https://www.weex.com/api-doc/spot/orderApi/CancelOrder // spot
+     * @see https://www.weex.com/api-doc/contract/Transaction_API/CancelOrder // contract
+     * @see https://www.weex.com/api-doc/contract/Transaction_API/CancelPendingOrder // contract trigger
+     * @param {string} id order id
+     * @param {string} [symbol] unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap' (default is 'spot')
+     * @param {boolean} [params.trigger] *contract orders only* whether the order to cancel is a trigger order
+     * @param {string} [params.clientOrderId] *non-trigger orders only* a unique id for the order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        const trigger = this.safeBool (params, 'trigger', false);
+        if (trigger && id === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires an id argument for trigger orders');
+        }
+        const request: Dict = {};
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        params = this.omit (params, [ 'clientOrderId', 'trigger' ]);
+        if (clientOrderId !== undefined) {
+            request['origClientOrderId'] = clientOrderId;
+        } else if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires an id argument or clientOrderId parameter');
+        } else {
+            request['orderId'] = id;
+        }
+        let response = undefined;
+        if (type === 'spot') {
+            // by orderId
+            //     {
+            //         "orderId": 736775987680772200,
+            //         "status": "CANCELED"
+            //     }
+            //
+            // by clientOrderId
+            //     {
+            //         "origClientOrderId": "test_cancel_order",
+            //         "status": "CANCELED"
+            //     }
+            //
+            response = await this.privateDeleteApiV3Order (this.extend (request, params));
+        } else if (trigger) {
+            response = await this.contractPrivateDeleteCapiV3AlgoOrder (this.extend (request, params));
+        } else {
+            response = await this.contractPrivateDeleteCapiV3Order (this.extend (request, params));
+        }
+        // todo check response for contract orders
+        const order = this.parseOrder (response, market);
+        order['status'] = 'canceled';
+        return order;
+    }
+
+    /**
+     * @method
+     * @name weex#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://www.weex.com/api-doc/spot/orderApi/Cancel-Symbol-Orders // spot
+     * @see https://www.weex.com/api-doc/contract/Transaction_API/CancelAllOrders // contract
+     * @see https://www.weex.com/api-doc/contract/Transaction_API/CancelAllPendingOrders // contract trigger
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+     * @param {boolean} [params.trigger] *swap only* true for cancelling trigger orders (default is false)
+     * @returns Response from the exchange
+     */
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        const trigger = this.safeBool (params, 'trigger', false);
+        params = this.omit (params, 'trigger');
+        let response = undefined;
+        if (marketType === 'spot') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument for spot markets');
+            }
+            response = await this.privateDeleteApiV3OpenOrders (this.extend (request, params));
+        } else if (trigger) {
+            response = await this.contractPrivateDeleteCapiV3AlgoOpenOrders (this.extend (request, params));
+        } else {
+            response = await this.contractPrivateDeleteCapiV3AllOpenOrders (this.extend (request, params));
+        }
+        // todo check response for contract orders
+        const extendedParams: Dict = {
+            'status': 'canceled',
+        };
+        return this.parseOrders (response, market, undefined, undefined, extendedParams);
+    }
+
+    /**
+     * @method
+     * @name weex#cancelOrders
+     * @description cancel multiple orders
+     * @see https://www.weex.com/api-doc/spot/orderApi/BulkCancel // spot
+     * @see https://www.weex.com/api-doc/contract/Transaction_API/CancelOrdersBatch // contract
+     * @param {string[]} ids order ids
+     * @param {string} [symbol] unified market symbol, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderIds] client order ids (could be an alternative to ids)
+     * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
+        const isSpot = (marketType === 'spot');
+        const clientOrderIds = this.safeList (params, 'clientOrderIds');
+        params = this.omit (params, 'clientOrderIds');
+        if (clientOrderIds !== undefined) {
+            if (isSpot) {
+                request['origClientOrderIds'] = clientOrderIds;
+            } else {
+                request['origClientOrderIdList'] = clientOrderIds;
+            }
+        } else if (ids !== undefined) {
+            if (isSpot) {
+                request['orderIds'] = ids;
+            } else {
+                request['orderIdList'] = ids;
+            }
+        } else {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires an ids argument or clientOrderIds parameter');
+        }
+        let response = undefined;
+        if (isSpot) {
+            response = await this.privateDeleteApiV3OrderBatch (this.extend (request, params));
+        } else {
+            response = await this.contractPrivateDeleteCapiV3BatchOrders (this.extend (request, params));
+        }
+        // todo check response for contract orders
+        const ordersResponse = this.safeList (response, 'orderList', []);
+        const extendedParams: Dict = {
+            'status': 'canceled',
+        };
+        return this.parseOrders (ordersResponse, market, undefined, undefined, extendedParams);
+    }
+
+    /**
+     * @method
+     * @name weex#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://www.weex.com/api-doc/spot/orderApi/OrderDetails // spot
+     * @see https://www.weex.com/api-doc/contract/Transaction_API/GetSingleOrderInfo // contract
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+     * @param {string} [params.clientOrderId] *spot only* a unique id for the order, used if id is not provided
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async fetchOrder (id: Str, symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        const isSpot = (marketType === 'spot');
+        const request: Dict = {};
+        if ((id === undefined) && !isSpot) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires an id argument for non-spot markets');
+        }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        params = this.omit (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['origClientOrderId'] = clientOrderId;
+        } else if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires an id argument or clientOrderId parameter for spot markets');
+        } else {
+            request['orderId'] = id;
+        }
+        let response = undefined;
+        if (isSpot) {
+            //
+            //     {
+            //         "symbol": "DOGEUSDT",
+            //         "orderId": 736800333186991070,
+            //         "clientOrderId": "082007092f624a18bb7af2ab42e7c8e8",
+            //         "price": "0.08500",
+            //         "origQty": "300.0",
+            //         "executedQty": "0",
+            //         "cummulativeQuoteQty": "0",
+            //         "status": "NEW",
+            //         "timeInForce": "GTC",
+            //         "type": "LIMIT",
+            //         "side": "BUY",
+            //         "time": 1775666888520,
+            //         "updateTime": 1775666888536,
+            //         "isWorking": true
+            //     }
+            //
+            response = await this.privateGetApiV3Order (this.extend (request, params));
+        } else {
+            response = await this.contractPrivateGetCapiV3Order (this.extend (request, params)); // todo check response for contract orders
+        }
+        return this.parseOrder (response, market);
+    }
+
+    /**
+     * @method
+     * @name weex#fetchOpenOrders
+     * @see https://www.weex.com/api-doc/spot/orderApi/UnfinishedOrders // spot
+     * @see https://www.weex.com/api-doc/contract/Transaction_API/GetCurrentOrderStatus // contract
+     * @see https://www.weex.com/api-doc/contract/Transaction_API/GetCurrentPendingOrders // contract trigger
+     * @description fetch all unfilled currently open orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+     * @param {boolean} [params.trigger] *swap only* whether to fetch trigger orders (default is false)
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const isSpot = (marketType === 'spot');
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate', false);
+        const maxLimit = 100;
+        if (paginate) {
+            if (isSpot) {
+                throw new NotSupported (this.id + ' fetchOpenOrders() pagination is not supported for spot markets');
+            }
+            return await this.fetchPaginatedCallDynamic ('fetchOpenOrders', symbol, since, limit, params, maxLimit);
+        }
+        let request: Dict = {};
+        if (symbol !== undefined) {
+            request['symbol'] = market['id'];
+        }
+        let response = undefined;
+        if (isSpot) {
+            //
+            //     [
+            //         {
+            //             "symbol": "DOGEUSDT",
+            //             "orderId": 736807745679786974,
+            //             "clientOrderId": "e6dc41082bf342f580a19264d82dab31",
+            //             "price": "0.12000",
+            //             "origQty": "299.0",
+            //             "executedQty": "0",
+            //             "cummulativeQuoteQty": "0",
+            //             "status": "NEW",
+            //             "timeInForce": "GTC",
+            //             "type": "LIMIT",
+            //             "side": "SELL",
+            //             "time": 1775668655796,
+            //             "updateTime": 1775668655810,
+            //             "isWorking": true
+            //         }
+            //     ]
+            //
+            response = await this.privateGetApiV3OpenOrders (this.extend (request, params));
+        } else {
+            // todo check response for contract orders
+            if (since !== undefined) {
+                request['startTime'] = since;
+            }
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            [ request, params ] = this.handleUntilOption ('endTime', request, params);
+            const trigger = this.safeBool (params, 'trigger', false);
+            if (trigger) {
+                params = this.omit (params, 'trigger');
+                response = await this.contractPrivateGetCapiV3OpenAlgoOrders (this.extend (request, params));
+            } else {
+                response = await this.contractPrivateGetCapiV3OpenOrders (this.extend (request, params));
+            }
+        }
+        const extendedParams: Dict = {
+            'status': 'open',
+        };
+        return this.parseOrders (response, market, since, limit, extendedParams);
+    }
+
+    /**
+     * @method
+     * @name weex#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
+     * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+     * @see https://www.weex.com/api-doc/contract/Transaction_API/GetHistoricalPendingOrders // contract trigger
+     * @param {string} [symbol] unified market symbol of the market orders were made in (required for spot orders)
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.until] end time, ms
+     * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+     * @param {boolean} [params.trigger] *swap only* whether to fetch trigger orders (default is false)
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
+        const isSpot = (marketType === 'spot');
+        if (isSpot && (symbol === undefined)) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument for spot markets');
+        }
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate', false);
+        const maxLimit = 1000;
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params, maxLimit);
+        }
+        let request: Dict = {};
+        if (symbol !== undefined) {
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        let response = undefined;
+        if (isSpot) {
+            //
+            //     [
+            //         {
+            //             "symbol": "DOGEUSDT",
+            //             "orderId": 736806838401500126,
+            //             "clientOrderId": "e93fcb1423fc4b4982fd02eb3bc4955c",
+            //             "price": "0.09365",
+            //             "origQty": "300.0",
+            //             "executedQty": "300.0",
+            //             "cummulativeQuoteQty": "28.095",
+            //             "status": "FILLED",
+            //             "timeInForce": "IOC",
+            //             "type": "MARKET",
+            //             "side": "BUY",
+            //             "time": 1775668439484,
+            //             "updateTime": 1775668439498,
+            //             "isWorking": false
+            //         }
+            //     ]
+            //
+            response = await this.privateGetApiV3AllOrders (this.extend (request, params));
+        } else {
+            const trigger = this.safeBool (params, 'trigger', false);
+            if (trigger) {
+                params = this.omit (params, 'trigger');
+                response = await this.contractPrivateGetCapiV3AllAlgoOrders (this.extend (request, params));
+            } else {
+                response = await this.contractPrivateGetCapiV3OrderHistory (this.extend (request, params));
+            }
+        }
+        // todo check response for contract orders
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name weex#fetchCanceledOrders
+     * @description fetches information on multiple canceled orders made by the user
+     * @see https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
+     * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+     * @see https://www.weex.com/api-doc/contract/Transaction_API/GetHistoricalPendingOrders // contract trigger
+     * @param {string} symbol unified market symbol of the market the orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.until] end time, ms
+     * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+     * @param {boolean} [params.trigger] *swap only* whether to fetch trigger orders (default is false)
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        const orders = await this.fetchOrders (symbol, since, undefined, params);
+        const filteredOrders = this.filterBy (orders, 'status', 'canceled');
+        return this.filterBySinceLimit (filteredOrders, since, limit) as Order[];
+    }
+
+    parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        // createOrder (spot)
+        //     {
+        //         "symbol": "DOGEUSDT",
+        //         "orderId": 736557215397183592,
+        //         "clientOrderId": "c4551206d34641efbeb64abaa066946d",
+        //         "transactTime": 1775608924724
+        //     }
+        //
+        // createOrders (spot) - error response
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "clientOrderId": "batch-2",
+        //         "errorCode": "INSUFFICIENT_BALANCE",
+        //         "errorMsg": "insufficient balance"
+        //     }
+        //
+        // fetchOpenOrders / fetchOrders / fetchOrder (spot)
+        //     {
+        //         "symbol": "DOGEUSDT",
+        //         "orderId": 736800333186991070,
+        //         "clientOrderId": "082007092f624a18bb7af2ab42e7c8e8",
+        //         "price": "0.08500",
+        //         "origQty": "300.0",
+        //         "executedQty": "0",
+        //         "cummulativeQuoteQty": "0",
+        //         "status": "NEW",
+        //         "timeInForce": "GTC",
+        //         "type": "LIMIT",
+        //         "side": "BUY",
+        //         "time": 1775666888520,
+        //         "updateTime": 1775666888536,
+        //         "isWorking": true
+        //     }
+        //
+        const errorCode = this.safeString (order, 'errorCode');
+        const errorMessage = this.safeString (order, 'errorMsg');
+        if ((errorCode !== undefined) || (errorMessage !== undefined)) {
+            this.handleBatchOrdersError (errorCode, errorMessage, order);
+        }
+        if (market === undefined) {
+            const marketId = this.safeString (order, 'symbol');
+            const positionSide = this.safeString (order, 'positionSide');
+            const marketType = (positionSide === undefined) ? 'spot' : 'swap'; // todo check if this is the best way to determine market type for parsing orders
+            market = this.safeMarket (marketId, undefined, undefined, marketType);
+        }
+        const timestamp = this.safeInteger2 (order, 'transactTime', 'time');
+        const rawStatus = this.safeStringLower (order, 'status');
+        return this.safeOrder ({
+            'id': this.safeString (order, 'orderId'),
+            'clientOrderId': this.safeString2 (order, 'clientOrderId', 'origClientOrderId'),
+            'symbol': this.safeString (market, 'symbol'),
+            'type': this.safeStringLower (order, 'type'),
+            'timeInForce': this.safeString (order, 'timeInForce'),
+            'postOnly': undefined,
+            'reduceOnly': undefined,
+            'side': this.safeStringLower (order, 'side'),
+            'amount': this.safeString (order, 'origQty'),
+            'price': this.safeString (order, 'price'),
+            'triggerPrice': undefined,
+            'cost': this.safeString (order, 'cummulativeQuoteQty'),
+            'filled': this.safeString (order, 'executedQty'),
+            'remaining': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': undefined,
+            'status': this.parseOrderStatus (rawStatus),
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeInteger (order, 'updateTime'),
+            'average': undefined,
+            'trades': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+            'info': order,
+        }, market);
+    }
+
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
+            'new': 'open',
+            'partial_fill': 'open', // todo check
+            'full_fill': 'closed',
+            'filled': 'closed',
+            'cancelled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    handleBatchOrdersError (errorCode: Str, errorMessage: Str, order: Dict) {
+        if (errorCode === undefined) {
+            errorCode = '';
+        }
+        if (errorMessage === undefined) {
+            errorMessage = '';
+        }
+        if ((errorCode === '') && (errorMessage === '')) {
+            // some endpoints could return an empty string if there is no error
+            return;
+        }
+        const feedback = this.id + ' createOrders() batch order error: ' + this.json (order);
+        this.throwExactlyMatchedException (this.exceptions['exact'], errorMessage, feedback);
+        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+        this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
+        this.throwBroadlyMatchedException (this.exceptions['broad'], errorCode, feedback);
+        throw new InvalidOrder (feedback);
+    }
+
+    /**
+     * @method
+     * @name weex#fetchMyTrades
+     * @see https://www.weex.com/api-doc/spot/orderApi/TransactionDetails // spot
+     * @see https://www.weex.com/api-doc/contract/Transaction_API/GetTradeDetails // contract
+     * @description fetch all trades made by the user
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        const isSpot = (marketType === 'spot');
+        if (isSpot && (symbol === undefined)) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument for spot markets');
+        }
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate', false);
+        const maxLimit = 100;
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params, maxLimit);
+        }
+        let request: Dict = {};
+        if (symbol !== undefined) {
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        let response = undefined;
+        if (isSpot) {
+            //
+            //     [
+            //         {
+            //             "symbol": "DOGEUSDT",
+            //             "id": 736825748291060702,
+            //             "orderId": 736825748215563230,
+            //             "price": "0.09349",
+            //             "qty": "250.0",
+            //             "quoteQty": "23.3725",
+            //             "commission": "0.0233725",
+            //             "time": 1775672947953,
+            //             "isBuyer": false
+            //         }
+            //     ]
+            //
+            response = await this.privateGetApiV3MyTrades (this.extend (request, params));
+        } else {
+            response = await this.contractPrivateGetCapiV3UserTrades (this.extend (request, params)); // todo check response for contract orders
+        }
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name weex#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://www.weex.com/api-doc/spot/AccountAPI/GetBillRecords // spot
+     * @see https://www.weex.com/api-doc/spot/AccountAPI/GetFundBillRecords // funding
+     * @see https://www.weex.com/api-doc/contract/Account_API/GetContractBills // contract
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined, max is 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest ledger entry
+     * @param {string} [params.type] 'spot', 'funding' or 'swap' (default is 'spot')
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+     */
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate', false);
+        const maxLimit = 100;
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params, maxLimit);
+        }
+        let accountType = undefined;
+        [ accountType, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
+        accountType = this.safeString (accountsByType, accountType, accountType);
+        let request: Dict = {};
+        let items = undefined;
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        if (accountType === 'contract') {
+            if (code !== undefined) {
+                request['currency'] = currency['id'];
+            }
+            if (since !== undefined) {
+                request['startTime'] = since;
+            }
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            [ request, params ] = this.handleUntilOption ('endTime', request, params);
+            const contractResponse = await this.contractPrivatePostCapiV3AccountIncome (this.extend (request, params));
+            items = this.safeList (contractResponse, 'items', []);
+        } else if (accountType === 'funding') {
+            if (since !== undefined) {
+                request['startTime'] = since;
+            }
+            if (limit !== undefined) {
+                request['pageSize'] = limit;
+            }
+            [ request, params ] = this.handleUntilOption ('endTime', request, params);
+            const fundingResponse = await this.privatePostApiV3AccountFundingBills (this.extend (request, params));
+            items = this.safeList (fundingResponse, 'items', []);
+        } else {
+            if (since !== undefined) {
+                request['after'] = since;
+            }
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            [ request, params ] = this.handleUntilOption ('before', request, params);
+            items = await this.privatePostApiV3AccountBills (this.extend (request, params));
+        }
+        return this.parseLedger (items, currency, since, limit);
+    }
+
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+        //
+        // spot
+        //     {
+        //         "billId": "736825748291061726",
+        //         "coinId": 82,
+        //         "coinName": "DOGE",
+        //         "bizType": "trade_out",
+        //         "fillSize": "250.0",
+        //         "fillValue": "23.372500",
+        //         "deltaAmount": "-250.0",
+        //         "afterAmount": "49.70000000",
+        //         "fees": "0",
+        //         "cTime": "1775672947953"
+        //     }
+        //
+        // contract
+        //     {
+        //         "billId": 736791763716407518,
+        //         "asset": "USDT",
+        //         "symbol": null,
+        //         "income": "-90.00000000",
+        //         "incomeType": "withdraw",
+        //         "balance": "106.00000000",
+        //         "fillFee": "0",
+        //         "time": 1775664845399,
+        //         "transferReason": "UNKNOWN_TRANSFER_REASON"
+        //     }
+        //
+        // funding
+        //     {
+        //         "billId": "16502414",
+        //         "coinId": 2,
+        //         "coinName": "USDT",
+        //         "bizType": "transfer_out",
+        //         "fillSize": null,
+        //         "fillValue": null,
+        //         "deltaAmount": "-100.00000000",
+        //         "afterAmount": "0.00000000",
+        //         "fees": "0.00000000",
+        //         "cTime": "1775664588931"
+        //     }
+        const currencyId = this.safeString (item, 'coinName', 'asset');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
+        const timestamp = this.safeInteger2 (item, 'cTime', 'time');
+        const amountRaw = this.safeString2 (item, 'deltaAmount', 'income');
+        const after = this.safeString2 (item, 'afterAmount', 'balance');
+        const before = Precise.stringSub (after, amountRaw);
+        const amount = this.parseNumber (Precise.stringAbs (amountRaw));
+        let direction = 'in';
+        if (amountRaw.indexOf ('-') >= 0) {
+            direction = 'out';
+        }
+        let rawType = this.safeString2 (item, 'bizType', 'incomeType');
+        const transferReason = this.safeString (item, 'transferReason');
+        const isContractEntry = (transferReason !== undefined);
+        if (isContractEntry) {
+            if ((rawType === 'withdraw') || (rawType === 'deposit')) {
+                rawType = 'transfer';
+            }
+        }
+        return this.safeLedgerEntry ({
+            'info': item,
+            'id': this.safeString (item, 'billId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'direction': direction,
+            'account': undefined,
+            'referenceId': undefined,
+            'referenceAccount': undefined,
+            'type': this.parseLedgerType (rawType),
+            'currency': code,
+            'amount': amount,
+            'before': this.parseNumber (before),
+            'after': this.parseNumber (after),
+            'status': undefined,
+            'fee': {
+                'currency': code,
+                'cost': this.safeNumber2 (item, 'fees', 'fillFee'),
+            },
+        }, currency) as LedgerEntry;
+    }
+
+    parseLedgerType (type: Str) {
+        const types: Dict = {
+            'transfer_in': 'transfer',
+            'transfer_out': 'transfer',
+            'deposit': 'deposit',
+            'withdraw': 'withdrawal',
+            'trade_in': 'trade',
+            'trade_out': 'trade',
+        };
+        // todo add more types
+        return this.safeString (types, type, type);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (method === 'GET') {
+        const batchIndex = path.indexOf ('batch');
+        const isBatch = (batchIndex !== -1);
+        if (!isBatch && ((method === 'GET') || (method === 'DELETE'))) {
             if (Object.keys (query).length) {
                 endpoint += '?' + this.urlencode (query);
             }
@@ -1935,7 +2798,7 @@ export default class weex extends Exchange {
             this.checkRequiredCredentials ();
             const timestamp = this.nonce ().toString ();
             let payload = timestamp + method + '/' + endpoint;
-            if (method === 'POST') {
+            if ((method === 'POST') || isBatch) {
                 body = this.json (query);
                 payload += body;
             }
@@ -1946,7 +2809,7 @@ export default class weex extends Exchange {
                 'ACCESS-PASSPHRASE': this.password,
                 'ACCESS-TIMESTAMP': timestamp,
             };
-            if (method === 'POST') {
+            if ((method === 'POST') || (method === 'DELETE')) {
                 headers['Content-Type'] = 'application/json';
             }
         }
