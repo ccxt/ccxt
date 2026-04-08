@@ -6,7 +6,7 @@ import { ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, TransferEntry } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -43,16 +43,16 @@ export default class weex extends Exchange {
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createDepositAddress': false,
-                'createLimitBuyOrder': false,
-                'createLimitOrder': false,
-                'createLimitSellOrder': false,
-                'createMarketBuyOrder': false,
+                'createLimitBuyOrder': true,
+                'createLimitOrder': true,
+                'createLimitSellOrder': true,
+                'createMarketBuyOrder': true,
                 'createMarketBuyOrderWithCost': false,
-                'createMarketOrder': false,
+                'createMarketOrder': true,
                 'createMarketOrderWithCost': false,
-                'createMarketSellOrder': false,
+                'createMarketSellOrder': true,
                 'createMarketSellOrderWithCost': false,
-                'createOrder': false,
+                'createOrder': true,
                 'createOrders': false,
                 'createOrderWithTakeProfitAndStopLoss': false,
                 'createPostOnlyOrder': false,
@@ -334,6 +334,9 @@ export default class weex extends Exchange {
                     // {"code":-1044,"msg":"Invalid ACCESS_KEY."}
                     // {"code":-1052,"msg":"Insufficient permissions for this action."}
                     // {"code":-1047,"msg":"API authentication failed."}
+                    // {"code":-1140,"msg":"FAILED_PRECONDITION: The order value exceed min order value 5USDT"}
+                    // {"code":-1140,"msg":"FAILED_PRECONDITION: The order amount not enough. order need amount is 300.0, available amount is 299.70000000"}
+                    // {"code":-1115,"msg":"Invalid timeInForce: postOnly"}
                 },
                 'broad': {
                 },
@@ -499,7 +502,7 @@ export default class weex extends Exchange {
                 'spot': {
                     'sandbox': false,
                     'createOrder': {
-                        'test': true,
+                        'test': false,
                         'marginMode': false,
                         'triggerPrice': false,
                         'triggerPriceType': undefined,
@@ -508,16 +511,16 @@ export default class weex extends Exchange {
                         'takeProfitPrice': false,
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
-                            'IOC': false,
-                            'FOK': false,
+                            'IOC': true,
+                            'FOK': true,
                             'PO': false,
                             'GTD': false,
                         },
                         'hedged': false,
                         'trailing': false,
                         'leverage': false,
-                        'marketBuyByCost': true,
-                        'marketBuyRequiresPrice': true,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
                         'selfTradePrevention': false,
                         'iceberg': false,
                     },
@@ -1791,6 +1794,133 @@ export default class weex extends Exchange {
             'Successful': 'ok',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name weex#createOrder
+     * @description Create an order on the exchange
+     * @see https://www.weex.com/api-doc/spot/orderApi/PlaceOrder // spot
+     * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder // contract
+     * @see https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder // contract trigger
+     * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceTpSlOrder // contract take profit / stop loss
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {string} type 'limit' or 'market'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount the amount of currency to trade
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params]  extra parameters specific to the exchange API endpoint
+     * Check createSpotOrder() and createContractOrder() for more details on the extra parameters that can be used in params
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['contract']) {
+            return await this.createContractOrder (symbol, type, side, amount, price, params);
+        } else {
+            return await this.createSpotOrder (symbol, type, side, amount, price, params);
+        }
+    }
+
+    /**
+     * @method
+     * @name weex#createSpotOrder
+     * @description helper method for creating spot orders
+     * @see https://www.weex.com/api-doc/spot/orderApi/PlaceOrder
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {string} type 'limit' or 'market'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount the amount of currency to trade
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params]  extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id
+     * @param {string} [params.timeInForce] 'GTC', 'IOC', or 'FOK'
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async createSpotOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = this.createSpotOrderRequest (symbol, type, side, amount, price, params);
+        const response = await this.privatePostApiV3Order (request);
+        //
+        //     {
+        //         "symbol": "DOGEUSDT",
+        //         "orderId": 736557215397183592,
+        //         "clientOrderId": "c4551206d34641efbeb64abaa066946d",
+        //         "transactTime": 1775608924724
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
+    parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        // createOrder (spot)
+        //     {
+        //         "symbol": "DOGEUSDT",
+        //         "orderId": 736557215397183592,
+        //         "clientOrderId": "c4551206d34641efbeb64abaa066946d",
+        //         "transactTime": 1775608924724
+        //     }
+        //
+        const timestamp = this.safeInteger (order, 'transactTime');
+        return this.safeOrder ({
+            'id': this.safeString (order, 'orderId'),
+            'clientOrderId': this.safeString (order, 'clientOrderId'),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'reduceOnly': undefined,
+            'side': undefined,
+            'amount': undefined,
+            'price': undefined,
+            'triggerPrice': undefined,
+            'cost': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': undefined,
+            'status': undefined,
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': undefined,
+            'average': undefined,
+            'trades': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+            'info': order,
+        }, market);
+    }
+
+    createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Dict {
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+            'side': side.toUpperCase (),
+            'type': type.toUpperCase (),
+            'quantity': this.amountToPrecision (symbol, amount),
+        };
+        if (type === 'limit') {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            params = this.omit (params, 'clientOrderId');
+            request['newClientOrderId'] = clientOrderId;
+        }
+        // timeInForce is passed directly from params
+        return this.extend (request, params);
+    }
+
+    async createContractOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {};
+        // todo implement this method
+        const response = await this.contractPrivatePostCapiV3Order (request);
+        return this.parseOrder (response, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
