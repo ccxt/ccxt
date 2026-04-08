@@ -6,7 +6,7 @@ import { ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Dict, FundingRate, FundingRateHistory, FundingRates, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -166,7 +166,7 @@ export default class weex extends Exchange {
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
                 'fetchTransfer': false,
-                'fetchTransfers': false,
+                'fetchTransfers': true,
                 'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawAddresses': false,
@@ -220,7 +220,7 @@ export default class weex extends Exchange {
                 'private': {
                     'get': {
                         'api/v3/account/': 5, // done
-                        'api/v3/account/transferRecords': 3,
+                        'api/v3/account/transferRecords': 3, // done
                         'api/v3/order': 2,
                         'api/v3/openOrders': 3,
                         'api/v3/allOrders': 10,
@@ -1716,6 +1716,81 @@ export default class weex extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    /**
+     * @method
+     * @name weex#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://www.weex.com/api-doc/spot/AccountAPI/TransferRecords
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfers structures to retrieve (default 10, max 100)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] whether to paginate the results (default false)
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+        await this.loadMarkets ();
+        let request: Dict = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const maxLimit = 100;
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchTransfers', code, since, limit, params, maxLimit);
+        }
+        if (since !== undefined) {
+            request['after'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        [ request, params ] = this.handleUntilOption ('before', request, params);
+        const response = await this.privateGetApiV3AccountTransferRecords (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "coinName": "USDT",
+        //             "status": "Successful",
+        //             "toType": "",
+        //             "toSymbol": "",
+        //             "fromType": "",
+        //             "fromSymbol": "",
+        //             "amount": "20.00000000",
+        //             "tradeTime": "1775605824252"
+        //         }
+        //     ]
+        //
+        return this.parseTransfers (response, currency, since, limit);
+    }
+
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+        const timestamp = this.safeInteger (transfer, 'tradeTime');
+        const currencyId = this.safeString (transfer, 'coinName');
+        const currencyCode = this.safeCurrencyCode (currencyId, currency);
+        const status = this.safeString (transfer, 'status');
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': currencyCode,
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': this.safeStringLower (transfer, 'fromType'),
+            'toAccount': this.safeStringLower (transfer, 'toType'),
+            'status': this.parseTransferStatus (status),
+        };
+    }
+
+    parseTransferStatus (status: Str): string {
+        const statuses: Dict = {
+            'Successful': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
