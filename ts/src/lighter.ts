@@ -344,7 +344,7 @@ export default class lighter extends Exchange {
                 'apiKeyIndex': undefined,
                 'wasmExecPath': undefined, // [JS Only] users should set the path to wasm_exec.js. It can be downloaded here https://github.com/ccxt/lighter-wasm
                 'libraryPath': undefined, // users should set the path to the lighter signing library. It can be downloaded here https://github.com/elliottech/lighter-python/tree/main/lighter/signers, GO users don't need it
-                'authDeadlineExpiry': 600,
+                'authDeadlineExpiry': 28800,
                 'authDeadlineMinimumRemaining': 60,
             },
             'features': {
