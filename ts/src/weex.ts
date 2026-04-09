@@ -6,7 +6,7 @@ import { ArgumentsRequired, BadRequest, InvalidOrder, NotSupported } from './bas
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, LedgerEntry, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, LedgerEntry, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -40,8 +40,8 @@ export default class weex extends Exchange {
                 'cancelOrders': true,
                 'cancelOrdersWithClientOrderId': true,
                 'cancelOrderWithClientOrderId': true,
-                'closeAllPositions': false,
-                'closePosition': false,
+                'closeAllPositions': true,
+                'closePosition': true,
                 'createDepositAddress': false,
                 'createLimitBuyOrder': true,
                 'createLimitOrder': true,
@@ -141,15 +141,15 @@ export default class weex extends Exchange {
                 'fetchOrderBooks': false,
                 'fetchOrders': true, // spot only
                 'fetchOrdersByStatus': false,
-                'fetchOrderTrades': false,
-                'fetchOrderWithClientOrderId': false,
-                'fetchPosition': false,
+                'fetchOrderTrades': true,
+                'fetchOrderWithClientOrderId': true, // spot only
+                'fetchPosition': true,
                 'fetchPositionADLRank': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
-                'fetchPositions': false,
+                'fetchPositions': true,
                 'fetchPositionsADLRank': false,
-                'fetchPositionsForSymbol': false,
+                'fetchPositionsForSymbol': true,
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -273,9 +273,9 @@ export default class weex extends Exchange {
                         'capi/v3/account/commissionRate': 10,
                         'capi/v3/account/accountConfig': 10,
                         'capi/v3/account/symbolConfig': 10,
-                        'capi/v3/account/position/allPosition': 15,
-                        'capi/v3/account/position/singlePosition': 3,
-                        'capi/v3/order': 3,
+                        'capi/v3/account/position/allPosition': 15, // done
+                        'capi/v3/account/position/singlePosition': 3, // done
+                        'capi/v3/order': 3, // done
                         'capi/v3/openOrders': 5, // done
                         'capi/v3/order/history': 10, // done
                         'capi/v3/userTrades': 5, // done
@@ -342,6 +342,7 @@ export default class weex extends Exchange {
                     // {"code":-1140,"msg":"Either orderId or origClientOrderId must be sent."}
                     // {"code":-1141,"msg":"Parameter 'symbol' cannot be empty."}
                     // {"orderId":"737188743538017640","origClientOrderId":null,"success":false,"errorCode":"FAILED_ORDER_NOT_FOUND","errorMessage":"FAILED_ORDER_NOT_FOUND"}
+                    // {"code":-1140,"msg":"startTime Parameter type error, expected Long type"}
                 },
                 'broad': {
                 },
@@ -2730,7 +2731,7 @@ export default class weex extends Exchange {
         const errorCode = this.safeString (order, 'errorCode');
         const errorMessage = this.safeString (order, 'errorMsg');
         if ((errorCode !== undefined) || (errorMessage !== undefined)) {
-            this.handleBatchOrdersError (errorCode, errorMessage, order);
+            this.handleOrderOrPositionError (errorCode, errorMessage, order);
         }
         if (market === undefined) {
             const marketId = this.safeString (order, 'symbol');
@@ -2750,7 +2751,7 @@ export default class weex extends Exchange {
             stopLossPrice = triggerPrice;
         }
         return this.safeOrder ({
-            'id': this.safeString2 (order, 'orderId', 'algoId'),
+            'id': this.safeStringN (order, [ 'orderId', 'algoId', 'successOrderId' ]),
             'clientOrderId': this.safeStringN (order, [ 'clientOrderId', 'origClientOrderId', 'clientAlgoId' ]),
             'symbol': this.safeString (market, 'symbol'),
             'type': this.parseOrderType (rawType),
@@ -2805,7 +2806,7 @@ export default class weex extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    handleBatchOrdersError (errorCode: Str, errorMessage: Str, order: Dict) {
+    handleOrderOrPositionError (errorCode: Str, errorMessage: Str, order: Dict) {
         if (errorCode === undefined) {
             errorCode = '';
         }
@@ -2822,6 +2823,27 @@ export default class weex extends Exchange {
         this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
         this.throwBroadlyMatchedException (this.exceptions['broad'], errorCode, feedback);
         throw new InvalidOrder (feedback);
+    }
+
+    /**
+     * @method
+     * @name weex#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://www.weex.com/api-doc/spot/orderApi/TransactionDetails // spot
+     * @see https://www.weex.com/api-doc/contract/Transaction_API/GetTradeDetails // contract
+     * @param {string} id order id
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request: Dict = {
+            'orderId': id,
+        };
+        return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
 
     /**
@@ -3080,6 +3102,187 @@ export default class weex extends Exchange {
             'position_close_short': 'trade',
         };
         return this.safeString (types, type, type);
+    }
+
+    /**
+     * @method
+     * @name weex#fetchPositions
+     * @description fetch all open positions
+     * @see https://www.weex.com/api-doc/contract/Account_API/GetAllPositions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.contractPrivateGetCapiV3AccountPositionAllPosition (params);
+        return this.parsePositions (response, symbols);
+    }
+
+    /**
+     * @method
+     * @name weex#fetchPosition
+     * @description fetch data on an open position
+     * @see https://www.weex.com/api-doc/contract/Account_API/GetSinglePosition
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    async fetchPosition (symbol: string, params = {}) {
+        const positions = await this.fetchPositionsForSymbol (symbol, params);
+        return this.safeDict (positions, 0) as Position;
+    }
+
+    /**
+     * @method
+     * @description fetch open positions for a single market
+     * @name weex#fetchPositionsForSymbol
+     * @see https://www.weex.com/api-doc/contract/Account_API/GetSinglePosition
+     * @description fetch all open positions for specific symbol
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    async fetchPositionsForSymbol (symbol: string, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.contractPrivateGetCapiV3AccountPositionSinglePosition (this.extend (request, params));
+        return this.parsePositions (response, [ market['symbol'] ]);
+    }
+
+    parsePosition (position: Dict, market: Market = undefined) {
+        //
+        //     {
+        //         "id": 737191855967437160,
+        //         "asset": "USDT",
+        //         "symbol": "DOGEUSDT",
+        //         "side": "LONG",
+        //         "marginType": "CROSSED",
+        //         "separatedMode": "COMBINED",
+        //         "separatedOpenOrderId": 0,
+        //         "leverage": "20.00",
+        //         "size": "300",
+        //         "openValue": "27.96900",
+        //         "openFee": "0.02237520",
+        //         "fundingFee": "0",
+        //         "marginSize": "100",
+        //         "isolatedMargin": "0",
+        //         "isAutoAppendIsolatedMargin": false,
+        //         "cumOpenSize": "300",
+        //         "cumOpenValue": "27.96900",
+        //         "cumOpenFee": "0.02237520",
+        //         "cumCloseSize": "0",
+        //         "cumCloseValue": "0",
+        //         "cumCloseFee": "0",
+        //         "cumFundingFee": "0",
+        //         "cumLiquidateFee": "0",
+        //         "createdMatchSequenceId": 5762536243,
+        //         "updatedMatchSequenceId": 5762741613,
+        //         "createdTime": 1775760234825,
+        //         "updatedTime": 1775763170789,
+        //         "unrealizePnl": "0.00600",
+        //         "liquidatePrice": "0"
+        //     }
+        //
+        const errorMessage = this.safeString (position, 'errorMsg');
+        const errorCode = this.safeString (position, 'errorCode');
+        if (errorMessage !== undefined) {
+            this.handleOrderOrPositionError (errorCode, errorMessage, position);
+        }
+        const marketId = this.safeString (position, 'symbol');
+        market = this.safeMarket (marketId, market, undefined, 'contract');
+        const timestamp = this.safeInteger (position, 'createdTime');
+        const marginType = this.safeString (position, 'marginType');
+        let marginMode = 'cross';
+        if (marginType === 'ISOLATED') {
+            marginMode = 'isolated';
+        }
+        const separatedMode = this.safeString (position, 'separatedMode');
+        let hedged = undefined;
+        if (separatedMode === 'COMBINED') {
+            hedged = false;
+        } else if (separatedMode === 'SEPARATED') {
+            hedged = true;
+        }
+        return this.safePosition ({
+            'symbol': market['symbol'],
+            'id': this.safeString2 (position, 'id', 'positionId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'contracts': this.safeNumber (position, 'size'),
+            'contractSize': undefined,
+            'side': this.safeStringLower (position, 'side'),
+            'notional': this.safeNumber (position, 'openValue'),
+            'leverage': this.safeNumber (position, 'leverage'),
+            'unrealizedPnl': this.safeNumber (position, 'unrealizePnl'),
+            'realizedPnl': undefined,
+            'collateral': undefined,
+            'entryPrice': undefined,
+            'markPrice': undefined,
+            'liquidationPrice': this.safeNumber (position, 'liquidatePrice'),
+            'marginMode': marginMode,
+            'hedged': hedged,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'initialMargin': this.safeNumber (position, 'marginSize'),
+            'initialMarginPercentage': undefined,
+            'marginRatio': undefined,
+            'lastUpdateTimestamp': this.safeInteger (position, 'updatedTime'),
+            'lastPrice': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+            'percentage': undefined,
+            'info': undefined,
+        });
+    }
+
+    /**
+     * @method
+     * @name weex#closeAllPositions
+     * @description closes all open positions for a market type
+     * @see https://www.weex.com/api-doc/contract/Transaction_API/ClosePositions
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    async closeAllPositions (params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const response = await this.contractPrivatePostCapiV3ClosePositions (params);
+        //
+        //     [
+        //         {
+        //             "positionId": 737191855967437160,
+        //             "successOrderId": 737215340433375592,
+        //             "errorMessage": "",
+        //             "success": true
+        //         }
+        //     ]
+        //
+        return this.parsePositions (response);
+    }
+
+    /**
+     * @method
+     * @name weex#closePosition
+     * @description closes open positions for a market
+     * @see https://www.weex.com/api-doc/contract/Transaction_API/ClosePositions
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {string} [side] not used by current exchange
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.contractPrivatePostCapiV3ClosePositions (this.extend (request, params));
+        const orders = this.parseOrders (response, market);
+        return this.safeDict (orders, 0) as Order;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
