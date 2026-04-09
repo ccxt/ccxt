@@ -470,16 +470,16 @@ class bitmart(ccxt.async_support.bitmart):
         marketType = None
         marketType, params = self.handle_market_type_and_params('watchBidsAsks', firstMarket, params)
         url = self.implode_hostname(self.urls['api']['ws'][marketType]['public'])
-        channelType = 'spot' if (marketType == 'spot') else 'futures'
+        channelType = 'spot/bookTicker' if (marketType == 'spot') else 'futures/ticker'
         actionType = 'op' if (marketType == 'spot') else 'action'
         rawSubscriptions = []
         messageHashes = []
         for i in range(0, len(symbols)):
             market = self.market(symbols[i])
-            rawSubscriptions.append(channelType + '/ticker:' + market['id'])
+            rawSubscriptions.append(channelType + ':' + market['id'])
             messageHashes.append('bidask:' + symbols[i])
         if marketType != 'spot':
-            rawSubscriptions = [channelType + '/ticker']
+            rawSubscriptions = [channelType]
         request: dict = {
             'args': rawSubscriptions,
         }
@@ -1962,6 +1962,7 @@ class bitmart(ccxt.async_support.bitmart):
             channel = self.safe_string_2(message, 'table', 'group')
             methods: dict = {
                 'depth': self.handle_order_book,
+                'bookTicker': self.handle_bid_ask,
                 'ticker': self.handle_ticker,
                 'trade': self.handle_trade,
                 'kline': self.handle_ohlcv,

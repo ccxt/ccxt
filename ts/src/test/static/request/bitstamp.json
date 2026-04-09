@@ -3,6 +3,17 @@
     "skipKeys": [],
     "outputType": "urlencoded",
     "methods": {
+        "fetchMyTrades": [
+            {
+                "description": "default",
+                "method": "fetchMyTrades",
+                "url": "https://www.bitstamp.net/api/v2/user_transactions/linkusd/",
+                "input": [
+                    "LINK/USD"
+                ],
+                "output": "foo=bar"
+            }
+        ],
         "fetchFundingRateHistory": [
             {
                 "description": "+limit +since",

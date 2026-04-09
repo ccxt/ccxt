@@ -1192,6 +1192,7 @@ class binance extends Exchange {
                         'asset-collection' => 6,
                         'margin/repay-debt' => 3000,
                         'um/feeBurn' => 1,
+                        'um/stock/contract' => 1,
                     ),
                     'put' => array(
                         'listenKey' => 0.2,
@@ -2852,10 +2853,6 @@ class binance extends Exchange {
             return $this->create_expired_option_market($marketId);
         }
         return parent::safe_market($marketId, $market, $delimiter, $marketType);
-    }
-
-    public function cost_to_precision($symbol, $cost) {
-        return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['quote'], $this->precisionMode, $this->paddingMode);
     }
 
     public function nonce() {

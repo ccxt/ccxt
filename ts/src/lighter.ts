@@ -344,6 +344,8 @@ export default class lighter extends Exchange {
                 'apiKeyIndex': undefined,
                 'wasmExecPath': undefined, // [JS Only] users should set the path to wasm_exec.js. It can be downloaded here https://github.com/ccxt/lighter-wasm
                 'libraryPath': undefined, // users should set the path to the lighter signing library. It can be downloaded here https://github.com/elliottech/lighter-python/tree/main/lighter/signers, GO users don't need it
+                'authDeadlineExpiry': 28800, // 8h validity for auth tokens
+                'authDeadlineMinimumRemaining': 60,
             },
             'features': {
                 'default': {
@@ -486,12 +488,34 @@ export default class lighter extends Exchange {
             const res = this.handleOptionAndParams2 ({}, 'createAuth', 'accountIndex', 'account_index');
             accountIndex = this.safeInteger (res, 0);
         }
-        const rs = {
-            'deadline': this.seconds () + 60,
+        const auths = this.safeDict (this.options, 'auths');
+        const accountAuths = this.safeDict (auths, accountIndex);
+        const cachedAuth = this.safeDict (accountAuths, apiKeyIndex);
+        const cachedDeadline = this.safeInteger (cachedAuth, 'deadline');
+        if (cachedDeadline !== undefined) {
+            const minimumDeadline = this.seconds () + this.safeInteger (this.options, 'authDeadlineMinimumRemaining');
+            if (cachedDeadline >= minimumDeadline) {
+                return this.safeString (cachedAuth, 'token');
+            }
+        }
+        const deadline = this.seconds () + this.safeInteger (this.options, 'authDeadlineExpiry');
+        const request = {
+            'deadline': deadline,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
-        return this.lighterCreateAuthToken (this.safeValue (this.options, 'signer'), rs);
+        const token = this.lighterCreateAuthToken (this.safeValue (this.options, 'signer'), request);
+        if (!('auths' in this.options)) {
+            this.options['auths'] = {};
+        }
+        if (!(accountIndex in this.options['auths'])) {
+            this.options['auths'][accountIndex] = {};
+        }
+        this.options['auths'][accountIndex][apiKeyIndex] = {
+            'deadline': deadline,
+            'token': token,
+        };
+        return token;
     }
 
     pow (n: string, m: string) {
@@ -2020,12 +2044,22 @@ export default class lighter extends Exchange {
         const marketId = this.safeString (order, 'market_index');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeTimestamp (order, 'timestamp');
-        const isAsk = this.safeBool (order, 'is_ask');
+        let isAsk = this.safeBool (order, 'is_ask');
+        if (isAsk === undefined) {
+            const isAskAsInteger = this.safeInteger (order, 'is_ask');
+            if (isAskAsInteger !== undefined) {
+                isAsk = isAskAsInteger === 1;
+            }
+        }
         let side = undefined;
         if (isAsk !== undefined) {
             side = isAsk ? 'sell' : 'buy';
         }
-        const type = this.safeString (order, 'type');
+        let type = this.safeString (order, 'type');
+        if (type === undefined) {
+            const typeAsInteger = this.safeInteger (order, 'order_type');
+            type = this.parseOrderTypeInteger (typeAsInteger);
+        }
         const triggerPrice = this.parseNumber (this.omitZero (this.safeString (order, 'trigger_price')));
         let stopLossPrice = undefined;
         let takeProfitPrice = undefined;
@@ -2037,7 +2071,21 @@ export default class lighter extends Exchange {
                 takeProfitPrice = triggerPrice;
             }
         }
-        const tif = this.safeString (order, 'time_in_force');
+        // Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
+        let tif = undefined;
+        const tifAsInteger = this.safeInteger (order, 'time_in_force');
+        if (tifAsInteger !== undefined) {
+            tif = this.parseOrderTimeInForceInteger (tifAsInteger);
+        } else {
+            tif = this.safeString (order, 'time_in_force');
+        }
+        let reduceOnly = this.safeBool (order, 'reduce_only');
+        if (reduceOnly === undefined) {
+            const reduceOnlyAsInteger = this.safeInteger (order, 'reduce_only');
+            if (reduceOnlyAsInteger !== undefined) {
+                reduceOnly = reduceOnlyAsInteger === 1;
+            }
+        }
         const status = this.safeString (order, 'status');
         return this.safeOrder ({
             'info': order,
@@ -2049,9 +2097,9 @@ export default class lighter extends Exchange {
             'lastUpdateTimestamp': this.safeTimestamp (order, 'updated_at'),
             'symbol': market['symbol'],
             'type': this.parseOrderType (type),
-            'timeInForce': this.parseOrderTimeInForeces (tif),
-            'postOnly': undefined,
-            'reduceOnly': this.safeBool (order, 'reduce_only'),
+            'timeInForce': this.parseOrderTimeInForce (tif),
+            'postOnly': tif === 'post-only',
+            'reduceOnly': reduceOnly,
             'side': side,
             'price': this.safeString (order, 'price'),
             'triggerPrice': triggerPrice,
@@ -2090,8 +2138,8 @@ export default class lighter extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (status) {
-        const statuses: Dict = {
+    parseOrderType (type) {
+        const types: Dict = {
             'limit': 'limit',
             'market': 'market',
             'stop-loss': 'market',
@@ -2102,17 +2150,44 @@ export default class lighter extends Exchange {
             'twap-sub': 'twap',
             'liquidation': 'market',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (types, type, type);
     }
 
-    parseOrderTimeInForeces (tif) {
+    parseOrderTypeInteger (typeInteger) {
+        if (typeInteger === undefined) {
+            return undefined;
+        }
+        const types: Dict = {
+            '0': 'limit',
+            '1': 'market',
+            '2': 'stop-loss',
+            '3': 'stop-loss-limit',
+            '4': 'take-profit',
+            '5': 'take-profit-limit',
+            '6': 'twap',
+            '7': 'twap-sub',
+            '8': 'liquidation',
+        };
+        return this.safeString (types, typeInteger.toString ());
+    }
+
+    parseOrderTimeInForce (tif) {
         const timeInForces: Dict = {
-            'good-till-time': 'GTC',
             'immediate-or-cancel': 'IOC',
+            'good-till-time': 'GTC',
             'post-only': 'PO',
             'Unknown': undefined,
         };
         return this.safeString (timeInForces, tif, tif);
+    }
+
+    parseOrderTimeInForceInteger (tifInteger) {
+        const timeInForces: Dict = {
+            '0': 'immediate-or-cancel',
+            '1': 'good-till-time',
+            '2': 'post-only',
+        };
+        return this.safeString (timeInForces, tifInteger.toString ());
     }
 
     /**

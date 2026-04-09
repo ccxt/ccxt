@@ -651,3 +651,14 @@ function assert_deep_equal($exchange, $skipped_properties, $method, $a, $b) {
     $log_text = log_template($exchange, $method, array());
     assert(deep_equal($exchange, $a, $b), 'two dicts do not match: ' . json_encode($a) . ' != ' . json_encode($b) . $log_text);
 }
+
+
+function exchange_prop($exchange, $key, $default_value = null) {
+    $value = $exchange->get_property($exchange, ((string) $key));
+    if ($value !== null) {
+        return $value;
+    }
+    // try UpperCase key also, for other langs
+    $key_upper = $exchange->capitalize(((string) $key));
+    return $exchange->get_property($exchange, $key_upper, $default_value);
+}

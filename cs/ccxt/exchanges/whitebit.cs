@@ -301,6 +301,7 @@ public partial class whitebit : Exchange
                     { "422", typeof(OrderNotFound) },
                 } },
                 { "broad", new Dictionary<string, object>() {
+                    { "limit must be less than or equal to", typeof(BadRequest) },
                     { "This action is unauthorized", typeof(PermissionDenied) },
                     { "Given amount is less than min amount", typeof(InvalidOrder) },
                     { "Min amount step", typeof(InvalidOrder) },
@@ -4234,7 +4235,7 @@ public partial class whitebit : Exchange
      * @see https://docs.whitebit.com/api-reference/market-data/funding-history
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch (default 100, max 1000)
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch (default 100, max 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
@@ -4246,7 +4247,7 @@ public partial class whitebit : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
         }
-        object maxLimit = 1000;
+        object maxLimit = 100;
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -4400,6 +4401,26 @@ public partial class whitebit : Exchange
                         errorInfo = ((bool) isTrue((isGreaterThan(errorMessageLength, 0)))) ? getValue(errorMessageArray, 0) : body;
                     }
                 }
+                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorInfo, feedback);
+                this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
+                throw new ExchangeError ((string)feedback) ;
+            }
+            // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
+            object success = this.safeBool(response, "success", true);
+            if (!isTrue(success))
+            {
+                object errMsg = this.safeDict(response, "message", new Dictionary<string, object>() {});
+                object errKeys = new List<object>(((IDictionary<string,object>)errMsg).Keys);
+                object errKeysLength = getArrayLength(errKeys);
+                object errorInfo = body;
+                if (isTrue(isGreaterThan(errKeysLength, 0)))
+                {
+                    object errorKey = getValue(errKeys, 0);
+                    object errorMessageArray = this.safeList(errMsg, errorKey, new List<object>() {});
+                    object errorMessageLength = getArrayLength(errorMessageArray);
+                    errorInfo = ((bool) isTrue((isGreaterThan(errorMessageLength, 0)))) ? getValue(errorMessageArray, 0) : body;
+                }
+                object feedback = add(add(this.id, " "), body);
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorInfo, feedback);
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
                 throw new ExchangeError ((string)feedback) ;

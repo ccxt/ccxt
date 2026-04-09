@@ -342,6 +342,8 @@ class lighter extends Exchange {
                 'apiKeyIndex' => null,
                 'wasmExecPath' => null, // [JS Only] users should set the path to wasm_exec.js. It can be downloaded here https://github.com/ccxt/lighter-wasm
                 'libraryPath' => null, // users should set the path to the lighter signing library. It can be downloaded here https://github.com/elliottech/lighter-python/tree/main/lighter/signers, GO users don't need it
+                'authDeadlineExpiry' => 28800, // 8h validity for auth tokens
+                'authDeadlineMinimumRemaining' => 60,
             ),
             'features' => array(
                 'default' => array(
@@ -471,7 +473,7 @@ class lighter extends Exchange {
     }
 
     public function create_auth($params = array ()) {
-        // don't omit [$accountIndex, $apiKeyIndex], request may need them
+        // don't omit [$accountIndex, $apiKeyIndex], $request may need them
         $apiKeyIndex = $this->safe_integer_2($params, 'apiKeyIndex', 'api_key_index');
         if ($apiKeyIndex === null) {
             $res = $this->handle_option_and_params_2(array(), 'createAuth', 'apiKeyIndex', 'api_key_index');
@@ -482,12 +484,34 @@ class lighter extends Exchange {
             $res = $this->handle_option_and_params_2(array(), 'createAuth', 'accountIndex', 'account_index');
             $accountIndex = $this->safe_integer($res, 0);
         }
-        $rs = array(
-            'deadline' => $this->seconds() + 60,
+        $auths = $this->safe_dict($this->options, 'auths');
+        $accountAuths = $this->safe_dict($auths, $accountIndex);
+        $cachedAuth = $this->safe_dict($accountAuths, $apiKeyIndex);
+        $cachedDeadline = $this->safe_integer($cachedAuth, 'deadline');
+        if ($cachedDeadline !== null) {
+            $minimumDeadline = $this->seconds() . $this->safe_integer($this->options, 'authDeadlineMinimumRemaining');
+            if ($cachedDeadline >= $minimumDeadline) {
+                return $this->safe_string($cachedAuth, 'token');
+            }
+        }
+        $deadline = $this->seconds() . $this->safe_integer($this->options, 'authDeadlineExpiry');
+        $request = array(
+            'deadline' => $deadline,
             'api_key_index' => $apiKeyIndex,
             'account_index' => $accountIndex,
         );
-        return $this->lighter_create_auth_token($this->safe_value($this->options, 'signer'), $rs);
+        $token = $this->lighter_create_auth_token($this->safe_value($this->options, 'signer'), $request);
+        if (!(is_array($this->options) && array_key_exists('auths', $this->options))) {
+            $this->options['auths'] = array();
+        }
+        if (!(is_array($this->options['auths']) && array_key_exists($accountIndex, $this->options['auths']))) {
+            $this->options['auths'][$accountIndex] = array();
+        }
+        $this->options['auths'][$accountIndex][$apiKeyIndex] = array(
+            'deadline' => $deadline,
+            'token' => $token,
+        );
+        return $token;
     }
 
     public function pow(string $n, string $m) {
@@ -2011,11 +2035,21 @@ class lighter extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_timestamp($order, 'timestamp');
         $isAsk = $this->safe_bool($order, 'is_ask');
+        if ($isAsk === null) {
+            $isAskAsInteger = $this->safe_integer($order, 'is_ask');
+            if ($isAskAsInteger !== null) {
+                $isAsk = $isAskAsInteger === 1;
+            }
+        }
         $side = null;
         if ($isAsk !== null) {
             $side = $isAsk ? 'sell' : 'buy';
         }
         $type = $this->safe_string($order, 'type');
+        if ($type === null) {
+            $typeAsInteger = $this->safe_integer($order, 'order_type');
+            $type = $this->parse_order_type_integer($typeAsInteger);
+        }
         $triggerPrice = $this->parse_number($this->omit_zero($this->safe_string($order, 'trigger_price')));
         $stopLossPrice = null;
         $takeProfitPrice = null;
@@ -2027,7 +2061,21 @@ class lighter extends Exchange {
                 $takeProfitPrice = $triggerPrice;
             }
         }
-        $tif = $this->safe_string($order, 'time_in_force');
+        // Try to parse to integer first, because parsing an integer to a string wouldn't result in null
+        $tif = null;
+        $tifAsInteger = $this->safe_integer($order, 'time_in_force');
+        if ($tifAsInteger !== null) {
+            $tif = $this->parse_order_time_in_force_integer($tifAsInteger);
+        } else {
+            $tif = $this->safe_string($order, 'time_in_force');
+        }
+        $reduceOnly = $this->safe_bool($order, 'reduce_only');
+        if ($reduceOnly === null) {
+            $reduceOnlyAsInteger = $this->safe_integer($order, 'reduce_only');
+            if ($reduceOnlyAsInteger !== null) {
+                $reduceOnly = $reduceOnlyAsInteger === 1;
+            }
+        }
         $status = $this->safe_string($order, 'status');
         return $this->safe_order(array(
             'info' => $order,
@@ -2039,9 +2087,9 @@ class lighter extends Exchange {
             'lastUpdateTimestamp' => $this->safe_timestamp($order, 'updated_at'),
             'symbol' => $market['symbol'],
             'type' => $this->parse_order_type($type),
-            'timeInForce' => $this->parse_order_time_in_foreces($tif),
-            'postOnly' => null,
-            'reduceOnly' => $this->safe_bool($order, 'reduce_only'),
+            'timeInForce' => $this->parse_order_time_in_force($tif),
+            'postOnly' => $tif === 'post-only',
+            'reduceOnly' => $reduceOnly,
             'side' => $side,
             'price' => $this->safe_string($order, 'price'),
             'triggerPrice' => $triggerPrice,
@@ -2080,8 +2128,8 @@ class lighter extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type($status) {
-        $statuses = array(
+    public function parse_order_type($type) {
+        $types = array(
             'limit' => 'limit',
             'market' => 'market',
             'stop-loss' => 'market',
@@ -2092,17 +2140,44 @@ class lighter extends Exchange {
             'twap-sub' => 'twap',
             'liquidation' => 'market',
         );
-        return $this->safe_string($statuses, $status, $status);
+        return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_order_time_in_foreces($tif) {
+    public function parse_order_type_integer($typeInteger) {
+        if ($typeInteger === null) {
+            return null;
+        }
+        $types = array(
+            '0' => 'limit',
+            '1' => 'market',
+            '2' => 'stop-loss',
+            '3' => 'stop-loss-limit',
+            '4' => 'take-profit',
+            '5' => 'take-profit-limit',
+            '6' => 'twap',
+            '7' => 'twap-sub',
+            '8' => 'liquidation',
+        );
+        return $this->safe_string($types, (string) $typeInteger);
+    }
+
+    public function parse_order_time_in_force($tif) {
         $timeInForces = array(
-            'good-till-time' => 'GTC',
             'immediate-or-cancel' => 'IOC',
+            'good-till-time' => 'GTC',
             'post-only' => 'PO',
             'Unknown' => null,
         );
         return $this->safe_string($timeInForces, $tif, $tif);
+    }
+
+    public function parse_order_time_in_force_integer($tifInteger) {
+        $timeInForces = array(
+            '0' => 'immediate-or-cancel',
+            '1' => 'good-till-time',
+            '2' => 'post-only',
+        );
+        return $this->safe_string($timeInForces, (string) $tifInteger);
     }
 
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {

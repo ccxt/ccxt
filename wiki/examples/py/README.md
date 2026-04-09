@@ -475,10 +475,6 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Watch Tickers](./examples/py/watch-tickers.md)
 
-- [Watchohlcvforsymbols](./examples/py/watchOHLCVForSymbols.md)
-
-- [Watchorderbookforsymbols](./examples/py/watchOrderBookForSymbols.md)
-
 - [Watchpositions Many Exchanges Continuosly](./examples/py/watchPositions-many-exchanges-continuosly.md)
 
 - [Watchpositions](./examples/py/watchPositions.md)
