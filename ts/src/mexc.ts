@@ -408,6 +408,7 @@ export default class mexc extends Exchange {
                             'capital/deposit/subAddress': 1,
                             'capital/deposit/subHisrec': 1,
                             'capital/deposit/subHisrec/getall': 1,
+                            'rebate/taxQuery': 1,
                         },
                         'post': {
                             'sub-account/virtualSubAccount': 1,
