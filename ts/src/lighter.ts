@@ -1057,7 +1057,7 @@ export default class lighter extends Exchange {
                     },
                     'cost': {
                         'min': this.safeNumber (market, 'min_quote_amount'),
-                        'max': undefined,
+                        'max': this.safeNumber (market, 'order_quote_limit'),
                     },
                 },
                 'created': undefined,
