@@ -26,18 +26,18 @@ function helperTestInitThrottler () {
     // todo: add initial tockenbtucket test
 }
 
-function helperTestSandboxState (exchange, isMainnet = true) {
+function helperTestSandboxState (exchange, isEnabled = true) {
     assert (exchange.urls !== undefined);
     assert ('test' in exchange.urls);
     const isSandboxModeEnabled = testSharedMethods.exchangeProp (exchange, 'isSandboxModeEnabled');
-    if (isMainnet) {
-        assert (!isSandboxModeEnabled);
-        assert (exchange.urls['api']['public'] === 'https://example.com');
-        assert (exchange.urls['test']['public'] === 'https://testnet.org');
-    } else {
+    if (isEnabled) {
         assert (isSandboxModeEnabled);
         assert (exchange.urls['api']['public'] === 'https://testnet.org');
         assert (exchange.urls['apiBackup']['public'] === 'https://example.com');
+    } else {
+        assert (!isSandboxModeEnabled);
+        assert (exchange.urls['api']['public'] === 'https://example.com');
+        assert (exchange.urls['test']['public'] === 'https://testnet.org');
     }
 }
 
