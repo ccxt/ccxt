@@ -6,7 +6,7 @@ import { ArgumentsRequired, BadRequest, InvalidOrder, NotSupported } from './bas
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, LedgerEntry, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, LedgerEntry, Int, int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -31,7 +31,7 @@ export default class weex extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
-                'addMargin': false,
+                'addMargin': true,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
                 'borrowMargin': false,
@@ -112,15 +112,15 @@ export default class weex extends Exchange {
                 'fetchLastPrices': false,
                 'fetchLedger': true,
                 'fetchLedgerEntry': false,
-                'fetchLeverage': false,
-                'fetchLeverages': false,
+                'fetchLeverage': true,
+                'fetchLeverages': true,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': false,
                 'fetchLongShortRatio': false,
                 'fetchLongShortRatioHistory': false,
                 'fetchMarginAdjustmentHistory': false,
-                'fetchMarginMode': false,
-                'fetchMarginModes': false,
+                'fetchMarginMode': true,
+                'fetchMarginModes': true,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -146,7 +146,7 @@ export default class weex extends Exchange {
                 'fetchPosition': true,
                 'fetchPositionADLRank': false,
                 'fetchPositionHistory': false,
-                'fetchPositionMode': false,
+                'fetchPositionMode': true,
                 'fetchPositions': true,
                 'fetchPositionsADLRank': false,
                 'fetchPositionsForSymbol': true,
@@ -159,7 +159,7 @@ export default class weex extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFee': false,
+                'fetchTradingFee': true,
                 'fetchTradingFees': false,
                 'fetchTradingLimits': false,
                 'fetchTransactionFee': false,
@@ -175,14 +175,14 @@ export default class weex extends Exchange {
                 'fetchWithdrawalWhitelist': false,
                 'privateAPI': false,
                 'publicAPI': false,
-                'reduceMargin': false,
+                'reduceMargin': true,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
                 'sandbox': false,
-                'setLeverage': false,
+                'setLeverage': true,
                 'setMargin': false,
-                'setMarginMode': false,
-                'setPositionMode': false,
+                'setMarginMode': true,
+                'setPositionMode': true,
                 'signIn': false,
                 'transfer': false,
                 'withdraw': false,
@@ -270,9 +270,9 @@ export default class weex extends Exchange {
                 'contractPrivate': {
                     'get': {
                         'capi/v3/account/balance': 10, // done
-                        'capi/v3/account/commissionRate': 10,
-                        'capi/v3/account/accountConfig': 10,
-                        'capi/v3/account/symbolConfig': 10,
+                        'capi/v3/account/commissionRate': 10, // done
+                        'capi/v3/account/accountConfig': 10, // not unified
+                        'capi/v3/account/symbolConfig': 10, // done
                         'capi/v3/account/position/allPosition': 15, // done
                         'capi/v3/account/position/singlePosition': 3, // done
                         'capi/v3/order': 3, // done
@@ -284,13 +284,13 @@ export default class weex extends Exchange {
                     },
                     'post': {
                         'capi/v3/account/income': 5, // done
-                        'capi/v3/account/marginType': 50,
-                        'capi/v3/account/leverage': 20,
-                        'capi/v3/account/positionMargin': 30,
-                        'capi/v3/account/modifyAutoAppendMargin': 30,
+                        'capi/v3/account/marginType': 50, // done
+                        'capi/v3/account/leverage': 20, // done
+                        'capi/v3/account/positionMargin': 30, // done
+                        'capi/v3/account/modifyAutoAppendMargin': 30, // not unified
                         'capi/v3/order': 5,
                         'capi/v3/batchOrders': 10,
-                        'capi/v3/closePositions': 50,
+                        'capi/v3/closePositions': 50, // done
                         'capi/v3/algoOrder': 5,
                         'capi/v3/placeTpSlOrder': 5,
                         'capi/v3/modifyTpSlOrder': 5,
@@ -343,6 +343,7 @@ export default class weex extends Exchange {
                     // {"code":-1141,"msg":"Parameter 'symbol' cannot be empty."}
                     // {"orderId":"737188743538017640","origClientOrderId":null,"success":false,"errorCode":"FAILED_ORDER_NOT_FOUND","errorMessage":"FAILED_ORDER_NOT_FOUND"}
                     // {"code":-1140,"msg":"startTime Parameter type error, expected Long type"}
+                    // {"code":-1054,"msg":"FAILED_PRECONDITION: Move margin available amount not enough. Move out available amount is 6.98296375, move out amount is 200.00000000"}
                 },
                 'broad': {
                 },
@@ -3283,6 +3284,391 @@ export default class weex extends Exchange {
         const response = await this.contractPrivatePostCapiV3ClosePositions (this.extend (request, params));
         const orders = this.parseOrders (response, market);
         return this.safeDict (orders, 0) as Order;
+    }
+
+    /**
+     * @method
+     * @name weex#fetchTradingFee
+     * @see https://www.weex.com/api-doc/contract/Account_API/GetCommissionRate // contract
+     * @description fetch the trading fees for a contract market
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['spot']) {
+            // spot markets return 0 for fees
+            throw new NotSupported (this.id + ' fetchTradingFee() is not supported for spot markets');
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.contractPrivateGetCapiV3AccountCommissionRate (this.extend (request, params));
+        //
+        //     {
+        //         "symbol": "DOGEUSDT",
+        //         "makerCommissionRate": "0.0002",
+        //         "takerCommissionRate": "0.0008"
+        //     }
+        //
+        return this.parseTradingFee (response, market);
+    }
+
+    parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
+        //
+        // contract
+        //     {
+        //         "symbol": "DOGEUSDT",
+        //         "makerCommissionRate": "0.0002",
+        //         "takerCommissionRate": "0.0008"
+        //     }
+        //
+        const marketId = this.safeString (fee, 'symbol');
+        return {
+            'info': fee,
+            'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
+            'maker': this.safeNumber (fee, 'makerCommissionRate'),
+            'taker': this.safeNumber (fee, 'takerCommissionRate'),
+            'percentage': true,
+            'tierBased': true,
+        };
+    }
+
+    /**
+     * @method
+     * @name binance#fetchMarginMode
+     * @description fetches the margin mode of a specific symbol
+     * @see https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+     */
+    async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.contractPrivateGetCapiV3AccountSymbolConfig (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "symbol": "DOGEUSDT",
+        //             "marginType": "CROSSED",
+        //             "separatedType": "COMBINED",
+        //             "crossLeverage": "20.00",
+        //             "isolatedLongLeverage": "20.00",
+        //             "isolatedShortLeverage": "20.00"
+        //         }
+        //     ]
+        //
+        const marginMode = this.safeDict (response, 0, {});
+        return this.parseMarginMode (marginMode, market);
+    }
+
+    /**
+     * @method
+     * @name weex#fetchMarginModes
+     * @description fetches margin modes the symbols, with symbols=undefined all markets are returned
+     * @see https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig
+     * @param {string[]} symbols unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+     */
+    async fetchMarginModes (symbols: Strings = undefined, params = {}): Promise<MarginModes> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.contractPrivateGetCapiV3AccountSymbolConfig (params);
+        return this.parseMarginModes (response, symbols, 'symbol', 'swap');
+    }
+
+    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
+        const marketId = this.safeString (marginMode, 'symbol');
+        const marginType = this.safeString (marginMode, 'marginType');
+        return {
+            'info': marginMode,
+            'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
+            'marginMode': this.parseMarginType (marginType),
+        } as MarginMode;
+    }
+
+    parseMarginType (marginType: Str) {
+        const marginTypes: Dict = {
+            'CROSSED': 'cross',
+            'ISOLATED': 'isolated',
+        };
+        return this.safeString (marginTypes, marginType, marginType);
+    }
+
+    /**
+     * @method
+     * @name weex#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://www.weex.com/api-doc/contract/Account_API/ChangeMarginModeTRADE
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+            'marginType': this.encodeMarginMode (marginMode),
+        };
+        return await this.contractPrivatePostCapiV3AccountMarginType (this.extend (request, params));
+    }
+
+    encodeMarginMode (marginMode: Str) {
+        const marginTypes: Dict = {
+            'cross': 'CROSSED',
+            'isolated': 'ISOLATED',
+        };
+        const result = this.safeString (marginTypes, marginMode);
+        if (result === undefined) {
+            throw new ArgumentsRequired (this.id + ' marginMode must be either cross or isolated');
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name weex#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+     */
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.contractPrivateGetCapiV3AccountSymbolConfig (this.extend (request, params));
+        const marginMode = this.safeDict (response, 0, {});
+        return this.parseLeverage (marginMode, market);
+    }
+
+    /**
+     * @method
+     * @name weex#fetchLeverages
+     * @description fetch the set leverage for all markets
+     * @see https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
+    async fetchLeverages (symbols: Strings = undefined, params = {}): Promise<Leverages> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.contractPrivateGetCapiV3AccountSymbolConfig (params);
+        return this.parseLeverages (response, symbols, 'symbol', 'swap');
+    }
+
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        const marketId = this.safeString (leverage, 'symbol');
+        const marginType = this.safeString (leverage, 'marginType');
+        const marginMode = this.parseMarginType (marginType);
+        const crossLeverage = this.safeNumber (leverage, 'crossLeverage');
+        let longLeverage = this.safeNumber (leverage, 'isolatedLongLeverage');
+        let shortLeverage = this.safeNumber (leverage, 'isolatedShortLeverage');
+        if (marginMode === 'cross') {
+            longLeverage = crossLeverage;
+            shortLeverage = crossLeverage;
+        }
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
+            'marginMode': marginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        } as Leverage;
+    }
+
+    /**
+     * @method
+     * @name weex#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://www.weex.com/api-doc/contract/Account_API/UpdateLeverageTRADE
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated' (default is 'cross' if specific leverage parameters are not provided)
+     * @param {number} [params.crossLeverage] *cross margin mode only* leverage for cross margin mode when marginMode is 'cross'
+     * @param {number} [params.isolatedLongLeverage] *isolated margin mode only* leverage for long positions when marginMode is 'isolated'
+     * @param {number} [params.isolatedShortLeverage] *isolated margin mode only* leverage for short positions when marginMode is 'isolated'
+     * If specific leverage parameters are not provided
+     * the leverage value will be applied to both long and short positions if marginMode is 'isolated'
+     * or to cross margin mode if marginMode is 'cross'
+     * If marginMode is not provided and specific leverage parameters are not provided too
+     * the leverage value will be applied to cross leverage
+     * @returns {object} response from the exchange
+     */
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
+        if (marginMode !== undefined) {
+            request['marginType'] = this.encodeMarginMode (marginMode);
+        }
+        const isolatedLongLeverage = this.safeNumber (params, 'isolatedLongLeverage');
+        const isolatedShortLeverage = this.safeNumber (params, 'isolatedShortLeverage');
+        const crossLeverage = this.safeNumber (params, 'crossLeverage');
+        if ((isolatedLongLeverage === undefined) && (isolatedShortLeverage === undefined) && (crossLeverage === undefined)) {
+            if (marginMode === 'isolated') {
+                request['isolatedLongLeverage'] = leverage;
+                request['isolatedShortLeverage'] = leverage;
+            } else {
+                request['crossLeverage'] = leverage;
+            }
+        }
+        return await this.contractPrivatePostCapiV3AccountLeverage (this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name weex#fetchPositionMode
+     * @description fetchs the position mode, hedged or one way
+     * @see https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an object detailing whether the market is in hedged or one-way mode
+     */
+    async fetchPositionMode (symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.contractPrivateGetCapiV3AccountSymbolConfig (this.extend (request, params));
+        const entry = this.safeDict (response, 0, {});
+        const separatedType = this.safeString (entry, 'separatedType');
+        return {
+            'info': response,
+            'hedged': (separatedType === 'SEPARATED'),
+        };
+    }
+
+    /**
+     * @method
+     * @name weex#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://www.weex.com/api-doc/contract/Account_API/ChangeMarginModeTRADE
+     * @param {bool} hedged set to true to use dualSidePosition
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.marginMode 'cross' or 'isolated' (default is 'cross')
+     * @returns {object} response from the exchange
+     */
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setPositionMode() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('setPositionMode', params);
+        if (marginMode === undefined) {
+            throw new ArgumentsRequired (this.id + ' setPositionMode() also sets marginMode, so a marginMode parameter is required');
+        }
+        const separatedType = hedged ? 'SEPARATED' : 'COMBINED';
+        const request: Dict = {
+            'symbol': market['id'],
+            'marginType': this.encodeMarginMode (marginMode),
+            'separatedType': separatedType,
+        };
+        return await this.contractPrivatePostCapiV3AccountMarginType (this.extend (request, params));
+    }
+
+    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
+        await this.loadMarkets ();
+        const isolatedPositionId = this.safeStringN (params, [ 'positionId', 'id', 'isolatedPositionId' ]);
+        if (isolatedPositionId === undefined) {
+            throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a positionId parameter');
+        }
+        params = this.omit (params, [ 'positionId', 'id' ]);
+        const market = this.market (symbol);
+        const request: Dict = {
+            'isolatedPositionId': isolatedPositionId,
+            'amount': this.costToPrecision (symbol, amount),
+            'type': type,
+        };
+        const parsedType = (type === 1) ? 'add' : 'reduce';
+        const response = await this.contractPrivatePostCapiV3AccountPositionMargin (this.extend (request, params));
+        return this.extend (this.parseMarginModification (response, market), {
+            'amount': this.parseNumber (amount),
+            'type': parsedType,
+        });
+    }
+
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
+        //
+        //     {
+        //         "code": "200",
+        //         "msg": "success",
+        //         "requestTime": 1764505776347
+        //     }
+        //
+        const msg = this.safeString (data, 'msg');
+        const status = (msg === 'success') ? 'ok' : 'failed';
+        const timestamp = this.safeInteger (data, 'requestTime');
+        return {
+            'info': data,
+            'symbol': market['symbol'],
+            'type': undefined,
+            'marginMode': 'isolated',
+            'amount': undefined,
+            'total': undefined,
+            'code': market['settle'],
+            'status': status,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+    }
+
+    /**
+     * @method
+     * @name weex#reduceMargin
+     * @description remove margin from a position
+     * @see https://www.weex.com/api-doc/contract/Account_API/AdjustPositionMarginTRADE
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.positionId the id of the position to reduce margin from, required
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
+    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+        return await this.modifyMarginHelper (symbol, amount, 2, params);
+    }
+
+    /**
+     * @method
+     * @name weex#addMargin
+     * @description add margin
+     * @see https://www.weex.com/api-doc/contract/Account_API/AdjustPositionMarginTRADE
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.positionId the id of the position to add margin to, required
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
+    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+        return await this.modifyMarginHelper (symbol, amount, 1, params);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
