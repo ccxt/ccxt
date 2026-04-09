@@ -5,16 +5,16 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Int, OrderBook, Trade
+from ccxt.base.types import Any, Int, OrderBook, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import ChecksumError
 
 
 class independentreserve(ccxt.async_support.independentreserve):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(independentreserve, self).describe(), {
             'has': {
                 'ws': True,
@@ -22,6 +22,7 @@ class independentreserve(ccxt.async_support.independentreserve):
                 'watchTicker': False,
                 'watchTickers': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchMyTrades': False,
                 'watchOrders': False,
                 'watchOrderBook': True,
@@ -33,7 +34,9 @@ class independentreserve(ccxt.async_support.independentreserve):
                 },
             },
             'options': {
-                'checksum': False,  # TODO: currently only working for snapshot
+                'watchOrderBook': {
+                    'checksum': True,  # TODO: currently only working for snapshot
+                },
             },
             'streaming': {
             },
@@ -48,7 +51,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -128,17 +131,17 @@ class independentreserve(ccxt.async_support.independentreserve):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         if limit is None:
             limit = 100
-        limit = self.number_to_string(limit)
-        url = self.urls['api']['ws'] + '/orderbook/' + limit + '?subscribe=' + market['base'] + '-' + market['quote']
-        messageHash = 'orderbook:' + symbol + ':' + limit
-        subscription = {
+        limitString = self.number_to_string(limit)
+        url = self.urls['api']['ws'] + '/orderbook/' + limitString + '?subscribe=' + market['base'] + '-' + market['quote']
+        messageHash = 'orderbook:' + symbol + ':' + limitString
+        subscription: dict = {
             'receivedSnapshot': False,
         }
         orderbook = await self.watch(url, messageHash, None, messageHash, subscription)
@@ -176,30 +179,30 @@ class independentreserve(ccxt.async_support.independentreserve):
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         symbol = base + '/' + quote
-        orderBook = self.safe_value(message, 'Data', {})
+        orderBook = self.safe_dict(message, 'Data', {})
         messageHash = 'orderbook:' + symbol + ':' + depth
         subscription = self.safe_value(client.subscriptions, messageHash, {})
-        receivedSnapshot = self.safe_value(subscription, 'receivedSnapshot', False)
+        receivedSnapshot = self.safe_bool(subscription, 'receivedSnapshot', False)
         timestamp = self.safe_integer(message, 'Time')
-        storedOrderBook = self.safe_value(self.orderbooks, symbol)
-        if storedOrderBook is None:
-            storedOrderBook = self.order_book({})
-            self.orderbooks[symbol] = storedOrderBook
+        # orderbook = self.safe_value(self.orderbooks, symbol)
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book({})
+        orderbook = self.orderbooks[symbol]
         if event == 'OrderBookSnapshot':
             snapshot = self.parse_order_book(orderBook, symbol, timestamp, 'Bids', 'Offers', 'Price', 'Volume')
-            storedOrderBook.reset(snapshot)
+            orderbook.reset(snapshot)
             subscription['receivedSnapshot'] = True
         else:
-            asks = self.safe_value(orderBook, 'Offers', [])
-            bids = self.safe_value(orderBook, 'Bids', [])
-            self.handle_deltas(storedOrderBook['asks'], asks)
-            self.handle_deltas(storedOrderBook['bids'], bids)
-            storedOrderBook['timestamp'] = timestamp
-            storedOrderBook['datetime'] = self.iso8601(timestamp)
-        checksum = self.safe_value(self.options, 'checksum', True)
+            asks = self.safe_list(orderBook, 'Offers', [])
+            bids = self.safe_list(orderBook, 'Bids', [])
+            self.handle_deltas(orderbook['asks'], asks)
+            self.handle_deltas(orderbook['bids'], bids)
+            orderbook['timestamp'] = timestamp
+            orderbook['datetime'] = self.iso8601(timestamp)
+        checksum = self.handle_option('watchOrderBook', 'checksum', True)
         if checksum and receivedSnapshot:
-            storedAsks = storedOrderBook['asks']
-            storedBids = storedOrderBook['bids']
+            storedAsks = orderbook['asks']
+            storedBids = orderbook['bids']
             asksLength = len(storedAsks)
             bidsLength = len(storedBids)
             payload = ''
@@ -212,10 +215,13 @@ class independentreserve(ccxt.async_support.independentreserve):
             calculatedChecksum = self.crc32(payload, True)
             responseChecksum = self.safe_integer(orderBook, 'Crc32')
             if calculatedChecksum != responseChecksum:
-                error = InvalidNonce(self.id + ' invalid checksum')
+                error = ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
+                del client.subscriptions[messageHash]
+                del self.orderbooks[symbol]
                 client.reject(error, messageHash)
+                return
         if receivedSnapshot:
-            client.resolve(storedOrderBook, messageHash)
+            client.resolve(orderbook, messageHash)
 
     def value_to_checksum(self, value):
         result = format(value, '.8f')
@@ -254,7 +260,7 @@ class independentreserve(ccxt.async_support.independentreserve):
 
     def handle_message(self, client: Client, message):
         event = self.safe_string(message, 'Event')
-        handlers = {
+        handlers: dict = {
             'Subscriptions': self.handle_subscriptions,
             'Heartbeat': self.handle_heartbeat,
             'Trade': self.handle_trades,
@@ -263,5 +269,6 @@ class independentreserve(ccxt.async_support.independentreserve):
         }
         handler = self.safe_value(handlers, event)
         if handler is not None:
-            return handler(client, message)
+            handler(client, message)
+            return
         raise NotSupported(self.id + ' received an unsupported message: ' + self.json(message))

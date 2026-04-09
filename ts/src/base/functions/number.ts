@@ -33,11 +33,13 @@ const precisionConstants = {
     PAD_WITH_ZERO,
 };
 
+const assert = (x, y) => { if (!x) throw new Error (y || 'assertion failed'); };
+
 /*  ------------------------------------------------------------------------ */
 
 // See https://stackoverflow.com/questions/1685680/how-to-avoid-scientific-notation-for-large-numbers-in-javascript for discussion
 
-function numberToString (x) { // avoids scientific notation for too large and too small numbers
+function numberToString (x: any): string | undefined { // avoids scientific notation for too large and too small numbers
     if (x === undefined) return undefined;
     if (typeof x !== 'number') return x.toString ();
     const s = x.toString ();
@@ -69,9 +71,9 @@ function numberToString (x) { // avoids scientific notation for too large and to
 //-----------------------------------------------------------------------------
 // expects non-scientific notation
 
-const truncate_regExpCache = [];
-const truncate_to_string = (num, precision = 0) => {
-    num = numberToString (num);
+const truncate_regExpCache: any[] = [];
+const truncate_to_string = (num: number | string, precision = 0) => {
+    num = numberToString (num) as string;
     if (precision > 0) {
         const re = truncate_regExpCache[precision] || (truncate_regExpCache[precision] = new RegExp ('([-]*\\d+\\.\\d{' + precision + '})(\\d)'));
         const [ , result ] = num.toString ().match (re) || [ null, num ];
@@ -79,12 +81,12 @@ const truncate_to_string = (num, precision = 0) => {
     }
     return parseInt (num).toString ();
 };
-const truncate = (num, precision = 0) => parseFloat (truncate_to_string (num, precision));
+const truncate = (num: number | string, precision = 0): number => parseFloat (truncate_to_string (num, precision));
 
-function precisionFromString (str) {
+function precisionFromString (str: string) {
     // support string formats like '1e-4'
-    if (str.indexOf ('e') > -1) {
-        const numStr = str.replace (/\de/, '')
+    if (str.indexOf ('e') > -1 || str.indexOf ('E') > -1) {
+        const numStr = str.replace (/\d\.?\d*[eE]/, '')
         return parseInt (numStr) * -1
     }
     // support integer formats (without dot) like '1', '10' etc [Note: bug in decimalToPrecision, so this should not be used atm]
@@ -99,24 +101,37 @@ function precisionFromString (str) {
 /*  ------------------------------------------------------------------------ */
 
 const decimalToPrecision = (
-    x,
-    roundingMode,
-    numPrecisionDigits,
-    countingMode = DECIMAL_PLACES,
-    paddingMode = NO_PADDING
-) => {
-    if (countingMode === TICK_SIZE) {
-        if (typeof numPrecisionDigits === 'string') {
-            numPrecisionDigits = parseFloat(numPrecisionDigits)
-        }
-        if (numPrecisionDigits <= 0) {
-            throw new Error ('TICK_SIZE cant be used with negative or zero numPrecisionDigits');
-        }
+    x: string,
+    roundingMode: number,
+    numPrecisionDigits: any,
+    countingMode: number = DECIMAL_PLACES,
+    paddingMode: number = NO_PADDING
+): string => {
+    return _decimalToPrecision (x, roundingMode, numPrecisionDigits, countingMode, paddingMode);
+}
+
+const _decimalToPrecision = (x: any, roundingMode: number, numPrecisionDigits: any, countingMode: number = DECIMAL_PLACES, paddingMode: number = NO_PADDING) => {
+    assert (numPrecisionDigits !== undefined, 'numPrecisionDigits should not be undefined');
+
+    if (typeof numPrecisionDigits === 'string') {
+        numPrecisionDigits = parseFloat (numPrecisionDigits)
     }
+    assert (Number.isFinite (numPrecisionDigits), 'numPrecisionDigits has an invalid number');
+    if (countingMode === TICK_SIZE) {
+        assert (numPrecisionDigits > 0, 'negative or zero numPrecisionDigits can not be used with TICK_SIZE precisionMode');
+    } else {
+        assert (Number.isInteger (numPrecisionDigits), 'numPrecisionDigits must be an integer with DECIMAL_PLACES or SIGNIFICANT_DIGITS precisionMode');
+    }
+
+    assert((roundingMode === ROUND) || (roundingMode === TRUNCATE), 'invalid roundingMode provided');
+    assert(countingMode === DECIMAL_PLACES || countingMode === SIGNIFICANT_DIGITS || countingMode === TICK_SIZE, 'invalid countingMode provided');
+    assert(paddingMode === NO_PADDING || paddingMode === PAD_WITH_ZERO, 'invalid paddingMode provided');
+    // end of checks
+
     if (numPrecisionDigits < 0) {
         const toNearest = Math.pow (10, -numPrecisionDigits);
         if (roundingMode === ROUND) {
-            return (toNearest * decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode)).toString ();
+            return (toNearest * _decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode)).toString ();
         }
         if (roundingMode === TRUNCATE) {
             return (x - (x % toNearest)).toString ();
@@ -124,12 +139,28 @@ const decimalToPrecision = (
     }
     /*  handle tick size */
     if (countingMode === TICK_SIZE) {
-        const precisionDigitsString = decimalToPrecision (numPrecisionDigits, ROUND, 22, DECIMAL_PLACES, NO_PADDING);
+        const precisionDigitsString = _decimalToPrecision (numPrecisionDigits, ROUND, 22, DECIMAL_PLACES, NO_PADDING);
         const newNumPrecisionDigits = precisionFromString (precisionDigitsString);
+        
+        if (roundingMode === TRUNCATE) {
+            // First, truncate the string to avoid floating-point precision issues
+            const xStr = numberToString(x);
+            const truncatedX = truncate_to_string(xStr, Math.max(0, newNumPrecisionDigits));
+            const xNum = Number(truncatedX);
+            const scale = Math.pow (10, newNumPrecisionDigits);
+            const xScaled = Math.round (xNum * scale);
+            const tickScaled = Math.round (numPrecisionDigits * scale);
+            const ticks = Math.trunc (xScaled / tickScaled);
+            x = (ticks * tickScaled) / scale;
+            if (paddingMode === NO_PADDING) {
+                return String (Number (x.toFixed (newNumPrecisionDigits)));
+            }
+            return _decimalToPrecision (x, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode)
+        }
         let missing = x % numPrecisionDigits;
         // See: https://github.com/ccxt/ccxt/pull/6486
-        missing = Number (decimalToPrecision (missing, ROUND, 8, DECIMAL_PLACES, NO_PADDING));
-        const fpError = decimalToPrecision (missing / numPrecisionDigits, ROUND, Math.max (newNumPrecisionDigits, 8), DECIMAL_PLACES, NO_PADDING);
+        missing = Number (_decimalToPrecision (missing, ROUND, 8, DECIMAL_PLACES, NO_PADDING));
+        const fpError = _decimalToPrecision (missing / numPrecisionDigits, ROUND, Math.max (newNumPrecisionDigits, 8), DECIMAL_PLACES, NO_PADDING);
         if (precisionFromString (fpError) !== 0) {
             if (roundingMode === ROUND) {
                 if (x > 0) {
@@ -145,16 +176,14 @@ const decimalToPrecision = (
                         x = Number (x) - missing - numPrecisionDigits;
                     }
                 }
-            } else if (roundingMode === TRUNCATE) {
-                x = x - missing;
             }
         }
-        return decimalToPrecision (x, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode);
+        return _decimalToPrecision (x, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode);
     }
 
     /*  Convert to a string (if needed), skip leading minus sign (if any)   */
 
-    const str = numberToString (x);
+    const str = numberToString (x) as string;
     const isNegative = str[0] === '-';
     const strStart = isNegative ? 1 : 0;
     const strEnd = str.length;
@@ -285,14 +314,18 @@ const decimalToPrecision = (
     return String.fromCharCode (...out);
 };
 
-function omitZero (stringNumber) {
-    if (stringNumber === undefined || stringNumber === '') {
-        return undefined;
+function omitZero (stringNumber: string) {
+    try {
+        if (stringNumber === undefined || stringNumber === '') {
+            return undefined;
+        }
+        if (parseFloat (stringNumber) === 0) {
+            return undefined;
+        }
+        return stringNumber;
+    } catch (e) {
+        return stringNumber;
     }
-    if (parseFloat (stringNumber) === 0) {
-        return undefined;
-    }
-    return stringNumber;
 }
 
 /*  ------------------------------------------------------------------------ */

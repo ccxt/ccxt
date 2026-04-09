@@ -5,6 +5,7 @@ const cache = {}
 exports.getFragment = function (func) {
     // this function allows for links with the same name
     // and caches the link so we can regenerate the same id
+    /*
     const { id, name, exchange } = func
     const selector = exchange ? exchange + name : name
     const lower = selector.toLowerCase ()
@@ -14,9 +15,12 @@ exports.getFragment = function (func) {
     }
     const part = (cache[id] >= 1) ? '-' + cache[id] : ''
     return lower + part
+    */
+    return func.name.toLowerCase ()
 }
 
 exports.cleanNames = function (names) {
+    if (!names) return []
     return names.map (name => name.replace (/Array./g, 'Array'))
 }
 

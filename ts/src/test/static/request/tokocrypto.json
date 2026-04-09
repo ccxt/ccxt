@@ -105,11 +105,11 @@
                 "method": "createOrder",
                 "url": "https://www.tokocrypto.com/open/v1/orders",
                 "input": [
-                  "BTC/USDT",
-                  "limit",
-                  "sell",
-                  0.0003,
-                  55000
+                    "BTC/USDT",
+                    "limit",
+                    "sell",
+                    0.0003,
+                    55000
                 ],
                 "output": "timestamp=1702519397155&symbol=BTC_USDT&type=1&side=1&quantity=0.0003&price=55000&recvWindow=5000&signature=d9641e4a38fee87c316452c7aba5a0fbcfcbbc9a69f0a865cba34caabe158526"
             },
@@ -118,14 +118,14 @@
                 "method": "createOrder",
                 "url": "https://www.tokocrypto.com/open/v1/orders",
                 "input": [
-                  "BTC/USDT",
-                  "market",
-                  "buy",
-                  0.0002,
-                  42800,
-                  {
-                    "createMarketBuyOrderRequiresPrice": true
-                  }
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    0.0002,
+                    42800,
+                    {
+                        "createMarketBuyOrderRequiresPrice": true
+                    }
                 ],
                 "output": "timestamp=1702519660875&symbol=BTC_USDT&type=2&side=0&quoteOrderQty=8.56&recvWindow=5000&signature=18eb61bc2a4b1c4b3a19837c758d88648061d44a3bf3630733ca1a0e3fc8eabd"
             },
@@ -134,14 +134,14 @@
                 "method": "createOrder",
                 "url": "https://www.tokocrypto.com/open/v1/orders",
                 "input": [
-                  "BTC/USDT",
-                  "market",
-                  "buy",
-                  5,
-                  null,
-                  {
-                    "createMarketBuyOrderRequiresPrice": false
-                  }
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    5,
+                    null,
+                    {
+                        "createMarketBuyOrderRequiresPrice": false
+                    }
                 ],
                 "output": "timestamp=1702518844125&symbol=BTC_USDT&type=2&side=0&quoteOrderQty=5&recvWindow=5000&signature=2b0b9058ee03db0bcf656365318c2aa3f264e6edc23d5393f1f9f3b2144817dd"
             },
@@ -150,14 +150,14 @@
                 "method": "createOrder",
                 "url": "https://www.tokocrypto.com/open/v1/orders",
                 "input": [
-                  "BTC/USDT",
-                  "market",
-                  "buy",
-                  null,
-                  null,
-                  {
-                    "cost": 5
-                  }
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    0,
+                    null,
+                    {
+                        "cost": 5
+                    }
                 ],
                 "output": "timestamp=1702518965030&symbol=BTC_USDT&type=2&side=0&quoteOrderQty=5&recvWindow=5000&signature=01f34ffa1d9975825a39f57d9f4aaf227667d73aecb1ef85a02ff45003ddff8e"
             },
@@ -166,11 +166,11 @@
                 "method": "createOrder",
                 "url": "https://www.tokocrypto.com/open/v1/orders",
                 "input": [
-                  "ADA/USDT",
-                  "market",
-                  "sell",
-                  85,
-                  null
+                    "ADA/USDT",
+                    "market",
+                    "sell",
+                    85,
+                    null
                 ],
                 "output": "timestamp=1702518741220&symbol=ADA_USDT&type=2&side=1&quantity=85&recvWindow=5000&signature=251d9fd61eb2158d8fc43b5b51ec7e527aa3800642d7a1414c04078361a2d407"
             }
@@ -181,8 +181,8 @@
                 "method": "createMarketBuyOrderWithCost",
                 "url": "https://www.tokocrypto.com/open/v1/orders",
                 "input": [
-                  "BTC/USDT",
-                  5
+                    "BTC/USDT",
+                    5
                 ],
                 "output": "timestamp=1702519194821&symbol=BTC_USDT&type=2&side=0&quoteOrderQty=5&recvWindow=5000&signature=5fc8e640a2b7bc80ec767f4471a7767c4ada4562f238db13f6e75a20c652379d"
             }
@@ -193,7 +193,7 @@
                 "method": "cancelOrder",
                 "url": "https://www.tokocrypto.com/open/v1/orders/cancel",
                 "input": [
-                  "215077394"
+                    "215077394"
                 ],
                 "output": "timestamp=1702519492365&orderId=215077394&recvWindow=5000&signature=7a8dc92435e00bbc34efd37edd22ff4db50fadc8587c177749cd6c0699553b73"
             }
@@ -213,6 +213,55 @@
                 "url": "https://api.binance.com/api/v3/trades?symbol=LTCUSDT",
                 "input": [
                     "LTC/USDT"
+                ]
+            },
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.binance.com/api/v3/trades?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://www.tokocrypto.com/open/v1/common/time",
+                "input": []
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.binance.com/api/v3/depth?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchBidsAsks": [
+            {
+                "description": "spot bidsasks",
+                "method": "fetchBidsAsks",
+                "url": "https://api.binance.com/api/v3/ticker/bookTicker",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.binance.com/api/v3/klines?interval=1m&limit=500&symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT"
                 ]
             }
         ]

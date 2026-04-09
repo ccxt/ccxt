@@ -5,11 +5,12 @@
 
 from ccxt.async_support.htx import htx
 from ccxt.abstract.huobi import ImplicitAPI
+from ccxt.base.types import Any
 
 
 class huobi(htx, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(huobi, self).describe(), {
             'id': 'huobi',
             'alias': True,

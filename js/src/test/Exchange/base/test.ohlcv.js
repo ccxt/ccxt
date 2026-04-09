@@ -20,10 +20,15 @@ function testOHLCV(exchange, skippedProperties, method, entry, symbol, now) {
     testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry, now, 0);
     const logText = testSharedMethods.logTemplate(exchange, method, entry);
     //
-    const length = entry.length;
-    assert(length >= 6, 'ohlcv array length should be >= 6;' + logText);
+    assert(entry.length >= 6, 'ohlcv array length should be >= 6;' + logText);
+    if (!('roundTimestamp' in skippedProperties)) {
+        testSharedMethods.assertRoundMinuteTimestamp(exchange, skippedProperties, method, entry, 0);
+    }
     const high = exchange.safeString(entry, 2);
     const low = exchange.safeString(entry, 3);
+    if ('compareOHLCV' in skippedProperties) {
+        return;
+    }
     testSharedMethods.assertLessOrEqual(exchange, skippedProperties, method, entry, '1', high);
     testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, '1', low);
     testSharedMethods.assertLessOrEqual(exchange, skippedProperties, method, entry, '4', high);

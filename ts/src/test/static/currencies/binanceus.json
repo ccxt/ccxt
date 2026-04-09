@@ -3,7 +3,7 @@
         "id": "BTC",
         "name": "Bitcoin",
         "code": "BTC",
-        "precision": 8,
+        "precision": 0.00000001,
         "info": {
             "coin": "BTC",
             "depositAllEnable": true,
@@ -163,7 +163,7 @@
         "id": "USDT",
         "name": "TetherUS",
         "code": "USDT",
-        "precision": 8,
+        "precision": 0.00000001,
         "info": {
             "coin": "USDT",
             "depositAllEnable": true,
@@ -485,7 +485,7 @@
         "id": "LTC",
         "name": "Litecoin",
         "code": "LTC",
-        "precision": 8,
+        "precision": 0.00000001,
         "info": {
             "coin": "LTC",
             "depositAllEnable": true,
@@ -643,7 +643,7 @@
         "id": "ETH",
         "name": "Ethereum",
         "code": "ETH",
-        "precision": 8,
+        "precision": 0.00000001,
         "info": {
             "coin": "ETH",
             "depositAllEnable": true,
@@ -885,7 +885,7 @@
         "id": "ADA",
         "name": "Cardano",
         "code": "ADA",
-        "precision": 8,
+        "precision": 0.00000001,
         "info": {
             "coin": "ADA",
             "depositAllEnable": true,
@@ -1043,7 +1043,7 @@
         "id": "XRP",
         "name": "Ripple",
         "code": "XRP",
-        "precision": 8,
+        "precision": 0.00000001,
         "info": {
             "coin": "XRP",
             "depositAllEnable": true,
@@ -1162,7 +1162,7 @@
         "id": "USDC",
         "name": "USD Coin",
         "code": "USDC",
-        "precision": 8,
+        "precision": 0.00000001,
         "info": {
             "coin": "USDC",
             "depositAllEnable": true,

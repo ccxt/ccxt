@@ -1,2 +1,3 @@
-declare function testFetchAccounts(exchange: any, skippedProperties: any): Promise<void>;
+import { Exchange } from "../../../ccxt";
+declare function testFetchAccounts(exchange: Exchange, skippedProperties: object): Promise<boolean>;
 export default testFetchAccounts;

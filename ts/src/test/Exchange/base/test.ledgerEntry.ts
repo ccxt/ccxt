@@ -1,14 +1,14 @@
-
+import { Exchange } from "../../../../ccxt";
 import testSharedMethods from './test.sharedMethods.js';
 
-function testLedgerEntry (exchange, skippedProperties, method, entry, requestedCode, now) {
+function testLedgerEntry (exchange: Exchange, skippedProperties: object, method: string, entry: object, requestedCode: string, now: number) {
     const format = {
         'info': {},
         'id': 'x1234',
         'currency': 'BTC',
         'account': 'spot',
-        'referenceId': '',
-        'referenceAccount': '',
+        'referenceId': 'foo',
+        'referenceAccount': 'bar',
         'status': 'ok',
         'amount': exchange.parseNumber ('22'),
         'before': exchange.parseNumber ('111'),

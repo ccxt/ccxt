@@ -1,19 +1,22 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var hitbtc = require('./hitbtc.js');
 
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
-class bequant extends hitbtc {
+class bequant extends hitbtc["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bequant',
             'name': 'Bequant',
-            'countries': ['MT'],
             'pro': true,
+            'countries': ['MT'],
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg',
+                'logo': 'https://github.com/user-attachments/assets/0583ef1f-29fe-4b7c-8189-63565a0e2867',
                 'api': {
+                    // v3
                     'public': 'https://api.bequant.io/api/3',
                     'private': 'https://api.bequant.io/api/3',
                 },
@@ -24,10 +27,10 @@ class bequant extends hitbtc {
                 'fees': [
                     'https://bequant.io/fees-and-limits',
                 ],
-                'referral': 'https://bequant.io',
+                'referral': 'https://bequant.io/referral/dd104e3bee7634ec',
             },
         });
     }
 }
 
-module.exports = bequant;
+exports["default"] = bequant;

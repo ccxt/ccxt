@@ -1,8 +1,29 @@
 {
     "exchange": "luno",
-    "skipKeys": [],
-    "outputType": "json",
+    "skipKeys": ["since"],
+    "outputType": "both",
     "methods": {
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.luno.com/api/exchange/1/candles?duration=300&pair=XBTUSDT&since=1704127103000",
+                "input": [
+                    "BTC/USDT",
+                    "5m",
+                    1704127103000,
+                    100
+                ]
+            },
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.luno.com/api/exchange/1/candles?duration=60&pair=XBTUSDT&since=1709932986901",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
         "fetchOrderBook": [
             {
                 "description": "fetchOrderBook",
@@ -19,6 +40,14 @@
                 "input": [
                     "BTC/USDT",
                     99
+                ]
+            },
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.luno.com/api/1/orderbook?pair=XBTUSDT",
+                "input": [
+                    "BTC/USDT"
                 ]
             }
         ],
@@ -44,6 +73,38 @@
                     "buy",
                     1,
                     30000
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.luno.com/api/1/trades?pair=XBTUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.luno.com/api/1/ticker?pair=XBTUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.luno.com/api/1/tickers",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ]
                 ]
             }
         ]

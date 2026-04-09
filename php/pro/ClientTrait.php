@@ -27,10 +27,6 @@ trait ClientTrait {
         return \ccxt\pro\inflate($data); // zlib_decode($data);
     }
 
-    public function inflate64($data) {
-        return \ccxt\pro\inflate64($data); // zlib_decode(base64_decode($data));
-    }
-
     public function gunzip($data) {
         return \ccxt\pro\gunzip($data);
     }
@@ -58,8 +54,10 @@ trait ClientTrait {
                 'log' => array($this, 'log'),
                 'verbose' => $this->verbose,
                 'throttle' => new Throttler($this->tokenBucket),
+                'decompressBinary' => $this->safe_bool($this->options, 'decompressBinary', true),
             ), $this->streaming, $ws_options);
             $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $on_connected, $options);
+            $this->configure_proxy_client($this->clients[$url]);
         }
         return $this->clients[$url];
     }
@@ -70,7 +68,7 @@ trait ClientTrait {
         $promise = Async\async(function () use ($method, $args) {
             return Async\await($method(...$args));
         }) ();
-        $promise->done(function ($result) use ($future){
+        $promise->then(function ($result) use ($future){
             $future->resolve($result);
         }, function ($error) use ($future) {
             $future->reject($error);
@@ -84,14 +82,11 @@ trait ClientTrait {
         });
     }
 
-    private function checkProxyClient($client) {
+    private function configure_proxy_client($client) {
         [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_ws_proxy_settings();
-        $connector = $this->setProxyAgents($httpProxy, $httpsProxy, $socksProxy);
-        if ($connector) {
-            $client->set_ws_connector($connector);
-        } else {
-            $client->set_ws_connector($client->default_connector);
-        }
+        $selected_proxy_address = $httpProxy ? $httpProxy : ($httpsProxy ? $httpsProxy : $socksProxy );
+        $proxy_connector = $this->setProxyAgents($httpProxy, $httpsProxy, $socksProxy);
+        $client->set_ws_connector($selected_proxy_address, $proxy_connector);
     }
 
     public function watch_multiple($url, $message_hashes, $message = null, $subscribe_hashes = null, $subscription = null) {
@@ -130,20 +125,14 @@ trait ClientTrait {
                                 try {
                                     Async\await($client->send($message));
                                 } catch (Exception $error) {
-                                    $future->reject($error);
-                                    foreach ($subscribe_hashes as $subscribe_hash) {
-                                        unset($client->subscriptions[$subscribe_hash]);
-                                    }
+                                    $client->on_error($error);
                                 }
                             });
                         } else {
                             try {
                                 Async\await($client->send($message));
                             } catch (Exception $error) {
-                                $future->reject($error);
-                                foreach ($subscribe_hashes as $subscribe_hash) {
-                                    unset($client->subscriptions[$subscribe_hash]);
-                                }
+                                $client->on_error($error);
                             }
                         }
                     }
@@ -189,16 +178,14 @@ trait ClientTrait {
                                 try {
                                     Async\await($client->send($message));
                                 } catch (Exception $error) {
-                                    $client->reject($error, $message_hash);
-                                    unset($client->subscriptions[$subscribe_hash]);
+                                    $client->on_error($error);
                                 }
                             });
                         } else {
                             try {
                                 Async\await($client->send($message));
                             } catch (Exception $error) {
-                                $client->reject($error, $message_hash);
-                                unset($client->subscriptions[$subscribe_hash]);
+                                $client->on_error($error);
                             }
                         }
                     }
@@ -240,6 +227,8 @@ trait ClientTrait {
         foreach ($this->clients as $client) {
             $client->close();
         }
+        // empty the array
+        array_splice($this->clients, 0);
     }
 
     public function __destruct() {

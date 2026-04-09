@@ -31,6 +31,7 @@ interface Exchange {
     v1GetExchangePublicProducts (params?: {}): Promise<implicitReturnType>;
     v1GetApiDataPublicDataFundingRateHistory (params?: {}): Promise<implicitReturnType>;
     v2GetPublicProducts (params?: {}): Promise<implicitReturnType>;
+    v2GetPublicProductsPlus (params?: {}): Promise<implicitReturnType>;
     v2GetMdV2Orderbook (params?: {}): Promise<implicitReturnType>;
     v2GetMdV2Trade (params?: {}): Promise<implicitReturnType>;
     v2GetMdV2Ticker24hr (params?: {}): Promise<implicitReturnType>;
@@ -45,7 +46,8 @@ interface Exchange {
     privateGetExchangeOrderV2TradingList (params?: {}): Promise<implicitReturnType>;
     privateGetAccountsAccountPositions (params?: {}): Promise<implicitReturnType>;
     privateGetGAccountsAccountPositions (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountsPositions (params?: {}): Promise<implicitReturnType>;
+    privateGetGAccountsPositions (params?: {}): Promise<implicitReturnType>;
+    privateGetGAccountsRiskUnit (params?: {}): Promise<implicitReturnType>;
     privateGetApiDataFuturesFundingFees (params?: {}): Promise<implicitReturnType>;
     privateGetApiDataGFuturesFundingFees (params?: {}): Promise<implicitReturnType>;
     privateGetApiDataFuturesOrders (params?: {}): Promise<implicitReturnType>;
@@ -56,6 +58,7 @@ interface Exchange {
     privateGetApiDataGFuturesTrades (params?: {}): Promise<implicitReturnType>;
     privateGetApiDataFuturesTradingFees (params?: {}): Promise<implicitReturnType>;
     privateGetApiDataGFuturesTradingFees (params?: {}): Promise<implicitReturnType>;
+    privateGetApiDataFuturesV2TradeAccountDetail (params?: {}): Promise<implicitReturnType>;
     privateGetGOrdersActiveList (params?: {}): Promise<implicitReturnType>;
     privateGetOrdersActiveList (params?: {}): Promise<implicitReturnType>;
     privateGetExchangeOrderList (params?: {}): Promise<implicitReturnType>;
@@ -107,6 +110,7 @@ interface Exchange {
     privatePutSpotOrders (params?: {}): Promise<implicitReturnType>;
     privatePutOrdersReplace (params?: {}): Promise<implicitReturnType>;
     privatePutGOrdersReplace (params?: {}): Promise<implicitReturnType>;
+    privatePutGOrdersCreate (params?: {}): Promise<implicitReturnType>;
     privatePutPositionsLeverage (params?: {}): Promise<implicitReturnType>;
     privatePutGPositionsLeverage (params?: {}): Promise<implicitReturnType>;
     privatePutGPositionsSwitchPosModeSync (params?: {}): Promise<implicitReturnType>;

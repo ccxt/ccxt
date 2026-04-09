@@ -1,0 +1,101 @@
+{
+    "BTC": {
+        "active": null,
+        "code": "BTC",
+        "deposit": null,
+        "fee": null,
+        "fees": {},
+        "id": "BTC",
+        "info": {
+            "asset": "BTC",
+            "autoAssetExchange": "0",
+            "marginAvailable": true
+        },
+        "limits": {
+            "amount": {
+                "max": null,
+                "min": null
+            },
+            "deposit": {
+                "max": null,
+                "min": null
+            },
+            "withdraw": {
+                "max": null,
+                "min": null
+            }
+        },
+        "name": "BTC",
+        "networks": null,
+        "numericId": null,
+        "precision": null,
+        "type": "crypto",
+        "withdraw": null
+    },
+    "USDT": {
+        "info": {
+            "asset": "USDT",
+            "marginAvailable": true,
+            "autoAssetExchange": "-10000"
+        },
+        "id": "USDT",
+        "numericId": null,
+        "code": "USDT",
+        "precision": null,
+        "type": "crypto",
+        "name": "USDT",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": null,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "ASTER": {
+        "info": {
+            "asset": "ASTER",
+            "marginAvailable": true,
+            "autoAssetExchange": "0"
+        },
+        "id": "ASTER",
+        "numericId": null,
+        "code": "ASTER",
+        "precision": null,
+        "type": "crypto",
+        "name": "ASTER",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": null,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        }
+    }
+}

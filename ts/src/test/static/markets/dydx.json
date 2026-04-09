@@ -1,0 +1,86 @@
+{
+    "BTC/USDC:USDC": {
+        "id": "BTC-USD",
+        "lowercaseId": null,
+        "symbol": "BTC/USDC:USDC",
+        "base": "BTC",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": null,
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.0001,
+            "price": 1
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "clobPairId": "0",
+            "ticker": "BTC-USD",
+            "status": "ACTIVE",
+            "oraclePrice": "118442.13796",
+            "priceChange24H": "180.02993",
+            "volume24H": "664406.6668",
+            "trades24H": "173",
+            "nextFundingRate": "0.00015111785714285714",
+            "initialMarginFraction": "0.02",
+            "maintenanceMarginFraction": "0.012",
+            "openInterest": "56.6481",
+            "atomicResolution": "-10",
+            "quantumConversionExponent": "-9",
+            "tickSize": "1",
+            "stepSize": "0.0001",
+            "stepBaseQuantums": "1000000",
+            "subticksPerTick": "100000",
+            "marketType": "CROSS",
+            "openInterestLowerCap": "0",
+            "openInterestUpperCap": "0",
+            "baseOpenInterest": "50.3776",
+            "defaultFundingRate1H": "0"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "baseName": "BTC"
+    }
+}

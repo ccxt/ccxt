@@ -1,8 +1,17 @@
 {
     "exchange": "digifinex",
     "skipKeys": [],
-    "outputType": "urlencoded",
+    "outputType": "both",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://openapi.digifinex.com/v3/currencies",
+                "input": [],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "Spot limit buy",
@@ -35,10 +44,10 @@
                 "method": "createOrder",
                 "url": "https://openapi.digifinex.com/swap/v2/trade/order_place",
                 "input": [
-                  "LTC/USDT:USDT",
-                  "market",
-                  "buy",
-                  1
+                    "LTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    1
                 ],
                 "output": "{\"instrument_id\":\"LTCUSDTPERP\",\"type\":1,\"order_type\":14,\"size\":1}"
             },
@@ -47,14 +56,14 @@
                 "method": "createOrder",
                 "url": "https://openapi.digifinex.com/swap/v2/trade/order_place",
                 "input": [
-                  "LTC/USDT:USDT",
-                  "market",
-                  "sell",
-                  1,
-                  null,
-                  {
-                    "reduceOnly": true
-                  }
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    1,
+                    null,
+                    {
+                        "reduceOnly": true
+                    }
                 ],
                 "output": "{\"instrument_id\":\"LTCUSDTPERP\",\"type\":3,\"order_type\":14,\"size\":1}"
             },
@@ -63,14 +72,14 @@
                 "method": "createOrder",
                 "url": "https://openapi.digifinex.com/v3/spot/order/new",
                 "input": [
-                  "BTC/USDT",
-                  "market",
-                  "buy",
-                  2,
-                  null,
-                  {
-                    "createMarketBuyOrderRequiresPrice": false
-                  }
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    2,
+                    null,
+                    {
+                        "createMarketBuyOrderRequiresPrice": false
+                    }
                 ],
                 "output": "amount=2&market=spot&symbol=BTC_USDT&type=buy_market"
             },
@@ -79,14 +88,14 @@
                 "method": "createOrder",
                 "url": "https://openapi.digifinex.com/v3/spot/order/new",
                 "input": [
-                  "BTC/USDT",
-                  "market",
-                  "buy",
-                  null,
-                  null,
-                  {
-                    "cost": 2
-                  }
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    0,
+                    null,
+                    {
+                        "cost": 2
+                    }
                 ],
                 "output": "amount=2&market=spot&symbol=BTC_USDT&type=buy_market"
             },
@@ -95,11 +104,11 @@
                 "method": "createOrder",
                 "url": "https://openapi.digifinex.com/v3/spot/order/new",
                 "input": [
-                  "BTC/USDT",
-                  "market",
-                  "sell",
-                  0.00012,
-                  null
+                    "BTC/USDT",
+                    "market",
+                    "sell",
+                    0.00012,
+                    null
                 ],
                 "output": "amount=0.00012&market=spot&symbol=BTC_USDT&type=sell_market"
             }
@@ -107,55 +116,57 @@
         "createOrders": [
             {
                 "description": "Spot create multiple orders at once",
+                "disabledGO": true,
                 "method": "createOrders",
                 "url": "https://openapi.digifinex.com/v3/spot/order/batch_new",
                 "input": [
-                  [
-                    {
-                      "symbol": "BTC/USDT",
-                      "type": "limit",
-                      "side": "buy",
-                      "amount": 0.0001,
-                      "price": 25000
-                    },
-                    {
-                      "symbol": "BTC/USDT",
-                      "type": "limit",
-                      "side": "buy",
-                      "amount": 0.0001,
-                      "price": 27000
-                    }
-                  ]
+                    [
+                        {
+                            "symbol": "BTC/USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.0001,
+                            "price": 25000
+                        },
+                        {
+                            "symbol": "BTC/USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.0001,
+                            "price": 27000
+                        }
+                    ]
                 ],
                 "output": "list=%5B%7B%22symbol%22%3A%22BTC_USDT%22%2C%22market%22%3A%22spot%22%2C%22price%22%3A%2225000%22%2C%22type%22%3A%22buy%22%2C%22amount%22%3A%220.0001%22%7D%2C%7B%22symbol%22%3A%22BTC_USDT%22%2C%22market%22%3A%22spot%22%2C%22price%22%3A%2227000%22%2C%22type%22%3A%22buy%22%2C%22amount%22%3A%220.0001%22%7D%5D&symbol=BTC_USDT"
             },
             {
                 "description": "Spot margin create multiple orders at once",
+                "disabledGO": true,
                 "method": "createOrders",
                 "url": "https://openapi.digifinex.com/v3/margin/order/batch_new",
                 "input": [
-                  [
-                    {
-                      "symbol": "BTC/USDT",
-                      "type": "limit",
-                      "side": "buy",
-                      "amount": 0.0001,
-                      "price": 25000,
-                      "params": {
-                        "marginMode": "cross"
-                      }
-                    },
-                    {
-                      "symbol": "BTC/USDT",
-                      "type": "limit",
-                      "side": "buy",
-                      "amount": 0.0001,
-                      "price": 27000,
-                      "params": {
-                        "marginMode": "cross"
-                      }
-                    }
-                  ]
+                    [
+                        {
+                            "symbol": "BTC/USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.0001,
+                            "price": 25000,
+                            "params": {
+                                "marginMode": "cross"
+                            }
+                        },
+                        {
+                            "symbol": "BTC/USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.0001,
+                            "price": 27000,
+                            "params": {
+                                "marginMode": "cross"
+                            }
+                        }
+                    ]
                 ],
                 "output": "list=%5B%7B%22symbol%22%3A%22BTC_USDT%22%2C%22market%22%3A%22margin%22%2C%22price%22%3A%2225000%22%2C%22type%22%3A%22buy%22%2C%22amount%22%3A%220.0001%22%7D%2C%7B%22symbol%22%3A%22BTC_USDT%22%2C%22market%22%3A%22margin%22%2C%22price%22%3A%2227000%22%2C%22type%22%3A%22buy%22%2C%22amount%22%3A%220.0001%22%7D%5D&symbol=BTC_USDT"
             },
@@ -164,22 +175,22 @@
                 "method": "createOrders",
                 "url": "https://openapi.digifinex.com/swap/v2/trade/batch_order",
                 "input": [
-                  [
-                    {
-                      "symbol": "BTC/USDT:USDT",
-                      "type": "limit",
-                      "side": "buy",
-                      "amount": 1,
-                      "price": "25000"
-                    },
-                    {
-                      "symbol": "BTC/USDT:USDT",
-                      "type": "limit",
-                      "side": "buy",
-                      "amount": 1,
-                      "price": "27000"
-                    }
-                  ]
+                    [
+                        {
+                            "symbol": "BTC/USDT:USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 1,
+                            "price": "25000"
+                        },
+                        {
+                            "symbol": "BTC/USDT:USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 1,
+                            "price": "27000"
+                        }
+                    ]
                 ],
                 "output": "[{\"instrument_id\":\"BTCUSDTPERP\",\"type\":1,\"price\":\"25000\",\"order_type\":0,\"size\":1},{\"instrument_id\":\"BTCUSDTPERP\",\"type\":1,\"price\":\"27000\",\"order_type\":0,\"size\":1}]"
             }
@@ -190,8 +201,8 @@
                 "method": "createMarketBuyOrderWithCost",
                 "url": "https://openapi.digifinex.com/v3/spot/order/new",
                 "input": [
-                  "BTC/USDT",
-                  2
+                    "BTC/USDT",
+                    2
                 ],
                 "output": "amount=2&market=spot&symbol=BTC_USDT&type=buy_market"
             }
@@ -425,7 +436,7 @@
                 "method": "fetchCrossBorrowRate",
                 "url": "https://openapi.digifinex.com/v3/margin/assets",
                 "input": [
-                  "USDT"
+                    "USDT"
                 ]
             }
         ],
@@ -434,14 +445,6 @@
                 "description": "Fetch cross borrow rates",
                 "method": "fetchCrossBorrowRates",
                 "url": "https://openapi.digifinex.com/v3/margin/assets",
-                "input": []
-            }
-        ],
-        "fetchMarkets": [
-            {
-                "description": "Fetch markets",
-                "method": "fetchMarkets",
-                "url": "https://openapi.digifinex.com/swap/v2/public/instruments",
                 "input": []
             }
         ],
@@ -460,6 +463,22 @@
                 "url": "https://openapi.digifinex.com/swap/v2/public/depth?instrument_id=LTCUSDTPERP",
                 "input": [
                     "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://openapi.digifinex.com/v3/order_book?symbol=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://openapi.digifinex.com/swap/v2/public/depth?instrument_id=BTCUSDTPERP",
+                "input": [
+                    "BTC/USDT:USDT"
                 ]
             }
         ],
@@ -485,6 +504,48 @@
                         "type": "swap"
                     }
                 ]
+            },
+            {
+                "description": "Spot market fetch tickers",
+                "method": "fetchTickers",
+                "url": "https://openapi.digifinex.com/v3/ticker",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "Swap market fetch tickers",
+                "method": "fetchTickers",
+                "url": "https://openapi.digifinex.com/swap/v2/public/tickers",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://openapi.digifinex.com/v3/ticker",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "swap tickers",
+                "method": "fetchTickers",
+                "url": "https://openapi.digifinex.com/swap/v2/public/tickers",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
+                    ]
+                ]
             }
         ],
         "fetchTicker": [
@@ -502,6 +563,22 @@
                 "url": "https://openapi.digifinex.com/swap/v2/public/ticker?instrument_id=LTCUSDTPERP",
                 "input": [
                     "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Swap ticker",
+                "method": "fetchTicker",
+                "url": "https://openapi.digifinex.com/swap/v2/public/ticker?instrument_id=BTCUSDTPERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://openapi.digifinex.com/v3/ticker?symbol=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
                 ]
             }
         ],
@@ -521,20 +598,102 @@
                 "input": [
                     "LTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://openapi.digifinex.com/v3/trades?symbol=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://openapi.digifinex.com/swap/v2/public/trades?instrument_id=BTCUSDTPERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
             }
         ],
         "fetchOHLCV": [
             {
-                "description": "Fetch OHLCV - spot",
+                "description": "fetchOHLCV with since",
                 "method": "fetchOHLCV",
-                "url": "https://openapi.digifinex.com/v3/kline?end_time=1699457938&period=1&start_time=1699457638&symbol=LTC_USDT",
+                "url": "https://openapi.digifinex.com/v3/kline?period=60&start_time=1735862400&symbol=BTC_USDT",
                 "input": [
-                    "LTC/USDT",
-                    "1m",
-                    1699457638000,
-                    5
+                  "BTC/USDT",
+                  "1h",
+                  1735862400000
                 ]
             },
+            {
+                "description": "fetchOHLCV with until",
+                "method": "fetchOHLCV",
+                "url": "https://openapi.digifinex.com/v3/kline?end_time=1735948800&period=60&start_time=1735228800&symbol=BTC_USDT",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  null,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since, and limit",
+                "method": "fetchOHLCV",
+                "url": "https://openapi.digifinex.com/v3/kline?end_time=1735876799&period=60&start_time=1735862399&symbol=BTC_USDT",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862399999,
+                  4
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since and until",
+                "method": "fetchOHLCV",
+                "url": "https://openapi.digifinex.com/v3/kline?end_time=1735948800&period=60&start_time=1735862400&symbol=BTC_USDT",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862400000,
+                  null,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://openapi.digifinex.com/v3/kline?end_time=1735948800&period=60&start_time=1735934400&symbol=BTC_USDT",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  4,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since, limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://openapi.digifinex.com/v3/kline?end_time=1735876800&period=60&start_time=1735862400&symbol=BTC_USDT",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862400000,
+                  4,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },              
             {
                 "description": "Fetch OHLCV - swap",
                 "method": "fetchOHLCV",
@@ -544,6 +703,22 @@
                     "1m",
                     1699457638000,
                     5
+                ]
+            },
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://openapi.digifinex.com/v3/kline?period=1&symbol=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://openapi.digifinex.com/swap/v2/public/candles?granularity=1m&instrument_id=BTCUSDTPERP",
+                "input": [
+                    "BTC/USDT:USDT"
                 ]
             }
         ],
@@ -567,6 +742,92 @@
                     "LTC/USDT:USDT"
                 ],
                 "output": "{\"order_id\":\"1699457638000\",\"instrument_id\":\"LTCUSDTPERP\"}"
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://openapi.digifinex.com/v3/time",
+                "input": []
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fundingRateHistory",
+                "method": "fetchFundingRateHistory",
+                "url": "https://openapi.digifinex.com/swap/v2/public/funding_rate_history?instrument_id=BTCUSDTPERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fundingRate",
+                "method": "fetchFundingRate",
+                "url": "https://openapi.digifinex.com/swap/v2/public/funding_rate?instrument_id=BTCUSDTPERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchFundingInterval": [
+            {
+                "description": "linear swap fetch the funding interval",
+                "method": "fetchFundingInterval",
+                "url": "https://openapi.digifinex.com/swap/v2/public/funding_rate?instrument_id=BTCUSDTPERP",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "fetch borrow interest",
+                "method": "fetchBorrowInterest",
+                "url": "https://openapi.digifinex.com/v3/margin/positions",
+                "input": [
+                  "USDT"
+                ]
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer 5 USDT from spot to margin account",
+                "method": "transfer",
+                "url": "https://openapi.digifinex.com/v3/transfer",
+                "input": [
+                    "USDT",
+                    5,
+                    "spot",
+                    "margin"
+                ],
+                "output": "currency_mark=USDT&from=1&num=5&to=2"
+            },
+            {
+                "description": "transfer 5 USDT from spot to swap account",
+                "method": "transfer",
+                "url": "https://openapi.digifinex.com/swap/v2/account/transfer",
+                "input": [
+                    "USDT",
+                    5,
+                    "spot",
+                    "swap"
+                ],
+                "output": "{\"type\":1,\"currency\":\"USDT\",\"transfer_amount\":\"5\"}"
+            },
+            {
+                "description": "transfer 10 USDT from swap to spot account",
+                "method": "transfer",
+                "url": "https://openapi.digifinex.com/swap/v2/account/transfer",
+                "input": [
+                    "USDT",
+                    10,
+                    "swap",
+                    "spot"
+                ],
+                "output": "{\"type\":2,\"currency\":\"USDT\",\"transfer_amount\":\"10\"}"
             }
         ]
     }

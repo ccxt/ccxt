@@ -6,23 +6,28 @@ import nodeResolve from '@rollup/plugin-node-resolve'
 export default [
   {
     preserveModules: true,
+    context: 'globalThis',
     input: "./js/ccxt.js",
     output: [
       {
         dir: "./dist/cjs/",
         format: "cjs",
+        exports: "named",
       }
     ],
     plugins: [
       nodeResolve({
         preferBuiltins: true,
+        // node resolve generate dist/cjs/js directory 
+        jail: '/src'
       }),
       json(),
       commonjs({
         transformMixedEsModules: true,
         dynamicRequireTargets: ["**/js/src/static_dependencies/**/*.cjs"],
       }),
-      execute("echo '{ \"type\": \"commonjs\" }' > ./dist/cjs/package.json") // this is needed to make node treat files inside dist/cjs as CJS modules
+      execute("echo '{ \"type\": \"commonjs\" }' > ./dist/cjs/package.json"), // this is needed to make node treat files inside dist/cjs as CJS modules
+      execute("echo 'import * as ccxt from \"./js/ccxt.js\";\\nexport = ccxt;' > ./index.d.cts") // CJS type declarations for node16/nodenext moduleResolution
     ],
     onwarn: ( warning, next ) => {
       if ( warning.message.indexOf('is implicitly using "default" export mode') > -1 ) return;
@@ -31,28 +36,11 @@ export default [
     external: [
       'socks-proxy-agent',
       // node resolve generate dist/cjs/js directory, treat ws, debug as external
-      'ws', 'debug'
-    ]
-  },
-  {
-    inlineDynamicImports: true,
-    input: "./js/ccxt.js",
-    output: [
-      {
-        file: "./dist/ccxt.bundle.cjs",
-        format: "cjs",
-      },
-    ],
-    plugins: [
-      nodeResolve({ preferBuiltins: true }),
-      json(),
-      commonjs({
-        transformMixedEsModules: true,
-        dynamicRequireTargets: ["**/js/src/static_dependencies/**/*.cjs"],
-      }),
-    ],
-    external: [
-      'socks-proxy-agent'
+      'ws',
+      'debug',
+      "http-proxy-agent",
+      "https-proxy-agent",
+      "protobufjs/minimal"
     ]
   }
 ];

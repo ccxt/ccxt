@@ -5,22 +5,24 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
-from ccxt.base.types import Int, Order, OrderBook, Str, Trade
+from ccxt.base.types import Any, Bool, Int, Order, OrderBook, Str, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.precise import Precise
 
 
 class bitstamp(ccxt.async_support.bitstamp):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bitstamp, self).describe(), {
             'has': {
                 'ws': True,
                 'watchOrderBook': True,
                 'watchOrders': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchOHLCV': False,
                 'watchTicker': False,
                 'watchTickers': False,
@@ -54,7 +56,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -62,7 +64,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         messageHash = 'orderbook:' + symbol
         channel = 'diff_order_book_' + market['id']
         url = self.urls['api']['ws']
-        request = {
+        request: dict = {
             'event': 'bts:subscribe',
             'data': {
                 'channel': channel,
@@ -111,7 +113,7 @@ class bitstamp(ccxt.async_support.bitstamp):
             # usually it takes at least 4-5 deltas to resolve
             snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 6)
             if cacheLength == snapshotDelay:
-                self.spawn(self.load_order_book, client, messageHash, symbol)
+                self.spawn(self.load_order_book, client, messageHash, symbol, None, {})
             storedOrderBook.cache.append(delta)
             return
         elif nonce >= deltaNonce:
@@ -157,7 +159,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -165,7 +167,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         messageHash = 'trades:' + symbol
         url = self.urls['api']['ws']
         channel = 'live_trades_' + market['id']
-        request = {
+        request: dict = {
             'event': 'bts:subscribe',
             'data': {
                 'channel': channel,
@@ -260,7 +262,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchOrders() requires a symbol argument')
@@ -269,7 +271,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         symbol = market['symbol']
         channel = 'private-my_orders'
         messageHash = channel + '_' + market['id']
-        subscription = {
+        subscription: dict = {
             'symbol': symbol,
             'limit': limit,
             'type': channel,
@@ -295,6 +297,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         #        "price_str":"1000.00"
         #     },
         #     "channel":"private-my_orders_ltcusd-4848701",
+        #     "event": "order_deleted"  # field only present for cancelOrder
         # }
         #
         channel = self.safe_string(message, 'channel')
@@ -306,29 +309,58 @@ class bitstamp(ccxt.async_support.bitstamp):
         subscription = self.safe_value(client.subscriptions, channel)
         symbol = self.safe_string(subscription, 'symbol')
         market = self.market(symbol)
+        order['event'] = self.safe_string(message, 'event')
         parsed = self.parse_ws_order(order, market)
         stored.append(parsed)
         client.resolve(self.orders, channel)
 
     def parse_ws_order(self, order, market=None):
         #
-        #   {
-        #        "id":"1463471322288128",
-        #        "id_str":"1463471322288128",
-        #        "order_type":1,
-        #        "datetime":"1646127778",
-        #        "microtimestamp":"1646127777950000",
-        #        "amount":0.05,
-        #        "amount_str":"0.05000000",
-        #        "price":1000,
-        #        "price_str":"1000.00"
+        #    {
+        #        "id": "1894876776091648",
+        #        "id_str": "1894876776091648",
+        #        "order_type": 0,
+        #        "order_subtype": 0,
+        #        "datetime": "1751451375",
+        #        "microtimestamp": "1751451375070000",
+        #        "amount": 1.1,
+        #        "amount_str": "1.10000000",
+        #        "amount_traded": "0",
+        #        "amount_at_create": "1.10000000",
+        #        "price": 10.23,
+        #        "price_str": "10.23",
+        #        "is_liquidation": False,
+        #        "trade_account_id": 0
         #    }
         #
         id = self.safe_string(order, 'id_str')
-        orderType = self.safe_string_lower(order, 'order_type')
+        orderTypeRaw = self.safe_string_lower(order, 'order_type')
+        side = 'sell' if (orderTypeRaw == '1') else 'buy'
+        orderSubTypeRaw = self.safe_string_lower(order, 'order_subtype')  # https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
+        orderType: Str = None
+        timeInForce: Str = None
+        if orderSubTypeRaw == '0':
+            orderType = 'limit'
+        elif orderSubTypeRaw == '2':
+            orderType = 'market'
+        elif orderSubTypeRaw == '4':
+            orderType = 'limit'
+            timeInForce = 'IOC'
+        elif orderSubTypeRaw == '6':
+            orderType = 'limit'
+            timeInForce = 'FOK'
+        elif orderSubTypeRaw == '8':
+            orderType = 'limit'
+            timeInForce = 'GTD'
         price = self.safe_string(order, 'price_str')
         amount = self.safe_string(order, 'amount_str')
-        side = 'sell' if (orderType == '1') else 'buy'
+        filled = self.safe_string(order, 'amount_traded')
+        event = self.safe_string(order, 'event')
+        status = None
+        if Precise.string_eq(filled, amount):
+            status = 'closed'
+        elif event == 'order_deleted':
+            status = 'canceled'
         timestamp = self.safe_timestamp(order, 'datetime')
         market = self.safe_market(None, market)
         symbol = market['symbol']
@@ -340,8 +372,8 @@ class bitstamp(ccxt.async_support.bitstamp):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'type': None,
-            'timeInForce': None,
+            'type': orderType,
+            'timeInForce': timeInForce,
             'postOnly': None,
             'side': side,
             'price': price,
@@ -350,9 +382,9 @@ class bitstamp(ccxt.async_support.bitstamp):
             'amount': amount,
             'cost': None,
             'average': None,
-            'filled': None,
+            'filled': filled,
             'remaining': None,
-            'status': None,
+            'status': status,
             'fee': None,
             'trades': None,
         }, market)
@@ -416,10 +448,11 @@ class bitstamp(ccxt.async_support.bitstamp):
         #         "price_str":"1000.00"
         #         },
         #         "channel":"private-my_orders_ltcusd-4848701",
+        #         "event": "order_deleted"  # field only present for cancelOrder
         #     }
         #
         channel = self.safe_string(message, 'channel')
-        methods = {
+        methods: dict = {
             'live_trades': self.handle_trade,
             'diff_order_book': self.handle_order_book,
             'private-my_orders': self.handle_orders,
@@ -431,7 +464,7 @@ class bitstamp(ccxt.async_support.bitstamp):
                 method = methods[key]
                 method(client, message)
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         # {
         #     "event": "bts:error",
         #     "channel": '',
@@ -443,7 +476,7 @@ class bitstamp(ccxt.async_support.bitstamp):
             data = self.safe_value(message, 'data', {})
             code = self.safe_number(data, 'code')
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
-        return message
+        return True
 
     def handle_message(self, client: Client, message):
         if not self.handle_error_message(client, message):
@@ -482,9 +515,9 @@ class bitstamp(ccxt.async_support.bitstamp):
         #
         event = self.safe_string(message, 'event')
         if event == 'bts:subscription_succeeded':
-            return self.handle_subscription_status(client, message)
+            self.handle_subscription_status(client, message)
         else:
-            return self.handle_subject(client, message)
+            self.handle_subject(client, message)
 
     async def authenticate(self, params={}):
         self.check_required_credentials()
@@ -501,18 +534,17 @@ class bitstamp(ccxt.async_support.bitstamp):
             #
             sessionToken = self.safe_string(response, 'token')
             if sessionToken is not None:
-                userId = self.safe_number(response, 'user_id')
+                userId = self.safe_string(response, 'user_id')
                 validity = self.safe_integer_product(response, 'valid_sec', 1000)
                 self.options['expiresIn'] = self.sum(time, validity)
                 self.options['userId'] = userId
                 self.options['wsSessionToken'] = sessionToken
-                return response
 
     async def subscribe_private(self, subscription, messageHash, params={}):
         url = self.urls['api']['ws']
         await self.authenticate()
         messageHash += '-' + self.options['userId']
-        request = {
+        request: dict = {
             'event': 'bts:subscribe',
             'data': {
                 'channel': messageHash,

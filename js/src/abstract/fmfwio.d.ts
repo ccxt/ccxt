@@ -17,6 +17,8 @@ interface hitbtc {
     publicGetPublicOrderbookSymbol(params?: {}): Promise<implicitReturnType>;
     publicGetPublicCandles(params?: {}): Promise<implicitReturnType>;
     publicGetPublicCandlesSymbol(params?: {}): Promise<implicitReturnType>;
+    publicGetPublicConvertedCandles(params?: {}): Promise<implicitReturnType>;
+    publicGetPublicConvertedCandlesSymbol(params?: {}): Promise<implicitReturnType>;
     publicGetPublicFuturesInfo(params?: {}): Promise<implicitReturnType>;
     publicGetPublicFuturesInfoSymbol(params?: {}): Promise<implicitReturnType>;
     publicGetPublicFuturesHistoryFunding(params?: {}): Promise<implicitReturnType>;

@@ -1,0 +1,26 @@
+from ccxt.base.types import Entry
+
+
+class ImplicitAPI:
+    v3_public_get_currencies = v3PublicGetCurrencies = Entry('currencies', ['v3', 'public'], 'GET', {'cost': 5})
+    v3_public_get_markets = v3PublicGetMarkets = Entry('markets', ['v3', 'public'], 'GET', {'cost': 5})
+    v3_public_get_markets_ticker_24hr = v3PublicGetMarketsTicker24hr = Entry('markets/ticker/24hr', ['v3', 'public'], 'GET', {'cost': 60})
+    v3_public_get_markets_market_orderbook = v3PublicGetMarketsMarketOrderbook = Entry('markets/{market}/orderbook', ['v3', 'public'], 'GET', {'cost': 6})
+    v3_public_get_markets_market_candlesticks = v3PublicGetMarketsMarketCandlesticks = Entry('markets/{market}/candlesticks', ['v3', 'public'], 'GET', {'cost': 12})
+    v3_public_get_markets_market_trades_history = v3PublicGetMarketsMarketTradesHistory = Entry('markets/{market}/trades/history', ['v3', 'public'], 'GET', {'cost': 12})
+    v3_public_get_markets_market_ticker_24hr = v3PublicGetMarketsMarketTicker24hr = Entry('markets/{market}/ticker/24hr', ['v3', 'public'], 'GET', {'cost': 15})
+    v3_private_get_accounts = v3PrivateGetAccounts = Entry('accounts', ['v3', 'private'], 'GET', {'cost': 2})
+    v3_private_get_accounts_symbol_transactions = v3PrivateGetAccountsSymbolTransactions = Entry('accounts/{symbol}/transactions', ['v3', 'private'], 'GET', {'cost': 60})
+    v3_private_get_orders = v3PrivateGetOrders = Entry('orders', ['v3', 'private'], 'GET', {'cost': 2})
+    v3_private_get_orders_by_order_id_id = v3PrivateGetOrdersByOrderIdId = Entry('orders/by-order-id/{id}', ['v3', 'private'], 'GET', {'cost': 2})
+    v3_private_get_trades = v3PrivateGetTrades = Entry('trades', ['v3', 'private'], 'GET', {'cost': 6})
+    v3_private_get_deposits_address = v3PrivateGetDepositsAddress = Entry('deposits/address', ['v3', 'private'], 'GET', {'cost': 10})
+    v3_private_get_deposits = v3PrivateGetDeposits = Entry('deposits', ['v3', 'private'], 'GET', {'cost': 10})
+    v3_private_get_withdrawals = v3PrivateGetWithdrawals = Entry('withdrawals', ['v3', 'private'], 'GET', {'cost': 10})
+    v3_private_get_me_fees_trading = v3PrivateGetMeFeesTrading = Entry('me/fees/trading', ['v3', 'private'], 'GET', {'cost': 60})
+    v3_private_post_orders = v3PrivatePostOrders = Entry('orders', ['v3', 'private'], 'POST', {'cost': 2})
+    v3_private_post_orders_batch = v3PrivatePostOrdersBatch = Entry('orders/batch', ['v3', 'private'], 'POST', {'cost': 7.5})
+    v3_private_post_orders_cancel_replace = v3PrivatePostOrdersCancelReplace = Entry('orders/cancel-replace', ['v3', 'private'], 'POST', {'cost': 3})
+    v3_private_post_withdrawals = v3PrivatePostWithdrawals = Entry('withdrawals', ['v3', 'private'], 'POST', {'cost': 10})
+    v3_private_put_orders_cancel = v3PrivatePutOrdersCancel = Entry('orders/cancel', ['v3', 'private'], 'PUT', {'cost': 2})
+    status_public_get_status = statusPublicGetStatus = Entry('status', ['status', 'public'], 'GET', {'cost': 30})

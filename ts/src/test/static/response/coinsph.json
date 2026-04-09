@@ -1,0 +1,700 @@
+{
+    "exchange": "coinsph",
+    "skipKeys": [],
+    "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "coin": "USDT",
+                        "name": "USDT",
+                        "depositAllEnable": true,
+                        "withdrawAllEnable": true,
+                        "free": "0",
+                        "locked": "0",
+                        "transferPrecision": "8",
+                        "transferMinQuantity": "0",
+                        "networkList": [
+                            {
+                                "addressRegex": "^0x[0-9a-fA-F]{40}$",
+                                "memoRegex": " ",
+                                "network": "ETH",
+                                "name": "Ethereum (ERC20)",
+                                "depositEnable": true,
+                                "minConfirm": "12",
+                                "unLockConfirm": "-1",
+                                "withdrawDesc": "",
+                                "withdrawEnable": true,
+                                "withdrawFee": "6",
+                                "withdrawIntegerMultiple": "0.000001",
+                                "withdrawMax": "500000",
+                                "withdrawMin": "10",
+                                "sameAddress": false
+                            },
+                            {
+                                "addressRegex": "^T[0-9a-zA-Z]{33}$",
+                                "memoRegex": "",
+                                "network": "TRX",
+                                "name": "TRON",
+                                "depositEnable": true,
+                                "minConfirm": "19",
+                                "unLockConfirm": "-1",
+                                "withdrawDesc": "",
+                                "withdrawEnable": true,
+                                "withdrawFee": "3",
+                                "withdrawIntegerMultiple": "0.000001",
+                                "withdrawMax": "1000000",
+                                "withdrawMin": "20",
+                                "sameAddress": false
+                            },
+                            {
+                                "addressRegex": "^0x[0-9a-fA-F]{40}$",
+                                "memoRegex": "",
+                                "network": "BSC",
+                                "name": "BNB Smart Chain (BEP20)",
+                                "depositEnable": true,
+                                "minConfirm": "15",
+                                "unLockConfirm": "-1",
+                                "withdrawDesc": "",
+                                "withdrawEnable": true,
+                                "withdrawFee": "2",
+                                "withdrawIntegerMultiple": "0.000001",
+                                "withdrawMax": "300000",
+                                "withdrawMin": "10",
+                                "sameAddress": false
+                            },
+                            {
+                                "addressRegex": "^0x[0-9a-fA-F]{40}$",
+                                "memoRegex": "",
+                                "network": "ARBITRUM",
+                                "name": "Arbitrum One",
+                                "depositEnable": true,
+                                "minConfirm": "12",
+                                "unLockConfirm": "-1",
+                                "withdrawDesc": "",
+                                "withdrawEnable": true,
+                                "withdrawFee": "2",
+                                "withdrawIntegerMultiple": "0.000001",
+                                "withdrawMax": "30000",
+                                "withdrawMin": "10",
+                                "sameAddress": false
+                            },
+                            {
+                                "addressRegex": "^[1-9A-HJ-NP-Za-km-z]{32,44}$",
+                                "memoRegex": "",
+                                "network": "SOL",
+                                "name": "Solana",
+                                "depositEnable": true,
+                                "minConfirm": "1",
+                                "unLockConfirm": "-1",
+                                "withdrawDesc": "",
+                                "withdrawEnable": true,
+                                "withdrawFee": "2",
+                                "withdrawIntegerMultiple": "0.000001",
+                                "withdrawMax": "300000",
+                                "withdrawMin": "10",
+                                "sameAddress": false
+                            },
+                            {
+                                "addressRegex": "^[UE][Qf][0-9a-z-A-Z\\\\-\\\\_]{46}$",
+                                "memoRegex": "^[0-9A-Za-z\\\\-_]{1,120}$",
+                                "network": "TON",
+                                "name": "The Open Network",
+                                "depositEnable": true,
+                                "minConfirm": "1",
+                                "unLockConfirm": "1",
+                                "withdrawDesc": "",
+                                "withdrawEnable": true,
+                                "withdrawFee": "2",
+                                "withdrawIntegerMultiple": "0.000001",
+                                "withdrawMax": "50000",
+                                "withdrawMin": "10",
+                                "sameAddress": true
+                            },
+                            {
+                                "addressRegex": "^0x[0-9a-fA-F]{40}$",
+                                "memoRegex": "",
+                                "network": "POL",
+                                "name": "Polygon",
+                                "depositEnable": true,
+                                "minConfirm": "200",
+                                "unLockConfirm": "300",
+                                "withdrawDesc": "",
+                                "withdrawEnable": true,
+                                "withdrawFee": "2",
+                                "withdrawIntegerMultiple": "0.000001",
+                                "withdrawMax": "70000",
+                                "withdrawMin": "10",
+                                "sameAddress": false
+                            }
+                        ],
+                        "legalMoney": false
+                    }
+                ],
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "coin": "USDT",
+                            "name": "USDT",
+                            "depositAllEnable": true,
+                            "withdrawAllEnable": true,
+                            "free": "0",
+                            "locked": "0",
+                            "transferPrecision": "8",
+                            "transferMinQuantity": "0",
+                            "networkList": [
+                                {
+                                    "addressRegex": "^0x[0-9a-fA-F]{40}$",
+                                    "memoRegex": " ",
+                                    "network": "ETH",
+                                    "name": "Ethereum (ERC20)",
+                                    "depositEnable": true,
+                                    "minConfirm": "12",
+                                    "unLockConfirm": "-1",
+                                    "withdrawDesc": "",
+                                    "withdrawEnable": true,
+                                    "withdrawFee": "6",
+                                    "withdrawIntegerMultiple": "0.000001",
+                                    "withdrawMax": "500000",
+                                    "withdrawMin": "10",
+                                    "sameAddress": false
+                                },
+                                {
+                                    "addressRegex": "^T[0-9a-zA-Z]{33}$",
+                                    "memoRegex": "",
+                                    "network": "TRX",
+                                    "name": "TRON",
+                                    "depositEnable": true,
+                                    "minConfirm": "19",
+                                    "unLockConfirm": "-1",
+                                    "withdrawDesc": "",
+                                    "withdrawEnable": true,
+                                    "withdrawFee": "3",
+                                    "withdrawIntegerMultiple": "0.000001",
+                                    "withdrawMax": "1000000",
+                                    "withdrawMin": "20",
+                                    "sameAddress": false
+                                },
+                                {
+                                    "addressRegex": "^0x[0-9a-fA-F]{40}$",
+                                    "memoRegex": "",
+                                    "network": "BSC",
+                                    "name": "BNB Smart Chain (BEP20)",
+                                    "depositEnable": true,
+                                    "minConfirm": "15",
+                                    "unLockConfirm": "-1",
+                                    "withdrawDesc": "",
+                                    "withdrawEnable": true,
+                                    "withdrawFee": "2",
+                                    "withdrawIntegerMultiple": "0.000001",
+                                    "withdrawMax": "300000",
+                                    "withdrawMin": "10",
+                                    "sameAddress": false
+                                },
+                                {
+                                    "addressRegex": "^0x[0-9a-fA-F]{40}$",
+                                    "memoRegex": "",
+                                    "network": "ARBITRUM",
+                                    "name": "Arbitrum One",
+                                    "depositEnable": true,
+                                    "minConfirm": "12",
+                                    "unLockConfirm": "-1",
+                                    "withdrawDesc": "",
+                                    "withdrawEnable": true,
+                                    "withdrawFee": "2",
+                                    "withdrawIntegerMultiple": "0.000001",
+                                    "withdrawMax": "30000",
+                                    "withdrawMin": "10",
+                                    "sameAddress": false
+                                },
+                                {
+                                    "addressRegex": "^[1-9A-HJ-NP-Za-km-z]{32,44}$",
+                                    "memoRegex": "",
+                                    "network": "SOL",
+                                    "name": "Solana",
+                                    "depositEnable": true,
+                                    "minConfirm": "1",
+                                    "unLockConfirm": "-1",
+                                    "withdrawDesc": "",
+                                    "withdrawEnable": true,
+                                    "withdrawFee": "2",
+                                    "withdrawIntegerMultiple": "0.000001",
+                                    "withdrawMax": "300000",
+                                    "withdrawMin": "10",
+                                    "sameAddress": false
+                                },
+                                {
+                                    "addressRegex": "^[UE][Qf][0-9a-z-A-Z\\\\-\\\\_]{46}$",
+                                    "memoRegex": "^[0-9A-Za-z\\\\-_]{1,120}$",
+                                    "network": "TON",
+                                    "name": "The Open Network",
+                                    "depositEnable": true,
+                                    "minConfirm": "1",
+                                    "unLockConfirm": "1",
+                                    "withdrawDesc": "",
+                                    "withdrawEnable": true,
+                                    "withdrawFee": "2",
+                                    "withdrawIntegerMultiple": "0.000001",
+                                    "withdrawMax": "50000",
+                                    "withdrawMin": "10",
+                                    "sameAddress": true
+                                },
+                                {
+                                    "addressRegex": "^0x[0-9a-fA-F]{40}$",
+                                    "memoRegex": "",
+                                    "network": "POL",
+                                    "name": "Polygon",
+                                    "depositEnable": true,
+                                    "minConfirm": "200",
+                                    "unLockConfirm": "300",
+                                    "withdrawDesc": "",
+                                    "withdrawEnable": true,
+                                    "withdrawFee": "2",
+                                    "withdrawIntegerMultiple": "0.000001",
+                                    "withdrawMax": "70000",
+                                    "withdrawMin": "10",
+                                    "sameAddress": false
+                                }
+                            ],
+                            "legalMoney": false
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 0.000001,
+                        "type": "crypto",
+                        "name": "USDT",
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 2,
+                        "fees": null,
+                        "networks": {
+                            "ERC20": {
+                                "info": {
+                                    "addressRegex": "^0x[0-9a-fA-F]{40}$",
+                                    "memoRegex": " ",
+                                    "network": "ETH",
+                                    "name": "Ethereum (ERC20)",
+                                    "depositEnable": true,
+                                    "minConfirm": "12",
+                                    "unLockConfirm": "-1",
+                                    "withdrawDesc": "",
+                                    "withdrawEnable": true,
+                                    "withdrawFee": "6",
+                                    "withdrawIntegerMultiple": "0.000001",
+                                    "withdrawMax": "500000",
+                                    "withdrawMin": "10",
+                                    "sameAddress": false
+                                },
+                                "id": "ETH",
+                                "network": "ERC20",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 6,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 10,
+                                        "max": 500000
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "TRC20": {
+                                "info": {
+                                    "addressRegex": "^T[0-9a-zA-Z]{33}$",
+                                    "memoRegex": "",
+                                    "network": "TRX",
+                                    "name": "TRON",
+                                    "depositEnable": true,
+                                    "minConfirm": "19",
+                                    "unLockConfirm": "-1",
+                                    "withdrawDesc": "",
+                                    "withdrawEnable": true,
+                                    "withdrawFee": "3",
+                                    "withdrawIntegerMultiple": "0.000001",
+                                    "withdrawMax": "1000000",
+                                    "withdrawMin": "20",
+                                    "sameAddress": false
+                                },
+                                "id": "TRX",
+                                "network": "TRC20",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 3,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 20,
+                                        "max": 1000000
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "BEP20": {
+                                "info": {
+                                    "addressRegex": "^0x[0-9a-fA-F]{40}$",
+                                    "memoRegex": "",
+                                    "network": "BSC",
+                                    "name": "BNB Smart Chain (BEP20)",
+                                    "depositEnable": true,
+                                    "minConfirm": "15",
+                                    "unLockConfirm": "-1",
+                                    "withdrawDesc": "",
+                                    "withdrawEnable": true,
+                                    "withdrawFee": "2",
+                                    "withdrawIntegerMultiple": "0.000001",
+                                    "withdrawMax": "300000",
+                                    "withdrawMin": "10",
+                                    "sameAddress": false
+                                },
+                                "id": "BSC",
+                                "network": "BEP20",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 2,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 10,
+                                        "max": 300000
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "ARB": {
+                                "info": {
+                                    "addressRegex": "^0x[0-9a-fA-F]{40}$",
+                                    "memoRegex": "",
+                                    "network": "ARBITRUM",
+                                    "name": "Arbitrum One",
+                                    "depositEnable": true,
+                                    "minConfirm": "12",
+                                    "unLockConfirm": "-1",
+                                    "withdrawDesc": "",
+                                    "withdrawEnable": true,
+                                    "withdrawFee": "2",
+                                    "withdrawIntegerMultiple": "0.000001",
+                                    "withdrawMax": "30000",
+                                    "withdrawMin": "10",
+                                    "sameAddress": false
+                                },
+                                "id": "ARBITRUM",
+                                "network": "ARB",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 2,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 10,
+                                        "max": 30000
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "SOL": {
+                                "info": {
+                                    "addressRegex": "^[1-9A-HJ-NP-Za-km-z]{32,44}$",
+                                    "memoRegex": "",
+                                    "network": "SOL",
+                                    "name": "Solana",
+                                    "depositEnable": true,
+                                    "minConfirm": "1",
+                                    "unLockConfirm": "-1",
+                                    "withdrawDesc": "",
+                                    "withdrawEnable": true,
+                                    "withdrawFee": "2",
+                                    "withdrawIntegerMultiple": "0.000001",
+                                    "withdrawMax": "300000",
+                                    "withdrawMin": "10",
+                                    "sameAddress": false
+                                },
+                                "id": "SOL",
+                                "network": "SOL",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 2,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 10,
+                                        "max": 300000
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "TON": {
+                                "info": {
+                                    "addressRegex": "^[UE][Qf][0-9a-z-A-Z\\\\-\\\\_]{46}$",
+                                    "memoRegex": "^[0-9A-Za-z\\\\-_]{1,120}$",
+                                    "network": "TON",
+                                    "name": "The Open Network",
+                                    "depositEnable": true,
+                                    "minConfirm": "1",
+                                    "unLockConfirm": "1",
+                                    "withdrawDesc": "",
+                                    "withdrawEnable": true,
+                                    "withdrawFee": "2",
+                                    "withdrawIntegerMultiple": "0.000001",
+                                    "withdrawMax": "50000",
+                                    "withdrawMin": "10",
+                                    "sameAddress": true
+                                },
+                                "id": "TON",
+                                "network": "TON",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 2,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 10,
+                                        "max": 50000
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "POL": {
+                                "info": {
+                                    "addressRegex": "^0x[0-9a-fA-F]{40}$",
+                                    "memoRegex": "",
+                                    "network": "POL",
+                                    "name": "Polygon",
+                                    "depositEnable": true,
+                                    "minConfirm": "200",
+                                    "unLockConfirm": "300",
+                                    "withdrawDesc": "",
+                                    "withdrawEnable": true,
+                                    "withdrawFee": "2",
+                                    "withdrawIntegerMultiple": "0.000001",
+                                    "withdrawMax": "70000",
+                                    "withdrawMin": "10",
+                                    "sameAddress": false
+                                },
+                                "id": "POL",
+                                "network": "POL",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 2,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 10,
+                                        "max": 70000
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            }
+                        },
+                        "limits": {
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 10,
+                                "max": 1000000
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "price": "73247.300000000000000000",
+                        "id": "1640734866998845445",
+                        "qty": "0.006691200000000000",
+                        "quoteQty": "0.006691200000000000",
+                        "time": "1710326837836",
+                        "isBuyerMaker": true,
+                        "isBestMatch": true
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "1640734866998845445",
+                        "order": null,
+                        "timestamp": 1710326837836,
+                        "datetime": "2024-03-13T10:47:17.836Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 73247.3,
+                        "amount": 0.0066912,
+                        "cost": 490.11233376,
+                        "fee": {"cost": null, "currency": null },
+                        "info": {
+                            "price": "73247.300000000000000000",
+                            "id": "1640734866998845445",
+                            "qty": "0.006691200000000000",
+                            "quoteQty": "0.006691200000000000",
+                            "time": "1710326837836",
+                            "isBuyerMaker": true,
+                            "isBestMatch": true
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "symbol": "BTCUSDT",
+                    "priceChange": "1042.15",
+                    "priceChangePercent": "0.0144",
+                    "weightedAvgPrice": "72015.136408987133884542",
+                    "prevClosePrice": "71824.57",
+                    "lastPrice": "73237.61",
+                    "lastQty": "0.0050969",
+                    "bidPrice": "73111.13",
+                    "bidQty": "0.0077373",
+                    "askPrice": "73584.79",
+                    "askQty": "0.1195897",
+                    "openPrice": "72195.46",
+                    "highPrice": "73727.14",
+                    "lowPrice": "68842.78",
+                    "volume": "2.6547329",
+                    "quoteVolume": "191180.95",
+                    "openTime": "1710241740000",
+                    "closeTime": "1710328201236",
+                    "firstId": "1640023000211283969",
+                    "lastId": "1640742746057629696",
+                    "count": "834"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328201236,
+                    "datetime": "2024-03-13T11:10:01.236Z",
+                    "open": 72195.46,
+                    "high": 73727.14,
+                    "low": 68842.78,
+                    "close": 73237.61,
+                    "bid": 73111.13,
+                    "bidVolume": 0.0077373,
+                    "ask": 73584.79,
+                    "askVolume": 0.1195897,
+                    "vwap": 72015.13640898713,
+                    "previousClose": 71824.57,
+                    "change": 1042.15,
+                    "percentage": 1.44,
+                    "average": 72716.53,
+                    "baseVolume": 2.6547329,
+                    "quoteVolume": 191180.95,
+                    "markPrice":  null,
+                    "indexPrice": null,
+                    "info": {
+                        "symbol": "BTCUSDT",
+                        "priceChange": "1042.15",
+                        "priceChangePercent": "0.0144",
+                        "weightedAvgPrice": "72015.136408987133884542",
+                        "prevClosePrice": "71824.57",
+                        "lastPrice": "73237.61",
+                        "lastQty": "0.0050969",
+                        "bidPrice": "73111.13",
+                        "bidQty": "0.0077373",
+                        "askPrice": "73584.79",
+                        "askQty": "0.1195897",
+                        "openPrice": "72195.46",
+                        "highPrice": "73727.14",
+                        "lowPrice": "68842.78",
+                        "volume": "2.6547329",
+                        "quoteVolume": "191180.95",
+                        "openTime": "1710241740000",
+                        "closeTime": "1710328201236",
+                        "firstId": "1640023000211283969",
+                        "lastId": "1640742746057629696",
+                        "count": "834"
+                    },
+                    "last": 73237.61
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "public spot ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    [
+                        1710327600000,
+                        "73461.68",
+                        "73461.68",
+                        "73237.61",
+                        "73237.61",
+                        "0.0051105",
+                        1710331199999,
+                        "374.283853257",
+                        2,
+                        "0.0000136",
+                        "0.999078848"
+                    ]
+                ],
+                "parsedResponse": [
+                    [
+                        1710327600000,
+                        73461.68,
+                        73461.68,
+                        73237.61,
+                        73237.61,
+                        0.0051105
+                    ]
+                ]
+            }
+        ]
+    }
+}
