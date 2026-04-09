@@ -86,10 +86,9 @@
                     "limit",
                     "buy",
                     0.004,
-                    null,
+                    87900,
                     {
-                        "triggerPrice": 90000,
-                        "stopLimitPrice": 87900
+                        "triggerPrice": 90000
                     }
                 ],
                 "output": "{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"3UMzrK1qEMDJj3tDZ3N8ufit6B1tm6Uhm1TTYjs4Vhke3CSUCdvamjcHdaGXmaq75HkSjeFuK3fR6CacS6W3v6Jq\",\"timestamp\":1769555700037,\"expiry_window\":5000,\"symbol\":\"BTC\",\"side\":\"bid\",\"reduce_only\":false,\"stop_order\":{\"amount\":\"0.004\",\"stop_price\":\"90000\",\"limit_price\":\"87900\"}}"
