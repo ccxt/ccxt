@@ -77,7 +77,7 @@ export default class weex extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
-                'fetchCanceledAndClosedOrders': false,
+                'fetchCanceledAndClosedOrders': true, // contracts only
                 'fetchCanceledOrders': true,
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': true,
@@ -133,13 +133,13 @@ export default class weex extends Exchange {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenInterests': false,
                 'fetchOpenOrder': false,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchOption': false,
                 'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
-                'fetchOrders': true,
+                'fetchOrders': true, // spot only
                 'fetchOrdersByStatus': false,
                 'fetchOrderTrades': false,
                 'fetchOrderWithClientOrderId': false,
@@ -276,11 +276,11 @@ export default class weex extends Exchange {
                         'capi/v3/account/position/allPosition': 15,
                         'capi/v3/account/position/singlePosition': 3,
                         'capi/v3/order': 3,
-                        'capi/v3/openOrders': 5,
-                        'capi/v3/order/history': 10,
-                        'capi/v3/userTrades': 5,
-                        'capi/v3/openAlgoOrders': 3,
-                        'capi/v3/allAlgoOrders': 10,
+                        'capi/v3/openOrders': 5, // done
+                        'capi/v3/order/history': 10, // done
+                        'capi/v3/userTrades': 5, // done
+                        'capi/v3/openAlgoOrders': 3, // done
+                        'capi/v3/allAlgoOrders': 10, // not unified - capi/v3/order/history returns both regular and algo orders
                     },
                     'post': {
                         'capi/v3/account/income': 5, // done
@@ -290,17 +290,17 @@ export default class weex extends Exchange {
                         'capi/v3/account/modifyAutoAppendMargin': 30,
                         'capi/v3/order': 5,
                         'capi/v3/batchOrders': 10,
+                        'capi/v3/closePositions': 50,
                         'capi/v3/algoOrder': 5,
                         'capi/v3/placeTpSlOrder': 5,
                         'capi/v3/modifyTpSlOrder': 5,
                     },
                     'delete': {
-                        'capi/v3/order': 3,
-                        'capi/v3/batchOrders': 10,
-                        'capi/v3/allOpenOrders': 10,
-                        'capi/v3/closePositions': 50,
-                        'capi/v3/algoOrder': 3,
-                        'capi/v3/algoOpenOrders': 10,
+                        'capi/v3/order': 3, // done
+                        'capi/v3/batchOrders': 10, // done
+                        'capi/v3/allOpenOrders': 10, // done
+                        'capi/v3/algoOrder': 3, // done
+                        'capi/v3/algoOpenOrders': 10, // done
                     },
                 },
             },
@@ -341,6 +341,7 @@ export default class weex extends Exchange {
                     // {"orderId":121231,"status":"FAILED","errorMsg":"FAILED_ORDER_NOT_FOUND"}
                     // {"code":-1140,"msg":"Either orderId or origClientOrderId must be sent."}
                     // {"code":-1141,"msg":"Parameter 'symbol' cannot be empty."}
+                    // {"orderId":"737188743538017640","origClientOrderId":null,"success":false,"errorCode":"FAILED_ORDER_NOT_FOUND","errorMessage":"FAILED_ORDER_NOT_FOUND"}
                 },
                 'broad': {
                 },
@@ -619,12 +620,13 @@ export default class weex extends Exchange {
                         'trailing': false,
                         'symbolRequired': false,
                     },
-                    'fetchOrders': {
+                    'fetchOrders': undefined,
+                    'fetchCanceledAndClosedOrders': {
                         'marginMode': false,
                         'limit': 1000,
                         'daysBack': 100000,
                         'untilDays': 100000,
-                        'trigger': true,
+                        'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
                     },
@@ -1494,9 +1496,27 @@ export default class weex extends Exchange {
         //         "isBuyer": false
         //     }
         //
+        // fetchMyTrades (contract)
+        //     {
+        //         "id": 737074389731770728,
+        //         "orderId": 737074043320009064,
+        //         "symbol": "DOGEUSDT",
+        //         "buyer": true,
+        //         "commission": "0.00183500",
+        //         "commissionAsset": "USDT",
+        //         "maker": true,
+        //         "price": "0.09175",
+        //         "qty": "100",
+        //         "quoteQty": "9.17500",
+        //         "realizedPnl": "0",
+        //         "side": "BUY",
+        //         "positionSide": "LONG",
+        //         "time": 1775732228692
+        //     }
+        //
         const timestamp = this.safeInteger (trade, 'time');
         const isBuyer = this.safeBool (trade, 'isBuyer');
-        let side = undefined;
+        let side = this.safeStringLower (trade, 'side');
         if (isBuyer !== undefined) {
             side = isBuyer ? 'buy' : 'sell';
         }
@@ -1513,7 +1533,8 @@ export default class weex extends Exchange {
         let fee = undefined;
         const commission = this.safeString (trade, 'commission');
         if (commission !== undefined) {
-            let feeCurrency = market['settle'];
+            const commissionAsset = this.safeString (trade, 'commissionAsset');
+            let feeCurrency = this.safeCurrencyCode (commissionAsset);
             if (isSpot) {
                 if (side === 'buy') {
                     feeCurrency = market['base'];
@@ -1526,6 +1547,11 @@ export default class weex extends Exchange {
                 'currency': feeCurrency,
             };
         }
+        const isMaker = this.safeBool (trade, 'maker');
+        let takerOrMaker = undefined;
+        if (isMaker !== undefined) {
+            takerOrMaker = isMaker ? 'maker' : 'taker';
+        }
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString (trade, 'id'),
@@ -1534,7 +1560,7 @@ export default class weex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'side': side,
             'price': this.safeString (trade, 'price'),
             'amount': this.safeString (trade, 'qty'),
@@ -2326,8 +2352,63 @@ export default class weex extends Exchange {
             const trigger = this.safeBool (params, 'trigger', false);
             if (trigger) {
                 params = this.omit (params, 'trigger');
+                //
+                //     [
+                //         {
+                //             "algoId": 737074389748547944,
+                //             "clientAlgoId": "d574f517-cea5-433e-b029-415590d3bb80",
+                //             "algoType": "CONDITIONAL",
+                //             "orderType": "STOP_MARKET",
+                //             "symbol": "DOGEUSDT",
+                //             "side": "SELL",
+                //             "positionSide": "LONG",
+                //             "timeInForce": "IOC",
+                //             "quantity": "100",
+                //             "algoStatus": "UNTRIGGERED",
+                //             "actualOrderId": 737074043320009064,
+                //             "actualPrice": "0.00000",
+                //             "triggerPrice": "0.02000",
+                //             "price": "0.00000",
+                //             "tpTriggerPrice": null,
+                //             "tpPrice": null,
+                //             "slTriggerPrice": null,
+                //             "slPrice": null,
+                //             "tpOrderType": null,
+                //             "workingType": "CONTRACT_PRICE",
+                //             "closePosition": false,
+                //             "reduceOnly": true,
+                //             "createTime": 1775732228695,
+                //             "updateTime": 1775732228695,
+                //             "triggerTime": 0
+                //         }
+                //     ]
+                //
                 response = await this.contractPrivateGetCapiV3OpenAlgoOrders (this.extend (request, params));
             } else {
+                //
+                //     [
+                //         {
+                //             "avgPrice": "0.00000",
+                //             "clientOrderId": "857e1482-3225-44ce-bc0a-947714c5cabc",
+                //             "cumQuote": "0",
+                //             "executedQty": "0",
+                //             "orderId": 737185556881998184,
+                //             "origQty": "1400",
+                //             "price": "0.05000",
+                //             "reduceOnly": false,
+                //             "side": "BUY",
+                //             "positionSide": "LONG",
+                //             "status": "NEW",
+                //             "stopPrice": "0",
+                //             "symbol": "DOGEUSDT",
+                //             "time": 1775758733006,
+                //             "timeInForce": "GTC",
+                //             "type": "LIMIT",
+                //             "updateTime": 1775758733006,
+                //             "workingType": "UNKNOWN_PRICE_TYPE"
+                //         }
+                //     ]
+                //
                 response = await this.contractPrivateGetCapiV3OpenOrders (this.extend (request, params));
             }
         }
@@ -2339,22 +2420,149 @@ export default class weex extends Exchange {
 
     /**
      * @method
-     * @name weex#fetchOrders
-     * @description fetches information on multiple orders made by the user
+     * @name weex#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
      * @see https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
      * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
-     * @see https://www.weex.com/api-doc/contract/Transaction_API/GetHistoricalPendingOrders // contract trigger
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
+        let orders = undefined;
+        if (marketType === 'spot') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument for spot markets');
+            }
+            orders = await this.fetchOrders (symbol, since, undefined, params);
+        } else {
+            orders = await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
+        }
+        return this.filterBy (orders, 'status', 'closed') as Order[];
+    }
+
+    /**
+     * @method
+     * @name weex#fetchCanceledOrders
+     * @description fetches information on multiple canceled orders made by the user
+     * @see https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
+     * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchCanceledOrders', market, params);
+        let orders = undefined;
+        if (marketType === 'spot') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchCanceledOrders() requires a symbol argument for spot markets');
+            }
+            orders = await this.fetchOrders (symbol, since, undefined, params);
+        } else {
+            orders = await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
+        }
+        return this.filterBy (orders, 'status', 'canceled') as Order[];
+    }
+
+    /**
+     * @method
+     * @name weex#fetchOrders
+     * @description fetches information on multiple spot orders made by the user
+     * @see https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
+     * @param {string} symbol unified market symbol of the market orders were made in (required for spot orders)
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.until] end time, ms
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' fetchOrders() supports spot markets only');
+        }
+        const maxLimit = 1000;
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params, maxLimit);
+        }
+        let request: Dict = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, maxLimit);
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const response = await this.privateGetApiV3AllOrders (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "symbol": "DOGEUSDT",
+        //             "orderId": 736806838401500126,
+        //             "clientOrderId": "e93fcb1423fc4b4982fd02eb3bc4955c",
+        //             "price": "0.09365",
+        //             "origQty": "300.0",
+        //             "executedQty": "300.0",
+        //             "cummulativeQuoteQty": "28.095",
+        //             "status": "FILLED",
+        //             "timeInForce": "IOC",
+        //             "type": "MARKET",
+        //             "side": "BUY",
+        //             "time": 1775668439484,
+        //             "updateTime": 1775668439498,
+        //             "isWorking": false
+        //         }
+        //     ]
+        //
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name weex#fetchCanceledAndClosedOrders
+     * @description fetches information on multiple closed and canceled orders made by the user
+     * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
      * @param {string} [symbol] unified market symbol of the market orders were made in (required for spot orders)
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {object} [params.until] end time, ms
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
-     * @param {boolean} [params.trigger] *swap only* whether to fetch trigger orders (default is false)
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -2362,9 +2570,8 @@ export default class weex extends Exchange {
         }
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
-        const isSpot = (marketType === 'spot');
-        if (isSpot && (symbol === undefined)) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument for spot markets');
+        if (marketType === 'spot') {
+            throw new NotSupported (this.id + ' fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status "canceled" or "closed"');
         }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate', false);
@@ -2383,62 +2590,32 @@ export default class weex extends Exchange {
             request['limit'] = limit;
         }
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        let response = undefined;
-        if (isSpot) {
-            //
-            //     [
-            //         {
-            //             "symbol": "DOGEUSDT",
-            //             "orderId": 736806838401500126,
-            //             "clientOrderId": "e93fcb1423fc4b4982fd02eb3bc4955c",
-            //             "price": "0.09365",
-            //             "origQty": "300.0",
-            //             "executedQty": "300.0",
-            //             "cummulativeQuoteQty": "28.095",
-            //             "status": "FILLED",
-            //             "timeInForce": "IOC",
-            //             "type": "MARKET",
-            //             "side": "BUY",
-            //             "time": 1775668439484,
-            //             "updateTime": 1775668439498,
-            //             "isWorking": false
-            //         }
-            //     ]
-            //
-            response = await this.privateGetApiV3AllOrders (this.extend (request, params));
-        } else {
-            const trigger = this.safeBool (params, 'trigger', false);
-            if (trigger) {
-                params = this.omit (params, 'trigger');
-                response = await this.contractPrivateGetCapiV3AllAlgoOrders (this.extend (request, params));
-            } else {
-                response = await this.contractPrivateGetCapiV3OrderHistory (this.extend (request, params));
-            }
-        }
-        // todo check response for contract orders
+        const response = await this.contractPrivateGetCapiV3OrderHistory (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "avgPrice": "0.00000",
+        //             "clientOrderId": "7bd80776-0c3f-4ed9-ab9c-a616d66fac5e",
+        //             "cumQuote": "0",
+        //             "executedQty": "0",
+        //             "orderId": 737074389744353640,
+        //             "origQty": "100",
+        //             "price": "0.00000",
+        //             "reduceOnly": true,
+        //             "side": "SELL",
+        //             "positionSide": "LONG",
+        //             "status": "CANCELED",
+        //             "stopPrice": "1.00000",
+        //             "symbol": "DOGEUSDT",
+        //             "time": 1775732228695,
+        //             "timeInForce": "IOC",
+        //             "type": "TAKE_PROFIT_MARKET",
+        //             "updateTime": 1775732228695,
+        //             "workingType": "CONTRACT_PRICE"
+        //         }
+        //     ]
+        //
         return this.parseOrders (response, market, since, limit);
-    }
-
-    /**
-     * @method
-     * @name weex#fetchCanceledOrders
-     * @description fetches information on multiple canceled orders made by the user
-     * @see https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
-     * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
-     * @see https://www.weex.com/api-doc/contract/Transaction_API/GetHistoricalPendingOrders // contract trigger
-     * @param {string} symbol unified market symbol of the market the orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {object} [params.until] end time, ms
-     * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
-     * @param {boolean} [params.trigger] *swap only* whether to fetch trigger orders (default is false)
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        const orders = await this.fetchOrders (symbol, since, undefined, params);
-        const filteredOrders = this.filterBy (orders, 'status', 'canceled');
-        return this.filterBySinceLimit (filteredOrders, since, limit) as Order[];
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -2477,6 +2654,79 @@ export default class weex extends Exchange {
         //         "isWorking": true
         //     }
         //
+        // fetchOpenOrders (contract)
+        //     {
+        //         "avgPrice": "0.00000",
+        //         "clientOrderId": "857e1482-3225-44ce-bc0a-947714c5cabc",
+        //         "cumQuote": "0",
+        //         "executedQty": "0",
+        //         "orderId": 737185556881998184,
+        //         "origQty": "1400",
+        //         "price": "0.05000",
+        //         "reduceOnly": false,
+        //         "side": "BUY",
+        //         "positionSide": "LONG",
+        //         "status": "NEW",
+        //         "stopPrice": "0",
+        //         "symbol": "DOGEUSDT",
+        //         "time": 1775758733006,
+        //         "timeInForce": "GTC",
+        //         "type": "LIMIT",
+        //         "updateTime": 1775758733006,
+        //         "workingType": "UNKNOWN_PRICE_TYPE"
+        //     }
+        //
+        // fetchOpenOrders (contract-trigger)
+        //     {
+        //         "algoId": 737074389748547944,
+        //         "clientAlgoId": "d574f517-cea5-433e-b029-415590d3bb80",
+        //         "algoType": "CONDITIONAL",
+        //         "orderType": "STOP_MARKET",
+        //         "symbol": "DOGEUSDT",
+        //         "side": "SELL",
+        //         "positionSide": "LONG",
+        //         "timeInForce": "IOC",
+        //         "quantity": "100",
+        //         "algoStatus": "UNTRIGGERED",
+        //         "actualOrderId": 737074043320009064,
+        //         "actualPrice": "0.00000",
+        //         "triggerPrice": "0.02000",
+        //         "price": "0.00000",
+        //         "tpTriggerPrice": null,
+        //         "tpPrice": null,
+        //         "slTriggerPrice": null,
+        //         "slPrice": null,
+        //         "tpOrderType": null,
+        //         "workingType": "CONTRACT_PRICE",
+        //         "closePosition": false,
+        //         "reduceOnly": true,
+        //         "createTime": 1775732228695,
+        //         "updateTime": 1775732228695,
+        //         "triggerTime": 0
+        //     }
+        //
+        // fetchCanceledAndClosedOrders (swap only)
+        //     {
+        //         "avgPrice": "0.00000",
+        //         "clientOrderId": "7bd80776-0c3f-4ed9-ab9c-a616d66fac5e",
+        //         "cumQuote": "0",
+        //         "executedQty": "0",
+        //         "orderId": 737074389744353640,
+        //         "origQty": "100",
+        //         "price": "0.00000",
+        //         "reduceOnly": true,
+        //         "side": "SELL",
+        //         "positionSide": "LONG",
+        //         "status": "CANCELED",
+        //         "stopPrice": "1.00000",
+        //         "symbol": "DOGEUSDT",
+        //         "time": 1775732228695,
+        //         "timeInForce": "IOC",
+        //         "type": "TAKE_PROFIT_MARKET",
+        //         "updateTime": 1775732228695,
+        //         "workingType": "CONTRACT_PRICE"
+        //     }
+        //
         const errorCode = this.safeString (order, 'errorCode');
         const errorMessage = this.safeString (order, 'errorMsg');
         if ((errorCode !== undefined) || (errorMessage !== undefined)) {
@@ -2488,21 +2738,30 @@ export default class weex extends Exchange {
             const marketType = (positionSide === undefined) ? 'spot' : 'swap'; // todo check if this is the best way to determine market type for parsing orders
             market = this.safeMarket (marketId, undefined, undefined, marketType);
         }
-        const timestamp = this.safeInteger2 (order, 'transactTime', 'time');
+        const timestamp = this.safeIntegerN (order, [ 'transactTime', 'time', 'createTime' ]);
         const rawStatus = this.safeStringLower (order, 'status');
+        const triggerPrice = this.omitZero (this.safeString2 (order, 'triggerPrice', 'stopPrice'));
+        const rawType = this.safeStringUpper2 (order, 'type', 'orderType');
+        let takeProfitPrice = undefined;
+        let stopLossPrice = undefined;
+        if (rawType === 'TAKE_PROFIT_MARKET' || rawType === 'TAKE_PROFIT') {
+            takeProfitPrice = triggerPrice;
+        } else if (rawType === 'STOP_LOSS' || rawType === 'STOP' || rawType === 'STOP_MARKET') {
+            stopLossPrice = triggerPrice;
+        }
         return this.safeOrder ({
-            'id': this.safeString (order, 'orderId'),
-            'clientOrderId': this.safeString2 (order, 'clientOrderId', 'origClientOrderId'),
+            'id': this.safeString2 (order, 'orderId', 'algoId'),
+            'clientOrderId': this.safeStringN (order, [ 'clientOrderId', 'origClientOrderId', 'clientAlgoId' ]),
             'symbol': this.safeString (market, 'symbol'),
-            'type': this.safeStringLower (order, 'type'),
+            'type': this.parseOrderType (rawType),
             'timeInForce': this.safeString (order, 'timeInForce'),
             'postOnly': undefined,
-            'reduceOnly': undefined,
+            'reduceOnly': this.safeBool (order, 'reduceOnly'),
             'side': this.safeStringLower (order, 'side'),
-            'amount': this.safeString (order, 'origQty'),
+            'amount': this.safeString2 (order, 'origQty', 'quantity'),
             'price': this.safeString (order, 'price'),
-            'triggerPrice': undefined,
-            'cost': this.safeString (order, 'cummulativeQuoteQty'),
+            'triggerPrice': triggerPrice,
+            'cost': this.safeString2 (order, 'cummulativeQuoteQty', 'cumQuote'),
             'filled': this.safeString (order, 'executedQty'),
             'remaining': undefined,
             'timestamp': timestamp,
@@ -2511,10 +2770,10 @@ export default class weex extends Exchange {
             'status': this.parseOrderStatus (rawStatus),
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': this.safeInteger (order, 'updateTime'),
-            'average': undefined,
+            'average': this.safeString (order, 'avgPrice'),
             'trades': undefined,
-            'stopLossPrice': undefined,
-            'takeProfitPrice': undefined,
+            'stopLossPrice': stopLossPrice,
+            'takeProfitPrice': takeProfitPrice,
             'info': order,
         }, market);
     }
@@ -2522,12 +2781,28 @@ export default class weex extends Exchange {
     parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'new': 'open',
-            'partial_fill': 'open', // todo check
+            'partial_fill': 'closed',
             'full_fill': 'closed',
             'filled': 'closed',
             'cancelled': 'canceled',
+            'canceled': 'canceled',
+            'rejected': 'rejected',
+            'untriggered': 'open',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    parseOrderType (type: Str) {
+        const types: Dict = {
+            'LIMIT': 'limit',
+            'MARKET': 'market',
+            'STOP_LOSS': 'limit',
+            'STOP': 'limit',
+            'TAKE_PROFIT': 'limit',
+            'TAKE_PROFIT_MARKET': 'market',
+            'STOP_MARKET': 'market',
+        };
+        return this.safeString (types, type, type);
     }
 
     handleBatchOrdersError (errorCode: Str, errorMessage: Str, order: Dict) {
@@ -2541,7 +2816,7 @@ export default class weex extends Exchange {
             // some endpoints could return an empty string if there is no error
             return;
         }
-        const feedback = this.id + ' createOrders() batch order error: ' + this.json (order);
+        const feedback = this.id + ' ' + this.json (order);
         this.throwExactlyMatchedException (this.exceptions['exact'], errorMessage, feedback);
         this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
@@ -2611,6 +2886,26 @@ export default class weex extends Exchange {
             //
             response = await this.privateGetApiV3MyTrades (this.extend (request, params));
         } else {
+            //
+            //     [
+            //         {
+            //             "id": 737074389731770728,
+            //             "orderId": 737074043320009064,
+            //             "symbol": "DOGEUSDT",
+            //             "buyer": true,
+            //             "commission": "0.00183500",
+            //             "commissionAsset": "USDT",
+            //             "maker": true,
+            //             "price": "0.09175",
+            //             "qty": "100",
+            //             "quoteQty": "9.17500",
+            //             "realizedPnl": "0",
+            //             "side": "BUY",
+            //             "positionSide": "LONG",
+            //             "time": 1775732228692
+            //         }
+            //     ]
+            //
             response = await this.contractPrivateGetCapiV3UserTrades (this.extend (request, params)); // todo check response for contract orders
         }
         return this.parseTrades (response, market, since, limit);
@@ -2728,7 +3023,8 @@ export default class weex extends Exchange {
         //         "fees": "0.00000000",
         //         "cTime": "1775664588931"
         //     }
-        const currencyId = this.safeString (item, 'coinName', 'asset');
+        //
+        const currencyId = this.safeString2 (item, 'coinName', 'asset');
         const code = this.safeCurrencyCode (currencyId, currency);
         currency = this.safeCurrency (currencyId, currency);
         const timestamp = this.safeInteger2 (item, 'cTime', 'time');
@@ -2778,16 +3074,18 @@ export default class weex extends Exchange {
             'withdraw': 'withdrawal',
             'trade_in': 'trade',
             'trade_out': 'trade',
+            'position_open_long': 'trade',
+            'position_open_short': 'trade',
+            'position_close_long': 'trade',
+            'position_close_short': 'trade',
         };
-        // todo add more types
         return this.safeString (types, type, type);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        const batchIndex = path.indexOf ('batch');
-        const isBatch = (batchIndex !== -1);
+        const isBatch = (path.indexOf ('batch') >= 0);
         if (!isBatch && ((method === 'GET') || (method === 'DELETE'))) {
             if (Object.keys (query).length) {
                 endpoint += '?' + this.urlencode (query);
