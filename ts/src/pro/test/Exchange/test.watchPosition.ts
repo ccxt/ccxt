@@ -2,13 +2,15 @@
 import assert from 'assert';
 import testPosition from '../../../test/Exchange/base/test.position.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
+import { Exchange } from '../../../../ccxt.js';
 
-async function testWatchPosition (exchange, skippedProperties, symbol) {
+async function testWatchPosition (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'watchPosition';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
     while (now < ends) {
         let response = undefined;
+        let success = true;
         try {
             response = await exchange.watchPosition (symbol);
         } catch (e) {
@@ -16,12 +18,16 @@ async function testWatchPosition (exchange, skippedProperties, symbol) {
                 throw e;
             }
             now = exchange.milliseconds ();
-            continue;
+            // continue;
+            success = false;
         }
-        assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json (response));
-        now = exchange.milliseconds ();
-        testPosition (exchange, skippedProperties, method, response, undefined, now);
+        if (success === true) {
+            assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json (response));
+            now = exchange.milliseconds ();
+            testPosition (exchange, skippedProperties, method, response, undefined, now);
+        }
     }
+    return true;
 }
 
 export default testWatchPosition;

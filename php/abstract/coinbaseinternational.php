@@ -28,8 +28,8 @@ abstract class coinbaseinternational extends \ccxt\Exchange {
     public function v1_public_get_instruments_instrument_funding($params = array()) {
         return $this->request('instruments/{instrument}/funding', array('v1', 'public'), 'GET', $params, null, null, array());
     }
-    public function v1_public_get($params = array()) {
-        return $this->request('', array('v1', 'public'), 'GET', $params, null, null, array());
+    public function v1_public_get_instruments_instrument_candles($params = array()) {
+        return $this->request('instruments/{instrument}/candles', array('v1', 'public'), 'GET', $params, null, null, array());
     }
     public function v1_private_get_orders($params = array()) {
         return $this->request('orders', array('v1', 'private'), 'GET', $params, null, null, array());
@@ -133,8 +133,8 @@ abstract class coinbaseinternational extends \ccxt\Exchange {
     public function v1PublicGetInstrumentsInstrumentFunding($params = array()) {
         return $this->request('instruments/{instrument}/funding', array('v1', 'public'), 'GET', $params, null, null, array());
     }
-    public function v1PublicGet($params = array()) {
-        return $this->request('', array('v1', 'public'), 'GET', $params, null, null, array());
+    public function v1PublicGetInstrumentsInstrumentCandles($params = array()) {
+        return $this->request('instruments/{instrument}/candles', array('v1', 'public'), 'GET', $params, null, null, array());
     }
     public function v1PrivateGetOrders($params = array()) {
         return $this->request('orders', array('v1', 'private'), 'GET', $params, null, null, array());

@@ -14,6 +14,7 @@ async function testWatchOrderBookForSymbols(exchange, skippedProperties, symbols
     const ends = now + 15000;
     while (now < ends) {
         let response = undefined;
+        let success = true;
         try {
             response = await exchange.watchOrderBookForSymbols(symbols);
         }
@@ -23,14 +24,18 @@ async function testWatchOrderBookForSymbols(exchange, skippedProperties, symbols
                 throw e;
             }
             now = exchange.milliseconds();
-            continue;
+            // continue;
+            success = false;
         }
-        // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-        assert(typeof response === 'object', exchange.id + ' ' + method + ' ' + exchange.json(symbols) + ' must return an object. ' + exchange.json(response));
-        now = exchange.milliseconds();
-        testSharedMethods.assertInArray(exchange, skippedProperties, method, response, 'symbol', symbols);
-        testOrderBook(exchange, skippedProperties, method, response, undefined);
+        if (success === true) {
+            // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
+            assert(typeof response === 'object', exchange.id + ' ' + method + ' ' + exchange.json(symbols) + ' must return an object. ' + exchange.json(response));
+            now = exchange.milliseconds();
+            testSharedMethods.assertInArray(exchange, skippedProperties, method, response, 'symbol', symbols);
+            testOrderBook(exchange, skippedProperties, method, response, undefined);
+        }
     }
+    return true;
 }
 // function fixPhpObjectArray (exchange, response, skippedProperties) {
 //     // temp fix for php 'Pro\OrderBook' object, to turn it into array

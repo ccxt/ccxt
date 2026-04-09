@@ -1,6 +1,7 @@
 {
     "LTC/USDT:USDT": {
         "id": "LTC-USDT",
+        "lowercaseId": null,
         "symbol": "LTC/USDT:USDT",
         "base": "LTC",
         "quote": "USDT",
@@ -14,6 +15,7 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
@@ -22,39 +24,60 @@
         "taker": 0.0006,
         "maker": 0.0002,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 1,
+            "amount": 0.01,
             "price": 0.01
         },
         "limits": {
             "leverage": {
                 "min": 1,
-                "max": 75
+                "max": 50
             },
             "amount": {
-                "min": 1
+                "min": 0.01,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "created": 1669869031390,
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1673517600000,
         "info": {
             "instId": "LTC-USDT",
             "baseCurrency": "LTC",
             "quoteCurrency": "USDT",
             "contractValue": "1",
-            "listTime": "1669869031390",
-            "expireTime": "1890748800000",
-            "maxLeverage": "75",
-            "minSize": "1",
-            "lotSize": "1",
+            "listTime": "1673517600000",
+            "expireTime": "2521900800000",
+            "maxLeverage": "50",
+            "minSize": "0.01",
+            "lotSize": "0.01",
             "tickSize": "0.01",
             "instType": "SWAP",
             "contractType": "linear",
-            "maxLimitSize": "100000000",
+            "maxLimitSize": "150000",
             "maxMarketSize": "3500",
-            "state": "live"
-        }
+            "state": "live",
+            "thresholdX": "0.02",
+            "thresholdY": "0.02",
+            "thresholdZ": "0.05",
+            "settleCurrency": "USDT"
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "BTC/USDT:USDT": {
         "id": "BTC-USDT",

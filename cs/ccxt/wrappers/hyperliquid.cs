@@ -7,10 +7,49 @@ namespace ccxt;
 public partial class hyperliquid
 {
     /// <summary>
-    /// retrieves data on all spot markets for hyperliquid
+    /// the latest known information on the availability of the exchange API
     /// </summary>
     /// <remarks>
-    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-asset-contexts-includes-mark-price-current-funding-open-interest-etc"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}.</returns>
+    public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchStatus(parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetches the current integer timestamp in milliseconds from the exchange server
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>int</term> the current integer timestamp in milliseconds from the exchange server.</returns>
+    public async Task<Int64> FetchTime(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTime(parameters);
+        return (Int64)res;
+    }
+    /// <summary>
+    /// retrieves data on all markets for hyperliquid
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc"/>  <br/>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -26,11 +65,62 @@ public partial class hyperliquid
         var res = await this.fetchMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
+    /// <summary>
+    /// retrieves data on all hip3 markets for hyperliquid
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-all-perpetual-dexs"/>  <br/>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
+    public async Task<List<MarketInterface>> FetchHip3Markets(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchHip3Markets(parameters);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+    }
+    /// <summary>
+    /// retrieves data on all swap markets for hyperliquid
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
     public async Task<List<MarketInterface>> FetchSwapMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchSwapMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
+    /// <summary>
+    /// retrieves data on all spot markets for hyperliquid
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
     public async Task<List<MarketInterface>> FetchSpotMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchSpotMarkets(parameters);
@@ -40,7 +130,8 @@ public partial class hyperliquid
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-state"/>  <br/>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-a-users-token-balances"/>  <br/>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -60,9 +151,33 @@ public partial class hyperliquid
     /// string : wallet type, ['spot', 'swap'], defaults to swap
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.dex</term>
+    /// <description>
+    /// string : for hip3 markets, the dex name, eg: 'xyz'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.enableUnifiedMargin</term>
+    /// <description>
+    /// boolean : enable unified margin, CCXT tries to auto-detects this value but you can override it
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
+    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
     public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBalance(parameters);
@@ -72,7 +187,7 @@ public partial class hyperliquid
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#info"/>  <br/>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -88,7 +203,7 @@ public partial class hyperliquid
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -96,10 +211,63 @@ public partial class hyperliquid
         return new OrderBook(res);
     }
     /// <summary>
+    /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc"/>  <br/>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'spot' or 'swap', by default fetches both
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.hip3</term>
+    /// <description>
+    /// boolean : set to true to fetch hip3 markets only
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
+    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTickers(symbols, parameters);
+        return new Tickers(res);
+    }
+    /// <summary>
+    /// retrieves data on all swap markets for hyperliquid
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
+    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingRates(symbols, parameters);
+        return new FundingRates(res);
+    }
+    /// <summary>
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#info-1"/>  <br/>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#candle-snapshot"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -178,10 +346,16 @@ public partial class hyperliquid
     /// string : wallet address that made trades
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
-    public async Task<List<Trade>> FetchTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
+    public async Task<List<Trade>> FetchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -197,7 +371,7 @@ public partial class hyperliquid
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -248,14 +422,88 @@ public partial class hyperliquid
     /// string : the vault address for order
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
+    }
+    /// <summary>
+    /// create a trade order that is executed as a TWAP order over a specified duration.
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.randomize</term>
+    /// <description>
+    /// bool : whether to randomize the time intervals of the TWAP order slices (default is false, meaning equal intervals)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.reduceOnly</term>
+    /// <description>
+    /// bool : true or false whether the order is reduce-only
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.expiresAfter</term>
+    /// <description>
+    /// int : time in ms after which the twap order expires
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.vaultAddress</term>
+    /// <description>
+    /// string : the vault address for order
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<Order> CreateTwapOrder(string symbol, string side, double amount, double duration, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createTwapOrder(symbol, side, amount, duration, parameters);
+        return new Order(res);
+    }
+    /// <summary>
+    /// create a list of trade orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> CreateOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createOrders(orders, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    public Dictionary<string, object> CreateOrderRequest(string symbol, string type, string side, string amount, string price = null, Dictionary<string, object> parameters = null)
+    {
+        var res = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+        return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// create a list of trade orders
@@ -265,11 +513,11 @@ public partial class hyperliquid
     /// <list type="table">
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<List<Order>> CreateOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public Dictionary<string, object> CreateOrdersRequest(object orders, Dictionary<string, object> parameters = null)
     {
-        var res = await this.createOrders(orders, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        var res = this.createOrdersRequest(orders, parameters);
+        return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// cancels an open order
@@ -296,13 +544,25 @@ public partial class hyperliquid
     /// string : the vault address for order
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.twap</term>
+    /// <description>
+    /// boolean : whether the order to cancel is a twap order, (default is false)
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new Order(res);
     }
     /// <summary>
     /// cancel multiple orders
@@ -329,12 +589,71 @@ public partial class hyperliquid
     /// string : the vault address
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrders(ids, symbol, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// cancels a running twap order
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-a-twap-order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.expiresAfter</term>
+    /// <description>
+    /// int : time in ms after which the twap order expires
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.vaultAddress</term>
+    /// <description>
+    /// string : the vault address for order
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<Order> CancelTwapOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelTwapOrder(id, symbol, parameters);
+        return new Order(res);
+    }
+    /// <summary>
+    /// build the request payload for cancelling multiple orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s"/>  <br/>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object :          * @returns {object} the raw request object to be sent to the exchange
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the raw request object to be sent to the exchange.</returns>
+    public Dictionary<string, object> CancelOrdersRequest(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = this.cancelOrdersRequest(ids, symbol, parameters);
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
@@ -356,13 +675,19 @@ public partial class hyperliquid
     /// string : the vault address
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelOrdersForSymbols(List<CancellationRequest> orders, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> CancelOrdersForSymbols(List<CancellationRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrdersForSymbols(orders, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// dead man's switch, cancel all orders after the given timeout
@@ -381,6 +706,12 @@ public partial class hyperliquid
     /// string : the vault address
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> the api result.</returns>
@@ -389,17 +720,21 @@ public partial class hyperliquid
         var res = await this.cancelAllOrdersAfter(timeout, parameters);
         return ((Dictionary<string, object>)res);
     }
+    public Dictionary<string, object> EditOrdersRequest(object orders, Dictionary<string, object> parameters = null)
+    {
+        var res = this.editOrdersRequest(orders, parameters);
+        return ((Dictionary<string, object>)res);
+    }
     /// <summary>
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order"/>  <br/>
     /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -444,9 +779,15 @@ public partial class hyperliquid
     /// string : the vault address for order
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var amount = amount2 == 0 ? null : (object)amount2;
@@ -455,10 +796,49 @@ public partial class hyperliquid
         return new Order(res);
     }
     /// <summary>
+    /// edit a list of trade orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> EditOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.editOrders(orders, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// creates a value
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the api result.</returns>
+    public async Task<Dictionary<string, object>> CreateVault(string name, string description, Int64 initialUsd, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createVault(name, description, initialUsd, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// fetches historical funding rate prices
     /// </summary>
     /// <remarks>
-    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-historical-funding-rates"/>  <br/>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-historical-funding-rates"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -469,7 +849,7 @@ public partial class hyperliquid
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+    /// int : the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
     /// </description>
     /// </item>
     /// <item>
@@ -486,7 +866,7 @@ public partial class hyperliquid
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}.</returns>
     public async Task<List<FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -524,9 +904,27 @@ public partial class hyperliquid
     /// string : user address, will default to this.walletAddress if not provided
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.method</term>
+    /// <description>
+    /// string : 'openOrders' or 'frontendOpenOrders' default is 'frontendOpenOrders'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.dex</term>
+    /// <description>
+    /// string : perp dex name. default is null
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchOpenOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -565,12 +963,141 @@ public partial class hyperliquid
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchClosedOrders(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// fetch all canceled orders
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch open orders for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of open orders structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.user</term>
+    /// <description>
+    /// string : user address, will default to this.walletAddress if not provided
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> FetchCanceledOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchCanceledOrders(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// fetch all closed and canceled orders
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch open orders for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of open orders structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.user</term>
+    /// <description>
+    /// string : user address, will default to this.walletAddress if not provided
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> FetchCanceledAndClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// fetch all orders
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch open orders for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of open orders structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.user</term>
+    /// <description>
+    /// string : user address, will default to this.walletAddress if not provided
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.dex</term>
+    /// <description>
+    /// string : perp dex name. default is null
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> FetchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
@@ -586,14 +1113,26 @@ public partial class hyperliquid
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.user</term>
     /// <description>
     /// string : user address, will default to this.walletAddress if not provided
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrder(id, symbol, parameters);
@@ -630,9 +1169,15 @@ public partial class hyperliquid
     /// int : timestamp in ms of the latest trade
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
+    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
     public async Task<List<Trade>> FetchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -644,7 +1189,7 @@ public partial class hyperliquid
     /// fetch data on an open position
     /// </summary>
     /// <remarks>
-    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-state"/>  <br/>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -660,7 +1205,7 @@ public partial class hyperliquid
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    /// <returns> <term>object</term> a [position structure]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
     public async Task<Position> FetchPosition(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPosition(symbol, parameters);
@@ -670,7 +1215,7 @@ public partial class hyperliquid
     /// fetch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-state"/>  <br/>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -684,9 +1229,21 @@ public partial class hyperliquid
     /// string : user address, will default to this.walletAddress if not provided
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.dex</term>
+    /// <description>
+    /// string : perp dex name, eg: XYZ
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
     public async Task<List<Position>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositions(symbols, parameters);
@@ -707,6 +1264,18 @@ public partial class hyperliquid
     /// <term>params.leverage</term>
     /// <description>
     /// string : the rate of leverage, is required if setting trade mode (symbol)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.vaultAddress</term>
+    /// <description>
+    /// string : the vault address
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
     /// </description>
     /// </item>
     /// </list>
@@ -762,7 +1331,7 @@ public partial class hyperliquid
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
+    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
     public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
     {
         var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
@@ -773,6 +1342,7 @@ public partial class hyperliquid
     /// </summary>
     /// <remarks>
     /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#initiate-a-withdrawal-request"/>  <br/>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#deposit-or-withdraw-from-a-vault"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -780,12 +1350,290 @@ public partial class hyperliquid
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.vaultAddress</term>
+    /// <description>
+    /// string : vault address withdraw from
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Dictionary<string, object>> Withdraw(string code, object amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
+    public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
+        return new Transaction(res);
+    }
+    /// <summary>
+    /// fetch the trading fees for a market
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.user</term>
+    /// <description>
+    /// string : user address, will default to this.walletAddress if not provided
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
+    public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTradingFee(symbol, parameters);
+        return new TradingFeeInterface(res);
+    }
+    /// <summary>
+    /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest ledger entry
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : max number of ledger entries to return
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest ledger entry
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}.</returns>
+    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchLedger(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
+    }
+    /// <summary>
+    /// fetch all deposits made to an account
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch deposits for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of deposits structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch withdrawals for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.vaultAddress</term>
+    /// <description>
+    /// string : vault address
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
+    public async Task<List<Transaction>> FetchDeposits(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchDeposits(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
+    }
+    /// <summary>
+    /// fetch all withdrawals made from an account
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch withdrawals for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of withdrawals structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch withdrawals for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.vaultAddress</term>
+    /// <description>
+    /// string : vault address
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
+    public async Task<List<Transaction>> FetchWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchWithdrawals(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
+    }
+    /// <summary>
+    /// Retrieves the open interest for a list of symbols
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : exchange specific parameters
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}.</returns>
+    public async Task<OpenInterests> FetchOpenInterests(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOpenInterests(symbols, parameters);
+        return new OpenInterests(res);
+    }
+    /// <summary>
+    /// retrieves the open interest of a contract trading pair
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : exchange specific parameters
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}.</returns>
+    public async Task<OpenInterest> FetchOpenInterest(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOpenInterest(symbol, parameters);
+        return new OpenInterest(res);
+    }
+    /// <summary>
+    /// fetch the history of funding payments paid and received on this account
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch funding history for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of funding history structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}.</returns>
+    public async Task<List<FundingHistory>> FetchFundingHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchFundingHistory(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new FundingHistory(item)).ToList<FundingHistory>();
+    }
+    public async Task<Dictionary<string, object>> CreateSubAccount(string name, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createSubAccount(name, parameters);
         return ((Dictionary<string, object>)res);
     }
 }

@@ -178,6 +178,9 @@ abstract class deribit extends \ccxt\async\Exchange {
     public function private_get_get_account_summary($params = array()) {
         return $this->request('get_account_summary', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_get_account_summaries($params = array()) {
+        return $this->request('get_account_summaries', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_get_affiliate_program_info($params = array()) {
         return $this->request('get_affiliate_program_info', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -540,6 +543,9 @@ abstract class deribit extends \ccxt\async\Exchange {
     }
     public function privateGetGetAccountSummary($params = array()) {
         return $this->request('get_account_summary', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetGetAccountSummaries($params = array()) {
+        return $this->request('get_account_summaries', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetGetAffiliateProgramInfo($params = array()) {
         return $this->request('get_affiliate_program_info', 'private', 'GET', $params, null, null, array("cost" => 1));

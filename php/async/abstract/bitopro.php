@@ -61,6 +61,9 @@ abstract class bitopro extends \ccxt\async\Exchange {
     public function private_get_wallet_withdrawhistory_currency($params = array()) {
         return $this->request('wallet/withdrawHistory/{currency}', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_orders_open($params = array()) {
+        return $this->request('orders/open', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_post_orders_pair($params = array()) {
         return $this->request('orders/{pair}', 'private', 'POST', $params, null, null, array("cost" => 0.5));
     }
@@ -135,6 +138,9 @@ abstract class bitopro extends \ccxt\async\Exchange {
     }
     public function privateGetWalletWithdrawHistoryCurrency($params = array()) {
         return $this->request('wallet/withdrawHistory/{currency}', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetOrdersOpen($params = array()) {
+        return $this->request('orders/open', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privatePostOrdersPair($params = array()) {
         return $this->request('orders/{pair}', 'private', 'POST', $params, null, null, array("cost" => 0.5));

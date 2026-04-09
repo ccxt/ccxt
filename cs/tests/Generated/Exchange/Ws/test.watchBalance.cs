@@ -16,6 +16,7 @@ public partial class testMainClass : BaseTest
         while (isLessThan(now, ends))
         {
             object response = null;
+            object success = true;
             try
             {
                 response = await exchange.watchBalance();
@@ -26,6 +27,11 @@ public partial class testMainClass : BaseTest
                     throw e;
                 }
                 now = exchange.milliseconds();
+                // continue;
+                success = false;
+            }
+            if (isTrue(isEqual(success, false)))
+            {
                 continue;
             }
             testBalance(exchange, skippedProperties, method, response);

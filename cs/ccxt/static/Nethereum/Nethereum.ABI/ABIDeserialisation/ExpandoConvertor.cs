@@ -42,7 +42,7 @@ namespace Nethereum.ABI.ABIDeserialisation
         /// <param name="existingValue">The existing value of object being read.</param>
         /// <param name="serializer">The calling serializer.</param>
         /// <returns>The object value.</returns>
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue,
+        public override object ReadJson(JsonReader reader, Type objectType, object? existingValue,
             JsonSerializer serializer)
         {
             return ReadValue(reader);
@@ -54,7 +54,7 @@ namespace Nethereum.ABI.ABIDeserialisation
         /// <param name="writer">The <see cref="JsonWriter" /> to write to.</param>
         /// <param name="value">The value.</param>
         /// <param name="serializer">The calling serializer.</param>
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
             // can write is set to false
         }
@@ -147,36 +147,42 @@ namespace Nethereum.ABI.ABIDeserialisation
 
     // Converting ABI as JArray, JObject into ExpandoObject style
     // This is only available for ABI, not generic JObject/ExpandoObject conversion
-    public class JObjectToExpandoConverter {
-        public List<IDictionary<string, object>> JObjectArray(JArray array) {
+    public class JObjectToExpandoConverter
+    {
+        public List<IDictionary<string, object>> JObjectArray(JArray array)
+        {
             var l = new List<IDictionary<string, object>>();
-            foreach(JObject obj in array)
+            foreach (JObject obj in array)
                 l.Add(JObject(obj));
             return l;
         }
-        public List<object> JArray(JArray array) {
+        public List<object> JArray(JArray array)
+        {
             var l = new List<object>();
-            foreach(JToken token in array)
+            foreach (JToken token in array)
                 l.Add(JToken(token));
             return l;
         }
-        public IDictionary<string, object> JObject(JObject obj) {
+        public IDictionary<string, object> JObject(JObject obj)
+        {
             var dic = new Dictionary<string, object>();
-            foreach(var pair in obj) {
+            foreach (var pair in obj)
+            {
                 dic[pair.Key] = JToken(pair.Value);
             }
             return dic;
         }
-        public object JToken(JToken token) {
-            if(token is JObject)
+        public object JToken(JToken token)
+        {
+            if (token is JObject)
                 return JObject((JObject)token);
-            else if(token is JArray)
+            else if (token is JArray)
                 return JArray((JArray)token);
-            else if(token.Type == JTokenType.String)
+            else if (token.Type == JTokenType.String)
                 return token.Value<string>();
-            else if(token.Type == JTokenType.Boolean)
+            else if (token.Type == JTokenType.Boolean)
                 return token.Value<bool>();
-            else if(token.Type == JTokenType.Integer)
+            else if (token.Type == JTokenType.Integer)
                 return token.Value<int>();
             else
                 throw new Exception("unexpected token type " + token.Type);

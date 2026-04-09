@@ -6,7 +6,7 @@ var modular = require('./modular.js');
 var utils = require('./utils.js');
 var curve = require('./curve.js');
 
-/*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
+// ----------------------------------------------------------------------------
 function validatePointOpts(curve$1) {
     const opts = curve.validateBasic(curve$1);
     utils.validateObject(opts, {
@@ -1012,6 +1012,7 @@ function mapToCurveSimpleSWU(Fp, opts) {
     };
 }
 
+exports.DER = DER;
 exports.SWUFpSqrtRatio = SWUFpSqrtRatio;
 exports.mapToCurveSimpleSWU = mapToCurveSimpleSWU;
 exports.weierstrass = weierstrass;

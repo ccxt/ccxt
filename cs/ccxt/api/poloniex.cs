@@ -336,4 +336,184 @@ public partial class poloniex : Exchange
         return await this.callAsync ("privatePutSmartordersId",parameters);
     }
 
+    public async Task<object> swapPublicGetV3MarketAllInstruments (object parameters = null)
+    {
+        return await this.callAsync ("swapPublicGetV3MarketAllInstruments",parameters);
+    }
+
+    public async Task<object> swapPublicGetV3MarketInstruments (object parameters = null)
+    {
+        return await this.callAsync ("swapPublicGetV3MarketInstruments",parameters);
+    }
+
+    public async Task<object> swapPublicGetV3MarketOrderBook (object parameters = null)
+    {
+        return await this.callAsync ("swapPublicGetV3MarketOrderBook",parameters);
+    }
+
+    public async Task<object> swapPublicGetV3MarketCandles (object parameters = null)
+    {
+        return await this.callAsync ("swapPublicGetV3MarketCandles",parameters);
+    }
+
+    public async Task<object> swapPublicGetV3MarketIndexPriceCandlesticks (object parameters = null)
+    {
+        return await this.callAsync ("swapPublicGetV3MarketIndexPriceCandlesticks",parameters);
+    }
+
+    public async Task<object> swapPublicGetV3MarketPremiumIndexCandlesticks (object parameters = null)
+    {
+        return await this.callAsync ("swapPublicGetV3MarketPremiumIndexCandlesticks",parameters);
+    }
+
+    public async Task<object> swapPublicGetV3MarketMarkPriceCandlesticks (object parameters = null)
+    {
+        return await this.callAsync ("swapPublicGetV3MarketMarkPriceCandlesticks",parameters);
+    }
+
+    public async Task<object> swapPublicGetV3MarketTrades (object parameters = null)
+    {
+        return await this.callAsync ("swapPublicGetV3MarketTrades",parameters);
+    }
+
+    public async Task<object> swapPublicGetV3MarketLiquidationOrder (object parameters = null)
+    {
+        return await this.callAsync ("swapPublicGetV3MarketLiquidationOrder",parameters);
+    }
+
+    public async Task<object> swapPublicGetV3MarketTickers (object parameters = null)
+    {
+        return await this.callAsync ("swapPublicGetV3MarketTickers",parameters);
+    }
+
+    public async Task<object> swapPublicGetV3MarketMarkPrice (object parameters = null)
+    {
+        return await this.callAsync ("swapPublicGetV3MarketMarkPrice",parameters);
+    }
+
+    public async Task<object> swapPublicGetV3MarketIndexPrice (object parameters = null)
+    {
+        return await this.callAsync ("swapPublicGetV3MarketIndexPrice",parameters);
+    }
+
+    public async Task<object> swapPublicGetV3MarketIndexPriceComponents (object parameters = null)
+    {
+        return await this.callAsync ("swapPublicGetV3MarketIndexPriceComponents",parameters);
+    }
+
+    public async Task<object> swapPublicGetV3MarketFundingRate (object parameters = null)
+    {
+        return await this.callAsync ("swapPublicGetV3MarketFundingRate",parameters);
+    }
+
+    public async Task<object> swapPublicGetV3MarketOpenInterest (object parameters = null)
+    {
+        return await this.callAsync ("swapPublicGetV3MarketOpenInterest",parameters);
+    }
+
+    public async Task<object> swapPublicGetV3MarketInsurance (object parameters = null)
+    {
+        return await this.callAsync ("swapPublicGetV3MarketInsurance",parameters);
+    }
+
+    public async Task<object> swapPublicGetV3MarketRiskLimit (object parameters = null)
+    {
+        return await this.callAsync ("swapPublicGetV3MarketRiskLimit",parameters);
+    }
+
+    public async Task<object> swapPrivateGetV3AccountBalance (object parameters = null)
+    {
+        return await this.callAsync ("swapPrivateGetV3AccountBalance",parameters);
+    }
+
+    public async Task<object> swapPrivateGetV3AccountBills (object parameters = null)
+    {
+        return await this.callAsync ("swapPrivateGetV3AccountBills",parameters);
+    }
+
+    public async Task<object> swapPrivateGetV3TradeOrderOpens (object parameters = null)
+    {
+        return await this.callAsync ("swapPrivateGetV3TradeOrderOpens",parameters);
+    }
+
+    public async Task<object> swapPrivateGetV3TradeOrderTrades (object parameters = null)
+    {
+        return await this.callAsync ("swapPrivateGetV3TradeOrderTrades",parameters);
+    }
+
+    public async Task<object> swapPrivateGetV3TradeOrderHistory (object parameters = null)
+    {
+        return await this.callAsync ("swapPrivateGetV3TradeOrderHistory",parameters);
+    }
+
+    public async Task<object> swapPrivateGetV3TradePositionOpens (object parameters = null)
+    {
+        return await this.callAsync ("swapPrivateGetV3TradePositionOpens",parameters);
+    }
+
+    public async Task<object> swapPrivateGetV3TradePositionHistory (object parameters = null)
+    {
+        return await this.callAsync ("swapPrivateGetV3TradePositionHistory",parameters);
+    }
+
+    public async Task<object> swapPrivateGetV3PositionLeverages (object parameters = null)
+    {
+        return await this.callAsync ("swapPrivateGetV3PositionLeverages",parameters);
+    }
+
+    public async Task<object> swapPrivateGetV3PositionMode (object parameters = null)
+    {
+        return await this.callAsync ("swapPrivateGetV3PositionMode",parameters);
+    }
+
+    public async Task<object> swapPrivatePostV3TradeOrder (object parameters = null)
+    {
+        return await this.callAsync ("swapPrivatePostV3TradeOrder",parameters);
+    }
+
+    public async Task<object> swapPrivatePostV3TradeOrders (object parameters = null)
+    {
+        return await this.callAsync ("swapPrivatePostV3TradeOrders",parameters);
+    }
+
+    public async Task<object> swapPrivatePostV3TradePosition (object parameters = null)
+    {
+        return await this.callAsync ("swapPrivatePostV3TradePosition",parameters);
+    }
+
+    public async Task<object> swapPrivatePostV3TradePositionAll (object parameters = null)
+    {
+        return await this.callAsync ("swapPrivatePostV3TradePositionAll",parameters);
+    }
+
+    public async Task<object> swapPrivatePostV3PositionLeverage (object parameters = null)
+    {
+        return await this.callAsync ("swapPrivatePostV3PositionLeverage",parameters);
+    }
+
+    public async Task<object> swapPrivatePostV3PositionMode (object parameters = null)
+    {
+        return await this.callAsync ("swapPrivatePostV3PositionMode",parameters);
+    }
+
+    public async Task<object> swapPrivatePostV3TradePositionMargin (object parameters = null)
+    {
+        return await this.callAsync ("swapPrivatePostV3TradePositionMargin",parameters);
+    }
+
+    public async Task<object> swapPrivateDeleteV3TradeOrder (object parameters = null)
+    {
+        return await this.callAsync ("swapPrivateDeleteV3TradeOrder",parameters);
+    }
+
+    public async Task<object> swapPrivateDeleteV3TradeBatchOrders (object parameters = null)
+    {
+        return await this.callAsync ("swapPrivateDeleteV3TradeBatchOrders",parameters);
+    }
+
+    public async Task<object> swapPrivateDeleteV3TradeAllOrders (object parameters = null)
+    {
+        return await this.callAsync ("swapPrivateDeleteV3TradeAllOrders",parameters);
+    }
+
 }

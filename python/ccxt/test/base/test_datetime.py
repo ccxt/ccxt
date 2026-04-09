@@ -10,94 +10,141 @@ sys.path.append(root)
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 # ----------------------------------------------------------------------------
+# -*- coding: utf-8 -*-
 
-import ccxt  # noqa: F402
-from ccxt.base.decimal_to_precision import ROUND_UP, ROUND_DOWN  # noqa F401
+import ccxt.async_support as ccxt  # noqa: F402
 
-# ----------------------------------------------------------------------------
-
-# @ts-nocheck
-
-exchange = ccxt.Exchange({
-    'id': 'regirock',
-})
-
-# ----------------------------------------------------------------------------
-
-assert exchange.iso8601(514862627000) == '1986-04-26T01:23:47.000Z'
-assert exchange.iso8601(514862627559) == '1986-04-26T01:23:47.559Z'
-assert exchange.iso8601(514862627062) == '1986-04-26T01:23:47.062Z'
-
-assert exchange.iso8601(0) == '1970-01-01T00:00:00.000Z'
-
-assert exchange.iso8601(-1) is None
-assert exchange.iso8601() is None
-assert exchange.iso8601(None) is None
-assert exchange.iso8601('') is None
-assert exchange.iso8601('a') is None
-assert exchange.iso8601({}) is None
-
-# ----------------------------------------------------------------------------
-
-assert exchange.parse8601('1986-04-26T01:23:47.000Z') == 514862627000
-assert exchange.parse8601('1986-04-26T01:23:47.559Z') == 514862627559
-assert exchange.parse8601('1986-04-26T01:23:47.062Z') == 514862627062
-
-assert exchange.parse8601('1986-04-26T01:23:47.06Z') == 514862627060
-assert exchange.parse8601('1986-04-26T01:23:47.6Z') == 514862627600
-
-assert exchange.parse8601('1977-13-13T00:00:00.000Z') is None
-assert exchange.parse8601('1986-04-26T25:71:47.000Z') is None
-
-assert exchange.parse8601('3333') is None
-assert exchange.parse8601('Sr90') is None
-assert exchange.parse8601('') is None
-assert exchange.parse8601() is None
-assert exchange.parse8601(None) is None
-assert exchange.parse8601({}) is None
-assert exchange.parse8601(33) is None
-
-# ----------------------------------------------------------------------------
-
-assert exchange.parse_date('1986-04-26 00:00:00') == 514857600000
-assert exchange.parse_date('1986-04-26T01:23:47.000Z') == 514862627000
-assert exchange.parse_date('1986-13-13 00:00:00') is None
+def test_iso8601():
+    exchange = ccxt.Exchange({
+        'id': 'sampleexchange',
+    })
+    assert exchange.iso8601(514862627000) == '1986-04-26T01:23:47.000Z'
+    assert exchange.iso8601(514862627559) == '1986-04-26T01:23:47.559Z'
+    assert exchange.iso8601(514862627062) == '1986-04-26T01:23:47.062Z'
+    assert exchange.iso8601(1) == '1970-01-01T00:00:00.001Z'
+    assert exchange.iso8601(-1) is None
+    # assert (exchange.iso8601 () === undefined);
+    # todo: assert (exchange.iso8601 () === undefined);
+    assert exchange.iso8601(None) is None
+    assert exchange.iso8601('') is None
+    assert exchange.iso8601('a') is None
+    assert exchange.iso8601({}) is None
 
 
-assert exchange.roundTimeframe('5m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_DOWN) == exchange.parse8601('2019-08-12 13:20:00')
-assert exchange.roundTimeframe('10m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_DOWN) == exchange.parse8601('2019-08-12 13:20:00')
-assert exchange.roundTimeframe('30m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_DOWN) == exchange.parse8601('2019-08-12 13:00:00')
-assert exchange.roundTimeframe('1d', exchange.parse8601('2019-08-12 13:22:08'), ROUND_DOWN) == exchange.parse8601('2019-08-12 00:00:00')
+def test_parse8601():
+    exchange = ccxt.Exchange({
+        'id': 'sampleexchange',
+    })
+    assert exchange.parse8601('1986-04-26T01:23:47.000Z') == 514862627000
+    assert exchange.parse8601('1986-04-26T01:23:47.559Z') == 514862627559
+    assert exchange.parse8601('1986-04-26T01:23:47.062Z') == 514862627062
+    assert exchange.parse8601('1986-04-26T01:23:47.06Z') == 514862627060
+    assert exchange.parse8601('1986-04-26T01:23:47.6Z') == 514862627600
+    assert exchange.parse8601('1977-13-13T00:00:00.000Z') is None
+    assert exchange.parse8601('1986-04-26T25:71:47.000Z') is None
+    assert exchange.parse8601('3333') is None
+    assert exchange.parse8601('Sr90') is None
+    assert exchange.parse8601('') is None
+    # assert (exchange.parse8601 () === undefined);
+    # todo: assert (exchange.parse8601 () === undefined);
+    assert exchange.parse8601(None) is None
+    assert exchange.parse8601({}) is None
+    assert exchange.parse8601(33) is None
 
-assert exchange.roundTimeframe('5m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_UP) == exchange.parse8601('2019-08-12 13:25:00')
-assert exchange.roundTimeframe('10m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_UP) == exchange.parse8601('2019-08-12 13:30:00')
-assert exchange.roundTimeframe('30m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_UP) == exchange.parse8601('2019-08-12 13:30:00')
-assert exchange.roundTimeframe('1h', exchange.parse8601('2019-08-12 13:22:08'), ROUND_UP) == exchange.parse8601('2019-08-12 14:00:00')
-assert exchange.roundTimeframe('1d', exchange.parse8601('2019-08-12 13:22:08'), ROUND_UP) == exchange.parse8601('2019-08-13 00:00:00')
 
-# todo:
-# $self->assertSame(null, Exchange::iso8601(null))
-# $self->assertSame(null, Exchange::iso8601(False))
-# $self->assertSame(null, Exchange::iso8601([]))
-# $self->assertSame(null, Exchange::iso8601('abracadabra'))
-# $self->assertSame(null, Exchange::iso8601('1.2'))
-# $self->assertSame(null, Exchange::iso8601(-1))
-# $self->assertSame(null, Exchange::iso8601('-1'))
-# $self->assertSame('1970-01-01T00:00:00.000+00:00', Exchange::iso8601(0))
-# $self->assertSame('1970-01-01T00:00:00.000+00:00', Exchange::iso8601('0'))
-# $self->assertSame('1986-04-25T21:23:47.000+00:00', Exchange::iso8601(514848227000))
-# $self->assertSame('1986-04-25T21:23:47.000+00:00', Exchange::iso8601('514848227000'))
+def test_parse_date():
+    exchange = ccxt.Exchange({
+        'id': 'sampleexchange',
+    })
+    assert exchange.parse_date('1986-04-26 00:00:00') == 514857600000
+    assert exchange.parse_date('1986-04-26T01:23:47.000Z') == 514862627000
+    assert exchange.parse_date('1986-13-13 00:00:00') is None
 
-# $self->assertSame(null, Exchange::parse_date(null))
-# $self->assertSame(null, Exchange::parse_date(0))
-# $self->assertSame(null, Exchange::parse_date('0'))
-# $self->assertSame(null, Exchange::parse_date('+1 day'))
-# $self->assertSame(null, Exchange::parse_date('1986-04-25T21:23:47+00:00 + 1 week'))
-# $self->assertSame(null, Exchange::parse_date('1 february'))
-# $self->assertSame(null, Exchange::parse_date('1986-04-26'))
-# $self->assertSame(0, Exchange::parse_date('1970-01-01T00:00:00.000+00:00'))
-# $self->assertSame(514848227000, Exchange::parse_date('1986-04-25T21:23:47+00:00'))
-# $self->assertSame(514848227000, Exchange::parse_date('1986-04-26T01:23:47+04:00'))
-# $self->assertSame(514848227000, Exchange::parse_date('25 Apr 1986 21:23:47 GMT'))
-# $self->assertSame(514862627000, Exchange::parse_date('1986-04-26T01:23:47.000Z'))
-# $self->assertSame(514862627123, Exchange::parse_date('1986-04-26T01:23:47.123Z'))
+
+def test_microseconds():
+    exchange = ccxt.Exchange({
+        'id': 'sampleexchange',
+    })
+    value = exchange.microseconds()
+    value_string = str(value)
+    assert value > 0
+    assert len(value_string) == 16
+
+
+def test_milliseconds():
+    exchange = ccxt.Exchange({
+        'id': 'sampleexchange',
+    })
+    value = exchange.milliseconds()
+    value_string = str(value)
+    assert value > 0
+    assert len(value_string) == 13
+
+
+def test_seconds():
+    exchange = ccxt.Exchange({
+        'id': 'sampleexchange',
+    })
+    value = exchange.seconds()
+    value_string = str(value)
+    assert value > 0
+    assert len(value_string) == 10
+
+
+def test_yymmdd():
+    exchange = ccxt.Exchange({
+        'id': 'sampleexchange',
+    })
+    test_ms = 1750123456789  # 17 June 2025
+    value = exchange.yymmdd(test_ms, '_')
+    assert value == '25_06_17'
+    value2 = exchange.yymmdd(exchange.milliseconds())
+    assert len(value2) == 6
+    int_num = exchange.parse_to_int(value2)
+    assert int_num > 260000 and int_num < 360000  # date between 2026 and 2036
+
+
+def test_yyyymmdd():
+    exchange = ccxt.Exchange({
+        'id': 'sampleexchange',
+    })
+    test_ms = 1750123456789  # 17 June 2025
+    value = exchange.yyyymmdd(test_ms, '_')
+    assert value == '2025_06_17'
+    value2 = exchange.yyyymmdd(exchange.milliseconds())
+    assert len(value2) == 10
+    int_num = exchange.parse_to_int((value2.replace('-', '')).replace('-', ''))
+    assert int_num > 20260000 and int_num < 20360000  # date between 2026 and 2036
+
+
+def test_ymd():
+    exchange = ccxt.Exchange({
+        'id': 'sampleexchange',
+    })
+    test_ms = 1750123456789  # 17 June 2025
+    value = exchange.ymd(test_ms, '_')
+    assert value == '2025_06_17'
+
+
+def test_ymdhms():
+    exchange = ccxt.Exchange({
+        'id': 'sampleexchange',
+    })
+    test_ms = 1750123456789  # 17 June 2025
+    value = exchange.ymdhms(test_ms, '_')
+    assert value == '2025-06-17_01:24:16' or value == '2025-06-17_01:24:17'  # todo: php/py rounds up to 17
+
+
+def test_datetime():
+    test_iso8601()
+    test_parse8601()
+    test_parse_date()
+    test_microseconds()
+    test_milliseconds()
+    test_seconds()
+    test_yymmdd()
+    test_yyyymmdd()
+    assert 'GO_SKIP_START'
+    test_ymd()
+    test_ymdhms()
+    assert 'GO_SKIP_END'

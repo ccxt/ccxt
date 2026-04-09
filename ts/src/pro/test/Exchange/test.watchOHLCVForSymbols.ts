@@ -2,8 +2,9 @@
 import assert from 'assert';
 import testOHLCV from '../../../test/Exchange/base/test.ohlcv.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
+import { Exchange } from '../../../../ccxt.js';
 
-async function testWatchOHLCVForSymbols (exchange, skippedProperties, symbol) {
+async function testWatchOHLCVForSymbols (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'watchOHLCVForSymbols';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
@@ -19,6 +20,7 @@ async function testWatchOHLCVForSymbols (exchange, skippedProperties, symbol) {
     const since = exchange.milliseconds () - duration * limit * 1000 - 1000;
     while (now < ends) {
         let response = undefined;
+        let success = true;
         try {
             response = await exchange.watchOHLCVForSymbols ([ [ symbol, chosenTimeframeKey ] ], since, limit);
         } catch (e) {
@@ -26,21 +28,25 @@ async function testWatchOHLCVForSymbols (exchange, skippedProperties, symbol) {
                 throw e;
             }
             now = exchange.milliseconds ();
-            continue;
+            // continue;
+            success = false;
         }
-        const assertionMessage = exchange.id + ' ' + method + ' ' + symbol + ' ' + chosenTimeframeKey + ' | ' + exchange.json (response);
-        assert (typeof response === 'object', 'Response must be a dictionary. ' + assertionMessage);
-        assert (symbol in response, 'Response should contain the symbol as key. ' + assertionMessage);
-        const symbolObj = response[symbol];
-        assert (typeof symbolObj === 'object', 'Response.Symbol should be a dictionary. ' + assertionMessage);
-        assert (chosenTimeframeKey in symbolObj, 'Response.symbol should contain the timeframe key. ' + assertionMessage);
-        const ohlcvs = symbolObj[chosenTimeframeKey];
-        assert (Array.isArray (ohlcvs), 'Response.symbol.timeframe should be an array. ' + assertionMessage);
-        now = exchange.milliseconds ();
-        for (let i = 0; i < ohlcvs.length; i++) {
-            testOHLCV (exchange, skippedProperties, method, ohlcvs[i], symbol, now);
+        if (success === true) {
+            const assertionMessage = exchange.id + ' ' + method + ' ' + symbol + ' ' + chosenTimeframeKey + ' | ' + exchange.json (response);
+            assert (typeof response === 'object', 'Response must be a dictionary. ' + assertionMessage);
+            assert (symbol in response, 'Response should contain the symbol as key. ' + assertionMessage);
+            const symbolObj = response[symbol];
+            assert (typeof symbolObj === 'object', 'Response.Symbol should be a dictionary. ' + assertionMessage);
+            assert (chosenTimeframeKey in symbolObj, 'Response.symbol should contain the timeframe key. ' + assertionMessage);
+            const ohlcvs = symbolObj[chosenTimeframeKey];
+            assert (Array.isArray (ohlcvs), 'Response.symbol.timeframe should be an array. ' + assertionMessage);
+            now = exchange.milliseconds ();
+            for (let i = 0; i < ohlcvs.length; i++) {
+                testOHLCV (exchange, skippedProperties, method, ohlcvs[i], symbol, now);
+            }
         }
     }
+    return true;
 }
 
 export default testWatchOHLCVForSymbols;

@@ -46,7 +46,7 @@ public partial class blofin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -67,10 +67,36 @@ public partial class blofin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTicker(symbol, parameters);
+        return new Ticker(res);
+    }
+    /// <summary>
+    /// fetches mark price for the market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.blofin.com/index.html#get-mark-price"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
+    public async Task<Ticker> FetchMarkPrice(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMarkPrice(symbol, parameters);
         return new Ticker(res);
     }
     /// <summary>
@@ -87,7 +113,7 @@ public partial class blofin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickers(symbols, parameters);
@@ -125,7 +151,7 @@ public partial class blofin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}.</returns>
+    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}.</returns>
     public async Task<List<Trade>> FetchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -194,7 +220,7 @@ public partial class blofin
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+    /// int : the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
     /// </description>
     /// </item>
     /// <item>
@@ -209,9 +235,15 @@ public partial class blofin
     /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest funding rate to fetch
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}.</returns>
     public async Task<List<FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -233,11 +265,11 @@ public partial class blofin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRate(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRate(res);
     }
     /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders
@@ -260,7 +292,7 @@ public partial class blofin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
+    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
     public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBalance(parameters);
@@ -282,13 +314,19 @@ public partial class blofin
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.triggerPrice</term>
+    /// <description>
+    /// string : the trigger price for a trigger order
     /// </description>
     /// </item>
     /// <item>
@@ -322,9 +360,15 @@ public partial class blofin
     /// </description>
     /// </item>
     /// <item>
-    /// <term>param.positionSide</term>
+    /// <term>params.positionSide</term>
     /// <description>
     /// string : *stopLossPrice/takeProfitPrice orders only* 'long' or 'short' or 'net' default is 'net'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.hedged</term>
+    /// <description>
+    /// boolean : if true, the positionSide will be set to long/short instead of net, default is false
     /// </description>
     /// </item>
     /// <item>
@@ -347,7 +391,7 @@ public partial class blofin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
@@ -377,12 +421,18 @@ public partial class blofin
     /// <item>
     /// <term>params.trigger</term>
     /// <description>
-    /// boolean : True if cancelling a trigger/conditional order/tp sl orders
+    /// boolean : True if cancelling a trigger/conditional
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.tpsl</term>
+    /// <description>
+    /// boolean : True if cancelling a tpsl order
     /// </description>
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
@@ -394,9 +444,15 @@ public partial class blofin
     /// <remarks>
     /// See <see href="https://blofin.com/docs#place-multiple-orders"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> CreateOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = await this.createOrders(orders, parameters);
@@ -408,6 +464,7 @@ public partial class blofin
     /// <remarks>
     /// See <see href="https://blofin.com/docs#get-active-orders"/>  <br/>
     /// See <see href="https://blofin.com/docs#get-active-tpsl-orders"/>  <br/>
+    /// See <see href="https://docs.blofin.com/index.html#get-active-algo-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -428,7 +485,7 @@ public partial class blofin
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// bool : True if fetching trigger or conditional orders
     /// </description>
@@ -441,7 +498,7 @@ public partial class blofin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchOpenOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -480,6 +537,18 @@ public partial class blofin
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'swap' or 'spot' (defaults to 'swap'), required to fetch spot trade history
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.instId</term>
+    /// <description>
+    /// string : *spot markets only* the market id of the spot market to fetch the trade history for (e.g. 'BTC-USDT')
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.paginate</term>
     /// <description>
     /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -487,7 +556,7 @@ public partial class blofin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
+    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
     public async Task<List<Trade>> FetchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -533,7 +602,7 @@ public partial class blofin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
     public async Task<List<Transaction>> FetchDeposits(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -579,7 +648,7 @@ public partial class blofin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
     public async Task<List<Transaction>> FetchWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -588,11 +657,17 @@ public partial class blofin
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
     /// <summary>
-    /// fetch the history of changes, actions done by the user or operations that altered balance of the user
+    /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
     /// </summary>
     /// <remarks>
     /// See <see href="https://blofin.com/docs#get-funds-transfer-history"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code, default is undefined
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
@@ -602,7 +677,7 @@ public partial class blofin
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : max number of ledger entrys to return, default is undefined
+    /// int : max number of ledger entries to return, default is undefined
     /// </description>
     /// </item>
     /// <item>
@@ -626,18 +701,18 @@ public partial class blofin
     /// <item>
     /// <term>params.paginate</term>
     /// <description>
-    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     /// </description>
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}.</returns>
+    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLedger(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
     /// <summary>
     /// cancel multiple orders
@@ -659,8 +734,8 @@ public partial class blofin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<List<Order>> CancelOrders(object ids, string symbol = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrders(ids, symbol, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
@@ -679,7 +754,7 @@ public partial class blofin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
+    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
     public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
     {
         var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
@@ -705,13 +780,34 @@ public partial class blofin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    /// <returns> <term>object</term> a [position structure]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
     public async Task<Position> FetchPosition(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPosition(symbol, parameters);
         return new Position(res);
     }
-    public async Task<List<Position>> FetchPositions(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    /// <summary>
+    /// fetch data on a single open contract trade position
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://blofin.com/docs#get-positions"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.instType</term>
+    /// <description>
+    /// string : MARGIN, SWAP, FUTURES, OPTION
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [position structure]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
+    public async Task<List<Position>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositions(symbols, parameters);
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
@@ -736,8 +832,8 @@ public partial class blofin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
-    public async Task<Leverages> FetchLeverages(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}.</returns>
+    public async Task<Leverages> FetchLeverages(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverages(symbols, parameters);
         return new Leverages(res);
@@ -762,7 +858,7 @@ public partial class blofin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
+    /// <returns> <term>object</term> a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}.</returns>
     public async Task<Leverage> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverage(symbol, parameters);
@@ -784,6 +880,12 @@ public partial class blofin
     /// <term>params.marginMode</term>
     /// <description>
     /// string : 'cross' or 'isolated'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.positionSide</term>
+    /// <description>
+    /// string : 'long' or 'short' - required for hedged mode in isolated margin
     /// </description>
     /// </item>
     /// </list>
@@ -820,7 +922,7 @@ public partial class blofin
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// bool : True if fetching trigger or conditional orders
     /// </description>
@@ -833,7 +935,7 @@ public partial class blofin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -855,10 +957,108 @@ public partial class blofin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}.</returns>
+    /// <returns> <term>object</term> a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}.</returns>
     public async Task<MarginMode> FetchMarginMode(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarginMode(symbol, parameters);
         return new MarginMode(res);
+    }
+    /// <summary>
+    /// set margin mode to 'cross' or 'isolated'
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.blofin.com/index.html#set-margin-mode"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol (not used in blofin setMarginMode)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> response from the exchange.</returns>
+    public async Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.setMarginMode(marginMode, symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetchs the position mode, hedged or one way
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.blofin.com/index.html#get-position-mode"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified symbol of the market to fetch the position mode for (not used in blofin fetchPositionMode)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an object detailing whether the market is in hedged or one-way mode.</returns>
+    public async Task<Dictionary<string, object>> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionMode(symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// set hedged to true or false for a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.blofin.com/index.html#set-position-mode"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : not used by blofin setPositionMode ()
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> response from the exchange.</returns>
+    public async Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.setPositionMode(hedged, symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetches the auto deleveraging rank and risk percentage for a list of symbols
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.blofin.com/index.html#get-positions"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}.</returns>
+    public async Task<List<ADL>> FetchPositionsADLRank(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionsADLRank(symbols, parameters);
+        return ((IList<object>)res).Select(item => new ADL(item)).ToList<ADL>();
     }
 }

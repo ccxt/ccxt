@@ -15,9 +15,9 @@
         "margin": false,
         "contract": false,
         "precision": {
-            "amount": 5,
-            "price": 2,
-            "quote": 8
+            "amount": 0.00001,
+            "price": 0.01,
+            "quote": 0.00000001
         },
         "limits": {
             "amount": {
@@ -137,9 +137,9 @@
         "margin": false,
         "contract": false,
         "precision": {
-            "amount": 3,
-            "price": 2,
-            "quote": 8
+            "amount": 0.001,
+            "price": 0.01,
+            "quote": 0.00000001
         },
         "limits": {
             "amount": {
@@ -259,9 +259,9 @@
         "margin": false,
         "contract": false,
         "precision": {
-            "amount": 1,
-            "price": 4,
-            "quote": 8
+            "amount": 0.1,
+            "price": 0.0001,
+            "quote": 0.00000001
         },
         "limits": {
             "amount": {
@@ -381,9 +381,9 @@
         "margin": false,
         "contract": false,
         "precision": {
-            "amount": 0,
-            "price": 4,
-            "quote": 8
+            "amount": 1,
+            "price": 0.0001,
+            "quote": 0.00000001
         },
         "limits": {
             "amount": {
@@ -503,9 +503,9 @@
         "margin": false,
         "contract": false,
         "precision": {
-            "amount": 2,
-            "price": 2,
-            "quote": 8
+            "amount": 0.01,
+            "price": 0.01,
+            "quote": 0.00000001
         },
         "limits": {
             "amount": {
@@ -625,9 +625,9 @@
         "margin": false,
         "contract": false,
         "precision": {
-            "amount": 1,
-            "price": 5,
-            "quote": 8
+            "amount": 0.1,
+            "price": 0.00001,
+            "quote": 0.00000001
         },
         "limits": {
             "amount": {
@@ -750,9 +750,9 @@
         "taker": 0.0075,
         "maker": 0.0075,
         "precision": {
-            "amount": 4,
-            "price": 2,
-            "quote": 8
+            "amount": 0.0001,
+            "price": 0.01,
+            "quote": 0.00000001
         },
         "limits": {
             "leverage": {},

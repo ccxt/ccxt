@@ -2,32 +2,39 @@
 import assert from 'assert';
 import testPosition from '../../../test/Exchange/base/test.position.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
+import { Exchange } from '../../../../ccxt.js';
 
-async function testWatchPositions (exchange, skippedProperties, symbol) {
+async function testWatchPositions (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'watchPositions';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
     while (now < ends) {
         let response = undefined;
+        let success = true;
         try {
-            response = await exchange.watchPositions (symbol);
+            response = await exchange.watchPositions ([ symbol ]);
         } catch (e) {
             if (!testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
             }
             now = exchange.milliseconds ();
-            continue;
+            // continue;
+            success = false;
         }
-        testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, response, symbol);
-        now = exchange.milliseconds ();
-        for (let i = 0; i < response.length; i++) {
-            testPosition (exchange, skippedProperties, method, response[i], undefined, now);
+        if (success === true) {
+            testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, response, symbol);
+            now = exchange.milliseconds ();
+            for (let i = 0; i < response.length; i++) {
+                testPosition (exchange, skippedProperties, method, response[i], undefined, now);
+            }
+            testSharedMethods.assertTimestampOrder (exchange, method, symbol, response);
         }
-        testSharedMethods.assertTimestampOrder (exchange, method, symbol, response);
+
         //
         // Test with specific symbol
         //
         let positionsForSymbols = undefined;
+        let success2 = true;
         try {
             positionsForSymbols = await exchange.watchPositions ([ symbol ]);
         } catch (e) {
@@ -35,17 +42,21 @@ async function testWatchPositions (exchange, skippedProperties, symbol) {
                 throw e;
             }
             now = exchange.milliseconds ();
-            continue;
+            // continue;
+            success2 = false;
         }
-        assert (Array.isArray (positionsForSymbols), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json (positionsForSymbols));
-        // max theoretical 4 positions: two for one-way-mode and two for two-way mode
-        assert (positionsForSymbols.length <= 4, exchange.id + ' ' + method + ' positions length for particular symbol should be less than 4, returned ' + exchange.json (positionsForSymbols));
-        now = exchange.milliseconds ();
-        for (let i = 0; i < positionsForSymbols.length; i++) {
-            testPosition (exchange, skippedProperties, method, positionsForSymbols[i], symbol, now);
+        if (success2 === true) {
+            assert (Array.isArray (positionsForSymbols), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json (positionsForSymbols));
+            // max theoretical 4 positions: two for one-way-mode and two for two-way mode
+            assert (positionsForSymbols.length <= 4, exchange.id + ' ' + method + ' positions length for particular symbol should be less than 4, returned ' + exchange.json (positionsForSymbols));
+            now = exchange.milliseconds ();
+            for (let i = 0; i < positionsForSymbols.length; i++) {
+                testPosition (exchange, skippedProperties, method, positionsForSymbols[i], symbol, now);
+            }
+            testSharedMethods.assertTimestampOrder (exchange, method, symbol, positionsForSymbols);
         }
-        testSharedMethods.assertTimestampOrder (exchange, method, symbol, positionsForSymbols);
     }
+    return true;
 }
 
 export default testWatchPositions;

@@ -29,9 +29,12 @@ public partial class Exchange
     public long microseconds()
     {
 #if NET7_0_OR_GREATER
-        return DateTime.Now.Ticks / TimeSpan.TicksPerMicrosecond; ;
+        return DateTime.Now.Ticks / TimeSpan.TicksPerMicrosecond;
 #else
-        return DateTime.Now.Ticks / (TimeSpan.TicksPerMillisecond / 1000);
+        DateTime utcNow = DateTime.UtcNow;
+        DateTimeOffset dto = new DateTimeOffset(utcNow);
+        long unixTime = dto.ToUnixTimeMilliseconds() * 1000;
+        return unixTime + (utcNow.Ticks % TimeSpan.TicksPerSecond) / 10;
 #endif
     }
 
@@ -120,7 +123,7 @@ public partial class Exchange
     {
         if (infix == null)
         {
-            infix = "-";
+            infix = "";
         }
         // check this
         if (ts == null)
@@ -129,16 +132,9 @@ public partial class Exchange
         }
         object startdatetime = null;
         var date = "";
-        try
-        {
-            startdatetime = Convert.ToInt64(ts);
-            var tmp = (new DateTime(1970, 1, 1)).AddMilliseconds((Int64)startdatetime);
-            date = tmp.ToString("yy" + infix + "MM" + infix + "dd");
-        }
-        catch (Exception e)
-        {
-
-        }
+        startdatetime = Convert.ToInt64(ts);
+        var tmp = (new DateTime(1970, 1, 1)).AddMilliseconds((Int64)startdatetime);
+        date = tmp.ToString("yy" + infix.ToString () + "MM" + infix.ToString () + "dd");
         return date;
     }
 

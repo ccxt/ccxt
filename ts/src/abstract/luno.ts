@@ -20,6 +20,7 @@ interface Exchange {
     privateGetAccountsIdTransactions (params?: {}): Promise<implicitReturnType>;
     privateGetBalance (params?: {}): Promise<implicitReturnType>;
     privateGetBeneficiaries (params?: {}): Promise<implicitReturnType>;
+    privateGetSendNetworks (params?: {}): Promise<implicitReturnType>;
     privateGetFeeInfo (params?: {}): Promise<implicitReturnType>;
     privateGetFundingAddress (params?: {}): Promise<implicitReturnType>;
     privateGetListorders (params?: {}): Promise<implicitReturnType>;
@@ -38,8 +39,10 @@ interface Exchange {
     privatePostWithdrawals (params?: {}): Promise<implicitReturnType>;
     privatePostSend (params?: {}): Promise<implicitReturnType>;
     privatePostOauth2Grant (params?: {}): Promise<implicitReturnType>;
+    privatePostBeneficiaries (params?: {}): Promise<implicitReturnType>;
     privatePutAccountsIdName (params?: {}): Promise<implicitReturnType>;
     privateDeleteWithdrawalsId (params?: {}): Promise<implicitReturnType>;
+    privateDeleteBeneficiariesId (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
