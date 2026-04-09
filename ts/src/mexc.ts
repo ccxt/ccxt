@@ -236,6 +236,7 @@ export default class mexc extends Exchange {
                             'rebate/affiliate/commission': 1,
                             'rebate/affiliate/withdraw': 1,
                             'rebate/affiliate/commission/detail': 1,
+                            'rebate/affiliate/campaign': 1,
                             'mxDeduct/enable': 1,
                             'userDataStream': 1,
                             'selfSymbols': 1,
