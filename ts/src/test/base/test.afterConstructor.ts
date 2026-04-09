@@ -26,11 +26,11 @@ function helperTestInitThrottler () {
     // todo: add initial tockenbtucket test
 }
 
-function helperTestSandboxState (exchange, isEnabled = true) {
+function helperTestSandboxState (exchange, expectEnabled = true) {
     assert (exchange.urls !== undefined);
     assert ('test' in exchange.urls);
     const isSandboxModeEnabled = testSharedMethods.exchangeProp (exchange, 'isSandboxModeEnabled');
-    if (isEnabled) {
+    if (expectEnabled) {
         assert (isSandboxModeEnabled);
         assert (exchange.urls['api']['public'] === 'https://testnet.org');
         assert (exchange.urls['apiBackup']['public'] === 'https://example.com');
@@ -61,17 +61,17 @@ function helperTestInitSandbox () {
     // CASE A: when sandbox is not enabled
     //
     const exchange3 = new ccxt.Exchange (opts);
-    helperTestSandboxState (exchange3, true);
-    exchange3.setSandboxMode (true);
     helperTestSandboxState (exchange3, false);
+    exchange3.setSandboxMode (true);
+    helperTestSandboxState (exchange3, true);
     //
     // CASE B: when sandbox is enabled
     //
     opts['options']['sandbox'] = true;
     const exchange4 = new ccxt.Exchange (opts);
-    helperTestSandboxState (exchange4, false);
-    exchange4.setSandboxMode (false);
     helperTestSandboxState (exchange4, true);
+    exchange4.setSandboxMode (false);
+    helperTestSandboxState (exchange4, false);
 }
 
 function helperTestInitMarket () {
