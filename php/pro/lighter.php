@@ -363,7 +363,11 @@ class lighter extends \ccxt\async\lighter {
                 'channel' => 'market_stats/all',
             );
             $messageHashes = array();
-            if ($symbols === null || strlen($symbols) === 0) {
+            $symbolsLength = 0;
+            if ($symbols !== null) {
+                $symbolsLength = count($symbols);
+            }
+            if ($symbolsLength === 0) {
                 $messageHashes[] = $this->get_message_hash('ticker');
             } else {
                 for ($i = 0; $i < count($symbols); $i++) {
@@ -557,7 +561,8 @@ class lighter extends \ccxt\async\lighter {
         //     }
         //
         $liquidationData = $this->safe_list($message, 'liquidation_trades', array());
-        if (strlen($liquidationData) > 0) {
+        $liquidationDataLength = count($liquidationData);
+        if ($liquidationDataLength > 0) {
             $this->handle_liquidation($client, $message);
         }
         $data = $this->safe_list($message, 'trades', array());
@@ -572,8 +577,10 @@ class lighter extends \ccxt\async\lighter {
             $stored = new ArrayCache ($limit);
             $this->trades[$symbol] = $stored;
         }
-        for ($i = 0; $i < count($data); $i++) {
-            $trade = $this->parse_ws_trade($data[$i], $market);
+        $dataLength = count($data);
+        for ($i = 0; $i < $dataLength; $i++) {
+            $iReversed = $dataLength - 1 - $i;
+            $trade = $this->parse_ws_trade($data[$iReversed], $market);
             $stored->append ($trade);
         }
         $messageHash = $this->get_message_hash('trade', $symbol);
@@ -583,15 +590,15 @@ class lighter extends \ccxt\async\lighter {
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * get the list of most recent trades for a particular $symbol
+             * get the list of most recent $trades for a particular $symbol
              *
              * @see https://apidocs.lighter.xyz/docs/websocket-reference#trade
              *
-             * @param {string} $symbol unified $symbol of the $market to fetch trades for
+             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of trades to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -599,7 +606,8 @@ class lighter extends \ccxt\async\lighter {
                 'channel' => 'trade/' . $market['id'],
             );
             $messageHash = $this->get_message_hash('trade', $market['symbol']);
-            return Async\await($this->subscribe_public($messageHash, $this->extend($request, $params)));
+            $trades = Async\await($this->subscribe_public($messageHash, $this->extend($request, $params)));
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -675,8 +683,10 @@ class lighter extends \ccxt\async\lighter {
             $marketId = $marketIds[$i];
             $market = $this->safe_market($marketId);
             $trades = $this->safe_list($data, $marketId, array());
-            for ($j = 0; $j < count($trades); $j++) {
-                $trade = $this->parse_ws_trade($trades[$j], $market);
+            $tradesLength = count($trades);
+            for ($j = 0; $j < $tradesLength; $j++) {
+                $jReversed = $tradesLength - 1 - $j;
+                $trade = $this->parse_ws_trade($trades[$jReversed], $market);
                 $stored->append ($trade);
                 $symbol = $trade['symbol'];
                 if ($symbol !== null) {
@@ -733,7 +743,7 @@ class lighter extends \ccxt\async\lighter {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
-            $accountIndex;
+            $accountIndex = null;
             list($accountIndex, $params) = Async\await($this->handleAccountIndex ($params, 'unWatchMyTrades', 'accountIndex', 'account_index'));
             $messageHash = $this->get_message_hash('unsubscribe', 'myTrades');
             if ($symbol !== null) {
@@ -779,15 +789,22 @@ class lighter extends \ccxt\async\lighter {
         //     }
         //
         $timestamp = $this->safe_integer($liquidation, 'timestamp');
+        $isMakerAsk = $this->safe_bool($liquidation, 'is_maker_ask');
+        $side = $isMakerAsk ? 'buy' : 'sell';
+        $contracts = $this->safe_string($liquidation, 'size');
+        $contractSize = $this->safe_string($market, 'contractSize');
+        $price = $this->safe_string($liquidation, 'price');
+        $baseValue = Precise::string_mul($contracts, $contractSize);
+        $quoteValue = Precise::string_mul($baseValue, $price);
         return $this->safe_liquidation(array(
             'info' => $liquidation,
             'symbol' => $market['symbol'],
-            'contracts' => null,
-            'contractSize' => null,
-            'price' => $this->safe_string($liquidation, 'price'),
-            'side' => $this->safe_string($liquidation, 'size'),
-            'baseValue' => null,
-            'quoteValue' => null,
+            'contracts' => $contracts,
+            'contractSize' => $contractSize,
+            'price' => $price,
+            'side' => $side,
+            'baseValue' => $baseValue,
+            'quoteValue' => $quoteValue,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         ));
@@ -842,8 +859,10 @@ class lighter extends \ccxt\async\lighter {
             $this->liquidations = new ArrayCache ($limit);
             $stored = $this->liquidations;
         }
-        for ($i = 0; $i < count($data); $i++) {
-            $liquidation = $this->parse_ws_liquidation($data[$i], $market);
+        $dataLength = count($data);
+        for ($i = 0; $i < $dataLength; $i++) {
+            $iReversed = $dataLength - 1 - $i;
+            $liquidation = $this->parse_ws_liquidation($data[$iReversed], $market);
             $stored->append ($liquidation);
         }
         $messageHash = $this->get_message_hash('liquidations', $symbol);
@@ -885,7 +904,7 @@ class lighter extends \ccxt\async\lighter {
         $error = $this->safe_dict($message, 'error');
         try {
             if ($error !== null) {
-                $code = $this->safe_string($message, 'code');
+                $code = $this->safe_string($error, 'code');
                 if ($code !== null) {
                     $feedback = $this->id . ' ' . $this->json($message);
                     $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);

@@ -9,7 +9,6 @@ var Precise = require('./src/base/Precise.js');
 var functions = require('./src/base/functions.js');
 var errors = require('./src/base/errors.js');
 var aftermath = require('./src/aftermath.js');
-var alp = require('./src/alp.js');
 var alpaca = require('./src/alpaca.js');
 var apex = require('./src/apex.js');
 var arkham = require('./src/arkham.js');
@@ -52,7 +51,6 @@ var coinbase = require('./src/coinbase.js');
 var coinbaseadvanced = require('./src/coinbaseadvanced.js');
 var coinbaseexchange = require('./src/coinbaseexchange.js');
 var coinbaseinternational = require('./src/coinbaseinternational.js');
-var coincatch = require('./src/coincatch.js');
 var coincheck = require('./src/coincheck.js');
 var coinex = require('./src/coinex.js');
 var coinmate = require('./src/coinmate.js');
@@ -152,7 +150,6 @@ var coinbase$1 = require('./src/pro/coinbase.js');
 var coinbaseadvanced$1 = require('./src/pro/coinbaseadvanced.js');
 var coinbaseexchange$1 = require('./src/pro/coinbaseexchange.js');
 var coinbaseinternational$1 = require('./src/pro/coinbaseinternational.js');
-var coincatch$1 = require('./src/pro/coincatch.js');
 var coincheck$1 = require('./src/pro/coincheck.js');
 var coinex$1 = require('./src/pro/coinex.js');
 var coinone$1 = require('./src/pro/coinone.js');
@@ -201,11 +198,10 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.44';
+const version = '4.5.47';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'aftermath': aftermath["default"],
-    'alp': alp["default"],
     'alpaca': alpaca["default"],
     'apex': apex["default"],
     'arkham': arkham["default"],
@@ -248,7 +244,6 @@ const exchanges = {
     'coinbaseadvanced': coinbaseadvanced["default"],
     'coinbaseexchange': coinbaseexchange["default"],
     'coinbaseinternational': coinbaseinternational["default"],
-    'coincatch': coincatch["default"],
     'coincheck': coincheck["default"],
     'coinex': coinex["default"],
     'coinmate': coinmate["default"],
@@ -350,7 +345,6 @@ const pro = {
     'coinbaseadvanced': coinbaseadvanced$1["default"],
     'coinbaseexchange': coinbaseexchange$1["default"],
     'coinbaseinternational': coinbaseinternational$1["default"],
-    'coincatch': coincatch$1["default"],
     'coincheck': coincheck$1["default"],
     'coinex': coinex$1["default"],
     'coinone': coinone$1["default"],
@@ -449,7 +443,6 @@ exports.RestrictedLocation = errors.RestrictedLocation;
 exports.UnsubscribeError = errors.UnsubscribeError;
 exports.errors = errors;
 exports.aftermath = aftermath["default"];
-exports.alp = alp["default"];
 exports.alpaca = alpaca["default"];
 exports.apex = apex["default"];
 exports.arkham = arkham["default"];
@@ -492,7 +485,6 @@ exports.coinbase = coinbase["default"];
 exports.coinbaseadvanced = coinbaseadvanced["default"];
 exports.coinbaseexchange = coinbaseexchange["default"];
 exports.coinbaseinternational = coinbaseinternational["default"];
-exports.coincatch = coincatch["default"];
 exports.coincheck = coincheck["default"];
 exports.coinex = coinex["default"];
 exports.coinmate = coinmate["default"];

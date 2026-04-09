@@ -187,35 +187,52 @@ class blofin(Exchange, ImplicitAPI):
                         'market/tickers': 1,
                         'market/books': 1,
                         'market/trades': 1,
-                        'market/candles': 1,
                         'market/mark-price': 1,
                         'market/funding-rate': 1,
                         'market/funding-rate-history': 1,
+                        'market/candles': 1,
+                        'market/index-candles': 1,
+                        'market/mark-price-candles': 1,
+                        'market/position-tiers': 1,
                     },
                 },
                 'private': {
                     'get': {
+                        # account
                         'asset/balances': 1,
-                        'trade/orders-pending': 1,
-                        'trade/fills-history': 1,
-                        'asset/deposit-history': 1,
-                        'asset/withdrawal-history': 1,
                         'asset/bills': 1,
+                        'asset/withdrawal-history': 1,
+                        'asset/deposit-history': 1,
+                        'account/config': 1,
+                        'asset/currencies': 1,
+                        # trading
                         'account/balance': 1,
                         'account/positions': 1,
-                        'account/leverage-info': 1,
+                        'account/positions-history': 1,
                         'account/margin-mode': 1,
                         'account/position-mode': 1,
+                        'account/leverage-info': 1,
                         'account/batch-leverage-info': 1,
+                        'trade/orders-pending': 1,
+                        'trade/order-detail': 1,
                         'trade/orders-tpsl-pending': 1,
+                        'trade/order-tpsl-detail': 1,
                         'trade/orders-algo-pending': 1,
                         'trade/orders-history': 1,
                         'trade/orders-tpsl-history': 1,
                         'trade/orders-algo-history': 1,  # todo new
+                        'trade/fills-history': 1,
                         'trade/order/price-range': 1,
-                        'user/query-apikey': 1,
+                        # affiliate
                         'affiliate/basic': 1,
+                        'affiliate/referral-code': 1,
+                        'affiliate/invitees': 1,
+                        'affiliate/sub-invitees': 1,
+                        'affiliate/sub-affiliates': 1,
+                        'affiliate/invitees/daily/info': 1,
+                        # copy trading
                         'copytrading/instruments': 1,
+                        'copytrading/config': 1,
                         'copytrading/account/balance': 1,
                         'copytrading/account/positions-by-order': 1,
                         'copytrading/account/positions-details-by-order': 1,
@@ -227,21 +244,29 @@ class blofin(Exchange, ImplicitAPI):
                         'copytrading/trade/position-history-by-order': 1,
                         'copytrading/trade/orders-history': 1,
                         'copytrading/trade/pending-tpsl-by-order': 1,
+                        # user
+                        'user/query-apikey': 1,
+                        # tax
+                        'spot/trade/fills-history': 1,
                     },
                     'post': {
+                        # account
+                        'asset/transfer': 1,
+                        'asset/demo-apply-money': 1,
+                        # trading
                         'account/set-margin-mode': 1,
                         'account/set-position-mode': 1,
-                        'trade/order': 1,
-                        'trade/order-algo': 1,
-                        'trade/cancel-order': 1,
-                        'trade/cancel-algo': 1,
                         'account/set-leverage': 1,
+                        'trade/order': 1,
                         'trade/batch-orders': 1,
                         'trade/order-tpsl': 1,
+                        'trade/order-algo': 1,
+                        'trade/cancel-order': 1,
                         'trade/cancel-batch-orders': 1,
                         'trade/cancel-tpsl': 1,
+                        'trade/cancel-algo': 1,
                         'trade/close-position': 1,
-                        'asset/transfer': 1,
+                        # copy trading
                         'copytrading/account/set-position-mode': 1,
                         'copytrading/account/set-leverage': 1,
                         'copytrading/trade/place-order': 1,
@@ -771,6 +796,21 @@ class blofin(Exchange, ImplicitAPI):
         #       "brokerId": ""
         #   }
         #
+        # fetchMyTrades spot
+        #     {
+        #         "instId": "DOGE-USDT",
+        #         "tradeId": "6000001623870",
+        #         "orderId": "6000011777113",
+        #         "fillPrice": "0.091480000000000000",
+        #         "fillSize": "30.000000000000000000",
+        #         "fillPnl": null,
+        #         "side": "buy",
+        #         "fee": "0.030000000000000000",
+        #         "ts": "1775213753407",
+        #         "brokerId": null,
+        #         "feeCurrency": "base_currency"
+        #     }
+        #
         id = self.safe_string(trade, 'tradeId')
         marketId = self.safe_string(trade, 'instId')
         market = self.safe_market(marketId, market, '-')
@@ -782,26 +822,57 @@ class blofin(Exchange, ImplicitAPI):
         orderId = self.safe_string(trade, 'orderId')
         feeCost = self.safe_string(trade, 'fee')
         fee = None
+        feeCurrency = self.safe_string(trade, 'feeCurrency')
+        isSpot = feeCurrency is not None
+        if feeCurrency is None:
+            feeCurrency = market['settle']
+        elif feeCurrency == 'base_currency':
+            feeCurrency = market['base']
+        elif feeCurrency == 'quote_currency':
+            feeCurrency = market['quote']
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
-                'currency': market['settle'],
+                'currency': feeCurrency,
             }
-        return self.safe_trade({
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
-            'id': id,
-            'order': orderId,
-            'type': None,
-            'takerOrMaker': None,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': None,
-            'fee': fee,
-        }, market)
+        if isSpot:
+            spotSymbol = market['base'] + '/' + market['quote']
+            cost = self.parse_number(Precise.string_mul(price, amount))
+            result: dict = {
+                'info': trade,
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'symbol': spotSymbol,
+                'id': id,
+                'order': orderId,
+                'type': None,
+                'takerOrMaker': None,
+                'side': side,
+                'price': self.parse_number(price),
+                'amount': self.parse_number(amount),
+                'cost': cost,
+                'fee': {
+                    'cost': self.parse_number(feeCost),
+                    'currency': feeCurrency,
+                },
+            }
+            return result
+        else:
+            return self.safe_trade({
+                'info': trade,
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'symbol': symbol,
+                'id': id,
+                'order': orderId,
+                'type': None,
+                'takerOrMaker': None,
+                'side': side,
+                'price': price,
+                'amount': amount,
+                'cost': None,
+                'fee': fee,
+            }, market)
 
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -1550,6 +1621,8 @@ class blofin(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: Timestamp in ms of the latest time to retrieve trades for
+        :param str [params.type]: 'swap' or 'spot'(defaults to 'swap'), required to fetch spot trade history
+        :param str [params.instId]: *spot markets only* the market id of the spot market to fetch the trade history for(e.g. 'BTC-USDT')
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
@@ -1567,7 +1640,35 @@ class blofin(Exchange, ImplicitAPI):
         request, params = self.handle_until_option('end', request, params)
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
-        response = self.privateGetTradeFillsHistory(self.extend(request, params))
+        type = 'swap'
+        type, params = self.handle_market_type_and_params('fetchMyTrades', market, params, type)
+        response = None
+        if type == 'spot':
+            request['instType'] = 'SPOT'
+            #
+            #     {
+            #         "code": "0",
+            #         "msg": "success",
+            #         "data": [
+            #             {
+            #                 "instId": "DOGE-USDT",
+            #                 "tradeId": "6000001623870",
+            #                 "orderId": "6000011777113",
+            #                 "fillPrice": "0.091480000000000000",
+            #                 "fillSize": "30.000000000000000000",
+            #                 "fillPnl": null,
+            #                 "side": "buy",
+            #                 "fee": "0.030000000000000000",
+            #                 "ts": "1775213753407",
+            #                 "brokerId": null,
+            #                 "feeCurrency": "base_currency"
+            #             }
+            #         ]
+            #     }
+            #
+            response = self.privateGetSpotTradeFillsHistory(self.extend(request, params))
+        else:
+            response = self.privateGetTradeFillsHistory(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
@@ -1711,6 +1812,7 @@ class blofin(Exchange, ImplicitAPI):
         #
         type = None
         id = None
+        status = None
         withdrawalId = self.safe_string(transaction, 'withdrawId')
         depositId = self.safe_string(transaction, 'depositId')
         addressTo = self.safe_string(transaction, 'address')
@@ -1719,13 +1821,14 @@ class blofin(Exchange, ImplicitAPI):
         if withdrawalId is not None:
             type = 'withdrawal'
             id = withdrawalId
+            status = self.parse_transaction_withdrawal_status(self.safe_string(transaction, 'state'))
         else:
             id = depositId
             type = 'deposit'
+            status = self.parse_transaction_deposit_status(self.safe_string(transaction, 'state'))
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId)
         amount = self.safe_number(transaction, 'amount')
-        status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
         txid = self.safe_string(transaction, 'txId')
         timestamp = self.safe_integer(transaction, 'ts')
         feeCurrencyId = self.safe_string(transaction, 'feeCurrency')
@@ -1757,7 +1860,18 @@ class blofin(Exchange, ImplicitAPI):
             },
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_withdrawal_status(self, status: Str):
+        statuses: dict = {
+            '0': 'pending',
+            '2': 'failed',
+            '3': 'ok',
+            '4': 'failed',
+            '6': 'pending',
+            '7': 'pending',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction_deposit_status(self, status: Str):
         statuses: dict = {
             '0': 'pending',
             '1': 'ok',

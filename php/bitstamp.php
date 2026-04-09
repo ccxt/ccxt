@@ -519,7 +519,6 @@ class bitstamp extends Exchange {
                     'Your account is frozen' => '\\ccxt\\PermissionDenied',
                     'Please update your profile with your FATCA information, before using API.' => '\\ccxt\\PermissionDenied',
                     'Order not found.' => '\\ccxt\\OrderNotFound',
-                    'Price is more than 20% below market price.' => '\\ccxt\\InvalidOrder',
                     "Bitstamp.net is under scheduled maintenance. We'll be back soon." => '\\ccxt\\OnMaintenance', // array( "error" => "Bitstamp.net is under scheduled maintenance. We'll be back soon." )
                     'Order could not be placed.' => '\\ccxt\\ExchangeNotAvailable', // Order could not be placed (perhaps due to internal error or trade halt). Please retry placing order.
                     'Invalid offset.' => '\\ccxt\\BadRequest',
@@ -527,6 +526,7 @@ class bitstamp extends Exchange {
                 ),
                 'broad' => array(
                     'Minimum order size is' => '\\ccxt\\InvalidOrder', // Minimum order size is 5.0 EUR.
+                    'Price is more than' => '\\ccxt\\InvalidOrder',
                     'Check your account balance for details.' => '\\ccxt\\InsufficientFunds', // You have only 0.00100000 BTC available. Check your account balance for details.
                     'Ensure this value has at least' => '\\ccxt\\InvalidAddress', // Ensure this value has at least 25 characters (it has 4).
                     'Ensure that there are no more than' => '\\ccxt\\InvalidOrder', // array("status" => "error", "reason" => array("amount" => ["Ensure that there are no more than 0 decimal places."], "__all__" => [""]))
@@ -1141,6 +1141,19 @@ class bitstamp extends Exchange {
         $priceString = $this->safe_string($trade, $priceId, $priceString);
         $amountString = $this->safe_string($trade, $market['baseId'], $amountString);
         $costString = $this->safe_string($trade, $market['quoteId'], $costString);
+        // this endpoint is not aligned with "markets" endpoint
+        $baseIdLower = strtolower($market['baseId']);
+        $quoteIdLower = strtolower($market['quoteId']);
+        $dashedIdLower = $baseIdLower . '_' . $quoteIdLower;
+        if ($priceString === null) {
+            $priceString = $this->safe_string($trade, $dashedIdLower);
+        }
+        if ($amountString === null) {
+            $amountString = $this->safe_string($trade, $baseIdLower);
+        }
+        if ($costString === null) {
+            $costString = $this->safe_string($trade, $quoteIdLower);
+        }
         $symbol = $market['symbol'];
         $datetimeString = $this->safe_string_2($trade, 'date', 'datetime');
         $timestamp = null;

@@ -26,6 +26,11 @@ public partial class mexc : Exchange
         return await this.callAsync ("spotPublicGetDefaultSymbols",parameters);
     }
 
+    public async Task<object> spotPublicGetSymbolOffline (object parameters = null)
+    {
+        return await this.callAsync ("spotPublicGetSymbolOffline",parameters);
+    }
+
     public async Task<object> spotPublicGetExchangeInfo (object parameters = null)
     {
         return await this.callAsync ("spotPublicGetExchangeInfo",parameters);
@@ -306,6 +311,21 @@ public partial class mexc : Exchange
         return await this.callAsync ("spotPrivateGetRebateAffiliateCommissionDetail",parameters);
     }
 
+    public async Task<object> spotPrivateGetRebateAffiliateCampaign (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetRebateAffiliateCampaign",parameters);
+    }
+
+    public async Task<object> spotPrivateGetRebateAffiliateReferral (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetRebateAffiliateReferral",parameters);
+    }
+
+    public async Task<object> spotPrivateGetRebateAffiliateSubaffiliates (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetRebateAffiliateSubaffiliates",parameters);
+    }
+
     public async Task<object> spotPrivateGetMxDeductEnable (object parameters = null)
     {
         return await this.callAsync ("spotPrivateGetMxDeductEnable",parameters);
@@ -431,6 +451,16 @@ public partial class mexc : Exchange
         return await this.callAsync ("spotPrivateDeleteSubAccountApiKey",parameters);
     }
 
+    public async Task<object> spotPrivateDeleteStrategyGroup (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateDeleteStrategyGroup",parameters);
+    }
+
+    public async Task<object> spotPrivateDeleteStrategyGroupUid (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateDeleteStrategyGroupUid",parameters);
+    }
+
     public async Task<object> spotPrivateDeleteMarginOrder (object parameters = null)
     {
         return await this.callAsync ("spotPrivateDeleteMarginOrder",parameters);
@@ -546,6 +576,66 @@ public partial class mexc : Exchange
         return await this.callAsync ("contractPrivateGetAccountTransferRecord",parameters);
     }
 
+    public async Task<object> contractPrivateGetAccountProfitRateType (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetAccountProfitRateType",parameters);
+    }
+
+    public async Task<object> contractPrivateGetAccountAssetAnalysisType (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetAccountAssetAnalysisType",parameters);
+    }
+
+    public async Task<object> contractPrivateGetAccountFeeDeductConfigs (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetAccountFeeDeductConfigs",parameters);
+    }
+
+    public async Task<object> contractPrivateGetAccountAssetAnalysisYesterdayPnl (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetAccountAssetAnalysisYesterdayPnl",parameters);
+    }
+
+    public async Task<object> contractPrivateGetAccountAssetAnalysisTodayPnl (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetAccountAssetAnalysisTodayPnl",parameters);
+    }
+
+    public async Task<object> contractPrivateGetAccountConfigContractFeeDiscountConfig (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetAccountConfigContractFeeDiscountConfig",parameters);
+    }
+
+    public async Task<object> contractPrivateGetOrderFeeDetails (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetOrderFeeDetails",parameters);
+    }
+
+    public async Task<object> contractPrivateGetAccountDiscountType (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetAccountDiscountType",parameters);
+    }
+
+    public async Task<object> contractPrivateGetAccountAssetAnalysisExport (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetAccountAssetAnalysisExport",parameters);
+    }
+
+    public async Task<object> contractPrivateGetAccountAssetBookOrderDealFeeTotal (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetAccountAssetBookOrderDealFeeTotal",parameters);
+    }
+
+    public async Task<object> contractPrivateGetAccountContractFeeRate (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetAccountContractFeeRate",parameters);
+    }
+
+    public async Task<object> contractPrivateGetAccountContractZeroFeeRate (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetAccountContractZeroFeeRate",parameters);
+    }
+
     public async Task<object> contractPrivateGetPositionListHistoryPositions (object parameters = null)
     {
         return await this.callAsync ("contractPrivateGetPositionListHistoryPositions",parameters);
@@ -576,6 +666,11 @@ public partial class mexc : Exchange
         return await this.callAsync ("contractPrivateGetOrderListHistoryOrders",parameters);
     }
 
+    public async Task<object> contractPrivateGetOrderListOrderDealsV3 (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetOrderListOrderDealsV3",parameters);
+    }
+
     public async Task<object> contractPrivateGetOrderExternalSymbolExternalOid (object parameters = null)
     {
         return await this.callAsync ("contractPrivateGetOrderExternalSymbolExternalOid",parameters);
@@ -601,6 +696,11 @@ public partial class mexc : Exchange
         return await this.callAsync ("contractPrivateGetOrderListOrderDeals",parameters);
     }
 
+    public async Task<object> contractPrivateGetOrderListCloseOrders (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetOrderListCloseOrders",parameters);
+    }
+
     public async Task<object> contractPrivateGetPlanorderListOrders (object parameters = null)
     {
         return await this.callAsync ("contractPrivateGetPlanorderListOrders",parameters);
@@ -609,6 +709,11 @@ public partial class mexc : Exchange
     public async Task<object> contractPrivateGetStoporderListOrders (object parameters = null)
     {
         return await this.callAsync ("contractPrivateGetStoporderListOrders",parameters);
+    }
+
+    public async Task<object> contractPrivateGetStoporderOpenOrders (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetStoporderOpenOrders",parameters);
     }
 
     public async Task<object> contractPrivateGetStoporderOrderDetailsStopOrderId (object parameters = null)
@@ -631,9 +736,54 @@ public partial class mexc : Exchange
         return await this.callAsync ("contractPrivateGetPositionLeverage",parameters);
     }
 
+    public async Task<object> contractPrivateGetAccountTieredFeeRateV2 (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetAccountTieredFeeRateV2",parameters);
+    }
+
+    public async Task<object> contractPrivateGetTrackorderListOrders (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetTrackorderListOrders",parameters);
+    }
+
+    public async Task<object> contractPrivateGetMarketMakerSelfTradeBlacklist (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetMarketMakerSelfTradeBlacklist",parameters);
+    }
+
+    public async Task<object> contractPrivateGetMarketMakerSelfTradeBlacklistSearch (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetMarketMakerSelfTradeBlacklistSearch",parameters);
+    }
+
+    public async Task<object> contractPrivatePostAccountAssetAnalysisV3 (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostAccountAssetAnalysisV3",parameters);
+    }
+
+    public async Task<object> contractPrivatePostAccountAssetAnalysisCalendarDailyV3 (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostAccountAssetAnalysisCalendarDailyV3",parameters);
+    }
+
+    public async Task<object> contractPrivatePostAccountAssetAnalysisCalendarMonthlyV3 (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostAccountAssetAnalysisCalendarMonthlyV3",parameters);
+    }
+
+    public async Task<object> contractPrivatePostAccountAssetAnalysisRecentV3 (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostAccountAssetAnalysisRecentV3",parameters);
+    }
+
     public async Task<object> contractPrivatePostPositionChangeMargin (object parameters = null)
     {
         return await this.callAsync ("contractPrivatePostPositionChangeMargin",parameters);
+    }
+
+    public async Task<object> contractPrivatePostPositionChangeAutoAddIm (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostPositionChangeAutoAddIm",parameters);
     }
 
     public async Task<object> contractPrivatePostPositionChangeLeverage (object parameters = null)
@@ -646,6 +796,21 @@ public partial class mexc : Exchange
         return await this.callAsync ("contractPrivatePostPositionChangePositionMode",parameters);
     }
 
+    public async Task<object> contractPrivatePostPositionReverse (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostPositionReverse",parameters);
+    }
+
+    public async Task<object> contractPrivatePostPositionCloseAll (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostPositionCloseAll",parameters);
+    }
+
+    public async Task<object> contractPrivatePostOrderCreate (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostOrderCreate",parameters);
+    }
+
     public async Task<object> contractPrivatePostOrderSubmit (object parameters = null)
     {
         return await this.callAsync ("contractPrivatePostOrderSubmit",parameters);
@@ -656,9 +821,24 @@ public partial class mexc : Exchange
         return await this.callAsync ("contractPrivatePostOrderSubmitBatch",parameters);
     }
 
+    public async Task<object> contractPrivatePostOrderChaseLimitOrder (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostOrderChaseLimitOrder",parameters);
+    }
+
+    public async Task<object> contractPrivatePostOrderChangeLimitOrder (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostOrderChangeLimitOrder",parameters);
+    }
+
     public async Task<object> contractPrivatePostOrderCancel (object parameters = null)
     {
         return await this.callAsync ("contractPrivatePostOrderCancel",parameters);
+    }
+
+    public async Task<object> contractPrivatePostOrderBatchCancelWithExternal (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostOrderBatchCancelWithExternal",parameters);
     }
 
     public async Task<object> contractPrivatePostOrderCancelWithExternal (object parameters = null)
@@ -671,6 +851,16 @@ public partial class mexc : Exchange
         return await this.callAsync ("contractPrivatePostOrderCancelAll",parameters);
     }
 
+    public async Task<object> contractPrivatePostOrderOpenOrderTotalCount (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostOrderOpenOrderTotalCount",parameters);
+    }
+
+    public async Task<object> contractPrivatePostOrderBatchQueryWithExternal (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostOrderBatchQueryWithExternal",parameters);
+    }
+
     public async Task<object> contractPrivatePostAccountChangeRiskLevel (object parameters = null)
     {
         return await this.callAsync ("contractPrivatePostAccountChangeRiskLevel",parameters);
@@ -681,6 +871,11 @@ public partial class mexc : Exchange
         return await this.callAsync ("contractPrivatePostPlanorderPlace",parameters);
     }
 
+    public async Task<object> contractPrivatePostPlanorderPlaceV2 (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostPlanorderPlaceV2",parameters);
+    }
+
     public async Task<object> contractPrivatePostPlanorderCancel (object parameters = null)
     {
         return await this.callAsync ("contractPrivatePostPlanorderCancel",parameters);
@@ -689,6 +884,16 @@ public partial class mexc : Exchange
     public async Task<object> contractPrivatePostPlanorderCancelAll (object parameters = null)
     {
         return await this.callAsync ("contractPrivatePostPlanorderCancelAll",parameters);
+    }
+
+    public async Task<object> contractPrivatePostPlanorderChangeStopOrder (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostPlanorderChangeStopOrder",parameters);
+    }
+
+    public async Task<object> contractPrivatePostStoporderPlace (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostStoporderPlace",parameters);
     }
 
     public async Task<object> contractPrivatePostStoporderCancel (object parameters = null)
@@ -709,6 +914,36 @@ public partial class mexc : Exchange
     public async Task<object> contractPrivatePostStoporderChangePlanPrice (object parameters = null)
     {
         return await this.callAsync ("contractPrivatePostStoporderChangePlanPrice",parameters);
+    }
+
+    public async Task<object> contractPrivatePostTrackorderPlace (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostTrackorderPlace",parameters);
+    }
+
+    public async Task<object> contractPrivatePostTrackorderCancel (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostTrackorderCancel",parameters);
+    }
+
+    public async Task<object> contractPrivatePostTrackorderChangeOrder (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostTrackorderChangeOrder",parameters);
+    }
+
+    public async Task<object> contractPrivatePostMarketMakerSelfTradeBlacklistCreate (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostMarketMakerSelfTradeBlacklistCreate",parameters);
+    }
+
+    public async Task<object> contractPrivatePostMarketMakerSelfTradeBlacklistUpdate (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostMarketMakerSelfTradeBlacklistUpdate",parameters);
+    }
+
+    public async Task<object> contractPrivatePostMarketMakerSelfTradeBlacklistDelete (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostMarketMakerSelfTradeBlacklistDelete",parameters);
     }
 
     public async Task<object> spot2PublicGetMarketSymbols (object parameters = null)
@@ -876,6 +1111,11 @@ public partial class mexc : Exchange
         return await this.callAsync ("brokerPrivateGetSubAccountList",parameters);
     }
 
+    public async Task<object> brokerPrivateGetSubAccountStatus (object parameters = null)
+    {
+        return await this.callAsync ("brokerPrivateGetSubAccountStatus",parameters);
+    }
+
     public async Task<object> brokerPrivateGetSubAccountApiKey (object parameters = null)
     {
         return await this.callAsync ("brokerPrivateGetSubAccountApiKey",parameters);
@@ -894,6 +1134,11 @@ public partial class mexc : Exchange
     public async Task<object> brokerPrivateGetCapitalDepositSubHisrecGetall (object parameters = null)
     {
         return await this.callAsync ("brokerPrivateGetCapitalDepositSubHisrecGetall",parameters);
+    }
+
+    public async Task<object> brokerPrivateGetRebateTaxQuery (object parameters = null)
+    {
+        return await this.callAsync ("brokerPrivateGetRebateTaxQuery",parameters);
     }
 
     public async Task<object> brokerPrivatePostSubAccountVirtualSubAccount (object parameters = null)

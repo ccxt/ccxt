@@ -11,64 +11,132 @@ func (this *AsterCore) FapiPublicGetV1Ping(args ...interface{}) <-chan interface
 	return this.callEndpointAsync("fapiPublicGetV1Ping", args...)
 }
 
+func (this *AsterCore) FapiPublicGetV3Ping(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetV3Ping", args...)
+}
+
 func (this *AsterCore) FapiPublicGetV1Time(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPublicGetV1Time", args...)
+}
+
+func (this *AsterCore) FapiPublicGetV3Time(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetV3Time", args...)
 }
 
 func (this *AsterCore) FapiPublicGetV1ExchangeInfo(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPublicGetV1ExchangeInfo", args...)
 }
 
+func (this *AsterCore) FapiPublicGetV3ExchangeInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetV3ExchangeInfo", args...)
+}
+
 func (this *AsterCore) FapiPublicGetV1Depth(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPublicGetV1Depth", args...)
+}
+
+func (this *AsterCore) FapiPublicGetV3Depth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetV3Depth", args...)
 }
 
 func (this *AsterCore) FapiPublicGetV1Trades(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPublicGetV1Trades", args...)
 }
 
+func (this *AsterCore) FapiPublicGetV3Trades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetV3Trades", args...)
+}
+
 func (this *AsterCore) FapiPublicGetV1HistoricalTrades(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPublicGetV1HistoricalTrades", args...)
+}
+
+func (this *AsterCore) FapiPublicGetV3HistoricalTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetV3HistoricalTrades", args...)
 }
 
 func (this *AsterCore) FapiPublicGetV1AggTrades(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPublicGetV1AggTrades", args...)
 }
 
+func (this *AsterCore) FapiPublicGetV3AggTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetV3AggTrades", args...)
+}
+
 func (this *AsterCore) FapiPublicGetV1Klines(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPublicGetV1Klines", args...)
+}
+
+func (this *AsterCore) FapiPublicGetV3Klines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetV3Klines", args...)
 }
 
 func (this *AsterCore) FapiPublicGetV1IndexPriceKlines(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPublicGetV1IndexPriceKlines", args...)
 }
 
+func (this *AsterCore) FapiPublicGetV3IndexPriceKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetV3IndexPriceKlines", args...)
+}
+
 func (this *AsterCore) FapiPublicGetV1MarkPriceKlines(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPublicGetV1MarkPriceKlines", args...)
+}
+
+func (this *AsterCore) FapiPublicGetV3MarkPriceKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetV3MarkPriceKlines", args...)
 }
 
 func (this *AsterCore) FapiPublicGetV1PremiumIndex(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPublicGetV1PremiumIndex", args...)
 }
 
+func (this *AsterCore) FapiPublicGetV3PremiumIndex(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetV3PremiumIndex", args...)
+}
+
 func (this *AsterCore) FapiPublicGetV1FundingRate(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPublicGetV1FundingRate", args...)
+}
+
+func (this *AsterCore) FapiPublicGetV3FundingRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetV3FundingRate", args...)
 }
 
 func (this *AsterCore) FapiPublicGetV1FundingInfo(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPublicGetV1FundingInfo", args...)
 }
 
+func (this *AsterCore) FapiPublicGetV3FundingInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetV3FundingInfo", args...)
+}
+
 func (this *AsterCore) FapiPublicGetV1Ticker24hr(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPublicGetV1Ticker24hr", args...)
+}
+
+func (this *AsterCore) FapiPublicGetV3Ticker24hr(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetV3Ticker24hr", args...)
 }
 
 func (this *AsterCore) FapiPublicGetV1TickerPrice(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPublicGetV1TickerPrice", args...)
 }
 
+func (this *AsterCore) FapiPublicGetV3TickerPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetV3TickerPrice", args...)
+}
+
 func (this *AsterCore) FapiPublicGetV1TickerBookTicker(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPublicGetV1TickerBookTicker", args...)
+}
+
+func (this *AsterCore) FapiPublicGetV3TickerBookTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetV3TickerBookTicker", args...)
+}
+
+func (this *AsterCore) FapiPublicGetV3Indexreferences(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetV3Indexreferences", args...)
 }
 
 func (this *AsterCore) FapiPublicGetV1AdlQuantile(args ...interface{}) <-chan interface{} {
@@ -83,24 +151,48 @@ func (this *AsterCore) FapiPrivateGetV1PositionSideDual(args ...interface{}) <-c
 	return this.callEndpointAsync("fapiPrivateGetV1PositionSideDual", args...)
 }
 
+func (this *AsterCore) FapiPrivateGetV3PositionSideDual(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetV3PositionSideDual", args...)
+}
+
 func (this *AsterCore) FapiPrivateGetV1MultiAssetsMargin(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivateGetV1MultiAssetsMargin", args...)
+}
+
+func (this *AsterCore) FapiPrivateGetV3MultiAssetsMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetV3MultiAssetsMargin", args...)
 }
 
 func (this *AsterCore) FapiPrivateGetV1Order(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivateGetV1Order", args...)
 }
 
+func (this *AsterCore) FapiPrivateGetV3Order(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetV3Order", args...)
+}
+
 func (this *AsterCore) FapiPrivateGetV1OpenOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivateGetV1OpenOrder", args...)
+}
+
+func (this *AsterCore) FapiPrivateGetV3OpenOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetV3OpenOrder", args...)
 }
 
 func (this *AsterCore) FapiPrivateGetV1OpenOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivateGetV1OpenOrders", args...)
 }
 
+func (this *AsterCore) FapiPrivateGetV3OpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetV3OpenOrders", args...)
+}
+
 func (this *AsterCore) FapiPrivateGetV1AllOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivateGetV1AllOrders", args...)
+}
+
+func (this *AsterCore) FapiPrivateGetV3AllOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetV3AllOrders", args...)
 }
 
 func (this *AsterCore) FapiPrivateGetV2Balance(args ...interface{}) <-chan interface{} {
@@ -115,12 +207,20 @@ func (this *AsterCore) FapiPrivateGetV3Account(args ...interface{}) <-chan inter
 	return this.callEndpointAsync("fapiPrivateGetV3Account", args...)
 }
 
+func (this *AsterCore) FapiPrivateGetV3AccountWithJoinMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetV3AccountWithJoinMargin", args...)
+}
+
 func (this *AsterCore) FapiPrivateGetV4Account(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivateGetV4Account", args...)
 }
 
 func (this *AsterCore) FapiPrivateGetV1PositionMarginHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivateGetV1PositionMarginHistory", args...)
+}
+
+func (this *AsterCore) FapiPrivateGetV3PositionMarginHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetV3PositionMarginHistory", args...)
 }
 
 func (this *AsterCore) FapiPrivateGetV2PositionRisk(args ...interface{}) <-chan interface{} {
@@ -135,80 +235,188 @@ func (this *AsterCore) FapiPrivateGetV1UserTrades(args ...interface{}) <-chan in
 	return this.callEndpointAsync("fapiPrivateGetV1UserTrades", args...)
 }
 
+func (this *AsterCore) FapiPrivateGetV3UserTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetV3UserTrades", args...)
+}
+
 func (this *AsterCore) FapiPrivateGetV1Income(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivateGetV1Income", args...)
+}
+
+func (this *AsterCore) FapiPrivateGetV3Income(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetV3Income", args...)
 }
 
 func (this *AsterCore) FapiPrivateGetV1LeverageBracket(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivateGetV1LeverageBracket", args...)
 }
 
+func (this *AsterCore) FapiPrivateGetV3LeverageBracket(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetV3LeverageBracket", args...)
+}
+
+func (this *AsterCore) FapiPrivateGetV3AdlQuantile(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetV3AdlQuantile", args...)
+}
+
+func (this *AsterCore) FapiPrivateGetV3ForceOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetV3ForceOrders", args...)
+}
+
 func (this *AsterCore) FapiPrivateGetV1CommissionRate(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivateGetV1CommissionRate", args...)
+}
+
+func (this *AsterCore) FapiPrivateGetV3CommissionRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetV3CommissionRate", args...)
+}
+
+func (this *AsterCore) FapiPrivateGetV3Mmp(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetV3Mmp", args...)
+}
+
+func (this *AsterCore) FapiPrivatePostV3Noop(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostV3Noop", args...)
 }
 
 func (this *AsterCore) FapiPrivatePostV1PositionSideDual(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivatePostV1PositionSideDual", args...)
 }
 
+func (this *AsterCore) FapiPrivatePostV3PositionSideDual(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostV3PositionSideDual", args...)
+}
+
 func (this *AsterCore) FapiPrivatePostV1MultiAssetsMargin(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivatePostV1MultiAssetsMargin", args...)
+}
+
+func (this *AsterCore) FapiPrivatePostV3MultiAssetsMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostV3MultiAssetsMargin", args...)
 }
 
 func (this *AsterCore) FapiPrivatePostV1Order(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivatePostV1Order", args...)
 }
 
+func (this *AsterCore) FapiPrivatePostV3Order(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostV3Order", args...)
+}
+
 func (this *AsterCore) FapiPrivatePostV1OrderTest(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivatePostV1OrderTest", args...)
+}
+
+func (this *AsterCore) FapiPrivatePostV3OrderTest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostV3OrderTest", args...)
 }
 
 func (this *AsterCore) FapiPrivatePostV1BatchOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivatePostV1BatchOrders", args...)
 }
 
+func (this *AsterCore) FapiPrivatePostV3BatchOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostV3BatchOrders", args...)
+}
+
 func (this *AsterCore) FapiPrivatePostV1AssetWalletTransfer(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivatePostV1AssetWalletTransfer", args...)
+}
+
+func (this *AsterCore) FapiPrivatePostV3AssetWalletTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostV3AssetWalletTransfer", args...)
 }
 
 func (this *AsterCore) FapiPrivatePostV1CountdownCancelAll(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivatePostV1CountdownCancelAll", args...)
 }
 
+func (this *AsterCore) FapiPrivatePostV3CountdownCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostV3CountdownCancelAll", args...)
+}
+
 func (this *AsterCore) FapiPrivatePostV1Leverage(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivatePostV1Leverage", args...)
+}
+
+func (this *AsterCore) FapiPrivatePostV3Leverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostV3Leverage", args...)
 }
 
 func (this *AsterCore) FapiPrivatePostV1MarginType(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivatePostV1MarginType", args...)
 }
 
+func (this *AsterCore) FapiPrivatePostV3MarginType(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostV3MarginType", args...)
+}
+
 func (this *AsterCore) FapiPrivatePostV1PositionMargin(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivatePostV1PositionMargin", args...)
+}
+
+func (this *AsterCore) FapiPrivatePostV3PositionMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostV3PositionMargin", args...)
+}
+
+func (this *AsterCore) FapiPrivatePostV3Mmp(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostV3Mmp", args...)
+}
+
+func (this *AsterCore) FapiPrivatePostV3MmpReset(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostV3MmpReset", args...)
 }
 
 func (this *AsterCore) FapiPrivatePostV1ListenKey(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivatePostV1ListenKey", args...)
 }
 
+func (this *AsterCore) FapiPrivatePostV3ListenKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostV3ListenKey", args...)
+}
+
 func (this *AsterCore) FapiPrivatePutV1ListenKey(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivatePutV1ListenKey", args...)
+}
+
+func (this *AsterCore) FapiPrivatePutV3ListenKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePutV3ListenKey", args...)
 }
 
 func (this *AsterCore) FapiPrivateDeleteV1Order(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivateDeleteV1Order", args...)
 }
 
+func (this *AsterCore) FapiPrivateDeleteV3Order(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateDeleteV3Order", args...)
+}
+
 func (this *AsterCore) FapiPrivateDeleteV1AllOpenOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivateDeleteV1AllOpenOrders", args...)
+}
+
+func (this *AsterCore) FapiPrivateDeleteV3AllOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateDeleteV3AllOpenOrders", args...)
 }
 
 func (this *AsterCore) FapiPrivateDeleteV1BatchOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivateDeleteV1BatchOrders", args...)
 }
 
+func (this *AsterCore) FapiPrivateDeleteV3BatchOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateDeleteV3BatchOrders", args...)
+}
+
+func (this *AsterCore) FapiPrivateDeleteV3Mmp(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateDeleteV3Mmp", args...)
+}
+
 func (this *AsterCore) FapiPrivateDeleteV1ListenKey(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivateDeleteV1ListenKey", args...)
+}
+
+func (this *AsterCore) FapiPrivateDeleteV3ListenKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateDeleteV3ListenKey", args...)
 }
 
 func (this *AsterCore) SapiPublicGetV1Ping(args ...interface{}) <-chan interface{} {

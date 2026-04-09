@@ -1355,6 +1355,72 @@ func (this *ExchangeTyped) FetchOHLCV(symbol string, options ...FetchOHLCVOption
 	}
 	return NewOHLCVArray(res), nil
 }
+func (this *ExchangeTyped) FetchSpotOHLCV(symbol string, options ...FetchSpotOHLCVOptions) ([]OHLCV, error) {
+
+	opts := FetchSpotOHLCVOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var timeframe interface{} = nil
+	if opts.Timeframe != nil {
+		timeframe = *opts.Timeframe
+	}
+
+	var since interface{} = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit interface{} = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchSpotOHLCV(symbol, timeframe, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOHLCVArray(res), nil
+}
+func (this *ExchangeTyped) FetchContractOHLCV(symbol string, options ...FetchContractOHLCVOptions) ([]OHLCV, error) {
+
+	opts := FetchContractOHLCVOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var timeframe interface{} = nil
+	if opts.Timeframe != nil {
+		timeframe = *opts.Timeframe
+	}
+
+	var since interface{} = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit interface{} = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchContractOHLCV(symbol, timeframe, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOHLCVArray(res), nil
+}
 func (this *ExchangeTyped) FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error) {
 
 	opts := FetchOHLCVWsOptionsStruct{}
@@ -2290,6 +2356,52 @@ func (this *ExchangeTyped) FetchTickers(options ...FetchTickersOptions) (Tickers
 	}
 	return NewTickers(res), nil
 }
+func (this *ExchangeTyped) FetchSpotTickers(options ...FetchSpotTickersOptions) (Tickers, error) {
+
+	opts := FetchSpotTickersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols interface{} = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchSpotTickers(symbols, params)
+	if IsError(res) {
+		return Tickers{}, CreateReturnError(res)
+	}
+	return NewTickers(res), nil
+}
+func (this *ExchangeTyped) FetchContractTickers(options ...FetchContractTickersOptions) (Tickers, error) {
+
+	opts := FetchContractTickersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols interface{} = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchContractTickers(symbols, params)
+	if IsError(res) {
+		return Tickers{}, CreateReturnError(res)
+	}
+	return NewTickers(res), nil
+}
 func (this *ExchangeTyped) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {
 
 	opts := FetchMarkPricesOptionsStruct{}
@@ -3219,6 +3331,42 @@ func (this *ExchangeTyped) CreateOrders(orders []OrderRequest, options ...Create
 	}
 	return NewOrderArray(res), nil
 }
+func (this *ExchangeTyped) CreateSpotOrders(orders []OrderRequest, options ...CreateSpotOrdersOptions) ([]Order, error) {
+
+	opts := CreateSpotOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateSpotOrders(orders, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *ExchangeTyped) CreateContractOrders(orders []OrderRequest, options ...CreateContractOrdersOptions) ([]Order, error) {
+
+	opts := CreateContractOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateContractOrders(orders, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
 func (this *ExchangeTyped) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 
 	opts := EditOrdersOptionsStruct{}
@@ -3278,6 +3426,52 @@ func (this *ExchangeTyped) CancelOrder(id string, options ...CancelOrderOptions)
 		params = *opts.Params
 	}
 	res := <-this.Exchange.CancelOrder(id, symbol, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CancelSpotOrder(id string, options ...CancelSpotOrderOptions) (Order, error) {
+
+	opts := CancelSpotOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol interface{} = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CancelSpotOrder(id, symbol, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CancelContractOrder(id string, options ...CancelContractOrderOptions) (Order, error) {
+
+	opts := CancelContractOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol interface{} = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CancelContractOrder(id, symbol, params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -3416,6 +3610,52 @@ func (this *ExchangeTyped) CancelAllOrders(options ...CancelAllOrdersOptions) ([
 		params = *opts.Params
 	}
 	res := <-this.Exchange.CancelAllOrders(symbol, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *ExchangeTyped) CancelAllSpotOrders(options ...CancelAllSpotOrdersOptions) ([]Order, error) {
+
+	opts := CancelAllSpotOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol interface{} = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CancelAllSpotOrders(symbol, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *ExchangeTyped) CancelAllContractOrders(options ...CancelAllContractOrdersOptions) ([]Order, error) {
+
+	opts := CancelAllContractOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol interface{} = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CancelAllContractOrders(symbol, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -4355,6 +4595,24 @@ func (this *ExchangeTyped) FetchDepositAddress(code string, options ...FetchDepo
 		params = *opts.Params
 	}
 	res := <-this.Exchange.FetchDepositAddress(code, params)
+	if IsError(res) {
+		return DepositAddress{}, CreateReturnError(res)
+	}
+	return NewDepositAddress(res), nil
+}
+func (this *ExchangeTyped) FetchContractDepositAddress(code string, options ...FetchContractDepositAddressOptions) (DepositAddress, error) {
+
+	opts := FetchContractDepositAddressOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchContractDepositAddress(code, params)
 	if IsError(res) {
 		return DepositAddress{}, CreateReturnError(res)
 	}

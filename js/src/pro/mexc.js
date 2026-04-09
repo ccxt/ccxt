@@ -1429,7 +1429,7 @@ export default class mexc extends mexcRest {
         //
         const timestamp = this.safeInteger(order, 'createTime');
         const side = this.safeString(order, 'tradeType');
-        const status = this.safeString(order, 'status');
+        const status = this.safeString2(order, 'status', 'state');
         const type = this.safeString(order, 'orderType');
         let fee = undefined;
         const feeCurrency = this.safeString(order, 'N');
@@ -1451,8 +1451,8 @@ export default class mexc extends mexcRest {
             'timeInForce': this.parseWsTimeInForce(type),
             'side': (side === '1') ? 'buy' : 'sell',
             'price': this.safeString(order, 'price'),
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'stopPrice': this.safeString2(order, 'triggerPrice', 'P'),
+            'triggerPrice': this.safeString2(order, 'triggerPrice', 'P'),
             'average': this.safeString(order, 'avgPrice'),
             'amount': this.safeString(order, 'quantity'),
             'cost': this.safeString(order, 'amount'),
@@ -1465,6 +1465,7 @@ export default class mexc extends mexcRest {
     }
     parseWsOrderStatus(status, market = undefined) {
         const statuses = {
+            '0': 'open',
             '1': 'open',
             '2': 'closed',
             '3': 'open',
@@ -1484,7 +1485,9 @@ export default class mexc extends mexcRest {
             '3': undefined,
             '4': undefined,
             '5': 'market',
-            '100': 'limit', // STOP_LIMIT
+            '100': 'limit',
+            '101': 'limit',
+            '102': 'limit', // OCO_LIMIT
         };
         return this.safeString(types, type);
     }
@@ -1495,7 +1498,9 @@ export default class mexc extends mexcRest {
             '3': 'IOC',
             '4': 'FOK',
             '5': 'GTC',
-            '100': 'GTC', // STOP_LIMIT
+            '100': 'GTC',
+            '101': 'GTC',
+            '102': 'GTC', // OCO_LIMIT
         };
         return this.safeString(timeInForceIds, timeInForce);
     }

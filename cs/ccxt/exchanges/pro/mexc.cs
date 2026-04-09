@@ -1520,7 +1520,7 @@ public partial class mexc : ccxt.mexc
         //
         object timestamp = this.safeInteger(order, "createTime");
         object side = this.safeString(order, "tradeType");
-        object status = this.safeString(order, "status");
+        object status = this.safeString2(order, "status", "state");
         object type = this.safeString(order, "orderType");
         object fee = null;
         object feeCurrency = this.safeString(order, "N");
@@ -1543,8 +1543,8 @@ public partial class mexc : ccxt.mexc
             { "timeInForce", this.parseWsTimeInForce(type) },
             { "side", ((bool) isTrue((isEqual(side, "1")))) ? "buy" : "sell" },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", null },
-            { "triggerPrice", null },
+            { "stopPrice", this.safeString2(order, "triggerPrice", "P") },
+            { "triggerPrice", this.safeString2(order, "triggerPrice", "P") },
             { "average", this.safeString(order, "avgPrice") },
             { "amount", this.safeString(order, "quantity") },
             { "cost", this.safeString(order, "amount") },
@@ -1559,6 +1559,7 @@ public partial class mexc : ccxt.mexc
     public virtual object parseWsOrderStatus(object status, object market = null)
     {
         object statuses = new Dictionary<string, object>() {
+            { "0", "open" },
             { "1", "open" },
             { "2", "closed" },
             { "3", "open" },
@@ -1581,6 +1582,8 @@ public partial class mexc : ccxt.mexc
             { "4", null },
             { "5", "market" },
             { "100", "limit" },
+            { "101", "limit" },
+            { "102", "limit" },
         };
         return this.safeString(types, type);
     }
@@ -1594,6 +1597,8 @@ public partial class mexc : ccxt.mexc
             { "4", "FOK" },
             { "5", "GTC" },
             { "100", "GTC" },
+            { "101", "GTC" },
+            { "102", "GTC" },
         };
         return this.safeString(timeInForceIds, timeInForce);
     }

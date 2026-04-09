@@ -2254,7 +2254,7 @@ class okx(ccxt.async_support.okx):
                         errorCode = self.safe_string(d, 'sCode')
                         if errorCode is not None:
                             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
-                        messageString = self.safe_value(message, 'sMsg')
+                        messageString = self.safe_value(d, 'sMsg')
                         if messageString is not None:
                             self.throw_broadly_matched_exception(self.exceptions['broad'], messageString, feedback)
                 raise ExchangeError(feedback)

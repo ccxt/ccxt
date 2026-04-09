@@ -3,6 +3,59 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchFundingRate": [
+            {
+                "description": "fetch funding rate",
+                "method": "fetchFundingRate",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "symbol": ".ETHUSDTMFPI8H",
+                        "granularity": 28800000,
+                        "timePoint": 1773273600000,
+                        "value": -0.000028,
+                        "dailyInterestRate": 0.0003,
+                        "fundingRateCap": 0.00375,
+                        "fundingRateFloor": -0.00375,
+                        "period": 1,
+                        "fundingTime": 1773302400000
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": ".ETHUSDTMFPI8H",
+                        "granularity": 28800000,
+                        "timePoint": 1773273600000,
+                        "value": -0.000028,
+                        "dailyInterestRate": 0.0003,
+                        "fundingRateCap": 0.00375,
+                        "fundingRateFloor": -0.00375,
+                        "period": 1,
+                        "fundingTime": 1773302400000
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": 0.0003,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": -0.000028,
+                    "fundingTimestamp": 1773302400000,
+                    "fundingDatetime": "2026-03-12T08:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": 1773273600000,
+                    "previousFundingDatetime": "2026-03-12T00:00:00.000Z",
+                    "interval": "8h"
+                }
+            }
+        ],
         "fetchOpenOrders": [
             {
                 "description": "Fetch open orders",
@@ -131,7 +184,7 @@
         ],
         "fetchMyTrades": [
             {
-                "description": "fethc swap trade",
+                "description": "fetch swap trade",
                 "method": "fetchMyTrades",
                 "input": [
                     "LTC/USDT:USDT"
@@ -332,51 +385,6 @@
                     "fees": [],
                     "takeProfitPrice": null,
                     "stopLossPrice": null
-                }
-            }
-        ],
-        "fetchFundingRate": [
-            {
-                "description": "funding rate",
-                "method": "fetchFundingRate",
-                "input": [
-                    "BTC/USDT:USDT"
-                ],
-                "httpResponse": {
-                    "code": "200000",
-                    "data": {
-                        "symbol": ".XBTUSDTMFPI8H",
-                        "granularity": 28800000,
-                        "timePoint": 1705896000000,
-                        "value": 0.000136,
-                        "predictedValue": 0.00008
-                    }
-                },
-                "parsedResponse": {
-                    "info": {
-                        "symbol": ".XBTUSDTMFPI8H",
-                        "granularity": 28800000,
-                        "timePoint": 1705896000000,
-                        "value": 0.000136,
-                        "predictedValue": 0.00008
-                    },
-                    "symbol": "BTC/USDT:USDT",
-                    "markPrice": null,
-                    "indexPrice": null,
-                    "interestRate": null,
-                    "estimatedSettlePrice": null,
-                    "timestamp": null,
-                    "datetime": null,
-                    "fundingRate": 0.000136,
-                    "fundingTimestamp": 1705896000000,
-                    "fundingDatetime": "2024-01-22T04:00:00.000Z",
-                    "nextFundingRate": 0.00008,
-                    "nextFundingTimestamp": null,
-                    "nextFundingDatetime": null,
-                    "previousFundingRate": null,
-                    "previousFundingTimestamp": null,
-                    "previousFundingDatetime": null,
-                    "interval": "8h"
                 }
             }
         ],

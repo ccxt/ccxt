@@ -16,9 +16,19 @@ public partial class aster : Exchange
         return await this.callAsync ("fapiPublicGetV1Ping",parameters);
     }
 
+    public async Task<object> fapiPublicGetV3Ping (object parameters = null)
+    {
+        return await this.callAsync ("fapiPublicGetV3Ping",parameters);
+    }
+
     public async Task<object> fapiPublicGetV1Time (object parameters = null)
     {
         return await this.callAsync ("fapiPublicGetV1Time",parameters);
+    }
+
+    public async Task<object> fapiPublicGetV3Time (object parameters = null)
+    {
+        return await this.callAsync ("fapiPublicGetV3Time",parameters);
     }
 
     public async Task<object> fapiPublicGetV1ExchangeInfo (object parameters = null)
@@ -26,9 +36,19 @@ public partial class aster : Exchange
         return await this.callAsync ("fapiPublicGetV1ExchangeInfo",parameters);
     }
 
+    public async Task<object> fapiPublicGetV3ExchangeInfo (object parameters = null)
+    {
+        return await this.callAsync ("fapiPublicGetV3ExchangeInfo",parameters);
+    }
+
     public async Task<object> fapiPublicGetV1Depth (object parameters = null)
     {
         return await this.callAsync ("fapiPublicGetV1Depth",parameters);
+    }
+
+    public async Task<object> fapiPublicGetV3Depth (object parameters = null)
+    {
+        return await this.callAsync ("fapiPublicGetV3Depth",parameters);
     }
 
     public async Task<object> fapiPublicGetV1Trades (object parameters = null)
@@ -36,9 +56,19 @@ public partial class aster : Exchange
         return await this.callAsync ("fapiPublicGetV1Trades",parameters);
     }
 
+    public async Task<object> fapiPublicGetV3Trades (object parameters = null)
+    {
+        return await this.callAsync ("fapiPublicGetV3Trades",parameters);
+    }
+
     public async Task<object> fapiPublicGetV1HistoricalTrades (object parameters = null)
     {
         return await this.callAsync ("fapiPublicGetV1HistoricalTrades",parameters);
+    }
+
+    public async Task<object> fapiPublicGetV3HistoricalTrades (object parameters = null)
+    {
+        return await this.callAsync ("fapiPublicGetV3HistoricalTrades",parameters);
     }
 
     public async Task<object> fapiPublicGetV1AggTrades (object parameters = null)
@@ -46,9 +76,19 @@ public partial class aster : Exchange
         return await this.callAsync ("fapiPublicGetV1AggTrades",parameters);
     }
 
+    public async Task<object> fapiPublicGetV3AggTrades (object parameters = null)
+    {
+        return await this.callAsync ("fapiPublicGetV3AggTrades",parameters);
+    }
+
     public async Task<object> fapiPublicGetV1Klines (object parameters = null)
     {
         return await this.callAsync ("fapiPublicGetV1Klines",parameters);
+    }
+
+    public async Task<object> fapiPublicGetV3Klines (object parameters = null)
+    {
+        return await this.callAsync ("fapiPublicGetV3Klines",parameters);
     }
 
     public async Task<object> fapiPublicGetV1IndexPriceKlines (object parameters = null)
@@ -56,9 +96,19 @@ public partial class aster : Exchange
         return await this.callAsync ("fapiPublicGetV1IndexPriceKlines",parameters);
     }
 
+    public async Task<object> fapiPublicGetV3IndexPriceKlines (object parameters = null)
+    {
+        return await this.callAsync ("fapiPublicGetV3IndexPriceKlines",parameters);
+    }
+
     public async Task<object> fapiPublicGetV1MarkPriceKlines (object parameters = null)
     {
         return await this.callAsync ("fapiPublicGetV1MarkPriceKlines",parameters);
+    }
+
+    public async Task<object> fapiPublicGetV3MarkPriceKlines (object parameters = null)
+    {
+        return await this.callAsync ("fapiPublicGetV3MarkPriceKlines",parameters);
     }
 
     public async Task<object> fapiPublicGetV1PremiumIndex (object parameters = null)
@@ -66,9 +116,19 @@ public partial class aster : Exchange
         return await this.callAsync ("fapiPublicGetV1PremiumIndex",parameters);
     }
 
+    public async Task<object> fapiPublicGetV3PremiumIndex (object parameters = null)
+    {
+        return await this.callAsync ("fapiPublicGetV3PremiumIndex",parameters);
+    }
+
     public async Task<object> fapiPublicGetV1FundingRate (object parameters = null)
     {
         return await this.callAsync ("fapiPublicGetV1FundingRate",parameters);
+    }
+
+    public async Task<object> fapiPublicGetV3FundingRate (object parameters = null)
+    {
+        return await this.callAsync ("fapiPublicGetV3FundingRate",parameters);
     }
 
     public async Task<object> fapiPublicGetV1FundingInfo (object parameters = null)
@@ -76,9 +136,19 @@ public partial class aster : Exchange
         return await this.callAsync ("fapiPublicGetV1FundingInfo",parameters);
     }
 
+    public async Task<object> fapiPublicGetV3FundingInfo (object parameters = null)
+    {
+        return await this.callAsync ("fapiPublicGetV3FundingInfo",parameters);
+    }
+
     public async Task<object> fapiPublicGetV1Ticker24hr (object parameters = null)
     {
         return await this.callAsync ("fapiPublicGetV1Ticker24hr",parameters);
+    }
+
+    public async Task<object> fapiPublicGetV3Ticker24hr (object parameters = null)
+    {
+        return await this.callAsync ("fapiPublicGetV3Ticker24hr",parameters);
     }
 
     public async Task<object> fapiPublicGetV1TickerPrice (object parameters = null)
@@ -86,9 +156,24 @@ public partial class aster : Exchange
         return await this.callAsync ("fapiPublicGetV1TickerPrice",parameters);
     }
 
+    public async Task<object> fapiPublicGetV3TickerPrice (object parameters = null)
+    {
+        return await this.callAsync ("fapiPublicGetV3TickerPrice",parameters);
+    }
+
     public async Task<object> fapiPublicGetV1TickerBookTicker (object parameters = null)
     {
         return await this.callAsync ("fapiPublicGetV1TickerBookTicker",parameters);
+    }
+
+    public async Task<object> fapiPublicGetV3TickerBookTicker (object parameters = null)
+    {
+        return await this.callAsync ("fapiPublicGetV3TickerBookTicker",parameters);
+    }
+
+    public async Task<object> fapiPublicGetV3Indexreferences (object parameters = null)
+    {
+        return await this.callAsync ("fapiPublicGetV3Indexreferences",parameters);
     }
 
     public async Task<object> fapiPublicGetV1AdlQuantile (object parameters = null)
@@ -106,9 +191,19 @@ public partial class aster : Exchange
         return await this.callAsync ("fapiPrivateGetV1PositionSideDual",parameters);
     }
 
+    public async Task<object> fapiPrivateGetV3PositionSideDual (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetV3PositionSideDual",parameters);
+    }
+
     public async Task<object> fapiPrivateGetV1MultiAssetsMargin (object parameters = null)
     {
         return await this.callAsync ("fapiPrivateGetV1MultiAssetsMargin",parameters);
+    }
+
+    public async Task<object> fapiPrivateGetV3MultiAssetsMargin (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetV3MultiAssetsMargin",parameters);
     }
 
     public async Task<object> fapiPrivateGetV1Order (object parameters = null)
@@ -116,9 +211,19 @@ public partial class aster : Exchange
         return await this.callAsync ("fapiPrivateGetV1Order",parameters);
     }
 
+    public async Task<object> fapiPrivateGetV3Order (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetV3Order",parameters);
+    }
+
     public async Task<object> fapiPrivateGetV1OpenOrder (object parameters = null)
     {
         return await this.callAsync ("fapiPrivateGetV1OpenOrder",parameters);
+    }
+
+    public async Task<object> fapiPrivateGetV3OpenOrder (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetV3OpenOrder",parameters);
     }
 
     public async Task<object> fapiPrivateGetV1OpenOrders (object parameters = null)
@@ -126,9 +231,19 @@ public partial class aster : Exchange
         return await this.callAsync ("fapiPrivateGetV1OpenOrders",parameters);
     }
 
+    public async Task<object> fapiPrivateGetV3OpenOrders (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetV3OpenOrders",parameters);
+    }
+
     public async Task<object> fapiPrivateGetV1AllOrders (object parameters = null)
     {
         return await this.callAsync ("fapiPrivateGetV1AllOrders",parameters);
+    }
+
+    public async Task<object> fapiPrivateGetV3AllOrders (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetV3AllOrders",parameters);
     }
 
     public async Task<object> fapiPrivateGetV2Balance (object parameters = null)
@@ -146,6 +261,11 @@ public partial class aster : Exchange
         return await this.callAsync ("fapiPrivateGetV3Account",parameters);
     }
 
+    public async Task<object> fapiPrivateGetV3AccountWithJoinMargin (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetV3AccountWithJoinMargin",parameters);
+    }
+
     public async Task<object> fapiPrivateGetV4Account (object parameters = null)
     {
         return await this.callAsync ("fapiPrivateGetV4Account",parameters);
@@ -154,6 +274,11 @@ public partial class aster : Exchange
     public async Task<object> fapiPrivateGetV1PositionMarginHistory (object parameters = null)
     {
         return await this.callAsync ("fapiPrivateGetV1PositionMarginHistory",parameters);
+    }
+
+    public async Task<object> fapiPrivateGetV3PositionMarginHistory (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetV3PositionMarginHistory",parameters);
     }
 
     public async Task<object> fapiPrivateGetV2PositionRisk (object parameters = null)
@@ -171,9 +296,19 @@ public partial class aster : Exchange
         return await this.callAsync ("fapiPrivateGetV1UserTrades",parameters);
     }
 
+    public async Task<object> fapiPrivateGetV3UserTrades (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetV3UserTrades",parameters);
+    }
+
     public async Task<object> fapiPrivateGetV1Income (object parameters = null)
     {
         return await this.callAsync ("fapiPrivateGetV1Income",parameters);
+    }
+
+    public async Task<object> fapiPrivateGetV3Income (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetV3Income",parameters);
     }
 
     public async Task<object> fapiPrivateGetV1LeverageBracket (object parameters = null)
@@ -181,9 +316,39 @@ public partial class aster : Exchange
         return await this.callAsync ("fapiPrivateGetV1LeverageBracket",parameters);
     }
 
+    public async Task<object> fapiPrivateGetV3LeverageBracket (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetV3LeverageBracket",parameters);
+    }
+
+    public async Task<object> fapiPrivateGetV3AdlQuantile (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetV3AdlQuantile",parameters);
+    }
+
+    public async Task<object> fapiPrivateGetV3ForceOrders (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetV3ForceOrders",parameters);
+    }
+
     public async Task<object> fapiPrivateGetV1CommissionRate (object parameters = null)
     {
         return await this.callAsync ("fapiPrivateGetV1CommissionRate",parameters);
+    }
+
+    public async Task<object> fapiPrivateGetV3CommissionRate (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetV3CommissionRate",parameters);
+    }
+
+    public async Task<object> fapiPrivateGetV3Mmp (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetV3Mmp",parameters);
+    }
+
+    public async Task<object> fapiPrivatePostV3Noop (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivatePostV3Noop",parameters);
     }
 
     public async Task<object> fapiPrivatePostV1PositionSideDual (object parameters = null)
@@ -191,9 +356,19 @@ public partial class aster : Exchange
         return await this.callAsync ("fapiPrivatePostV1PositionSideDual",parameters);
     }
 
+    public async Task<object> fapiPrivatePostV3PositionSideDual (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivatePostV3PositionSideDual",parameters);
+    }
+
     public async Task<object> fapiPrivatePostV1MultiAssetsMargin (object parameters = null)
     {
         return await this.callAsync ("fapiPrivatePostV1MultiAssetsMargin",parameters);
+    }
+
+    public async Task<object> fapiPrivatePostV3MultiAssetsMargin (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivatePostV3MultiAssetsMargin",parameters);
     }
 
     public async Task<object> fapiPrivatePostV1Order (object parameters = null)
@@ -201,9 +376,19 @@ public partial class aster : Exchange
         return await this.callAsync ("fapiPrivatePostV1Order",parameters);
     }
 
+    public async Task<object> fapiPrivatePostV3Order (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivatePostV3Order",parameters);
+    }
+
     public async Task<object> fapiPrivatePostV1OrderTest (object parameters = null)
     {
         return await this.callAsync ("fapiPrivatePostV1OrderTest",parameters);
+    }
+
+    public async Task<object> fapiPrivatePostV3OrderTest (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivatePostV3OrderTest",parameters);
     }
 
     public async Task<object> fapiPrivatePostV1BatchOrders (object parameters = null)
@@ -211,9 +396,19 @@ public partial class aster : Exchange
         return await this.callAsync ("fapiPrivatePostV1BatchOrders",parameters);
     }
 
+    public async Task<object> fapiPrivatePostV3BatchOrders (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivatePostV3BatchOrders",parameters);
+    }
+
     public async Task<object> fapiPrivatePostV1AssetWalletTransfer (object parameters = null)
     {
         return await this.callAsync ("fapiPrivatePostV1AssetWalletTransfer",parameters);
+    }
+
+    public async Task<object> fapiPrivatePostV3AssetWalletTransfer (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivatePostV3AssetWalletTransfer",parameters);
     }
 
     public async Task<object> fapiPrivatePostV1CountdownCancelAll (object parameters = null)
@@ -221,9 +416,19 @@ public partial class aster : Exchange
         return await this.callAsync ("fapiPrivatePostV1CountdownCancelAll",parameters);
     }
 
+    public async Task<object> fapiPrivatePostV3CountdownCancelAll (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivatePostV3CountdownCancelAll",parameters);
+    }
+
     public async Task<object> fapiPrivatePostV1Leverage (object parameters = null)
     {
         return await this.callAsync ("fapiPrivatePostV1Leverage",parameters);
+    }
+
+    public async Task<object> fapiPrivatePostV3Leverage (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivatePostV3Leverage",parameters);
     }
 
     public async Task<object> fapiPrivatePostV1MarginType (object parameters = null)
@@ -231,9 +436,29 @@ public partial class aster : Exchange
         return await this.callAsync ("fapiPrivatePostV1MarginType",parameters);
     }
 
+    public async Task<object> fapiPrivatePostV3MarginType (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivatePostV3MarginType",parameters);
+    }
+
     public async Task<object> fapiPrivatePostV1PositionMargin (object parameters = null)
     {
         return await this.callAsync ("fapiPrivatePostV1PositionMargin",parameters);
+    }
+
+    public async Task<object> fapiPrivatePostV3PositionMargin (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivatePostV3PositionMargin",parameters);
+    }
+
+    public async Task<object> fapiPrivatePostV3Mmp (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivatePostV3Mmp",parameters);
+    }
+
+    public async Task<object> fapiPrivatePostV3MmpReset (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivatePostV3MmpReset",parameters);
     }
 
     public async Task<object> fapiPrivatePostV1ListenKey (object parameters = null)
@@ -241,9 +466,19 @@ public partial class aster : Exchange
         return await this.callAsync ("fapiPrivatePostV1ListenKey",parameters);
     }
 
+    public async Task<object> fapiPrivatePostV3ListenKey (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivatePostV3ListenKey",parameters);
+    }
+
     public async Task<object> fapiPrivatePutV1ListenKey (object parameters = null)
     {
         return await this.callAsync ("fapiPrivatePutV1ListenKey",parameters);
+    }
+
+    public async Task<object> fapiPrivatePutV3ListenKey (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivatePutV3ListenKey",parameters);
     }
 
     public async Task<object> fapiPrivateDeleteV1Order (object parameters = null)
@@ -251,9 +486,19 @@ public partial class aster : Exchange
         return await this.callAsync ("fapiPrivateDeleteV1Order",parameters);
     }
 
+    public async Task<object> fapiPrivateDeleteV3Order (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateDeleteV3Order",parameters);
+    }
+
     public async Task<object> fapiPrivateDeleteV1AllOpenOrders (object parameters = null)
     {
         return await this.callAsync ("fapiPrivateDeleteV1AllOpenOrders",parameters);
+    }
+
+    public async Task<object> fapiPrivateDeleteV3AllOpenOrders (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateDeleteV3AllOpenOrders",parameters);
     }
 
     public async Task<object> fapiPrivateDeleteV1BatchOrders (object parameters = null)
@@ -261,9 +506,24 @@ public partial class aster : Exchange
         return await this.callAsync ("fapiPrivateDeleteV1BatchOrders",parameters);
     }
 
+    public async Task<object> fapiPrivateDeleteV3BatchOrders (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateDeleteV3BatchOrders",parameters);
+    }
+
+    public async Task<object> fapiPrivateDeleteV3Mmp (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateDeleteV3Mmp",parameters);
+    }
+
     public async Task<object> fapiPrivateDeleteV1ListenKey (object parameters = null)
     {
         return await this.callAsync ("fapiPrivateDeleteV1ListenKey",parameters);
+    }
+
+    public async Task<object> fapiPrivateDeleteV3ListenKey (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateDeleteV3ListenKey",parameters);
     }
 
     public async Task<object> sapiPublicGetV1Ping (object parameters = null)

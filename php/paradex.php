@@ -1362,11 +1362,6 @@ class paradex extends Exchange {
         return $this->safe_string_lower($types, $type, $type);
     }
 
-    public function convert_short_string(string $str) {
-        // TODO => add stringToBase16 in exchange
-        return '0x' . bin2hex(base64_decode(base64_encode($str)));
-    }
-
     public function scale_number(string $num) {
         return Precise::string_mul($num, '100000000');
     }
@@ -1477,9 +1472,9 @@ class paradex extends Exchange {
         $now = $this->nonce();
         $orderReq = array(
             'timestamp' => $now * 1000,
-            'market' => $this->convert_short_string($request['market']),
+            'market' => $this->string_to_base16($request['market']),
             'side' => ($orderSide === 'BUY') ? '1' : '2',
-            'orderType' => $this->convert_short_string($request['type']),
+            'orderType' => $this->string_to_base16($request['type']),
             'size' => $this->scale_number($request['size']),
             'price' => ($isMarket) ? '0' : $this->scale_number($request['price']),
         );

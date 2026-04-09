@@ -126,53 +126,60 @@ public partial class kraken : Exchange
                 } },
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
+                        { "Time", 1 },
+                        { "SystemStatus", 1 },
                         { "Assets", 1 },
                         { "AssetPairs", 1 },
-                        { "Depth", 1.2 },
-                        { "OHLC", 1.2 },
-                        { "Spread", 1 },
-                        { "SystemStatus", 1 },
                         { "Ticker", 1 },
-                        { "Time", 1 },
+                        { "OHLC", 1.2 },
+                        { "Depth", 1.2 },
+                        { "Level3", 1.2 },
+                        { "GroupedBook", 1.2 },
                         { "Trades", 1.2 },
+                        { "Spread", 1 },
+                        { "PreTrade", 1 },
+                        { "PostTrade", 1 },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "post", new Dictionary<string, object>() {
-                        { "AddOrder", 0 },
-                        { "AddOrderBatch", 0 },
-                        { "AddExport", 3 },
-                        { "AmendOrder", 0 },
                         { "Balance", 3 },
-                        { "CancelAll", 3 },
-                        { "CancelAllOrdersAfter", 3 },
-                        { "CancelOrder", 0 },
-                        { "CancelOrderBatch", 0 },
-                        { "ClosedOrders", 3 },
-                        { "DepositAddresses", 3 },
-                        { "DepositMethods", 3 },
-                        { "DepositStatus", 3 },
-                        { "EditOrder", 0 },
-                        { "ExportStatus", 3 },
-                        { "GetWebSocketsToken", 3 },
-                        { "Ledgers", 6 },
+                        { "BalanceEx", 3 },
+                        { "CreditLines", 3 },
+                        { "TradeBalance", 3 },
                         { "OpenOrders", 3 },
-                        { "OpenPositions", 3 },
-                        { "QueryLedgers", 3 },
+                        { "ClosedOrders", 3 },
                         { "QueryOrders", 3 },
+                        { "OrderAmends", 3 },
+                        { "TradesHistory", 6 },
                         { "QueryTrades", 3 },
+                        { "OpenPositions", 3 },
+                        { "Ledgers", 6 },
+                        { "QueryLedgers", 3 },
+                        { "TradeVolume", 3 },
+                        { "AddExport", 3 },
+                        { "ExportStatus", 3 },
                         { "RetrieveExport", 3 },
                         { "RemoveExport", 3 },
-                        { "BalanceEx", 3 },
-                        { "TradeBalance", 3 },
-                        { "TradesHistory", 6 },
-                        { "TradeVolume", 3 },
-                        { "Withdraw", 3 },
-                        { "WithdrawCancel", 3 },
-                        { "WithdrawInfo", 3 },
+                        { "GetApiKeyInfo", 3 },
+                        { "AddOrder", 0 },
+                        { "AmendOrder", 0 },
+                        { "CancelOrder", 0 },
+                        { "CancelAll", 3 },
+                        { "CancelAllOrdersAfter", 3 },
+                        { "GetWebSocketsToken", 3 },
+                        { "AddOrderBatch", 0 },
+                        { "CancelOrderBatch", 0 },
+                        { "EditOrder", 0 },
+                        { "DepositMethods", 3 },
+                        { "DepositAddresses", 3 },
+                        { "DepositStatus", 3 },
                         { "WithdrawMethods", 3 },
                         { "WithdrawAddresses", 3 },
+                        { "WithdrawInfo", 3 },
+                        { "Withdraw", 3 },
                         { "WithdrawStatus", 3 },
+                        { "WithdrawCancel", 3 },
                         { "WalletTransfer", 3 },
                         { "CreateSubaccount", 3 },
                         { "AccountTransfer", 3 },
@@ -3809,7 +3816,7 @@ public partial class kraken : Exchange
         {
             if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
             {
-                // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
+                // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 url = add(url, add("?", this.urlencodeNested(parameters)));
             }
         } else if (isTrue(isEqual(api, "private")))
@@ -3824,7 +3831,6 @@ public partial class kraken : Exchange
             object isBatchOrder = (isEqual(path, "AddOrderBatch"));
             this.checkRequiredCredentials();
             object nonce = ((object)this.nonce()).ToString();
-            // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
             if (isTrue(isTrue(isTrue(isCancelOrderBatch) || isTrue(isTriggerPercent)) || isTrue(isBatchOrder)))
             {
                 body = this.json(this.extend(new Dictionary<string, object>() {
@@ -3832,6 +3838,7 @@ public partial class kraken : Exchange
                 }, parameters));
             } else
             {
+                // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 body = this.urlencodeNested(this.extend(new Dictionary<string, object>() {
                     { "nonce", nonce },
                 }, parameters));

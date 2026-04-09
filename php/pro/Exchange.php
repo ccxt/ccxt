@@ -52,7 +52,6 @@ Exchange::$exchanges = array(
     'coinbaseadvanced',
     'coinbaseexchange',
     'coinbaseinternational',
-    'coincatch',
     'coincheck',
     'coinex',
     'coinone',

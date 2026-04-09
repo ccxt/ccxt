@@ -644,7 +644,7 @@ class grvt extends Exchange {
         //            ...
         //
         $promises = array( $marketsPromise );
-        if ($this->privateKey !== null || $this->apiKey !== null) {
+        if (!$this->is_empty_string($this->apiKey) || !$this->is_empty_string($this->privateKey)) {
             $promises[] = $this->sign_in();
         }
         $results = $promises;
@@ -757,7 +757,8 @@ class grvt extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
-        $response = $this->publicMarketPostFullV1Currency ($params);
+        $request = array( '' => '' ); // workaround for php array() empty arr
+        $response = $this->publicMarketPostFullV1Currency ($request);
         //
         //    {
         //        "result" => [

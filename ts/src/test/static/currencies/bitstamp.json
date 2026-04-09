@@ -394,5 +394,49 @@
             }
         },
         "networks": {}
+    },
+    "LINK": {
+        "id": "LINK",
+        "code": "LINK",
+        "info": {
+            "name": "LINK/USD",
+            "market_symbol": "linkusd",
+            "base_currency": "LINK",
+            "base_decimals": 8,
+            "counter_currency": "USD",
+            "counter_decimals": 2,
+            "minimum_order_value": "10.00",
+            "trading": "Enabled",
+            "instant_order_counter_decimals": 2,
+            "instant_and_market_orders": "Enabled",
+            "description": "Chainlink / U.S. dollar",
+            "market_type": "SPOT"
+        },
+        "type": "crypto",
+        "name": "Chainlink",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {
+                "min": 1e-8,
+                "max": null
+            },
+            "price": {
+                "min": 1e-8,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        },
+        "networks": {}
     }
 }

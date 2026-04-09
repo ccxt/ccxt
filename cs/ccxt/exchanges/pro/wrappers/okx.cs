@@ -450,6 +450,7 @@ public partial class okx
     /// watch balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#trading-account-websocket-account-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

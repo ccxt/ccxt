@@ -11,44 +11,44 @@ func (this *BydfiCore) PublicGetV1PublicApiLimits(args ...interface{}) <-chan in
 	return this.callEndpointAsync("publicGetV1PublicApiLimits", args...)
 }
 
-func (this *BydfiCore) PublicGetV1SwapMarketExchangeInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetV1SwapMarketExchangeInfo", args...)
+func (this *BydfiCore) PublicGetV1FapiMarketExchangeInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1FapiMarketExchangeInfo", args...)
 }
 
-func (this *BydfiCore) PublicGetV1SwapMarketDepth(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetV1SwapMarketDepth", args...)
+func (this *BydfiCore) PublicGetV1FapiMarketDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1FapiMarketDepth", args...)
 }
 
-func (this *BydfiCore) PublicGetV1SwapMarketTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetV1SwapMarketTrades", args...)
+func (this *BydfiCore) PublicGetV1FapiMarketTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1FapiMarketTrades", args...)
 }
 
-func (this *BydfiCore) PublicGetV1SwapMarketKlines(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetV1SwapMarketKlines", args...)
+func (this *BydfiCore) PublicGetV1FapiMarketKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1FapiMarketKlines", args...)
 }
 
-func (this *BydfiCore) PublicGetV1SwapMarketTicker24hr(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetV1SwapMarketTicker24hr", args...)
+func (this *BydfiCore) PublicGetV1FapiMarketTicker24hr(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1FapiMarketTicker24hr", args...)
 }
 
-func (this *BydfiCore) PublicGetV1SwapMarketTickerPrice(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetV1SwapMarketTickerPrice", args...)
+func (this *BydfiCore) PublicGetV1FapiMarketTickerPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1FapiMarketTickerPrice", args...)
 }
 
-func (this *BydfiCore) PublicGetV1SwapMarketMarkPrice(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetV1SwapMarketMarkPrice", args...)
+func (this *BydfiCore) PublicGetV1FapiMarketMarkPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1FapiMarketMarkPrice", args...)
 }
 
-func (this *BydfiCore) PublicGetV1SwapMarketFundingRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetV1SwapMarketFundingRate", args...)
+func (this *BydfiCore) PublicGetV1FapiMarketFundingRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1FapiMarketFundingRate", args...)
 }
 
-func (this *BydfiCore) PublicGetV1SwapMarketFundingRateHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetV1SwapMarketFundingRateHistory", args...)
+func (this *BydfiCore) PublicGetV1FapiMarketFundingRateHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1FapiMarketFundingRateHistory", args...)
 }
 
-func (this *BydfiCore) PublicGetV1SwapMarketRiskLimit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetV1SwapMarketRiskLimit", args...)
+func (this *BydfiCore) PublicGetV1FapiMarketRiskLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1FapiMarketRiskLimit", args...)
 }
 
 func (this *BydfiCore) PrivateGetV1AccountAssets(args ...interface{}) <-chan interface{} {
@@ -67,44 +67,44 @@ func (this *BydfiCore) PrivateGetV1SpotWithdrawRecords(args ...interface{}) <-ch
 	return this.callEndpointAsync("privateGetV1SpotWithdrawRecords", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1SwapTradeOpenOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetV1SwapTradeOpenOrder", args...)
+func (this *BydfiCore) PrivateGetV1FapiTradeOpenOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV1FapiTradeOpenOrder", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1SwapTradePlanOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetV1SwapTradePlanOrder", args...)
+func (this *BydfiCore) PrivateGetV1FapiTradePlanOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV1FapiTradePlanOrder", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1SwapTradeLeverage(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetV1SwapTradeLeverage", args...)
+func (this *BydfiCore) PrivateGetV1FapiTradeLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV1FapiTradeLeverage", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1SwapTradeHistoryOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetV1SwapTradeHistoryOrder", args...)
+func (this *BydfiCore) PrivateGetV1FapiTradeHistoryOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV1FapiTradeHistoryOrder", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1SwapTradeHistoryTrade(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetV1SwapTradeHistoryTrade", args...)
+func (this *BydfiCore) PrivateGetV1FapiTradeHistoryTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV1FapiTradeHistoryTrade", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1SwapTradePositionHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetV1SwapTradePositionHistory", args...)
+func (this *BydfiCore) PrivateGetV1FapiTradePositionHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV1FapiTradePositionHistory", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1SwapTradePositions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetV1SwapTradePositions", args...)
+func (this *BydfiCore) PrivateGetV1FapiTradePositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV1FapiTradePositions", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1SwapAccountBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetV1SwapAccountBalance", args...)
+func (this *BydfiCore) PrivateGetV1FapiAccountBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV1FapiAccountBalance", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1SwapUserDataAssetsMargin(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetV1SwapUserDataAssetsMargin", args...)
+func (this *BydfiCore) PrivateGetV1FapiUserDataAssetsMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV1FapiUserDataAssetsMargin", args...)
 }
 
-func (this *BydfiCore) PrivateGetV1SwapUserDataPositionSideDual(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetV1SwapUserDataPositionSideDual", args...)
+func (this *BydfiCore) PrivateGetV1FapiUserDataPositionSideDual(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV1FapiUserDataPositionSideDual", args...)
 }
 
 func (this *BydfiCore) PrivateGetV1AgentTeams(args ...interface{}) <-chan interface{} {
@@ -147,40 +147,40 @@ func (this *BydfiCore) PrivatePostV1AccountTransfer(args ...interface{}) <-chan 
 	return this.callEndpointAsync("privatePostV1AccountTransfer", args...)
 }
 
-func (this *BydfiCore) PrivatePostV1SwapTradePlaceOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostV1SwapTradePlaceOrder", args...)
+func (this *BydfiCore) PrivatePostV1FapiTradePlaceOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1FapiTradePlaceOrder", args...)
 }
 
-func (this *BydfiCore) PrivatePostV1SwapTradeBatchPlaceOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostV1SwapTradeBatchPlaceOrder", args...)
+func (this *BydfiCore) PrivatePostV1FapiTradeBatchPlaceOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1FapiTradeBatchPlaceOrder", args...)
 }
 
-func (this *BydfiCore) PrivatePostV1SwapTradeEditOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostV1SwapTradeEditOrder", args...)
+func (this *BydfiCore) PrivatePostV1FapiTradeEditOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1FapiTradeEditOrder", args...)
 }
 
-func (this *BydfiCore) PrivatePostV1SwapTradeBatchEditOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostV1SwapTradeBatchEditOrder", args...)
+func (this *BydfiCore) PrivatePostV1FapiTradeBatchEditOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1FapiTradeBatchEditOrder", args...)
 }
 
-func (this *BydfiCore) PrivatePostV1SwapTradeCancelAllOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostV1SwapTradeCancelAllOrder", args...)
+func (this *BydfiCore) PrivatePostV1FapiTradeCancelAllOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1FapiTradeCancelAllOrder", args...)
 }
 
-func (this *BydfiCore) PrivatePostV1SwapTradeLeverage(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostV1SwapTradeLeverage", args...)
+func (this *BydfiCore) PrivatePostV1FapiTradeLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1FapiTradeLeverage", args...)
 }
 
-func (this *BydfiCore) PrivatePostV1SwapTradeBatchLeverageMargin(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostV1SwapTradeBatchLeverageMargin", args...)
+func (this *BydfiCore) PrivatePostV1FapiTradeBatchLeverageMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1FapiTradeBatchLeverageMargin", args...)
 }
 
-func (this *BydfiCore) PrivatePostV1SwapUserDataMarginType(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostV1SwapUserDataMarginType", args...)
+func (this *BydfiCore) PrivatePostV1FapiUserDataMarginType(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1FapiUserDataMarginType", args...)
 }
 
-func (this *BydfiCore) PrivatePostV1SwapUserDataPositionSideDual(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostV1SwapUserDataPositionSideDual", args...)
+func (this *BydfiCore) PrivatePostV1FapiUserDataPositionSideDual(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1FapiUserDataPositionSideDual", args...)
 }
 
 func (this *BydfiCore) PrivatePostV1AgentInternalWithdrawal(args ...interface{}) <-chan interface{} {

@@ -416,11 +416,13 @@ returns enableUnifiedMargin so the user can check if unified account is enabled
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | method | <code>string</code> | Yes | the method for which we want to check if unified margin is enabled, this is used to check options for specific methods (e.g. fetchBalance can have a specific option to enable unified margin) |
+| address |  | Yes |  |
+| shouldRefresh |  | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-hyperliquid.isUnifiedEnabled (method[, params])
+hyperliquid.isUnifiedEnabled (method, address, shouldRefresh[, params])
 ```
 
 

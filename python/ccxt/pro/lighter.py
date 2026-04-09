@@ -328,7 +328,10 @@ class lighter(ccxt.async_support.lighter):
             'channel': 'market_stats/all',
         }
         messageHashes = []
-        if symbols is None or len(symbols) == 0:
+        symbolsLength = 0
+        if symbols is not None:
+            symbolsLength = len(symbols)
+        if symbolsLength == 0:
             messageHashes.append(self.get_message_hash('ticker'))
         else:
             for i in range(0, len(symbols)):
@@ -501,7 +504,8 @@ class lighter(ccxt.async_support.lighter):
         #     }
         #
         liquidationData = self.safe_list(message, 'liquidation_trades', [])
-        if len(liquidationData) > 0:
+        liquidationDataLength = len(liquidationData)
+        if liquidationDataLength > 0:
             self.handle_liquidation(client, message)
         data = self.safe_list(message, 'trades', [])
         channel = self.safe_string(message, 'channel', '')
@@ -514,8 +518,10 @@ class lighter(ccxt.async_support.lighter):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             stored = ArrayCache(limit)
             self.trades[symbol] = stored
-        for i in range(0, len(data)):
-            trade = self.parse_ws_trade(data[i], market)
+        dataLength = len(data)
+        for i in range(0, dataLength):
+            iReversed = dataLength - 1 - i
+            trade = self.parse_ws_trade(data[iReversed], market)
             stored.append(trade)
         messageHash = self.get_message_hash('trade', symbol)
         client.resolve(stored, messageHash)
@@ -538,7 +544,8 @@ class lighter(ccxt.async_support.lighter):
             'channel': 'trade/' + market['id'],
         }
         messageHash = self.get_message_hash('trade', market['symbol'])
-        return await self.subscribe_public(messageHash, self.extend(request, params))
+        trades = await self.subscribe_public(messageHash, self.extend(request, params))
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def un_watch_trades(self, symbol: str, params={}) -> Any:
         """
@@ -607,8 +614,10 @@ class lighter(ccxt.async_support.lighter):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
             trades = self.safe_list(data, marketId, [])
-            for j in range(0, len(trades)):
-                trade = self.parse_ws_trade(trades[j], market)
+            tradesLength = len(trades)
+            for j in range(0, tradesLength):
+                jReversed = tradesLength - 1 - j
+                trade = self.parse_ws_trade(trades[jReversed], market)
                 stored.append(trade)
                 symbol = trade['symbol']
                 if symbol is not None:
@@ -655,7 +664,7 @@ class lighter(ccxt.async_support.lighter):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
-        accountIndex
+        accountIndex = None
         accountIndex, params = await self.handleAccountIndex(params, 'unWatchMyTrades', 'accountIndex', 'account_index')
         messageHash = self.get_message_hash('unsubscribe', 'myTrades')
         if symbol is not None:
@@ -698,15 +707,22 @@ class lighter(ccxt.async_support.lighter):
         #     }
         #
         timestamp = self.safe_integer(liquidation, 'timestamp')
+        isMakerAsk = self.safe_bool(liquidation, 'is_maker_ask')
+        side = 'buy' if isMakerAsk else 'sell'
+        contracts = self.safe_string(liquidation, 'size')
+        contractSize = self.safe_string(market, 'contractSize')
+        price = self.safe_string(liquidation, 'price')
+        baseValue = Precise.string_mul(contracts, contractSize)
+        quoteValue = Precise.string_mul(baseValue, price)
         return self.safe_liquidation({
             'info': liquidation,
             'symbol': market['symbol'],
-            'contracts': None,
-            'contractSize': None,
-            'price': self.safe_string(liquidation, 'price'),
-            'side': self.safe_string(liquidation, 'size'),
-            'baseValue': None,
-            'quoteValue': None,
+            'contracts': contracts,
+            'contractSize': contractSize,
+            'price': price,
+            'side': side,
+            'baseValue': baseValue,
+            'quoteValue': quoteValue,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         })
@@ -759,8 +775,10 @@ class lighter(ccxt.async_support.lighter):
             limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
             self.liquidations = ArrayCache(limit)
             stored = self.liquidations
-        for i in range(0, len(data)):
-            liquidation = self.parse_ws_liquidation(data[i], market)
+        dataLength = len(data)
+        for i in range(0, dataLength):
+            iReversed = dataLength - 1 - i
+            liquidation = self.parse_ws_liquidation(data[iReversed], market)
             stored.append(liquidation)
         messageHash = self.get_message_hash('liquidations', symbol)
         client.resolve(stored, messageHash)
@@ -797,7 +815,7 @@ class lighter(ccxt.async_support.lighter):
         error = self.safe_dict(message, 'error')
         try:
             if error is not None:
-                code = self.safe_string(message, 'code')
+                code = self.safe_string(error, 'code')
                 if code is not None:
                     feedback = self.id + ' ' + self.json(message)
                     self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)

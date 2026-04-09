@@ -1578,6 +1578,7 @@ public partial class gate
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#query-personal-settlement-records"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#query-settlement-records"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

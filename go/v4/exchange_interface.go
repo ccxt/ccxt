@@ -174,7 +174,10 @@ type ICoreExchange interface {
 	FetchLedgerEntry(id interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{}
 	FetchMyTrades(optionalArgs ...interface{}) <-chan interface{}
+	FetchDepositAddressesByNetwork(code interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchOpenInterestHistory(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchOpenInterest(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchOpenInterests(optionalArgs ...interface{}) <-chan interface{}
 	FetchOrderBooks(optionalArgs ...interface{}) <-chan interface{}
 	FetchTickers(optionalArgs ...interface{}) <-chan interface{}
 	FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
@@ -211,7 +214,7 @@ type ICoreExchange interface {
 	SafeNumber(obj interface{}, key interface{}, optionalArgs ...interface{}) interface{}
 	SafeNumber2(dictionary interface{}, key1 interface{}, key2 interface{}, optionalArgs ...interface{}) interface{}
 	SafeNumberOmitZero(obj interface{}, key interface{}, optionalArgs ...interface{}) interface{}
-	NonEmptyString(obj interface{}) interface{}
+	IsEmptyString(obj interface{}) interface{}
 	SafeDictN(dictionaryOrList interface{}, keys interface{}, optionalArgs ...interface{}) interface{}
 	SafeListN(dictionaryOrList interface{}, keys interface{}, optionalArgs ...interface{}) interface{}
 	SafeList(dictionaryOrList interface{}, key interface{}, optionalArgs ...interface{}) interface{}
@@ -225,7 +228,8 @@ type ICoreExchange interface {
 	CheckProxySettings(optionalArgs ...interface{}) interface{}
 	IsTickPrecision() interface{}
 	SetProperty(obj interface{}, property interface{}, defaultValue interface{})
-	GetProperty(obj interface{}, property interface{}) interface{}
+	Capitalize(value interface{}) string
+	GetProperty(obj interface{}, property interface{}, defaultValue ...interface{}) interface{}
 	ExceptionMessage(exc interface{}, includeStack ...interface{}) interface{}
 	SetProxyUrl(proxyUrl interface{})
 	SetSocksProxy(proxyUrl interface{})
@@ -411,6 +415,9 @@ type IDerivedExchange interface {
 	ParseWsTrade(trade interface{}, optionalArgs ...interface{}) interface{}
 	FetchPositionsADLRank(optionalArgs ...interface{}) <-chan interface{}
 	ParseADLRank(info interface{}, optionalArgs ...interface{}) interface{}
+	FetchDepositAddressesByNetwork(code interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchOpenInterest(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchOpenInterests(optionalArgs ...interface{}) <-chan interface{}
 }
 
 type Describer interface {

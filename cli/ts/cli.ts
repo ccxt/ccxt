@@ -75,6 +75,7 @@ interface CLIOptions {
     param?: any;
     config?: any;
     clipboard?: boolean;
+    history?: boolean;
 }
 
 const exchanges = Object.keys (ccxt.exchanges) as string[];

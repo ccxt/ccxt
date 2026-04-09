@@ -171,35 +171,48 @@ public partial class blofin : Exchange
                         { "market/tickers", 1 },
                         { "market/books", 1 },
                         { "market/trades", 1 },
-                        { "market/candles", 1 },
                         { "market/mark-price", 1 },
                         { "market/funding-rate", 1 },
                         { "market/funding-rate-history", 1 },
+                        { "market/candles", 1 },
+                        { "market/index-candles", 1 },
+                        { "market/mark-price-candles", 1 },
+                        { "market/position-tiers", 1 },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
                         { "asset/balances", 1 },
-                        { "trade/orders-pending", 1 },
-                        { "trade/fills-history", 1 },
-                        { "asset/deposit-history", 1 },
-                        { "asset/withdrawal-history", 1 },
                         { "asset/bills", 1 },
+                        { "asset/withdrawal-history", 1 },
+                        { "asset/deposit-history", 1 },
+                        { "account/config", 1 },
+                        { "asset/currencies", 1 },
                         { "account/balance", 1 },
                         { "account/positions", 1 },
-                        { "account/leverage-info", 1 },
+                        { "account/positions-history", 1 },
                         { "account/margin-mode", 1 },
                         { "account/position-mode", 1 },
+                        { "account/leverage-info", 1 },
                         { "account/batch-leverage-info", 1 },
+                        { "trade/orders-pending", 1 },
+                        { "trade/order-detail", 1 },
                         { "trade/orders-tpsl-pending", 1 },
+                        { "trade/order-tpsl-detail", 1 },
                         { "trade/orders-algo-pending", 1 },
                         { "trade/orders-history", 1 },
                         { "trade/orders-tpsl-history", 1 },
                         { "trade/orders-algo-history", 1 },
+                        { "trade/fills-history", 1 },
                         { "trade/order/price-range", 1 },
-                        { "user/query-apikey", 1 },
                         { "affiliate/basic", 1 },
+                        { "affiliate/referral-code", 1 },
+                        { "affiliate/invitees", 1 },
+                        { "affiliate/sub-invitees", 1 },
+                        { "affiliate/sub-affiliates", 1 },
+                        { "affiliate/invitees/daily/info", 1 },
                         { "copytrading/instruments", 1 },
+                        { "copytrading/config", 1 },
                         { "copytrading/account/balance", 1 },
                         { "copytrading/account/positions-by-order", 1 },
                         { "copytrading/account/positions-details-by-order", 1 },
@@ -211,21 +224,24 @@ public partial class blofin : Exchange
                         { "copytrading/trade/position-history-by-order", 1 },
                         { "copytrading/trade/orders-history", 1 },
                         { "copytrading/trade/pending-tpsl-by-order", 1 },
+                        { "user/query-apikey", 1 },
+                        { "spot/trade/fills-history", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
+                        { "asset/transfer", 1 },
+                        { "asset/demo-apply-money", 1 },
                         { "account/set-margin-mode", 1 },
                         { "account/set-position-mode", 1 },
-                        { "trade/order", 1 },
-                        { "trade/order-algo", 1 },
-                        { "trade/cancel-order", 1 },
-                        { "trade/cancel-algo", 1 },
                         { "account/set-leverage", 1 },
+                        { "trade/order", 1 },
                         { "trade/batch-orders", 1 },
                         { "trade/order-tpsl", 1 },
+                        { "trade/order-algo", 1 },
+                        { "trade/cancel-order", 1 },
                         { "trade/cancel-batch-orders", 1 },
                         { "trade/cancel-tpsl", 1 },
+                        { "trade/cancel-algo", 1 },
                         { "trade/close-position", 1 },
-                        { "asset/transfer", 1 },
                         { "copytrading/account/set-position-mode", 1 },
                         { "copytrading/account/set-leverage", 1 },
                         { "copytrading/trade/place-order", 1 },
@@ -777,6 +793,21 @@ public partial class blofin : Exchange
         //       "brokerId": ""
         //   }
         //
+        // fetchMyTrades spot
+        //     {
+        //         "instId": "DOGE-USDT",
+        //         "tradeId": "6000001623870",
+        //         "orderId": "6000011777113",
+        //         "fillPrice": "0.091480000000000000",
+        //         "fillSize": "30.000000000000000000",
+        //         "fillPnl": null,
+        //         "side": "buy",
+        //         "fee": "0.030000000000000000",
+        //         "ts": "1775213753407",
+        //         "brokerId": null,
+        //         "feeCurrency": "base_currency"
+        //     }
+        //
         object id = this.safeString(trade, "tradeId");
         object marketId = this.safeString(trade, "instId");
         market = this.safeMarket(marketId, market, "-");
@@ -788,28 +819,66 @@ public partial class blofin : Exchange
         object orderId = this.safeString(trade, "orderId");
         object feeCost = this.safeString(trade, "fee");
         object fee = null;
+        object feeCurrency = this.safeString(trade, "feeCurrency");
+        object isSpot = !isEqual(feeCurrency, null);
+        if (isTrue(isEqual(feeCurrency, null)))
+        {
+            feeCurrency = getValue(market, "settle");
+        } else if (isTrue(isEqual(feeCurrency, "base_currency")))
+        {
+            feeCurrency = getValue(market, "base");
+        } else if (isTrue(isEqual(feeCurrency, "quote_currency")))
+        {
+            feeCurrency = getValue(market, "quote");
+        }
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
-                { "currency", getValue(market, "settle") },
+                { "currency", feeCurrency },
             };
         }
-        return this.safeTrade(new Dictionary<string, object>() {
-            { "info", trade },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
-            { "symbol", symbol },
-            { "id", id },
-            { "order", orderId },
-            { "type", null },
-            { "takerOrMaker", null },
-            { "side", side },
-            { "price", price },
-            { "amount", amount },
-            { "cost", null },
-            { "fee", fee },
-        }, market);
+        if (isTrue(isSpot))
+        {
+            object spotSymbol = add(add(getValue(market, "base"), "/"), getValue(market, "quote"));
+            object cost = this.parseNumber(Precise.stringMul(price, amount));
+            object result = new Dictionary<string, object>() {
+                { "info", trade },
+                { "timestamp", timestamp },
+                { "datetime", this.iso8601(timestamp) },
+                { "symbol", spotSymbol },
+                { "id", id },
+                { "order", orderId },
+                { "type", null },
+                { "takerOrMaker", null },
+                { "side", side },
+                { "price", this.parseNumber(price) },
+                { "amount", this.parseNumber(amount) },
+                { "cost", cost },
+                { "fee", new Dictionary<string, object>() {
+                    { "cost", this.parseNumber(feeCost) },
+                    { "currency", feeCurrency },
+                } },
+            };
+            return result;
+        } else
+        {
+            return this.safeTrade(new Dictionary<string, object>() {
+                { "info", trade },
+                { "timestamp", timestamp },
+                { "datetime", this.iso8601(timestamp) },
+                { "symbol", symbol },
+                { "id", id },
+                { "order", orderId },
+                { "type", null },
+                { "takerOrMaker", null },
+                { "side", side },
+                { "price", price },
+                { "amount", amount },
+                { "cost", null },
+                { "fee", fee },
+            }, market);
+        }
     }
 
     /**
@@ -1733,6 +1802,8 @@ public partial class blofin : Exchange
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] Timestamp in ms of the latest time to retrieve trades for
+     * @param {string} [params.type] 'swap' or 'spot' (defaults to 'swap'), required to fetch spot trade history
+     * @param {string} [params.instId] *spot markets only* the market id of the spot market to fetch the trade history for (e.g. 'BTC-USDT')
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
@@ -1762,7 +1833,40 @@ public partial class blofin : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 100
         }
-        object response = await this.privateGetTradeFillsHistory(this.extend(request, parameters));
+        object type = "swap";
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, type);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(type, "spot")))
+        {
+            ((IDictionary<string,object>)request)["instType"] = "SPOT";
+            //
+            //     {
+            //         "code": "0",
+            //         "msg": "success",
+            //         "data": [
+            //             {
+            //                 "instId": "DOGE-USDT",
+            //                 "tradeId": "6000001623870",
+            //                 "orderId": "6000011777113",
+            //                 "fillPrice": "0.091480000000000000",
+            //                 "fillSize": "30.000000000000000000",
+            //                 "fillPnl": null,
+            //                 "side": "buy",
+            //                 "fee": "0.030000000000000000",
+            //                 "ts": "1775213753407",
+            //                 "brokerId": null,
+            //                 "feeCurrency": "base_currency"
+            //             }
+            //         ]
+            //     }
+            //
+            response = await this.privateGetSpotTradeFillsHistory(this.extend(request, parameters));
+        } else
+        {
+            response = await this.privateGetTradeFillsHistory(this.extend(request, parameters));
+        }
         object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
@@ -1948,6 +2052,7 @@ public partial class blofin : Exchange
         //
         object type = null;
         object id = null;
+        object status = null;
         object withdrawalId = this.safeString(transaction, "withdrawId");
         object depositId = this.safeString(transaction, "depositId");
         object addressTo = this.safeString(transaction, "address");
@@ -1957,15 +2062,16 @@ public partial class blofin : Exchange
         {
             type = "withdrawal";
             id = withdrawalId;
+            status = this.parseTransactionWithdrawalStatus(this.safeString(transaction, "state"));
         } else
         {
             id = depositId;
             type = "deposit";
+            status = this.parseTransactionDepositStatus(this.safeString(transaction, "state"));
         }
         object currencyId = this.safeString(transaction, "currency");
         object code = this.safeCurrencyCode(currencyId);
         object amount = this.safeNumber(transaction, "amount");
-        object status = this.parseTransactionStatus(this.safeString(transaction, "state"));
         object txid = this.safeString(transaction, "txId");
         object timestamp = this.safeInteger(transaction, "ts");
         object feeCurrencyId = this.safeString(transaction, "feeCurrency");
@@ -1998,7 +2104,20 @@ public partial class blofin : Exchange
         };
     }
 
-    public virtual object parseTransactionStatus(object status)
+    public virtual object parseTransactionWithdrawalStatus(object status)
+    {
+        object statuses = new Dictionary<string, object>() {
+            { "0", "pending" },
+            { "2", "failed" },
+            { "3", "ok" },
+            { "4", "failed" },
+            { "6", "pending" },
+            { "7", "pending" },
+        };
+        return this.safeString(statuses, status, status);
+    }
+
+    public virtual object parseTransactionDepositStatus(object status)
     {
         object statuses = new Dictionary<string, object>() {
             { "0", "pending" },

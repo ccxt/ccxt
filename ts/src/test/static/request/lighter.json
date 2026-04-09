@@ -131,6 +131,15 @@
         ],
         "fetchOrderBook": [
             {
+                "description": "spot ob",
+                "method": "fetchOrderBook",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/orderBookOrders?market_id=2049&limit=100",
+                "input": [
+                    "LIT/USDC"
+                ],
+                "output": null
+            },
+            {
                 "description": "fetchOrderBook",
                 "method": "fetchOrderBook",
                 "url": "https://mainnet.zklighter.elliot.ai/api/v1/orderBookOrders?market_id=0&limit=5",
@@ -159,6 +168,18 @@
             }
         ],
         "fetchOHLCV": [
+            {
+                "description": "spot candles",
+                "method": "fetchOHLCV",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/candles?market_id=2049&count_back=0&resolution=1h&start_timestamp=1775385101510&end_timestamp=1775745101510",
+                "input": [
+                    "LIT/USDC",
+                    "1h",
+                    1775385101510,
+                    100
+                ],
+                "output": null
+            },
             {
                 "description": "fetchOHLCV",
                 "method": "fetchOHLCV",

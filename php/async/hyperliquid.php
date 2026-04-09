@@ -362,6 +362,7 @@ class hyperliquid extends Exchange {
                     ),
                 ),
             ),
+            'rollingWindowSize' => 0.0,
         ));
     }
 
@@ -1121,6 +1122,8 @@ class hyperliquid extends Exchange {
              * @param {boolean} [$params->enableUnifiedMargin] enable unified margin, CCXT tries to auto-detects this value but you can override it
              * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
              */
+            // if user provides a different address in $params and does not provide the enableUnifiedMargin we assume we need to $request the info again
+            $shouldRefresh = ($this->safe_string_2($params, 'user', 'address') !== null) && $this->safe_bool($params, 'enableUnifiedMargin') === null;
             $userAddress = null;
             list($userAddress, $params) = $this->handle_public_address('fetchBalance', $params);
             $type = null;
@@ -1128,7 +1131,7 @@ class hyperliquid extends Exchange {
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBalance', $params);
             $isUnifiedEnabled = null;
-            list($isUnifiedEnabled, $params) = Async\await($this->is_unified_enabled('fetchBalance', $params));
+            list($isUnifiedEnabled, $params) = Async\await($this->is_unified_enabled('fetchBalance', $userAddress, $shouldRefresh, $params));
             $dex = $this->safe_string($params, 'dex');
             $isSpot = (($type === 'spot') || $isUnifiedEnabled) && ($dex === null);
             $request = array(
@@ -1869,7 +1872,7 @@ class hyperliquid extends Exchange {
     public function initialize_client() {
         return Async\async(function ()  {
             try {
-                Async\await(Promise\all(array( $this->handle_builder_fee_approval(), $this->set_ref(), $this->is_unified_enabled('fetchBalance', array()) ))); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods
+                Async\await(Promise\all(array( $this->handle_builder_fee_approval(), $this->set_ref(), $this->is_unified_enabled('fetchBalance', null, false, array()) ))); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods
             } catch (Exception $e) {
                 return false;
             }
@@ -1899,22 +1902,28 @@ class hyperliquid extends Exchange {
         }) ();
     }
 
-    public function is_unified_enabled(string $method, $params = array ()) {
-        return Async\async(function () use ($method, $params) {
+    public function is_unified_enabled(string $method, ?string $address = null, $shouldRefresh = false, $params = array ()) {
+        return Async\async(function () use ($method, $address, $shouldRefresh, $params) {
             /**
              *
              * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-abstraction-state
              *
              * returns $enableUnifiedMargin so the user can check if unified account is enabled
              * @param {string} $method the $method for which we want to check if unified margin is enabled, this is used to check options for specific methods ($e->g. fetchBalance can have a specific option to enable unified margin)
+             * @param $address
+             * @param $shouldRefresh
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {bool} $enableUnifiedMargin
              */
             $userAddress = null;
-            list($userAddress, $params) = $this->handle_public_address('isUnifiedEnabled', $params);
+            if ($address !== null) {
+                $userAddress = $address;
+            } else {
+                list($userAddress, $params) = $this->handle_public_address('isUnifiedEnabled', $params);
+            }
             $enableUnifiedMargin = null;
             list($enableUnifiedMargin, $params) = $this->handle_option_and_params($params, $method, 'enableUnifiedMargin');
-            if ($enableUnifiedMargin === null) {
+            if ($enableUnifiedMargin === null || $shouldRefresh) {
                 $request = array(
                     'type' => 'userAbstraction',
                     'user' => $userAddress,
@@ -1929,6 +1938,7 @@ class hyperliquid extends Exchange {
                 // "unifiedAccount" | "portfolioMargin" | "disabled" | "default" | "dexAbstraction"
                 //
                 $enableUnifiedMargin = $response === '"unifiedAccount"';
+                // don't cache this result if this is a different addresss
                 $this->options['enableUnifiedMargin'] = $enableUnifiedMargin; // cache this for future calls
             }
             return array( $enableUnifiedMargin, $params );

@@ -13,10 +13,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		aftermathItf := NewAftermathCore()
 		aftermathItf.Init(exchangeArgs)
 		return aftermathItf, true
-	case "alp":
-		alpItf := NewAlpCore()
-		alpItf.Init(exchangeArgs)
-		return alpItf, true
 	case "alpaca":
 		alpacaItf := NewAlpacaCore()
 		alpacaItf.Init(exchangeArgs)
@@ -185,10 +181,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		coinbaseinternationalItf := NewCoinbaseinternationalCore()
 		coinbaseinternationalItf.Init(exchangeArgs)
 		return coinbaseinternationalItf, true
-	case "coincatch":
-		coincatchItf := NewCoincatchCore()
-		coincatchItf.Init(exchangeArgs)
-		return coincatchItf, true
 	case "coincheck":
 		coincheckItf := NewCoincheckCore()
 		coincheckItf.Init(exchangeArgs)

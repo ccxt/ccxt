@@ -350,6 +350,8 @@ class lighter(Exchange, ImplicitAPI):
                 'apiKeyIndex': None,
                 'wasmExecPath': None,  # [JS Only] users should set the path to wasm_exec.js. It can be downloaded here https://github.com/ccxt/lighter-wasm
                 'libraryPath': None,  # users should set the path to the lighter signing library. It can be downloaded here https://github.com/elliottech/lighter-python/tree/main/lighter/signers, GO users don't need it
+                'authDeadlineExpiry': 28800,  # 8h validity for auth tokens
+                'authDeadlineMinimumRemaining': 60,
             },
             'features': {
                 'default': {
@@ -475,12 +477,30 @@ class lighter(Exchange, ImplicitAPI):
         if accountIndex is None:
             res = self.handle_option_and_params_2({}, 'createAuth', 'accountIndex', 'account_index')
             accountIndex = self.safe_integer(res, 0)
-        rs = {
-            'deadline': self.seconds() + 60,
+        auths = self.safe_dict(self.options, 'auths')
+        accountAuths = self.safe_dict(auths, accountIndex)
+        cachedAuth = self.safe_dict(accountAuths, apiKeyIndex)
+        cachedDeadline = self.safe_integer(cachedAuth, 'deadline')
+        if cachedDeadline is not None:
+            minimumDeadline = self.seconds() + self.safe_integer(self.options, 'authDeadlineMinimumRemaining')
+            if cachedDeadline >= minimumDeadline:
+                return self.safe_string(cachedAuth, 'token')
+        deadline = self.seconds() + self.safe_integer(self.options, 'authDeadlineExpiry')
+        request = {
+            'deadline': deadline,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         }
-        return self.lighter_create_auth_token(self.safe_value(self.options, 'signer'), rs)
+        token = self.lighter_create_auth_token(self.safe_value(self.options, 'signer'), request)
+        if not ('auths' in self.options):
+            self.options['auths'] = {}
+        if not (accountIndex in self.options['auths']):
+            self.options['auths'][accountIndex] = {}
+        self.options['auths'][accountIndex][apiKeyIndex] = {
+            'deadline': deadline,
+            'token': token,
+        }
+        return token
 
     def pow(self, n: str, m: str):
         r = Precise.string_mul(n, '1')
@@ -498,7 +518,7 @@ class lighter(Exchange, ImplicitAPI):
     def set_sandbox_mode(self, enable: bool):
         super(lighter, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
-        self.options['chainId'] = 300
+        self.options['chainId'] = 300 if enable else 304
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> List[Any]:
         """
@@ -828,60 +848,105 @@ class lighter(Exchange, ImplicitAPI):
         """
         response = self.publicGetOrderBookDetails(params)
         #
-        #     {
-        #         "code": 200,
-        #         "order_book_details": [
-        #             {
-        #                 "symbol": "ETH",
-        #                 "market_id": 0,
-        #                 "status": "active",
-        #                 "taker_fee": "0.0000",
-        #                 "maker_fee": "0.0000",
-        #                 "liquidation_fee": "1.0000",
-        #                 "min_base_amount": "0.0050",
-        #                 "min_quote_amount": "10.000000",
-        #                 "order_quote_limit": "",
-        #                 "supported_size_decimals": 4,
-        #                 "supported_price_decimals": 2,
-        #                 "supported_quote_decimals": 6,
-        #                 "size_decimals": 4,
-        #                 "price_decimals": 2,
-        #                 "quote_multiplier": 1,
-        #                 "default_initial_margin_fraction": 500,
-        #                 "min_initial_margin_fraction": 200,
-        #                 "maintenance_margin_fraction": 120,
-        #                 "closeout_margin_fraction": 80,
-        #                 "last_trade_price": 3550.69,
-        #                 "daily_trades_count": 1197349,
-        #                 "daily_base_token_volume": 481297.3509,
-        #                 "daily_quote_token_volume": 1671431095.263844,
-        #                 "daily_price_low": 3402.41,
-        #                 "daily_price_high": 3571.45,
-        #                 "daily_price_change": 0.5294300840859545,
-        #                 "open_interest": 39559.3278,
-        #                 "daily_chart": {},
-        #                 "market_config": {
-        #                     "market_margin_mode": 0,
-        #                     "insurance_fund_account_index": 281474976710655,
-        #                     "liquidation_mode": 0,
-        #                     "force_reduce_only": False,
-        #                     "trading_hours": ""
-        #                 }
-        #             }
-        #         ]
-        #     }
+        #    {
+        #        "code": "200",
+        #        "message": "string",
+        #        "order_book_details": [
+        #            {
+        #                "symbol": "ETH",
+        #                "market_id": 0,
+        #                "market_type": "perp",
+        #                "base_asset_id": 0,
+        #                "quote_asset_id": 0,
+        #                "status": "active",
+        #                "taker_fee": "0.0001",
+        #                "maker_fee": "0.0000",
+        #                "liquidation_fee": "0.01",
+        #                "min_base_amount": "0.01",
+        #                "min_quote_amount": "0.1",
+        #                "supported_size_decimals": "4",
+        #                "supported_price_decimals": "4",
+        #                "supported_quote_decimals": "4",
+        #                "order_quote_limit": "281474976.710655",
+        #                "size_decimals": "4",
+        #                "price_decimals": "4",
+        #                "quote_multiplier": "10000",
+        #                "default_initial_margin_fraction": "100",
+        #                "min_initial_margin_fraction": "100",
+        #                "maintenance_margin_fraction": "50",
+        #                "closeout_margin_fraction": "100",
+        #                "last_trade_price": "3024.66",
+        #                "daily_trades_count": "68",
+        #                "daily_base_token_volume": "235.25",
+        #                "daily_quote_token_volume": "93566.25",
+        #                "daily_price_low": "3014.66",
+        #                "daily_price_high": "3024.66",
+        #                "daily_price_change": "3.66",
+        #                "open_interest": "93.0",
+        #                "daily_chart": "{1640995200:3024.66}",
+        #                "market_config": {
+        #                    "market_margin_mode": 0,
+        #                    "insurance_fund_account_index": 281474976710655,
+        #                    "liquidation_mode": 0,
+        #                    "force_reduce_only": False,
+        #                    "funding_fee_discounts_enabled": True,
+        #                    "trading_hours": "",
+        #                    "hidden": True
+        #                },
+        #                "strategy_index": 0
+        #            }
+        #        ],
+        #        "spot_order_book_details": [
+        #            {
+        #                "symbol": "ETH/USDC",
+        #                "market_id": 2048,
+        #                "market_type": "spot",
+        #                "base_asset_id": 1,
+        #                "quote_asset_id": 3,
+        #                "status": "active",
+        #                "taker_fee": "0.0000",
+        #                "maker_fee": "0.0000",
+        #                "liquidation_fee": "0.0000",
+        #                "min_base_amount": "0.0001",
+        #                "min_quote_amount": "0.000001",
+        #                "order_quote_limit": "2500000.000000",
+        #                "supported_size_decimals": 4,
+        #                "supported_price_decimals": 2,
+        #                "supported_quote_decimals": 6,
+        #                "size_decimals": 4,
+        #                "price_decimals": 2,
+        #                "last_trade_price": 2731.79,
+        #                "daily_trades_count": 126993,
+        #                "daily_base_token_volume": 1203.0962,
+        #                "daily_quote_token_volume": 3516374.947553,
+        #                "daily_price_low": 2717.47,
+        #                "daily_price_high": 3044.21,
+        #                "daily_price_change": -10.2389493724579,
+        #                "daily_chart": "{1640995200:3024.66}"
+        #            }
+        #        ]
+        #    }
         #
-        markets = self.safe_list(response, 'order_book_details', [])
+        spotMarkets = self.safe_list(response, 'spot_order_book_details', [])
+        swapMarkets = self.safe_list(response, 'order_book_details', [])
+        markets = self.array_concat(spotMarkets, swapMarkets)
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
             id = self.safe_string(market, 'market_id')
+            type = self.safe_string(market, 'market_type')
+            type = 'swap' if (type == 'perp') else type
             baseId = self.safe_string(market, 'symbol')
+            if baseId is not None and baseId.find('/') != -1:
+                baseId = baseId.split('/')[0]
             quoteId = 'USDC'
-            settleId = 'USDC'
+            settleId = 'USDC' if (type == 'swap') else None
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             settle = self.safe_currency_code(settleId)
+            symbol = base + '/' + quote
+            if settle is not None:
+                symbol = symbol + ':' + settle
             amountDecimals = self.safe_string_2(market, 'size_decimals', 'supported_size_decimals')
             priceDecimals = self.safe_string_2(market, 'price_decimals', 'supported_price_decimals')
             amountPrecision = None if (amountDecimals is None) else self.parse_number(self.parse_precision(amountDecimals))
@@ -889,23 +954,23 @@ class lighter(Exchange, ImplicitAPI):
             quoteMultiplier = self.safe_number(market, 'quote_multiplier')
             result.append({
                 'id': id,
-                'symbol': base + '/' + quote + ':' + settle,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': 'swap',
-                'spot': False,
+                'type': type,
+                'spot': type == 'spot',
                 'margin': False,
-                'swap': True,
+                'swap': type == 'swap',
                 'future': False,
                 'option': False,
                 'active': self.safe_string(market, 'status') == 'active',
-                'contract': True,
-                'linear': True,
-                'inverse': False,
+                'contract': type == 'swap',
+                'linear': True if (type == 'swap') else None,
+                'inverse': False if (type == 'swap') else None,
                 'taker': self.safe_number(market, 'taker_fee'),
                 'maker': self.safe_number(market, 'maker_fee'),
                 'contractSize': quoteMultiplier,
@@ -932,7 +997,7 @@ class lighter(Exchange, ImplicitAPI):
                     },
                     'cost': {
                         'min': self.safe_number(market, 'min_quote_amount'),
-                        'max': None,
+                        'max': self.safe_number(market, 'order_quote_limit'),
                     },
                 },
                 'created': None,
@@ -1095,7 +1160,7 @@ class lighter(Exchange, ImplicitAPI):
         #         "daily_chart": {},
         #         "market_config": {
         #             "market_margin_mode": 0,
-        #             "insurance_fund_account_index": 281474976710655,
+        #             "insurance_fund_account_index": 281474976710654,
         #             "liquidation_mode": 0,
         #             "force_reduce_only": False,
         #             "trading_hours": ""
@@ -1237,7 +1302,9 @@ class lighter(Exchange, ImplicitAPI):
         self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.publicGetOrderBookDetails(params)
-        tickers = self.safe_list(response, 'order_book_details', [])
+        spotTickers = self.safe_list(response, 'spot_order_book_details', [])
+        swapTickers = self.safe_list(response, 'order_book_details', [])
+        tickers = self.array_concat(spotTickers, swapTickers)
         return self.parse_tickers(tickers, symbols)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -1923,10 +1990,17 @@ class lighter(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market)
         timestamp = self.safe_timestamp(order, 'timestamp')
         isAsk = self.safe_bool(order, 'is_ask')
+        if isAsk is None:
+            isAskAsInteger = self.safe_integer(order, 'is_ask')
+            if isAskAsInteger is not None:
+                isAsk = isAskAsInteger == 1
         side = None
         if isAsk is not None:
             side = 'sell' if isAsk else 'buy'
         type = self.safe_string(order, 'type')
+        if type is None:
+            typeAsInteger = self.safe_integer(order, 'order_type')
+            type = self.parse_order_type_integer(typeAsInteger)
         triggerPrice = self.parse_number(self.omit_zero(self.safe_string(order, 'trigger_price')))
         stopLossPrice = None
         takeProfitPrice = None
@@ -1935,7 +2009,18 @@ class lighter(Exchange, ImplicitAPI):
                 stopLossPrice = triggerPrice
             if type.find('take-profit') >= 0:
                 takeProfitPrice = triggerPrice
-        tif = self.safe_string(order, 'time_in_force')
+        # Try to parse to integer first, because parsing an integer to a string wouldn't result in None
+        tif = None
+        tifAsInteger = self.safe_integer(order, 'time_in_force')
+        if tifAsInteger is not None:
+            tif = self.parse_order_time_in_force_integer(tifAsInteger)
+        else:
+            tif = self.safe_string(order, 'time_in_force')
+        reduceOnly = self.safe_bool(order, 'reduce_only')
+        if reduceOnly is None:
+            reduceOnlyAsInteger = self.safe_integer(order, 'reduce_only')
+            if reduceOnlyAsInteger is not None:
+                reduceOnly = reduceOnlyAsInteger == 1
         status = self.safe_string(order, 'status')
         return self.safe_order({
             'info': order,
@@ -1947,9 +2032,9 @@ class lighter(Exchange, ImplicitAPI):
             'lastUpdateTimestamp': self.safe_timestamp(order, 'updated_at'),
             'symbol': market['symbol'],
             'type': self.parse_order_type(type),
-            'timeInForce': self.parse_order_time_in_foreces(tif),
-            'postOnly': None,
-            'reduceOnly': self.safe_bool(order, 'reduce_only'),
+            'timeInForce': self.parse_order_time_in_force(tif),
+            'postOnly': tif == 'post-only',
+            'reduceOnly': reduceOnly,
             'side': side,
             'price': self.safe_string(order, 'price'),
             'triggerPrice': triggerPrice,
@@ -1986,8 +2071,8 @@ class lighter(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, status):
-        statuses: dict = {
+    def parse_order_type(self, type):
+        types: dict = {
             'limit': 'limit',
             'market': 'market',
             'stop-loss': 'market',
@@ -1998,16 +2083,40 @@ class lighter(Exchange, ImplicitAPI):
             'twap-sub': 'twap',
             'liquidation': 'market',
         }
-        return self.safe_string(statuses, status, status)
+        return self.safe_string(types, type, type)
 
-    def parse_order_time_in_foreces(self, tif):
+    def parse_order_type_integer(self, typeInteger):
+        if typeInteger is None:
+            return None
+        types: dict = {
+            '0': 'limit',
+            '1': 'market',
+            '2': 'stop-loss',
+            '3': 'stop-loss-limit',
+            '4': 'take-profit',
+            '5': 'take-profit-limit',
+            '6': 'twap',
+            '7': 'twap-sub',
+            '8': 'liquidation',
+        }
+        return self.safe_string(types, str(typeInteger))
+
+    def parse_order_time_in_force(self, tif):
         timeInForces: dict = {
-            'good-till-time': 'GTC',
             'immediate-or-cancel': 'IOC',
+            'good-till-time': 'GTC',
             'post-only': 'PO',
             'Unknown': None,
         }
         return self.safe_string(timeInForces, tif, tif)
+
+    def parse_order_time_in_force_integer(self, tifInteger):
+        timeInForces: dict = {
+            '0': 'immediate-or-cancel',
+            '1': 'good-till-time',
+            '2': 'post-only',
+        }
+        return self.safe_string(timeInForces, str(tifInteger))
 
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """

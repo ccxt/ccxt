@@ -139,10 +139,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         coinbaseinternationalItf := NewCoinbaseinternationalCore()
         coinbaseinternationalItf.Init(exchangeArgs)
         return coinbaseinternationalItf, true
-    case "coincatch":
-        coincatchItf := NewCoincatchCore()
-        coincatchItf.Init(exchangeArgs)
-        return coincatchItf, true
     case "coincheck":
         coincheckItf := NewCoincheckCore()
         coincheckItf.Init(exchangeArgs)

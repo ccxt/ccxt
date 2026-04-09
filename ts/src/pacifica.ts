@@ -1366,8 +1366,6 @@ export default class pacifica extends Exchange {
         if (orderSide !== undefined) {
             sigPayload['side'] = orderSide;
         }
-        amount = this.parseNumber (amount);
-        price = this.parseNumber (price);
         const triggerPrice = this.safeString (params, 'triggerPrice');
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');

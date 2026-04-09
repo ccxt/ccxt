@@ -334,7 +334,11 @@ class lighter extends lighter$1["default"] {
             'channel': 'market_stats/all',
         };
         const messageHashes = [];
-        if (symbols === undefined || symbols.length === 0) {
+        let symbolsLength = 0;
+        if (symbols !== undefined) {
+            symbolsLength = symbols.length;
+        }
+        if (symbolsLength === 0) {
             messageHashes.push(this.getMessageHash('ticker'));
         }
         else {
@@ -511,7 +515,8 @@ class lighter extends lighter$1["default"] {
         //     }
         //
         const liquidationData = this.safeList(message, 'liquidation_trades', []);
-        if (liquidationData.length > 0) {
+        const liquidationDataLength = liquidationData.length;
+        if (liquidationDataLength > 0) {
             this.handleLiquidation(client, message);
         }
         const data = this.safeList(message, 'trades', []);
@@ -526,8 +531,10 @@ class lighter extends lighter$1["default"] {
             stored = new Cache.ArrayCache(limit);
             this.trades[symbol] = stored;
         }
-        for (let i = 0; i < data.length; i++) {
-            const trade = this.parseWsTrade(data[i], market);
+        const dataLength = data.length;
+        for (let i = 0; i < dataLength; i++) {
+            const iReversed = dataLength - 1 - i;
+            const trade = this.parseWsTrade(data[iReversed], market);
             stored.append(trade);
         }
         const messageHash = this.getMessageHash('trade', symbol);
@@ -551,7 +558,8 @@ class lighter extends lighter$1["default"] {
             'channel': 'trade/' + market['id'],
         };
         const messageHash = this.getMessageHash('trade', market['symbol']);
-        return await this.subscribePublic(messageHash, this.extend(request, params));
+        const trades = await this.subscribePublic(messageHash, this.extend(request, params));
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     /**
      * @method
@@ -622,8 +630,10 @@ class lighter extends lighter$1["default"] {
             const marketId = marketIds[i];
             const market = this.safeMarket(marketId);
             const trades = this.safeList(data, marketId, []);
-            for (let j = 0; j < trades.length; j++) {
-                const trade = this.parseWsTrade(trades[j], market);
+            const tradesLength = trades.length;
+            for (let j = 0; j < tradesLength; j++) {
+                const jReversed = tradesLength - 1 - j;
+                const trade = this.parseWsTrade(trades[jReversed], market);
                 stored.append(trade);
                 const symbol = trade['symbol'];
                 if (symbol !== undefined) {
@@ -675,7 +685,7 @@ class lighter extends lighter$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async unWatchMyTrades(symbol = undefined, params = {}) {
-        let accountIndex;
+        let accountIndex = undefined;
         [accountIndex, params] = await this.handleAccountIndex(params, 'unWatchMyTrades', 'accountIndex', 'account_index');
         let messageHash = this.getMessageHash('unsubscribe', 'myTrades');
         if (symbol !== undefined) {
@@ -719,15 +729,22 @@ class lighter extends lighter$1["default"] {
         //     }
         //
         const timestamp = this.safeInteger(liquidation, 'timestamp');
+        const isMakerAsk = this.safeBool(liquidation, 'is_maker_ask');
+        const side = isMakerAsk ? 'buy' : 'sell';
+        const contracts = this.safeString(liquidation, 'size');
+        const contractSize = this.safeString(market, 'contractSize');
+        const price = this.safeString(liquidation, 'price');
+        const baseValue = Precise["default"].stringMul(contracts, contractSize);
+        const quoteValue = Precise["default"].stringMul(baseValue, price);
         return this.safeLiquidation({
             'info': liquidation,
             'symbol': market['symbol'],
-            'contracts': undefined,
-            'contractSize': undefined,
-            'price': this.safeString(liquidation, 'price'),
-            'side': this.safeString(liquidation, 'size'),
-            'baseValue': undefined,
-            'quoteValue': undefined,
+            'contracts': contracts,
+            'contractSize': contractSize,
+            'price': price,
+            'side': side,
+            'baseValue': baseValue,
+            'quoteValue': quoteValue,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
         });
@@ -781,8 +798,10 @@ class lighter extends lighter$1["default"] {
             this.liquidations = new Cache.ArrayCache(limit);
             stored = this.liquidations;
         }
-        for (let i = 0; i < data.length; i++) {
-            const liquidation = this.parseWsLiquidation(data[i], market);
+        const dataLength = data.length;
+        for (let i = 0; i < dataLength; i++) {
+            const iReversed = dataLength - 1 - i;
+            const liquidation = this.parseWsLiquidation(data[iReversed], market);
             stored.append(liquidation);
         }
         const messageHash = this.getMessageHash('liquidations', symbol);
@@ -820,7 +839,7 @@ class lighter extends lighter$1["default"] {
         const error = this.safeDict(message, 'error');
         try {
             if (error !== undefined) {
-                const code = this.safeString(message, 'code');
+                const code = this.safeString(error, 'code');
                 if (code !== undefined) {
                     const feedback = this.id + ' ' + this.json(message);
                     this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);

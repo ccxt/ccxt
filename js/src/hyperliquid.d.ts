@@ -237,10 +237,12 @@ export default class hyperliquid extends Exchange {
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-abstraction-state
      * @description returns enableUnifiedMargin so the user can check if unified account is enabled
      * @param {string} method the method for which we want to check if unified margin is enabled, this is used to check options for specific methods (e.g. fetchBalance can have a specific option to enable unified margin)
+     * @param address
+     * @param shouldRefresh
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {bool} enableUnifiedMargin
      */
-    isUnifiedEnabled(method: string, params?: {}): Promise<any[]>;
+    isUnifiedEnabled(method: string, address?: Str, shouldRefresh?: boolean, params?: {}): Promise<any[]>;
     /**
      * @method
      * @name hyperliquid#setUserAbstraction

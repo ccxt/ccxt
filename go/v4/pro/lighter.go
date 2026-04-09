@@ -455,7 +455,11 @@ func  (this *LighterCore) WatchTickers(optionalArgs ...interface{}) <- chan inte
                 "channel": "market_stats/all",
             }
             var messageHashes interface{} = []interface{}{}
-            if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) || ccxt.IsTrue(ccxt.IsEqual(ccxt.GetArrayLength(symbols), 0))) {
+            var symbolsLength interface{} = 0
+            if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
+                symbolsLength = ccxt.GetArrayLength(symbols)
+            }
+            if ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) {
                 ccxt.AppendToArray(&messageHashes, this.GetMessageHash("ticker"))
             } else {
                 for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
@@ -499,16 +503,16 @@ func  (this *LighterCore) UnWatchTickers(optionalArgs ...interface{}) <- chan in
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes3748 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3748)
+            retRes3788 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes3788)
             var request interface{} = map[string]interface{} {
                 "channel": "market_stats/all",
             }
             var messageHash interface{} = this.GetMessageHash("unsubscribe")
         
-                retRes37915 :=  (<-this.UnsubscribePublic(messageHash, this.Extend(request, params)))
-                ccxt.PanicOnError(retRes37915)
-                ch <- retRes37915
+                retRes38315 :=  (<-this.UnsubscribePublic(messageHash, this.Extend(request, params)))
+                ccxt.PanicOnError(retRes38315)
+                ch <- retRes38315
                 return nil
         
             }()
@@ -531,9 +535,9 @@ func  (this *LighterCore) WatchMarkPrice(symbol interface{}, optionalArgs ...int
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes39215 :=  (<-this.WatchTicker(symbol, params))
-                ccxt.PanicOnError(retRes39215)
-                ch <- retRes39215
+                retRes39615 :=  (<-this.WatchTicker(symbol, params))
+                ccxt.PanicOnError(retRes39615)
+                ch <- retRes39615
                 return nil
         
             }()
@@ -558,9 +562,9 @@ func  (this *LighterCore) WatchMarkPrices(optionalArgs ...interface{}) <- chan i
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-                retRes40515 :=  (<-this.WatchTickers(symbols, params))
-                ccxt.PanicOnError(retRes40515)
-                ch <- retRes40515
+                retRes40915 :=  (<-this.WatchTickers(symbols, params))
+                ccxt.PanicOnError(retRes40915)
+                ch <- retRes40915
                 return nil
         
             }()
@@ -583,9 +587,9 @@ func  (this *LighterCore) UnWatchMarkPrice(symbol interface{}, optionalArgs ...i
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes41815 :=  (<-this.UnWatchTicker(symbol, params))
-                ccxt.PanicOnError(retRes41815)
-                ch <- retRes41815
+                retRes42215 :=  (<-this.UnWatchTicker(symbol, params))
+                ccxt.PanicOnError(retRes42215)
+                ch <- retRes42215
                 return nil
         
             }()
@@ -610,9 +614,9 @@ func  (this *LighterCore) UnWatchMarkPrices(optionalArgs ...interface{}) <- chan
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-                retRes43115 :=  (<-this.UnWatchTickers(symbols, params))
-                ccxt.PanicOnError(retRes43115)
-                ch <- retRes43115
+                retRes43515 :=  (<-this.UnWatchTickers(symbols, params))
+                ccxt.PanicOnError(retRes43515)
+                ch <- retRes43515
                 return nil
         
             }()
@@ -715,7 +719,8 @@ func  (this *LighterCore) HandleTrades(client interface{}, message interface{}) 
     //     }
     //
     var liquidationData interface{} = this.SafeList(message, "liquidation_trades", []interface{}{})
-    if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetArrayLength(liquidationData), 0)) {
+    var liquidationDataLength interface{} =     ccxt.GetArrayLength(liquidationData)
+    if ccxt.IsTrue(ccxt.IsGreaterThan(liquidationDataLength, 0)) {
         this.HandleLiquidation(client, message)
     }
     var data interface{} = this.SafeList(message, "trades", []interface{}{})
@@ -730,8 +735,10 @@ func  (this *LighterCore) HandleTrades(client interface{}, message interface{}) 
         stored = ccxt.NewArrayCache(limit)
         ccxt.AddElementToObject(this.Trades, symbol, stored)
     }
-    for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
-        var trade interface{} = this.ParseWsTrade(ccxt.GetValue(data, i), market)
+    var dataLength interface{} =     ccxt.GetArrayLength(data)
+    for i := 0; ccxt.IsLessThan(i, dataLength); i++ {
+        var iReversed interface{} = ccxt.Subtract(ccxt.Subtract(dataLength, 1), i)
+        var trade interface{} = this.ParseWsTrade(ccxt.GetValue(data, iReversed), market)
         stored.(ccxt.Appender).Append(trade)
     }
     var messageHash interface{} = this.GetMessageHash("trade", symbol)
@@ -760,18 +767,19 @@ func  (this *LighterCore) WatchTrades(symbol interface{}, optionalArgs ...interf
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes5658 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes5658)
+            retRes5728 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes5728)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "channel": ccxt.Add("trade/", ccxt.GetValue(market, "id")),
             }
             var messageHash interface{} = this.GetMessageHash("trade", ccxt.GetValue(market, "symbol"))
         
-                retRes57115 :=  (<-this.SubscribePublic(messageHash, this.Extend(request, params)))
-                ccxt.PanicOnError(retRes57115)
-                ch <- retRes57115
-                return nil
+            trades:= (<-this.SubscribePublic(messageHash, this.Extend(request, params)))
+            ccxt.PanicOnError(trades)
+        
+            ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
+            return nil
         
             }()
             return ch
@@ -793,17 +801,17 @@ func  (this *LighterCore) UnWatchTrades(symbol interface{}, optionalArgs ...inte
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes5848 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes5848)
+            retRes5928 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes5928)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "channel": ccxt.Add("trade/", ccxt.GetValue(market, "id")),
             }
             var messageHash interface{} = this.GetMessageHash("unsubscribe", symbol)
         
-                retRes59015 :=  (<-this.UnsubscribePublic(messageHash, this.Extend(request, params)))
-                ccxt.PanicOnError(retRes59015)
-                ch <- retRes59015
+                retRes59815 :=  (<-this.UnsubscribePublic(messageHash, this.Extend(request, params)))
+                ccxt.PanicOnError(retRes59815)
+                ch <- retRes59815
                 return nil
         
             }()
@@ -860,8 +868,10 @@ func  (this *LighterCore) HandleMyTrades(client interface{}, message interface{}
         var marketId interface{} = ccxt.GetValue(marketIds, i)
         var market interface{} = this.SafeMarket(marketId)
         var trades interface{} = this.SafeList(data, marketId, []interface{}{})
-        for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(trades)); j++ {
-            var trade interface{} = this.ParseWsTrade(ccxt.GetValue(trades, j), market)
+        var tradesLength interface{} =         ccxt.GetArrayLength(trades)
+        for j := 0; ccxt.IsLessThan(j, tradesLength); j++ {
+            var jReversed interface{} = ccxt.Subtract(ccxt.Subtract(tradesLength, 1), j)
+            var trade interface{} = this.ParseWsTrade(ccxt.GetValue(trades, jReversed), market)
             stored.(ccxt.Appender).Append(trade)
             var symbol interface{} = ccxt.GetValue(trade, "symbol")
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -898,8 +908,8 @@ func  (this *LighterCore) WatchMyTrades(optionalArgs ...interface{}) <- chan int
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes6708 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6708)
+            retRes6808 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6808)
             var accountIndex interface{} = nil
             accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "watchMyTrades", "accountIndex", "account_index"))
             accountIndex = ccxt.GetValue(accountIndexparamsVariable,0)
@@ -951,8 +961,8 @@ func  (this *LighterCore) UnWatchMyTrades(optionalArgs ...interface{}) <- chan i
             var messageHash interface{} = this.GetMessageHash("unsubscribe", "myTrades")
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
         
-                retRes70312 := (<-this.LoadMarkets())
-                ccxt.PanicOnError(retRes70312)
+                retRes71312 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes71312)
                 var market interface{} = this.Market(symbol)
                 symbol = ccxt.GetValue(market, "symbol")
                 messageHash = this.GetMessageHash("unsubscribe", symbol)
@@ -961,9 +971,9 @@ func  (this *LighterCore) UnWatchMyTrades(optionalArgs ...interface{}) <- chan i
                 "channel": ccxt.Add("account_all_trades/", accountIndex),
             }
         
-                retRes71115 :=  (<-this.UnsubscribePublic(messageHash, this.Extend(request, params)))
-                ccxt.PanicOnError(retRes71115)
-                ch <- retRes71115
+                retRes72115 :=  (<-this.UnsubscribePublic(messageHash, this.Extend(request, params)))
+                ccxt.PanicOnError(retRes72115)
+                ch <- retRes72115
                 return nil
         
             }()
@@ -1001,15 +1011,22 @@ func  (this *LighterCore) ParseWsLiquidation(liquidation interface{}, optionalAr
     market := ccxt.GetArg(optionalArgs, 0, nil)
     _ = market
     var timestamp interface{} = this.SafeInteger(liquidation, "timestamp")
+    var isMakerAsk interface{} = this.SafeBool(liquidation, "is_maker_ask")
+    var side interface{} = ccxt.Ternary(ccxt.IsTrue(isMakerAsk), "buy", "sell")
+    var contracts interface{} = this.SafeString(liquidation, "size")
+    var contractSize interface{} = this.SafeString(market, "contractSize")
+    var price interface{} = this.SafeString(liquidation, "price")
+    var baseValue interface{} = ccxt.Precise.StringMul(contracts, contractSize)
+    var quoteValue interface{} = ccxt.Precise.StringMul(baseValue, price)
     return this.SafeLiquidation(map[string]interface{} {
         "info": liquidation,
         "symbol": ccxt.GetValue(market, "symbol"),
-        "contracts": nil,
-        "contractSize": nil,
-        "price": this.SafeString(liquidation, "price"),
-        "side": this.SafeString(liquidation, "size"),
-        "baseValue": nil,
-        "quoteValue": nil,
+        "contracts": contracts,
+        "contractSize": contractSize,
+        "price": price,
+        "side": side,
+        "baseValue": baseValue,
+        "quoteValue": quoteValue,
         "timestamp": timestamp,
         "datetime": this.Iso8601(timestamp),
     })
@@ -1063,8 +1080,10 @@ func  (this *LighterCore) HandleLiquidation(client interface{}, message interfac
         this.Liquidations = ccxt.NewArrayCache(limit)
         stored = this.Liquidations
     }
-    for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
-        var liquidation interface{} = this.ParseWsLiquidation(ccxt.GetValue(data, i), market)
+    var dataLength interface{} =     ccxt.GetArrayLength(data)
+    for i := 0; ccxt.IsLessThan(i, dataLength); i++ {
+        var iReversed interface{} = ccxt.Subtract(ccxt.Subtract(dataLength, 1), i)
+        var liquidation interface{} = this.ParseWsLiquidation(ccxt.GetValue(data, iReversed), market)
         stored.(ccxt.Appender).Append(liquidation)
     }
     var messageHash interface{} = this.GetMessageHash("liquidations", symbol)
@@ -1093,17 +1112,17 @@ func  (this *LighterCore) WatchLiquidations(symbol interface{}, optionalArgs ...
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes8278 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes8278)
+            retRes8468 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes8468)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "channel": ccxt.Add("trade/", ccxt.GetValue(market, "id")),
             }
             var messageHash interface{} = this.GetMessageHash("liquidations", symbol)
         
-                retRes83315 :=  (<-this.SubscribePublic(messageHash, this.Extend(request, params)))
-                ccxt.PanicOnError(retRes83315)
-                ch <- retRes83315
+                retRes85215 :=  (<-this.SubscribePublic(messageHash, this.Extend(request, params)))
+                ccxt.PanicOnError(retRes85215)
+                ch <- retRes85215
                 return nil
         
             }()
@@ -1136,7 +1155,7 @@ func  (this *LighterCore) HandleErrorMessage(client interface{}, message interfa
                 }()
     		    // try block:
                         if ccxt.IsTrue(!ccxt.IsEqual(error, nil)) {
-                var code interface{} = this.SafeString(message, "code")
+                var code interface{} = this.SafeString(error, "code")
                 if ccxt.IsTrue(!ccxt.IsEqual(code, nil)) {
                     var feedback interface{} = ccxt.Add(ccxt.Add(this.Id, " "), this.Json(message))
                     this.ThrowExactlyMatchedException(ccxt.GetValue(this.Exceptions, "exact"), code, feedback)
@@ -1224,8 +1243,8 @@ func  (this *LighterCore) Pong(client interface{}, message interface{}) <- chan 
                 "type": "pong",
             }
         
-            retRes9358 := (<-client.(ccxt.ClientInterface).Send(request))
-            ccxt.PanicOnError(retRes9358)
+            retRes9548 := (<-client.(ccxt.ClientInterface).Send(request))
+            ccxt.PanicOnError(retRes9548)
                 return nil
             }()
             return ch

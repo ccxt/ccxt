@@ -343,6 +343,7 @@ export default class bitfinex extends Exchange {
             'precisionMode': SIGNIFICANT_DIGITS,
             'options': {
                 'precision': 'R0',
+                'defaultCurrencyPrecision': 8,
                 // convert 'EXCHANGE MARKET' to lowercase 'market'
                 // convert 'EXCHANGE LIMIT' to lowercase 'limit'
                 // everything else remains uppercase
@@ -604,43 +605,37 @@ export default class bitfinex extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        const spotMarketsInfoPromise = this.publicGetConfPubInfoPair(params);
-        const futuresMarketsInfoPromise = this.publicGetConfPubInfoPairFutures(params);
-        const marginIdsPromise = this.publicGetConfPubListPairMargin(params);
-        let [spotMarketsInfo, futuresMarketsInfo, marginIds] = await Promise.all([spotMarketsInfoPromise, futuresMarketsInfoPromise, marginIdsPromise]);
-        spotMarketsInfo = this.safeList(spotMarketsInfo, 0, []);
-        futuresMarketsInfo = this.safeList(futuresMarketsInfo, 0, []);
+        const labels = [
+            'pub:info:pair',
+            // [  ['AAVE:USD',      [null,null,null,"0.02","5000.0",null,null,null,null,null,null,null,] ], ... ]
+            'pub:info:pair:futures',
+            // [  ['AAVEF0:USTF0',  [null,null,null,"0.02","5000.0",null,null,null,0.01,0.005,] ]]
+            'pub:list:pair:securities',
+            // ALT2612:USD","ALT2612:UST","BMN2:BTC","BMN2:USD","TITAN1:GBP","TITAN1:USD","TITAN2:GBP","TITAN2:USD","USTBL:USD","USTBL:UST"]]
+            'pub:list:pair:margin',
+            // [ 'ADABTC', 'AVAX:BTC', ... ] // delimiter inconsistency
+        ];
+        const config = labels.join(',');
+        const request = {
+            'config': config,
+        };
+        const [spotMarketsInfo, futuresMarketsInfo, securitiesMarketsIds, marginIds] = await this.publicGetConfConfig(this.extend(request, params));
         const markets = this.arrayConcat(spotMarketsInfo, futuresMarketsInfo);
-        marginIds = this.safeValue(marginIds, 0, []);
-        //
-        //    [
-        //        "1INCH:USD",
-        //        [
-        //           null,
-        //           null,
-        //           null,
-        //           "2.0",
-        //           "100000.0",
-        //           null,
-        //           null,
-        //           null,
-        //           null,
-        //           null,
-        //           null,
-        //           null
-        //        ]
-        //    ]
-        //
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const pair = markets[i];
-            const id = this.safeStringUpper(pair, 0);
-            const market = this.safeValue(pair, 1, {});
+            const pairObj = markets[i];
+            const id = this.safeStringUpper(pairObj, 0);
+            const market = this.safeValue(pairObj, 1, {});
             let spot = true;
+            let type = undefined;
             if (id.indexOf('F0') >= 0) {
                 spot = false;
+                type = 'swap';
             }
-            const swap = !spot;
+            else {
+                type = 'spot';
+            }
+            const swap = type === 'swap';
             let baseId = undefined;
             let quoteId = undefined;
             if (id.indexOf(':') >= 0) {
@@ -670,10 +665,6 @@ export default class bitfinex extends Exchange {
             }
             const minOrderSizeString = this.safeString(market, 3);
             const maxOrderSizeString = this.safeString(market, 4);
-            let margin = false;
-            if (spot && this.inArray(id, marginIds)) {
-                margin = true;
-            }
             result.push({
                 'id': 't' + id,
                 'symbol': symbol,
@@ -683,14 +674,15 @@ export default class bitfinex extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': spot ? 'spot' : 'swap',
+                'type': type,
                 'spot': spot,
-                'margin': margin,
+                'tradfi': this.inArray(id, securitiesMarketsIds),
+                'margin': (spot && this.inArray(id, marginIds)),
                 'swap': swap,
                 'future': false,
                 'option': false,
                 'active': true,
-                'contract': swap,
+                'contract': !spot,
                 'linear': swap ? true : undefined,
                 'inverse': swap ? false : undefined,
                 'contractSize': swap ? this.parseNumber('1') : undefined,
@@ -745,7 +737,8 @@ export default class bitfinex extends Exchange {
             'pub:map:currency:explorer',
             'pub:map:currency:tx:fee',
             'pub:map:tx:method',
-            'pub:info:tx:status', // maps withdrawal/deposit statuses, coins: 1 = enabled, 0 = maintenance
+            'pub:info:tx:status',
+            'pub:list:currency:margin', // margin enabled currencies
         ];
         const config = labels.join(',');
         const request = {
@@ -845,6 +838,7 @@ export default class bitfinex extends Exchange {
             'fees': this.indexBy(this.safeList(response, 7, []), 0),
             'networks': this.safeList(response, 8, []),
             'statuses': this.indexBy(this.safeList(response, 9, []), 0),
+            'marginables': this.safeList(response, 10, []),
         };
         const indexedNetworks = {};
         for (let i = 0; i < indexed['networks'].length; i++) {
@@ -871,30 +865,25 @@ export default class bitfinex extends Exchange {
             const pool = this.safeList(indexed['pool'], id, []);
             const rawType = this.safeString(pool, 1);
             const isCryptoCoin = (rawType !== undefined) || (id in indexed['explorer']); // "hacky" solution
-            let type = undefined;
-            if (isCryptoCoin) {
-                type = 'crypto';
-            }
+            const type = isCryptoCoin ? 'crypto' : undefined;
             const feeValues = this.safeList(indexed['fees'], id, []);
             const fees = this.safeList(feeValues, 1, []);
             const fee = this.safeNumber(fees, 1);
             const undl = this.safeList(indexed['undl'], id, []);
-            const precision = '8'; // default precision, todo: fix "magic constants"
-            const dwStatuses = this.safeList(indexed['statuses'], id, []);
-            const depositEnabled = this.safeInteger(dwStatuses, 1) === 1;
-            const withdrawEnabled = this.safeInteger(dwStatuses, 2) === 1;
+            const precision = this.safeString(this.options, 'defaultCurrencyPrecision', '8');
             const networks = {};
             const netwokIds = this.safeList(indexedNetworks, id, []);
             for (let j = 0; j < netwokIds.length; j++) {
                 const networkId = netwokIds[j];
                 const network = this.networkIdToCode(networkId);
+                const dwStatuses = this.safeList(indexed['statuses'], networkId, []);
                 networks[network] = {
                     'info': networkId,
                     'id': networkId.toLowerCase(),
                     'network': networkId,
                     'active': undefined,
-                    'deposit': undefined,
-                    'withdraw': undefined,
+                    'deposit': this.safeInteger(dwStatuses, 1) === 1,
+                    'withdraw': this.safeInteger(dwStatuses, 2) === 1,
                     'fee': undefined,
                     'precision': undefined,
                     'limits': {
@@ -912,13 +901,13 @@ export default class bitfinex extends Exchange {
                 'type': type,
                 'name': name,
                 'active': true,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': fee,
-                'precision': parseInt(precision),
+                'precision': this.parseNumber(precision),
                 'limits': {
                     'amount': {
-                        'min': this.parseNumber(this.parsePrecision(precision)),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
@@ -927,6 +916,7 @@ export default class bitfinex extends Exchange {
                     },
                 },
                 'networks': networks,
+                'margin': this.inArray(id, indexed['marginables']),
             });
         }
         return result;

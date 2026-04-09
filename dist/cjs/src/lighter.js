@@ -343,7 +343,9 @@ class lighter extends lighter$1["default"] {
                 'accountIndex': undefined,
                 'apiKeyIndex': undefined,
                 'wasmExecPath': undefined,
-                'libraryPath': undefined, // users should set the path to the lighter signing library. It can be downloaded here https://github.com/elliottech/lighter-python/tree/main/lighter/signers, GO users don't need it
+                'libraryPath': undefined,
+                'authDeadlineExpiry': 28800,
+                'authDeadlineMinimumRemaining': 60,
             },
             'features': {
                 'default': {
@@ -481,12 +483,34 @@ class lighter extends lighter$1["default"] {
             const res = this.handleOptionAndParams2({}, 'createAuth', 'accountIndex', 'account_index');
             accountIndex = this.safeInteger(res, 0);
         }
-        const rs = {
-            'deadline': this.seconds() + 60,
+        const auths = this.safeDict(this.options, 'auths');
+        const accountAuths = this.safeDict(auths, accountIndex);
+        const cachedAuth = this.safeDict(accountAuths, apiKeyIndex);
+        const cachedDeadline = this.safeInteger(cachedAuth, 'deadline');
+        if (cachedDeadline !== undefined) {
+            const minimumDeadline = this.seconds() + this.safeInteger(this.options, 'authDeadlineMinimumRemaining');
+            if (cachedDeadline >= minimumDeadline) {
+                return this.safeString(cachedAuth, 'token');
+            }
+        }
+        const deadline = this.seconds() + this.safeInteger(this.options, 'authDeadlineExpiry');
+        const request = {
+            'deadline': deadline,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
-        return this.lighterCreateAuthToken(this.safeValue(this.options, 'signer'), rs);
+        const token = this.lighterCreateAuthToken(this.safeValue(this.options, 'signer'), request);
+        if (!('auths' in this.options)) {
+            this.options['auths'] = {};
+        }
+        if (!(accountIndex in this.options['auths'])) {
+            this.options['auths'][accountIndex] = {};
+        }
+        this.options['auths'][accountIndex][apiKeyIndex] = {
+            'deadline': deadline,
+            'token': token,
+        };
+        return token;
     }
     pow(n, m) {
         let r = Precise["default"].stringMul(n, '1');
@@ -508,7 +532,7 @@ class lighter extends lighter$1["default"] {
     setSandboxMode(enable) {
         super.setSandboxMode(enable);
         this.options['sandboxMode'] = enable;
-        this.options['chainId'] = 300;
+        this.options['chainId'] = enable ? 300 : 304;
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         /**
@@ -880,60 +904,107 @@ class lighter extends lighter$1["default"] {
     async fetchMarkets(params = {}) {
         const response = await this.publicGetOrderBookDetails(params);
         //
-        //     {
-        //         "code": 200,
-        //         "order_book_details": [
-        //             {
-        //                 "symbol": "ETH",
-        //                 "market_id": 0,
-        //                 "status": "active",
-        //                 "taker_fee": "0.0000",
-        //                 "maker_fee": "0.0000",
-        //                 "liquidation_fee": "1.0000",
-        //                 "min_base_amount": "0.0050",
-        //                 "min_quote_amount": "10.000000",
-        //                 "order_quote_limit": "",
-        //                 "supported_size_decimals": 4,
-        //                 "supported_price_decimals": 2,
-        //                 "supported_quote_decimals": 6,
-        //                 "size_decimals": 4,
-        //                 "price_decimals": 2,
-        //                 "quote_multiplier": 1,
-        //                 "default_initial_margin_fraction": 500,
-        //                 "min_initial_margin_fraction": 200,
-        //                 "maintenance_margin_fraction": 120,
-        //                 "closeout_margin_fraction": 80,
-        //                 "last_trade_price": 3550.69,
-        //                 "daily_trades_count": 1197349,
-        //                 "daily_base_token_volume": 481297.3509,
-        //                 "daily_quote_token_volume": 1671431095.263844,
-        //                 "daily_price_low": 3402.41,
-        //                 "daily_price_high": 3571.45,
-        //                 "daily_price_change": 0.5294300840859545,
-        //                 "open_interest": 39559.3278,
-        //                 "daily_chart": {},
-        //                 "market_config": {
-        //                     "market_margin_mode": 0,
-        //                     "insurance_fund_account_index": 281474976710655,
-        //                     "liquidation_mode": 0,
-        //                     "force_reduce_only": false,
-        //                     "trading_hours": ""
-        //                 }
-        //             }
-        //         ]
-        //     }
+        //    {
+        //        "code": "200",
+        //        "message": "string",
+        //        "order_book_details": [
+        //            {
+        //                "symbol": "ETH",
+        //                "market_id": 0,
+        //                "market_type": "perp",
+        //                "base_asset_id": 0,
+        //                "quote_asset_id": 0,
+        //                "status": "active",
+        //                "taker_fee": "0.0001",
+        //                "maker_fee": "0.0000",
+        //                "liquidation_fee": "0.01",
+        //                "min_base_amount": "0.01",
+        //                "min_quote_amount": "0.1",
+        //                "supported_size_decimals": "4",
+        //                "supported_price_decimals": "4",
+        //                "supported_quote_decimals": "4",
+        //                "order_quote_limit": "281474976.710655",
+        //                "size_decimals": "4",
+        //                "price_decimals": "4",
+        //                "quote_multiplier": "10000",
+        //                "default_initial_margin_fraction": "100",
+        //                "min_initial_margin_fraction": "100",
+        //                "maintenance_margin_fraction": "50",
+        //                "closeout_margin_fraction": "100",
+        //                "last_trade_price": "3024.66",
+        //                "daily_trades_count": "68",
+        //                "daily_base_token_volume": "235.25",
+        //                "daily_quote_token_volume": "93566.25",
+        //                "daily_price_low": "3014.66",
+        //                "daily_price_high": "3024.66",
+        //                "daily_price_change": "3.66",
+        //                "open_interest": "93.0",
+        //                "daily_chart": "{1640995200:3024.66}",
+        //                "market_config": {
+        //                    "market_margin_mode": 0,
+        //                    "insurance_fund_account_index": 281474976710655,
+        //                    "liquidation_mode": 0,
+        //                    "force_reduce_only": false,
+        //                    "funding_fee_discounts_enabled": true,
+        //                    "trading_hours": "",
+        //                    "hidden": true
+        //                },
+        //                "strategy_index": 0
+        //            }
+        //        ],
+        //        "spot_order_book_details": [
+        //            {
+        //                "symbol": "ETH/USDC",
+        //                "market_id": 2048,
+        //                "market_type": "spot",
+        //                "base_asset_id": 1,
+        //                "quote_asset_id": 3,
+        //                "status": "active",
+        //                "taker_fee": "0.0000",
+        //                "maker_fee": "0.0000",
+        //                "liquidation_fee": "0.0000",
+        //                "min_base_amount": "0.0001",
+        //                "min_quote_amount": "0.000001",
+        //                "order_quote_limit": "2500000.000000",
+        //                "supported_size_decimals": 4,
+        //                "supported_price_decimals": 2,
+        //                "supported_quote_decimals": 6,
+        //                "size_decimals": 4,
+        //                "price_decimals": 2,
+        //                "last_trade_price": 2731.79,
+        //                "daily_trades_count": 126993,
+        //                "daily_base_token_volume": 1203.0962,
+        //                "daily_quote_token_volume": 3516374.947553,
+        //                "daily_price_low": 2717.47,
+        //                "daily_price_high": 3044.21,
+        //                "daily_price_change": -10.2389493724579,
+        //                "daily_chart": "{1640995200:3024.66}"
+        //            }
+        //        ]
+        //    }
         //
-        const markets = this.safeList(response, 'order_book_details', []);
+        const spotMarkets = this.safeList(response, 'spot_order_book_details', []);
+        const swapMarkets = this.safeList(response, 'order_book_details', []);
+        const markets = this.arrayConcat(spotMarkets, swapMarkets);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString(market, 'market_id');
-            const baseId = this.safeString(market, 'symbol');
+            let type = this.safeString(market, 'market_type');
+            type = (type === 'perp') ? 'swap' : type;
+            let baseId = this.safeString(market, 'symbol');
+            if (baseId !== undefined && baseId.indexOf('/') !== -1) {
+                baseId = baseId.split('/')[0];
+            }
             const quoteId = 'USDC';
-            const settleId = 'USDC';
+            const settleId = (type === 'swap') ? 'USDC' : undefined;
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
             const settle = this.safeCurrencyCode(settleId);
+            let symbol = base + '/' + quote;
+            if (settle !== undefined) {
+                symbol = symbol + ':' + settle;
+            }
             const amountDecimals = this.safeString2(market, 'size_decimals', 'supported_size_decimals');
             const priceDecimals = this.safeString2(market, 'price_decimals', 'supported_price_decimals');
             const amountPrecision = (amountDecimals === undefined) ? undefined : this.parseNumber(this.parsePrecision(amountDecimals));
@@ -941,23 +1012,23 @@ class lighter extends lighter$1["default"] {
             const quoteMultiplier = this.safeNumber(market, 'quote_multiplier');
             result.push({
                 'id': id,
-                'symbol': base + '/' + quote + ':' + settle,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': 'swap',
-                'spot': false,
+                'type': type,
+                'spot': type === 'spot',
                 'margin': false,
-                'swap': true,
+                'swap': type === 'swap',
                 'future': false,
                 'option': false,
                 'active': this.safeString(market, 'status') === 'active',
-                'contract': true,
-                'linear': true,
-                'inverse': false,
+                'contract': type === 'swap',
+                'linear': (type === 'swap') ? true : undefined,
+                'inverse': (type === 'swap') ? false : undefined,
                 'taker': this.safeNumber(market, 'taker_fee'),
                 'maker': this.safeNumber(market, 'maker_fee'),
                 'contractSize': quoteMultiplier,
@@ -984,7 +1055,7 @@ class lighter extends lighter$1["default"] {
                     },
                     'cost': {
                         'min': this.safeNumber(market, 'min_quote_amount'),
-                        'max': undefined,
+                        'max': this.safeNumber(market, 'order_quote_limit'),
                     },
                 },
                 'created': undefined,
@@ -1152,7 +1223,7 @@ class lighter extends lighter$1["default"] {
         //         "daily_chart": {},
         //         "market_config": {
         //             "market_margin_mode": 0,
-        //             "insurance_fund_account_index": 281474976710655,
+        //             "insurance_fund_account_index": 281474976710654,
         //             "liquidation_mode": 0,
         //             "force_reduce_only": false,
         //             "trading_hours": ""
@@ -1295,7 +1366,9 @@ class lighter extends lighter$1["default"] {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         const response = await this.publicGetOrderBookDetails(params);
-        const tickers = this.safeList(response, 'order_book_details', []);
+        const spotTickers = this.safeList(response, 'spot_order_book_details', []);
+        const swapTickers = this.safeList(response, 'order_book_details', []);
+        const tickers = this.arrayConcat(spotTickers, swapTickers);
         return this.parseTickers(tickers, symbols);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -2005,12 +2078,22 @@ class lighter extends lighter$1["default"] {
         const marketId = this.safeString(order, 'market_index');
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeTimestamp(order, 'timestamp');
-        const isAsk = this.safeBool(order, 'is_ask');
+        let isAsk = this.safeBool(order, 'is_ask');
+        if (isAsk === undefined) {
+            const isAskAsInteger = this.safeInteger(order, 'is_ask');
+            if (isAskAsInteger !== undefined) {
+                isAsk = isAskAsInteger === 1;
+            }
+        }
         let side = undefined;
         if (isAsk !== undefined) {
             side = isAsk ? 'sell' : 'buy';
         }
-        const type = this.safeString(order, 'type');
+        let type = this.safeString(order, 'type');
+        if (type === undefined) {
+            const typeAsInteger = this.safeInteger(order, 'order_type');
+            type = this.parseOrderTypeInteger(typeAsInteger);
+        }
         const triggerPrice = this.parseNumber(this.omitZero(this.safeString(order, 'trigger_price')));
         let stopLossPrice = undefined;
         let takeProfitPrice = undefined;
@@ -2022,7 +2105,22 @@ class lighter extends lighter$1["default"] {
                 takeProfitPrice = triggerPrice;
             }
         }
-        const tif = this.safeString(order, 'time_in_force');
+        // Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
+        let tif = undefined;
+        const tifAsInteger = this.safeInteger(order, 'time_in_force');
+        if (tifAsInteger !== undefined) {
+            tif = this.parseOrderTimeInForceInteger(tifAsInteger);
+        }
+        else {
+            tif = this.safeString(order, 'time_in_force');
+        }
+        let reduceOnly = this.safeBool(order, 'reduce_only');
+        if (reduceOnly === undefined) {
+            const reduceOnlyAsInteger = this.safeInteger(order, 'reduce_only');
+            if (reduceOnlyAsInteger !== undefined) {
+                reduceOnly = reduceOnlyAsInteger === 1;
+            }
+        }
         const status = this.safeString(order, 'status');
         return this.safeOrder({
             'info': order,
@@ -2034,9 +2132,9 @@ class lighter extends lighter$1["default"] {
             'lastUpdateTimestamp': this.safeTimestamp(order, 'updated_at'),
             'symbol': market['symbol'],
             'type': this.parseOrderType(type),
-            'timeInForce': this.parseOrderTimeInForeces(tif),
-            'postOnly': undefined,
-            'reduceOnly': this.safeBool(order, 'reduce_only'),
+            'timeInForce': this.parseOrderTimeInForce(tif),
+            'postOnly': tif === 'post-only',
+            'reduceOnly': reduceOnly,
             'side': side,
             'price': this.safeString(order, 'price'),
             'triggerPrice': triggerPrice,
@@ -2073,8 +2171,8 @@ class lighter extends lighter$1["default"] {
         };
         return this.safeString(statuses, status, status);
     }
-    parseOrderType(status) {
-        const statuses = {
+    parseOrderType(type) {
+        const types = {
             'limit': 'limit',
             'market': 'market',
             'stop-loss': 'market',
@@ -2085,16 +2183,41 @@ class lighter extends lighter$1["default"] {
             'twap-sub': 'twap',
             'liquidation': 'market',
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(types, type, type);
     }
-    parseOrderTimeInForeces(tif) {
+    parseOrderTypeInteger(typeInteger) {
+        if (typeInteger === undefined) {
+            return undefined;
+        }
+        const types = {
+            '0': 'limit',
+            '1': 'market',
+            '2': 'stop-loss',
+            '3': 'stop-loss-limit',
+            '4': 'take-profit',
+            '5': 'take-profit-limit',
+            '6': 'twap',
+            '7': 'twap-sub',
+            '8': 'liquidation',
+        };
+        return this.safeString(types, typeInteger.toString());
+    }
+    parseOrderTimeInForce(tif) {
         const timeInForces = {
-            'good-till-time': 'GTC',
             'immediate-or-cancel': 'IOC',
+            'good-till-time': 'GTC',
             'post-only': 'PO',
             'Unknown': undefined,
         };
         return this.safeString(timeInForces, tif, tif);
+    }
+    parseOrderTimeInForceInteger(tifInteger) {
+        const timeInForces = {
+            '0': 'immediate-or-cancel',
+            '1': 'good-till-time',
+            '2': 'post-only',
+        };
+        return this.safeString(timeInForces, tifInteger.toString());
     }
     /**
      * @method

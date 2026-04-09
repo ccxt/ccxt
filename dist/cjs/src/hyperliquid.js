@@ -358,6 +358,7 @@ class hyperliquid extends hyperliquid$1["default"] {
                     },
                 },
             },
+            'rollingWindowSize': 0.0,
         });
     }
     setSandboxMode(enabled) {
@@ -1094,6 +1095,8 @@ class hyperliquid extends hyperliquid$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
+        // if user provides a different address in params and does not provide the enableUnifiedMargin we assume we need to request the info again
+        const shouldRefresh = (this.safeString2(params, 'user', 'address') !== undefined) && this.safeBool(params, 'enableUnifiedMargin') === undefined;
         let userAddress = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchBalance', params);
         let type = undefined;
@@ -1101,7 +1104,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchBalance', params);
         let isUnifiedEnabled = undefined;
-        [isUnifiedEnabled, params] = await this.isUnifiedEnabled('fetchBalance', params);
+        [isUnifiedEnabled, params] = await this.isUnifiedEnabled('fetchBalance', userAddress, shouldRefresh, params);
         const dex = this.safeString(params, 'dex');
         const isSpot = ((type === 'spot') || isUnifiedEnabled) && (dex === undefined);
         const request = {
@@ -1805,7 +1808,7 @@ class hyperliquid extends hyperliquid$1["default"] {
     }
     async initializeClient() {
         try {
-            await Promise.all([this.handleBuilderFeeApproval(), this.setRef(), this.isUnifiedEnabled('fetchBalance', {})]); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
+            await Promise.all([this.handleBuilderFeeApproval(), this.setRef(), this.isUnifiedEnabled('fetchBalance', undefined, false, {})]); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
         }
         catch (e) {
             return false;
@@ -1838,15 +1841,22 @@ class hyperliquid extends hyperliquid$1["default"] {
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-abstraction-state
      * @description returns enableUnifiedMargin so the user can check if unified account is enabled
      * @param {string} method the method for which we want to check if unified margin is enabled, this is used to check options for specific methods (e.g. fetchBalance can have a specific option to enable unified margin)
+     * @param address
+     * @param shouldRefresh
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {bool} enableUnifiedMargin
      */
-    async isUnifiedEnabled(method, params = {}) {
+    async isUnifiedEnabled(method, address = undefined, shouldRefresh = false, params = {}) {
         let userAddress = undefined;
-        [userAddress, params] = this.handlePublicAddress('isUnifiedEnabled', params);
+        if (address !== undefined) {
+            userAddress = address;
+        }
+        else {
+            [userAddress, params] = this.handlePublicAddress('isUnifiedEnabled', params);
+        }
         let enableUnifiedMargin = undefined;
         [enableUnifiedMargin, params] = this.handleOptionAndParams(params, method, 'enableUnifiedMargin');
-        if (enableUnifiedMargin === undefined) {
+        if (enableUnifiedMargin === undefined || shouldRefresh) {
             const request = {
                 'type': 'userAbstraction',
                 'user': userAddress,
@@ -1862,6 +1872,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             // "unifiedAccount" | "portfolioMargin" | "disabled" | "default" | "dexAbstraction"
             //
             enableUnifiedMargin = response === '"unifiedAccount"';
+            // don't cache this result if this is a different addresss
             this.options['enableUnifiedMargin'] = enableUnifiedMargin; // cache this for future calls
         }
         return [enableUnifiedMargin, params];

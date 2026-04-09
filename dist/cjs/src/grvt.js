@@ -647,7 +647,7 @@ class grvt extends grvt$1["default"] {
         //            ...
         //
         const promises = [marketsPromise];
-        if (this.privateKey !== undefined || this.apiKey !== undefined) {
+        if (!this.isEmptyString(this.apiKey) || !this.isEmptyString(this.privateKey)) {
             promises.push(this.signIn());
         }
         const results = await Promise.all(promises);
@@ -758,7 +758,8 @@ class grvt extends grvt$1["default"] {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies(params = {}) {
-        const response = await this.publicMarketPostFullV1Currency(params);
+        const request = { '': '' }; // workaround for php [] empty arr
+        const response = await this.publicMarketPostFullV1Currency(request);
         //
         //    {
         //        "result": [

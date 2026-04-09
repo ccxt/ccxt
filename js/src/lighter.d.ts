@@ -240,8 +240,10 @@ export default class lighter extends Exchange {
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderStatus(status: Str): string;
-    parseOrderType(status: any): string;
-    parseOrderTimeInForeces(tif: any): string;
+    parseOrderType(type: any): string;
+    parseOrderTypeInteger(typeInteger: any): string;
+    parseOrderTimeInForce(tif: any): string;
+    parseOrderTimeInForceInteger(tifInteger: any): string;
     /**
      * @method
      * @name lighter#transfer

@@ -1416,7 +1416,9 @@ public partial class bitget : Exchange
                     { "20003", typeof(ExchangeError) },
                     { "01001", typeof(ExchangeError) },
                     { "40024", typeof(RestrictedLocation) },
+                    { "41117", typeof(InvalidOrder) },
                     { "43111", typeof(PermissionDenied) },
+                    { "45113", typeof(InvalidOrder) },
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "invalid size, valid range", typeof(ExchangeError) },
@@ -5282,7 +5284,7 @@ public partial class bitget : Exchange
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much you want to trade in units of the base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders, and used as the execution price for contract stop-loss / take-profit orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.cost] *spot only* how much you want to trade in units of the quote currency, for market buy orders only
      * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
@@ -5677,9 +5679,13 @@ public partial class bitget : Exchange
                 }
             } else if (isTrue(isStopLossOrTakeProfitTrigger))
             {
-                if (!isTrue(isMarketOrder))
+                if (isTrue(!isEqual(price, null)))
                 {
-                    throw new ExchangeError ((string)add(this.id, " createOrder() bitget stopLoss or takeProfit orders must be market orders")) ;
+                    ((IDictionary<string,object>)request)["executePrice"] = this.priceToPrecision(symbol, price);
+                    if (isTrue(inOp(request, "price")))
+                    {
+                        ((IDictionary<string,object>)request).Remove((string)"price");
+                    }
                 }
                 if (isTrue(hedged))
                 {

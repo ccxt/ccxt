@@ -27,10 +27,16 @@ const inArray = (needle: any, haystack: any[]) => haystack.includes (needle);
 const toArray = (object: Dictionary<any>|any[]) => Object.values (object);
 
 const isEmpty = (object: any[] | Dictionary<any>) => {
-    if (!object) {
+    if (object === null || object === undefined) {
         return true;
     }
-    return (Array.isArray (object) ? object : Object.keys (object)).length < 1;
+    if (Array.isArray (object)) {
+        return object.length < 1;
+    }
+    if (isDictionary (object)) {
+        return Object.keys (object).length < 1;
+    }
+    return false;
 };
 
 const keysort = (x: Dictionary<any>, out: Dictionary<any> = {}) => {

@@ -180,35 +180,52 @@ class blofin extends blofin$1["default"] {
                         'market/tickers': 1,
                         'market/books': 1,
                         'market/trades': 1,
-                        'market/candles': 1,
                         'market/mark-price': 1,
                         'market/funding-rate': 1,
                         'market/funding-rate-history': 1,
+                        'market/candles': 1,
+                        'market/index-candles': 1,
+                        'market/mark-price-candles': 1,
+                        'market/position-tiers': 1,
                     },
                 },
                 'private': {
                     'get': {
+                        // account
                         'asset/balances': 1,
-                        'trade/orders-pending': 1,
-                        'trade/fills-history': 1,
-                        'asset/deposit-history': 1,
-                        'asset/withdrawal-history': 1,
                         'asset/bills': 1,
+                        'asset/withdrawal-history': 1,
+                        'asset/deposit-history': 1,
+                        'account/config': 1,
+                        'asset/currencies': 1,
+                        // trading
                         'account/balance': 1,
                         'account/positions': 1,
-                        'account/leverage-info': 1,
+                        'account/positions-history': 1,
                         'account/margin-mode': 1,
                         'account/position-mode': 1,
+                        'account/leverage-info': 1,
                         'account/batch-leverage-info': 1,
+                        'trade/orders-pending': 1,
+                        'trade/order-detail': 1,
                         'trade/orders-tpsl-pending': 1,
+                        'trade/order-tpsl-detail': 1,
                         'trade/orders-algo-pending': 1,
                         'trade/orders-history': 1,
                         'trade/orders-tpsl-history': 1,
                         'trade/orders-algo-history': 1,
+                        'trade/fills-history': 1,
                         'trade/order/price-range': 1,
-                        'user/query-apikey': 1,
+                        // affiliate
                         'affiliate/basic': 1,
+                        'affiliate/referral-code': 1,
+                        'affiliate/invitees': 1,
+                        'affiliate/sub-invitees': 1,
+                        'affiliate/sub-affiliates': 1,
+                        'affiliate/invitees/daily/info': 1,
+                        // copy trading
                         'copytrading/instruments': 1,
+                        'copytrading/config': 1,
                         'copytrading/account/balance': 1,
                         'copytrading/account/positions-by-order': 1,
                         'copytrading/account/positions-details-by-order': 1,
@@ -220,21 +237,29 @@ class blofin extends blofin$1["default"] {
                         'copytrading/trade/position-history-by-order': 1,
                         'copytrading/trade/orders-history': 1,
                         'copytrading/trade/pending-tpsl-by-order': 1,
+                        // user
+                        'user/query-apikey': 1,
+                        // tax
+                        'spot/trade/fills-history': 1,
                     },
                     'post': {
+                        // account
+                        'asset/transfer': 1,
+                        'asset/demo-apply-money': 1,
+                        // trading
                         'account/set-margin-mode': 1,
                         'account/set-position-mode': 1,
-                        'trade/order': 1,
-                        'trade/order-algo': 1,
-                        'trade/cancel-order': 1,
-                        'trade/cancel-algo': 1,
                         'account/set-leverage': 1,
+                        'trade/order': 1,
                         'trade/batch-orders': 1,
                         'trade/order-tpsl': 1,
+                        'trade/order-algo': 1,
+                        'trade/cancel-order': 1,
                         'trade/cancel-batch-orders': 1,
                         'trade/cancel-tpsl': 1,
+                        'trade/cancel-algo': 1,
                         'trade/close-position': 1,
-                        'asset/transfer': 1,
+                        // copy trading
                         'copytrading/account/set-position-mode': 1,
                         'copytrading/account/set-leverage': 1,
                         'copytrading/trade/place-order': 1,
@@ -766,6 +791,21 @@ class blofin extends blofin$1["default"] {
         //       "brokerId": ""
         //   }
         //
+        // fetchMyTrades spot
+        //     {
+        //         "instId": "DOGE-USDT",
+        //         "tradeId": "6000001623870",
+        //         "orderId": "6000011777113",
+        //         "fillPrice": "0.091480000000000000",
+        //         "fillSize": "30.000000000000000000",
+        //         "fillPnl": null,
+        //         "side": "buy",
+        //         "fee": "0.030000000000000000",
+        //         "ts": "1775213753407",
+        //         "brokerId": null,
+        //         "feeCurrency": "base_currency"
+        //     }
+        //
         const id = this.safeString(trade, 'tradeId');
         const marketId = this.safeString(trade, 'instId');
         market = this.safeMarket(marketId, market, '-');
@@ -777,27 +817,63 @@ class blofin extends blofin$1["default"] {
         const orderId = this.safeString(trade, 'orderId');
         const feeCost = this.safeString(trade, 'fee');
         let fee = undefined;
+        let feeCurrency = this.safeString(trade, 'feeCurrency');
+        const isSpot = feeCurrency !== undefined;
+        if (feeCurrency === undefined) {
+            feeCurrency = market['settle'];
+        }
+        else if (feeCurrency === 'base_currency') {
+            feeCurrency = market['base'];
+        }
+        else if (feeCurrency === 'quote_currency') {
+            feeCurrency = market['quote'];
+        }
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
-                'currency': market['settle'],
+                'currency': feeCurrency,
             };
         }
-        return this.safeTrade({
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-            'symbol': symbol,
-            'id': id,
-            'order': orderId,
-            'type': undefined,
-            'takerOrMaker': undefined,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': undefined,
-            'fee': fee,
-        }, market);
+        if (isSpot) {
+            const spotSymbol = market['base'] + '/' + market['quote'];
+            const cost = this.parseNumber(Precise["default"].stringMul(price, amount));
+            const result = {
+                'info': trade,
+                'timestamp': timestamp,
+                'datetime': this.iso8601(timestamp),
+                'symbol': spotSymbol,
+                'id': id,
+                'order': orderId,
+                'type': undefined,
+                'takerOrMaker': undefined,
+                'side': side,
+                'price': this.parseNumber(price),
+                'amount': this.parseNumber(amount),
+                'cost': cost,
+                'fee': {
+                    'cost': this.parseNumber(feeCost),
+                    'currency': feeCurrency,
+                },
+            };
+            return result;
+        }
+        else {
+            return this.safeTrade({
+                'info': trade,
+                'timestamp': timestamp,
+                'datetime': this.iso8601(timestamp),
+                'symbol': symbol,
+                'id': id,
+                'order': orderId,
+                'type': undefined,
+                'takerOrMaker': undefined,
+                'side': side,
+                'price': price,
+                'amount': amount,
+                'cost': undefined,
+                'fee': fee,
+            }, market);
+        }
     }
     /**
      * @method
@@ -1608,6 +1684,8 @@ class blofin extends blofin$1["default"] {
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] Timestamp in ms of the latest time to retrieve trades for
+     * @param {string} [params.type] 'swap' or 'spot' (defaults to 'swap'), required to fetch spot trade history
+     * @param {string} [params.instId] *spot markets only* the market id of the spot market to fetch the trade history for (e.g. 'BTC-USDT')
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
@@ -1628,7 +1706,37 @@ class blofin extends blofin$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
-        const response = await this.privateGetTradeFillsHistory(this.extend(request, params));
+        let type = 'swap';
+        [type, params] = this.handleMarketTypeAndParams('fetchMyTrades', market, params, type);
+        let response = undefined;
+        if (type === 'spot') {
+            request['instType'] = 'SPOT';
+            //
+            //     {
+            //         "code": "0",
+            //         "msg": "success",
+            //         "data": [
+            //             {
+            //                 "instId": "DOGE-USDT",
+            //                 "tradeId": "6000001623870",
+            //                 "orderId": "6000011777113",
+            //                 "fillPrice": "0.091480000000000000",
+            //                 "fillSize": "30.000000000000000000",
+            //                 "fillPnl": null,
+            //                 "side": "buy",
+            //                 "fee": "0.030000000000000000",
+            //                 "ts": "1775213753407",
+            //                 "brokerId": null,
+            //                 "feeCurrency": "base_currency"
+            //             }
+            //         ]
+            //     }
+            //
+            response = await this.privateGetSpotTradeFillsHistory(this.extend(request, params));
+        }
+        else {
+            response = await this.privateGetTradeFillsHistory(this.extend(request, params));
+        }
         const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
@@ -1780,6 +1888,7 @@ class blofin extends blofin$1["default"] {
         //
         let type = undefined;
         let id = undefined;
+        let status = undefined;
         const withdrawalId = this.safeString(transaction, 'withdrawId');
         const depositId = this.safeString(transaction, 'depositId');
         const addressTo = this.safeString(transaction, 'address');
@@ -1788,15 +1897,16 @@ class blofin extends blofin$1["default"] {
         if (withdrawalId !== undefined) {
             type = 'withdrawal';
             id = withdrawalId;
+            status = this.parseTransactionWithdrawalStatus(this.safeString(transaction, 'state'));
         }
         else {
             id = depositId;
             type = 'deposit';
+            status = this.parseTransactionDepositStatus(this.safeString(transaction, 'state'));
         }
         const currencyId = this.safeString(transaction, 'currency');
         const code = this.safeCurrencyCode(currencyId);
         const amount = this.safeNumber(transaction, 'amount');
-        const status = this.parseTransactionStatus(this.safeString(transaction, 'state'));
         const txid = this.safeString(transaction, 'txId');
         const timestamp = this.safeInteger(transaction, 'ts');
         const feeCurrencyId = this.safeString(transaction, 'feeCurrency');
@@ -1828,7 +1938,18 @@ class blofin extends blofin$1["default"] {
             },
         };
     }
-    parseTransactionStatus(status) {
+    parseTransactionWithdrawalStatus(status) {
+        const statuses = {
+            '0': 'pending',
+            '2': 'failed',
+            '3': 'ok',
+            '4': 'failed',
+            '6': 'pending',
+            '7': 'pending',
+        };
+        return this.safeString(statuses, status, status);
+    }
+    parseTransactionDepositStatus(status) {
         const statuses = {
             '0': 'pending',
             '1': 'ok',
