@@ -175,6 +175,7 @@ export default class mexc extends Exchange {
                             'ping': 1,
                             'time': 1,
                             'defaultSymbols': 1,
+                            'symbol/offline': 10,
                             'exchangeInfo': 10,
                             'depth': 1,
                             'trades': 5,
