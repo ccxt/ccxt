@@ -285,6 +285,7 @@ export default class bitbaby extends Exchange {
                     '-1023': AuthenticationError, // UNTIMESTAMP 'You are not authorized to execute this request.
                     '-1024': AuthenticationError, // UNSIGNATURE 'You are not authorized to execute this request
                     '110047': BadRequest, // PRICE_OR_AMOUNT_LESS_THAN_MINIMUM
+                    '110049': InsufficientFunds, // {"code":"110049","msg":"账户余额不足","data":null}
                     '10081': BadRequest, // // {"code":"10081","msg":"Take profit order volume must be greater than minimum value 30 contracts"}
                     '-1101': BadRequest, // TOO_MANY_PARAMETERS Too many parameters were sent.
                     '-1102': BadRequest, // MANDATORY_PARAM_EMPTY_OR_MALFORMED No mandatory parameter was sent; the parameter is empty or incorrectly formatted.
@@ -376,6 +377,7 @@ export default class bitbaby extends Exchange {
                 },
                 'networks': {
                 },
+                'partner': 'ccxt',
             },
             'features': {
                 'spot': {
@@ -1349,11 +1351,10 @@ export default class bitbaby extends Exchange {
             request['volume'] = this.amountToPrecision (symbol, amount);
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const clientOrderId = this.safeString (params, 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['newClientOrderId'] = clientOrderId;
-            params = this.omit (params, 'clientOrderId');
-        }
+        const partner = this.safeString (this.options, 'partner', 'ccxt');
+        let clientOrderId = partner + '_' + this.uuid22 ();
+        [ clientOrderId, params ] = this.handleParamString (params, 'clientOrderId', clientOrderId);
+        request['newClientOrderId'] = clientOrderId;
         let recwWindow = undefined;
         [ recwWindow, params ] = this.handleOptionAndParams (params, 'createOrder', 'recvWindow'); // checking both options and params for recvWindow value
         if (recwWindow !== undefined) {
@@ -1506,6 +1507,10 @@ export default class bitbaby extends Exchange {
             request['triggerPrice'] = takeProfitPrice;
             request['triggerType'] = 2;
         }
+        const partner = this.safeString (this.options, 'partner', 'ccxt');
+        let clientOrderId = partner + '_' + this.uuid22 ();
+        [ clientOrderId, params ] = this.handleParamString (params, 'clientOrderId', clientOrderId);
+        request['clientOrderId'] = clientOrderId;
         return this.extend (request, params);
     }
 
