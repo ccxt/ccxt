@@ -268,6 +268,7 @@ export default class mexc extends Exchange {
                             'openOrders': 1,
                             'sub-account/apiKey': 1,
                             'strategy/group': 1,
+                            'strategy/group/uid': 1,
                             'margin/order': 1,
                             'margin/openOrders': 1,
                             'userDataStream': 1,
