@@ -6,6 +6,58 @@
     ],
     "options": {},
     "methods": {
+        "fetchCanceledOrders": [
+            {
+                "description": "fetch canceled spot orders",
+                "method": "fetchCanceledOrders",
+                "url": "https://api-spot.weex.com/api/v3/allOrders?symbol=DOGEUSDT",
+                "input": [
+                    "DOGE/USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch canceled swap orders",
+                "method": "fetchCanceledOrders",
+                "url": "https://api-contract.weex.com/capi/v3/order/history?symbol=DOGEUSDT",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetch closed swap orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api-contract.weex.com/capi/v3/order/history?symbol=DOGEUSDT",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch closed spot orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api-spot.weex.com/api/v3/allOrders?symbol=DOGEUSDT",
+                "input": [
+                    "DOGE/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchCanceledAndClosedOrders": [
+            {
+                "description": "fetch canceled and closed swap orders",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api-contract.weex.com/capi/v3/order/history?symbol=DOGEUSDT&startTime=1775753432380",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    1775753432380
+                ],
+                "output": null
+            }
+        ],
         "fetchLedger": [
             {
                 "description": "fetch ledger for funding",
@@ -59,6 +111,17 @@
         ],
         "fetchMyTrades": [
             {
+                "description": "fetch my swap trades",
+                "method": "fetchMyTrades",
+                "url": "https://api-contract.weex.com/capi/v3/userTrades?symbol=DOGEUSDT&startTime=1775760234825&limit=1",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    1775760234825,
+                    1
+                ],
+                "output": null
+            },
+            {
                 "description": "fetch my spot trades",
                 "method": "fetchMyTrades",
                 "url": "https://api-spot.weex.com/api/v3/myTrades?symbol=DOGEUSDT",
@@ -81,7 +144,31 @@
         ],
         "fetchOpenOrders": [
             {
-                "description": "fetch open orders for swap with symbol",
+                "description": "fetch open swap orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api-contract.weex.com/capi/v3/openOrders?symbol=DOGEUSDT",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch open swap trigger orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api-contract.weex.com/capi/v3/openAlgoOrders?symbol=DOGEUSDT&startTime=1775753432392&limit=1",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    1775753432392,
+                    1,
+                    {
+                        "type": "swap",
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch open orders for spot with symbol",
                 "method": "fetchOpenOrders",
                 "url": "https://api-spot.weex.com/api/v3/openOrders?symbol=ETHUSDT",
                 "input": [
@@ -90,7 +177,7 @@
                 "output": null
             },
             {
-                "description": "fetch open orders for swap",
+                "description": "fetch open orders for spot",
                 "method": "fetchOpenOrders",
                 "url": "https://api-spot.weex.com/api/v3/openOrders",
                 "input": [],
@@ -99,15 +186,12 @@
         ],
         "fetchOrder": [
             {
-                "description": "fetch spot order by clientOrderId",
+                "description": "fetch swap order",
                 "method": "fetchOrder",
-                "url": "https://api-spot.weex.com/api/v3/order?origClientOrderId=e6dc41082bf342f580a19264d82dab31",
+                "url": "https://api-contract.weex.com/capi/v3/order?orderId=737191855984214376",
                 "input": [
-                    "",
-                    null,
-                    {
-                        "clientOrderId": "e6dc41082bf342f580a19264d82dab31"
-                    }
+                    "737191855984214376",
+                    "DOGE/USDT:USDT"
                 ],
                 "output": null
             },
@@ -123,21 +207,17 @@
         ],
         "cancelOrders": [
             {
-                "description": "cancel orders in spot market by clientOrderIds",
+                "description": "cancel swap orders",
                 "method": "cancelOrders",
-                "url": "https://api-spot.weex.com/api/v3/order/batch",
+                "url": "https://api-contract.weex.com/capi/v3/batchOrders",
                 "input": [
                     [
-                        ""
+                        "737191914192765288",
+                        "737191855984215400"
                     ],
-                    null,
-                    {
-                        "clientOrderIds": [
-                            "5472590c1e7f4970bedecfe83798708a"
-                        ]
-                    }
+                    "DOGE/USDT:USDT"
                 ],
-                "output": "{\"origClientOrderIds\":[\"5472590c1e7f4970bedecfe83798708a\"]}"
+                "output": "{\"orderIdList\":[\"737191914192765288\",\"737191855984215400\"]}"
             },
             {
                 "description": "cancel orders in spot market",
@@ -153,6 +233,27 @@
         ],
         "cancelAllOrders": [
             {
+                "description": "cancel all swap trigger orders for symbol",
+                "method": "cancelAllOrders",
+                "url": "https://api-contract.weex.com/capi/v3/algoOpenOrders?symbol=DOGEUSDT",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "cancel all swap orders for symbol",
+                "method": "cancelAllOrders",
+                "url": "https://api-contract.weex.com/capi/v3/allOpenOrders?symbol=DOGEUSDT",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
                 "description": "cancel all spot orders for market",
                 "method": "cancelAllOrders",
                 "url": "https://api-spot.weex.com/api/v3/openOrders?symbol=DOGEUSDT",
@@ -164,14 +265,24 @@
         ],
         "cancelOrder": [
             {
-                "description": "cancel spot order by clientOrderId",
+                "description": "cancel swap order",
                 "method": "cancelOrder",
-                "url": "https://api-spot.weex.com/api/v3/order?origClientOrderId=test_cancel_order",
+                "url": "https://api-contract.weex.com/capi/v3/order?orderId=737191252214153576",
                 "input": [
-                    "",
-                    null,
+                    "737191252214153576",
+                    "DOGE/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "cancel swap trigger order",
+                "method": "cancelOrder",
+                "url": "https://api-contract.weex.com/capi/v3/algoOrder?orderId=737188743538017640",
+                "input": [
+                    "737188743538017640",
+                    "DOGE/USDT:USDT",
                     {
-                        "clientOrderId": "test_cancel_order"
+                        "trigger": true
                     }
                 ],
                 "output": null
