@@ -136,7 +136,7 @@ export default class pacifica extends Exchange {
             },
             'hostname': 'pacifica.fi',
             'urls': {
-                'logo': '', // provide it later
+                'logo': 'https://github.com/user-attachments/assets/f795515a-828e-4a04-8fca-bf19fcf17ea4',
                 'api': {
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
