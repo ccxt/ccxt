@@ -334,6 +334,7 @@ export default class mexc extends Exchange {
                             'account/risk_limit': 2, // TO_DO: gets max/min position size, allowed sides, leverage, maintenance margin, initial margin, etc...
                             'account/tiered_fee_rate': 2, // TO_DO: taker/maker fees for account
                             'position/leverage': 2,
+                            'account/tiered_fee_rate/v2': 2,
                         },
                         'post': {
                             'account/asset/analysis/v3': 2,
