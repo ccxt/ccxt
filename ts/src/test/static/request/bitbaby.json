@@ -1,6 +1,9 @@
 {
     "exchange": "bitbaby",
-    "skipKeys": [],
+    "skipKeys": [
+        "clientOrderId",
+        "newClientOrderId"
+    ],
     "options": {},
     "methods": {
         "fetchMarkOHLCV": [
@@ -61,7 +64,7 @@
                     50,
                     0.01
                 ],
-                "output": "{\"symbol\":\"dogeusdt\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"volume\":\"50\",\"price\":\"0.01\"}"
+                "output": "{\"symbol\":\"dogeusdt\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"volume\":\"50\",\"price\":\"0.01\",\"newClientOrderId\":\"ccxt_aa5fd6a4752c4c0eade757\"}"
             },
             {
                 "description": "create spot limit sell order",
@@ -74,7 +77,7 @@
                     50,
                     1
                 ],
-                "output": "{\"symbol\":\"dogeusdt\",\"side\":\"SELL\",\"type\":\"LIMIT\",\"volume\":\"50\",\"price\":\"1\"}"
+                "output": "{\"symbol\":\"dogeusdt\",\"side\":\"SELL\",\"type\":\"LIMIT\",\"volume\":\"50\",\"price\":\"1\",\"newClientOrderId\":\"ccxt_aa5fd6a4752c4c0eade757\"}"
             },
             {
                 "description": "create spot market sell order",
@@ -86,7 +89,7 @@
                     "sell",
                     200
                 ],
-                "output": "{\"symbol\":\"dogeusdt\",\"side\":\"SELL\",\"type\":\"MARKET\",\"volume\":\"200\"}"
+                "output": "{\"symbol\":\"dogeusdt\",\"side\":\"SELL\",\"type\":\"MARKET\",\"volume\":\"200\",\"newClientOrderId\":\"ccxt_aa5fd6a4752c4c0eade757\"}"
             },
             {
                 "description": "create spot market buy order with cost",
@@ -102,7 +105,7 @@
                         "cost": 30
                     }
                 ],
-                "output": "{\"symbol\":\"dogeusdt\",\"side\":\"BUY\",\"type\":\"MARKET\",\"volume\":\"30\"}"
+                "output": "{\"symbol\":\"dogeusdt\",\"side\":\"BUY\",\"type\":\"MARKET\",\"volume\":\"30\",\"newClientOrderId\":\"ccxt_aa5fd6a4752c4c0eade757\"}"
             },
             {
                 "description": "create take profit market swap order",
@@ -118,7 +121,7 @@
                         "takeProfitPrice": 1
                     }
                 ],
-                "output": "{\"contractName\":\"E-DOGE-USDT\",\"side\":\"SELL\",\"type\":\"MARKET\",\"open\":\"CLOSE\",\"volume\":\"30\",\"positionType\":\"1\",\"triggerPrice\":\"1\",\"triggerType\":2}"
+                "output": "{\"contractName\":\"E-DOGE-USDT\",\"side\":\"SELL\",\"type\":\"MARKET\",\"open\":\"CLOSE\",\"volume\":\"30\",\"positionType\":\"1\",\"triggerPrice\":\"1\",\"triggerType\":2,\"clientOrderId\":\"ccxt_aa5fd6a4752c4c0eade757\"}"
             },
             {
                 "description": "create stop loss limit swap order",
@@ -134,7 +137,7 @@
                         "stopLossPrice": 0.01
                     }
                 ],
-                "output": "{\"contractName\":\"E-DOGE-USDT\",\"side\":\"SELL\",\"type\":\"LIMIT\",\"open\":\"CLOSE\",\"volume\":\"30\",\"price\":\"0.02\",\"positionType\":\"1\",\"triggerPrice\":\"0.01\",\"triggerType\":1}"
+                "output": "{\"contractName\":\"E-DOGE-USDT\",\"side\":\"SELL\",\"type\":\"LIMIT\",\"open\":\"CLOSE\",\"volume\":\"30\",\"price\":\"0.02\",\"positionType\":\"1\",\"triggerPrice\":\"0.01\",\"triggerType\":1,\"clientOrderId\":\"ccxt_aa5fd6a4752c4c0eade757\"}"
             },
             {
                 "description": "create swap order with cost",
@@ -150,7 +153,7 @@
                         "cost": 20
                     }
                 ],
-                "output": "{\"contractName\":\"E-DOGE-USDT\",\"side\":\"BUY\",\"type\":\"MARKET\",\"open\":\"OPEN\",\"volume\":\"20\",\"positionType\":\"1\"}"
+                "output": "{\"contractName\":\"E-DOGE-USDT\",\"side\":\"BUY\",\"type\":\"MARKET\",\"open\":\"OPEN\",\"volume\":\"20\",\"positionType\":\"1\",\"clientOrderId\":\"ccxt_aa5fd6a4752c4c0eade757\"}"
             },
             {
                 "description": "create reduceOnly swap order",
@@ -166,7 +169,7 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "{\"contractName\":\"E-DOGE-USDT\",\"side\":\"BUY\",\"type\":\"MARKET\",\"open\":\"CLOSE\",\"volume\":\"100\",\"positionType\":\"1\"}"
+                "output": "{\"contractName\":\"E-DOGE-USDT\",\"side\":\"BUY\",\"type\":\"MARKET\",\"open\":\"CLOSE\",\"volume\":\"100\",\"positionType\":\"1\",\"clientOrderId\":\"ccxt_aa5fd6a4752c4c0eade757\"}"
             }
         ],
         "fetchOHLCV": [
