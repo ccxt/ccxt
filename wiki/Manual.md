@@ -841,7 +841,6 @@ If you encounter DDoS protection errors and cannot reach a particular exchange t
 - run your software in close proximity to the exchange (same country, same city, same datacenter, same server rack, same server)
 - ...
 
-
 ## Maximum Requests capacity
 
 In asynchronous programming, CCXT allows you to schedule an unlimited number of requests. However, there's a limit on the queue length which is by default set to 1000 concurrent requests max. If you attempt to enqueue more than that, you will encounter the error: "throttle queue is over maxCapacity".
@@ -7164,17 +7163,29 @@ Some users might want to control how CCXT handles arithmetic operations. Even th
 #### **Javascript**
 ```javascript
 const ex = new ccxt.coinbase ();
-ex.number = String ; // String | Number
+ex.number = String; // String | Number
+
+// other possible values:
+exchange.number = parseFloat; // default
+exchange.number = require ('bignumber.js'); // parse numbers as bignumber objects
 ```
 #### **Python**
 ```python
 ex = ccxt.coinbase()
 ex.number = str  # str | float
+
+// other possible values:
+exchange.number = float  # default
+exchange.number = decimal.Decimal  # parse numbers as decimals
 ```
 #### **PHP**
 ```php
 $ex = new ccxt\\coinbase();
 $ex->number = 'strval'; // 'strval' | 'floatval'
+
+// other possible values:
+$exchange->number = 'floatval'; // default
+$exchange->number = function ($string) { return new Precise($string); }; // parse numbers as Precise objects
 ```
 #### **C#**
 ```csharp
@@ -7183,32 +7194,6 @@ ex.number = typeof(String); // typeof(String) | typeof(float)
 ```
 <!-- tabs:end -->
 
-
-Or use custom values:
-
-<!-- tabs:start -->
-#### **Javascript**
-```javascript
-exchange.number = parseFloat // default
-exchange.number = String // parse numbers as strings
-exchange.number = require ('bignumber.js') // parse numbers as bignumber objects
-```
-#### **Python**
-```python
-exchange.number = float  # default
-exchange.number = str  # parse numbers as strings
-exchange.number = decimal.Decimal  # parse numbers as decimals
-```
-
-#### **PHP**
-```php
-$exchange->number = 'floatval'; // default
-$exchange->number = 'strval'; // parse numbers as strings
-$exchange->number = function ($string) { return new Precise($string); }; // parse numbers as Precise objects
-```
-<!-- tabs:end -->
-
-The next time you make any call (eg. `fetchOrderBook`) the numbers will automatically be parsed according to `.number` property. Specifically, the constructor `.number` will be instantiated as `.number(stringNumber)` and the result is stored in the place of the default floating point numbers.
 
 # Error Handling
 
