@@ -380,6 +380,7 @@ export default class mexc extends Exchange {
                             'trackorder/change_order': 2,
                             'market_maker/self_trade/blacklist/create': 2,
                             'market_maker/self_trade/blacklist/update': 2,
+                            'market_maker/self_trade/blacklist/delete': 2,
                         },
                     },
                 },
