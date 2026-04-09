@@ -346,6 +346,7 @@ export default class mexc extends Exchange {
                             'position/change_leverage': 2,
                             'position/change_position_mode': 2,
                             'position/reverse': 2,
+                            'position/close_all': 2,
                             'order/create': 2,
                             'order/submit': 2,
                             'order/submit_batch': 40,
