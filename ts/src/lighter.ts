@@ -1373,7 +1373,9 @@ export default class lighter extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.publicGetOrderBookDetails (params);
-        const tickers = this.safeList (response, 'order_book_details', []);
+        const spotTickers = this.safeList (response, 'spot_order_book_details', []);
+        const swapTickers = this.safeList (response, 'order_book_details', []);
+        const tickers = this.arrayConcat (spotTickers, swapTickers);
         return this.parseTickers (tickers, symbols);
     }
 
