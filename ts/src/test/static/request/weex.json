@@ -6,6 +6,123 @@
     ],
     "options": {},
     "methods": {
+        "reduceMargin": [
+            {
+                "description": "reduce margin",
+                "method": "reduceMargin",
+                "url": "https://api-contract.weex.com/capi/v3/account/positionMargin",
+                "input": [
+                    "ETH/USDT:USDT",
+                    3,
+                    {
+                        "positionId": "737255283637617000"
+                    }
+                ],
+                "output": "{\"isolatedPositionId\":\"737255283637617000\",\"amount\":\"3\",\"type\":2}"
+            }
+        ],
+        "addMargin": [
+            {
+                "description": "add margin",
+                "method": "addMargin",
+                "url": "https://api-contract.weex.com/capi/v3/account/positionMargin",
+                "input": [
+                    "ETH/USDT:USDT",
+                    5,
+                    {
+                        "positionId": "737255283637617000"
+                    }
+                ],
+                "output": "{\"isolatedPositionId\":\"737255283637617000\",\"amount\":\"5\",\"type\":1}"
+            }
+        ],
+        "setPositionMode": [
+            {
+                "description": "set position mode",
+                "method": "setPositionMode",
+                "url": "https://api-contract.weex.com/capi/v3/account/marginType",
+                "input": [
+                    true,
+                    "ETH/USDT:USDT",
+                    {
+                        "marginMode": "isolated"
+                    }
+                ],
+                "output": "{\"symbol\":\"ETHUSDT\",\"marginType\":\"ISOLATED\",\"separatedType\":\"SEPARATED\"}"
+            }
+        ],
+        "fetchPositionMode": [
+            {
+                "description": "fetch position mode",
+                "method": "fetchPositionMode",
+                "url": "https://api-contract.weex.com/capi/v3/account/symbolConfig?symbol=ETHUSDT",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "set leverage for cross margin",
+                "method": "setLeverage",
+                "url": "https://api-contract.weex.com/capi/v3/account/leverage",
+                "input": [
+                    11,
+                    "DOGE/USDT:USDT",
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"marginType\":\"CROSSED\",\"crossLeverage\":11}"
+            },
+            {
+                "description": "set leverage for isolated margin",
+                "method": "setLeverage",
+                "url": "https://api-contract.weex.com/capi/v3/account/leverage",
+                "input": [
+                    8,
+                    "ETH/USDT:USDT",
+                    {
+                        "marginMode": "isolated"
+                    }
+                ],
+                "output": "{\"symbol\":\"ETHUSDT\",\"marginType\":\"ISOLATED\",\"isolatedLongLeverage\":8,\"isolatedShortLeverage\":8}"
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "fetch leverage",
+                "method": "fetchLeverage",
+                "url": "https://api-contract.weex.com/capi/v3/account/symbolConfig?symbol=ETHUSDT",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "fetch margin mode",
+                "method": "fetchMarginMode",
+                "url": "https://api-contract.weex.com/capi/v3/account/symbolConfig?symbol=DOGEUSDT",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "fetch trading fee",
+                "method": "fetchTradingFee",
+                "url": "https://api-contract.weex.com/capi/v3/account/commissionRate?symbol=DOGEUSDT",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "closePosition": [
             {
                 "description": "close position",
