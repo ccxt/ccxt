@@ -339,6 +339,7 @@ export default class mexc extends Exchange {
                             'position/leverage': 2,
                             'account/tiered_fee_rate/v2': 2,
                             'trackorder/list/orders': 2,
+                            'market_maker/self_trade/blacklist': 2,
                         },
                         'post': {
                             'account/asset/analysis/v3': 2,
