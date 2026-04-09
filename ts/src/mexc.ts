@@ -331,6 +331,7 @@ export default class mexc extends Exchange {
                             'account/asset/analysis/v3': 2,
                             'account/asset/analysis/calendar/daily/v3': 2,
                             'account/asset/analysis/calendar/monthly/v3': 2,
+                            'account/asset/analysis/recent/v3': 2,
                             'position/change_margin': 2,
                             'position/change_leverage': 2,
                             'position/change_position_mode': 2,
