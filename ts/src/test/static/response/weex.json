@@ -3,6 +3,162 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "addMargin": [
+            {
+                "description": "add margin",
+                "method": "addMargin",
+                "input": [
+                    "ETH/USDT:USDT",
+                    5,
+                    {
+                        "positionId": "737255283637617000"
+                    }
+                ],
+                "httpResponse": {
+                    "msg": "success",
+                    "requestTime": "1775775560197",
+                    "code": "200"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "msg": "success",
+                        "requestTime": "1775775560197",
+                        "code": "200"
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "type": "add",
+                    "marginMode": "isolated",
+                    "amount": 5,
+                    "total": null,
+                    "code": "USDT",
+                    "status": "ok",
+                    "timestamp": 1775775560197,
+                    "datetime": "2026-04-09T22:59:20.197Z"
+                }
+            }
+        ],
+        "fetchPositionMode": [
+            {
+                "description": "fetch position mode",
+                "method": "fetchPositionMode",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "ETHUSDT",
+                        "marginType": "ISOLATED",
+                        "separatedType": "COMBINED",
+                        "crossLeverage": "20.00",
+                        "isolatedLongLeverage": "8",
+                        "isolatedShortLeverage": "8"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "symbol": "ETHUSDT",
+                            "marginType": "ISOLATED",
+                            "separatedType": "COMBINED",
+                            "crossLeverage": "20.00",
+                            "isolatedLongLeverage": "8",
+                            "isolatedShortLeverage": "8"
+                        }
+                    ],
+                    "hedged": false
+                }
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "fetch leverage",
+                "method": "fetchLeverage",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "ETHUSDT",
+                        "marginType": "ISOLATED",
+                        "separatedType": "COMBINED",
+                        "crossLeverage": "20.00",
+                        "isolatedLongLeverage": "14",
+                        "isolatedShortLeverage": "12"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "ETHUSDT",
+                        "marginType": "ISOLATED",
+                        "separatedType": "COMBINED",
+                        "crossLeverage": "20.00",
+                        "isolatedLongLeverage": "14",
+                        "isolatedShortLeverage": "12"
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "marginMode": "isolated",
+                    "longLeverage": 14,
+                    "shortLeverage": 12
+                }
+            }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "fetch margin mode",
+                "method": "fetchMarginMode",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "DOGEUSDT",
+                        "marginType": "CROSSED",
+                        "separatedType": "COMBINED",
+                        "crossLeverage": "20.00",
+                        "isolatedLongLeverage": "20.00",
+                        "isolatedShortLeverage": "20.00"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "DOGEUSDT",
+                        "marginType": "CROSSED",
+                        "separatedType": "COMBINED",
+                        "crossLeverage": "20.00",
+                        "isolatedLongLeverage": "20.00",
+                        "isolatedShortLeverage": "20.00"
+                    },
+                    "symbol": "DOGE/USDT:USDT",
+                    "marginMode": "cross"
+                }
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "fetch trading fee",
+                "method": "fetchTradingFee",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "symbol": "DOGEUSDT",
+                    "makerCommissionRate": "0.0002",
+                    "takerCommissionRate": "0.0008"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "DOGEUSDT",
+                        "makerCommissionRate": "0.0002",
+                        "takerCommissionRate": "0.0008"
+                    },
+                    "symbol": "DOGE/USDT:USDT",
+                    "maker": 0.0002,
+                    "taker": 0.0008,
+                    "percentage": true,
+                    "tierBased": true
+                }
+            }
+        ],
         "closePosition": [
             {
                 "description": "close position",
