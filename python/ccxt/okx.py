@@ -4178,10 +4178,11 @@ class okx(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
+        maxLimit = 100
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'paginate')
         if paginate:
-            return self.fetch_paginated_call_dynamic('fetchOpenOrders', symbol, since, limit, params)
+            return self.fetch_paginated_call_dynamic('fetchOpenOrders', symbol, since, limit, params, maxLimit)
         request: dict = {
             # 'instType': 'SPOT',  # SPOT, MARGIN, SWAP, FUTURES, OPTION
             # 'uly': currency['id'],
@@ -4197,7 +4198,7 @@ class okx(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['instId'] = market['id']
         if limit is not None:
-            request['limit'] = limit  # default 100, max 100
+            request['limit'] = min(limit, maxLimit)  # default 100, max 100
         options = self.safe_value(self.options, 'fetchOpenOrders', {})
         algoOrderTypes = self.safe_value(self.options, 'algoOrderTypes', {})
         defaultMethod = self.safe_string(options, 'method', 'privateGetTradeOrdersPending')
@@ -4512,10 +4513,11 @@ class okx(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
+        maxLimit = 100
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'paginate')
         if paginate:
-            return self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, params)
+            return self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, params, maxLimit)
         request: dict = {
             # 'instType': type.upper(),  # SPOT, MARGIN, SWAP, FUTURES, OPTION
             # 'uly': currency['id'],
@@ -4536,7 +4538,7 @@ class okx(Exchange, ImplicitAPI):
         type, query = self.handle_market_type_and_params('fetchClosedOrders', market, params)
         request['instType'] = self.convert_to_instrument_type(type)
         if limit is not None:
-            request['limit'] = limit  # default 100, max 100
+            request['limit'] = min(limit, maxLimit)  # default 100, max 100
         options = self.safe_dict(self.options, 'fetchClosedOrders', {})
         algoOrderTypes = self.safe_dict(self.options, 'algoOrderTypes', {})
         defaultMethod = self.safe_string(options, 'method', 'privateGetTradeOrdersHistory')

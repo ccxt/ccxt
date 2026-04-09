@@ -4389,10 +4389,11 @@ class okx extends okx$1["default"] {
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
+        const maxLimit = 100;
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic('fetchOpenOrders', symbol, since, limit, params);
+            return await this.fetchPaginatedCallDynamic('fetchOpenOrders', symbol, since, limit, params, maxLimit);
         }
         const request = {
         // 'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
@@ -4410,7 +4411,7 @@ class okx extends okx$1["default"] {
             request['instId'] = market['id'];
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 100, max 100
+            request['limit'] = Math.min(limit, maxLimit); // default 100, max 100
         }
         const options = this.safeValue(this.options, 'fetchOpenOrders', {});
         const algoOrderTypes = this.safeValue(this.options, 'algoOrderTypes', {});
@@ -4743,10 +4744,11 @@ class okx extends okx$1["default"] {
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
+        const maxLimit = 100;
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchClosedOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic('fetchClosedOrders', symbol, since, limit, params);
+            return await this.fetchPaginatedCallDynamic('fetchClosedOrders', symbol, since, limit, params, maxLimit);
         }
         const request = {
         // 'instType': type.toUpperCase (), // SPOT, MARGIN, SWAP, FUTURES, OPTION
@@ -4769,7 +4771,7 @@ class okx extends okx$1["default"] {
         [type, query] = this.handleMarketTypeAndParams('fetchClosedOrders', market, params);
         request['instType'] = this.convertToInstrumentType(type);
         if (limit !== undefined) {
-            request['limit'] = limit; // default 100, max 100
+            request['limit'] = Math.min(limit, maxLimit); // default 100, max 100
         }
         const options = this.safeDict(this.options, 'fetchClosedOrders', {});
         const algoOrderTypes = this.safeDict(this.options, 'algoOrderTypes', {});

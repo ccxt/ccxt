@@ -4423,10 +4423,11 @@ class okx extends Exchange {
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
+            $maxLimit = 100;
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'paginate');
             if ($paginate) {
-                return Async\await($this->fetch_paginated_call_dynamic('fetchOpenOrders', $symbol, $since, $limit, $params));
+                return Async\await($this->fetch_paginated_call_dynamic('fetchOpenOrders', $symbol, $since, $limit, $params, $maxLimit));
             }
             $request = array(
                 // 'instType' => 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
@@ -4444,7 +4445,7 @@ class okx extends Exchange {
                 $request['instId'] = $market['id'];
             }
             if ($limit !== null) {
-                $request['limit'] = $limit; // default 100, max 100
+                $request['limit'] = min ($limit, $maxLimit); // default 100, max 100
             }
             $options = $this->safe_value($this->options, 'fetchOpenOrders', array());
             $algoOrderTypes = $this->safe_value($this->options, 'algoOrderTypes', array());
@@ -4778,10 +4779,11 @@ class okx extends Exchange {
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
+            $maxLimit = 100;
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'paginate');
             if ($paginate) {
-                return Async\await($this->fetch_paginated_call_dynamic('fetchClosedOrders', $symbol, $since, $limit, $params));
+                return Async\await($this->fetch_paginated_call_dynamic('fetchClosedOrders', $symbol, $since, $limit, $params, $maxLimit));
             }
             $request = array(
                 // 'instType' => strtoupper($type), // SPOT, MARGIN, SWAP, FUTURES, OPTION
@@ -4804,7 +4806,7 @@ class okx extends Exchange {
             list($type, $query) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
             $request['instType'] = $this->convert_to_instrument_type($type);
             if ($limit !== null) {
-                $request['limit'] = $limit; // default 100, max 100
+                $request['limit'] = min ($limit, $maxLimit); // default 100, max 100
             }
             $options = $this->safe_dict($this->options, 'fetchClosedOrders', array());
             $algoOrderTypes = $this->safe_dict($this->options, 'algoOrderTypes', array());
