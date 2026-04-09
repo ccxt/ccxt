@@ -239,7 +239,13 @@ export default class binance extends binanceRest {
     getWsUrl (type, category) {
         const baseUrl = this.urls['api']['ws'][type];
         if (type === 'future') {
-            return baseUrl.replace ('/ws', '/' + category + '/ws');
+            // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
+            const firstProtocol = baseUrl.indexOf ('://');
+            if (firstProtocol !== -1 && baseUrl.indexOf ('://', firstProtocol + 3) !== -1) {
+                return baseUrl;
+            }
+            // only match /ws at the end of the path (not /wss, /ws-api, etc.)
+            return baseUrl.replace (/\/ws($|[?#])/, '/' + category + '/ws$1');
         }
         return baseUrl;
     }
