@@ -348,6 +348,8 @@ class lighter extends Exchange {
                 'apiKeyIndex' => null,
                 'wasmExecPath' => null, // [JS Only] users should set the path to wasm_exec.js. It can be downloaded here https://github.com/ccxt/lighter-wasm
                 'libraryPath' => null, // users should set the path to the lighter signing library. It can be downloaded here https://github.com/elliottech/lighter-python/tree/main/lighter/signers, GO users don't need it
+                'authDeadlineExpiry' => 28800, // 8h validity for auth tokens
+                'authDeadlineMinimumRemaining' => 60,
             ),
             'features' => array(
                 'default' => array(
@@ -485,7 +487,7 @@ class lighter extends Exchange {
     }
 
     public function create_auth($params = array ()) {
-        // don't omit [$accountIndex, $apiKeyIndex], request may need them
+        // don't omit [$accountIndex, $apiKeyIndex], $request may need them
         $apiKeyIndex = $this->safe_integer_2($params, 'apiKeyIndex', 'api_key_index');
         if ($apiKeyIndex === null) {
             $res = $this->handle_option_and_params_2(array(), 'createAuth', 'apiKeyIndex', 'api_key_index');
@@ -496,12 +498,34 @@ class lighter extends Exchange {
             $res = $this->handle_option_and_params_2(array(), 'createAuth', 'accountIndex', 'account_index');
             $accountIndex = $this->safe_integer($res, 0);
         }
-        $rs = array(
-            'deadline' => $this->seconds() + 60,
+        $auths = $this->safe_dict($this->options, 'auths');
+        $accountAuths = $this->safe_dict($auths, $accountIndex);
+        $cachedAuth = $this->safe_dict($accountAuths, $apiKeyIndex);
+        $cachedDeadline = $this->safe_integer($cachedAuth, 'deadline');
+        if ($cachedDeadline !== null) {
+            $minimumDeadline = $this->seconds() . $this->safe_integer($this->options, 'authDeadlineMinimumRemaining');
+            if ($cachedDeadline >= $minimumDeadline) {
+                return $this->safe_string($cachedAuth, 'token');
+            }
+        }
+        $deadline = $this->seconds() . $this->safe_integer($this->options, 'authDeadlineExpiry');
+        $request = array(
+            'deadline' => $deadline,
             'api_key_index' => $apiKeyIndex,
             'account_index' => $accountIndex,
         );
-        return $this->lighter_create_auth_token($this->safe_value($this->options, 'signer'), $rs);
+        $token = $this->lighter_create_auth_token($this->safe_value($this->options, 'signer'), $request);
+        if (!(is_array($this->options) && array_key_exists('auths', $this->options))) {
+            $this->options['auths'] = array();
+        }
+        if (!(is_array($this->options['auths']) && array_key_exists($accountIndex, $this->options['auths']))) {
+            $this->options['auths'][$accountIndex] = array();
+        }
+        $this->options['auths'][$accountIndex][$apiKeyIndex] = array(
+            'deadline' => $deadline,
+            'token' => $token,
+        );
+        return $token;
     }
 
     public function pow(string $n, string $m) {

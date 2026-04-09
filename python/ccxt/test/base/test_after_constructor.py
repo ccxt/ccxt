@@ -21,16 +21,12 @@ def helper_test_init_throttler():
         'rateLimit': 10.8,
     })
     # todo: assert (exchange.MAX_VALUE !== undefined);
-    token_bucket = exchange.get_property(exchange, 'tokenBucket')  # trick for uncamelcase transpilation
-    if token_bucket is None:
-        token_bucket = exchange.get_property(exchange, 'TokenBucket')
+    token_bucket = test_shared_methods.exchange_prop(exchange, 'tokenBucket')  # trick for uncamelcase transpilation
     assert token_bucket is not None
-    assert 'GO_SKIP_START'
-    rate_limit = exchange.get_property(exchange, 'rateLimit')
+    rate_limit = test_shared_methods.exchange_prop(exchange, 'rateLimit')
     assert rate_limit == 10.8
     assert token_bucket['delay'] == 0.001
     assert token_bucket['refillRate'] == 1 / rate_limit
-    assert 'GO_SKIP_END'
     # fix decimal/integer issues across langs
     assert exchange.in_array(token_bucket['capacity'], [1, 1])
     cost = exchange.parse_to_numeric(exchange.safe_string_2(token_bucket, 'cost', 'defaultCost'))  # python sync, todo fix
@@ -41,8 +37,7 @@ def helper_test_init_throttler():
 def helper_test_sandbox_state(exchange, should_be_enabled=True):
     assert exchange.urls is not None
     assert 'test' in exchange.urls
-    assert 'GO_SKIP_START'
-    is_sandbox_mode_enabled = exchange.get_property(exchange, 'isSandboxModeEnabled')
+    is_sandbox_mode_enabled = test_shared_methods.exchange_prop(exchange, 'isSandboxModeEnabled')
     if should_be_enabled:
         assert is_sandbox_mode_enabled
         assert exchange.urls['api']['public'] == 'https://example.org'
@@ -51,7 +46,6 @@ def helper_test_sandbox_state(exchange, should_be_enabled=True):
         assert not is_sandbox_mode_enabled
         assert exchange.urls['api']['public'] == 'https://example.com'
         assert exchange.urls['test']['public'] == 'https://example.org'
-    assert 'GO_SKIP_END'
 
 
 def helper_test_init_sandbox():

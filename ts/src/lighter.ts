@@ -344,6 +344,8 @@ export default class lighter extends Exchange {
                 'apiKeyIndex': undefined,
                 'wasmExecPath': undefined, // [JS Only] users should set the path to wasm_exec.js. It can be downloaded here https://github.com/ccxt/lighter-wasm
                 'libraryPath': undefined, // users should set the path to the lighter signing library. It can be downloaded here https://github.com/elliottech/lighter-python/tree/main/lighter/signers, GO users don't need it
+                'authDeadlineExpiry': 28800, // 8h validity for auth tokens
+                'authDeadlineMinimumRemaining': 60,
             },
             'features': {
                 'default': {
@@ -486,12 +488,34 @@ export default class lighter extends Exchange {
             const res = this.handleOptionAndParams2 ({}, 'createAuth', 'accountIndex', 'account_index');
             accountIndex = this.safeInteger (res, 0);
         }
-        const rs = {
-            'deadline': this.seconds () + 60,
+        const auths = this.safeDict (this.options, 'auths');
+        const accountAuths = this.safeDict (auths, accountIndex);
+        const cachedAuth = this.safeDict (accountAuths, apiKeyIndex);
+        const cachedDeadline = this.safeInteger (cachedAuth, 'deadline');
+        if (cachedDeadline !== undefined) {
+            const minimumDeadline = this.seconds () + this.safeInteger (this.options, 'authDeadlineMinimumRemaining');
+            if (cachedDeadline >= minimumDeadline) {
+                return this.safeString (cachedAuth, 'token');
+            }
+        }
+        const deadline = this.seconds () + this.safeInteger (this.options, 'authDeadlineExpiry');
+        const request = {
+            'deadline': deadline,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
-        return this.lighterCreateAuthToken (this.safeValue (this.options, 'signer'), rs);
+        const token = this.lighterCreateAuthToken (this.safeValue (this.options, 'signer'), request);
+        if (!('auths' in this.options)) {
+            this.options['auths'] = {};
+        }
+        if (!(accountIndex in this.options['auths'])) {
+            this.options['auths'][accountIndex] = {};
+        }
+        this.options['auths'][accountIndex][apiKeyIndex] = {
+            'deadline': deadline,
+            'token': token,
+        };
+        return token;
     }
 
     pow (n: string, m: string) {

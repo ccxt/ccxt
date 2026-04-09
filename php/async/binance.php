@@ -1205,6 +1205,7 @@ class binance extends Exchange {
                         'asset-collection' => 6,
                         'margin/repay-debt' => 3000,
                         'um/feeBurn' => 1,
+                        'um/stock/contract' => 1,
                     ),
                     'put' => array(
                         'listenKey' => 0.2,

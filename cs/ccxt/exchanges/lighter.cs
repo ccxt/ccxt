@@ -318,6 +318,8 @@ public partial class lighter : Exchange
                 { "apiKeyIndex", null },
                 { "wasmExecPath", null },
                 { "libraryPath", null },
+                { "authDeadlineExpiry", 28800 },
+                { "authDeadlineMinimumRemaining", 60 },
             } },
             { "features", new Dictionary<string, object>() {
                 { "default", new Dictionary<string, object>() {
@@ -497,12 +499,38 @@ public partial class lighter : Exchange
             object res = this.handleOptionAndParams2(new Dictionary<string, object>() {}, "createAuth", "accountIndex", "account_index");
             accountIndex = this.safeInteger(res, 0);
         }
-        object rs = new Dictionary<string, object>() {
-            { "deadline", add(this.seconds(), 60) },
+        object auths = this.safeDict(this.options, "auths");
+        object accountAuths = this.safeDict(auths, accountIndex);
+        object cachedAuth = this.safeDict(accountAuths, apiKeyIndex);
+        object cachedDeadline = this.safeInteger(cachedAuth, "deadline");
+        if (isTrue(!isEqual(cachedDeadline, null)))
+        {
+            object minimumDeadline = add(this.seconds(), this.safeInteger(this.options, "authDeadlineMinimumRemaining"));
+            if (isTrue(isGreaterThanOrEqual(cachedDeadline, minimumDeadline)))
+            {
+                return this.safeString(cachedAuth, "token");
+            }
+        }
+        object deadline = add(this.seconds(), this.safeInteger(this.options, "authDeadlineExpiry"));
+        object request = new Dictionary<string, object>() {
+            { "deadline", deadline },
             { "api_key_index", apiKeyIndex },
             { "account_index", accountIndex },
         };
-        return this.lighterCreateAuthToken(this.safeValue(this.options, "signer"), rs);
+        object token = this.lighterCreateAuthToken(this.safeValue(this.options, "signer"), request);
+        if (!isTrue((inOp(this.options, "auths"))))
+        {
+            ((IDictionary<string,object>)this.options)["auths"] = new Dictionary<string, object>() {};
+        }
+        if (!isTrue((inOp(getValue(this.options, "auths"), accountIndex))))
+        {
+            ((List<object>)getValue(this.options, "auths"))[Convert.ToInt32(accountIndex)] = new Dictionary<string, object>() {};
+        }
+        ((List<object>)getValue(getValue(this.options, "auths"), accountIndex))[Convert.ToInt32(apiKeyIndex)] = new Dictionary<string, object>() {
+            { "deadline", deadline },
+            { "token", token },
+        };
+        return token;
     }
 
     public virtual object pow(object n, object m)

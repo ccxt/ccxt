@@ -350,6 +350,8 @@ class lighter(Exchange, ImplicitAPI):
                 'apiKeyIndex': None,
                 'wasmExecPath': None,  # [JS Only] users should set the path to wasm_exec.js. It can be downloaded here https://github.com/ccxt/lighter-wasm
                 'libraryPath': None,  # users should set the path to the lighter signing library. It can be downloaded here https://github.com/elliottech/lighter-python/tree/main/lighter/signers, GO users don't need it
+                'authDeadlineExpiry': 28800,  # 8h validity for auth tokens
+                'authDeadlineMinimumRemaining': 60,
             },
             'features': {
                 'default': {
@@ -475,12 +477,30 @@ class lighter(Exchange, ImplicitAPI):
         if accountIndex is None:
             res = self.handle_option_and_params_2({}, 'createAuth', 'accountIndex', 'account_index')
             accountIndex = self.safe_integer(res, 0)
-        rs = {
-            'deadline': self.seconds() + 60,
+        auths = self.safe_dict(self.options, 'auths')
+        accountAuths = self.safe_dict(auths, accountIndex)
+        cachedAuth = self.safe_dict(accountAuths, apiKeyIndex)
+        cachedDeadline = self.safe_integer(cachedAuth, 'deadline')
+        if cachedDeadline is not None:
+            minimumDeadline = self.seconds() + self.safe_integer(self.options, 'authDeadlineMinimumRemaining')
+            if cachedDeadline >= minimumDeadline:
+                return self.safe_string(cachedAuth, 'token')
+        deadline = self.seconds() + self.safe_integer(self.options, 'authDeadlineExpiry')
+        request = {
+            'deadline': deadline,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         }
-        return self.lighter_create_auth_token(self.safe_value(self.options, 'signer'), rs)
+        token = self.lighter_create_auth_token(self.safe_value(self.options, 'signer'), request)
+        if not ('auths' in self.options):
+            self.options['auths'] = {}
+        if not (accountIndex in self.options['auths']):
+            self.options['auths'][accountIndex] = {}
+        self.options['auths'][accountIndex][apiKeyIndex] = {
+            'deadline': deadline,
+            'token': token,
+        }
+        return token
 
     def pow(self, n: str, m: str):
         r = Precise.string_mul(n, '1')
