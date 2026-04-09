@@ -332,6 +332,7 @@ export default class mexc extends Exchange {
                             'order/list/close_orders': 2,
                             'planorder/list/orders': 2,
                             'stoporder/list/orders': 2,
+                            'stoporder/open_orders': 2,
                             'stoporder/order_details/{stop_order_id}': 2,
                             'account/risk_limit': 2, // TO_DO: gets max/min position size, allowed sides, leverage, maintenance margin, initial margin, etc...
                             'account/tiered_fee_rate': 2, // TO_DO: taker/maker fees for account
