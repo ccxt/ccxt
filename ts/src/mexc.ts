@@ -373,6 +373,7 @@ export default class mexc extends Exchange {
                             'stoporder/change_price': 2,
                             'stoporder/change_plan_price': 2,
                             'trackorder/place': 2,
+                            'trackorder/cancel': 2,
                         },
                     },
                 },
