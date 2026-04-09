@@ -329,6 +329,7 @@ export default class mexc extends Exchange {
                             'order/batch_query': 8,
                             'order/deal_details/{order_id}': 2,
                             'order/list/order_deals': 2,
+                            'order/list/close_orders': 2,
                             'planorder/list/orders': 2,
                             'stoporder/list/orders': 2,
                             'stoporder/order_details/{stop_order_id}': 2,
