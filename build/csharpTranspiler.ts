@@ -1235,7 +1235,7 @@ class NewTranspiler {
                 [/assert/g, 'Assert'],
                 [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
                 [ /\s*public\sobject\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
-                [ /testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual' ], // deepEqual added
+                [ /testSharedMethods\./gm, '' ], // deepEqual added
                 // Match ArrayCache variables and cast to appropriate type based on variable name
                 // Order matters: check most specific types first
                 [/(\w*ArrayCacheBySymbolBySide\w*)\.hashmap/g, '(($1 as ArrayCacheBySymbolBySide).hashmap)'],
