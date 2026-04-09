@@ -333,7 +333,7 @@ Every exchange has a set of properties and methods, most of which you can overri
 
 Here's an overview of generic exchange properties with values added for example:
 
-```json
+```javascript
 {
     'id':   'exchange',                  // lowercase string exchange id
     'name': 'Exchange',                  // human-readable string
