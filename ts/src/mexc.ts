@@ -349,6 +349,7 @@ export default class mexc extends Exchange {
                             'order/submit': 2,
                             'order/submit_batch': 40,
                             'order/chase_limit_order': 40,
+                            'order/change_limit_order': 40,
                             'order/cancel': 2,
                             'order/cancel_with_external': 2,
                             'order/cancel_all': 2,
