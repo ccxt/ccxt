@@ -316,6 +316,7 @@ export default class mexc extends Exchange {
                             'account/asset/analysis/export': 2,
                             'account/asset_book/order_deal_fee/total': 2,
                             'account/contract/fee_rate': 2,
+                            'account/contract/zero_fee_rate': 2,
                             'position/list/history_positions': 2,
                             'position/open_positions': 2,
                             'position/funding_records': 2,
