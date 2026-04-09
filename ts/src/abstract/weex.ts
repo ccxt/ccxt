@@ -76,13 +76,13 @@ interface Exchange {
     contractPrivatePostCapiV3AccountModifyAutoAppendMargin (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostCapiV3Order (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostCapiV3BatchOrders (params?: {}): Promise<implicitReturnType>;
+    contractPrivatePostCapiV3ClosePositions (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostCapiV3AlgoOrder (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostCapiV3PlaceTpSlOrder (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostCapiV3ModifyTpSlOrder (params?: {}): Promise<implicitReturnType>;
     contractPrivateDeleteCapiV3Order (params?: {}): Promise<implicitReturnType>;
     contractPrivateDeleteCapiV3BatchOrders (params?: {}): Promise<implicitReturnType>;
     contractPrivateDeleteCapiV3AllOpenOrders (params?: {}): Promise<implicitReturnType>;
-    contractPrivateDeleteCapiV3ClosePositions (params?: {}): Promise<implicitReturnType>;
     contractPrivateDeleteCapiV3AlgoOrder (params?: {}): Promise<implicitReturnType>;
     contractPrivateDeleteCapiV3AlgoOpenOrders (params?: {}): Promise<implicitReturnType>;
 }
