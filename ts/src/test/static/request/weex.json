@@ -6,6 +6,68 @@
     ],
     "options": {},
     "methods": {
+        "closePosition": [
+            {
+                "description": "close position",
+                "method": "closePosition",
+                "url": "https://api-contract.weex.com/capi/v3/closePositions",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\"}"
+            }
+        ],
+        "closeAllPositions": [
+            {
+                "description": "close all positions",
+                "method": "closeAllPositions",
+                "url": "https://api-contract.weex.com/capi/v3/closePositions",
+                "input": [],
+                "output": "{}"
+            }
+        ],
+        "fetchPositionsForSymbol": [
+            {
+                "description": "fetch positions for symbol",
+                "method": "fetchPositionsForSymbol",
+                "url": "https://api-contract.weex.com/capi/v3/account/position/singlePosition?symbol=DOGEUSDT",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetch positions",
+                "method": "fetchPositions",
+                "url": "https://api-contract.weex.com/capi/v3/account/position/allPosition",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOrderTrades": [
+            {
+                "description": "fetch spot order trades",
+                "method": "fetchOrderTrades",
+                "url": "https://api-spot.weex.com/api/v3/myTrades?symbol=DOGEUSDT&orderId=736559136619102312",
+                "input": [
+                    "736559136619102312",
+                    "DOGE/USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch swap order trades",
+                "method": "fetchOrderTrades",
+                "url": "https://api-contract.weex.com/capi/v3/userTrades?symbol=DOGEUSDT&orderId=737073725236576616",
+                "input": [
+                    "737073725236576616",
+                    "DOGE/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "fetchCanceledOrders": [
             {
                 "description": "fetch canceled spot orders",
