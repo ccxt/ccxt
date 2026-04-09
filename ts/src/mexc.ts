@@ -323,6 +323,7 @@ export default class mexc extends Exchange {
                             'position/position_mode': 2,
                             'order/list/open_orders/{symbol}': 2,
                             'order/list/history_orders': 2,
+                            'order/list/order_deals/v3': 2,
                             'order/external/{symbol}/{external_oid}': 2,
                             'order/get/{order_id}': 2,
                             'order/batch_query': 8,
