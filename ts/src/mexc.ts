@@ -309,6 +309,7 @@ export default class mexc extends Exchange {
                             'account/asset/analysis/{type}': 2,
                             'account/feeDeductConfigs': 2,
                             'account/asset/analysis/yesterday_pnl': 2,
+                            'account/asset/analysis/today_pnl': 2,
                             'position/list/history_positions': 2,
                             'position/open_positions': 2,
                             'position/funding_records': 2,
