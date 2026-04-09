@@ -1686,7 +1686,7 @@ export default class kucoin extends kucoinRest {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': this.safeString (trade, 'dealFunds'),
             'fee': {
                 'cost': feeCost,
                 'rate': feeRate,
