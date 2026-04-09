@@ -313,6 +313,7 @@ export default class mexc extends Exchange {
                             'account/config/contractFeeDiscountConfig': 2,
                             'order/fee_details': 2,
                             'account/discountType': 2,
+                            'account/asset/analysis/export': 2,
                             'position/list/history_positions': 2,
                             'position/open_positions': 2,
                             'position/funding_records': 2,
