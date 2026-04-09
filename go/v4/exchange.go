@@ -1216,14 +1216,11 @@ func (this *Exchange) ExceptionMessage(exc interface{}, includeStack ...interfac
 	return message[:length]
 }
 
-func (this *Exchange) GetProperty(obj interface{}, property interface{}, defaultValue ...interface{}) interface{} {
+func (this *Exchange) GetProperty(obj interface{}, property interface{}) interface{} {
 	// Convert property to string
 	propName, ok := property.(string)
 	if !ok {
 		// fmt.Println("Property should be a string")
-		if len(defaultValue) > 0 {
-			return defaultValue[0]
-		}
 		return nil
 	}
 
@@ -1239,9 +1236,6 @@ func (this *Exchange) GetProperty(obj interface{}, property interface{}, default
 		return field.Interface()
 	} else {
 		// fmt.Printf("Field '%s' is either invalid or cannot be accessed\n", propName)
-		if len(defaultValue) > 0 {
-			return defaultValue[0]
-		}
 		return nil
 	}
 }
