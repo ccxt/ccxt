@@ -338,6 +338,7 @@ export default class mexc extends Exchange {
                             'account/tiered_fee_rate': 2, // TO_DO: taker/maker fees for account
                             'position/leverage': 2,
                             'account/tiered_fee_rate/v2': 2,
+                            'trackorder/list/orders': 2,
                         },
                         'post': {
                             'account/asset/analysis/v3': 2,
