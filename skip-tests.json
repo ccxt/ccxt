@@ -2284,7 +2284,8 @@
             },
             "ticker": {
                 "compareOHLC": "open could be lower than low",
-                "spread": "messed bid-ask"
+                "spread": "messed bid-ask",
+                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing"
             },
             "fetchOrderBook": {
                 "timestamp": "not provided"
