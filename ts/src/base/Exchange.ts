@@ -5328,7 +5328,6 @@ export default class Exchange {
         return this.markets;
     }
 
-
     safePosition (position: Dict): Position {
         // simplified version of: /pull/12765/
         const unrealizedPnlString = this.safeString (position, 'unrealisedPnl');
