@@ -183,10 +183,16 @@ public partial class BaseTest
         assert(DeepEqual(a, b), add(add(add(add("two dicts do not match: ", Exchange.Json(a)), " != "), Exchange.Json(b)), method));
     }
 
-    public object getExchangeProperty(Exchange exchange, object key)
+    public object exchangeProp(Exchange exchange, object key, object defaultValue = null)
     {
+        object value = exchange.getProperty(exchange, ((object)key).ToString());
+        if (isTrue(!isEqual(value, null)))
+        {
+            return value;
+        }
+        // try UpperCase key also, for other langs
         object keyUpper = exchange.capitalize(((object)key).ToString());
-        return exchange.getProperty(exchange, key, exchange.getProperty(exchange, keyUpper));
+        return exchange.getProperty(exchange, keyUpper, defaultValue);
     }
 }
 
