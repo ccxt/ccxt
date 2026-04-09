@@ -362,6 +362,7 @@ export default class mexc extends Exchange {
                             'order/batch_query_with_external': 2,
                             'account/change_risk_level': 2,
                             'planorder/place': 2,
+                            'planorder/place/v2': 2,
                             'planorder/cancel': 2,
                             'planorder/cancel_all': 2,
                             'stoporder/cancel': 2,
