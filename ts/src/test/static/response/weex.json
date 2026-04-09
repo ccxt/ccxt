@@ -3,6 +3,176 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "closePosition": [
+            {
+                "description": "close position",
+                "method": "closePosition",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "positionId": "737217931020075368",
+                        "successOrderId": "737218018890744168",
+                        "errorMessage": "",
+                        "success": true
+                    }
+                ],
+                "parsedResponse": {
+                    "id": "737218018890744168",
+                    "clientOrderId": null,
+                    "symbol": "DOGE/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "amount": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fee": null,
+                    "status": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "average": null,
+                    "trades": [],
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "info": {
+                        "positionId": "737217931020075368",
+                        "successOrderId": "737218018890744168",
+                        "errorMessage": "",
+                        "success": true
+                    },
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
+        ],
+        "closeAllPositions": [
+            {
+                "description": "close all positions",
+                "method": "closeAllPositions",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "positionId": "737191855967437160",
+                        "successOrderId": "737215340433375592",
+                        "errorMessage": "",
+                        "success": true
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "symbol": null,
+                        "id": "737191855967437160",
+                        "timestamp": null,
+                        "datetime": null,
+                        "contracts": null,
+                        "contractSize": null,
+                        "side": null,
+                        "notional": null,
+                        "leverage": null,
+                        "unrealizedPnl": null,
+                        "realizedPnl": null,
+                        "collateral": null,
+                        "entryPrice": null,
+                        "markPrice": null,
+                        "liquidationPrice": null,
+                        "marginMode": "cross",
+                        "hedged": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "marginRatio": null,
+                        "lastUpdateTimestamp": null,
+                        "lastPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "percentage": null,
+                        "info": null
+                    }
+                ]
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetch positions",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "id": "737191855967437160",
+                        "asset": "USDT",
+                        "symbol": "DOGEUSDT",
+                        "side": "LONG",
+                        "marginType": "CROSSED",
+                        "separatedMode": "COMBINED",
+                        "separatedOpenOrderId": "0",
+                        "leverage": "20.00",
+                        "size": "300",
+                        "openValue": "27.96900",
+                        "openFee": "0.02237520",
+                        "fundingFee": "0",
+                        "marginSize": "100",
+                        "isolatedMargin": "0",
+                        "isAutoAppendIsolatedMargin": false,
+                        "cumOpenSize": "300",
+                        "cumOpenValue": "27.96900",
+                        "cumOpenFee": "0.02237520",
+                        "cumCloseSize": "0",
+                        "cumCloseValue": "0",
+                        "cumCloseFee": "0",
+                        "cumFundingFee": "0",
+                        "cumLiquidateFee": "0",
+                        "createdMatchSequenceId": "5762536243",
+                        "updatedMatchSequenceId": "5762741613",
+                        "createdTime": "1775760234825",
+                        "updatedTime": "1775763170789",
+                        "unrealizePnl": "0.14100",
+                        "liquidatePrice": "0"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "symbol": "DOGE/USDT:USDT",
+                        "id": "737191855967437160",
+                        "timestamp": 1775760234825,
+                        "datetime": "2026-04-09T18:43:54.825Z",
+                        "contracts": 300,
+                        "contractSize": 100,
+                        "side": "long",
+                        "notional": 27.969,
+                        "leverage": 20,
+                        "unrealizedPnl": 0.141,
+                        "realizedPnl": null,
+                        "collateral": null,
+                        "entryPrice": null,
+                        "markPrice": null,
+                        "liquidationPrice": 0,
+                        "marginMode": "cross",
+                        "hedged": false,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "initialMargin": 100,
+                        "initialMarginPercentage": null,
+                        "marginRatio": null,
+                        "lastUpdateTimestamp": 1775763170789,
+                        "lastPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "percentage": null,
+                        "info": null
+                    }
+                ]
+            }
+        ],
         "fetchCanceledAndClosedOrders": [
             {
                 "description": "fetch canceled and closed swap orders",
