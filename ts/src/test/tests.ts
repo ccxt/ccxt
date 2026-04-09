@@ -1667,7 +1667,8 @@ class testMainClass {
             this.testDerive (),
             this.testModeTrade (),
             this.testBackpack (),
-            this.testToobit ()
+            this.testToobit (),
+            this.testBitbaby ()
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -2332,6 +2333,28 @@ class testMainClass {
             await close (exchange);
         }
         return true;
+    }
+
+    async testBitbaby () {
+        const exchange = this.initOfflineExchange ('bitbaby');
+        const id = 'ccxt';
+        const prefix = id + '_';
+        assert (exchange.options['partner'] === id, 'bitbaby - id: ' + id + ' not in options');
+        let request = undefined;
+        try {
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            request = jsonParse (exchange.last_request_body);
+        }
+        const clientOrderId = request['newClientOrderId'];
+        assert (clientOrderId.startsWith (prefix), 'bitbaby - clientOrderId: ' + clientOrderId + ' does not start with prefix: ' + prefix);
+        try {
+            await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            request = jsonParse (exchange.last_request_body);
+        }
+        const clientOrderIdSwap = request['clientOrderId'];
+        assert (clientOrderIdSwap.startsWith (prefix), 'bitbaby - swap clientOrderId: ' + clientOrderIdSwap + ' does not start with prefix: ' + prefix);
     }
 }
 
