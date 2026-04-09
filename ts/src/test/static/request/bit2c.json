@@ -1,0 +1,71 @@
+{
+    "exchange": "bit2c",
+    "skipKeys": [
+        "nonce"
+    ],
+    "outputType": "urlencoded",
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://bit2c.co.il/Exchanges/BtcNis/trades.json",
+                "input": [
+                    "BTC/NIS"
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "createOrder",
+                "method": "createOrder",
+                "url": "https://bit2c.co.il/Order/AddOrderMarketPriceBuy",
+                "input": [
+                    "BTC/NIS",
+                    "market",
+                    "buy",
+                    1
+                ],
+                "output": "nonce=1702456164084&Amount=1&Pair=BtcNis"
+            },
+            {
+                "description": "createOrder",
+                "method": "createOrder",
+                "url": "https://bit2c.co.il/Order/AddOrderMarketPriceSell",
+                "input": [
+                    "BTC/NIS",
+                    "market",
+                    "sell",
+                    1
+                ],
+                "output": "nonce=1702456164084&Amount=1&Pair=BtcNis"
+            },
+            {
+                "description": "createOrder",
+                "method": "createOrder",
+                "url": "https://bit2c.co.il/Order/AddOrder",
+                "input": [
+                    "BTC/NIS",
+                    "limit",
+                    "buy",
+                    1,
+                    154827
+                ],
+                "output": "nonce=1702456292767&Amount=1&Pair=BtcNis&Price=154827&Total=154827&IsBid=true"
+            },
+            {
+                "description": "createOrder",
+                "method": "createOrder",
+                "url": "https://bit2c.co.il/Order/AddOrder",
+                "input": [
+                    "BTC/NIS",
+                    "limit",
+                    "sell",
+                    1,
+                    154827
+                ],
+                "output": "nonce=1702456292767&Amount=1&Pair=BtcNis&Price=154827&Total=154827&IsBid=false"
+            }
+        ]
+    }
+}

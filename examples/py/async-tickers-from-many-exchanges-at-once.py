@@ -36,7 +36,7 @@ if __name__ == '__main__':
     exchanges = ["coinex", "bittrex", "bitfinex", "poloniex", "hitbtc"]
 
     tic = time.time()
-    a = asyncio.get_event_loop().run_until_complete(multi_tickers(exchanges))
+    a = asyncio.run(multi_tickers(exchanges))
     print("async call spend:", time.time() - tic)
 
     time.sleep(1)

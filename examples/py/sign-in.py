@@ -14,9 +14,6 @@ exchange = ccxt.bitmart({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET',
     'uid': 'YOUR_UID',
-    # at least some rate-limiting is required
-    # https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
-    'enableRateLimit': True,  # ←- REQUIRED
 })
 
 while True:

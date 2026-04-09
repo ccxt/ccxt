@@ -1,6 +1,6 @@
 #!/bin/sh
 # This script taken from the composer installation instructions at
-# http://getcomposer.org/doc/faqs/how-to-install-composer-programatically.md
+# https://getcomposer.org/doc/faqs/how-to-install-composer-programmatically.md
 
 EXPECTED_CHECKSUM="$(php -r 'copy("https://composer.github.io/installer.sig", "php://stdout");')"
 php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"

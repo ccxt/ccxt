@@ -2,7 +2,7 @@
 
 import os
 import sys
-from asyncio import get_event_loop
+from asyncio import run
 from pprint import pprint
 
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -21,14 +21,12 @@ import ccxt.async_support as ccxt  # noqa: E402
 # In a live production system always use either the built-in rate limiter or make your own
 
 
-async def main(loop):
+async def main():
 
     # the exchange instance has to be reused
     # do not recreate the exchange before each call!
 
     exchange = ccxt.binance({
-
-        'asyncio_loop': loop,
 
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_API_SECRET',
@@ -37,7 +35,7 @@ async def main(loop):
         # 'password': 'YOUR_API_PASSWORD',  # some exchanges require this
 
         # if you do not rate-limit your requests the exchange can ban you!
-        # 'enableRateLimit': True,  # https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
+        'enableRateLimit': False,  # https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
 
     })
 
@@ -75,6 +73,4 @@ async def main(loop):
     await exchange.close()
 
 
-loop = get_event_loop()
-loop.run_until_complete(main(loop))
-
+run(main())

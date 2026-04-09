@@ -48,9 +48,9 @@ async def fetch_ohlcvs_continuously(exchange, timeframe, symbol, fetching_time):
         now = exchange.milliseconds()
     return {symbol: all_ohlcvs}
 
-async def fetch_all_ohlcvs_continuously(loop, exchange_id, timeframe, symbols, fetching_time):
+async def fetch_all_ohlcvs_continuously(exchange_id, timeframe, symbols, fetching_time):
     exchange_class = getattr(ccxt, exchange_id)
-    exchange = exchange_class({'enableRateLimit': True, 'asyncio_loop': loop})
+    exchange = exchange_class()
     input_coroutines = [fetch_ohlcvs_continuously(exchange, timeframe, symbol, fetching_time) for symbol in symbols]
     results = await asyncio.gather(*input_coroutines, return_exceptions=True)
     await exchange.close()
@@ -62,8 +62,7 @@ exchange_id = 'poloniex'
 symbols = ['ETH/BTC', 'BTC/USDT']
 timeframe = '5m'
 fetching_time = 15 * 60 * 1000  # stop after 15 minutes (approximately 4 iterations)
-loop = asyncio.get_event_loop()
-coroutine = fetch_all_ohlcvs_continuously(loop, exchange_id, timeframe, symbols, fetching_time)
-results = loop.run_until_complete(coroutine)
+coroutine = fetch_all_ohlcvs_continuously(exchange_id, timeframe, symbols, fetching_time)
+results = asyncio.run(coroutine)
 pprint(results)
 # results  # if you run this code in Jupyter then uncomment thisline to see the output result

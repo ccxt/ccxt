@@ -1,8 +1,8 @@
 import asyncio
-import ccxtpro
+import ccxt.pro
 
 
-class MyBinance(ccxtpro.binance):
+class MyBinance(ccxt.pro.binance):
 
     def handle_mini_ticker(self, client, message):
         market_id = self.safe_string_lower(message, 's')
@@ -42,4 +42,4 @@ async def main():
 
 
 if __name__ == '__main__':
-    asyncio.get_event_loop().run_until_complete(main())
+    asyncio.run(main())

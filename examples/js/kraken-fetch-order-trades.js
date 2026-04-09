@@ -1,11 +1,8 @@
-'use strict';
-
-const ccxt = require ('../../ccxt.js');
+import ccxt from '../../js/ccxt.js';
 
 (async () => {
 
     const exchange = new ccxt.kraken ({
-        'enableRateLimit': true,
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
         // 'verbose': true,

@@ -1,0 +1,223 @@
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var type = require('./type.js');
+
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+const keys = Object.keys; // eslint-disable-line padding-line-between-statements
+const values = (x) => ((!type.isArray(x)) ? Object.values(x) : x); // don't copy arrays if they're already arrays
+const index = (x) => new Set(values(x));
+const extend = (...args) => Object.assign({}, ...args); // NB: side-effect free
+const clone = (x) => (type.isArray(x) ? Array.from(x) : extend(x)); // clone arrays or objects
+// ----------------------------------------------------------------------------
+const ordered = (x) => x; // a stub to keep assoc keys in order (in JS it does nothing, it's mostly for Python)
+const unique = (x) => Array.from(index(x));
+const arrayConcat = (a, b) => a.concat(b);
+// ------------------------------------------------------------------------
+const inArray = (needle, haystack) => haystack.includes(needle);
+const toArray = (object) => Object.values(object);
+const isEmpty = (object) => {
+    if (object === null || object === undefined) {
+        return true;
+    }
+    if (Array.isArray(object)) {
+        return object.length < 1;
+    }
+    if (type.isDictionary(object)) {
+        return Object.keys(object).length < 1;
+    }
+    return false;
+};
+const keysort = (x, out = {}) => {
+    for (const k of keys(x).sort()) {
+        out[k] = x[k];
+    }
+    return out;
+};
+const sort = (array) => {
+    const newArray = array.slice();
+    newArray.sort();
+    return newArray;
+};
+/*
+    Accepts a map/array of objects and a key name to be used as an index:
+    array = [
+        { someKey: 'value1', anotherKey: 'anotherValue1' },
+        { someKey: 'value2', anotherKey: 'anotherValue2' },
+        { someKey: 'value3', anotherKey: 'anotherValue3' },
+    ]
+    key = 'someKey'
+    Returns a map:
+    {
+        value1: { someKey: 'value1', anotherKey: 'anotherValue1' },
+        value2: { someKey: 'value2', anotherKey: 'anotherValue2' },
+        value3: { someKey: 'value3', anotherKey: 'anotherValue3' },
+    }
+*/
+const groupBy = (x, k, out = {}) => {
+    for (const v of values(x)) {
+        if (k in v) {
+            const p = v[k];
+            out[p] = out[p] || [];
+            out[p].push(v);
+        }
+    }
+    return out;
+};
+const indexBy = (x, k, out = {}) => {
+    for (const v of values(x)) {
+        if (k in v) {
+            out[v[k]] = v;
+        }
+    }
+    return out;
+};
+const filterBy = (x, k, value = undefined, out = []) => {
+    for (const v of values(x)) {
+        if (v[k] === value) {
+            out.push(v);
+        }
+    }
+    return out;
+};
+const sortBy = (array, key, descending = false, defaultValue = 0, direction = descending ? -1 : 1) => array.sort((a, b) => {
+    const first = (key in a) ? a[key] : defaultValue;
+    const second = (key in b) ? b[key] : defaultValue;
+    if (first < second) {
+        return -direction;
+    }
+    else if (first > second) {
+        return direction;
+    }
+    else {
+        return 0;
+    }
+});
+const sortBy2 = (array, key1, key2, descending = false, direction = descending ? -1 : 1) => array.sort((a, b) => {
+    if (a[key1] < b[key1]) {
+        return -direction;
+    }
+    else if (a[key1] > b[key1]) {
+        return direction;
+    }
+    else {
+        if (a[key2] < b[key2]) {
+            return -direction;
+        }
+        else if (a[key2] > b[key2]) {
+            return direction;
+        }
+        else {
+            return 0;
+        }
+    }
+});
+const flatten = function flatten(x, out = []) {
+    for (const v of x) {
+        if (type.isArray(v)) {
+            flatten(v, out);
+        }
+        else {
+            out.push(v);
+        }
+    }
+    return out;
+};
+const pluck = (x, k) => values(x).filter((v) => k in v).map((v) => v[k]);
+const omit = (x, ...args) => {
+    if (!Array.isArray(x)) {
+        const out = clone(x);
+        for (const k of args) {
+            if (type.isArray(k)) { // omit (x, ['a', 'b'])
+                for (const kk of k) {
+                    delete out[kk];
+                }
+            }
+            else {
+                delete out[k]; // omit (x, 'a', 'b')
+            }
+        }
+        return out;
+    }
+    return x;
+};
+const sum = (...xs) => {
+    const ns = xs.filter(type.isNumber); // leave only numbers
+    return (ns.length > 0) ? ns.reduce((a, b) => a + b, 0) : undefined;
+};
+const deepExtend = function (...args) {
+    let result = null;
+    let resultIsObject = false;
+    for (const arg of args) {
+        if (arg !== null && typeof arg === 'object' && arg.constructor === Object) {
+            // This is a plain object (even if empty) so set the return type.
+            if (result === null || !resultIsObject) {
+                result = {};
+                resultIsObject = true;
+            }
+            // Skip actual merging if object is empty.
+            if (Object.keys(arg).length === 0) {
+                continue;
+            }
+            for (const key in arg) {
+                const value = arg[key];
+                const current = result[key];
+                if (current !== null && typeof current === 'object' && current.constructor === Object &&
+                    value !== null && typeof value === 'object' && value.constructor === Object) {
+                    result[key] = deepExtend(current, value);
+                }
+                else {
+                    result[key] = value;
+                }
+            }
+        }
+        else {
+            // arg is null or other non-object.
+            result = arg;
+            resultIsObject = false;
+        }
+    }
+    return result;
+};
+// better "merge" func resides in static_dependencies/qs/utils.js
+const merge = (target, ...args) => {
+    // doesn't overwrite defined keys with undefined
+    const overwrite = {};
+    const merged = Object.assign({}, ...args);
+    const keys = Object.keys(merged);
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        if (target[key] === undefined) {
+            overwrite[key] = merged[key];
+        }
+    }
+    // eslint-disable-next-line
+    return Object.assign({}, target, overwrite);
+};
+
+exports.arrayConcat = arrayConcat;
+exports.clone = clone;
+exports.deepExtend = deepExtend;
+exports.extend = extend;
+exports.filterBy = filterBy;
+exports.flatten = flatten;
+exports.groupBy = groupBy;
+exports.inArray = inArray;
+exports.index = index;
+exports.indexBy = indexBy;
+exports.isEmpty = isEmpty;
+exports.keys = keys;
+exports.keysort = keysort;
+exports.merge = merge;
+exports.omit = omit;
+exports.ordered = ordered;
+exports.pluck = pluck;
+exports.sort = sort;
+exports.sortBy = sortBy;
+exports.sortBy2 = sortBy2;
+exports.sum = sum;
+exports.toArray = toArray;
+exports.unique = unique;
+exports.values = values;

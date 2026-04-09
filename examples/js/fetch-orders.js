@@ -1,15 +1,16 @@
-"use strict";
 
-const ccxt = require ('../../ccxt')
-const asTable = require ('as-table')
-const log = require ('ololog')
 
-require ('ansicolor').nice
+import ccxt from '../../js/ccxt.js';
+import asTable from 'as-table';
+import log from 'ololog';
+import ansicolor from 'ansicolor';
+
+
+ansicolor.nice
 
 const exchange = new ccxt.bittrex ({
-    apiKey: "471b47a06c384e81b24072e9a8739064",
-    secret: "694025686e9445589787e8ca212b4cff",
-    enableRateLimit: true,
+    apiKey: "YOUR_API_KEY",
+    secret: "YOUR_SECRET",
 })
 
 async function test () {

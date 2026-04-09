@@ -1,0 +1,343 @@
+
+namespace ccxt;
+using Nethereum.ABI;
+using Nethereum.ABI.Model;
+using Nethereum;
+using Nethereum.ABI.ABIDeserialisation;
+using Nethereum.ABI.EIP712;
+using Nethereum.Signer.EIP712;
+using System.Linq;
+using System.Text;
+using System.Numerics;
+using Nethereum.Util;
+using Nethereum.Hex.HexConvertors.Extensions;
+using Cryptography.ECDSA;
+
+public partial class Exchange
+{
+
+    // ethAbiEncode(types, args) {
+    //     return this.base16ToBinary(ethers.encode(types, args).slice(2));
+    // }
+    // ethEncodeStructuredData(domain, messageTypes, messageData) {
+    //     return this.base16ToBinary(TypedDataEncoder.encode(domain, messageTypes, messageData).slice(-132));
+    // }
+
+    private object[] ConvertToArray(object obj)
+    {
+        var array = (obj as IList<object>).ToArray();
+        for (var i = 0; i < array.Length; i++)
+        {
+            var item = array[i];
+            if (item is IDictionary<string, object>)
+            {
+                // array[i] = ConvertToDictionary(item);
+            }
+            else if (item is IList<object>)
+            {
+                array[i] = ConvertToArray(item);
+            }
+        }
+        return array;
+    }
+
+    public object ethAbiEncode(object types2, object args2)
+    {
+        //  ['(uint32,bool,uint64,uint64,bool,uint8,uint64)[]', 'uint8', 'address', 'uint256']
+        //  [Array(1), 0, '0x0000000000000000000000000000000000000000', 1708007294587]
+
+        //     // test
+        //     var typesDefinion = "tuple((uint32,bool,uint64,uint64,bool,uint8,uint64)[],uint8,address,uint256)";
+        //     var valsTuple = new object[]
+        //     {
+        //         new object[]
+        //         {
+        //             new object[]
+        //             {
+        //                 5,
+        //                 true,
+        //                 1000000000,
+        //                 100000000,
+        //                 false,
+        //                 2,
+        //                 0
+        //             },
+        //             0,
+        //             "0x0000000000000000000000000000000000000000",
+        //             0
+        //         }
+        //     };
+        //     // var types = types2 as IList<object>;
+        //     var vals = (args2 as IList<object>).ToArray();
+
+        //     var objectValues = ConvertToArray(args2);
+
+        //     var wrappedValues = new object[] { objectValues };
+
+        //     object converted;
+
+
+        //     var valsTuple2 = new object[] { vals };
+        //     // var typesDefinion = "tuple(" + String.Join(",", types) + ")";
+
+        //     var testExtract = new ABIStringSignatureDeserialiser().ExtractParameters(typesDefinion, false);
+        //     var parameterEncoder = new Nethereum.ABI.FunctionEncoding.ParametersEncoder();
+        //     var encoded = parameterEncoder.EncodeParameters(testExtract.ToArray(), valsTuple.ToArray());
+
+        //     var encodedFromExchange = parameterEncoder.EncodeParameters(testExtract.ToArray(), wrappedValues);
+
+        //     var areEqual = encoded.SequenceEqual(encodedFromExchange);
+
+        //     return encoded;
+        var types = types2 as IList<object>;
+        var vals = args2 as IList<object>;
+        var valsTuple = new List<object>() { vals };
+        var tupleType = new TupleType();
+        var components = new List<Parameter>();
+        foreach (var type in types)
+        {
+            var typeExtract = new ABIStringSignatureDeserialiser().ExtractParameters(type.ToString(), false);
+            components.Add(typeExtract[0]);
+        }
+        tupleType.SetComponents(components.ToArray());
+        var encoded = tupleType.Encode(ConvertToArray(vals));
+        return encoded;
+    }
+
+    public object ethEncodeStructuredData(object domain2, object messageTypes2, object messageData2)
+    {
+        // const domain =({"chainId":1337,"verifyingContract":"0x0000000000000000000000000000000000000000"})
+        // const messageTypes = {"Agent":[{"name":"source","type":"uint256"},{"name":"connectionId","type":"bytes32"}]}
+
+        var domain = domain2 as IDictionary<string, object>;
+        var messageTypes = messageTypes2 as IDictionary<string, object>;
+        var messageTypesKeys = messageTypes.Keys.ToArray();
+        var domainValues = domain.Values.ToArray();
+        var domainTypes = new Dictionary<string, string>();
+        var messageData = messageData2 as IDictionary<string, object>;
+
+        var typeRaw = new TypedDataRaw(); // contains all domain + message info
+
+        // infer types from values
+        foreach (var key in domain.Keys)
+        {
+            // var type = domainValue.GetType();
+            var domainValue = domain[key];
+            if (domainValue is string && (domainValue as string).StartsWith("0x"))
+                domainTypes.Add(key, "address");
+            else if (domainValue is string)
+                domainTypes.Add(key, "string");
+            else
+                domainTypes.Add(key, "uint256"); // handle other use cases later
+        }
+
+        var types = new Dictionary<string, MemberDescription[]>();
+
+        // fill in domain types
+        var domainTypesDescription = new List<MemberDescription> { };
+        var domainValuesArray = new List<MemberValue> { };
+        var eip721Domain = new List<object[]> { };
+        eip721Domain.Add(new object[]{
+                "name",
+                "string"
+        });
+        eip721Domain.Add(new object[]{
+                "version",
+                "string"
+        });
+        eip721Domain.Add(new object[]{
+                "chainId",
+                "uint256"
+        });
+        eip721Domain.Add(new object[]{
+                "verifyingContract",
+                "address"
+        });
+        eip721Domain.Add(new object[]{
+                "salt",
+                "bytes32"
+        });
+        foreach (var d in eip721Domain)
+        {
+            var key = d[0] as string;
+            var type = d[1] as string;
+            for (var i = 0; i < domain.Count; i++)
+            {
+                if (String.Equals(key, domain.Keys.ElementAt(i)))
+                {
+                    var value = domainValues[i];
+                    var memberDescription = new MemberDescription();
+                    memberDescription.Name = key;
+                    memberDescription.Type = type;
+                    domainTypesDescription.Add(memberDescription);
+
+                    var memberValue = new MemberValue();
+                    memberValue.TypeName = type;
+                    memberValue.Value = value;
+                    domainValuesArray.Add(memberValue);
+                }
+            }
+        }
+        types["EIP712Domain"] = domainTypesDescription.ToArray();
+        typeRaw.DomainRawValues = domainValuesArray.ToArray();
+
+        // fill in message types (including referenced custom struct types)
+        var typeName = messageTypesKeys[0]; // primary type is the first key
+        var messageTypesDict = new Dictionary<string, string>();
+        foreach (var messageTypeName in messageTypesKeys)
+        {
+            var messageTypesContent = messageTypes[messageTypeName] as IList<object>;
+            var messageTypesDescription = new List<MemberDescription> { };
+            for (var i = 0; i < messageTypesContent.Count; i++)
+            {
+                var elem = messageTypesContent[i] as IDictionary<string, object>; // {\"name\":\"source\",\"type\":\"string\"}
+                var name = elem["name"] as string;
+                var type = elem["type"] as string;
+                if (messageTypeName == typeName)
+                {
+                    messageTypesDict[name] = type;
+                }
+                var member = new MemberDescription();
+                member.Name = name;
+                member.Type = type;
+                messageTypesDescription.Add(member);
+            }
+            types[messageTypeName] = messageTypesDescription.ToArray();
+        }
+
+        // Helper function to check if a type is a custom struct type
+        bool IsCustomStructType(string typeName)
+        {
+            return types.ContainsKey(typeName) && typeName != "EIP712Domain";
+        }
+
+        // Helper function to recursively convert nested structures to MemberValue arrays
+        MemberValue[] ConvertToMemberValues(IDictionary<string, object> data, string structType)
+        {
+            if (!types.ContainsKey(structType))
+            {
+                return null;
+            }
+
+            var structMembers = types[structType];
+            var result = new List<MemberValue>();
+
+            foreach (var memberDesc in structMembers)
+            {
+                var memberName = memberDesc.Name;
+                var memberType = memberDesc.Type;
+                
+                if (!data.ContainsKey(memberName))
+                {
+                    continue;
+                }
+
+                var value = data[memberName];
+                var memberValue = new MemberValue();
+                memberValue.TypeName = memberType;
+
+                // Handle bytes32 type
+                if (memberType == "bytes32" && value is string)
+                {
+                    var hexString = value as string;
+                    if (hexString.StartsWith("0x"))
+                    {
+                        hexString = hexString.Substring(2);
+                    }
+                    byte[] byteArray = Enumerable.Range(0, hexString.Length)
+                                                 .Where(x => x % 2 == 0)
+                                                 .Select(x => Convert.ToByte(hexString.Substring(x, 2), 16))
+                                                 .ToArray();
+                    memberValue.Value = byteArray;
+                }
+                // Handle bytes32[] type
+                else if (memberType == "bytes32[]")
+                {
+                    var hexStrings = value as IList<object>;
+                    var byteArray = new List<byte[]>();
+                    foreach (var hex2 in hexStrings)
+                    {
+                        var hex = hex2 as string;
+                        if (hex.StartsWith("0x"))
+                        {
+                            hex = hex.Substring(2);
+                        }
+                        var byteArrayElem = Enumerable.Range(0, hex.Length)
+                                                     .Where(x => x % 2 == 0)
+                                                     .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
+                                                     .ToArray();
+                        byteArray.Add(byteArrayElem);
+                    }
+                    memberValue.Value = byteArray.ToArray();
+                }
+                // Handle nested custom struct types
+                else if (IsCustomStructType(memberType) && value is IDictionary<string, object>)
+                {
+                    var nestedDict = value as IDictionary<string, object>;
+                    memberValue.Value = ConvertToMemberValues(nestedDict, memberType);
+                }
+                // Handle arrays of custom struct types
+                else if (memberType.Contains("[]") && IsCustomStructType(memberType.Replace("[]", "")))
+                {
+                    var elementType = memberType.Replace("[]", "");
+                    var arrayValues = value as IList<object>;
+                    var convertedArray = new List<MemberValue[]>();
+                    
+                    foreach (var item in arrayValues)
+                    {
+                        if (item is IDictionary<string, object>)
+                        {
+                            convertedArray.Add(ConvertToMemberValues(item as IDictionary<string, object>, elementType));
+                        }
+                    }
+                    memberValue.Value = convertedArray.ToArray();
+                }
+                else
+                {
+                    memberValue.Value = value;
+                }
+
+                result.Add(memberValue);
+            }
+
+            return result.ToArray();
+        }
+
+        // fill in message values
+        var messageValues = ConvertToMemberValues(messageData, typeName);
+        typeRaw.Message = messageValues.ToArray();
+        typeRaw.Types = types;
+        typeRaw.PrimaryType = typeName;
+        var typedEncoder = new Eip712TypedDataSigner();
+
+        var encodedFromRaw = typedEncoder.EncodeTypedDataRaw((typeRaw));
+
+        return encodedFromRaw;
+    }
+
+    public string ethGetAddressFromPrivateKey(object privateKey)
+    {
+        // Remove "0x" prefix if present
+        var cleanPrivateKey = (string)this.remove0xPrefix(privateKey.ToString());
+        
+        // Convert hex string to byte array
+        var privateKeyBytes = cleanPrivateKey.HexToByteArray();
+        
+        // Get uncompressed public key (65 bytes: 0x04 + 32 bytes X + 32 bytes Y)
+        var publicKeyBytes = Secp256K1Manager.GetPublicKey(privateKeyBytes, compressed: false);
+        
+        // Remove the first byte (0x04 prefix) - we only want the 64 bytes (X + Y coordinates)
+        var publicKeyWithoutPrefix = new byte[64];
+        Array.Copy(publicKeyBytes, 1, publicKeyWithoutPrefix, 0, 64);
+        
+        // Hash the public key with Keccak256
+        var sha3 = new Sha3Keccack();
+        var addressHash = sha3.CalculateHash(publicKeyWithoutPrefix);
+        
+        // Take the last 20 bytes (40 hex chars) as the address
+        var addressBytes = addressHash.Skip(addressHash.Length - 20).ToArray();
+        
+        // Convert to hex and add 0x prefix
+        return "0x" + addressBytes.ToHex();
+    }
+}

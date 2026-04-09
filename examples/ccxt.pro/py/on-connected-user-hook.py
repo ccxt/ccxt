@@ -1,9 +1,9 @@
-import ccxtpro
-from asyncio import get_event_loop, ensure_future
+import ccxt.pro
+from asyncio import run, ensure_future
 from pprint import pprint
 
 
-print('CCXT Pro Version:', ccxtpro.__version__)
+print('CCXT Version:', ccxt.__version__)
 
 
 # on_connected() is called when a client connection is established
@@ -11,7 +11,7 @@ print('CCXT Pro Version:', ccxtpro.__version__)
 # some exchanges might require two or more public/private connections
 # therefore on_connected() may be called more than once
 
-class MyBinance(ccxtpro.binance):
+class MyBinance(ccxt.pro.binance):
     def on_connected(self, client, message=None):
         print('Connected to', client.url)
         ensure_future(create_order(self))
@@ -31,7 +31,6 @@ async def create_order(exchange):
         pprint(order)
     except Exception as e:
         print(type(e).__name__, str(e))
-        break
 
 
 async def watch_orders(exchange):
@@ -43,16 +42,14 @@ async def watch_orders(exchange):
             pprint(orders)
         except Exception as e:
             print(type(e).__name__, str(e))
-            break;
+            break
     await exchange.close()
 
 
-loop = get_event_loop()
 exchange = MyBinance({
-    'enableRateLimit': True,
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET',
-    'asyncio_loop': loop,
 })
 
-loop.run_until_complete(watch_orders(exchange))
+
+run(watch_orders(exchange))

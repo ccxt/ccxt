@@ -1,11 +1,13 @@
-"use strict";
 
-const ccxt      = require ('../../ccxt.js')
-    , asTable   = require ('as-table')
-    , log       = require ('ololog').configure ({ locate: false })
-    , verbose   = process.argv.includes ('--verbose')
 
-require ('ansicolor').nice
+import ccxt from '../../js/ccxt.js';
+import asTable from 'as-table';
+import ansicolor from 'ansicolor';
+import ololog from 'ololog';
+
+const log = ololog.configure ({ locate: false }), verbose   = process.argv.includes ('--verbose');
+
+ansicolor.nice
 
 //-----------------------------------------------------------------------------
 
@@ -16,13 +18,7 @@ require ('ansicolor').nice
     for (let exchangeId of exchanges) {
 
         // create the exchange instance
-        const exchange = new ccxt[exchangeId] ({
-
-            // add at least some rate-limiting as required by the Manual:
-            // https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
-
-            'enableRateLimit': true,
-        })
+        const exchange = new ccxt[exchangeId] ()
 
         // preload all markets first, as explained in the Manual:
         // https://github.com/ccxt/ccxt/wiki/Manual#loading-markets

@@ -2,7 +2,7 @@
 
 import os
 import sys
-import asciichart
+import asciichartpy
 
 # -----------------------------------------------------------------------------
 
@@ -42,7 +42,7 @@ def print_chart(exchange, symbol, timeframe):
     print("\n" + exchange.name + ' ' + symbol + ' ' + timeframe + ' chart:')
 
     # print the chart
-    print("\n" + asciichart.plot(series[-length:], {'height': height}))  # print the chart
+    print("\n" + asciichartpy.plot(series[-length:], {'height': height}))  # print the chart
 
     last = ohlcv[len(ohlcv) - 1][index]  # last closing price
     return last

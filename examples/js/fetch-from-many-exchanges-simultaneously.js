@@ -1,7 +1,7 @@
-'use strict'
 
-const ccxt = require ('../../ccxt.js')
-const log  = require ('ololog')
+
+import ccxt from '../../js/ccxt.js';
+import log from 'ololog';
 
 const symbol = 'ETH/BTC'
 const exchanges = [ 'coinbasepro', 'hitbtc2', 'poloniex' ]
@@ -10,7 +10,7 @@ const exchanges = [ 'coinbasepro', 'hitbtc2', 'poloniex' ]
 
     const result = await Promise.all (exchanges.map (async id => {
 
-        const exchange = new ccxt[id] ({ 'enableRateLimit': true })
+        const exchange = new ccxt[id] ()
         const ticker = await exchange.fetchTicker (symbol)
         return exchange.extend ({ 'exchange': id }, ticker)
 

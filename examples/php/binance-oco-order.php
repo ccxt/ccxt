@@ -10,7 +10,6 @@ $exchange = new \ccxt\binance(array(
     'apiKey' => 'YOUR_API_KEY', // replace with your keys
     'secret' => 'YOUR_SECRET',
     'verbose' => true,
-    'enableRateLimit' => true,
 ));
 
 try {

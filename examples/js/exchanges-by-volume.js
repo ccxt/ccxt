@@ -1,8 +1,8 @@
-"use strict";
 
-const ccxt = require ('../../ccxt.js')
 
-;(async () => {
+import ccxt from '../../js/ccxt.js';
+
+(async () => {
 
     //     const exchanges = [
     //         'bittrex',
@@ -24,7 +24,7 @@ const ccxt = require ('../../ccxt.js')
 
             try {
 
-                const exchange = new ccxt[exchangeId] ({ enableRateLimit: true })
+                const exchange = new ccxt[exchangeId] ()
 
                 const ticker = await exchange.fetchTicker (symbol)
 

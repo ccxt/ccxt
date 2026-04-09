@@ -5,7 +5,7 @@ namespace ccxt;
 class Precise {
     public $integer;
     public $decimals;
-    public $base;
+    public static $base;
 
     public function __construct($number, $decimals = null) {
         if ($decimals === null) {
@@ -17,14 +17,21 @@ class Precise {
             }
             $decimalIndex = strpos($number, '.');
             $this->decimals = ($decimalIndex > -1) ? strlen($number) - $decimalIndex - 1 : 0;
-            $integerString = str_replace('.', '', $number);
+            $integerString = str_replace("+", "", str_replace('.', '', $number));
             $this->integer = gmp_init($integerString, 10);
             $this->decimals = $this->decimals - $modifier;
         } else {
             $this->integer = $number;
             $this->decimals = $decimals;
         }
-        $this->base = gmp_init(10);
+    }
+
+    public function gmp_pow($a, $b) {
+        try {
+            return gmp_pow($a, $b);
+        } catch (\Throwable $_) {
+            return bcpow(gmp_strval($a), gmp_strval($b));
+        }
     }
 
     public function mul($other) {
@@ -37,10 +44,10 @@ class Precise {
         if ($distance === 0) {
             $numerator = $this->integer;
         } elseif ($distance < 0) {
-            $exponent = gmp_pow($this->base, -$distance);
+            $exponent = $this->gmp_pow(static::$base, -$distance);
             $numerator = gmp_div($this->integer, $exponent);
         } else {
-            $exponent = gmp_pow($this->base, $distance);
+            $exponent = $this->gmp_pow(static::$base, $distance);
             $numerator = gmp_mul($this->integer, $exponent);
         }
         $result = gmp_div($numerator, $other->integer);
@@ -55,7 +62,7 @@ class Precise {
             list($smaller, $bigger) =
                 ($this->decimals > $other->decimals) ? array( $other, $this ) : array( $this, $other );
             $exponent = $bigger->decimals - $smaller->decimals;
-            $normalised = gmp_mul($smaller->integer, gmp_pow($this->base, $exponent));
+            $normalised = gmp_mul($smaller->integer, $this->gmp_pow(static::$base, $exponent));
             $result = gmp_add($normalised, $bigger->integer);
             return new Precise($result, $bigger->decimals);
         }
@@ -76,11 +83,16 @@ class Precise {
 
     public function mod($other) {
         $rationizerNumerator = max(-$this->decimals + $other->decimals, 0);
-        $numerator = gmp_mul($this->integer, gmp_pow($this->base, $rationizerNumerator));
+        $numerator = gmp_mul($this->integer, $this->gmp_pow(static::$base, $rationizerNumerator));
         $denominatorRationizer = max(-$other->decimals + $this->decimals, 0);
-        $denominator = gmp_mul($other->integer, gmp_pow($this->base, $denominatorRationizer));
+        $denominator = gmp_mul($other->integer, $this->gmp_pow(static::$base, $denominatorRationizer));
         $result = gmp_mod($numerator, $denominator);
         return new Precise($result, $denominatorRationizer + $other->decimals);
+    }
+
+    public function or($other) {
+        $integerResult = gmp_or($this->integer, $other->integer);
+        return new Precise($integerResult, $this->decimals + $other->decimals);
     }
 
     public function min($other) {
@@ -169,7 +181,11 @@ class Precise {
         if (($string1 === null) || ($string2 === null)) {
             return null;
         }
-        return strval((new Precise($string1))->div(new Precise($string2), $precision));
+        $string2_precise = new Precise($string2);
+        if (gmp_cmp($string2_precise->integer, '0') === 0) {
+            return null;
+        }
+        return strval((new Precise($string1))->div($string2_precise, $precision));
     }
 
     public static function string_add($string1, $string2) {
@@ -212,7 +228,21 @@ class Precise {
         return strval((new Precise($string1))->mod(new Precise($string2)));
     }
 
+    public static function string_or($string1, $string2) {
+        if (($string1 === null) || ($string2 === null)) {
+            return null;
+        }
+        return strval((new Precise($string1))->or(new Precise($string2)));
+    }
+
     public static function string_equals($string1, $string2) {
+        if (($string1 === null) || ($string2 === null)) {
+            return null;
+        }
+        return (new Precise($string1))->equals(new Precise($string2));
+    }
+
+    public static function string_eq($string1, $string2) {
         if (($string1 === null) || ($string2 === null)) {
             return null;
         }
@@ -261,3 +291,5 @@ class Precise {
         return (new Precise($string1))->le(new Precise($string2));
     }
 }
+
+Precise::$base = \gmp_init(10);

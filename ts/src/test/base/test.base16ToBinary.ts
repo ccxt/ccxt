@@ -1,0 +1,56 @@
+
+import assert from 'assert';
+import ccxt from '../../../ccxt.js';
+
+function testBase16ToBinary () {
+
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleexchange',
+    });
+
+    assert (exchange.parseNumber (undefined) === undefined, "GO_WORKAROUND");
+
+    assert ('GO_SKIP_START');
+    // Test 1: simple known bytes
+    // 'ff' => [255]
+    const binary1 = exchange.base16ToBinary ('ff');
+    assert (exchange.binaryToBase16 (binary1) === 'ff');
+
+    // Test 2: all zeros
+    // '0000' => [0, 0]
+    const binary2 = exchange.base16ToBinary ('0000');
+    assert (exchange.binaryToBase16 (binary2) === '0000');
+
+    // Test 3: ascending bytes 01 02 03 04
+    const binary3 = exchange.base16ToBinary ('01020304');
+    assert (exchange.binaryToBase16 (binary3) === '01020304');
+
+    // Test 4: single byte zero
+    const binary4 = exchange.base16ToBinary ('00');
+    assert (exchange.binaryToBase16 (binary4) === '00');
+
+    // Test 5: single byte max
+    const binary5 = exchange.base16ToBinary ('ff');
+    assert (exchange.binaryLength (binary5) === 1);
+    assert (exchange.isBinaryMessage (binary5));
+
+    // Test 6: 8 bytes (like a timestamp encoding)
+    // 00 00 00 00 49 96 02 d2 = 1234567890
+    const binary6 = exchange.base16ToBinary ('00000000499602d2');
+    assert (exchange.binaryToBase16 (binary6) === '00000000499602d2');
+    assert (exchange.binaryLength (binary6) === 8);
+
+    // Test 7: roundtrip with deadbeef
+    const binary7 = exchange.base16ToBinary ('deadbeef');
+    assert (exchange.binaryToBase16 (binary7) === 'deadbeef');
+    assert (exchange.binaryLength (binary7) === 4);
+
+    // Test 8: roundtrip binaryToBase16 -> base16ToBinary
+    const hex8 = 'cafebabe';
+    const binary8 = exchange.base16ToBinary (hex8);
+    assert (exchange.binaryToBase16 (binary8) === hex8);
+
+    assert ('GO_SKIP_END');
+}
+
+export default testBase16ToBinary;

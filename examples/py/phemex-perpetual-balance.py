@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from asyncio import get_event_loop
+from asyncio import run
 import os
 import sys
 from pprint import pprint
@@ -27,5 +27,4 @@ async def main():
     await exchange.close()
 
 
-loop = get_event_loop()
-loop.run_until_complete(main())
+run(main())

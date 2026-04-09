@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from asyncio import get_event_loop
-import ccxtpro
-from pprint import pprint
+from asyncio import run
+import ccxt.pro as ccxt
 
 
-class MyBinance(ccxtpro.binance):
+class MyBinance(ccxt.binance):
     def handle_order_book_message(self, client, message, orderbook):
         asks = self.safe_value(message, 'a', [])
         bids = self.safe_value(message, 'b', [])
@@ -18,11 +17,8 @@ class MyBinance(ccxtpro.binance):
         })
         return super(MyBinance, self).handle_order_book_message(client, message, orderbook);
 
-async def main(loop):
-    exchange = MyBinance({
-        'enableRateLimit': True, # required https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
-        'asyncio_loop': loop,
-    })
+async def main():
+    exchange = MyBinance()
     symbol = 'BTC/USDT'
     print('Watching', exchange.id, symbol)
     while True:
@@ -35,7 +31,4 @@ async def main(loop):
     await exchange.close()
 
 
-if __name__ == "__main__":
-    loop = get_event_loop()
-    loop.run_until_complete(main(loop))
-
+run(main())

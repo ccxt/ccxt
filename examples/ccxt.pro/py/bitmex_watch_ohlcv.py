@@ -1,5 +1,5 @@
-import ccxtpro
-import asyncio
+import ccxt.pro
+from asyncio import run
 
 
 def table(values):
@@ -11,8 +11,7 @@ def table(values):
 
 
 async def main():
-    exchange = ccxtpro.bitmex({
-        'enableRateLimit': True,
+    exchange = ccxt.pro.bitmex({
         # 'options': {
         #     'OHLCVLimit': 1000, # how many candles to store in memory by default
         # },
@@ -39,4 +38,4 @@ async def main():
         print(exchange.id, method, 'is not supported or not implemented yet')
 
 
-asyncio.get_event_loop().run_until_complete(main())
+run(main())

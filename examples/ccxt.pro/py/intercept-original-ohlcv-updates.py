@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 
-from asyncio import get_event_loop
-import ccxtpro
+from asyncio import run
+import ccxt.pro
 from pprint import pprint
 
 
-class MyBinance(ccxtpro.binance):
+class MyBinance(ccxt.pro.binance):
     def handle_ohlcv(self, client, message):
         # add your handling of the original message here
         print('intercepted', message)
         return super(MyBinance, self).handle_ohlcv(client, message)
 
 
-async def main(loop):
+async def main():
     exchange = MyBinance()
     symbol = 'BTC/USDT'
     print('Watching', exchange.id, symbol)
@@ -27,7 +27,5 @@ async def main(loop):
 
 
 if __name__ == "__main__":
-    print('CCXT Pro Version:', ccxtpro.__version__)
-    loop = get_event_loop()
-    loop.run_until_complete(main(loop))
-
+    print('CCXT Version:', ccxt.__version__)
+    run(main())

@@ -1,6 +1,6 @@
 "use strict";
 
-const ccxtpro = require ('ccxt.pro')
+const ccxt = require ('ccxt')
 
 const ohlcvsBySymbol = {}
 
@@ -26,7 +26,7 @@ async function pollOHLCV (exchange, symbol, timeframe) {
 
 async function main () {
 
-    const exchange = new ccxtpro.binance()
+     const exchange = new ccxt.pro.binance()
     const markets = await exchange.loadMarkets ()
     const timeframe = '5m'
 

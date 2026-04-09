@@ -1,22 +1,27 @@
-"use strict"
 
-const ansi = require ('ansicolor').nice
-    , log = require ('ololog').noLocate
-    , asTable = require ('as-table').configure ({
+
+import { nice as ansi } from 'ansicolor';
+import ololog from 'ololog';
+import asTable from 'as-table';
+
+import ccxt from '../../js/ccxt.js';
+
+const { noLocate } = ololog;
+const log = noLocate;
+
+const table = asTable.configure ({
         delimiter: ' | '.dim,
         right: true,
-    })
-    , ccxt = require ('../../ccxt.js')
+    });
 
 const exchange = new ccxt.coinone ({
-    'enableRateLimit': true,
     'verbose': process.argv.includes ('--verbose'),
 })
 
 let printTickersAsTable = function (exchange, tickers) {
     log (exchange.id.green, exchange.iso8601 (exchange.milliseconds ()))
     log ('Fetched', Object.values (tickers).length.toString ().green, 'tickers:')
-    log (asTable (ccxt.sortBy (Object.values (tickers), 'symbol', false)))
+    log (table (ccxt.sortBy (Object.values (tickers), 'symbol', false)))
 }
 
 async function fetchAllAndPrint () {
@@ -38,11 +43,11 @@ async function fetchOneByOneAndPrint () {
         log (`${i+1} / ${symbols.length}`)
         log ('\u001b[1A'.repeat (2))  // cursor up
     }
-    
+
     printTickersAsTable (exchange, tickers)
 }
 
-;(async () => {
+(async () => {
     await fetchAllAndPrint ()
     log ('\n')
     await fetchOneByOneAndPrint ()

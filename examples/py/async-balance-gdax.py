@@ -12,9 +12,9 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 async def test():
     gdax = ccxt.gdax({
-        'apiKey': "a43edfe629bc5991acc83a536ac6358e",
-        'secret': "xOvq+iH8NT07TheFB/fmY3GcnMZMwP7Xct9zwWtAZxsCbJh8rxeEe/0BGxfbV2em7P9iqQD7/TJGqmsDO8B/kw==",
-        'password': 'zdmj8o7byla',
+        'apiKey': "YOUR_API_KEY",
+        'secret': "YOUR_SECRET",
+        'password': "YOUR_PASSWORD",
         'verbose': True,  # switch it to False if you don't want the HTTP log
     })
     # move gdax to sandbox
@@ -22,4 +22,4 @@ async def test():
     print(await gdax.fetch_balance())
 
 
-asyncio.get_event_loop().run_until_complete(test())
+asyncio.run(test())

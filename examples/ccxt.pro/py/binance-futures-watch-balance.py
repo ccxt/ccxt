@@ -1,5 +1,5 @@
 import ccxt
-import ccxtpro
+import ccxt.pro
 import asyncio
 
 from pprint import pprint
@@ -21,17 +21,19 @@ async def print_balance(exchange, market_type):
 
 
 async def main():
-    exchange = ccxtpro.binance({
+    exchange = ccxt.pro.binance({
         "apiKey": "",
         "secret": "",
-        'emableRateLimit': True,
+        'enableRateLimit': True,
         'newUpdates': True,
     })
-    # you must make a an order a transfer first to the websocket to send updates
+    # you must make an order a transfer first to the websocket to send updates
     asyncio.ensure_future(print_balance(exchange, 'future'))
     asyncio.ensure_future(print_balance(exchange, 'delivery'))  # inverse futures settled in BTC
     asyncio.ensure_future(print_balance(exchange, 'spot'))
 
+
+asyncio.run(main())
 asyncio.ensure_future(main())
 loop.run_forever()
 

@@ -1,11 +1,10 @@
 <?php
 
-error_reporting(E_ALL | E_STRICT);
-date_default_timezone_set('UTC');
-require_once 'vendor/autoload.php';
+$root = dirname(dirname(dirname(dirname(__FILE__))));
+include $root . '/ccxt.php';
 
-$id = 'poloniex';
-$exchange_class = '\\ccxtpro\\' . $id;
+$id = 'aax';
+$exchange_class = '\\ccxt\\pro\\' . $id;
 $exchange = new $exchange_class(array(
     'enableRateLimit' => true,
 ));
@@ -19,16 +18,13 @@ function print_orderbook($orderbook, $symbol) {
         count($orderbook['bids']), ' bids ', json_encode($orderbook['bids'][0]), "\n";
 }
 
-function loop($exchange, $symbol) {
+$loop = function($exchange, $symbol) {
     while (true) {
         $orderbook = yield $exchange->watch_order_book($symbol);
         print_orderbook($orderbook, $symbol);
     }
 };
 
-$kernel = $exchange::get_kernel();
 foreach ($symbols as $symbol) {
-    $kernel->execute(loop($exchange, $symbol));
+    \React\Async\coroutine($loop, $exchange, $symbol);
 }
-
-$kernel->run();

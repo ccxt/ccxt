@@ -1,8 +1,9 @@
-"use strict";
 
-const ccxt      = require ('../../ccxt.js')
-const asTable   = require ('as-table')
-const log       = require ('ololog').configure ({ locate: false })
+
+import ccxt from '../../js/ccxt.js';
+import asTable from 'as-table';
+import ololog from 'ololog';
+const log       = ololog.configure ({ locate: false })
 
 require ('ansicolor').nice
 
@@ -20,9 +21,8 @@ const getPositiveAccounts = function (balance) {
 
     // instantiate the exchange
     let exchange = new ccxt.hitbtc2  ({
-        "apiKey": "b6aad581670b30fb25d1c91cdbe8ca5c",
-        "secret": "fa394ced37a488f9b5826a2d9ce39ae3",
-        "enableRateLimit": true,
+        "apiKey": "YOUR_API_KEY",
+        "secret": "YOUR_SECRET",
     })
 
     try {
@@ -36,7 +36,7 @@ const getPositiveAccounts = function (balance) {
         // withdraw
         let withdraw = await exchange.withdraw ('ETH', 0.01, '0x811DCfeb6dC0b9ed825808B6B060Ca469b83fB81')
 
-        // // output the result
+        // output the result
         log (exchange.name.green, 'withdraw', withdraw)
 
     } catch (e) {

@@ -1,13 +1,12 @@
-"use strict";
 
-const ccxt = require ('../../ccxt.js')
 
-;(async function main () {
+import ccxt from '../../js/ccxt.js';
+
+(async function main () {
 
     const exchange = new ccxt.binance ({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
-        'enableRateLimit': true,
     })
 
     await exchange.loadMarkets ()

@@ -119,6 +119,7 @@ a:visited:not(.icon) {
 .wy-side-scroll {
    scrollbar-width: none;
     -ms-overflow-style: none;
+    overscroll-behavior: contain;
 }
 
 td:first-child {

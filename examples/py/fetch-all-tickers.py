@@ -32,9 +32,7 @@ try:
         print('Instantiating', id)
 
         # instantiate the exchange by id
-        exchange = getattr(ccxt, id)({
-            'enableRateLimit': True,  # https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
-        })
+        exchange = getattr(ccxt, id)()
 
         if exchange.has['fetchTickers'] != True:
             raise ccxt.NotSupported ('Exchange ' + exchange.id + ' does not have the endpoint to fetch all tickers from the API.')

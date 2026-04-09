@@ -4,41 +4,126 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.coinmate import ImplicitAPI
+import hashlib
+from ccxt.base.types import Any, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction
+from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class coinmate(Exchange):
+class coinmate(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(coinmate, self).describe(), {
             'id': 'coinmate',
             'name': 'CoinMate',
             'countries': ['GB', 'CZ', 'EU'],  # UK, Czech Republic
-            'rateLimit': 1000,
+            'rateLimit': 600,
             'has': {
-                'cancelOrder': True,
                 'CORS': True,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': False,
+                'borrowMargin': False,
+                'cancelOrder': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createOrder': True,
+                'createOrderWithTakeProfitAndStopLoss': False,
+                'createOrderWithTakeProfitAndStopLossWs': False,
+                'createPostOnlyOrder': False,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
+                'fetchDepositsWithdrawals': True,
+                'fetchFundingHistory': False,
+                'fetchFundingInterval': False,
+                'fetchFundingIntervals': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchGreeks': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
+                'fetchLeverages': False,
+                'fetchLeverageTiers': False,
+                'fetchLiquidations': False,
+                'fetchLongShortRatio': False,
+                'fetchLongShortRatioHistory': False,
+                'fetchMarginAdjustmentHistory': False,
+                'fetchMarginMode': False,
+                'fetchMarginModes': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
+                'fetchMarkPrices': False,
+                'fetchMyLiquidations': False,
+                'fetchMySettlementHistory': False,
                 'fetchMyTrades': True,
+                'fetchOpenInterest': False,
+                'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': False,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositionHistory': False,
+                'fetchPositionMode': False,
+                'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
+                'fetchSettlementHistory': False,
                 'fetchTicker': True,
+                'fetchTickers': True,
                 'fetchTrades': True,
-                'fetchTransactions': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': False,
+                'fetchTransactions': 'emulated',
+                'fetchVolatilityHistory': False,
+                'reduceMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
+                'repayMargin': False,
+                'setLeverage': False,
+                'setMargin': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
+                'transfer': False,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87460806-1c9f3f00-c616-11ea-8c46-a77018a8f3f4.jpg',
-                'api': 'https://coinmate.io/api',
+                'api': {
+                    'rest': 'https://coinmate.io/api',
+                },
                 'www': 'https://coinmate.io',
                 'fees': 'https://coinmate.io/fees',
                 'doc': [
@@ -57,12 +142,16 @@ class coinmate(Exchange):
                     'get': [
                         'orderBook',
                         'ticker',
+                        'tickerAll',
+                        'products',
                         'transactions',
                         'tradingPairs',
+                        'system/time',
                     ],
                 },
                 'private': {
                     'post': [
+                        'currencies',
                         'balances',
                         'bitcoinCashWithdrawal',
                         'bitcoinCashDepositAddresses',
@@ -105,6 +194,17 @@ class coinmate(Exchange):
                         'unconfirmedEthereumDeposits',
                         'unconfirmedLitecoinDeposits',
                         'unconfirmedRippleDeposits',
+                        'cancelAllOpenOrders',
+                        'withdrawVirtualCurrency',
+                        'virtualCurrencyDepositAddresses',
+                        'unconfirmedVirtualCurrencyDeposits',
+                        'adaWithdrawal',
+                        'adaDepositAddresses',
+                        'unconfirmedAdaDeposits',
+                        'solWithdrawal',
+                        'solDepositAddresses',
+                        'unconfirmedSolDeposits',
+                        'bankWireWithdrawal',
                     ],
                 },
             },
@@ -112,62 +212,114 @@ class coinmate(Exchange):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'maker': 0.12 / 100,
-                    'taker': 0.25 / 100,
+                    'taker': self.parse_number('0.006'),
+                    'maker': self.parse_number('0.004'),
                     'tiers': {
                         'taker': [
-                            [0, 0.25 / 100],
-                            [10000, 0.23 / 100],
-                            [100000, 0.21 / 100],
-                            [250000, 0.20 / 100],
-                            [500000, 0.15 / 100],
-                            [1000000, 0.13 / 100],
-                            [3000000, 0.10 / 100],
-                            [15000000, 0.05 / 100],
+                            [self.parse_number('0'), self.parse_number('0.006')],
+                            [self.parse_number('10000'), self.parse_number('0.003')],
+                            [self.parse_number('100000'), self.parse_number('0.0023')],
+                            [self.parse_number('250000'), self.parse_number('0.0021')],
+                            [self.parse_number('500000'), self.parse_number('0.0018')],
+                            [self.parse_number('1000000'), self.parse_number('0.0015')],
+                            [self.parse_number('3000000'), self.parse_number('0.0012')],
+                            [self.parse_number('15000000'), self.parse_number('0.001')],
                         ],
                         'maker': [
-                            [0, 0.12 / 100],
-                            [10000, 0.11 / 100],
-                            [1000000, 0.10 / 100],
-                            [250000, 0.08 / 100],
-                            [500000, 0.05 / 100],
-                            [1000000, 0.03 / 100],
-                            [3000000, 0.02 / 100],
-                            [15000000, 0],
+                            [self.parse_number('0'), self.parse_number('0.004')],
+                            [self.parse_number('10000'), self.parse_number('0.002')],
+                            [self.parse_number('100000'), self.parse_number('0.0012')],
+                            [self.parse_number('250000'), self.parse_number('0.0009')],
+                            [self.parse_number('500000'), self.parse_number('0.0005')],
+                            [self.parse_number('1000000'), self.parse_number('0.0003')],
+                            [self.parse_number('3000000'), self.parse_number('0.0002')],
+                            [self.parse_number('15000000'), self.parse_number('-0.0004')],
                         ],
-                    },
-                },
-                'promotional': {
-                    'trading': {
-                        'maker': 0.05 / 100,
-                        'taker': 0.15 / 100,
-                        'tiers': {
-                            'taker': [
-                                [0, 0.15 / 100],
-                                [10000, 0.14 / 100],
-                                [100000, 0.13 / 100],
-                                [250000, 0.12 / 100],
-                                [500000, 0.11 / 100],
-                                [1000000, 0.1 / 100],
-                                [3000000, 0.08 / 100],
-                                [15000000, 0.05 / 100],
-                            ],
-                            'maker': [
-                                [0, 0.05 / 100],
-                                [10000, 0.04 / 100],
-                                [1000000, 0.03 / 100],
-                                [250000, 0.02 / 100],
-                                [500000, 0],
-                                [1000000, 0],
-                                [3000000, 0],
-                                [15000000, 0],
-                            ],
-                        },
                     },
                 },
             },
             'options': {
-                'promotionalMarkets': ['ETH/EUR', 'ETH/CZK', 'ETH/BTC', 'XRP/EUR', 'XRP/CZK', 'XRP/BTC', 'DASH/EUR', 'DASH/CZK', 'DASH/BTC', 'BCH/EUR', 'BCH/CZK', 'BCH/BTC'],
+                'withdraw': {
+                    'fillResponsefromRequest': True,
+                    'methods': {
+                        'BTC': 'privatePostBitcoinWithdrawal',
+                        'LTC': 'privatePostLitecoinWithdrawal',
+                        'BCH': 'privatePostBitcoinCashWithdrawal',
+                        'ETH': 'privatePostEthereumWithdrawal',
+                        'XRP': 'privatePostRippleWithdrawal',
+                        'DASH': 'privatePostDashWithdrawal',
+                        'DAI': 'privatePostDaiWithdrawal',
+                        'ADA': 'privatePostAdaWithdrawal',
+                        'SOL': 'privatePostSolWithdrawal',
+                    },
+                },
+            },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,  # todo implement
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': False,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': True,  # todo implement
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': True,  # todo
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,  # todo implement
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchClosedOrders': None,
+                    'fetchOHLCV': None,
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
             },
             'exceptions': {
                 'exact': {
@@ -177,12 +329,40 @@ class coinmate(Exchange):
                     'Not enough account balance available': InsufficientFunds,
                     'Incorrect order ID': InvalidOrder,
                     'Minimum Order Size ': InvalidOrder,
+                    'max allowed precision': InvalidOrder,  # {"error":true,"errorMessage":"USDT_EUR - max allowed precision is 4 decimal places","data":null}
                     'TOO MANY REQUESTS': RateLimitExceeded,
+                    'Access denied.': AuthenticationError,  # {"error":true,"errorMessage":"Access denied.","data":null}
                 },
             },
+            'precisionMode': TICK_SIZE,
         })
 
-    async def fetch_markets(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
+        """
+        fetches the current integer timestamp in milliseconds from the bingx server
+
+        https://coinmate.docs.apiary.io/#reference/system/get-server-time/get
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int: the current integer timestamp in milliseconds from the bingx server
+        """
+        response = await self.publicGetSystemTime(params)
+        #
+        #     {
+        #         "serverTime": 1765250628745
+        #     }
+        #
+        return self.safe_integer(response, 'serverTime')
+
+    async def fetch_markets(self, params={}) -> List[Market]:
+        """
+        retrieves data on all markets for coinmate
+
+        https://coinmate.docs.apiary.io/#reference/trading-pairs/get-trading-pairs/get
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of objects representing market data
+        """
         response = await self.publicGetTradingPairs(params)
         #
         #     {
@@ -203,7 +383,7 @@ class coinmate(Exchange):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         result = []
         for i in range(0, len(data)):
             market = data[i]
@@ -213,27 +393,39 @@ class coinmate(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            promotionalMarkets = self.safe_value(self.options, 'promotionalMarkets', [])
-            fees = self.safe_value(self.fees, 'trading')
-            if self.in_array(symbol, promotionalMarkets):
-                promotionalFees = self.safe_value(self.fees, 'promotional', {})
-                fees = self.safe_value(promotionalFees, 'trading', fees)
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
+                'type': 'spot',
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'active': None,
-                'maker': fees['maker'],
-                'taker': fees['taker'],
-                'info': market,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(market, 'priceDecimals'),
-                    'amount': self.safe_integer(market, 'lotDecimals'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'lotDecimals'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'priceDecimals'))),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'minAmount'),
                         'max': None,
@@ -247,14 +439,14 @@ class coinmate(Exchange):
                         'max': None,
                     },
                 },
+                'created': None,
+                'info': market,
             })
         return result
 
-    async def fetch_balance(self, params={}):
-        await self.load_markets()
-        response = await self.privatePostBalances(params)
-        balances = self.safe_value(response, 'data')
-        result = {'info': response}
+    def parse_balance(self, response) -> Balances:
+        balances = self.safe_value(response, 'data', {})
+        result: dict = {'info': response}
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
@@ -265,30 +457,138 @@ class coinmate(Exchange):
             account['used'] = self.safe_string(balance, 'reserved')
             account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+
+        https://coinmate.docs.apiary.io/#reference/balance/get-balances/post
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
+        """
         await self.load_markets()
-        request = {
-            'currencyPair': self.market_id(symbol),
+        response = await self.privatePostBalances(params)
+        return self.parse_balance(response)
+
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://coinmate.docs.apiary.io/#reference/order-book/get-order-book/get
+
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'currencyPair': market['id'],
             'groupByPriceLimit': 'False',
         }
         response = await self.publicGetOrderBook(self.extend(request, params))
         orderbook = response['data']
         timestamp = self.safe_timestamp(orderbook, 'timestamp')
-        return self.parse_order_book(orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount')
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+        https://coinmate.docs.apiary.io/#reference/ticker/get-ticker/get
+
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
         await self.load_markets()
-        request = {
-            'currencyPair': self.market_id(symbol),
+        market = self.market(symbol)
+        request: dict = {
+            'currencyPair': market['id'],
         }
         response = await self.publicGetTicker(self.extend(request, params))
-        ticker = self.safe_value(response, 'data')
+        #
+        #     {
+        #         "error": False,
+        #         "errorMessage": null,
+        #         "data": {
+        #             "last": 0.55105,
+        #             "high": 0.56439,
+        #             "low": 0.54358,
+        #             "amount": 37038.993381,
+        #             "bid": 0.54595,
+        #             "ask": 0.55324,
+        #             "change": 3.03659243,
+        #             "open": 0.53481,
+        #             "timestamp": 1708074779
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data')
+        return self.parse_ticker(data, market)
+
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+        https://coinmate.docs.apiary.io/#reference/ticker/get-ticker-all/get
+
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        response = await self.publicGetTickerAll(params)
+        #
+        #     {
+        #         "error": False,
+        #         "errorMessage": null,
+        #         "data": {
+        #             "LTC_BTC": {
+        #                 "last": "0.001337",
+        #                 "high": "0.001348",
+        #                 "low": "0.001332",
+        #                 "amount": "34.75472959",
+        #                 "bid": "0.001348",
+        #                 "ask": "0.001356",
+        #                 "change": "-0.74239050",
+        #                 "open": "0.001347",
+        #                 "timestamp": "1708074485"
+        #             }
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        keys = list(data.keys())
+        result: dict = {}
+        for i in range(0, len(keys)):
+            market = self.market(keys[i])
+            ticker = self.parse_ticker(self.safe_value(data, keys[i]), market)
+            result[market['symbol']] = ticker
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
+
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
+        #
+        #     {
+        #         "last": "0.001337",
+        #         "high": "0.001348",
+        #         "low": "0.001332",
+        #         "amount": "34.75472959",
+        #         "bid": "0.001348",
+        #         "ask": "0.001356",
+        #         "change": "-0.74239050",
+        #         "open": "0.001347",
+        #         "timestamp": "1708074485"
+        #     }
+        #
         timestamp = self.safe_timestamp(ticker, 'timestamp')
         last = self.safe_number(ticker, 'last')
-        return {
-            'symbol': symbol,
+        return self.safe_ticker({
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_number(ticker, 'high'),
@@ -308,11 +608,22 @@ class coinmate(Exchange):
             'baseVolume': self.safe_number(ticker, 'amount'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
-    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+        """
+        fetch history of deposits and withdrawals
+
+        https://coinmate.docs.apiary.io/#reference/transfers/get-transfer-history/post
+
+        :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
+        :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
+        :param int [limit]: max number of deposit/withdrawals to return, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
+        """
         await self.load_markets()
-        request = {
+        request: dict = {
             'limit': 1000,
         }
         if limit is not None:
@@ -326,82 +637,161 @@ class coinmate(Exchange):
         items = response['data']
         return self.parse_transactions(items, None, since, limit)
 
-    def parse_transaction_status(self, status):
-        statuses = {
-            # any other types ?
+    def parse_transaction_status(self, status: Str):
+        statuses: dict = {
             'COMPLETED': 'ok',
+            'WAITING': 'pending',
+            'SENT': 'pending',
+            'CREATED': 'pending',
+            'OK': 'ok',
+            'NEW': 'pending',
+            'CANCELED': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, item, currency=None):
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # deposits
         #
         #     {
-        #         transactionId: 1862815,
-        #         timestamp: 1516803982388,
-        #         amountCurrency: 'LTC',
-        #         amount: 1,
-        #         fee: 0,
-        #         walletType: 'LTC',
-        #         transferType: 'DEPOSIT',
-        #         transferStatus: 'COMPLETED',
-        #         txid:
-        #         'ccb9255dfa874e6c28f1a64179769164025329d65e5201849c2400abd6bce245',
-        #         destination: 'LQrtSKA6LnhcwRrEuiborQJnjFF56xqsFn',
-        #         destinationTag: null
+        #         "transactionId": 1862815,
+        #         "timestamp": 1516803982388,
+        #         "amountCurrency": "LTC",
+        #         "amount": 1,
+        #         "fee": 0,
+        #         "walletType": "LTC",
+        #         "transferType": "DEPOSIT",
+        #         "transferStatus": "COMPLETED",
+        #         "txid":
+        #         "ccb9255dfa874e6c28f1a64179769164025329d65e5201849c2400abd6bce245",
+        #         "destination": "LQrtSKA6LnhcwRrEuiborQJnjFF56xqsFn",
+        #         "destinationTag": null
         #     }
         #
         # withdrawals
         #
         #     {
-        #         transactionId: 2140966,
-        #         timestamp: 1519314282976,
-        #         amountCurrency: 'EUR',
-        #         amount: 8421.7228,
-        #         fee: 16.8772,
-        #         walletType: 'BANK_WIRE',
-        #         transferType: 'WITHDRAWAL',
-        #         transferStatus: 'COMPLETED',
-        #         txid: null,
-        #         destination: null,
-        #         destinationTag: null
+        #         "transactionId": 2140966,
+        #         "timestamp": 1519314282976,
+        #         "amountCurrency": "EUR",
+        #         "amount": 8421.7228,
+        #         "fee": 16.8772,
+        #         "walletType": "BANK_WIRE",
+        #         "transferType": "WITHDRAWAL",
+        #         "transferStatus": "COMPLETED",
+        #         "txid": null,
+        #         "destination": null,
+        #         "destinationTag": null
         #     }
         #
-        timestamp = self.safe_integer(item, 'timestamp')
-        amount = self.safe_number(item, 'amount')
-        fee = self.safe_number(item, 'fee')
-        txid = self.safe_string(item, 'txid')
-        address = self.safe_string(item, 'destination')
-        tag = self.safe_string(item, 'destinationTag')
-        currencyId = self.safe_string(item, 'amountCurrency')
+        # withdraw
+        #
+        #     {
+        #         "id": 2132583,
+        #     }
+        #
+        timestamp = self.safe_integer(transaction, 'timestamp')
+        currencyId = self.safe_string(transaction, 'amountCurrency')
         code = self.safe_currency_code(currencyId, currency)
-        type = self.safe_string_lower(item, 'transferType')
-        status = self.parse_transaction_status(self.safe_string(item, 'transferStatus'))
-        id = self.safe_string(item, 'transactionId')
         return {
-            'id': id,
+            'info': transaction,
+            'id': self.safe_string_2(transaction, 'transactionId', 'id'),
+            'txid': self.safe_string(transaction, 'txid'),
+            'type': self.safe_string_lower(transaction, 'transferType'),
+            'currency': code,
+            'network': self.safe_string(transaction, 'walletType'),
+            'amount': self.safe_number(transaction, 'amount'),
+            'status': self.parse_transaction_status(self.safe_string(transaction, 'transferStatus')),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'currency': code,
-            'amount': amount,
-            'type': type,
-            'txid': txid,
-            'address': address,
-            'tag': tag,
-            'status': status,
+            'address': self.safe_string(transaction, 'destination'),
+            'addressFrom': None,
+            'addressTo': None,
+            'tag': self.safe_string(transaction, 'destinationTag'),
+            'tagFrom': None,
+            'tagTo': None,
+            'updated': None,
+            'comment': None,
+            'internal': None,
             'fee': {
-                'cost': fee,
+                'cost': self.safe_number(transaction, 'fee'),
                 'currency': code,
+                'rate': None,
             },
-            'info': item,
         }
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+        """
+        make a withdrawal
+
+        https://coinmate.docs.apiary.io/#reference/bitcoin-withdrawal-and-deposit/withdraw-bitcoins/post
+        https://coinmate.docs.apiary.io/#reference/litecoin-withdrawal-and-deposit/withdraw-litecoins/post
+        https://coinmate.docs.apiary.io/#reference/ethereum-withdrawal-and-deposit/withdraw-ethereum/post
+        https://coinmate.docs.apiary.io/#reference/ripple-withdrawal-and-deposit/withdraw-ripple/post
+        https://coinmate.docs.apiary.io/#reference/cardano-withdrawal-and-deposit/withdraw-cardano/post
+        https://coinmate.docs.apiary.io/#reference/solana-withdrawal-and-deposit/withdraw-solana/post
+
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str tag:
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
+        """
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        self.check_address(address)
+        await self.load_markets()
+        currency = self.currency(code)
+        withdrawOptions = self.safe_value(self.options, 'withdraw', {})
+        methods = self.safe_value(withdrawOptions, 'methods', {})
+        method = self.safe_string(methods, code)
+        if method is None:
+            allowedCurrencies = list(methods.keys())
+            raise ExchangeError(self.id + ' withdraw() only allows withdrawing the following currencies: ' + ', '.join(allowedCurrencies))
+        request: dict = {
+            'amount': self.currency_to_precision(code, amount),
+            'address': address,
+        }
+        if tag is not None:
+            request['destinationTag'] = tag
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "error": False,
+        #         "errorMessage": null,
+        #         "data": {
+        #             "id": "9e0a37fc-4ab4-4b9d-b9e7-c9c8f7c4c8e0"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        transaction = self.parse_transaction(data, currency)
+        fillResponseFromRequest = self.safe_bool(withdrawOptions, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest:
+            transaction['amount'] = amount
+            transaction['currency'] = code
+            transaction['address'] = address
+            transaction['tag'] = tag
+            transaction['type'] = 'withdrawal'
+            transaction['status'] = 'pending'
+        return transaction
+
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetch all trades made by the user
+
+        https://coinmate.docs.apiary.io/#reference/trade-history/get-trade-history/post
+
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
+        """
         await self.load_markets()
         if limit is None:
             limit = 1000
-        request = {
+        request: dict = {
             'limit': limit,
         }
         if symbol is not None:
@@ -410,24 +800,24 @@ class coinmate(Exchange):
         if since is not None:
             request['timestampFrom'] = since
         response = await self.privatePostTradeHistory(self.extend(request, params))
-        items = response['data']
-        return self.parse_trades(items, None, since, limit)
+        data = self.safe_list(response, 'data', [])
+        return self.parse_trades(data, None, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchMyTrades(private)
         #
         #     {
-        #         transactionId: 2671819,
-        #         createdTimestamp: 1529649127605,
-        #         currencyPair: 'LTC_BTC',
-        #         type: 'BUY',
-        #         orderType: 'LIMIT',
-        #         orderId: 101810227,
-        #         amount: 0.01,
-        #         price: 0.01406,
-        #         fee: 0,
-        #         feeType: 'MAKER'
+        #         "transactionId": 2671819,
+        #         "createdTimestamp": 1529649127605,
+        #         "currencyPair": "LTC_BTC",
+        #         "type": "BUY",
+        #         "orderType": "LIMIT",
+        #         "orderId": 101810227,
+        #         "amount": 0.01,
+        #         "price": 0.01406,
+        #         "fee": 0,
+        #         "feeType": "MAKER"
         #     }
         #
         # fetchTrades(public)
@@ -445,24 +835,21 @@ class coinmate(Exchange):
         market = self.safe_market(marketId, market, '_')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         side = self.safe_string_lower_2(trade, 'type', 'tradeType')
         type = self.safe_string_lower(trade, 'orderType')
         orderId = self.safe_string(trade, 'orderId')
         id = self.safe_string(trade, 'transactionId')
         timestamp = self.safe_integer_2(trade, 'timestamp', 'createdTimestamp')
         fee = None
-        feeCost = self.safe_number(trade, 'fee')
-        if feeCost is not None:
+        feeCostString = self.safe_string(trade, 'fee')
+        if feeCostString is not None:
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': market['quote'],
             }
         takerOrMaker = self.safe_string(trade, 'feeType')
         takerOrMaker = 'maker' if (takerOrMaker == 'MAKER') else 'taker'
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -472,16 +859,27 @@ class coinmate(Exchange):
             'side': side,
             'order': orderId,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+        """
+        get the list of most recent trades for a particular symbol
+
+        https://coinmate.docs.apiary.io/#reference/transactions/transactions/get
+
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'currencyPair': market['id'],
             'minutesIntoHistory': 10,
         }
@@ -502,20 +900,79 @@ class coinmate(Exchange):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
+        """
+        fetch the trading fees for a market
+
+        https://coinmate.docs.apiary.io/#reference/trader-fees/get-trading-fees/post
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'currencyPair': market['id'],
+        }
+        response = await self.privatePostTraderFees(self.extend(request, params))
+        #
+        #     {
+        #         "error": False,
+        #         "errorMessage": null,
+        #         "data": {maker: '0.3', taker: "0.35", timestamp: "1646253217815"}
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        makerString = self.safe_string(data, 'maker')
+        takerString = self.safe_string(data, 'taker')
+        maker = self.parse_number(Precise.string_div(makerString, '100'))
+        taker = self.parse_number(Precise.string_div(takerString, '100'))
+        return {
+            'info': data,
+            'symbol': market['symbol'],
+            'maker': maker,
+            'taker': taker,
+            'percentage': True,
+            'tierBased': True,
+        }
+
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        fetch all unfilled currently open orders
+
+        https://coinmate.docs.apiary.io/#reference/order/get-open-orders/post
+
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
+        """
         response = await self.privatePostOpenOrders(self.extend({}, params))
-        extension = {'status': 'open'}
+        extension: dict = {'status': 'open'}
         return self.parse_orders(response['data'], None, since, limit, extension)
 
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        fetches information on multiple orders made by the user
+
+        https://coinmate.docs.apiary.io/#reference/order/order-history/post
+
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'currencyPair': market['id'],
         }
         # offset param that appears in other parts of the API doesn't appear to be supported here
@@ -524,8 +981,8 @@ class coinmate(Exchange):
         response = await self.privatePostOrderHistory(self.extend(request, params))
         return self.parse_orders(response['data'], market, since, limit)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'FILLED': 'closed',
             'CANCELLED': 'canceled',
             'PARTIALLY_FILLED': 'open',
@@ -533,71 +990,75 @@ class coinmate(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, type):
-        types = {
+    def parse_order_type(self, type: Str):
+        types: dict = {
             'LIMIT': 'limit',
             'MARKET': 'market',
         }
         return self.safe_string(types, type, type)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # limit sell
         #
         #     {
-        #         id: 781246605,
-        #         timestamp: 1584480015133,
-        #         trailingUpdatedTimestamp: null,
-        #         type: 'SELL',
-        #         currencyPair: 'ETH_BTC',
-        #         price: 0.0345,
-        #         amount: 0.01,
-        #         stopPrice: null,
-        #         originalStopPrice: null,
-        #         marketPriceAtLastUpdate: null,
-        #         marketPriceAtOrderCreation: null,
-        #         orderTradeType: 'LIMIT',
-        #         hidden: False,
-        #         trailing: False,
-        #         clientOrderId: null
+        #         "id": 781246605,
+        #         "timestamp": 1584480015133,
+        #         "trailingUpdatedTimestamp": null,
+        #         "type": "SELL",
+        #         "currencyPair": "ETH_BTC",
+        #         "price": 0.0345,
+        #         "amount": 0.01,
+        #         "stopPrice": null,
+        #         "originalStopPrice": null,
+        #         "marketPriceAtLastUpdate": null,
+        #         "marketPriceAtOrderCreation": null,
+        #         "orderTradeType": "LIMIT",
+        #         "hidden": False,
+        #         "trailing": False,
+        #         "clientOrderId": null
         #     }
         #
         # limit buy
         #
         #     {
-        #         id: 67527001,
-        #         timestamp: 1517931722613,
-        #         trailingUpdatedTimestamp: null,
-        #         type: 'BUY',
-        #         price: 5897.24,
-        #         remainingAmount: 0.002367,
-        #         originalAmount: 0.1,
-        #         stopPrice: null,
-        #         originalStopPrice: null,
-        #         marketPriceAtLastUpdate: null,
-        #         marketPriceAtOrderCreation: null,
-        #         status: 'CANCELLED',
-        #         orderTradeType: 'LIMIT',
-        #         hidden: False,
-        #         avgPrice: null,
-        #         trailing: False,
+        #         "id": 67527001,
+        #         "timestamp": 1517931722613,
+        #         "trailingUpdatedTimestamp": null,
+        #         "type": "BUY",
+        #         "price": 5897.24,
+        #         "remainingAmount": 0.002367,
+        #         "originalAmount": 0.1,
+        #         "stopPrice": null,
+        #         "originalStopPrice": null,
+        #         "marketPriceAtLastUpdate": null,
+        #         "marketPriceAtOrderCreation": null,
+        #         "status": "CANCELLED",
+        #         "orderTradeType": "LIMIT",
+        #         "hidden": False,
+        #         "avgPrice": null,
+        #         "trailing": False,
         #     }
+        #
+        # cancelOrder
+        #
+        #    {
+        #        "success": True,
+        #        "remainingAmount": 0.1
+        #    }
         #
         id = self.safe_string(order, 'id')
         timestamp = self.safe_integer(order, 'timestamp')
         side = self.safe_string_lower(order, 'type')
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'originalAmount')
-        remaining = self.safe_number(order, 'remainingAmount')
-        if remaining is None:
-            remaining = self.safe_number(order, 'amount')
+        priceString = self.safe_string(order, 'price')
+        amountString = self.safe_string(order, 'originalAmount')
+        remainingString = self.safe_string_2(order, 'remainingAmount', 'amount')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.parse_order_type(self.safe_string(order, 'orderTradeType'))
-        average = self.safe_number(order, 'avgPrice')
+        averageString = self.safe_string(order, 'avgPrice')
         marketId = self.safe_string(order, 'currencyPair')
         symbol = self.safe_symbol(marketId, market, '_')
         clientOrderId = self.safe_string(order, 'clientOrderId')
-        stopPrice = self.safe_number(order, 'stopPrice')
         return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -609,24 +1070,41 @@ class coinmate(Exchange):
             'timeInForce': None,
             'postOnly': None,
             'side': side,
-            'price': price,
-            'stopPrice': stopPrice,
-            'amount': amount,
+            'price': priceString,
+            'triggerPrice': self.safe_number(order, 'stopPrice'),
+            'amount': amountString,
             'cost': None,
-            'average': average,
+            'average': averageString,
             'filled': None,
-            'remaining': remaining,
+            'remaining': remainingString,
             'status': status,
             'trades': None,
             'info': order,
             'fee': None,
-        })
+        }, market)
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+        """
+        create a trade order
+
+        https://coinmate.docs.apiary.io/#reference/order/buy-limit-order/post
+        https://coinmate.docs.apiary.io/#reference/order/sell-limit-order/post
+        https://coinmate.docs.apiary.io/#reference/order/buy-instant-order/post
+        https://coinmate.docs.apiary.io/#reference/order/sell-instant-order/post
+
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
         await self.load_markets()
         method = 'privatePost' + self.capitalize(side)
-        request = {
-            'currencyPair': self.market_id(symbol),
+        market = self.market(symbol)
+        request: dict = {
+            'currencyPair': market['id'],
         }
         if type == 'market':
             if side == 'buy':
@@ -640,36 +1118,66 @@ class coinmate(Exchange):
             method += self.capitalize(type)
         response = await getattr(self, method)(self.extend(request, params))
         id = self.safe_string(response, 'data')
-        return {
+        return self.safe_order({
             'info': response,
             'id': id,
-        }
+        }, market)
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
+        """
+        fetches information on an order made by the user
+
+        https://coinmate.docs.apiary.io/#reference/order/get-order-by-orderid/post
+        https://coinmate.docs.apiary.io/#reference/order/get-order-by-clientorderid/post
+
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
         await self.load_markets()
-        request = {
+        request: dict = {
             'orderId': id,
         }
         market = None
         if symbol:
             market = self.market(symbol)
         response = await self.privatePostOrderById(self.extend(request, params))
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
         return self.parse_order(data, market)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+        """
+        cancels an open order
+
+        https://coinmate.docs.apiary.io/#reference/order/cancel-order/post
+
+        :param str id: order id
+        :param str symbol: not used by coinmate cancelOrder()
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
         #   {"error":false,"errorMessage":null,"data":{"success":true,"remainingAmount":0.01}}
-        request = {'orderId': id}
+        request: dict = {'orderId': id}
         response = await self.privatePostCancelOrderWithInfo(self.extend(request, params))
-        return {
-            'info': response,
-        }
+        #
+        #    {
+        #        "error": False,
+        #        "errorMessage": null,
+        #        "data": {
+        #          "success": True,
+        #          "remainingAmount": 0.1
+        #        }
+        #    }
+        #
+        data = self.safe_dict(response, 'data')
+        return self.parse_order(data)
 
     def nonce(self):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + path
+        url = self.urls['api']['rest'] + '/' + path
         if api == 'public':
             if params:
                 url += '?' + self.urlencode(params)
@@ -677,7 +1185,7 @@ class coinmate(Exchange):
             self.check_required_credentials()
             nonce = str(self.nonce())
             auth = nonce + self.uid + self.apiKey
-            signature = self.hmac(self.encode(auth), self.encode(self.secret))
+            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             body = self.urlencode(self.extend({
                 'clientId': self.uid,
                 'nonce': nonce,
@@ -689,20 +1197,17 @@ class coinmate(Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
-        if response is not None:
-            if 'error' in response:
-                # {"error":true,"errorMessage":"Minimum Order Size 0.01 ETH","data":null}
-                if response['error']:
-                    message = self.safe_string(response, 'errorMessage')
-                    feedback = self.id + ' ' + message
-                    self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
-                    self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
-                    raise ExchangeError(self.id + ' ' + self.json(response))
-        if code > 400:
-            if body:
-                feedback = self.id + ' ' + body
-                self.throw_exactly_matched_exception(self.exceptions['exact'], body, feedback)
-                self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
-                raise ExchangeError(feedback)  # unknown message
-            raise ExchangeError(self.id + ' ' + body)
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+        if response is None:
+            return None  # fallback to default error handler
+        #
+        #     {"error":true,"errorMessage":"Api internal error","data":null}
+        #     {"error":true,"errorMessage":"Access denied.","data":null}
+        #
+        errorMessage = self.safe_string(response, 'errorMessage')
+        if errorMessage is not None:
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorMessage, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
+            raise ExchangeError(feedback)  # unknown message
+        return None

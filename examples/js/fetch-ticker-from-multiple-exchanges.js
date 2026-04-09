@@ -1,8 +1,7 @@
-"use strict";
 
-const ccxt = require ('../../ccxt.js')
 
-;(async () => {
+import ccxt from '../../js/ccxt.js';
+(async () => {
 
     const exchanges = [
         'bittrex',
@@ -16,7 +15,7 @@ const ccxt = require ('../../ccxt.js')
 
         new Promise (async (resolve, reject) => {
 
-            const exchange = new ccxt[exchangeId] ({ enableRateLimit: true })
+            const exchange = new ccxt[exchangeId] ()
 
             while (true) {
 

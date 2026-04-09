@@ -14,7 +14,6 @@ print('CCXT Version:', ccxt.__version__)
 exchange = ccxt.binance({
     'apiKey': 'YOUR_TESTNET_API_KEY',
     'secret': 'YOUR_TESTNET_API_SECRET',
-    'enableRateLimit': True,  # https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
     'options': {
         'defaultType': 'future',
     },

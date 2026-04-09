@@ -1,11 +1,11 @@
-"use strict";
 
-const ccxt    = require ('../../ccxt.js')
-const log     = require ('ololog')
-const ansi    = require ('ansicolor').nice
-const asTable = require ('as-table')
 
-const exchange = new ccxt.coinbasepro ({ enableRateLimit: true })
+import ccxt from '../../js/ccxt.js';
+import log from 'ololog';
+import { nice as ansi } from 'ansicolor';
+import asTable from 'as-table';
+
+const exchange = new ccxt.coinbasepro ()
 const repeat   = 100
 
 async function test (symbol) {

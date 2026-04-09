@@ -19,9 +19,6 @@ $exchange = new $exchange_class(array(
     'secret' => 'YOUR_SECRET', // edit this line
     'password' => 'YOUR_APIKEY_PASSWORD', // edit this line
 
-    // this is required!
-    'enableRateLimit' => true, // https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
-
     // this is not required! uncomment only if you want to debug it
     // 'verbose' => true,
 
@@ -43,7 +40,7 @@ $amount = '0.123'; // edit this line
 // ----------------------------------------------------------------------------
 // load "from" and "to" accounts
 
-function get_account_id ($exchange, $type, $code) {
+function get_account_id($exchange, $type, $code) {
 
     // load markets first
     $exchange->load_markets(); // this will be executed only once
@@ -53,10 +50,10 @@ function get_account_id ($exchange, $type, $code) {
 
     echo "Loading a '" . $type . "' account for '" . $code . "'\n";
 
-    $accounts = $exchange->private_get_accounts(array (
+    $accounts = $exchange->private_get_accounts(array(
         'type' => $type,
     ));
-    $data = $exchange->safe_value ($accounts, 'data', array ());
+    $data = $exchange->safe_value($accounts, 'data', array());
     $accounts_by_currency_id = $exchange->index_by($accounts['data'], 'currency');
 
     $account_id = null;
@@ -95,8 +92,8 @@ function get_account_id ($exchange, $type, $code) {
 
 // ----------------------------------------------------------------------------
 
-$from_account_id = get_account_id ($exchange, $from, $code); // payer (obtained through the "list account" interface)
-$to_account_id = get_account_id ($exchange, $to, $code); // receiver
+$from_account_id = get_account_id($exchange, $from, $code); // payer (obtained through the "list account" interface)
+$to_account_id = get_account_id($exchange, $to, $code); // receiver
 
 echo "Transferring '" . $amount . "' '" . $code . "' from '" . $from . "' account '" . $from_account_id . "' to '" . $to . "' account '" . $to_account_id . "'\n";
 
@@ -105,7 +102,7 @@ $params = array(
 
     // set a unique identifier for this transfer
     // can be any arbitrary string that has not been used yet
-    'clientOid' => $exchange->uuid (),
+    'clientOid' => $exchange->uuid(),
 
     'payAccountId' => $from_account_id,
     'recAccountId' => $to_account_id,
@@ -120,6 +117,6 @@ try {
 
 } catch (Exception $e) {
 
-    echo get_class ($e) . ': ' . $e->getMessage () . "\n";
+    echo get_class($e) . ': ' . $e->getMessage() . "\n";
 
 }
