@@ -18,7 +18,7 @@ export default class pacifica extends Exchange {
     describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'pacifica',
-            'name': 'pacifica',
+            'name': 'Pacifica',
             'countries': [ ],
             'version': 'v1',
             'isSandboxModeEnabled': false, // is testnet api
