@@ -2029,13 +2029,13 @@ export default class weex extends Exchange {
         if (!isMarketOrder) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const [ triggerPrice, stopLossPrice, takeProfitPrice ] = this.handleTriggerPricesAndParams (symbol, params);
+        const [ triggerPrice, stopLossPrice, takeProfitPrice, query ] = this.handleTriggerPricesAndParams (symbol, params);
         if (triggerPrice !== undefined) {
             throw new NotSupported (this.id + ' createOrder() does not support the triggerPrice parameter');
         }
         const isStopLoss = (stopLossPrice !== undefined);
         const isTakeProfit = (takeProfitPrice !== undefined);
-        let reduceOnly = this.safeBool (params, 'reduceOnly');
+        let reduceOnly = this.safeBool (query, 'reduceOnly');
         if (isStopLoss || isTakeProfit) {
             reduceOnly = true;
         }
