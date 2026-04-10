@@ -896,60 +896,107 @@ class lighter extends Exchange {
          */
         $response = $this->publicGetOrderBookDetails ($params);
         //
-        //     {
-        //         "code" => 200,
-        //         "order_book_details" => array(
-        //             {
-        //                 "symbol" => "ETH",
-        //                 "market_id" => 0,
-        //                 "status" => "active",
-        //                 "taker_fee" => "0.0000",
-        //                 "maker_fee" => "0.0000",
-        //                 "liquidation_fee" => "1.0000",
-        //                 "min_base_amount" => "0.0050",
-        //                 "min_quote_amount" => "10.000000",
-        //                 "order_quote_limit" => "",
-        //                 "supported_size_decimals" => 4,
-        //                 "supported_price_decimals" => 2,
-        //                 "supported_quote_decimals" => 6,
-        //                 "size_decimals" => 4,
-        //                 "price_decimals" => 2,
-        //                 "quote_multiplier" => 1,
-        //                 "default_initial_margin_fraction" => 500,
-        //                 "min_initial_margin_fraction" => 200,
-        //                 "maintenance_margin_fraction" => 120,
-        //                 "closeout_margin_fraction" => 80,
-        //                 "last_trade_price" => 3550.69,
-        //                 "daily_trades_count" => 1197349,
-        //                 "daily_base_token_volume" => 481297.3509,
-        //                 "daily_quote_token_volume" => 1671431095.263844,
-        //                 "daily_price_low" => 3402.41,
-        //                 "daily_price_high" => 3571.45,
-        //                 "daily_price_change" => 0.5294300840859545,
-        //                 "open_interest" => 39559.3278,
-        //                 "daily_chart" => array(),
-        //                 "market_config" => {
-        //                     "market_margin_mode" => 0,
-        //                     "insurance_fund_account_index" => 281474976710655,
-        //                     "liquidation_mode" => 0,
-        //                     "force_reduce_only" => false,
-        //                     "trading_hours" => ""
-        //                 }
-        //             }
-        //         )
-        //     }
+        //    {
+        //        "code" => "200",
+        //        "message" => "string",
+        //        "order_book_details" => array(
+        //            {
+        //                "symbol" => "ETH",
+        //                "market_id" => 0,
+        //                "market_type" => "perp",
+        //                "base_asset_id" => 0,
+        //                "quote_asset_id" => 0,
+        //                "status" => "active",
+        //                "taker_fee" => "0.0001",
+        //                "maker_fee" => "0.0000",
+        //                "liquidation_fee" => "0.01",
+        //                "min_base_amount" => "0.01",
+        //                "min_quote_amount" => "0.1",
+        //                "supported_size_decimals" => "4",
+        //                "supported_price_decimals" => "4",
+        //                "supported_quote_decimals" => "4",
+        //                "order_quote_limit" => "281474976.710655",
+        //                "size_decimals" => "4",
+        //                "price_decimals" => "4",
+        //                "quote_multiplier" => "10000",
+        //                "default_initial_margin_fraction" => "100",
+        //                "min_initial_margin_fraction" => "100",
+        //                "maintenance_margin_fraction" => "50",
+        //                "closeout_margin_fraction" => "100",
+        //                "last_trade_price" => "3024.66",
+        //                "daily_trades_count" => "68",
+        //                "daily_base_token_volume" => "235.25",
+        //                "daily_quote_token_volume" => "93566.25",
+        //                "daily_price_low" => "3014.66",
+        //                "daily_price_high" => "3024.66",
+        //                "daily_price_change" => "3.66",
+        //                "open_interest" => "93.0",
+        //                "daily_chart" => "array(1640995200:3024.66)",
+        //                "market_config" => array(
+        //                    "market_margin_mode" => 0,
+        //                    "insurance_fund_account_index" => 281474976710655,
+        //                    "liquidation_mode" => 0,
+        //                    "force_reduce_only" => false,
+        //                    "funding_fee_discounts_enabled" => true,
+        //                    "trading_hours" => "",
+        //                    "hidden" => true
+        //                ),
+        //                "strategy_index" => 0
+        //            }
+        //        ),
+        //        "spot_order_book_details" => array(
+        //            {
+        //                "symbol" => "ETH/USDC",
+        //                "market_id" => 2048,
+        //                "market_type" => "spot",
+        //                "base_asset_id" => 1,
+        //                "quote_asset_id" => 3,
+        //                "status" => "active",
+        //                "taker_fee" => "0.0000",
+        //                "maker_fee" => "0.0000",
+        //                "liquidation_fee" => "0.0000",
+        //                "min_base_amount" => "0.0001",
+        //                "min_quote_amount" => "0.000001",
+        //                "order_quote_limit" => "2500000.000000",
+        //                "supported_size_decimals" => 4,
+        //                "supported_price_decimals" => 2,
+        //                "supported_quote_decimals" => 6,
+        //                "size_decimals" => 4,
+        //                "price_decimals" => 2,
+        //                "last_trade_price" => 2731.79,
+        //                "daily_trades_count" => 126993,
+        //                "daily_base_token_volume" => 1203.0962,
+        //                "daily_quote_token_volume" => 3516374.947553,
+        //                "daily_price_low" => 2717.47,
+        //                "daily_price_high" => 3044.21,
+        //                "daily_price_change" => -10.2389493724579,
+        //                "daily_chart" => "array(1640995200:3024.66)"
+        //            }
+        //        )
+        //    }
         //
-        $markets = $this->safe_list($response, 'order_book_details', array());
+        $spotMarkets = $this->safe_list($response, 'spot_order_book_details', array());
+        $swapMarkets = $this->safe_list($response, 'order_book_details', array());
+        $markets = $this->array_concat($spotMarkets, $swapMarkets);
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'market_id');
+            $type = $this->safe_string($market, 'market_type');
+            $type = ($type === 'perp') ? 'swap' : $type;
             $baseId = $this->safe_string($market, 'symbol');
+            if ($baseId !== null && mb_strpos($baseId, '/') !== -1) {
+                $baseId = explode('/', $baseId)[0];
+            }
             $quoteId = 'USDC';
-            $settleId = 'USDC';
+            $settleId = ($type === 'swap') ? 'USDC' : null;
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $settle = $this->safe_currency_code($settleId);
+            $symbol = $base . '/' . $quote;
+            if ($settle !== null) {
+                $symbol = $symbol . ':' . $settle;
+            }
             $amountDecimals = $this->safe_string_2($market, 'size_decimals', 'supported_size_decimals');
             $priceDecimals = $this->safe_string_2($market, 'price_decimals', 'supported_price_decimals');
             $amountPrecision = ($amountDecimals === null) ? null : $this->parse_number($this->parse_precision($amountDecimals));
@@ -957,23 +1004,23 @@ class lighter extends Exchange {
             $quoteMultiplier = $this->safe_number($market, 'quote_multiplier');
             $result[] = array(
                 'id' => $id,
-                'symbol' => $base . '/' . $quote . ':' . $settle,
+                'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'settle' => $settle,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'settleId' => $settleId,
-                'type' => 'swap',
-                'spot' => false,
+                'type' => $type,
+                'spot' => $type === 'spot',
                 'margin' => false,
-                'swap' => true,
+                'swap' => $type === 'swap',
                 'future' => false,
                 'option' => false,
                 'active' => $this->safe_string($market, 'status') === 'active',
-                'contract' => true,
-                'linear' => true,
-                'inverse' => false,
+                'contract' => $type === 'swap',
+                'linear' => ($type === 'swap') ? true : null,
+                'inverse' => ($type === 'swap') ? false : null,
                 'taker' => $this->safe_number($market, 'taker_fee'),
                 'maker' => $this->safe_number($market, 'maker_fee'),
                 'contractSize' => $quoteMultiplier,
@@ -1000,7 +1047,7 @@ class lighter extends Exchange {
                     ),
                     'cost' => array(
                         'min' => $this->safe_number($market, 'min_quote_amount'),
-                        'max' => null,
+                        'max' => $this->safe_number($market, 'order_quote_limit'),
                     ),
                 ),
                 'created' => null,
@@ -1316,7 +1363,9 @@ class lighter extends Exchange {
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
         $response = $this->publicGetOrderBookDetails ($params);
-        $tickers = $this->safe_list($response, 'order_book_details', array());
+        $spotTickers = $this->safe_list($response, 'spot_order_book_details', array());
+        $swapTickers = $this->safe_list($response, 'order_book_details', array());
+        $tickers = $this->array_concat($spotTickers, $swapTickers);
         return $this->parse_tickers($tickers, $symbols);
     }
 

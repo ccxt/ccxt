@@ -486,17 +486,17 @@ class bitmart extends bitmart$1["default"] {
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('watchBidsAsks', firstMarket, params);
         const url = this.implodeHostname(this.urls['api']['ws'][marketType]['public']);
-        const channelType = (marketType === 'spot') ? 'spot' : 'futures';
+        const channelType = (marketType === 'spot') ? 'spot/bookTicker' : 'futures/ticker';
         const actionType = (marketType === 'spot') ? 'op' : 'action';
         let rawSubscriptions = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market(symbols[i]);
-            rawSubscriptions.push(channelType + '/ticker:' + market['id']);
+            rawSubscriptions.push(channelType + ':' + market['id']);
             messageHashes.push('bidask:' + symbols[i]);
         }
         if (marketType !== 'spot') {
-            rawSubscriptions = [channelType + '/ticker'];
+            rawSubscriptions = [channelType];
         }
         const request = {
             'args': rawSubscriptions,
@@ -2088,6 +2088,7 @@ class bitmart extends bitmart$1["default"] {
             const channel = this.safeString2(message, 'table', 'group');
             const methods = {
                 'depth': this.handleOrderBook,
+                'bookTicker': this.handleBidAsk,
                 'ticker': this.handleTicker,
                 'trade': this.handleTrade,
                 'kline': this.handleOHLCV,

@@ -848,60 +848,105 @@ class lighter(Exchange, ImplicitAPI):
         """
         response = await self.publicGetOrderBookDetails(params)
         #
-        #     {
-        #         "code": 200,
-        #         "order_book_details": [
-        #             {
-        #                 "symbol": "ETH",
-        #                 "market_id": 0,
-        #                 "status": "active",
-        #                 "taker_fee": "0.0000",
-        #                 "maker_fee": "0.0000",
-        #                 "liquidation_fee": "1.0000",
-        #                 "min_base_amount": "0.0050",
-        #                 "min_quote_amount": "10.000000",
-        #                 "order_quote_limit": "",
-        #                 "supported_size_decimals": 4,
-        #                 "supported_price_decimals": 2,
-        #                 "supported_quote_decimals": 6,
-        #                 "size_decimals": 4,
-        #                 "price_decimals": 2,
-        #                 "quote_multiplier": 1,
-        #                 "default_initial_margin_fraction": 500,
-        #                 "min_initial_margin_fraction": 200,
-        #                 "maintenance_margin_fraction": 120,
-        #                 "closeout_margin_fraction": 80,
-        #                 "last_trade_price": 3550.69,
-        #                 "daily_trades_count": 1197349,
-        #                 "daily_base_token_volume": 481297.3509,
-        #                 "daily_quote_token_volume": 1671431095.263844,
-        #                 "daily_price_low": 3402.41,
-        #                 "daily_price_high": 3571.45,
-        #                 "daily_price_change": 0.5294300840859545,
-        #                 "open_interest": 39559.3278,
-        #                 "daily_chart": {},
-        #                 "market_config": {
-        #                     "market_margin_mode": 0,
-        #                     "insurance_fund_account_index": 281474976710655,
-        #                     "liquidation_mode": 0,
-        #                     "force_reduce_only": False,
-        #                     "trading_hours": ""
-        #                 }
-        #             }
-        #         ]
-        #     }
+        #    {
+        #        "code": "200",
+        #        "message": "string",
+        #        "order_book_details": [
+        #            {
+        #                "symbol": "ETH",
+        #                "market_id": 0,
+        #                "market_type": "perp",
+        #                "base_asset_id": 0,
+        #                "quote_asset_id": 0,
+        #                "status": "active",
+        #                "taker_fee": "0.0001",
+        #                "maker_fee": "0.0000",
+        #                "liquidation_fee": "0.01",
+        #                "min_base_amount": "0.01",
+        #                "min_quote_amount": "0.1",
+        #                "supported_size_decimals": "4",
+        #                "supported_price_decimals": "4",
+        #                "supported_quote_decimals": "4",
+        #                "order_quote_limit": "281474976.710655",
+        #                "size_decimals": "4",
+        #                "price_decimals": "4",
+        #                "quote_multiplier": "10000",
+        #                "default_initial_margin_fraction": "100",
+        #                "min_initial_margin_fraction": "100",
+        #                "maintenance_margin_fraction": "50",
+        #                "closeout_margin_fraction": "100",
+        #                "last_trade_price": "3024.66",
+        #                "daily_trades_count": "68",
+        #                "daily_base_token_volume": "235.25",
+        #                "daily_quote_token_volume": "93566.25",
+        #                "daily_price_low": "3014.66",
+        #                "daily_price_high": "3024.66",
+        #                "daily_price_change": "3.66",
+        #                "open_interest": "93.0",
+        #                "daily_chart": "{1640995200:3024.66}",
+        #                "market_config": {
+        #                    "market_margin_mode": 0,
+        #                    "insurance_fund_account_index": 281474976710655,
+        #                    "liquidation_mode": 0,
+        #                    "force_reduce_only": False,
+        #                    "funding_fee_discounts_enabled": True,
+        #                    "trading_hours": "",
+        #                    "hidden": True
+        #                },
+        #                "strategy_index": 0
+        #            }
+        #        ],
+        #        "spot_order_book_details": [
+        #            {
+        #                "symbol": "ETH/USDC",
+        #                "market_id": 2048,
+        #                "market_type": "spot",
+        #                "base_asset_id": 1,
+        #                "quote_asset_id": 3,
+        #                "status": "active",
+        #                "taker_fee": "0.0000",
+        #                "maker_fee": "0.0000",
+        #                "liquidation_fee": "0.0000",
+        #                "min_base_amount": "0.0001",
+        #                "min_quote_amount": "0.000001",
+        #                "order_quote_limit": "2500000.000000",
+        #                "supported_size_decimals": 4,
+        #                "supported_price_decimals": 2,
+        #                "supported_quote_decimals": 6,
+        #                "size_decimals": 4,
+        #                "price_decimals": 2,
+        #                "last_trade_price": 2731.79,
+        #                "daily_trades_count": 126993,
+        #                "daily_base_token_volume": 1203.0962,
+        #                "daily_quote_token_volume": 3516374.947553,
+        #                "daily_price_low": 2717.47,
+        #                "daily_price_high": 3044.21,
+        #                "daily_price_change": -10.2389493724579,
+        #                "daily_chart": "{1640995200:3024.66}"
+        #            }
+        #        ]
+        #    }
         #
-        markets = self.safe_list(response, 'order_book_details', [])
+        spotMarkets = self.safe_list(response, 'spot_order_book_details', [])
+        swapMarkets = self.safe_list(response, 'order_book_details', [])
+        markets = self.array_concat(spotMarkets, swapMarkets)
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
             id = self.safe_string(market, 'market_id')
+            type = self.safe_string(market, 'market_type')
+            type = 'swap' if (type == 'perp') else type
             baseId = self.safe_string(market, 'symbol')
+            if baseId is not None and baseId.find('/') != -1:
+                baseId = baseId.split('/')[0]
             quoteId = 'USDC'
-            settleId = 'USDC'
+            settleId = 'USDC' if (type == 'swap') else None
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             settle = self.safe_currency_code(settleId)
+            symbol = base + '/' + quote
+            if settle is not None:
+                symbol = symbol + ':' + settle
             amountDecimals = self.safe_string_2(market, 'size_decimals', 'supported_size_decimals')
             priceDecimals = self.safe_string_2(market, 'price_decimals', 'supported_price_decimals')
             amountPrecision = None if (amountDecimals is None) else self.parse_number(self.parse_precision(amountDecimals))
@@ -909,23 +954,23 @@ class lighter(Exchange, ImplicitAPI):
             quoteMultiplier = self.safe_number(market, 'quote_multiplier')
             result.append({
                 'id': id,
-                'symbol': base + '/' + quote + ':' + settle,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': 'swap',
-                'spot': False,
+                'type': type,
+                'spot': type == 'spot',
                 'margin': False,
-                'swap': True,
+                'swap': type == 'swap',
                 'future': False,
                 'option': False,
                 'active': self.safe_string(market, 'status') == 'active',
-                'contract': True,
-                'linear': True,
-                'inverse': False,
+                'contract': type == 'swap',
+                'linear': True if (type == 'swap') else None,
+                'inverse': False if (type == 'swap') else None,
                 'taker': self.safe_number(market, 'taker_fee'),
                 'maker': self.safe_number(market, 'maker_fee'),
                 'contractSize': quoteMultiplier,
@@ -952,7 +997,7 @@ class lighter(Exchange, ImplicitAPI):
                     },
                     'cost': {
                         'min': self.safe_number(market, 'min_quote_amount'),
-                        'max': None,
+                        'max': self.safe_number(market, 'order_quote_limit'),
                     },
                 },
                 'created': None,
@@ -1257,7 +1302,9 @@ class lighter(Exchange, ImplicitAPI):
         await self.load_markets()
         symbols = self.market_symbols(symbols)
         response = await self.publicGetOrderBookDetails(params)
-        tickers = self.safe_list(response, 'order_book_details', [])
+        spotTickers = self.safe_list(response, 'spot_order_book_details', [])
+        swapTickers = self.safe_list(response, 'order_book_details', [])
+        tickers = self.array_concat(spotTickers, swapTickers)
         return self.parse_tickers(tickers, symbols)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
