@@ -6,6 +6,55 @@
     ],
     "options": {},
     "methods": {
+        "createOrderWithTakeProfitAndStopLoss": [
+            {
+                "description": "create swap order with take profit and stop loss",
+                "method": "createOrderWithTakeProfitAndStopLoss",
+                "url": "https://api-contract.weex.com/capi/v3/order",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "market",
+                    "buy",
+                    100,
+                    null,
+                    0.2,
+                    0.02
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"BUY\",\"quantity\":\"100\",\"type\":\"MARKET\",\"positionSide\":\"LONG\",\"newClientOrderId\":\"bcb69d4c-d314-42ed-b63e-b432ab0241f5\",\"slTriggerPrice\":\"0.02\",\"tpTriggerPrice\":\"0.2\"}"
+            }
+        ],
+        "createStopLossOrder": [
+            {
+                "description": "create stop loss market order",
+                "method": "createStopLossOrder",
+                "url": "https://api-contract.weex.com/capi/v3/algoOrder",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "market",
+                    "sell",
+                    100,
+                    0.01,
+                    0.01
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"SELL\",\"quantity\":\"100\",\"type\":\"STOP_MARKET\",\"positionSide\":\"LONG\",\"clientAlgoId\":\"0ea1357e-a4e5-42aa-aaa2-5d083e3d464b\",\"triggerPrice\":\"0.01\"}"
+            }
+        ],
+        "createTakeProfitOrder": [
+            {
+                "description": "create take profit limit order",
+                "method": "createTakeProfitOrder",
+                "url": "https://api-contract.weex.com/capi/v3/algoOrder",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "limit",
+                    "sell",
+                    100,
+                    0.2,
+                    0.18
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"SELL\",\"quantity\":\"100\",\"type\":\"TAKE_PROFIT\",\"price\":\"0.2\",\"positionSide\":\"LONG\",\"clientAlgoId\":\"d02d30d1-5e7b-4f12-857b-17d2ed1b283f\",\"triggerPrice\":\"0.18\"}"
+            }
+        ],
         "reduceMargin": [
             {
                 "description": "reduce margin",
@@ -477,6 +526,18 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "create market swap order",
+                "method": "createOrder",
+                "url": "https://api-contract.weex.com/capi/v3/order",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "market",
+                    "buy",
+                    100
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"BUY\",\"quantity\":\"100\",\"type\":\"MARKET\",\"positionSide\":\"LONG\",\"newClientOrderId\":\"80198b10-9027-4504-ad22-3d149e1b7742\"}"
+            },
             {
                 "description": "create spot limit buy order",
                 "method": "createOrder",
