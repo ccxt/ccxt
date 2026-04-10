@@ -244,8 +244,13 @@ export default class binance extends binanceRest {
             if (firstProtocol !== -1 && baseUrl.indexOf ('://', firstProtocol + 3) !== -1) {
                 return baseUrl;
             }
-            // only match /ws at the end of the path (not /wss, /ws-api, etc.)
-            return baseUrl.replace (/\/ws($|[?#])/, '/' + category + '/ws$1');
+            // only rewrite when the URL ends with exactly "/ws"
+            // this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
+            if (baseUrl.endsWith ('/ws')) {
+                const prefix = baseUrl.slice (0, baseUrl.length - 3);
+                return prefix + '/' + category + '/ws';
+            }
+            return baseUrl;
         }
         return baseUrl;
     }
