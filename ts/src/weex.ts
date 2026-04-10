@@ -6,7 +6,7 @@ import { ArgumentsRequired, BadRequest, InvalidOrder, NotSupported } from './bas
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, LedgerEntry, Int, int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, LedgerEntry, Int, int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -238,7 +238,7 @@ export default class weex extends Exchange {
                         'api/v3/account/bills': 5, // done
                         'api/v3/account/fundingBills': 5, // done
                         'api/v3/order': 5, // done
-                        'api/v3/order/batch': 50, // todo: both endpoints return {"code":-1150,"msg":"Request method 'POST' not supported"}
+                        'api/v3/order/batch': 50, // not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
                         'api/v3/rebate/affiliate/internalWithdrawal': 100, // not unified
                     },
                     'delete': {
@@ -289,7 +289,7 @@ export default class weex extends Exchange {
                         'capi/v3/account/positionMargin': 30, // done
                         'capi/v3/account/modifyAutoAppendMargin': 30, // not unified
                         'capi/v3/order': 5, // done
-                        'capi/v3/batchOrders': 10, // // todo: both endpoints return {"code":-1150,"msg":"Request method 'POST' not supported"}
+                        'capi/v3/batchOrders': 10, // not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
                         'capi/v3/closePositions': 50, // done
                         'capi/v3/algoOrder': 5, // done
                         'capi/v3/placeTpSlOrder': 5, // not unified
@@ -1987,7 +1987,7 @@ export default class weex extends Exchange {
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount the amount of currency to trade
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params]  extra parameters specific to the exchange API endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
      * @param {float} [params.takeProfit.triggerPrice] The price at which the take profit order will be triggered
@@ -2127,119 +2127,6 @@ export default class weex extends Exchange {
             'last': 'CONTRACT_PRICE',
         };
         return this.safeString (types, triggerPriceType, triggerPriceType);
-    }
-
-    /**
-     * @method
-     * @name weex#createOrders
-     * @description create a list of trade orders
-     * @see https://www.weex.com/api-doc/spot/orderApi/BulkOrder // spot
-     * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrdersBatch // contract
-     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-     * @param {object} [params]  extra parameters specific to the exchange API endpoint
-     * Check createSpotOrders() and createContractOrders() for more details on the extra parameters that can be used in params
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    async createOrders (orders: OrderRequest[], params = {}) {
-        // todo: both endpoints return {"code":-1150,"msg":"Request method 'POST' not supported"}
-        await this.loadMarkets ();
-        let isSpot = false;
-        let isContract = false;
-        let differentSymbols = false;
-        let firstSymbol = undefined;
-        for (let i = 0; i < orders.length; i++) {
-            const order = this.safeDict (orders, i);
-            const symbol = this.safeString (order, 'symbol');
-            const market = this.market (symbol);
-            if (i === 0) {
-                firstSymbol = symbol;
-            } else if (symbol !== firstSymbol) {
-                differentSymbols = true;
-            }
-            if (market['spot']) {
-                isSpot = true;
-            } else if (market['contract']) {
-                isContract = true;
-            }
-        }
-        if (isSpot && isContract) {
-            throw new BadRequest (this.id + ' createOrders() requires all orders to be either spot or contract');
-        } else if (isSpot) {
-            if (differentSymbols) {
-                throw new BadRequest (this.id + ' createOrders() requires all orders to have the same symbol when creating spot orders in batch');
-            }
-            return await this.createSpotOrders (orders, params);
-        } else if (isContract) {
-            return await this.createContractOrders (orders, params);
-        } else {
-            throw new NotSupported (this.id + ' createOrders() does not support the markets of the orders provided');
-        }
-    }
-
-    /**
-     * @method
-     * @name weex#createSpotOrders
-     * @description helper method for creating spot orders in batch
-     * @see https://www.weex.com/api-doc/spot/orderApi/BulkOrder
-     * @param {Array} orders list of orders to create, each object should contain the parameters required by createSpotOrder, namely symbol, type, side, amount, price and params
-     * @param {object} [params]  extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    async createSpotOrders (orders: OrderRequest[], params = {}) {
-        await this.loadMarkets ();
-        const firstOrder = this.safeDict (orders, 0);
-        const firstSymbol = this.safeString (firstOrder, 'symbol');
-        const market = this.market (firstSymbol);
-        const ordersRequest = [];
-        for (let i = 0; i < orders.length; i++) {
-            const order = this.safeDict (orders, i);
-            const symbol = this.safeString (order, 'symbol');
-            const type = this.safeString (order, 'type');
-            const side = this.safeString (order, 'side');
-            const amount = this.safeNumber (order, 'amount');
-            const price = this.safeNumber (order, 'price');
-            const orderParams = this.safeDict (order, 'params', {});
-            let orderRequest = this.createSpotOrderRequest (symbol, type, side, amount, price, orderParams);
-            orderRequest = this.omit (orderRequest, 'symbol');
-            ordersRequest.push (orderRequest);
-        }
-        const request: Dict = {
-            'symbol': market['id'],
-            'orderList': ordersRequest,
-        };
-        const response = await this.privatePostApiV3OrderBatch (this.extend (request, params));
-        const ordersResponse = this.safeList (response, 'orderList', []);
-        return this.parseOrders (ordersResponse, market);
-    }
-
-    /**
-     * @method
-     * @name weex#createContractOrders
-     * @description helper method for creating contract orders in batch
-     * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrdersBatch
-     * @param {Array} orders list of orders to create, each object should contain the parameters required by createSpotOrder, namely symbol, type, side, amount, price and params
-     * @param {object} [params]  extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    async createContractOrders (orders: OrderRequest[], params = {}) {
-        await this.loadMarkets ();
-        const batchOrders = [];
-        for (let i = 0; i < orders.length; i++) {
-            const order = this.safeDict (orders, i);
-            const symbol = this.safeString (order, 'symbol');
-            const type = this.safeString (order, 'type');
-            const side = this.safeString (order, 'side');
-            const amount = this.safeNumber (order, 'amount');
-            const price = this.safeNumber (order, 'price');
-            const orderParams = this.safeDict (order, 'params', {});
-            const orderRequest = this.createContractOrderRequest (symbol, type, side, amount, price, orderParams);
-            batchOrders.push (orderRequest);
-        }
-        const request: Dict = {
-            'batchOrders': batchOrders,
-        };
-        const response = await this.contractPrivatePostCapiV3BatchOrders (this.extend (request, params));
-        return this.parseOrders (response, undefined);
     }
 
     /**
@@ -2805,14 +2692,6 @@ export default class weex extends Exchange {
         //         "orderId": 736557215397183592,
         //         "clientOrderId": "c4551206d34641efbeb64abaa066946d",
         //         "transactTime": 1775608924724
-        //     }
-        //
-        // createOrders (spot) - error response
-        //     {
-        //         "symbol": "BTCUSDT",
-        //         "clientOrderId": "batch-2",
-        //         "errorCode": "INSUFFICIENT_BALANCE",
-        //         "errorMsg": "insufficient balance"
         //     }
         //
         // fetchOpenOrders / fetchOrders / fetchOrder (spot)
