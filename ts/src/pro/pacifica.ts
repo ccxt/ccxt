@@ -955,6 +955,7 @@ export default class pacifica extends pacificaRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const isTestnet = this.isSandboxModeEnabled;
+        const parsedTf = this.safeString (this.timeframes, timeframe, timeframe);
         const urlKey = (isTestnet) ? 'test' : 'api';
         const url = this.urls[urlKey]['ws']['public'];
         const request: Dict = {
@@ -962,10 +963,10 @@ export default class pacifica extends pacificaRest {
             'params': {
                 'source': 'candle',
                 'symbol': market['id'],
-                'interval': timeframe,
+                'interval': parsedTf,
             },
         };
-        const messageHash = 'candles:' + timeframe + ':' + symbol;
+        const messageHash = 'candles:' + parsedTf + ':' + symbol;
         const message = this.extend (request, params);
         const ohlcv = await this.watch (url, messageHash, message, messageHash);
         if (this.newUpdates) {
