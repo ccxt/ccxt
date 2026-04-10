@@ -148,7 +148,7 @@ export default class pacifica extends Exchange {
                 'www': 'https://www.pacifica.fi',
                 'doc': 'https://docs.pacifica.fi/api-documentation/api/rest-api',
                 'fees': 'https://docs.pacifica.fi/trading-on-pacifica/trading-fees',
-                'referral': 'https://app.pacifica.fi/',
+                'referral': 'https://app.pacifica.fi?referral=ccxt',
             },
             'api': {
                 'public': {
