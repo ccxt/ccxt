@@ -2,7 +2,9 @@
     "exchange": "weex",
     "skipKeys": [
         "startTime",
-        "endTime"
+        "endTime",
+        "newClientOrderId",
+        "clientAlgoId"
     ],
     "options": {},
     "methods": {
