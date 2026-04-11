@@ -728,7 +728,7 @@ export default class lighter extends lighterRest {
                 const jReversed = tradesLength - 1 - j;
                 const tradeRaw = trades[jReversed];
                 tradeRaw['accountIndex'] = accountIndex;
-                const trade = this.parseWsTrade (tradeRaw, market);
+                const trade = this.parseWsOrderTrade (tradeRaw, market);
                 stored.append (trade);
                 const symbol = trade['symbol'];
                 if (symbol !== undefined) {
