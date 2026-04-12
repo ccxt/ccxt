@@ -486,8 +486,13 @@ class Exchange(BaseExchange):
                     missing_subscriptions.append(subscribe_hash)
                     client.subscriptions[subscribe_hash] = subscription or True
 
+        selected_session = self.session
+        # http/s proxy is being set in other places
+        httpProxy, httpsProxy, socksProxy = self.check_ws_proxy_settings()
+        if (socksProxy):
+            selected_session = self.get_socks_proxy_session(socksProxy)
         connected = client.connected if client.connected.done() \
-            else asyncio.ensure_future(client.connect(self.session, backoff_delay))
+            else asyncio.ensure_future(client.connect(selected_session, backoff_delay))
 
         def after(fut):
             # todo: decouple signing from subscriptions
