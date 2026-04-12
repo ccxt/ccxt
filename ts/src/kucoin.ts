@@ -10028,7 +10028,7 @@ export default class kucoin extends Exchange {
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'uta', uta);
         let response = undefined;
         if (uta) {
-            response = await this.utaPrivateGetAccountModePositionOpenList (this.extend ( { 'accountMode': 'unified', 'limit': 200 }, params));
+            response = await this.utaPrivateGetAccountModePositionOpenList (this.extend ({ 'accountMode': 'unified', 'limit': 200 }, params));
         } else {
             response = await this.futuresPrivateGetPositions (params);
             //
