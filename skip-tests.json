@@ -2291,7 +2291,13 @@
                 "timestamp": "not provided"
             },
             "fetchTrades": {
-                "side":"side is undefined"
+                "side": "not provided"
+            },
+            "watchTrades": {
+                "side": "not provided"
+            },
+            "watchTradesForSymbols": {
+                "side": "not provided"
             }
         }
     }
