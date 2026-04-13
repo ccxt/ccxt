@@ -7,7 +7,6 @@ import { BadRequest, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Dict, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-// import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -137,9 +136,11 @@ export default class weex extends weexRest {
             messageHashes.push (messageHash);
             channels.push (channelName);
         }
-        const newTickers = await this.subscribePublic (messageHashes, channels, isContract, params);
+        const newTicker = await this.subscribePublic (messageHashes, channels, isContract, params);
         if (this.newUpdates) {
-            return newTickers;
+            const result: Dict = {};
+            result[newTicker['symbol']] = newTicker;
+            return result;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
@@ -230,7 +231,7 @@ export default class weex extends weexRest {
         const symbol = market['symbol'];
         const messageHash = 'ticker::' + symbol;
         this.tickers[symbol] = ticker;
-        client.resolve (this.tickers, messageHash);
+        client.resolve (this.tickers[symbol], messageHash);
     }
 
     parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
