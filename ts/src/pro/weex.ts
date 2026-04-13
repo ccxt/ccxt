@@ -4,8 +4,8 @@
 import weexRest from '../weex.js';
 import { ExchangeError } from '../base/errors.js';
 // import { Precise } from '../base/Precise.js';
-// import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Dict, Market, Strings, Ticker, Tickers } from '../base/types.js';
+import { ArrayCache } from '../base/ws/Cache.js';
+import type { Dict, Int, Market, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 // import Client from '../base/ws/Client.js';
 
@@ -79,7 +79,7 @@ export default class weex extends weexRest {
         subscription = this.extend (subscription, { 'id': id });
         const type = isContract ? 'contract' : 'spot';
         const url = this.urls['api']['ws'][type] + '/public';
-        return this.watchMultiple (url, messageHashes, this.deepExtend (message, params), messageHashes, extendedSubscription);
+        return await this.watchMultiple (url, messageHashes, this.deepExtend (message, params), messageHashes, extendedSubscription);
     }
 
     /**
@@ -268,6 +268,78 @@ export default class weex extends weexRest {
         }, market);
     }
 
+    /**
+     * @method
+     * @name weex#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/Trades-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/public/Trades-Channel
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    }
+
+    /**
+     * @method
+     * @name weex#watchTradesForSymbols
+     * @description get the list of most recent trades for a list of symbols
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/Trades-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/public/Trades-Channel
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false, true);
+        const firstMarket = this.getMarketFromSymbols (symbols);
+        const isContract = firstMarket['contract'];
+        const topic = 'trade';
+        const messageHashes = [];
+        const channels = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const channelName = market['id'] + '@' + topic;
+            const messageHash = topic + '::' + symbol;
+            messageHashes.push (messageHash);
+            channels.push (channelName);
+        }
+        const trades = await this.subscribePublic (messageHashes, channels, isContract, params);
+        if (this.newUpdates) {
+            const first = this.safeValue (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    handleTrade (client: Client, message) {
+        const market = this.getMarketFromClientAndMessage (client, message);
+        const symbol = market['symbol'];
+        const messageHash = 'trade::' + symbol;
+        if (!(symbol in this.trades)) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.trades[symbol] = new ArrayCache (limit);
+        }
+        const tradesArray = this.trades[symbol];
+        const data = this.safeList (message, 'd', []);
+        for (let i = 0; i < data.length; i++) {
+            const rawTrade = this.safeDict (data, i, {});
+            const trade = this.parseWsTrade (rawTrade, market);
+            tradesArray.append (trade);
+        }
+        this.trades[symbol] = tradesArray;
+        client.resolve (tradesArray, messageHash);
+    }
+
     getMarketFromClientAndMessage (client, message) {
         const url = client.url;
         let marketType = 'spot';
@@ -296,7 +368,6 @@ export default class weex extends weexRest {
 
     handleSubscriptionStatus (client: Client, message) {
         //
-        // successful unsubscription
         //     { "result": true, "id": 2 }
         //
         const id = this.safeString (message, 'id');
