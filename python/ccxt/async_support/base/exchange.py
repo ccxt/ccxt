@@ -113,7 +113,7 @@ class Exchange(BaseExchange):
             context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
             # Create DNS Resolver
             resolver: Optional[DnsResolver] = None
-            if self.enableCustomDNSResolver:
+            if self.enable_custom_dns_resolver:
                 resolver = DnsResolver(
                     ttl=self.dns_ttl,
                     prefetch_hosts=self.prefetch_hostnames,
