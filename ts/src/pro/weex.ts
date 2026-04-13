@@ -395,10 +395,16 @@ export default class weex extends weexRest {
         }
         const tradesArray = this.trades[symbol];
         const data = this.safeList (message, 'd', []);
+        const newTrades = [];
         for (let i = 0; i < data.length; i++) {
             const rawTrade = this.safeDict (data, i, {});
             const trade = this.parseWsTrade (rawTrade, market);
-            tradesArray.append (trade);
+            newTrades.push (trade);
+        }
+        const sorted = this.sortBy (newTrades, 'timestamp');
+        for (let j = 0; j < sorted.length; j++) {
+            const sortedTrade = sorted[j];
+            tradesArray.append (sortedTrade);
         }
         this.trades[symbol] = tradesArray;
         client.resolve (tradesArray, messageHash);
