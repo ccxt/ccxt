@@ -345,6 +345,7 @@ export default class weex extends Exchange {
                     // {"code":-1140,"msg":"startTime Parameter type error, expected Long type"}
                     // {"code":-1054,"msg":"FAILED_PRECONDITION: Move margin available amount not enough. Move out available amount is 6.98296375, move out amount is 200.00000000"}
                     // {"code":-1140,"msg":"newClientOrderId must not be blank"}
+                    // {"code":-1140,"msg":"FAILED_PRECONDITION: The order amount not enough. order need amount is 19.095300, available amount is 0E-8"}
                 },
                 'broad': {
                 },
@@ -448,6 +449,7 @@ export default class weex extends Exchange {
                 'XBT': 'XBT',
             },
             'options': {
+                'partner': 'b-WEEX111125',
                 'timeDifference': 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'accountsByType': {
@@ -1967,11 +1969,13 @@ export default class weex extends Exchange {
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const clientOrderId = this.safeString (params, 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            params = this.omit (params, 'clientOrderId');
-            request['newClientOrderId'] = clientOrderId;
+        let clientOrderId = this.safeString (params, 'clientOrderId');
+        params = this.omit (params, 'clientOrderId');
+        if (clientOrderId === undefined) {
+            const partner = this.safeString (params, 'partner', 'b-WEEX111125');
+            clientOrderId = partner + '-' + this.uuid22 ();
         }
+        request['newClientOrderId'] = clientOrderId;
         // timeInForce is passed directly from params
         return this.extend (request, params);
     }
@@ -2056,7 +2060,8 @@ export default class weex extends Exchange {
         const timeInForce = this.safeString (params, 'timeInForce');
         let clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId === undefined) {
-            clientOrderId = this.uuid ();
+            const partner = this.safeString (params, 'partner', 'b-WEEX111125');
+            clientOrderId = partner + '-' + this.uuid22 ();
         }
         const callerMethodName = this.safeString (params, 'callerMethodName');
         if (isStopLoss || isTakeProfit) {
@@ -3738,7 +3743,7 @@ export default class weex extends Exchange {
         }
         if ((api === 'private') || (api === 'contractPrivate')) {
             this.checkRequiredCredentials ();
-            const timestamp = this.nonce ().toString ();
+            const timestamp = this.numberToString (this.nonce ());
             let payload = timestamp + method + '/' + endpoint;
             if ((method === 'POST') || isBatch) {
                 body = this.json (query);
