@@ -2,10 +2,10 @@
 //  ---------------------------------------------------------------------------
 
 import weexRest from '../weex.js';
-import { ExchangeError } from '../base/errors.js';
+import { BadRequest, ExchangeError } from '../base/errors.js';
 // import { Precise } from '../base/Precise.js';
-import { ArrayCache } from '../base/ws/Cache.js';
-import type { Dict, Int, Market, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import type { Dict, Int, Market, OHLCV, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 // import Client from '../base/ws/Client.js';
 
@@ -15,16 +15,16 @@ export default class weex extends weexRest {
     describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
-                'watchOHLCV': false,
-                'watchOHLCVForSymbols': false,
+                'watchOHLCV': true,
+                'watchOHLCVForSymbols': true,
                 'watchOrderBook': false,
                 'watchOrderBookForSymbols': false,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
-                'unWatchOHLCV': false,
-                'unWatchOHLCVForSymbols': false,
+                'unWatchOHLCV': true,
+                'unWatchOHLCVForSymbols': true,
                 'unWatchOrderBook': false,
                 'unWatchOrderBookForSymbols': false,
                 'unWatchTicker': true,
@@ -47,6 +47,12 @@ export default class weex extends weexRest {
                             'User-Agent': 'b-WEEX111125', // todo check
                         },
                     },
+                },
+                'watchOHLCV': {
+                    'priceType': 'LAST_PRICE', // or 'MARK_PRICE' for swap markets
+                },
+                'watchOHLCVForSymbols': {
+                    'priceType': 'LAST_PRICE', // or 'MARK_PRICE' for swap markets
                 },
             },
             'streaming': {},
@@ -421,6 +427,222 @@ export default class weex extends weexRest {
         }, market);
     }
 
+    /**
+     * @method
+     * @name weex#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/Candlesticks-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/public/Candlesticks-Channel
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        const extendedParams = this.extend (params, {
+            'callerMethodName': 'watchOHLCV',
+        });
+        const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, extendedParams);
+        return result[symbol][timeframe];
+    }
+
+    /**
+     * @method
+     * @name weex#watchOHLCVForSymbols
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/Candlesticks-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/public/Candlesticks-Channel
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        const callerMethodName = this.safeString (params, 'callerMethodName', 'watchOHLCVForSymbols');
+        params = this.omit (params, 'callerMethodName');
+        const channels = [];
+        const messageHashes = [];
+        const firstEntry = this.safeList (symbolsAndTimeframes, 0, []);
+        const firstSymbol = this.safeString (firstEntry, 0);
+        const firstMarket = this.market (firstSymbol);
+        const isContract = firstMarket['contract'];
+        let priceType = 'LAST_PRICE';
+        if (isContract) {
+            [ priceType, params ] = this.handleOptionAndParams2 (params, callerMethodName, 'price', 'priceType', priceType);
+        }
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const data = this.safeList (symbolsAndTimeframes, i);
+            let symbolString = this.safeString (data, 0);
+            const market = this.market (symbolString);
+            if (market['type'] !== firstMarket['type']) {
+                throw new BadRequest (this.id + ' ' + callerMethodName + ' market symbols must be of the same type');
+            }
+            symbolString = market['symbol'];
+            const unifiedTimeframe = this.safeString (data, 1, '1');
+            const interval = this.safeString (this.timeframes, unifiedTimeframe, unifiedTimeframe);
+            const channel = market['id'] + '@kline_' + interval + '_' + priceType;
+            const messageHash = 'ohlcv::' + symbolString + '::' + unifiedTimeframe;
+            channels.push (channel);
+            messageHashes.push (messageHash);
+        }
+        const [ symbol, timeframe, stored ] = await this.subscribePublic (messageHashes, channels, isContract, params);
+        if (this.newUpdates) {
+            limit = stored.getLimit (symbol, limit);
+        }
+        const filtered = this.filterBySinceLimit (stored, since, limit, 0, true);
+        return this.createOHLCVObject (symbol, timeframe, filtered);
+    }
+
+    /**
+     * @method
+     * @name weex#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/Candlesticks-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/public/Candlesticks-Channel
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
+        params['callerMethodName'] = 'unWatchOHLCV';
+        return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
+    }
+
+    /**
+     * @method
+     * @name weex#unWatchOHLCVForSymbols
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/Candlesticks-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/public/Candlesticks-Channel
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const callerMethodName = this.safeString (params, 'callerMethodName', 'unWatchOHLCVForSymbols');
+        params = this.omit (params, 'callerMethodName');
+        const channels = [];
+        const subHashes = [];
+        const unSubHashes = [];
+        const firstEntry = this.safeList (symbolsAndTimeframes, 0, []);
+        const firstSymbol = this.safeString (firstEntry, 0);
+        const firstMarket = this.market (firstSymbol);
+        const isContract = firstMarket['contract'];
+        let priceType = 'LAST_PRICE';
+        if (isContract) {
+            [ priceType, params ] = this.handleOptionAndParams2 (params, callerMethodName, 'price', 'priceType', priceType);
+        }
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const data = this.safeList (symbolsAndTimeframes, i);
+            let symbolString = this.safeString (data, 0);
+            const market = this.market (symbolString);
+            if (market['type'] !== firstMarket['type']) {
+                throw new BadRequest (this.id + ' ' + callerMethodName + ' market symbols must be of the same type');
+            }
+            symbolString = market['symbol'];
+            const unifiedTimeframe = this.safeString (data, 1, '1');
+            const interval = this.safeString (this.timeframes, unifiedTimeframe, unifiedTimeframe);
+            const channel = market['id'] + '@kline_' + interval + '_' + priceType;
+            const messageHash = 'ohlcv::' + symbolString + '::' + unifiedTimeframe;
+            const unSubMessageHash = 'unsubscribe::' + messageHash;
+            channels.push (channel);
+            subHashes.push (messageHash);
+            unSubHashes.push (unSubMessageHash);
+        }
+        const subscription = {
+            'unsubscribe': true,
+            'symbolsAndTimeframes': symbolsAndTimeframes,
+            'messageHashes': unSubHashes,
+            'subMessageHashes': subHashes,
+            'topic': 'ohlcv',
+        };
+        return await this.subscribePublic (unSubHashes, channels, isContract, params, subscription);
+    }
+
+    handleOHLCV (client: Client, message) {
+        //
+        //     {
+        //         e: 'kline',
+        //         E: 1776095535012,
+        //         s: 'ETHUSDT',
+        //         p: 'LAST_PRICE',
+        //         d: [
+        //             {
+        //                 t: 1776092400000,
+        //                 T: 1776096000000,
+        //                 s: 'ETHUSDT',
+        //                 i: '1h',
+        //                 o: '2234.18',
+        //                 c: '2205.15',
+        //                 h: '2236.43',
+        //                 l: '2199.53',
+        //                 v: '12505.60574',
+        //                 n: 3381,
+        //                 q: '27682528.6655305',
+        //                 V: '6420.47929',
+        //                 Q: '14213680.1906424'
+        //             }
+        //         ]
+        //     }
+        //
+        const market = this.getMarketFromClientAndMessage (client, message);
+        const symbol = market['symbol'];
+        if (!(symbol in this.ohlcvs)) {
+            this.ohlcvs[symbol] = {};
+        }
+        const data = this.safeList (message, 'd', []);
+        const firstEntry = this.safeDict (data, 0, {});
+        const interval = this.safeString (firstEntry, 'i');
+        const timeframe = this.findTimeframe (interval);
+        if (!(timeframe in this.ohlcvs[symbol])) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+        }
+        const stored = this.ohlcvs[symbol][timeframe];
+        for (let i = 0; i < data.length; i++) {
+            const entry = this.safeDict (data, i, {});
+            const parsed = this.parseWsOHLCV (entry);
+            stored.append (parsed);
+        }
+        const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
+        const resolveData = [ symbol, timeframe, stored ];
+        client.resolve (resolveData, messageHash);
+    }
+
+    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
+        //
+        //     {
+        //         t: 1776092400000,
+        //         T: 1776096000000,
+        //         s: 'ETHUSDT',
+        //         i: '1h',
+        //         o: '2234.18',
+        //         c: '2205.15',
+        //         h: '2236.43',
+        //         l: '2199.53',
+        //         v: '12505.60574',
+        //         n: 3381,
+        //         q: '27682528.6655305',
+        //         V: '6420.47929',
+        //         Q: '14213680.1906424'
+        //     }
+        //
+        return [
+            this.safeInteger (ohlcv, 't'),
+            this.safeNumber (ohlcv, 'o'),
+            this.safeNumber (ohlcv, 'h'),
+            this.safeNumber (ohlcv, 'l'),
+            this.safeNumber (ohlcv, 'c'),
+            this.safeNumber (ohlcv, 'v'),
+        ];
+    }
+
     getMarketFromClientAndMessage (client, message) {
         const url = client.url;
         let marketType = 'spot';
@@ -519,6 +741,8 @@ export default class weex extends weexRest {
             this.handleTicker (client, message);
         } else if ((event === 'trade') || (event === 'tradeSnapshot')) {
             this.handleTrade (client, message);
+        } else if ((event === 'kline') || (event === 'klineSnapshot')) {
+            this.handleOHLCV (client, message);
         }
     }
 }
