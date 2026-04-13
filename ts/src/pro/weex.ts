@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import weexRest from '../weex.js';
-import { BadRequest, ExchangeError } from '../base/errors.js';
+import { BadRequest, ExchangeError, NotSupported } from '../base/errors.js';
 // import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Dict, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from '../base/types.js';
@@ -388,6 +388,23 @@ export default class weex extends weexRest {
     }
 
     handleTrade (client: Client, message) {
+        //
+        //     {
+        //         "e": "trade",
+        //         "E": 1776104608321,
+        //         "s": "ETHUSDT",
+        //         "d": [
+        //             {
+        //                 "T": 1776104608298,
+        //                 "t": "41099265-7985-4f4c-af93-2cc3bc1cf13b",
+        //                 "p": "2225.15",
+        //                 "q": "0.02525",
+        //                 "v": "56.1850375",
+        //                 "m": false
+        //             }
+        //         ]
+        //     }
+        //
         const market = this.getMarketFromClientAndMessage (client, message);
         const symbol = market['symbol'];
         const messageHash = 'trade::' + symbol;
@@ -833,7 +850,11 @@ export default class weex extends weexRest {
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, 'spot', false, true);
+        symbols = this.marketSymbols (symbols, undefined, false, true);
+        const firstMarket = this.getMarketFromSymbols (symbols);
+        if (firstMarket['contract']) {
+            throw new NotSupported (this.id + ' watchBidsAsks is supported for spot markets only');
+        }
         const messageHashes = [];
         const channels = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -864,7 +885,11 @@ export default class weex extends weexRest {
      */
     async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, 'spot', false, true);
+        symbols = this.marketSymbols (symbols, undefined, false, true);
+        const firstMarket = this.getMarketFromSymbols (symbols);
+        if (firstMarket['contract']) {
+            throw new NotSupported (this.id + ' unWatchBidsAsks is supported for spot markets only');
+        }
         const subHashes = [];
         const channels = [];
         const unSubHashes = [];
