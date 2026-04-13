@@ -376,7 +376,12 @@ public partial class lighter : ccxt.lighter
             { "channel", "market_stats/all" },
         };
         object messageHashes = new List<object>() {};
-        if (isTrue(isTrue(isEqual(symbols, null)) || isTrue(isEqual(getArrayLength(symbols), 0))))
+        object symbolsLength = 0;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            symbolsLength = getArrayLength(symbols);
+        }
+        if (isTrue(isEqual(symbolsLength, 0)))
         {
             ((IList<object>)messageHashes).Add(this.getMessageHash("ticker"));
         } else
@@ -575,7 +580,8 @@ public partial class lighter : ccxt.lighter
         //     }
         //
         object liquidationData = this.safeList(message, "liquidation_trades", new List<object>() {});
-        if (isTrue(isGreaterThan(getArrayLength(liquidationData), 0)))
+        object liquidationDataLength = getArrayLength(liquidationData);
+        if (isTrue(isGreaterThan(liquidationDataLength, 0)))
         {
             this.handleLiquidation(client as WebSocketClient, message);
         }
@@ -592,9 +598,11 @@ public partial class lighter : ccxt.lighter
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        object dataLength = getArrayLength(data);
+        for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
-            object trade = this.parseWsTrade(getValue(data, i), market);
+            object iReversed = subtract(subtract(dataLength, 1), i);
+            object trade = this.parseWsTrade(getValue(data, iReversed), market);
             callDynamically(stored, "append", new object[] {trade});
         }
         object messageHash = this.getMessageHash("trade", symbol);
@@ -621,7 +629,8 @@ public partial class lighter : ccxt.lighter
             { "channel", add("trade/", getValue(market, "id")) },
         };
         object messageHash = this.getMessageHash("trade", getValue(market, "symbol"));
-        return await this.subscribePublic(messageHash, this.extend(request, parameters));
+        object trades = await this.subscribePublic(messageHash, this.extend(request, parameters));
+        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
 
     /**
@@ -700,9 +709,11 @@ public partial class lighter : ccxt.lighter
             object marketId = getValue(marketIds, i);
             object market = this.safeMarket(marketId);
             object trades = this.safeList(data, marketId, new List<object>() {});
-            for (object j = 0; isLessThan(j, getArrayLength(trades)); postFixIncrement(ref j))
+            object tradesLength = getArrayLength(trades);
+            for (object j = 0; isLessThan(j, tradesLength); postFixIncrement(ref j))
             {
-                object trade = this.parseWsTrade(getValue(trades, j), market);
+                object jReversed = subtract(subtract(tradesLength, 1), j);
+                object trade = this.parseWsTrade(getValue(trades, jReversed), market);
                 callDynamically(stored, "append", new object[] {trade});
                 object symbol = getValue(trade, "symbol");
                 if (isTrue(!isEqual(symbol, null)))
@@ -814,15 +825,22 @@ public partial class lighter : ccxt.lighter
         //     }
         //
         object timestamp = this.safeInteger(liquidation, "timestamp");
+        object isMakerAsk = this.safeBool(liquidation, "is_maker_ask");
+        object side = ((bool) isTrue(isMakerAsk)) ? "buy" : "sell";
+        object contracts = this.safeString(liquidation, "size");
+        object contractSize = this.safeString(market, "contractSize");
+        object price = this.safeString(liquidation, "price");
+        object baseValue = Precise.stringMul(contracts, contractSize);
+        object quoteValue = Precise.stringMul(baseValue, price);
         return this.safeLiquidation(new Dictionary<string, object>() {
             { "info", liquidation },
             { "symbol", getValue(market, "symbol") },
-            { "contracts", null },
-            { "contractSize", null },
-            { "price", this.safeString(liquidation, "price") },
-            { "side", this.safeString(liquidation, "size") },
-            { "baseValue", null },
-            { "quoteValue", null },
+            { "contracts", contracts },
+            { "contractSize", contractSize },
+            { "price", price },
+            { "side", side },
+            { "baseValue", baseValue },
+            { "quoteValue", quoteValue },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         });
@@ -879,9 +897,11 @@ public partial class lighter : ccxt.lighter
             this.liquidations = new ArrayCache(limit);
             stored = this.liquidations;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        object dataLength = getArrayLength(data);
+        for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
-            object liquidation = this.parseWsLiquidation(getValue(data, i), market);
+            object iReversed = subtract(subtract(dataLength, 1), i);
+            object liquidation = this.parseWsLiquidation(getValue(data, iReversed), market);
             callDynamically(stored, "append", new object[] {liquidation});
         }
         object messageHash = this.getMessageHash("liquidations", symbol);

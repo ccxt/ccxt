@@ -518,8 +518,10 @@ class lighter(ccxt.async_support.lighter):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             stored = ArrayCache(limit)
             self.trades[symbol] = stored
-        for i in range(0, len(data)):
-            trade = self.parse_ws_trade(data[i], market)
+        dataLength = len(data)
+        for i in range(0, dataLength):
+            iReversed = dataLength - 1 - i
+            trade = self.parse_ws_trade(data[iReversed], market)
             stored.append(trade)
         messageHash = self.get_message_hash('trade', symbol)
         client.resolve(stored, messageHash)
@@ -612,8 +614,10 @@ class lighter(ccxt.async_support.lighter):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
             trades = self.safe_list(data, marketId, [])
-            for j in range(0, len(trades)):
-                trade = self.parse_ws_trade(trades[j], market)
+            tradesLength = len(trades)
+            for j in range(0, tradesLength):
+                jReversed = tradesLength - 1 - j
+                trade = self.parse_ws_trade(trades[jReversed], market)
                 stored.append(trade)
                 symbol = trade['symbol']
                 if symbol is not None:
@@ -771,8 +775,10 @@ class lighter(ccxt.async_support.lighter):
             limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
             self.liquidations = ArrayCache(limit)
             stored = self.liquidations
-        for i in range(0, len(data)):
-            liquidation = self.parse_ws_liquidation(data[i], market)
+        dataLength = len(data)
+        for i in range(0, dataLength):
+            iReversed = dataLength - 1 - i
+            liquidation = self.parse_ws_liquidation(data[iReversed], market)
             stored.append(liquidation)
         messageHash = self.get_message_hash('liquidations', symbol)
         client.resolve(stored, messageHash)

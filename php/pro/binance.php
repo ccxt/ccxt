@@ -240,7 +240,18 @@ class binance extends \ccxt\async\binance {
     public function get_ws_url($type, $category) {
         $baseUrl = $this->urls['api']['ws'][$type];
         if ($type === 'future') {
-            return str_replace('/ws', '/' . $category . '/ws', $baseUrl);
+            // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
+            $firstProtocol = mb_strpos($baseUrl, '://');
+            if ($firstProtocol !== -1 && mb_strpos($baseUrl, '://', $firstProtocol + 3) !== -1) {
+                return $baseUrl;
+            }
+            // only rewrite when the URL ends with exactly "/ws"
+            // this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
+            if (str_ends_with($baseUrl, '/ws')) {
+                $prefix = mb_substr($baseUrl, 0, strlen($baseUrl) - 3 - 0);
+                return $prefix . '/' . $category . '/ws';
+            }
+            return $baseUrl;
         }
         return $baseUrl;
     }

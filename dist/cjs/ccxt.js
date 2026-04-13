@@ -101,6 +101,7 @@ var okxus = require('./src/okxus.js');
 var onetrading = require('./src/onetrading.js');
 var oxfun = require('./src/oxfun.js');
 var p2b = require('./src/p2b.js');
+var pacifica = require('./src/pacifica.js');
 var paradex = require('./src/paradex.js');
 var paymium = require('./src/paymium.js');
 var phemex = require('./src/phemex.js');
@@ -186,6 +187,7 @@ var okxus$1 = require('./src/pro/okxus.js');
 var onetrading$1 = require('./src/pro/onetrading.js');
 var oxfun$1 = require('./src/pro/oxfun.js');
 var p2b$1 = require('./src/pro/p2b.js');
+var pacifica$1 = require('./src/pro/pacifica.js');
 var paradex$1 = require('./src/pro/paradex.js');
 var phemex$1 = require('./src/pro/phemex.js');
 var poloniex$1 = require('./src/pro/poloniex.js');
@@ -198,7 +200,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.47';
+const version = '4.5.48';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'aftermath': aftermath["default"],
@@ -294,6 +296,7 @@ const exchanges = {
     'onetrading': onetrading["default"],
     'oxfun': oxfun["default"],
     'p2b': p2b["default"],
+    'pacifica': pacifica["default"],
     'paradex': paradex["default"],
     'paymium': paymium["default"],
     'phemex': phemex["default"],
@@ -381,6 +384,7 @@ const pro = {
     'onetrading': onetrading$1["default"],
     'oxfun': oxfun$1["default"],
     'p2b': p2b$1["default"],
+    'pacifica': pacifica$1["default"],
     'paradex': paradex$1["default"],
     'phemex': phemex$1["default"],
     'poloniex': poloniex$1["default"],
@@ -535,6 +539,7 @@ exports.okxus = okxus["default"];
 exports.onetrading = onetrading["default"];
 exports.oxfun = oxfun["default"];
 exports.p2b = p2b["default"];
+exports.pacifica = pacifica["default"];
 exports.paradex = paradex["default"];
 exports.paymium = paymium["default"];
 exports.phemex = phemex["default"];

@@ -23,12 +23,12 @@ func TestSort() {
 	// todo 1: atm, `sort` is only meant for strings. we should update to support numerics
 	// todo 2: add test for above 10, eg: 1, 2, 10, 20, 21
 	// // integers (single-digit, safe for cross-language lexicographic/numeric consistency)
-	// testSharedMethods.assertDeepEqual (exchange, undefined, 'sort', exchange.sort ([ 3, 1, 2 ]), [ 1, 2, 3 ]);
-	// testSharedMethods.assertDeepEqual (exchange, undefined, 'sort', exchange.sort ([ 5, 3, 1, 4, 2 ]), [ 1, 2, 3, 4, 5 ]);
-	// testSharedMethods.assertDeepEqual (exchange, undefined, 'sort', exchange.sort ([ 0, 3, 1, 2 ]), [ 0, 1, 2, 3 ]);
+	// assertDeepEqual (exchange, undefined, 'sort', exchange.sort ([ 3, 1, 2 ]), [ 1, 2, 3 ]);
+	// assertDeepEqual (exchange, undefined, 'sort', exchange.sort ([ 5, 3, 1, 4, 2 ]), [ 1, 2, 3, 4, 5 ]);
+	// assertDeepEqual (exchange, undefined, 'sort', exchange.sort ([ 0, 3, 1, 2 ]), [ 0, 1, 2, 3 ]);
 	// // floats (values chosen so lexicographic order matches numeric order)
-	// testSharedMethods.assertDeepEqual (exchange, undefined, 'sort', exchange.sort ([ 1.5, 0.5, 2.5 ]), [ 0.5, 1.5, 2.5 ]);
-	// testSharedMethods.assertDeepEqual (exchange, undefined, 'sort', exchange.sort ([ 3.3, 1.1, 2.2 ]), [ 1.1, 2.2, 3.3 ]);
+	// assertDeepEqual (exchange, undefined, 'sort', exchange.sort ([ 1.5, 0.5, 2.5 ]), [ 0.5, 1.5, 2.5 ]);
+	// assertDeepEqual (exchange, undefined, 'sort', exchange.sort ([ 3.3, 1.1, 2.2 ]), [ 1.1, 2.2, 3.3 ]);
 	// immutability - original array should not be modified
 	var original interface{} = []interface{}{"b", "a", "c"}
 	exchange.Sort(original)

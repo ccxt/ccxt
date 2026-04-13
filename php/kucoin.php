@@ -9908,6 +9908,8 @@ class kucoin extends Exchange {
          * @param {string} $symbol unified $market $symbol of the $market the $position is held in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
+         * @param {integer} [$params->pageSize] *$uta only* page size for the $uta endpoint (default 50, max 200)
+         * @param {integer} [$params->pageNumber] *$uta only* page number for the $uta endpoint (default 1)
          * @return {array} a ~@link https://docs.ccxt.com/?id=$position-structure $position structure~
          */
         $this->load_markets();
@@ -10008,6 +10010,8 @@ class kucoin extends Exchange {
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
+         * @param {integer} [$params->pageSize] *$uta only* page size for the $uta endpoint (default 50, max 200)
+         * @param {integer} [$params->pageNumber] *$uta only* page number for the $uta endpoint (default 1)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         $this->load_markets();
@@ -10015,7 +10019,7 @@ class kucoin extends Exchange {
         list($uta, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'uta', $uta);
         $response = null;
         if ($uta) {
-            $response = $this->utaPrivateGetAccountModePositionOpenList ($this->extend($params, array( 'accountMode' => 'unified' )));
+            $response = $this->utaPrivateGetAccountModePositionOpenList ($this->extend(array( 'accountMode' => 'unified', 'limit' => 200 ), $params));
         } else {
             $response = $this->futuresPrivateGetPositions ($params);
             //

@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.47';
+const version = '4.5.48';
 
 (Exchange as any).ccxtVersion = version
 
@@ -139,6 +139,7 @@ import okxus from  './src/okxus.js'
 import onetrading from  './src/onetrading.js'
 import oxfun from  './src/oxfun.js'
 import p2b from  './src/p2b.js'
+import pacifica from  './src/pacifica.js'
 import paradex from  './src/paradex.js'
 import paymium from  './src/paymium.js'
 import phemex from  './src/phemex.js'
@@ -227,6 +228,7 @@ import okxusPro from  './src/pro/okxus.js'
 import onetradingPro from  './src/pro/onetrading.js'
 import oxfunPro from  './src/pro/oxfun.js'
 import p2bPro from  './src/pro/p2b.js'
+import pacificaPro from  './src/pro/pacifica.js'
 import paradexPro from  './src/pro/paradex.js'
 import phemexPro from  './src/pro/phemex.js'
 import poloniexPro from  './src/pro/poloniex.js'
@@ -331,6 +333,7 @@ const exchanges = {
     'onetrading':             onetrading,
     'oxfun':                  oxfun,
     'p2b':                    p2b,
+    'pacifica':               pacifica,
     'paradex':                paradex,
     'paymium':                paymium,
     'phemex':                 phemex,
@@ -419,6 +422,7 @@ const pro = {
     'onetrading':             onetradingPro,
     'oxfun':                  oxfunPro,
     'p2b':                    p2bPro,
+    'pacifica':               pacificaPro,
     'paradex':                paradexPro,
     'phemex':                 phemexPro,
     'poloniex':               poloniexPro,
@@ -666,6 +670,7 @@ export {
     onetrading,
     oxfun,
     p2b,
+    pacifica,
     paradex,
     paymium,
     phemex,

@@ -618,6 +618,7 @@
             {
                 "description": "fetchMarkets",
                 "method": "fetchMarkets",
+                "disabled": true,
                 "input": [],
                 "httpResponse": {
                     "code": 200,

@@ -381,6 +381,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		p2bItf := NewP2bCore()
 		p2bItf.Init(exchangeArgs)
 		return p2bItf, true
+	case "pacifica":
+		pacificaItf := NewPacificaCore()
+		pacificaItf.Init(exchangeArgs)
+		return pacificaItf, true
 	case "paradex":
 		paradexItf := NewParadexCore()
 		paradexItf.Init(exchangeArgs)

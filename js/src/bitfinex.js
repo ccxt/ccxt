@@ -1201,7 +1201,8 @@ export default class bitfinex extends Exchange {
         //     ]
         //
         const length = ticker.length;
-        const isFetchTicker = (length === 10) || (length === 16);
+        const firstValue = this.safeNumber(ticker, 0);
+        const isFetchTicker = firstValue !== undefined; // if it's Nan, then it's string (symbol)
         let symbol = undefined;
         let minusIndex = 0;
         let isFundingCurrency = false;

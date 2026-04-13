@@ -3355,6 +3355,18 @@ public partial class kucoin
     /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.pageSize</term>
+    /// <description>
+    /// integer : *uta only* page size for the uta endpoint (default 50, max 200)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.pageNumber</term>
+    /// <description>
+    /// integer : *uta only* page number for the uta endpoint (default 1)
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [position structure]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
@@ -3380,6 +3392,18 @@ public partial class kucoin
     /// <term>params.uta</term>
     /// <description>
     /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.pageSize</term>
+    /// <description>
+    /// integer : *uta only* page size for the uta endpoint (default 50, max 200)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.pageNumber</term>
+    /// <description>
+    /// integer : *uta only* page number for the uta endpoint (default 1)
     /// </description>
     /// </item>
     /// </list>

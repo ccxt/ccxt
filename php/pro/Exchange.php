@@ -88,6 +88,7 @@ Exchange::$exchanges = array(
     'onetrading',
     'oxfun',
     'p2b',
+    'pacifica',
     'paradex',
     'phemex',
     'poloniex',

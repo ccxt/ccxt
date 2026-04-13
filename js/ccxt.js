@@ -38,7 +38,7 @@ import * as errors from './src/base/errors.js';
 import { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError } from './src/base/errors.js';
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.47';
+const version = '4.5.48';
 Exchange.ccxtVersion = version;
 //-----------------------------------------------------------------------------
 import aftermath from './src/aftermath.js';
@@ -134,6 +134,7 @@ import okxus from './src/okxus.js';
 import onetrading from './src/onetrading.js';
 import oxfun from './src/oxfun.js';
 import p2b from './src/p2b.js';
+import pacifica from './src/pacifica.js';
 import paradex from './src/paradex.js';
 import paymium from './src/paymium.js';
 import phemex from './src/phemex.js';
@@ -220,6 +221,7 @@ import okxusPro from './src/pro/okxus.js';
 import onetradingPro from './src/pro/onetrading.js';
 import oxfunPro from './src/pro/oxfun.js';
 import p2bPro from './src/pro/p2b.js';
+import pacificaPro from './src/pro/pacifica.js';
 import paradexPro from './src/pro/paradex.js';
 import phemexPro from './src/pro/phemex.js';
 import poloniexPro from './src/pro/poloniex.js';
@@ -323,6 +325,7 @@ const exchanges = {
     'onetrading': onetrading,
     'oxfun': oxfun,
     'p2b': p2b,
+    'pacifica': pacifica,
     'paradex': paradex,
     'paymium': paymium,
     'phemex': phemex,
@@ -410,6 +413,7 @@ const pro = {
     'onetrading': onetradingPro,
     'oxfun': oxfunPro,
     'p2b': p2bPro,
+    'pacifica': pacificaPro,
     'paradex': paradexPro,
     'phemex': phemexPro,
     'poloniex': poloniexPro,
@@ -432,6 +436,6 @@ pro.exchanges = Object.keys(pro);
 pro['Exchange'] = Exchange; // now the same for rest and ts
 //-----------------------------------------------------------------------------
 const ccxt = Object.assign({ version, Exchange, Precise, 'exchanges': Object.keys(exchanges), 'pro': pro }, exchanges, functions, errors);
-export { version, Exchange, exchanges, pro, Precise, functions, errors, BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError, aftermath, alpaca, apex, arkham, ascendex, aster, backpack, bequant, bigone, binance, binancecoinm, binanceus, binanceusdm, bingx, bit2c, bitbank, bitbns, bitfinex, bitflyer, bitget, bithumb, bitmart, bitmex, bitopro, bitrue, bitso, bitstamp, bitteam, bittrade, bitvavo, blockchaincom, blofin, btcbox, btcmarkets, btcturk, bullish, bybit, bydfi, cex, coinbase, coinbaseadvanced, coinbaseexchange, coinbaseinternational, coincheck, coinex, coinmate, coinmetro, coinone, coinsph, coinspot, cryptocom, cryptomus, deepcoin, delta, deribit, derive, digifinex, dydx, exmo, fmfwio, foxbit, gate, gateio, gemini, grvt, hashkey, hibachi, hitbtc, hollaex, htx, huobi, hyperliquid, independentreserve, indodax, kraken, krakenfutures, kucoin, kucoinfutures, latoken, lbank, lighter, luno, mercado, mexc, modetrade, myokx, ndax, novadax, okx, okxus, onetrading, oxfun, p2b, paradex, paymium, phemex, poloniex, tokocrypto, toobit, upbit, wavesexchange, whitebit, woo, woofipro, xt, yobit, zaif, zebpay, zonda, };
+export { version, Exchange, exchanges, pro, Precise, functions, errors, BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError, aftermath, alpaca, apex, arkham, ascendex, aster, backpack, bequant, bigone, binance, binancecoinm, binanceus, binanceusdm, bingx, bit2c, bitbank, bitbns, bitfinex, bitflyer, bitget, bithumb, bitmart, bitmex, bitopro, bitrue, bitso, bitstamp, bitteam, bittrade, bitvavo, blockchaincom, blofin, btcbox, btcmarkets, btcturk, bullish, bybit, bydfi, cex, coinbase, coinbaseadvanced, coinbaseexchange, coinbaseinternational, coincheck, coinex, coinmate, coinmetro, coinone, coinsph, coinspot, cryptocom, cryptomus, deepcoin, delta, deribit, derive, digifinex, dydx, exmo, fmfwio, foxbit, gate, gateio, gemini, grvt, hashkey, hibachi, hitbtc, hollaex, htx, huobi, hyperliquid, independentreserve, indodax, kraken, krakenfutures, kucoin, kucoinfutures, latoken, lbank, lighter, luno, mercado, mexc, modetrade, myokx, ndax, novadax, okx, okxus, onetrading, oxfun, p2b, pacifica, paradex, paymium, phemex, poloniex, tokocrypto, toobit, upbit, wavesexchange, whitebit, woo, woofipro, xt, yobit, zaif, zebpay, zonda, };
 export default ccxt;
 //-----------------------------------------------------------------------------

@@ -239,7 +239,20 @@ public partial class binance : ccxt.binance
         object baseUrl = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
         if (isTrue(isEqual(type, "future")))
         {
-            return ((string)baseUrl).Replace((string)"/ws", (string)add(add("/", category), "/ws"));
+            // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
+            object firstProtocol = getIndexOf(baseUrl, "://");
+            if (isTrue(isTrue(!isEqual(firstProtocol, -1)) && isTrue(!isEqual(getIndexOf(baseUrl, "://"), -1))))
+            {
+                return baseUrl;
+            }
+            // only rewrite when the URL ends with exactly "/ws"
+            // this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
+            if (isTrue(((string)baseUrl).EndsWith(((string)"/ws"))))
+            {
+                object prefix = slice(baseUrl, 0, subtract(getArrayLength(baseUrl), 3));
+                return add(add(add(prefix, "/"), category), "/ws");
+            }
+            return baseUrl;
         }
         return baseUrl;
     }

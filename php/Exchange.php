@@ -44,7 +44,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.47';
+$version = '4.5.48';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -63,7 +63,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.5.47';
+    const VERSION = '4.5.48';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -435,6 +435,7 @@ class Exchange {
         'onetrading',
         'oxfun',
         'p2b',
+        'pacifica',
         'paradex',
         'paymium',
         'phemex',

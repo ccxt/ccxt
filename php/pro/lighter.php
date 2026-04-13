@@ -577,8 +577,10 @@ class lighter extends \ccxt\async\lighter {
             $stored = new ArrayCache ($limit);
             $this->trades[$symbol] = $stored;
         }
-        for ($i = 0; $i < count($data); $i++) {
-            $trade = $this->parse_ws_trade($data[$i], $market);
+        $dataLength = count($data);
+        for ($i = 0; $i < $dataLength; $i++) {
+            $iReversed = $dataLength - 1 - $i;
+            $trade = $this->parse_ws_trade($data[$iReversed], $market);
             $stored->append ($trade);
         }
         $messageHash = $this->get_message_hash('trade', $symbol);
@@ -681,8 +683,10 @@ class lighter extends \ccxt\async\lighter {
             $marketId = $marketIds[$i];
             $market = $this->safe_market($marketId);
             $trades = $this->safe_list($data, $marketId, array());
-            for ($j = 0; $j < count($trades); $j++) {
-                $trade = $this->parse_ws_trade($trades[$j], $market);
+            $tradesLength = count($trades);
+            for ($j = 0; $j < $tradesLength; $j++) {
+                $jReversed = $tradesLength - 1 - $j;
+                $trade = $this->parse_ws_trade($trades[$jReversed], $market);
                 $stored->append ($trade);
                 $symbol = $trade['symbol'];
                 if ($symbol !== null) {
@@ -855,8 +859,10 @@ class lighter extends \ccxt\async\lighter {
             $this->liquidations = new ArrayCache ($limit);
             $stored = $this->liquidations;
         }
-        for ($i = 0; $i < count($data); $i++) {
-            $liquidation = $this->parse_ws_liquidation($data[$i], $market);
+        $dataLength = count($data);
+        for ($i = 0; $i < $dataLength; $i++) {
+            $iReversed = $dataLength - 1 - $i;
+            $liquidation = $this->parse_ws_liquidation($data[$iReversed], $market);
             $stored->append ($liquidation);
         }
         $messageHash = $this->get_message_hash('liquidations', $symbol);

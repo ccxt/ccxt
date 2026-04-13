@@ -1192,7 +1192,8 @@ class bitfinex(Exchange, ImplicitAPI):
         #     ]
         #
         length = len(ticker)
-        isFetchTicker = (length == 10) or (length == 16)
+        firstValue = self.safe_number(ticker, 0)
+        isFetchTicker = firstValue is not None  # if it's Nan, then it's string(symbol)
         symbol: Str = None
         minusIndex = 0
         isFundingCurrency = False

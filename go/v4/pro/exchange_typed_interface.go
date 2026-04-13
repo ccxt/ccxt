@@ -223,6 +223,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) ccxt.IExc
     case "p2b":
         itf := NewP2b(options)
         return itf
+    case "pacifica":
+        itf := NewPacifica(options)
+        return itf
     case "paradex":
         itf := NewParadex(options)
         return itf

@@ -2442,6 +2442,8 @@ fetch data on an open position
 | symbol | <code>string</code> | Yes | unified market symbol of the market the position is held in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.pageSize | <code>integer</code> | No | *uta only* page size for the uta endpoint (default 50, max 200) |
+| params.pageNumber | <code>integer</code> | No | *uta only* page number for the uta endpoint (default 1) |
 
 
 ```javascript
@@ -2468,6 +2470,8 @@ fetch all open positions
 | symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.pageSize | <code>integer</code> | No | *uta only* page size for the uta endpoint (default 50, max 200) |
+| params.pageNumber | <code>integer</code> | No | *uta only* page number for the uta endpoint (default 1) |
 
 
 ```javascript

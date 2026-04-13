@@ -202,6 +202,7 @@ cancel all open orders in a market
 * [ndax](/exchanges/ndax.md#cancelallorders)
 * [onetrading](/exchanges/onetrading.md#cancelallorders)
 * [oxfun](/exchanges/oxfun.md#cancelallorders)
+* [pacifica](/exchanges/pacifica.md#cancelallorders)
 * [paradex](/exchanges/paradex.md#cancelallorders)
 * [phemex](/exchanges/phemex.md#cancelallorders)
 * [poloniex](/exchanges/poloniex.md#cancelallorders)
@@ -263,6 +264,7 @@ cancel all open orders in a market
 * [cryptocom](/exchanges/cryptocom.md#cancelallordersws)
 * [gate](/exchanges/gate.md#cancelallordersws)
 * [okx](/exchanges/okx.md#cancelallordersws)
+* [pacifica](/exchanges/pacifica.md#cancelallordersws)
 
 ---
 
@@ -428,6 +430,7 @@ cancels an open order
 * [onetrading](/exchanges/onetrading.md#cancelorder)
 * [oxfun](/exchanges/oxfun.md#cancelorder)
 * [p2b](/exchanges/p2b.md#cancelorder)
+* [pacifica](/exchanges/pacifica.md#cancelorder)
 * [paradex](/exchanges/paradex.md#cancelorder)
 * [paymium](/exchanges/paymium.md#cancelorder)
 * [phemex](/exchanges/phemex.md#cancelorder)
@@ -473,6 +476,7 @@ cancel multiple orders
 * [hyperliquid](/exchanges/hyperliquid.md#cancelorderws)
 * [okx](/exchanges/okx.md#cancelorderws)
 * [oxfun](/exchanges/oxfun.md#cancelorderws)
+* [pacifica](/exchanges/pacifica.md#cancelorderws)
 
 ---
 
@@ -526,6 +530,7 @@ cancel multiple orders
 * [okx](/exchanges/okx.md#cancelorders)
 * [onetrading](/exchanges/onetrading.md#cancelorders)
 * [oxfun](/exchanges/oxfun.md#cancelorders)
+* [pacifica](/exchanges/pacifica.md#cancelorders)
 * [toobit](/exchanges/toobit.md#cancelorders)
 * [woofipro](/exchanges/woofipro.md#cancelorders)
 * [xt](/exchanges/xt.md#cancelorders)
@@ -596,6 +601,7 @@ cancel multiple orders
 * [hyperliquid](/exchanges/hyperliquid.md#cancelordersws)
 * [okx](/exchanges/okx.md#cancelordersws)
 * [oxfun](/exchanges/oxfun.md#cancelordersws)
+* [pacifica](/exchanges/pacifica.md#cancelordersws)
 
 ---
 
@@ -1136,6 +1142,7 @@ create a trade order
 * [onetrading](/exchanges/onetrading.md#createorder)
 * [oxfun](/exchanges/oxfun.md#createorder)
 * [p2b](/exchanges/p2b.md#createorder)
+* [pacifica](/exchanges/pacifica.md#createorder)
 * [paradex](/exchanges/paradex.md#createorder)
 * [paymium](/exchanges/paymium.md#createorder)
 * [phemex](/exchanges/phemex.md#createorder)
@@ -1185,6 +1192,7 @@ create a trade order
 * [hyperliquid](/exchanges/hyperliquid.md#createorderws)
 * [okx](/exchanges/okx.md#createorderws)
 * [oxfun](/exchanges/oxfun.md#createorderws)
+* [pacifica](/exchanges/pacifica.md#createorderws)
 
 ---
 
@@ -1232,6 +1240,7 @@ create a list of trade orders
 * [modetrade](/exchanges/modetrade.md#createorders)
 * [okx](/exchanges/okx.md#createorders)
 * [oxfun](/exchanges/oxfun.md#createorders)
+* [pacifica](/exchanges/pacifica.md#createorders)
 * [woofipro](/exchanges/woofipro.md#createorders)
 
 ---
@@ -1321,6 +1330,28 @@ helper method for creating spot orders in batch
 
 ##### Supported exchanges
 * [kucoin](/exchanges/kucoin.md#createspotorders)
+
+---
+
+<a name="createSubAccount" id="createsubaccount"></a>
+
+## createSubAccount
+creates a sub-account under the main account
+
+**Kind**: instance   
+**Returns**: <code>object</code> - a response object
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| name | <code>string</code> | Yes | unused argument |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.expiryWindow | <code>int</code> | No | time to live in milliseconds |
+| params.subAccountAddress | <code>string</code> | No | The public key (address) of the sub-account to use for creation |
+| params.subAccountPrivateKey | <code>string</code> | No | The private key of the sub-account to use for creation |
+
+##### Supported exchanges
+* [pacifica](/exchanges/pacifica.md#createsubaccount)
 
 ---
 
@@ -1592,6 +1623,7 @@ edit a trade order
 * [lighter](/exchanges/lighter.md#editorder)
 * [modetrade](/exchanges/modetrade.md#editorder)
 * [okx](/exchanges/okx.md#editorder)
+* [pacifica](/exchanges/pacifica.md#editorder)
 * [phemex](/exchanges/phemex.md#editorder)
 * [poloniex](/exchanges/poloniex.md#editorder)
 * [upbit](/exchanges/upbit.md#editorder)
@@ -1631,6 +1663,7 @@ edit a trade order
 * [hyperliquid](/exchanges/hyperliquid.md#editorderws)
 * [okx](/exchanges/okx.md#editorderws)
 * [oxfun](/exchanges/oxfun.md#editorderws)
+* [pacifica](/exchanges/pacifica.md#editorderws)
 
 ---
 
@@ -1752,6 +1785,25 @@ fetch all the accounts by a type and marginModeassociated with a profile
 
 ##### Supported exchanges
 * [htx](/exchanges/htx.md#fetchaccountidbytype)
+
+---
+
+<a name="fetchAccountSettings" id="fetchaccountsettings"></a>
+
+## fetchAccountSettings
+fetch account's market settings. Settings are cached for walletAddress. To refresh the cache, call loadAccountSettings with refresh=true
+
+**Kind**: instance   
+**Returns**: <code>object</code> - Dict repacked from list by symbol key
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.account | <code>string</code> | No | will default to walletAddress if not provided |
+
+##### Supported exchanges
+* [pacifica](/exchanges/pacifica.md#fetchaccountsettings)
 
 ---
 
@@ -1914,6 +1966,7 @@ query for balance and get the amount of funds available for trading or funds loc
 * [onetrading](/exchanges/onetrading.md#fetchbalance)
 * [oxfun](/exchanges/oxfun.md#fetchbalance)
 * [p2b](/exchanges/p2b.md#fetchbalance)
+* [pacifica](/exchanges/pacifica.md#fetchbalance)
 * [paradex](/exchanges/paradex.md#fetchbalance)
 * [paymium](/exchanges/paymium.md#fetchbalance)
 * [phemex](/exchanges/phemex.md#fetchbalance)
@@ -2097,6 +2150,7 @@ fetches information on multiple canceled orders made by the user
 * [deepcoin](/exchanges/deepcoin.md#fetchcanceledandclosedorders)
 * [hashkey](/exchanges/hashkey.md#fetchcanceledandclosedorders)
 * [hyperliquid](/exchanges/hyperliquid.md#fetchcanceledandclosedorders)
+* [pacifica](/exchanges/pacifica.md#fetchcanceledandclosedorders)
 
 ---
 
@@ -2136,6 +2190,7 @@ fetches information on multiple canceled orders made by the user
 * [krakenfutures](/exchanges/krakenfutures.md#fetchcanceledorders)
 * [mexc](/exchanges/mexc.md#fetchcanceledorders)
 * [okx](/exchanges/okx.md#fetchcanceledorders)
+* [pacifica](/exchanges/pacifica.md#fetchcanceledorders)
 * [upbit](/exchanges/upbit.md#fetchcanceledorders)
 * [xt](/exchanges/xt.md#fetchcanceledorders)
 
@@ -2231,6 +2286,7 @@ fetches information on multiple closed orders made by the user
 * [okx](/exchanges/okx.md#fetchclosedorders)
 * [onetrading](/exchanges/onetrading.md#fetchclosedorders)
 * [p2b](/exchanges/p2b.md#fetchclosedorders)
+* [pacifica](/exchanges/pacifica.md#fetchclosedorders)
 * [phemex](/exchanges/phemex.md#fetchclosedorders)
 * [poloniex](/exchanges/poloniex.md#fetchclosedorders)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchclosedorders)
@@ -3110,6 +3166,7 @@ fetches information on multiple orders made by the user *classic accounts only*
 * [modetrade](/exchanges/modetrade.md#fetchfundinghistory)
 * [okx](/exchanges/okx.md#fetchfundinghistory)
 * [oxfun](/exchanges/oxfun.md#fetchfundinghistory)
+* [pacifica](/exchanges/pacifica.md#fetchfundinghistory)
 * [phemex](/exchanges/phemex.md#fetchfundinghistory)
 * [whitebit](/exchanges/whitebit.md#fetchfundinghistory)
 * [woo](/exchanges/woo.md#fetchfundinghistory)
@@ -3292,6 +3349,7 @@ fetches historical funding rate prices
 * [modetrade](/exchanges/modetrade.md#fetchfundingratehistory)
 * [okx](/exchanges/okx.md#fetchfundingratehistory)
 * [oxfun](/exchanges/oxfun.md#fetchfundingratehistory)
+* [pacifica](/exchanges/pacifica.md#fetchfundingratehistory)
 * [paradex](/exchanges/paradex.md#fetchfundingratehistory)
 * [phemex](/exchanges/phemex.md#fetchfundingratehistory)
 * [toobit](/exchanges/toobit.md#fetchfundingratehistory)
@@ -3339,6 +3397,7 @@ fetch the funding rate for multiple markets
 * [modetrade](/exchanges/modetrade.md#fetchfundingrates)
 * [okx](/exchanges/okx.md#fetchfundingrates)
 * [oxfun](/exchanges/oxfun.md#fetchfundingrates)
+* [pacifica](/exchanges/pacifica.md#fetchfundingrates)
 * [toobit](/exchanges/toobit.md#fetchfundingrates)
 * [whitebit](/exchanges/whitebit.md#fetchfundingrates)
 * [woo](/exchanges/woo.md#fetchfundingrates)
@@ -3526,6 +3585,7 @@ fetch the history of changes, actions done by the user or operations that altere
 * [modetrade](/exchanges/modetrade.md#fetchledger)
 * [ndax](/exchanges/ndax.md#fetchledger)
 * [okx](/exchanges/okx.md#fetchledger)
+* [pacifica](/exchanges/pacifica.md#fetchledger)
 * [toobit](/exchanges/toobit.md#fetchledger)
 * [woo](/exchanges/woo.md#fetchledger)
 * [woofipro](/exchanges/woofipro.md#fetchledger)
@@ -3585,6 +3645,7 @@ fetch the set leverage for a market
 * [mexc](/exchanges/mexc.md#fetchleverage)
 * [modetrade](/exchanges/modetrade.md#fetchleverage)
 * [okx](/exchanges/okx.md#fetchleverage)
+* [pacifica](/exchanges/pacifica.md#fetchleverage)
 * [paradex](/exchanges/paradex.md#fetchleverage)
 * [poloniex](/exchanges/poloniex.md#fetchleverage)
 * [toobit](/exchanges/toobit.md#fetchleverage)
@@ -3758,6 +3819,7 @@ fetches the margin mode of a specific symbol
 * [bydfi](/exchanges/bydfi.md#fetchmarginmode)
 * [delta](/exchanges/delta.md#fetchmarginmode)
 * [kucoin](/exchanges/kucoin.md#fetchmarginmode)
+* [pacifica](/exchanges/pacifica.md#fetchmarginmode)
 * [paradex](/exchanges/paradex.md#fetchmarginmode)
 
 ---
@@ -3952,6 +4014,7 @@ retrieves data on all markets for woo
 * [onetrading](/exchanges/onetrading.md#fetchmarkets)
 * [oxfun](/exchanges/oxfun.md#fetchmarkets)
 * [p2b](/exchanges/p2b.md#fetchmarkets)
+* [pacifica](/exchanges/pacifica.md#fetchmarkets)
 * [paradex](/exchanges/paradex.md#fetchmarkets)
 * [phemex](/exchanges/phemex.md#fetchmarkets)
 * [poloniex](/exchanges/poloniex.md#fetchmarkets)
@@ -4206,6 +4269,7 @@ fetch all trades made by the user
 * [onetrading](/exchanges/onetrading.md#fetchmytrades)
 * [oxfun](/exchanges/oxfun.md#fetchmytrades)
 * [p2b](/exchanges/p2b.md#fetchmytrades)
+* [pacifica](/exchanges/pacifica.md#fetchmytrades)
 * [paradex](/exchanges/paradex.md#fetchmytrades)
 * [phemex](/exchanges/phemex.md#fetchmytrades)
 * [poloniex](/exchanges/poloniex.md#fetchmytrades)
@@ -4358,6 +4422,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 * [onetrading](/exchanges/onetrading.md#fetchohlcv)
 * [oxfun](/exchanges/oxfun.md#fetchohlcv)
 * [p2b](/exchanges/p2b.md#fetchohlcv)
+* [pacifica](/exchanges/pacifica.md#fetchohlcv)
 * [paradex](/exchanges/paradex.md#fetchohlcv)
 * [phemex](/exchanges/phemex.md#fetchohlcv)
 * [poloniex](/exchanges/poloniex.md#fetchohlcv)
@@ -4433,6 +4498,7 @@ retrieves the open interest of a contract trading pair
 * [htx](/exchanges/htx.md#fetchopeninterest)
 * [hyperliquid](/exchanges/hyperliquid.md#fetchopeninterest)
 * [okx](/exchanges/okx.md#fetchopeninterest)
+* [pacifica](/exchanges/pacifica.md#fetchopeninterest)
 * [paradex](/exchanges/paradex.md#fetchopeninterest)
 * [phemex](/exchanges/phemex.md#fetchopeninterest)
 
@@ -4490,6 +4556,7 @@ Retrieves the open interest for a list of symbols
 * [hyperliquid](/exchanges/hyperliquid.md#fetchopeninterests)
 * [kucoin](/exchanges/kucoin.md#fetchopeninterests)
 * [okx](/exchanges/okx.md#fetchopeninterests)
+* [pacifica](/exchanges/pacifica.md#fetchopeninterests)
 
 ---
 
@@ -4621,6 +4688,7 @@ fetch all unfilled currently open orders
 * [onetrading](/exchanges/onetrading.md#fetchopenorders)
 * [oxfun](/exchanges/oxfun.md#fetchopenorders)
 * [p2b](/exchanges/p2b.md#fetchopenorders)
+* [pacifica](/exchanges/pacifica.md#fetchopenorders)
 * [paradex](/exchanges/paradex.md#fetchopenorders)
 * [phemex](/exchanges/phemex.md#fetchopenorders)
 * [poloniex](/exchanges/poloniex.md#fetchopenorders)
@@ -4813,6 +4881,7 @@ fetches information on an order made by the user
 * [okx](/exchanges/okx.md#fetchorder)
 * [onetrading](/exchanges/onetrading.md#fetchorder)
 * [oxfun](/exchanges/oxfun.md#fetchorder)
+* [pacifica](/exchanges/pacifica.md#fetchorder)
 * [paradex](/exchanges/paradex.md#fetchorder)
 * [phemex](/exchanges/phemex.md#fetchorder)
 * [poloniex](/exchanges/poloniex.md#fetchorder)
@@ -4925,6 +4994,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [onetrading](/exchanges/onetrading.md#fetchorderbook)
 * [oxfun](/exchanges/oxfun.md#fetchorderbook)
 * [p2b](/exchanges/p2b.md#fetchorderbook)
+* [pacifica](/exchanges/pacifica.md#fetchorderbook)
 * [paradex](/exchanges/paradex.md#fetchorderbook)
 * [paymium](/exchanges/paymium.md#fetchorderbook)
 * [phemex](/exchanges/phemex.md#fetchorderbook)
@@ -5145,6 +5215,7 @@ fetches information on multiple orders made by the user
 * [modetrade](/exchanges/modetrade.md#fetchorders)
 * [ndax](/exchanges/ndax.md#fetchorders)
 * [novadax](/exchanges/novadax.md#fetchorders)
+* [pacifica](/exchanges/pacifica.md#fetchorders)
 * [paradex](/exchanges/paradex.md#fetchorders)
 * [phemex](/exchanges/phemex.md#fetchorders)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchorders)
@@ -5334,6 +5405,7 @@ fetch data on an open position
 * [mexc](/exchanges/mexc.md#fetchposition)
 * [modetrade](/exchanges/modetrade.md#fetchposition)
 * [okx](/exchanges/okx.md#fetchposition)
+* [pacifica](/exchanges/pacifica.md#fetchposition)
 * [paradex](/exchanges/paradex.md#fetchposition)
 * [whitebit](/exchanges/whitebit.md#fetchposition)
 * [woo](/exchanges/woo.md#fetchposition)
@@ -5493,6 +5565,7 @@ fetch all open positions
 * [modetrade](/exchanges/modetrade.md#fetchpositions)
 * [okx](/exchanges/okx.md#fetchpositions)
 * [oxfun](/exchanges/oxfun.md#fetchpositions)
+* [pacifica](/exchanges/pacifica.md#fetchpositions)
 * [paradex](/exchanges/paradex.md#fetchpositions)
 * [phemex](/exchanges/phemex.md#fetchpositions)
 * [poloniex](/exchanges/poloniex.md#fetchpositions)
@@ -5784,6 +5857,7 @@ retrieves data on all swap markets for hyperliquid
 
 ##### Supported exchanges
 * [hyperliquid](/exchanges/hyperliquid.md#fetchswapmarkets)
+* [pacifica](/exchanges/pacifica.md#fetchswapmarkets)
 
 ---
 
@@ -5996,6 +6070,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 * [onetrading](/exchanges/onetrading.md#fetchtickers)
 * [oxfun](/exchanges/oxfun.md#fetchtickers)
 * [p2b](/exchanges/p2b.md#fetchtickers)
+* [pacifica](/exchanges/pacifica.md#fetchtickers)
 * [paradex](/exchanges/paradex.md#fetchtickers)
 * [phemex](/exchanges/phemex.md#fetchtickers)
 * [poloniex](/exchanges/poloniex.md#fetchtickers)
@@ -6176,6 +6251,7 @@ get the list of most recent trades for a particular symbol
 * [okx](/exchanges/okx.md#fetchtrades)
 * [oxfun](/exchanges/oxfun.md#fetchtrades)
 * [p2b](/exchanges/p2b.md#fetchtrades)
+* [pacifica](/exchanges/pacifica.md#fetchtrades)
 * [paradex](/exchanges/paradex.md#fetchtrades)
 * [paymium](/exchanges/paymium.md#fetchtrades)
 * [phemex](/exchanges/phemex.md#fetchtrades)
@@ -6259,6 +6335,7 @@ fetch the trading fees for a market
 * [luno](/exchanges/luno.md#fetchtradingfee)
 * [mexc](/exchanges/mexc.md#fetchtradingfee)
 * [okx](/exchanges/okx.md#fetchtradingfee)
+* [pacifica](/exchanges/pacifica.md#fetchtradingfee)
 * [upbit](/exchanges/upbit.md#fetchtradingfee)
 * [woo](/exchanges/woo.md#fetchtradingfee)
 * [zebpay](/exchanges/zebpay.md#fetchtradingfee)
@@ -7094,6 +7171,7 @@ set the level of leverage for a market
 * [mexc](/exchanges/mexc.md#setleverage)
 * [modetrade](/exchanges/modetrade.md#setleverage)
 * [okx](/exchanges/okx.md#setleverage)
+* [pacifica](/exchanges/pacifica.md#setleverage)
 * [paradex](/exchanges/paradex.md#setleverage)
 * [phemex](/exchanges/phemex.md#setleverage)
 * [poloniex](/exchanges/poloniex.md#setleverage)
@@ -7163,6 +7241,7 @@ set margin mode to 'cross' or 'isolated'
 * [lighter](/exchanges/lighter.md#setmarginmode)
 * [mexc](/exchanges/mexc.md#setmarginmode)
 * [okx](/exchanges/okx.md#setmarginmode)
+* [pacifica](/exchanges/pacifica.md#setmarginmode)
 * [paradex](/exchanges/paradex.md#setmarginmode)
 * [phemex](/exchanges/phemex.md#setmarginmode)
 * [toobit](/exchanges/toobit.md#setmarginmode)
@@ -7338,6 +7417,7 @@ transfer currency internally between wallets on the same account
 * [novadax](/exchanges/novadax.md#transfer)
 * [okx](/exchanges/okx.md#transfer)
 * [oxfun](/exchanges/oxfun.md#transfer)
+* [pacifica](/exchanges/pacifica.md#transfer)
 * [paymium](/exchanges/paymium.md#transfer)
 * [phemex](/exchanges/phemex.md#transfer)
 * [poloniex](/exchanges/poloniex.md#transfer)
@@ -7525,6 +7605,7 @@ unWatches information on multiple trades made by the user
 * [bybit](/exchanges/bybit.md#unwatchmytrades)
 * [hyperliquid](/exchanges/hyperliquid.md#unwatchmytrades)
 * [lighter](/exchanges/lighter.md#unwatchmytrades)
+* [pacifica](/exchanges/pacifica.md#unwatchmytrades)
 
 ---
 
@@ -7561,6 +7642,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 * [kucoin](/exchanges/kucoin.md#unwatchohlcv)
 * [mexc](/exchanges/mexc.md#unwatchohlcv)
 * [okx](/exchanges/okx.md#unwatchohlcv)
+* [pacifica](/exchanges/pacifica.md#unwatchohlcv)
 * [woo](/exchanges/woo.md#unwatchohlcv)
 
 ---
@@ -7624,6 +7706,7 @@ unsubscribe from the orderbook channel
 * [lighter](/exchanges/lighter.md#unwatchorderbook)
 * [mexc](/exchanges/mexc.md#unwatchorderbook)
 * [okx](/exchanges/okx.md#unwatchorderbook)
+* [pacifica](/exchanges/pacifica.md#unwatchorderbook)
 * [woo](/exchanges/woo.md#unwatchorderbook)
 
 ---
@@ -7675,6 +7758,7 @@ unWatches information on multiple orders made by the user
 * [bitmart](/exchanges/bitmart.md#unwatchorders)
 * [bybit](/exchanges/bybit.md#unwatchorders)
 * [hyperliquid](/exchanges/hyperliquid.md#unwatchorders)
+* [pacifica](/exchanges/pacifica.md#unwatchorders)
 
 ---
 
@@ -7760,6 +7844,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 * [lighter](/exchanges/lighter.md#unwatchtickers)
 * [mexc](/exchanges/mexc.md#unwatchtickers)
 * [okx](/exchanges/okx.md#unwatchtickers)
+* [pacifica](/exchanges/pacifica.md#unwatchtickers)
 * [woo](/exchanges/woo.md#unwatchtickers)
 
 ---
@@ -7798,6 +7883,7 @@ unsubscribe from the trades channel
 * [lighter](/exchanges/lighter.md#unwatchtrades)
 * [mexc](/exchanges/mexc.md#unwatchtrades)
 * [okx](/exchanges/okx.md#unwatchtrades)
+* [pacifica](/exchanges/pacifica.md#unwatchtrades)
 * [woo](/exchanges/woo.md#unwatchtrades)
 
 ---
@@ -8192,6 +8278,7 @@ watches information on multiple trades made by the user
 * [modetrade](/exchanges/modetrade.md#watchmytrades)
 * [okx](/exchanges/okx.md#watchmytrades)
 * [onetrading](/exchanges/onetrading.md#watchmytrades)
+* [pacifica](/exchanges/pacifica.md#watchmytrades)
 * [phemex](/exchanges/phemex.md#watchmytrades)
 * [toobit](/exchanges/toobit.md#watchmytrades)
 * [upbit](/exchanges/upbit.md#watchmytrades)
@@ -8277,6 +8364,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 * [okx](/exchanges/okx.md#watchohlcv)
 * [onetrading](/exchanges/onetrading.md#watchohlcv)
 * [oxfun](/exchanges/oxfun.md#watchohlcv)
+* [pacifica](/exchanges/pacifica.md#watchohlcv)
 * [phemex](/exchanges/phemex.md#watchohlcv)
 * [toobit](/exchanges/toobit.md#watchohlcv)
 * [upbit](/exchanges/upbit.md#watchohlcv)
@@ -8385,6 +8473,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [okx](/exchanges/okx.md#watchorderbook)
 * [onetrading](/exchanges/onetrading.md#watchorderbook)
 * [oxfun](/exchanges/oxfun.md#watchorderbook)
+* [pacifica](/exchanges/pacifica.md#watchorderbook)
 * [phemex](/exchanges/phemex.md#watchorderbook)
 * [toobit](/exchanges/toobit.md#watchorderbook)
 * [upbit](/exchanges/upbit.md#watchorderbook)
@@ -8491,6 +8580,7 @@ watches information on multiple orders made by the user
 * [okx](/exchanges/okx.md#watchorders)
 * [onetrading](/exchanges/onetrading.md#watchorders)
 * [oxfun](/exchanges/oxfun.md#watchorders)
+* [pacifica](/exchanges/pacifica.md#watchorders)
 * [phemex](/exchanges/phemex.md#watchorders)
 * [toobit](/exchanges/toobit.md#watchorders)
 * [upbit](/exchanges/upbit.md#watchorders)
@@ -8646,6 +8736,7 @@ watches a price ticker, a statistical calculation with the information calculate
 * [okx](/exchanges/okx.md#watchticker)
 * [onetrading](/exchanges/onetrading.md#watchticker)
 * [oxfun](/exchanges/oxfun.md#watchticker)
+* [pacifica](/exchanges/pacifica.md#watchticker)
 * [phemex](/exchanges/phemex.md#watchticker)
 * [toobit](/exchanges/toobit.md#watchticker)
 * [upbit](/exchanges/upbit.md#watchticker)
@@ -8698,6 +8789,7 @@ watches a price ticker, a statistical calculation with the information calculate
 * [okx](/exchanges/okx.md#watchtickers)
 * [onetrading](/exchanges/onetrading.md#watchtickers)
 * [oxfun](/exchanges/oxfun.md#watchtickers)
+* [pacifica](/exchanges/pacifica.md#watchtickers)
 * [phemex](/exchanges/phemex.md#watchtickers)
 * [toobit](/exchanges/toobit.md#watchtickers)
 * [upbit](/exchanges/upbit.md#watchtickers)
@@ -8773,6 +8865,7 @@ watches information on multiple trades made in a market
 * [ndax](/exchanges/ndax.md#watchtrades)
 * [okx](/exchanges/okx.md#watchtrades)
 * [oxfun](/exchanges/oxfun.md#watchtrades)
+* [pacifica](/exchanges/pacifica.md#watchtrades)
 * [phemex](/exchanges/phemex.md#watchtrades)
 * [toobit](/exchanges/toobit.md#watchtrades)
 * [upbit](/exchanges/upbit.md#watchtrades)
@@ -8902,6 +8995,7 @@ make a withdrawal
 * [novadax](/exchanges/novadax.md#withdraw)
 * [okx](/exchanges/okx.md#withdraw)
 * [oxfun](/exchanges/oxfun.md#withdraw)
+* [pacifica](/exchanges/pacifica.md#withdraw)
 * [phemex](/exchanges/phemex.md#withdraw)
 * [poloniex](/exchanges/poloniex.md#withdraw)
 * [tokocrypto](/exchanges/tokocrypto.md#withdraw)

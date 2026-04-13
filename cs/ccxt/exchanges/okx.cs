@@ -4577,13 +4577,14 @@ public partial class okx : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object maxLimit = 100;
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, parameters);
+            return await this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, parameters, maxLimit);
         }
         object request = new Dictionary<string, object>() {};
         object market = null;
@@ -4594,7 +4595,7 @@ public partial class okx : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 100
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, maxLimit); // default 100, max 100
         }
         object options = this.safeValue(this.options, "fetchOpenOrders", new Dictionary<string, object>() {});
         object algoOrderTypes = this.safeValue(this.options, "algoOrderTypes", new Dictionary<string, object>() {});
@@ -4937,13 +4938,14 @@ public partial class okx : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object maxLimit = 100;
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchClosedOrders", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, parameters);
+            return await this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, parameters, maxLimit);
         }
         object request = new Dictionary<string, object>() {};
         object market = null;
@@ -4960,7 +4962,7 @@ public partial class okx : Exchange
         ((IDictionary<string,object>)request)["instType"] = this.convertToInstrumentType(type);
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 100
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, maxLimit); // default 100, max 100
         }
         object options = this.safeDict(this.options, "fetchClosedOrders", new Dictionary<string, object>() {});
         object algoOrderTypes = this.safeDict(this.options, "algoOrderTypes", new Dictionary<string, object>() {});
