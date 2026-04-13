@@ -5,7 +5,7 @@ import weexRest from '../weex.js';
 import { BadRequest, ExchangeError } from '../base/errors.js';
 // import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Dict, Int, Market, OHLCV, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Dict, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 // import Client from '../base/ws/Client.js';
 
@@ -53,6 +53,12 @@ export default class weex extends weexRest {
                 },
                 'watchOHLCVForSymbols': {
                     'priceType': 'LAST_PRICE', // or 'MARK_PRICE' for swap markets
+                },
+                'watchOrderBook': {
+                    'depth': '200', // or '15'
+                },
+                'watchOrderBookForSymbols': {
+                    'depth': '200', // or '15'
                 },
             },
             'streaming': {},
@@ -643,6 +649,171 @@ export default class weex extends weexRest {
         ];
     }
 
+    /**
+     * @method
+     * @name weex#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/Depth-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/public/Depth-Channel
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     */
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        params = this.extend (params, {
+            'callerMethodName': 'watchOrderBook',
+        });
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+    }
+
+    /**
+     * @method
+     * @name weex#watchOrderBookForSymbols
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/Depth-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/public/Depth-Channel
+     * @param {string[]} symbols unified array of symbols
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     */
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false, true);
+        const firstMarket = this.getMarketFromSymbols (symbols);
+        const isContract = firstMarket['contract'];
+        const callerMethodName = this.safeString (params, 'callerMethodName', 'watchOrderBookForSymbols');
+        params = this.omit (params, 'callerMethodName');
+        let depth = '200';
+        [ depth, params ] = this.handleOptionAndParams (params, callerMethodName, 'depth', depth);
+        const messageHashes = [];
+        const channels = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const messageHash = 'orderbook::' + symbol;
+            const channel = market['id'] + '@depth' + depth;
+            messageHashes.push (messageHash);
+            channels.push (channel);
+        }
+        const subscription: Dict = {
+            'limit': limit,
+        };
+        const orderbook = await this.subscribePublic (messageHashes, channels, isContract, params, subscription);
+        return orderbook.limit ();
+    }
+
+    /**
+     * @method
+     * @name weex#unWatchOrderBook
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/Depth-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/public/Depth-Channel
+     * @param {string} symbol unified array of symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     */
+    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+        params = this.extend (params, {
+            'callerMethodName': 'unWatchOrderBook',
+        });
+        return await this.unWatchOrderBookForSymbols ([ symbol ], params);
+    }
+
+    /**
+     * @method
+     * @name weex#unWatchOrderBookForSymbols
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/Depth-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/public/Depth-Channel
+     * @param {string[]} symbols unified array of symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     */
+    async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const firstMarket = this.getMarketFromSymbols (symbols);
+        const isContract = firstMarket['contract'];
+        const callerMethodName = this.safeString (params, 'callerMethodName', 'unWatchOrderBookForSymbols');
+        params = this.omit (params, 'callerMethodName');
+        let depth = '200';
+        [ depth, params ] = this.handleOptionAndParams (params, callerMethodName, 'depth', depth);
+        const subHashes = [];
+        const channels = [];
+        const unSubHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const messageHash = 'orderbook::' + symbol;
+            const channel = market['id'] + '@depth' + depth;
+            const unSubMessageHash = 'unsubscribe::' + messageHash;
+            subHashes.push (messageHash);
+            channels.push (channel);
+            unSubHashes.push (unSubMessageHash);
+        }
+        const subscription = {
+            'unsubscribe': true,
+            'symbols': symbols,
+            'messageHashes': unSubHashes,
+            'subMessageHashes': subHashes,
+            'topic': 'orderbook',
+        };
+        return await this.subscribePublic (unSubHashes, channels, isContract, params, subscription);
+    }
+
+    handleOrderBook (client: Client, message) {
+        //
+        //     {
+        //         "e": "depth",
+        //         "E": 1776098967972,
+        //         "s": "ETHUSDT",
+        //         "U": 14181847790,
+        //         "u": 14181847802,
+        //         "l": 200,
+        //         "d": "CHANGED",
+        //         "b": [ [ "2227.21", "0" ], [ "2227.20", "46.519" ] ],
+        //         "a": [ [ "2227.21", "44.092" ], [ "2227.26", "0" ] ]
+        //     }
+        //
+        const market = this.getMarketFromClientAndMessage (client, message);
+        const symbol = market['symbol'];
+        const messageHash = 'orderbook::' + symbol;
+        if (!(symbol in this.orderbooks)) {
+            const subscription = this.safeDict (client.subscriptions, messageHash, {});
+            const limit = this.safeInteger (subscription, 'limit');
+            if (limit !== undefined) {
+                this.orderbooks[symbol] = this.orderBook ({}, limit);
+            } else {
+                this.orderbooks[symbol] = this.orderBook ({});
+            }
+        }
+        const orderbook = this.orderbooks[symbol];
+        const timestamp = this.safeInteger (message, 'E');
+        const event = this.safeString (message, 'e');
+        const nonce = this.safeInteger (message, 'u');
+        if (event === 'depthSnapshot') {
+            const parsed = this.parseOrderBook (message, symbol, timestamp, 'b', 'a');
+            parsed['nonce'] = nonce;
+            orderbook.reset (parsed);
+        } else {
+            const asks = this.safeList (message, 'a', []);
+            const bids = this.safeList (message, 'b', []);
+            this.handleDeltas (orderbook['asks'], asks);
+            this.handleDeltas (orderbook['bids'], bids);
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
+            orderbook['nonce'] = nonce;
+        }
+        client.resolve (orderbook, messageHash);
+    }
+
+    handleDelta (bookside, delta) {
+        const bidAsk = this.parseBidAsk (delta);
+        bookside.storeArray (bidAsk);
+    }
+
     getMarketFromClientAndMessage (client, message) {
         const url = client.url;
         let marketType = 'spot';
@@ -743,6 +914,8 @@ export default class weex extends weexRest {
             this.handleTrade (client, message);
         } else if ((event === 'kline') || (event === 'klineSnapshot')) {
             this.handleOHLCV (client, message);
+        } else if ((event === 'depth') || (event === 'depthSnapshot')) {
+            this.handleOrderBook (client, message);
         }
     }
 }
