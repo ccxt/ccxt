@@ -21,16 +21,16 @@ export default class weex extends weexRest {
                 'watchOrderBookForSymbols': false,
                 'watchTicker': true,
                 'watchTickers': true,
-                'watchTrades': false,
-                'watchTradesForSymbols': false,
+                'watchTrades': true,
+                'watchTradesForSymbols': true,
                 'unWatchOHLCV': false,
                 'unWatchOHLCVForSymbols': false,
                 'unWatchOrderBook': false,
                 'unWatchOrderBookForSymbols': false,
                 'unWatchTicker': true,
                 'unWatchTickers': true,
-                'unWatchTrades': false,
-                'unWatchTradesForSymbols': false,
+                'unWatchTrades': true,
+                'unWatchTradesForSymbols': true,
             },
             'urls': {
                 'api': {
@@ -73,13 +73,10 @@ export default class weex extends weexRest {
             'method': method,
             'params': channels,
         };
-        const extendedSubscription = this.deepExtend (subscription, {
-            'id': id,
-        });
         subscription = this.extend (subscription, { 'id': id });
         const type = isContract ? 'contract' : 'spot';
         const url = this.urls['api']['ws'][type] + '/public';
-        return await this.watchMultiple (url, messageHashes, this.deepExtend (message, params), messageHashes, extendedSubscription);
+        return await this.watchMultiple (url, messageHashes, this.deepExtend (message, params), messageHashes, subscription);
     }
 
     /**
@@ -179,6 +176,7 @@ export default class weex extends weexRest {
         const subscription = {
             'unsubscribe': true,
             'symbols': symbols,
+            'messageHashes': unSubHashes,
             'subMessageHashes': subHashes,
             'topic': topic,
         };
@@ -218,7 +216,7 @@ export default class weex extends weexRest {
         const symbol = ticker['symbol'];
         const messageHash = 'ticker::' + symbol;
         this.tickers[symbol] = ticker;
-        client.resolve (this.tickers[symbol], messageHash);
+        client.resolve (this.tickers, messageHash);
     }
 
     parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -255,7 +253,7 @@ export default class weex extends weexRest {
             'vwap': this.safeString (ticker, 'w'),
             'open': this.safeString (ticker, 'o'),
             'close': close,
-            'last': undefined,
+            'last': close,
             'previousClose': this.safeString (ticker, 'x'),
             'change': this.safeString (ticker, 'p'),
             'percentage': this.safeString (ticker, 'P'),
@@ -321,6 +319,60 @@ export default class weex extends weexRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
+    /**
+     * @method
+     * @name weex#unWatchTrades
+     * @description unsubscribes from the trades channel
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/Trades-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/public/Trades-Channel
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        return await this.unWatchTradesForSymbols ([ symbol ], params);
+    }
+
+    /**
+     * @method
+     * @name weex#unWatchTradesForSymbols
+     * @description unsubscribes from the trades channel
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/Trades-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/public/Trades-Channel
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false, true);
+        const firstMarket = this.getMarketFromSymbols (symbols);
+        const isContract = firstMarket['contract'];
+        const topic = 'trade';
+        const subHashes = [];
+        const channels = [];
+        const unSubHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const channelName = market['id'] + '@' + topic;
+            const messageHash = topic + '::' + symbol;
+            const unSubMessageHash = 'unsubscribe::' + messageHash;
+            subHashes.push (messageHash);
+            channels.push (channelName);
+            unSubHashes.push (unSubMessageHash);
+        }
+        const subscription = {
+            'unsubscribe': true,
+            'symbols': symbols,
+            'messageHashes': unSubHashes,
+            'subMessageHashes': subHashes,
+            'topic': 'trades',
+        };
+        return await this.subscribePublic (unSubHashes, channels, isContract, params, subscription);
+    }
+
     handleTrade (client: Client, message) {
         const market = this.getMarketFromClientAndMessage (client, message);
         const symbol = market['symbol'];
@@ -338,6 +390,35 @@ export default class weex extends weexRest {
         }
         this.trades[symbol] = tradesArray;
         client.resolve (tradesArray, messageHash);
+    }
+
+    parseWsTrade (trade, market = undefined) {
+        //
+        //     {
+        //         "T": 1776089287762,
+        //         "t": "df4d1af1-71e8-400d-9571-f2cee2e6bea8",
+        //         "p": "2203.73",
+        //         "q": "7.214",
+        //         "v": "15897.70822",
+        //         "m": false
+        //     }
+        //
+        const timestamp = this.safeInteger (trade, 'T');
+        return this.safeTrade ({
+            'info': trade,
+            'id': this.safeString (trade, 't'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'order': undefined,
+            'type': undefined,
+            'side': undefined,
+            'takerOrMaker': undefined,
+            'price': this.safeString (trade, 'p'),
+            'amount': this.safeString (trade, 'q'),
+            'cost': this.safeString (trade, 'v'),
+            'fee': undefined,
+        }, market);
     }
 
     getMarketFromClientAndMessage (client, message) {
@@ -436,6 +517,8 @@ export default class weex extends weexRest {
             this.handlePing (client, message);
         } else if (event === 'ticker') {
             this.handleTicker (client, message);
+        } else if ((event === 'trade') || (event === 'tradeSnapshot')) {
+            this.handleTrade (client, message);
         }
     }
 }
