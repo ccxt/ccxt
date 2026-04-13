@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import weexRest from '../weex.js';
-// import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
+import { ExchangeError } from '../base/errors.js';
 // import { Precise } from '../base/Precise.js';
 // import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Dict, Market, Strings, Ticker, Tickers } from '../base/types.js';
@@ -27,8 +27,8 @@ export default class weex extends weexRest {
                 'unWatchOHLCVForSymbols': false,
                 'unWatchOrderBook': false,
                 'unWatchOrderBookForSymbols': false,
-                'unWatchTicker': false,
-                'unWatchTickers': false,
+                'unWatchTicker': true,
+                'unWatchTickers': true,
                 'unWatchTrades': false,
                 'unWatchTradesForSymbols': false,
             },
@@ -73,10 +73,13 @@ export default class weex extends weexRest {
             'method': method,
             'params': channels,
         };
+        const extendedSubscription = this.deepExtend (subscription, {
+            'id': id,
+        });
         subscription = this.extend (subscription, { 'id': id });
         const type = isContract ? 'contract' : 'spot';
         const url = this.urls['api']['ws'][type] + '/public';
-        return this.watchMultiple (url, messageHashes, this.deepExtend (message, params), messageHashes, subscription);
+        return this.watchMultiple (url, messageHashes, this.deepExtend (message, params), messageHashes, extendedSubscription);
     }
 
     /**
@@ -176,7 +179,6 @@ export default class weex extends weexRest {
         const subscription = {
             'unsubscribe': true,
             'symbols': symbols,
-            'messageHashes': unSubHashes,
             'subMessageHashes': subHashes,
             'topic': topic,
         };
@@ -294,19 +296,46 @@ export default class weex extends weexRest {
 
     handleSubscriptionStatus (client: Client, message) {
         //
-        //     { "id": "5", "method": "PONG" }
+        // successful unsubscription
+        //     { "result": true, "id": 2 }
         //
         const id = this.safeString (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         const subscription = this.safeDict (subscriptionsById, id, {});
         const unsubscribe = this.safeBool (subscription, 'unsubscribe', false);
         if (unsubscribe) {
-            const unSubHashes = this.safeList (subscription, 'messageHashes', []);
+            const messageHashes = this.safeList (subscription, 'messageHashes', []);
             const subHashes = this.safeList (subscription, 'subMessageHashes', []);
-            for (let i = 0; i < unSubHashes.length; i++) {
-                const unSubHash = this.safeString (unSubHashes, i);
+            for (let i = 0; i < messageHashes.length; i++) {
+                const unSubHash = this.safeString (messageHashes, i);
                 const subHash = this.safeString (subHashes, i);
                 this.cleanUnsubscription (client, subHash, unSubHash);
+            }
+            this.cleanCache (subscription);
+        }
+    }
+
+    handleErrorMessage (client: Client, message) {
+        //
+        //     {
+        //         "result": false,
+        //         "id": 1,
+        //         "msg": "INVALID_ARGUMENT: invalid symbol : ASDFS_SPBL"
+        //     }
+        //
+        const result = this.safeBool (message, 'result', true);
+        if (result) {
+            return false;
+        } else {
+            const msg = this.safeString (message, 'msg', '');
+            const feedback = this.id + ' ' + this.json (message);
+            try {
+                this.throwExactlyMatchedException (this.exceptions['exact'], msg, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], msg, feedback);
+                throw new ExchangeError (feedback);
+            } catch (error) {
+                client.reject (error);
+                return true;
             }
         }
     }
@@ -315,6 +344,17 @@ export default class weex extends weexRest {
         //
         //     { "id": "5", "method": "PONG" }
         //
+        //     { "result": true, "id": 2 }
+        //
+        //     {
+        //         "result": false,
+        //         "id": 1,
+        //         "msg": "INVALID_ARGUMENT: invalid symbol : ASDFS_SPBL"
+        //     }
+        //
+        if (this.handleErrorMessage (client, message)) {
+            return;
+        }
         const id = this.safeString (message, 'id');
         if (id !== undefined) {
             this.handleSubscriptionStatus (client, message);
