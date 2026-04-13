@@ -211,8 +211,10 @@ class Exchange(BaseExchange):
                     self.log("\nfetch Response:", self.id, method, url, http_status_code, "ResponseHeaders:", headers, "ResponseBody:", http_response)
                 self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
 
-        except aiohttp.ClientConnectorDNSError:
+        except aiohttp.ClientConnectorDNSError as e:
             if self.enable_custom_dns_resolver:
+                if self.verbose:
+                    self.log(f"Triggered force refresh for all prefetch_host. Error: {e}")
                 for hostname in self.prefetch_hosts:
                     self.dns_resolver.force_refresh(host=hostname)
             raise
