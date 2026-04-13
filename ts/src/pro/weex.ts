@@ -313,6 +313,7 @@ export default class weex extends weexRest {
             }
             this.cleanCache (subscription);
         }
+        return message;
     }
 
     handleErrorMessage (client: Client, message) {
@@ -324,9 +325,7 @@ export default class weex extends weexRest {
         //     }
         //
         const result = this.safeBool (message, 'result', true);
-        if (result) {
-            return false;
-        } else {
+        if (!result) {
             const msg = this.safeString (message, 'msg', '');
             const feedback = this.id + ' ' + this.json (message);
             try {
@@ -338,6 +337,7 @@ export default class weex extends weexRest {
                 return true;
             }
         }
+        return false;
     }
 
     handleMessage (client: Client, message) {
