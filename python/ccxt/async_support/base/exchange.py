@@ -34,13 +34,11 @@ from ccxt.base.precise import Precise
 
 # -----------------------------------------------------------------------------
 
+from ccxt.async_support.base.dns_resolver import DnsResolver
 from ccxt.async_support.base.ws.functions import inflate, inflate64, gunzip
 from ccxt.async_support.base.ws.fast_client import FastClient
 from ccxt.async_support.base.ws.future import Future
 from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
-
-from python.ccxt.async_support.base.dns_resolver import DnsResolver
-
 
 # -----------------------------------------------------------------------------
 
