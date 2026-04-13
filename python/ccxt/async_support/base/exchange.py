@@ -115,7 +115,7 @@ class Exchange(BaseExchange):
             if self.enable_custom_dns_resolver:
                 self.dns_resolver = DnsResolver(
                     ttl=self.dns_ttl,
-                    prefetch_hosts=self.prefetch_hostnames,
+                    prefetch_hosts=self.prefetch_hosts,
                     loop=self.asyncio_loop,
                 )
             # Pass this SSL context to aiohttp and create a TCPConnector
