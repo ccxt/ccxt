@@ -346,6 +346,8 @@ export default class weex extends Exchange {
                     // {"code":-1054,"msg":"FAILED_PRECONDITION: Move margin available amount not enough. Move out available amount is 6.98296375, move out amount is 200.00000000"}
                     // {"code":-1140,"msg":"newClientOrderId must not be blank"}
                     // {"code":-1140,"msg":"FAILED_PRECONDITION: The order amount not enough. order need amount is 19.095300, available amount is 0E-8"}
+                    // WS error response:
+                    // {"result":false,"id":1,"msg":"INVALID_ARGUMENT: invalid symbol : ASDFS_SPBL"}
                 },
                 'broad': {
                 },
