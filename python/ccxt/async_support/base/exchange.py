@@ -213,8 +213,7 @@ class Exchange(BaseExchange):
 
         except aiohttp.ClientConnectorDNSError as e:
             if self.enable_custom_dns_resolver:
-                if self.verbose:
-                    self.log(f"Triggered force refresh for all prefetch_host. Error: {e}")
+                self.logger.info(f"Triggered force refresh for all prefetch_host. Error: {e}")
                 for hostname in self.prefetch_hosts:
                     self.dns_resolver.force_refresh(host=hostname)
             raise
