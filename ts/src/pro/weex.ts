@@ -15,6 +15,7 @@ export default class weex extends weexRest {
     describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
+                'watchBidsAsks': true,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': true,
                 'watchOrderBook': false,
@@ -23,6 +24,7 @@ export default class weex extends weexRest {
                 'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
+                'unWatchBidsAsks': true,
                 'unWatchOHLCV': true,
                 'unWatchOHLCVForSymbols': true,
                 'unWatchOrderBook': false,
@@ -225,7 +227,7 @@ export default class weex extends weexRest {
         const tickers = this.safeList (message, 'd', []);
         const data = this.safeDict (tickers, 0, {});
         const ticker = this.parseWsTicker (data, market);
-        const symbol = ticker['symbol'];
+        const symbol = market['symbol'];
         const messageHash = 'ticker::' + symbol;
         this.tickers[symbol] = ticker;
         client.resolve (this.tickers, messageHash);
@@ -739,7 +741,7 @@ export default class weex extends weexRest {
      */
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        symbols = this.marketSymbols (symbols, undefined, false, true);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const isContract = firstMarket['contract'];
         const callerMethodName = this.safeString (params, 'callerMethodName', 'unWatchOrderBookForSymbols');
@@ -818,6 +820,107 @@ export default class weex extends weexRest {
     handleDelta (bookside, delta) {
         const bidAsk = this.parseBidAsk (delta);
         bookside.storeArray (bidAsk);
+    }
+
+    /**
+     * @method
+     * @name weex#watchBidsAsks
+     * @description watches best bid & ask for spot symbols
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/BookTicker-Channel
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, 'spot', false, true);
+        const messageHashes = [];
+        const channels = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const channelName = market['id'] + '@' + 'bookTicker';
+            const messageHash = 'bidask::' + symbol;
+            messageHashes.push (messageHash);
+            channels.push (channelName);
+        }
+        const newTicker = await this.subscribePublic (messageHashes, channels, false, params);
+        if (this.newUpdates) {
+            const result = {};
+            result[newTicker['symbol']] = newTicker;
+            return result;
+        }
+        return this.filterByArray (this.bidsasks, 'symbol', symbols);
+    }
+
+    /**
+     * @method
+     * @name weex#unWatchBidsAsks
+     * @description unWatches best bid & ask for spot symbols
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/BookTicker-Channel
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, 'spot', false, true);
+        const subHashes = [];
+        const channels = [];
+        const unSubHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const channelName = market['id'] + '@' + 'bookTicker';
+            const messageHash = 'bidask::' + symbol;
+            const unSubMessageHash = 'unsubscribe::' + messageHash;
+            subHashes.push (messageHash);
+            channels.push (channelName);
+            unSubHashes.push (unSubMessageHash);
+        }
+        const subscription = {
+            'unsubscribe': true,
+            'symbols': symbols,
+            'messageHashes': unSubHashes,
+            'subMessageHashes': subHashes,
+            'topic': 'bidsasks',
+        };
+        return await this.subscribePublic (unSubHashes, channels, false, params, subscription);
+    }
+
+    handleBidAsk (client: Client, message) {
+        //
+        //     {
+        //         "e": "bookTicker",
+        //         "E": 1776103547551,
+        //         "s": "ETHUSDT",
+        //         "u": 1776103547547,
+        //         "b": "2227.39",
+        //         "B": "1.05512",
+        //         "a": "2227.40",
+        //         "A": "6.30889"
+        //     }
+        //
+        const market = this.getMarketFromClientAndMessage (client, message);
+        const ticker = this.parseWsBidAsk (message, market);
+        const symbol = ticker['symbol'];
+        this.bidsasks[symbol] = ticker;
+        const messageHash = 'bidask::' + symbol;
+        client.resolve (ticker, messageHash);
+    }
+
+    parseWsBidAsk (message, market = undefined) {
+        const timestamp = this.safeInteger (message, 'E');
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'ask': this.safeString (message, 'a'),
+            'askVolume': this.safeString (message, 'A'),
+            'bid': this.safeString (message, 'b'),
+            'bidVolume': this.safeString (message, 'B'),
+            'info': message,
+        }, market);
     }
 
     getMarketFromClientAndMessage (client, message) {
@@ -922,6 +1025,8 @@ export default class weex extends weexRest {
             this.handleOHLCV (client, message);
         } else if ((event === 'depth') || (event === 'depthSnapshot')) {
             this.handleOrderBook (client, message);
+        } else if (event === 'bookTicker') {
+            this.handleBidAsk (client, message);
         }
     }
 }
