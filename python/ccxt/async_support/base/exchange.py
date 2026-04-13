@@ -39,6 +39,8 @@ from ccxt.async_support.base.ws.fast_client import FastClient
 from ccxt.async_support.base.ws.future import Future
 from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
 
+from python.ccxt.async_support.base.dns_resolver import DnsResolver
+
 
 # -----------------------------------------------------------------------------
 
@@ -111,8 +113,18 @@ class Exchange(BaseExchange):
         if self.own_session and self.session is None:
             # Create our SSL context object with our CA cert file
             context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
+            # Create DNS Resolver
+            resolver: Optional[DnsResolver] = None
+            if self.enableCustomDNSResolver:
+                resolver = DnsResolver(
+                    ttl=self.dns_ttl,
+                    prefetch_hosts=self.prefetch_hostnames,
+                    loop=self.asyncio_loop,
+                )
             # Pass this SSL context to aiohttp and create a TCPConnector
-            connector = aiohttp.TCPConnector(ssl=context, loop=self.asyncio_loop, enable_cleanup_closed=True)
+            connector = aiohttp.TCPConnector(
+                ssl=context, loop=self.asyncio_loop, enable_cleanup_closed=True, resolver=resolver
+            )
             self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
 
     async def close(self):

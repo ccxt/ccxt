@@ -113,6 +113,8 @@ class Exchange(object):
     trust_env = False
     aiohttp_trust_env = False
     requests_trust_env = False
+    enableCustomDNSResolver = False
+    prefetch_hosts = []
     session = None  # Session () by default
     verify = True  # SSL verification
     validateServerSsl = True
