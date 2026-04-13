@@ -551,7 +551,7 @@
                     300,
                     0.08
                 ],
-                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"quantity\":\"300\",\"price\":\"0.08\"}"
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"quantity\":\"300\",\"price\":\"0.08\",\"newClientOrderId\":\"b-WEEX111125-740eca9d6e3d4aa2ab31fe\"}"
             },
             {
                 "description": "create spot market buy order with clientOrderId",
@@ -579,7 +579,7 @@
                     "sell",
                     299
                 ],
-                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"SELL\",\"type\":\"MARKET\",\"quantity\":\"299\"}"
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"SELL\",\"type\":\"MARKET\",\"quantity\":\"299\",\"newClientOrderId\":\"b-WEEX111125-740eca9d6e3d4aa2ab31fe\"}"
             }
         ],
         "fetchTransfers": [
