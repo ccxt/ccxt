@@ -112,16 +112,15 @@ class Exchange(BaseExchange):
             # Create our SSL context object with our CA cert file
             context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
             # Create DNS Resolver
-            resolver: Optional[DnsResolver] = None
             if self.enable_custom_dns_resolver:
-                resolver = DnsResolver(
+                self.dns_resolver = DnsResolver(
                     ttl=self.dns_ttl,
                     prefetch_hosts=self.prefetch_hostnames,
                     loop=self.asyncio_loop,
                 )
             # Pass this SSL context to aiohttp and create a TCPConnector
             connector = aiohttp.TCPConnector(
-                ssl=context, loop=self.asyncio_loop, enable_cleanup_closed=True, resolver=resolver
+                ssl=context, loop=self.asyncio_loop, enable_cleanup_closed=True, resolver=self.dns_resolver
             )
             self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
 
@@ -211,6 +210,12 @@ class Exchange(BaseExchange):
                 if self.verbose:
                     self.log("\nfetch Response:", self.id, method, url, http_status_code, "ResponseHeaders:", headers, "ResponseBody:", http_response)
                 self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
+
+        except aiohttp.ClientConnectorDNSError:
+            if self.enable_custom_dns_resolver:
+                for hostname in self.prefetch_hosts:
+                    self.dns_resolver.force_refresh(host=hostname)
+            raise
 
         except socket.gaierror as e:
             details = ' '.join([self.id, method, url])

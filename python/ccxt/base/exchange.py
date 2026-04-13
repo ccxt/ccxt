@@ -116,6 +116,7 @@ class Exchange(object):
     dns_ttl = 300  # seconds
     enable_custom_dns_resolver = False
     prefetch_hosts = []
+    dns_resolver = None  # Optional[DnsResolver]
     session = None  # Session () by default
     verify = True  # SSL verification
     validateServerSsl = True
