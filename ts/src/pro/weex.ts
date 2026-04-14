@@ -76,7 +76,6 @@ export default class weex extends weexRest {
                     'fetchPositionsSnapshot': true,
                     'awaitPositionsSnapshot': true,
                 },
-
             },
             'streaming': {},
         });
