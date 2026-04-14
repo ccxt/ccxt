@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/weex.js';
-import { ArgumentsRequired, BadRequest, InvalidOrder, NotSupported } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NotSupported, OrderNotFound, PermissionDenied } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -327,29 +327,54 @@ export default class weex extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    // {"code":-1000,"msg":"An unknown error occurred."}
-                    // {"code":-1142,"msg":"Parameter 'interval' is invalid."}
-                    // {"code":-1142,"msg":"Parameter 'limit' is invalid."}
-                    // {"code":-1150,"msg":"Request method 'GET' not supported"}
-                    // {"code":-1044,"msg":"Invalid ACCESS_KEY."}
-                    // {"code":-1052,"msg":"Insufficient permissions for this action."}
-                    // {"code":-1047,"msg":"API authentication failed."}
-                    // {"code":-1140,"msg":"FAILED_PRECONDITION: The order value exceed min order value 5USDT"}
-                    // {"code":-1140,"msg":"FAILED_PRECONDITION: The order amount not enough. order need amount is 300.0, available amount is 299.70000000"}
-                    // {"code":-1115,"msg":"Invalid timeInForce: postOnly"}
-                    // {"code":-1045,"msg":"Invalid Content-Type, please use application/json."}
-                    // {"orderId":121231,"status":"FAILED","errorMsg":"FAILED_ORDER_NOT_FOUND"}
-                    // {"code":-1140,"msg":"Either orderId or origClientOrderId must be sent."}
-                    // {"code":-1141,"msg":"Parameter 'symbol' cannot be empty."}
-                    // {"orderId":"737188743538017640","origClientOrderId":null,"success":false,"errorCode":"FAILED_ORDER_NOT_FOUND","errorMessage":"FAILED_ORDER_NOT_FOUND"}
-                    // {"code":-1140,"msg":"startTime Parameter type error, expected Long type"}
-                    // {"code":-1054,"msg":"FAILED_PRECONDITION: Move margin available amount not enough. Move out available amount is 6.98296375, move out amount is 200.00000000"}
-                    // {"code":-1140,"msg":"newClientOrderId must not be blank"}
-                    // {"code":-1140,"msg":"FAILED_PRECONDITION: The order amount not enough. order need amount is 19.095300, available amount is 0E-8"}
-                    // WS error response:
-                    // {"result":false,"id":1,"msg":"INVALID_ARGUMENT: invalid symbol : ASDFS_SPBL"}
+                    '-1000': ExchangeError, // UNKNOWN_ERROR An unknown error occurred.
+                    '-1054': ExchangeError, // SYSTEM_ERROR System error, please retry later.
+                    '-1040': AuthenticationError, // ACCESS_KEY_EMPTY ACCESS_KEY header is required.
+                    '-1041': AuthenticationError, // ACCESS_SIGN_EMPTY ACCESS_SIGN header is required.
+                    '-1042': AuthenticationError, // ACCESS_TIMESTAMP_EMPTY ACCESS_TIMESTAMP header is required.
+                    '-1043': AuthenticationError, // INVALID_ACCESS_TIMESTAMP Invalid ACCESS_TIMESTAMP.
+                    '-1044': AuthenticationError, // INVALID_ACCESS_KEY Invalid ACCESS_KEY.
+                    '-1045': BadRequest, // INVALID_CONTENT_TYPE Invalid Content-Type, please use application/json.
+                    '-1046': BadRequest, // ACCESS_TIMESTAMP_EXPIRED Request timestamp expired.
+                    '-1047': AuthenticationError, // API_AUTH_ERROR API authentication failed.
+                    '-1049': AuthenticationError, // API_KEY_OR_PASSPHRASE_INCORRECT API key or passphrase incorrect.
+                    '-1050': PermissionDenied, // USER_STATUS_FORBIDDEN User status is abnormal.
+                    '-1051': PermissionDenied, // PERMISSION_DENIED Permission denied.
+                    '-1052': PermissionDenied, // INSUFFICIENT_PERMISSIONS Insufficient permissions for this action.
+                    '-1053': PermissionDenied, // PERMISSION_VALIDATION_FAILED Permission validation failed.
+                    '-1055': PermissionDenied, // USER_AUTH_NOT_SAFE User must bind phone or Google authenticator.
+                    '-1056': PermissionDenied, // ILLEGAL_IP Invalid IP address.
+                    '-1057': PermissionDenied, // USER_LOCKED User account is locked.
+                    '-1058': PermissionDenied, // NO_PERMISSION_TRADE_PAIR No permission for this trading pair.
+                    '-1115': InvalidOrder, // INVALID_TIME_IN_FORCE Invalid timeInForce.
+                    '-1116': InvalidOrder, // INVALID_ORDER_TYPE Invalid order type.
+                    '-1117': InvalidOrder, // INVALID_SIDE Invalid side.
+                    '-1121': BadSymbol, // INVALID_SYMBOL Invalid symbol.
+                    '-1128': BadRequest, // INVALID_PARAM_COMBINATION Combination of optional parameters invalid.
+                    '-1135': BadRequest, // INVALID_JSON Invalid JSON request.
+                    '-1140': BadRequest, // PARAM_VALIDATE_ERROR Parameter validation failed. limit must be between  and .
+                    '-1141': ArgumentsRequired, // PARAM_EMPTY Parameter cannot be empty.
+                    '-1142': BadRequest, // PARAM_ERROR Parameter is invalid.
+                    '-1150': BadRequest, // REQUEST_METHOD_NOT_SUPPORTED Request method not supported.
+                    '-1160': BadRequest, // DECIMAL_PRECISION_ERROR Decimal precision error.
+                    '-1170': BadRequest, // QUERY_TIME_OUT_OF_RANGE startTime must be within the last days. Time range cannot exceed days.
+                    '-1171': BadRequest, // START_TIME_AFTER_END_TIME startTime cannot be greater than endTime.
+                    '-1180': InvalidOrder, // CLIENT_OID_LENGTH_ERROR client_oid length must not exceed 40 and must not contain special characters.
+                    '-1190': PermissionDenied, // FORBIDDEN_ACCESS Access forbidden. Please contact support.
+                    '-2007': BadSymbol, // SPOT_SYMBOL_NOT_EXIST Symbol does not exist.
+                    '-2200': OrderNotFound, // SPOT_ORDER_NOT_EXIST Order does not exist.
+                    '-3006': InvalidOrder, // CONTRACT_DOES_NOT_SUPPORT_CONTRACT_UNITS Contract does not support ordering by contract units.
+                    '-3007': InvalidOrder, // CONTRACT_MAX_ORDER_QUANTITY_EXCEEDED Maximum contract order quantity exceeded.
+                    '-3200': InvalidOrder, // CONTRACT_ORDER_NOT_EXIST Order does not exist.
+                    '-3235': PermissionDenied, // CONTRACT_NO_PERMISSION_TRADE_PAIR No permission for this trading pair.
+                    '-3236': PermissionDenied, // CONTRACT_NO_PERMISSION_API No permission to access this API.
+                    '-3313': InvalidOrder, // CONTRACT_LEVERAGE_ERROR Leverage exceeds maximum limit.
+                    '-3613': ExchangeError, // CONTRACT_FATAL_TOKEN_NOT_SUPPORT Fatal: token ID not supported for symbol.
+                    'FAILED_ORDER_NOT_FOUND': OrderNotFound, // {"orderId":121231,"status":"FAILED","errorMsg":"FAILED_ORDER_NOT_FOUND"}
                 },
                 'broad': {
+                    'amount not enough': InsufficientFunds, // {"code":-1054,"msg":"FAILED_PRECONDITION: Move margin available amount not enough. Move out available amount is 6.98296375, move out amount is 200.00000000"}
+                    'INVALID_ARGUMENT': BadRequest, // {"result":false,"id":1,"msg":"INVALID_ARGUMENT: invalid symbol : ASDFS_SPBL"}
                 },
             },
             'fees': {
@@ -3797,5 +3822,24 @@ export default class weex extends Exchange {
         }
         const url = this.urls['api'][api] + '/' + endpoint;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        //
+        //     {
+        //         "code": -1140,
+        //         "msg": "Either orderId or origClientOrderId must be sent."
+        //     }
+        //
+        const message = this.safeString (response, 'msg');
+        if (message !== undefined) {
+            const errorCode = this.safeString (response, 'code');
+            const feedback = this.id + ' ' + body;
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            throw new ExchangeError (this.id + ' ' + body);
+        }
+        return undefined;
     }
 }
