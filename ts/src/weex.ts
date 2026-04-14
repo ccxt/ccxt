@@ -2006,7 +2006,7 @@ export default class weex extends Exchange {
      * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
      * @param {string} [params.takeProfitPriceType] The type of the trigger price for the take profit order, either 'last' or 'mark' (default is 'last')
      * @param {bool} [params.reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
-     * @param {string} [params.timeInForce] GTC, IOC, or FOK
+     * @param {string} [params.timeInForce] GTC, IOC, or FOK (default is GTC for limit orders)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createContractOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -2106,6 +2106,9 @@ export default class weex extends Exchange {
             }
             params['type'] = orderType;
         } else {
+            if (!isMarketOrder && timeInForce === undefined) {
+                request['timeInForce'] = 'GTC';
+            }
             request['newClientOrderId'] = clientOrderId;
             if (hasStopLoss) {
                 const stopLossTriggerPrice = this.safeNumber (stopLoss, 'triggerPrice');
@@ -3252,6 +3255,36 @@ export default class weex extends Exchange {
         //         "liquidatePrice": "0"
         //     }
         //
+        // watchPoisions
+        //     {
+        //         "id": "739004481374519656",
+        //         "coin": "USDT",
+        //         "symbol": "DOGEUSDT",
+        //         "side": "LONG",
+        //         "marginMode": "CROSSED",
+        //         "separatedMode": "COMBINED",
+        //         "separatedOpenOrderId": "0",
+        //         "leverage": "11",
+        //         "size": "100",
+        //         "openValue": "9.31100",
+        //         "openFee": "0.00744880",
+        //         "fundingFee": "0",
+        //         "isolatedMargin": "0",
+        //         "autoAppendIsolatedMargin": false,
+        //         "cumOpenSize": "100",
+        //         "cumOpenValue": "9.31100",
+        //         "cumOpenFee": "0.00744880",
+        //         "cumCloseSize": "0",
+        //         "cumCloseValue": "0",
+        //         "cumCloseFee": "0",
+        //         "cumFundingFee": "0",
+        //         "cumLiquidateFee": "0",
+        //         "createdMatchSequenceId": "5792711540",
+        //         "updatedMatchSequenceId": "5792711540",
+        //         "createdTime": "1776192398399",
+        //         "updatedTime": "1776192398399"
+        //     }
+        //
         const errorMessage = this.safeString (position, 'errorMsg');
         const errorCode = this.safeString (position, 'errorCode');
         if (errorMessage !== undefined) {
@@ -3260,7 +3293,7 @@ export default class weex extends Exchange {
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market, undefined, 'contract');
         const timestamp = this.safeInteger (position, 'createdTime');
-        const marginType = this.safeString (position, 'marginType');
+        const marginType = this.safeString2 (position, 'marginType', 'marginMode');
         let marginMode = 'cross';
         if (marginType === 'ISOLATED') {
             marginMode = 'isolated';
