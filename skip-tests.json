@@ -728,6 +728,12 @@
             "watchTickers": "closes connection",
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
+            },
+            "watchTrades": {
+                "timestampSort": "https://github.com/ccxt/ccxt/actions/runs/24385112543/job/71217585200?pr=14269#step:11:545"
+            },
+            "watchTradesForSymbols": {
+                "timestampSort": "same"
             }
         }
     },
