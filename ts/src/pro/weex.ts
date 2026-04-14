@@ -69,7 +69,7 @@ export default class weex extends weexRest {
                     'depth': '200', // or '15'
                 },
                 'watchBalance': {
-                    'fetchBalanceSnapshot': false,
+                    'fetchBalanceSnapshot': true,
                     'awaitBalanceSnapshot': true,
                 },
                 'watchPositions': {
@@ -1516,11 +1516,10 @@ export default class weex extends weexRest {
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params, type);
-        if (type !== 'spot') {
-            type = 'contract';
-        }
-        const url = this.urls['api']['ws'][type] + '/private';
+        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const isContract = (type !== 'spot');
+        const urlType = isContract ? 'contract' : 'spot';
+        const url = this.urls['api']['ws'][urlType] + '/private';
         this.authenticate (url);
         const client = this.client (url);
         this.setBalanceCache (client, type);
@@ -1530,8 +1529,8 @@ export default class weex extends weexRest {
         if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
             await client.future (type + ':fetchBalanceSnapshot');
         }
-        const messageHash = type + ':balance';
-        return await this.subscribePrivate (messageHash, messageHash, 'account', type === 'contract', params);
+        const messageHash = type + ':' + 'balance';
+        return await this.subscribePrivate (messageHash, type, 'account', isContract, params);
     }
 
     setBalanceCache (client: Client, type) {
@@ -1626,7 +1625,7 @@ export default class weex extends weexRest {
         const url = client.url;
         let accountType = 'spot';
         if (url.indexOf ('contract') >= 0) {
-            accountType = 'contract';
+            accountType = 'swap';
         }
         const messageHash = accountType + ':balance';
         if (this.balance[accountType] === undefined) {
