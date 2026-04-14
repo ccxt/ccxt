@@ -1266,6 +1266,8 @@
         }
     },
     "hibachi": {
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "only have USDT"
