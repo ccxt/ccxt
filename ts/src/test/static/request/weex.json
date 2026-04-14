@@ -529,6 +529,19 @@
         ],
         "createOrder": [
             {
+                "description": "create swap limit buy order",
+                "method": "createOrder",
+                "url": "https://api-contract.weex.com/capi/v3/order",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "limit",
+                    "buy",
+                    200,
+                    0.01
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"BUY\",\"quantity\":\"200\",\"type\":\"LIMIT\",\"price\":\"0.01\",\"positionSide\":\"LONG\",\"timeInForce\":\"GTC\",\"newClientOrderId\":\"b-WEEX111125-a0c63bf17ecb4e5c959a5b\"}"
+            },
+            {
                 "description": "create market swap order",
                 "method": "createOrder",
                 "url": "https://api-contract.weex.com/capi/v3/order",
