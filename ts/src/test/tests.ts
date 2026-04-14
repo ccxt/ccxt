@@ -1667,7 +1667,8 @@ class testMainClass {
             this.testDerive (),
             this.testModeTrade (),
             this.testBackpack (),
-            this.testToobit ()
+            this.testToobit (),
+            this.testWeex ()
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -2332,6 +2333,27 @@ class testMainClass {
             await close (exchange);
         }
         return true;
+    }
+
+    async testWeex () {
+        const exchange = this.initOfflineExchange ('weex');
+        const id = 'b-WEEX111125';
+        assert (exchange.options['partner'] === id, 'weex - id: ' + id + ' not in options');
+        let request = undefined;
+        try {
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            request = jsonParse (exchange.last_request_body);
+        }
+        let clientOrderId = request['newClientOrderId'];
+        assert (clientOrderId.startsWith (id), 'weex - newClientOrderId: ' + clientOrderId + ' for spot order does not start with id: ' + id);
+        try {
+            await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            request = jsonParse (exchange.last_request_body);
+        }
+        clientOrderId = request['newClientOrderId'];
+        assert (clientOrderId.startsWith (id), 'weex - newClientOrderId: ' + clientOrderId + ' for swap order does not start with id: ' + id);
     }
 }
 
