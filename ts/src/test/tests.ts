@@ -389,7 +389,7 @@ class testMainClass {
                 const isAuthError = (e instanceof AuthenticationError);
                 const isNotSupported = (e instanceof NotSupported);
                 const isOperationFailed = (e instanceof OperationFailed); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
-                const lastUrlMsg = ' [Last url: ' + exchange.last_request_url + ']';
+                const lastUrlMsg = this.wsTests ? '' : ' [Last url: ' + exchange.last_request_url + ']';
                 if (isOperationFailed) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i === maxRetries - 1) {
