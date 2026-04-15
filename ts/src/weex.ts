@@ -188,7 +188,7 @@ export default class weex extends Exchange {
                 'withdraw': false,
             },
             'urls': {
-                'logo': '', // todo
+                'logo': 'https://github.com/user-attachments/assets/ccbadb2d-5035-403d-898f-dce831bdc936', // todo
                 'api': {
                     'public': 'https://api-spot.weex.com',
                     'private': 'https://api-spot.weex.com',
@@ -199,6 +199,7 @@ export default class weex extends Exchange {
                 'doc': [
                     'https://www.weex.com/api-doc',
                 ],
+                'referral': 'https://weex.com/register?vipCode=4lvdl',
             },
             'api': {
                 'public': {
