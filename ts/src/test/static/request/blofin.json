@@ -200,6 +200,46 @@
                     }
                 ],
                 "output": "{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"positionSide\":\"net\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"size\":\"1\",\"slTriggerPrice\":\"50\",\"slOrderPrice\":\"-1\",\"marginMode\":\"cross\", \"clientOrderId\":\"84c4ac9afce249e0aef35631382928f6\"}"
+            },
+            {
+                "description": "create full position tpsl (type2) order with stopLossPrice and takeProfitPrice",
+                "method": "createOrder",
+                "url": "https://openapi.blofin.com/api/v1/trade/order-tpsl",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    -1,
+                    null,
+                    {
+                        "takeProfitPrice": 200,
+                        "stopLossPrice": 50,
+                        "marginMode": "isolated",
+                        "reduceOnly": true,
+                        "clientOrderId": "full-tpsl-both"
+                    }
+                ],
+                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"positionSide\":\"net\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"size\":\"-1\",\"slTriggerPrice\":\"50\",\"slOrderPrice\":\"-1\",\"tpTriggerPrice\":\"200\",\"tpOrderPrice\":\"-1\",\"marginMode\":\"isolated\", \"reduceOnly\":\"true\", \"clientOrderId\":\"full-tpsl-both\"}"
+            },
+            {
+                "description": "create partial tpsl (type2) order with stopLossPrice and takeProfitPrice",
+                "method": "createOrder",
+                "url": "https://openapi.blofin.com/api/v1/trade/order-tpsl",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.2,
+                    null,
+                    {
+                        "takeProfitPrice": 200,
+                        "stopLossPrice": 50,
+                        "marginMode": "isolated",
+                        "reduceOnly": true,
+                        "clientOrderId": "partial-tpsl-both"
+                    }
+                ],
+                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"positionSide\":\"net\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"size\":\"0.2\",\"slTriggerPrice\":\"50\",\"slOrderPrice\":\"-1\",\"tpTriggerPrice\":\"200\",\"tpOrderPrice\":\"-1\",\"marginMode\":\"isolated\", \"reduceOnly\":\"true\", \"clientOrderId\":\"partial-tpsl-both\"}"
             }
         ],
         "cancelOrder": [

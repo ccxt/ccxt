@@ -1538,7 +1538,8 @@ export default class blofin extends Exchange {
             } else {
                 request['slOrderPrice'] = this.priceToPrecision (symbol, price);
             }
-        } else if (takeProfitPrice !== undefined) {
+        }
+        if (takeProfitPrice !== undefined) {
             request['tpTriggerPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
             if (type === 'market') {
                 request['tpOrderPrice'] = '-1';
