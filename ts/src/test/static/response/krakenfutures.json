@@ -114,6 +114,648 @@
         ],
         "fetchClosedOrders": [
             {
+                "description": "fetch closed orders including filled limit order",
+                "method": "fetchClosedOrders",
+                "input": [
+                    "ETH/USD:USD",
+                    1769618102000
+                ],
+                "httpResponse": {
+                    "elements": [
+                        {
+                            "uid": "7e2ec280-048a-4f93-bd15-c45183e8dc40",
+                            "timestamp": "1774608781059",
+                            "event": {
+                                "OrderPlaced": {
+                                    "order": {
+                                        "uid": "a1665499-dd75-4d31-ac65-2bc9b721465a",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_ETHUSD",
+                                        "direction": "Sell",
+                                        "quantity": "0",
+                                        "filled": "0.003",
+                                        "timestamp": "1774608781059",
+                                        "limitPrice": "1987.700",
+                                        "orderType": "IoC",
+                                        "clientId": "",
+                                        "reduceOnly": true,
+                                        "lastUpdateTimestamp": "1774608781059"
+                                    },
+                                    "reason": "new_user_order",
+                                    "reducedQuantity": "",
+                                    "algoId": "",
+                                    "origin": "Unknown Origin"
+                                }
+                            }
+                        },
+                        {
+                            "uid": "a90a13bd-4696-4b59-b94f-b552e3a8167c",
+                            "timestamp": "1772187602770",
+                            "event": {
+                                "OrderRejected": {
+                                    "order": {
+                                        "uid": "a12df540-fc1b-49d8-8c7f-fc63af383ab3",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_DOGEUSD",
+                                        "direction": "Sell",
+                                        "quantity": "1",
+                                        "filled": "0",
+                                        "timestamp": "1772187602770",
+                                        "limitPrice": "0.09587300",
+                                        "orderType": "IoC",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "lastUpdateTimestamp": "1772187602770"
+                                    },
+                                    "orderError": "max_position_exceeded",
+                                    "reason": "new_user_order",
+                                    "algoId": "",
+                                    "origin": "Rest API"
+                                }
+                            }
+                        },
+                        {
+                            "uid": "7b9dd3d2-4565-4bfc-b7ef-2546f95704dc",
+                            "timestamp": "1772187529040",
+                            "event": {
+                                "OrderRejected": {
+                                    "order": {
+                                        "uid": "a12df4d0-7b59-4f2b-8187-30f9b367e395",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_DOGEUSD",
+                                        "direction": "Buy",
+                                        "quantity": "1",
+                                        "filled": "0",
+                                        "timestamp": "1772187529040",
+                                        "limitPrice": "0.09787100",
+                                        "orderType": "IoC",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "lastUpdateTimestamp": "1772187529040"
+                                    },
+                                    "orderError": "max_position_exceeded",
+                                    "reason": "new_user_order",
+                                    "algoId": "",
+                                    "origin": "Rest API"
+                                }
+                            }
+                        },
+                        {
+                            "uid": "ca5f72f9-8608-4ffb-ac66-e42c92b3cf39",
+                            "timestamp": "1772187439553",
+                            "event": {
+                                "OrderRejected": {
+                                    "order": {
+                                        "uid": "a12df447-ef95-4706-9173-9401a43fb583",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_ETHUSD",
+                                        "direction": "Sell",
+                                        "quantity": "1",
+                                        "filled": "0",
+                                        "timestamp": "1772187439553",
+                                        "limitPrice": "1972.600",
+                                        "orderType": "IoC",
+                                        "clientId": "",
+                                        "reduceOnly": true,
+                                        "lastUpdateTimestamp": "1772187439553"
+                                    },
+                                    "orderError": "max_position_exceeded",
+                                    "reason": "new_user_order",
+                                    "algoId": "",
+                                    "origin": "Rest API"
+                                }
+                            }
+                        },
+                        {
+                            "uid": "100d2bc9-f13a-474a-8a7b-ea39a06aa6b9",
+                            "timestamp": "1772187210936",
+                            "event": {
+                                "OrderRejected": {
+                                    "order": {
+                                        "uid": "a12df2eb-1811-4720-bb95-16e3b7981347",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_ETHUSD",
+                                        "direction": "Sell",
+                                        "quantity": "1",
+                                        "filled": "0",
+                                        "timestamp": "1772187210936",
+                                        "limitPrice": "1968.400",
+                                        "orderType": "IoC",
+                                        "clientId": "",
+                                        "reduceOnly": true,
+                                        "lastUpdateTimestamp": "1772187210936"
+                                    },
+                                    "orderError": "max_position_exceeded",
+                                    "reason": "new_user_order",
+                                    "algoId": "",
+                                    "origin": "Rest API"
+                                }
+                            }
+                        },
+                        {
+                            "uid": "24f9ba54-5876-4c8b-9757-bc5e928c32b2",
+                            "timestamp": "1772187188275",
+                            "event": {
+                                "OrderRejected": {
+                                    "order": {
+                                        "uid": "a12df2c8-843c-4708-a64a-ed464afe4acf",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_ETHUSD",
+                                        "direction": "Sell",
+                                        "quantity": "1",
+                                        "filled": "0",
+                                        "timestamp": "1772187188275",
+                                        "limitPrice": "1965.100",
+                                        "orderType": "IoC",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "lastUpdateTimestamp": "1772187188275"
+                                    },
+                                    "orderError": "max_position_exceeded",
+                                    "reason": "new_user_order",
+                                    "algoId": "",
+                                    "origin": "Rest API"
+                                }
+                            }
+                        },
+                        {
+                            "uid": "75a40364-f4cf-4013-9c84-65fd0dad84ec",
+                            "timestamp": "1772187139351",
+                            "event": {
+                                "OrderRejected": {
+                                    "order": {
+                                        "uid": "a12df27d-dd4f-49f8-8519-dbde802bac92",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_ETHUSD",
+                                        "direction": "Buy",
+                                        "quantity": "1",
+                                        "filled": "0",
+                                        "timestamp": "1772187139351",
+                                        "limitPrice": "2009.200",
+                                        "orderType": "IoC",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "lastUpdateTimestamp": "1772187139351"
+                                    },
+                                    "orderError": "max_position_exceeded",
+                                    "reason": "new_user_order",
+                                    "algoId": "",
+                                    "origin": "Rest API"
+                                }
+                            }
+                        },
+                        {
+                            "uid": "1813b646-df7c-43f3-8bd1-75e717a4befb",
+                            "timestamp": "1772187127607",
+                            "event": {
+                                "OrderRejected": {
+                                    "order": {
+                                        "uid": "a12df26b-f1b9-4d73-bea6-90604241ed88",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_ETHUSD",
+                                        "direction": "Buy",
+                                        "quantity": "0.001",
+                                        "filled": "0",
+                                        "timestamp": "1772187127607",
+                                        "limitPrice": "2009.100",
+                                        "orderType": "IoC",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "lastUpdateTimestamp": "1772187127607"
+                                    },
+                                    "orderError": "max_position_exceeded",
+                                    "reason": "new_user_order",
+                                    "algoId": "",
+                                    "origin": "Rest API"
+                                }
+                            }
+                        },
+                        {
+                            "uid": "08cded4d-9cfa-4c80-8086-c9475b360290",
+                            "timestamp": "1772038556674",
+                            "event": {
+                                "OrderCancelled": {
+                                    "order": {
+                                        "uid": "a111dd96-d128-436a-bc32-76dba050b9f5",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_ETHUSD",
+                                        "direction": "Buy",
+                                        "quantity": "0.001",
+                                        "filled": "0",
+                                        "timestamp": "1770981041646",
+                                        "limitPrice": "1000",
+                                        "orderType": "Limit",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "lastUpdateTimestamp": "1770981041646"
+                                    },
+                                    "reason": "would_not_reduce_position",
+                                    "algoId": "",
+                                    "origin": "Unknown Origin"
+                                }
+                            }
+                        },
+                        {
+                            "uid": "b1753f71-ae97-45b4-bfdd-e4f125809650",
+                            "timestamp": "1770986364275",
+                            "event": {
+                                "OrderPlaced": {
+                                    "order": {
+                                        "uid": "a111fd50-811d-4168-9d2f-6319cb7b2d47",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_ETHUSD",
+                                        "direction": "Buy",
+                                        "quantity": "0",
+                                        "filled": "0.001",
+                                        "timestamp": "1770986364275",
+                                        "limitPrice": "1979.300",
+                                        "orderType": "IoC",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "lastUpdateTimestamp": "1770986364275"
+                                    },
+                                    "reason": "new_user_order",
+                                    "reducedQuantity": "",
+                                    "algoId": "",
+                                    "origin": "Rest API"
+                                }
+                            }
+                        },
+                        {
+                            "uid": "4e920209-1f28-4e25-927e-3f2f393e878a",
+                            "timestamp": "1770986132372",
+                            "event": {
+                                "OrderCancelled": {
+                                    "order": {
+                                        "uid": "a111f276-95fd-47fc-b77b-709c5ab2e9e1",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_LTCUSD",
+                                        "direction": "Buy",
+                                        "quantity": "0.1",
+                                        "filled": "0",
+                                        "timestamp": "1770984543738",
+                                        "limitPrice": "40",
+                                        "orderType": "Limit",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "lastUpdateTimestamp": "1770984543738"
+                                    },
+                                    "reason": "cancelled_by_user",
+                                    "algoId": "",
+                                    "origin": "Rest API"
+                                }
+                            }
+                        },
+                        {
+                            "uid": "d5a264fc-91a8-4ce7-a130-c77efecfa1eb",
+                            "timestamp": "1770985986797",
+                            "event": {
+                                "OrderPlaced": {
+                                    "order": {
+                                        "uid": "a111fb10-84b1-4a17-a284-a630285d3999",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_LTCUSD",
+                                        "direction": "Sell",
+                                        "quantity": "0",
+                                        "filled": "0.1",
+                                        "timestamp": "1770985986797",
+                                        "limitPrice": "52.760",
+                                        "orderType": "IoC",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "lastUpdateTimestamp": "1770985986797"
+                                    },
+                                    "reason": "new_user_order",
+                                    "reducedQuantity": "",
+                                    "algoId": "",
+                                    "origin": "Rest API"
+                                }
+                            }
+                        },
+                        {
+                            "uid": "1246554b-e7a5-40ed-a53c-75ce7cb26fca",
+                            "timestamp": "1770985626462",
+                            "event": {
+                                "OrderPlaced": {
+                                    "order": {
+                                        "uid": "a111f8ea-b0e9-433f-a958-09b9b415ca41",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_LTCUSD",
+                                        "direction": "Buy",
+                                        "quantity": "0",
+                                        "filled": "0.1",
+                                        "timestamp": "1770985626462",
+                                        "limitPrice": "53.8200",
+                                        "orderType": "IoC",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "lastUpdateTimestamp": "1770985626462"
+                                    },
+                                    "reason": "new_user_order",
+                                    "reducedQuantity": "",
+                                    "algoId": "",
+                                    "origin": "Rest API"
+                                }
+                            }
+                        },
+                        {
+                            "uid": "9e241058-e66c-40d1-ba98-3ff3718bed6f",
+                            "timestamp": "1770984543738",
+                            "event": {
+                                "OrderPlaced": {
+                                    "order": {
+                                        "uid": "a111f276-95fd-47fc-b77b-709c5ab2e9e1",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_LTCUSD",
+                                        "direction": "Buy",
+                                        "quantity": "0.1",
+                                        "filled": "0",
+                                        "timestamp": "1770984543738",
+                                        "limitPrice": "40",
+                                        "orderType": "Limit",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "lastUpdateTimestamp": "1770984543738"
+                                    },
+                                    "reason": "new_user_order",
+                                    "reducedQuantity": "",
+                                    "algoId": "",
+                                    "origin": "Rest API"
+                                }
+                            }
+                        },
+                        {
+                            "uid": "40eddd22-b007-489c-b643-39b4582468e6",
+                            "timestamp": "1770981041646",
+                            "event": {
+                                "OrderPlaced": {
+                                    "order": {
+                                        "uid": "a111dd96-d128-436a-bc32-76dba050b9f5",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_ETHUSD",
+                                        "direction": "Buy",
+                                        "quantity": "0.001",
+                                        "filled": "0",
+                                        "timestamp": "1770981041646",
+                                        "limitPrice": "1000",
+                                        "orderType": "Limit",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "lastUpdateTimestamp": "1770981041646"
+                                    },
+                                    "reason": "new_user_order",
+                                    "reducedQuantity": "",
+                                    "algoId": "",
+                                    "origin": "Rest API"
+                                }
+                            }
+                        },
+                        {
+                            "uid": "d6458bb3-2d6e-471a-a84e-bc1d99ef2216",
+                            "timestamp": "1769618176659",
+                            "event": {
+                                "OrderUpdated": {
+                                    "oldOrder": {
+                                        "uid": "a0f221cd-f686-4bf8-aae7-dab68c69bffb",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_ETHUSD",
+                                        "direction": "Buy",
+                                        "quantity": "0",
+                                        "filled": "0.001",
+                                        "timestamp": "1769618102000",
+                                        "limitPrice": "3003.1",
+                                        "orderType": "Limit",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "lastUpdateTimestamp": "1769618176659"
+                                    },
+                                    "newOrder": {
+                                        "uid": "a0f221cd-f686-4bf8-aae7-dab68c69bffb",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_ETHUSD",
+                                        "direction": "Buy",
+                                        "quantity": "0",
+                                        "filled": "0.001",
+                                        "timestamp": "1769618102000",
+                                        "limitPrice": "3003.1",
+                                        "orderType": "Limit",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "lastUpdateTimestamp": "1769618176659"
+                                    },
+                                    "reason": "full_fill",
+                                    "reducedQuantity": "0",
+                                    "algoId": "",
+                                    "origin": "Unknown Origin"
+                                }
+                            }
+                        },
+                        {
+                            "uid": "9ad4274a-a935-41e8-af1e-2506e3f7e9b6",
+                            "timestamp": "1769618129000",
+                            "event": {
+                                "OrderPlaced": {
+                                    "order": {
+                                        "uid": "a0f221f5-3f04-4075-a8b9-8ad2faf2d7fa",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_ETHUSD",
+                                        "direction": "Buy",
+                                        "quantity": "0",
+                                        "filled": "0.001",
+                                        "timestamp": "1769618129000",
+                                        "limitPrice": "3033.900",
+                                        "orderType": "IoC",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "lastUpdateTimestamp": "1769618129000"
+                                    },
+                                    "reason": "stop_order_triggered",
+                                    "reducedQuantity": "",
+                                    "algoId": "",
+                                    "origin": "Unknown Origin"
+                                }
+                            }
+                        }
+                    ],
+                    "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                    "len": "17"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "uid": "a0f221cd-f686-4bf8-aae7-dab68c69bffb",
+                            "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                            "tradeable": "PF_ETHUSD",
+                            "direction": "Buy",
+                            "quantity": "0",
+                            "filled": "0.001",
+                            "timestamp": "1769618102000",
+                            "limitPrice": "3003.1",
+                            "orderType": "Limit",
+                            "clientId": "",
+                            "reduceOnly": false,
+                            "lastUpdateTimestamp": "1769618176659",
+                            "status": "closed"
+                        },
+                        "id": "a0f221cd-f686-4bf8-aae7-dab68c69bffb",
+                        "clientOrderId": null,
+                        "timestamp": 1769618102000,
+                        "datetime": "2026-01-28T16:35:02.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1769618176659,
+                        "symbol": "ETH/USD:USD",
+                        "type": "limit",
+                        "timeInForce": "gtc",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": null,
+                        "triggerPrice": null,
+                        "stopPrice": null,
+                        "amount": 0.001,
+                        "cost": null,
+                        "average": null,
+                        "filled": 0.001,
+                        "remaining": 0,
+                        "status": "closed",
+                        "fee": null,
+                        "fees": [],
+                        "trades": [],
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    },
+                    {
+                        "info": {
+                            "uid": "a0f221f5-3f04-4075-a8b9-8ad2faf2d7fa",
+                            "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                            "tradeable": "PF_ETHUSD",
+                            "direction": "Buy",
+                            "quantity": "0",
+                            "filled": "0.001",
+                            "timestamp": "1769618129000",
+                            "limitPrice": "3033.900",
+                            "orderType": "IoC",
+                            "clientId": "",
+                            "reduceOnly": false,
+                            "lastUpdateTimestamp": "1769618129000",
+                            "status": "closed"
+                        },
+                        "id": "a0f221f5-3f04-4075-a8b9-8ad2faf2d7fa",
+                        "clientOrderId": null,
+                        "timestamp": 1769618129000,
+                        "datetime": "2026-01-28T16:35:29.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1769618129000,
+                        "symbol": "ETH/USD:USD",
+                        "type": "market",
+                        "timeInForce": "ioc",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": null,
+                        "triggerPrice": null,
+                        "stopPrice": null,
+                        "amount": 0.001,
+                        "cost": null,
+                        "average": null,
+                        "filled": 0.001,
+                        "remaining": 0,
+                        "status": "closed",
+                        "fee": null,
+                        "fees": [],
+                        "trades": [],
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    },
+                    {
+                        "info": {
+                            "uid": "a111fd50-811d-4168-9d2f-6319cb7b2d47",
+                            "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                            "tradeable": "PF_ETHUSD",
+                            "direction": "Buy",
+                            "quantity": "0",
+                            "filled": "0.001",
+                            "timestamp": "1770986364275",
+                            "limitPrice": "1979.300",
+                            "orderType": "IoC",
+                            "clientId": "",
+                            "reduceOnly": false,
+                            "lastUpdateTimestamp": "1770986364275",
+                            "status": "closed"
+                        },
+                        "id": "a111fd50-811d-4168-9d2f-6319cb7b2d47",
+                        "clientOrderId": null,
+                        "timestamp": 1770986364275,
+                        "datetime": "2026-02-13T12:39:24.275Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1770986364275,
+                        "symbol": "ETH/USD:USD",
+                        "type": "market",
+                        "timeInForce": "ioc",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": null,
+                        "triggerPrice": null,
+                        "stopPrice": null,
+                        "amount": 0.001,
+                        "cost": null,
+                        "average": null,
+                        "filled": 0.001,
+                        "remaining": 0,
+                        "status": "closed",
+                        "fee": null,
+                        "fees": [],
+                        "trades": [],
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    },
+                    {
+                        "info": {
+                            "uid": "a1665499-dd75-4d31-ac65-2bc9b721465a",
+                            "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                            "tradeable": "PF_ETHUSD",
+                            "direction": "Sell",
+                            "quantity": "0",
+                            "filled": "0.003",
+                            "timestamp": "1774608781059",
+                            "limitPrice": "1987.700",
+                            "orderType": "IoC",
+                            "clientId": "",
+                            "reduceOnly": true,
+                            "lastUpdateTimestamp": "1774608781059",
+                            "status": "closed"
+                        },
+                        "id": "a1665499-dd75-4d31-ac65-2bc9b721465a",
+                        "clientOrderId": null,
+                        "timestamp": 1774608781059,
+                        "datetime": "2026-03-27T10:53:01.059Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1774608781059,
+                        "symbol": "ETH/USD:USD",
+                        "type": "market",
+                        "timeInForce": "ioc",
+                        "postOnly": false,
+                        "reduceOnly": true,
+                        "side": "sell",
+                        "price": null,
+                        "triggerPrice": null,
+                        "stopPrice": null,
+                        "amount": 0.003,
+                        "cost": null,
+                        "average": null,
+                        "filled": 0.003,
+                        "remaining": 0,
+                        "status": "closed",
+                        "fee": null,
+                        "fees": [],
+                        "trades": [],
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            },
+            {
                 "description": "fetchClosed trigger orders",
                 "method": "fetchClosedOrders",
                 "input": [
