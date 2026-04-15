@@ -144,7 +144,7 @@ export default class weex extends weexRest {
                         'ACCESS-KEY': this.apiKey,
                         'ACCESS-SIGN': signature,
                         'ACCESS-PASSPHRASE': this.password,
-                        'ACCESS-TIMESTAMP': timestamp,
+                        'ACCESS-TIMESTAMP': this.numberToString (timestamp),
                     },
                 },
             },
