@@ -135,17 +135,34 @@ export default class weex extends weexRest {
         const payload = timestamp.toString () + '/v3/ws/private';
         const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
         const originalHeaders = this.options['ws']['options']['headers'];
-        const headers: Dict = {
-            'ACCESS-KEY': this.apiKey,
-            'ACCESS-SIGN': signature,
-            'ACCESS-PASSPHRASE': this.password,
-            'ACCESS-TIMESTAMP': timestamp,
+        const userAgent = this.safeString (originalHeaders, 'User-Agent', 'ccxt');
+        const extendedOptions: Dict = {
+            'ws': {
+                'options': {
+                    'headers': {
+                        'User-Agent': userAgent,
+                        'ACCESS-KEY': this.apiKey,
+                        'ACCESS-SIGN': signature,
+                        'ACCESS-PASSPHRASE': this.password,
+                        'ACCESS-TIMESTAMP': timestamp,
+                    },
+                },
+            },
         };
-        this.options['ws']['options']['headers'] = this.extend (headers, originalHeaders); // to keep original User-Agent
+        this.extendExchangeOptions (extendedOptions);
         // instantiate client
         this.client (url);
         // return headers to original state
-        this.options['ws']['options']['headers'] = originalHeaders;
+        const defaultOptions: Dict = {
+            'ws': {
+                'options': {
+                    'headers': {
+                        'User-Agent': userAgent,
+                    },
+                },
+            },
+        };
+        this.extendExchangeOptions (defaultOptions);
     }
 
     /**
