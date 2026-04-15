@@ -2556,9 +2556,10 @@ export default class mexc extends Exchange {
         if (hedged) {
             if (reduceOnly) {
                 params = this.omit (params, 'reduceOnly'); // hedged mode does not accept this parameter
-                side = (side === 'buy') ? 'sell' : 'buy';
+                sideInteger = (side === 'buy') ? 4 : 2;  // close_sell, close_buy
+            } else {
+                sideInteger = (side === 'buy') ? 1 : 3;
             }
-            sideInteger = (side === 'buy') ? 1 : 3;
             request['positionMode'] = 1;
         } else {
             if (reduceOnly) {
