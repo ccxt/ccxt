@@ -2551,11 +2551,11 @@ export default class mexc extends Exchange {
             }
         }
         const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+        params = this.omit (params, 'reduceOnly');
         const hedged = this.safeBool (params, 'hedged', false);
         let sideInteger = undefined;
         if (hedged) {
             if (reduceOnly) {
-                params = this.omit (params, 'reduceOnly'); // hedged mode does not accept this parameter
                 side = (side === 'buy') ? 'sell' : 'buy';
             }
             sideInteger = (side === 'buy') ? 1 : 3;
