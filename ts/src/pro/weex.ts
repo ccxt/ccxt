@@ -132,7 +132,7 @@ export default class weex extends weexRest {
             return;
         }
         const timestamp = this.nonce ();
-        const payload = timestamp + '/v3/ws/private';
+        const payload = timestamp.toString () + '/v3/ws/private';
         const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
         const originalHeaders = this.options['ws']['options']['headers'];
         const headers: Dict = {
