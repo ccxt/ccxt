@@ -1026,7 +1026,7 @@ export default class weex extends weexRest {
             market = this.market (symbol);
             symbol = market['symbol'];
         }
-        [ marketType, params ] = this.handleMarketTypeAndParams (symbol, market, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         const isContract = (marketType !== 'spot');
         let messageHash = isContract ? 'myContractTrades' : 'myTrades';
         const subscriptionHash = messageHash;
@@ -1229,7 +1229,7 @@ export default class weex extends weexRest {
             symbol = market['symbol'];
         }
         let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams (symbol, market, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         const isContract = (marketType !== 'spot');
         let messageHash = isContract ? 'contractOrders' : 'orders';
         const subscriptionHash = messageHash;
