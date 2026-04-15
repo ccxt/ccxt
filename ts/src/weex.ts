@@ -3820,6 +3820,10 @@ export default class weex extends Exchange {
             if ((method === 'POST') || (method === 'DELETE')) {
                 headers['Content-Type'] = 'application/json';
             }
+        } else {
+            headers = {
+                'User-Agent': 'ccxt',
+            };
         }
         const url = this.urls['api'][api] + '/' + endpoint;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
