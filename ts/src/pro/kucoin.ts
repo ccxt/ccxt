@@ -260,12 +260,17 @@ export default class kucoin extends kucoinRest {
             } else {
                 // fetch new token and store the future to the .futures to prevent concurrent fetches
                 client.future (messageHash);
-                const response = await this.privatePostBulletPrivate ({ 'version': 'v2' });
-                const data = this.safeDict (response, 'data', {});
-                const utaTokenString = this.safeString (data, 'token');
-                this.options['utaTokenLastUpdate'] = now;
-                this.options['utaToken'] = utaTokenString;
-                client.resolve (utaTokenString, messageHash);
+                try {
+                    const response = await this.privatePostBulletPrivate ({ 'version': 'v2' });
+                    const data = this.safeDict (response, 'data', {});
+                    const utaTokenString = this.safeString (data, 'token');
+                    this.options['utaTokenLastUpdate'] = now;
+                    this.options['utaToken'] = utaTokenString;
+                    client.resolve (utaTokenString, messageHash);
+                } catch (e) {
+                    this.options['utaToken'] = undefined;
+                    client.reject (e, messageHash);
+                }
             }
         }
         return this.safeString (this.options, 'utaToken');
