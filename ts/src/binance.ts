@@ -499,6 +499,7 @@ export default class binance extends Exchange {
                         'portfolio/asset-index-price': 0.1,
                         'portfolio/repay-futures-switch': 3, // Weight(IP): 30 => cost = 0.1 * 30 = 3
                         'portfolio/margin-asset-leverage': 5, // Weight(IP): 50 => cost = 0.1 * 50 = 5
+                        'portfolio/margin-call-level': 150,
                         'portfolio/balance': 2,
                         'portfolio/negative-balance-exchange-record': 2,
                         'portfolio/pmloan-history': 5,
@@ -669,6 +670,7 @@ export default class binance extends Exchange {
                         'portfolio/redeem': 20,
                         'portfolio/earn-asset-transfer': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/delta-mode': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/margin-call-level': 150,
                         'lending/auto-invest/plan/add': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit-status': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
@@ -706,6 +708,7 @@ export default class binance extends Exchange {
                         'algo/spot/order': 0.1,
                         'algo/futures/order': 0.1,
                         'sub-account/subAccountApi/ipRestriction/ipList': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'portfolio/margin-call-level': 150,
                     },
                 },
                 'sapiV2': {
