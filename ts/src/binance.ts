@@ -1188,7 +1188,6 @@ export default class binance extends Exchange {
                     'post': {
                         'um/order': 1,
                         'um/algo/order': 1,
-                        'um/conditional/order': 1,
                         'cm/order': 1,
                         'cm/conditional/order': 1,
                         'margin/order': 1,
@@ -6456,7 +6455,8 @@ export default class binance extends Exchange {
         } else if (market['linear']) {
             if (isPortfolioMargin) {
                 if (isConditional) {
-                    response = await this.papiPostUmConditionalOrder (request);
+                    request['algoType'] = 'CONDITIONAL';
+                    response = await this.papiPostUmAlgoOrder (request);
                 } else {
                     response = await this.papiPostUmOrder (request);
                 }
@@ -6551,7 +6551,11 @@ export default class binance extends Exchange {
                 uppercaseType = 'TRAILING_STOP_MARKET';
                 request['callbackRate'] = trailingPercent;
                 if (trailingTriggerPrice !== undefined) {
-                    request['activationPrice'] = this.priceToPrecision (symbol, trailingTriggerPrice);
+                    if (market['linear'] && market['swap'] && isPortfolioMarginConditional) {
+                        request['activatePrice'] = this.priceToPrecision (symbol, trailingTriggerPrice);
+                    } else {
+                        request['activationPrice'] = this.priceToPrecision (symbol, trailingTriggerPrice);
+                    }
                 }
             } else {
                 if ((uppercaseType !== 'STOP_LOSS') && (uppercaseType !== 'TAKE_PROFIT') && (uppercaseType !== 'STOP_LOSS_LIMIT') && (uppercaseType !== 'TAKE_PROFIT_LIMIT')) {
@@ -6615,7 +6619,7 @@ export default class binance extends Exchange {
             }
         }
         let clientOrderIdRequest = isPortfolioMarginConditional ? 'newClientStrategyId' : 'newClientOrderId';
-        if (market['linear'] && market['swap'] && isConditional && !isPortfolioMargin) {
+        if (market['linear'] && market['swap'] && isPortfolioMarginConditional) {
             clientOrderIdRequest = 'clientAlgoId';
         }
         if (clientOrderId === undefined) {
@@ -6659,7 +6663,10 @@ export default class binance extends Exchange {
             // swap, futures and options
             request['newOrderRespType'] = 'RESULT';  // "ACK", "RESULT", default "ACK"
         }
-        const typeRequest = isPortfolioMarginConditional ? 'strategyType' : 'type';
+        let typeRequest = isPortfolioMarginConditional ? 'strategyType' : 'type';
+        if (market['linear'] && market['swap'] && isPortfolioMarginConditional) {
+            typeRequest = 'type';
+        }
         request[typeRequest] = uppercaseType;
         // additional required fields depending on the order type
         const closePosition = this.safeBool (params, 'closePosition', false);
@@ -6780,7 +6787,11 @@ export default class binance extends Exchange {
                 if (market['linear'] && market['swap'] && !isPortfolioMargin) {
                     request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
                 } else {
-                    request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+                    if (market['linear'] && market['swap'] && isPortfolioMarginConditional) {
+                        request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
+                    } else {
+                        request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+                    }
                 }
             }
         }
