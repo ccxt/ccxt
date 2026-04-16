@@ -5099,7 +5099,7 @@ export default class Exchange {
         return ohlcv;
     }
 
-    networkCodeToId (networkCode: string, currencyCode: Str = undefined): string {
+    networkCodeToId (networkCode: string, currencyCode: Str = undefined): any {
         /**
          * @ignore
          * @method
@@ -5107,7 +5107,7 @@ export default class Exchange {
          * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
          * @param {string} networkCode unified network code
          * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
-         * @returns {string|undefined} exchange-specific network id
+         * @returns {string|int|undefined} exchange-specific network id
          */
         if (networkCode === undefined) {
             return undefined;
