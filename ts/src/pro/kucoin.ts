@@ -255,7 +255,7 @@ export default class kucoin extends kucoinRest {
         const client = this.client (url);
         if ((utaToken === undefined) || expired) {
             if (messageHash in client.futures) {
-                // await the existing future if it's already being fetched by another call
+                // wait the existing future if it's already being fetched by another call
                 await client.future (messageHash);
             } else {
                 // fetch new token and store the future to the .futures to prevent concurrent fetches
