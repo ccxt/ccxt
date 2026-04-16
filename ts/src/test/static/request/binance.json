@@ -414,7 +414,7 @@
             {
                 "description": "Linear swap portfolio margin conditional limit buy order",
                 "method": "createOrder",
-                "url": "https://papi.binance.com/papi/v1/um/conditional/order",
+                "url": "https://papi.binance.com/papi/v1/um/algo/order",
                 "input": [
                     "BTC/USDT:USDT",
                     "limit",
@@ -426,7 +426,7 @@
                         "triggerPrice": 45000
                     }
                 ],
-                "output": "timestamp=1707112624772&symbol=BTCUSDT&newOrderRespType=RESULT&side=BUY&newClientStrategyId=x-xcKtGhcu27f109953d6e4dc0974006&strategyType=STOP&quantity=0.01&price=35000&stopPrice=45000&recvWindow=10000&signature=2cacd678b9199f4f75ed8f7eb48cc35afc648346fc436c3808983baf983323ab"
+                "output": "timestamp=1707112624772&symbol=BTCUSDT&newOrderRespType=RESULT&side=BUY&clientAlgoId=x-xcKtGhcu27f109953d6e4dc0974006&type=STOP&quantity=0.01&price=35000&triggerPrice=45000&recvWindow=10000&signature=2cacd678b9199f4f75ed8f7eb48cc35afc648346fc436c3808983baf983323ab"
             },
             {
                 "description": "Inverse swap portfolio margin conditional limit buy order",
