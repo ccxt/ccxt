@@ -199,7 +199,7 @@ export default class weex extends Exchange {
                 'doc': [
                     'https://www.weex.com/api-doc',
                 ],
-                'referral': 'https://weex.com/register?vipCode=4lvdl',
+                'referral': 'https://www.weex.com/register?vipCode=qfyh',
             },
             'api': {
                 'public': {
