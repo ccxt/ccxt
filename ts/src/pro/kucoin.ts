@@ -250,21 +250,25 @@ export default class kucoin extends kucoinRest {
         refreshInterval = this.safeInteger (this.options, 'utaTokenRefreshInterval', refreshInterval);
         const now = this.milliseconds ();
         const expired = (now - lastUpdate) >= refreshInterval;
-        const isFetching = this.safeBool (this.options, 'utaTokenIsFetching', false);
-        if ((!isFetching && ((utaToken === undefined) || expired))) {
-            this.options['utaToken'] = await this.handleUtaToken (now);
+        const messageHash = 'utaToken';
+        const url = this.urls['api']['ws']['private'];
+        const client = this.client (url);
+        if ((utaToken === undefined) || expired) {
+            if (messageHash in client.futures) {
+                // await the existing future if it's already being fetched by another call
+                await client.future (messageHash);
+            } else {
+                // fetch new token and store the future to the .futures to prevent concurrent fetches
+                client.future (messageHash);
+                const response = await this.privatePostBulletPrivate ({ 'version': 'v2' });
+                const data = this.safeDict (response, 'data', {});
+                const utaTokenString = this.safeString (data, 'token');
+                this.options['utaTokenLastUpdate'] = now;
+                this.options['utaToken'] = utaTokenString;
+                client.resolve (utaTokenString, messageHash);
+            }
         }
-        return this.options['utaToken'];
-    }
-
-    async handleUtaToken (now) {
-        this.options['utaTokenIsFetching'] = true;
-        const response = await this.privatePostBulletPrivate ({ 'version': 'v2' });
-        const data = this.safeDict (response, 'data', {});
-        const utaToken = this.safeString (data, 'token');
-        this.options['utaTokenIsFetching'] = false;
-        this.options['utaTokenLastUpdate'] = now;
-        return utaToken;
+        return this.safeString (this.options, 'utaToken');
     }
 
     async unSubscribe (url, messageHash, topic, subscriptionHash, params = {}, subscription: Dict = undefined) {
