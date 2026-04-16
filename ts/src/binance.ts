@@ -1123,6 +1123,9 @@ export default class binance extends Exchange {
                         'cm/openOrder': 1,
                         'cm/openOrders': { 'cost': 1, 'noSymbol': 40 },
                         'cm/allOrders': 20,
+                        'um/algo/algoOrder': 1,
+                        'um/algo/openAlgoOrders': { 'cost': 1, 'noSymbol': 40 },
+                        'um/algo/allAlgoOrders': 5,
                         'um/conditional/openOrder': 1,
                         'um/conditional/openOrders': { 'cost': 1, 'noSymbol': 40 },
                         'um/conditional/orderHistory': 1,
@@ -1184,6 +1187,7 @@ export default class binance extends Exchange {
                     },
                     'post': {
                         'um/order': 1,
+                        'um/algo/order': 1,
                         'um/conditional/order': 1,
                         'cm/order': 1,
                         'cm/conditional/order': 1,
@@ -1212,6 +1216,8 @@ export default class binance extends Exchange {
                     },
                     'delete': {
                         'um/order': 1,
+                        'um/algo/order': 1,
+                        'um/algo/allOpenOrders': 1,
                         'um/conditional/order': 1,
                         'um/allOpenOrders': 1,
                         'um/conditional/allOpenOrders': 1,
