@@ -6393,7 +6393,7 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-Margin-Order
-     * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Conditional-Order
+     * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Algo-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Conditional-Order
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Algo-Order
      * @param {string} symbol unified symbol of the market to create an order in
@@ -6993,7 +6993,7 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
-     * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+     * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-UM-Algo-Order-History
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-All-Algo-Orders
      * @param {string} symbol unified market symbol of the market orders were made in
@@ -7042,7 +7042,7 @@ export default class binance extends Exchange {
         } else if (market['linear']) {
             if (isPortfolioMargin) {
                 if (isConditional) {
-                    response = await this.papiGetUmConditionalAllOrders (this.extend (request, params));
+                    response = await this.papiGetUmAlgoAllAlgoOrders (this.extend (request, params));
                 } else {
                     response = await this.papiGetUmAllOrders (this.extend (request, params));
                 }
@@ -7268,7 +7268,7 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Current-Open-Option-Orders
      * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Open-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Orders
-     * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Conditional-Orders
+     * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Algo-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Conditional-Orders
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Algo-Open-Orders
@@ -7319,7 +7319,7 @@ export default class binance extends Exchange {
         } else if (this.isLinear (type, subType)) {
             if (isPortfolioMargin) {
                 if (isConditional) {
-                    response = await this.papiGetUmConditionalOpenOrders (this.extend (request, params));
+                    response = await this.papiGetUmAlgoOpenAlgoOrders (this.extend (request, params));
                 } else {
                     response = await this.papiGetUmOpenOrders (this.extend (request, params));
                 }
@@ -7365,7 +7365,7 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Current-Open-Order
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Query-Current-Open-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Order
-     * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Conditional-Order
+     * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-UM-Algo-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Conditional-Order
      * @param {string} id order id
@@ -7376,26 +7376,29 @@ export default class binance extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrder() requires a symbol argument');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request: Dict = {
-            'symbol': market['id'],
-        };
+        const request: Dict = {};
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchOpenOrder', 'papi', 'portfolioMargin', false);
         const isConditional = this.safeBoolN (params, [ 'stop', 'trigger', 'conditional' ]);
         params = this.omit (params, [ 'stop', 'trigger', 'conditional' ]);
         const isPortfolioMarginConditional = (isPortfolioMargin && isConditional);
-        const orderIdRequest = isPortfolioMarginConditional ? 'strategyId' : 'orderId';
+        let orderIdRequest = isPortfolioMarginConditional ? 'strategyId' : 'orderId';
+        if (!market['linear'] && !isPortfolioMargin && !isConditional) {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOpenOrder() requires a symbol argument');
+            }
+            request['symbol'] = market['id'];
+        } else {
+            orderIdRequest = 'algoId';
+        }
         request[orderIdRequest] = id;
         let response = undefined;
         if (market['linear']) {
             if (isPortfolioMargin) {
                 if (isConditional) {
-                    response = await this.papiGetUmConditionalOpenOrder (this.extend (request, params));
+                    response = await this.papiGetUmAlgoAlgoOrder (this.extend (request, params));
                 } else {
                     response = await this.papiGetUmOpenOrder (this.extend (request, params));
                 }
@@ -7677,7 +7680,7 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Order
-     * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Conditional-Order
+     * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Algo-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Conditional-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-Order
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Algo-Order
@@ -7708,7 +7711,7 @@ export default class binance extends Exchange {
         if (clientOrderId !== undefined) {
             if (market['option']) {
                 request['clientOrderId'] = clientOrderId;
-            } else if (market['linear'] && market['swap'] && isConditional && !isPortfolioMargin) {
+            } else if (market['linear'] && market['swap'] && isConditional) {
                 request['clientAlgoId'] = clientOrderId;
             } else {
                 if (isPortfolioMargin && isConditional) {
@@ -7718,9 +7721,9 @@ export default class binance extends Exchange {
                 }
             }
         } else {
-            if (isPortfolioMargin && isConditional) {
+            if (isPortfolioMargin && isConditional && !market['linear']) {
                 request['strategyId'] = id;
-            } else if (market['linear'] && market['swap'] && isConditional && !isPortfolioMargin) {
+            } else if (market['linear'] && market['swap'] && isConditional) {
                 request['algoId'] = id;
             } else {
                 request['orderId'] = id;
@@ -7733,7 +7736,7 @@ export default class binance extends Exchange {
         } else if (market['linear']) {
             if (isPortfolioMargin) {
                 if (isConditional) {
-                    response = await this.papiDeleteUmConditionalOrder (this.extend (request, params));
+                    response = await this.papiDeleteUmAlgoOrder (this.extend (request, params));
                 } else {
                     response = await this.papiDeleteUmOrder (this.extend (request, params));
                 }
@@ -7779,7 +7782,7 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/derivatives/option/trade/Cancel-all-Option-orders-on-specific-symbol
      * @see https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-All-Open-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Orders
-     * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Conditional-Orders
+     * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Algo-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Conditional-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-All-Open-Orders-on-a-Symbol
@@ -7819,7 +7822,7 @@ export default class binance extends Exchange {
         } else if (market['linear']) {
             if (isPortfolioMargin) {
                 if (isConditional) {
-                    response = await this.papiDeleteUmConditionalAllOpenOrders (this.extend (request, params));
+                    response = await this.papiDeleteUmAlgoAllOpenOrders (this.extend (request, params));
                     //
                     //    {
                     //        "code": "200",
