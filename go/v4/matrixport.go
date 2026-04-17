@@ -1195,8 +1195,8 @@ func (this *MatrixportCore) Sign(path interface{}, optionalArgs ...interface{}) 
 	}
 	var urlPath interface{} = Add(Add(basePath, "/"), implodedPath)
 	var url interface{} = Add(Add(baseUrl, "/"), implodedPath)
-	// V2 auth (headers) for wallet/trade/dcp/dcpV2; V1 auth (query params) for all other APIs
-	var useV2 interface{} = IsTrue(IsTrue(IsTrue((IsEqual(api, "wallet"))) || IsTrue((IsEqual(api, "trade")))) || IsTrue((IsEqual(api, "dcp")))) || IsTrue((IsEqual(api, "dcpV2")))
+	// V2 auth (headers) for wallet/trade/dcp/dcpV2/balancePlus/fixedIncome/fixedIncomeV3/staking/structure/strategy; V1 auth (query params) for all other APIs
+	var useV2 interface{} = IsTrue(IsTrue(IsTrue(IsTrue(IsTrue(IsTrue(IsTrue(IsTrue(IsTrue((IsEqual(api, "wallet"))) || IsTrue((IsEqual(api, "trade")))) || IsTrue((IsEqual(api, "dcp")))) || IsTrue((IsEqual(api, "dcpV2")))) || IsTrue((IsEqual(api, "balancePlus")))) || IsTrue((IsEqual(api, "fixedIncome")))) || IsTrue((IsEqual(api, "fixedIncomeV3")))) || IsTrue((IsEqual(api, "staking")))) || IsTrue((IsEqual(api, "structure")))) || IsTrue((IsEqual(api, "strategy")))
 	if !IsTrue(useV2) {
 		// V1 auth: signature and timestamp as query params (GET) or body fields (POST)
 		// prehash: api_path + '&' + sorted_params (including timestamp)

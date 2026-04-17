@@ -45,3 +45,5 @@ __debug*
 .custom_gitignore
 matrixport-go-test/
 matrixport-service/
+matrixport-sign-test/
+binance-go-test/
