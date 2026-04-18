@@ -70,6 +70,11 @@ function testGate () {
     const integerMarket = integerExchange.market (integerSymbol);
     assert (integerExchange.numberToString (integerMarket['precision']['amount']) === '1');
     assert (integerExchange.amountToPrecision (integerSymbol, 1.4) === '1');
+
+    const gateioExchange = new ccxt.gateio ();
+    assert (gateioExchange.safeValue (gateioExchange.commonCurrencies, 'RED') === undefined);
+    const redSymbol = gateioExchange.parseContractMarket (getGateContractMarket ('RED_USDT', '1'), 'usdt')['symbol'];
+    assert (redSymbol === 'RED/USDT:USDT');
 }
 
 export default testGate;

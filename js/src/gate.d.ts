@@ -44,6 +44,9 @@ export default class gate extends Exchange {
     fetchSpotMarkets(params?: {}): Promise<any[]>;
     fetchSwapMarkets(params?: {}): Promise<any[]>;
     fetchFutureMarkets(params?: {}): Promise<any[]>;
+    isDecimalSizeEnabled(market: any): boolean;
+    getContractAmountPrecision(market: any): string;
+    shouldUseSizeDecimalHeader(api: any): boolean;
     parseContractMarket(market: any, settleId: any): {
         id: string;
         symbol: string;
