@@ -205,7 +205,8 @@ export default class okx extends Exchange {
                         'market/history-trades': 2,
                         'market/option/instrument-family-trades': 1,
                         'market/platform-24-volume': 10,
-                        'market/call-auction-detail': 1,
+                        'market/call-auction-detail': 1, // deprecated, use call-auction-details
+                        'market/call-auction-details': 1,
                         'market/books-sbe': 10,
                         'market/block-tickers': 1,
                         'market/block-ticker': 1,
@@ -246,6 +247,9 @@ export default class okx extends Exchange {
                         'public/premium-history': 1,
                         'public/economic-calendar': 50,
                         'public/market-data-history': 4,
+                        'public/event-contract/events': 1,
+                        'public/event-contract/markets': 1,
+                        'public/event-contract/series': 1,
                         'public/vip-interest-rate-loan-quota': 10, // not documented
                         // rubik
                         'rubik/stat/trading-data/support-coin': 4,
@@ -254,6 +258,7 @@ export default class okx extends Exchange {
                         'rubik/stat/taker-volume-contract': 4,
                         'rubik/stat/margin/loan-ratio': 4,
                         'rubik/stat/contracts/long-short-account-ratio-contract-top-trader': 4,
+                        'rubik/stat/contracts/long-short-position-ratio-contract-top-trader': 4,
                         'rubik/stat/contracts/long-short-account-ratio-contract': 4,
                         'rubik/stat/contracts/long-short-account-ratio': 4,
                         'rubik/stat/contracts/open-interest-volume': 4,
@@ -294,7 +299,8 @@ export default class okx extends Exchange {
                         'copytrading/public-subpositions-history': 4,
                         'copytrading/public-copy-traders': 4,
                         'support/announcements': 4,
-                        'support/announcements-types': 20,
+                        'support/announcements-types': 20, // typo, use announcement-types
+                        'support/announcement-types': 20,
                     },
                     'post': {
                         'tradingBot/grid/min-investment': 1, // public
@@ -361,6 +367,7 @@ export default class okx extends Exchange {
                         'account/bills-archive': 4,
                         'account/bills-history-archive': 2,
                         'account/config': 4,
+                        'account/subtypes': 4,
                         'account/max-size': 1,
                         'account/max-avail-size': 1,
                         'account/leverage-info': 1,
@@ -539,6 +546,7 @@ export default class okx extends Exchange {
                         'account/position-builder': 10,
                         'account/position-builder-graph': 50,
                         'account/set-riskOffset-type': 2,
+                        'account/set-riskOffset-amt': 2,
                         'account/activate-option': 4,
                         'account/set-auto-loan': 4,
                         'account/account-level-switch-preset': 4,
@@ -565,6 +573,7 @@ export default class okx extends Exchange {
                         'users/subaccount/set-transfer-out': 10,
                         // grid trading
                         'tradingBot/grid/order-algo': 1,
+                        'tradingBot/grid/copy-order-algo': 1,
                         'tradingBot/grid/amend-algo-basic-param': 1,
                         'tradingBot/grid/amend-order-algo': 1,
                         'tradingBot/grid/stop-order-algo': 1,
@@ -588,6 +597,12 @@ export default class okx extends Exchange {
                         'tradingBot/recurring/order-algo': 1,
                         'tradingBot/recurring/amend-order-algo': 1,
                         'tradingBot/recurring/stop-order-algo': 1,
+                        'tradingBot/recurring/add-investment': 1,
+                        'tradingBot/recurring/amend-price-range': 1,
+                        'tradingBot/recurring/amend-recurring-amount': 1,
+                        'tradingBot/recurring/amend-recurring-time': 1,
+                        'tradingBot/recurring/pause': 1,
+                        'tradingBot/recurring/restart': 1,
                         // earn
                         'finance/savings/purchase-redempt': 5 / 3,
                         'finance/savings/set-lending-rate': 5 / 3,
