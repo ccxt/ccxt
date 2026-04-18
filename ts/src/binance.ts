@@ -5916,27 +5916,69 @@ export default class binance extends Exchange {
         //         "status": "NEW"
         //     }
         //
-        // createOrder, fetchOpenOrders, fetchOpenOrder: portfolio margin linear swap and future conditional
+        // createOrder: portfolio margin linear swap and future conditional
         //
         //     {
-        //         "newClientStrategyId": "x-xcKtGhcu27f109953d6e4dc0974006",
-        //         "strategyId": 3645916,
-        //         "strategyStatus": "NEW",
-        //         "strategyType": "STOP",
-        //         "origQty": "0.010",
-        //         "price": "35000.00",
-        //         "reduceOnly": false,
-        //         "side": "BUY",
+        //         "algoId": 2146760,
+        //         "clientAlgoId": "6B2I9XVcJpCjqPAJ4YoFX7",
+        //         "algoType": "CONDITIONAL",
+        //         "orderType": "TAKE_PROFIT",
+        //         "symbol": "BNBUSDT",
+        //         "side": "SELL",
         //         "positionSide": "BOTH",
-        //         "stopPrice": "45000.00",
-        //         "symbol": "BTCUSDT",
         //         "timeInForce": "GTC",
-        //         "bookTime": 1707112625879,
-        //         "updateTime": 1707112625879,
+        //         "quantity": "0.01",
+        //         "algoStatus": "NEW",
+        //         "triggerPrice": "750.000",
+        //         "price": "750.000",
+        //         "icebergQuantity": null,
+        //         "selfTradePreventionMode": "EXPIRE_MAKER",
         //         "workingType": "CONTRACT_PRICE",
+        //         "priceMatch": "NONE",
+        //         "closePosition": false,
         //         "priceProtect": false,
-        //         "goodTillDate": 0,
-        //         "selfTradePreventionMode": "NONE"
+        //         "reduceOnly": false,
+        //         "activatePrice": "", //TRAILING_STOP_MARKET order
+        //         "callbackRate": "",  //TRAILING_STOP_MARKET order
+        //         "createTime": 1750485492076,
+        //         "updateTime": 1750485492076,
+        //         "triggerTime": 0,
+        //         "goodTillDate": 0
+        //     }
+        //
+        // fetchOrders, fetchOpenOrder, fetchOpenOrders: portfolio margin linear swap and future conditional
+        //
+        //     {
+        //         "algoId": 2146760,
+        //         "clientAlgoId": "6B2I9XVcJpCjqPAJ4YoFX7",
+        //         "algoType": "CONDITIONAL",
+        //         "orderType": "TAKE_PROFIT",
+        //         "symbol": "BNBUSDT",
+        //         "side": "SELL",
+        //         "positionSide": "BOTH",
+        //         "timeInForce": "GTC",
+        //         "quantity": "0.01",
+        //         "algoStatus": "CANCELED",
+        //         "actualOrderId": "",
+        //         "actualPrice": "0.00000",
+        //         "triggerPrice": "750.000",
+        //         "price": "750.000",
+        //         "icebergQuantity": null,
+        //         "tpTriggerPrice": "0.000",
+        //         "tpPrice": "0.000",
+        //         "slTriggerPrice": "0.000",
+        //         "slPrice": "0.000",
+        //         "tpOrderType": "",
+        //         "selfTradePreventionMode": "EXPIRE_MAKER",
+        //         "workingType": "CONTRACT_PRICE",
+        //         "priceMatch": "NONE",
+        //         "closePosition": false,
+        //         "priceProtect": false,
+        //         "reduceOnly": false,
+        //         "createTime": 1750485492076,
+        //         "updateTime": 1750514545091,
+        //         "triggerTime": 0,
+        //         "goodTillDate": 0
         //     }
         //
         // createOrder, fetchOpenOrders: portfolio margin inverse swap and future conditional
@@ -6287,6 +6329,8 @@ export default class binance extends Exchange {
             'side': side,
             'price': price,
             'triggerPrice': triggerPrice,
+            'stopLossPrice': this.safeNumber (order, 'slPrice'),
+            'takeProfitPrice': this.safeNumber (order, 'tpPrice'),
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -7385,13 +7429,13 @@ export default class binance extends Exchange {
         params = this.omit (params, [ 'stop', 'trigger', 'conditional' ]);
         const isPortfolioMarginConditional = (isPortfolioMargin && isConditional);
         let orderIdRequest = isPortfolioMarginConditional ? 'strategyId' : 'orderId';
-        if (!market['linear'] && !isPortfolioMargin && !isConditional) {
+        if (market['linear'] && isPortfolioMargin && isConditional) {
+            orderIdRequest = 'algoId';
+        } else {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOpenOrder() requires a symbol argument');
             }
             request['symbol'] = market['id'];
-        } else {
-            orderIdRequest = 'algoId';
         }
         request[orderIdRequest] = id;
         let response = undefined;
