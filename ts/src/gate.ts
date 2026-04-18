@@ -717,7 +717,6 @@ export default class gate extends Exchange {
                 'MPH': 'MORPHER', // conflict with 88MPH
                 'POINT': 'GATEPOINT',
                 'RAI': 'RAIREFLEXINDEX', // conflict with RAI Finance
-                'RED': 'RedLang',
                 'SBTC': 'SUPERBITCOIN',
                 'TNC': 'TRINITYNETWORKCREDIT',
                 'VAI': 'VAIOT',
@@ -834,6 +833,7 @@ export default class gate extends Exchange {
                 'fetchMarkets': {
                     'types': [ 'spot', 'swap', 'future', 'option' ],
                 },
+                'enableSizeDecimal': true,
                 'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
@@ -1497,6 +1497,35 @@ export default class gate extends Exchange {
         return result;
     }
 
+    isDecimalSizeEnabled (market): boolean {
+        const info = this.safeDict (market, 'info', market);
+        const enableDecimal = this.safeBool (info, 'enable_decimal');
+        if (enableDecimal !== undefined) {
+            return enableDecimal;
+        }
+        return (this.safeStringLower (info, 'enable_decimal') === 'true');
+    }
+
+    getContractAmountPrecision (market): string {
+        if (!this.isDecimalSizeEnabled (market)) {
+            return '1';
+        }
+        const orderSizeMin = this.safeString (market, 'order_size_min');
+        if ((orderSizeMin !== undefined) && Precise.stringGt (orderSizeMin, '0')) {
+            return orderSizeMin;
+        }
+        return '1';
+    }
+
+    shouldUseSizeDecimalHeader (api): boolean {
+        const useSizeDecimal = this.safeBool (this.options, 'enableSizeDecimal', true);
+        if (!useSizeDecimal) {
+            return false;
+        }
+        const type = this.safeStringLower (api, 1);
+        return ((type === 'future') || (type === 'futures') || (type === 'delivery'));
+    }
+
     parseContractMarket (market, settleId) {
         //
         //  Perpetual swap
@@ -1610,6 +1639,7 @@ export default class gate extends Exchange {
         const maxMultiplier = Precise.stringAdd ('1', priceDeviate);
         const minPrice = Precise.stringMul (minMultiplier, markPrice);
         const maxPrice = Precise.stringMul (maxMultiplier, markPrice);
+        const amountPrecision = this.getContractAmountPrecision (market);
         const isLinear = quote === settle;
         let contractSize = this.safeString (market, 'quanto_multiplier');
         // exception only for one market: https://api.gateio.ws/api/v4/futures/btc/contracts
@@ -1643,7 +1673,7 @@ export default class gate extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.parseNumber ('1'), // all contracts have this step size
+                'amount': this.parseNumber (amountPrecision),
                 'price': this.safeNumber (market, 'order_price_round'),
             },
             'limits': {
@@ -4453,6 +4483,7 @@ export default class gate extends Exchange {
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
         const contract = market['contract'];
+        const useDecimalSize = contract && this.isDecimalSizeEnabled (market);
         const trigger = this.safeValue (params, 'trigger');
         const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
@@ -4494,14 +4525,19 @@ export default class gate extends Exchange {
                 price = 0;
             }
         }
+        let requestAmount: any = amount;
         if (contract) {
             const isClose = this.safeValue (params, 'close');
             if (isClose) {
-                amount = 0;
+                requestAmount = 0;
             } else {
                 const amountToPrecision = this.amountToPrecision (symbol, amount);
                 const signedAmount = (side === 'sell') ? Precise.stringNeg (amountToPrecision) : amountToPrecision;
-                amount = parseInt (signedAmount);
+                if (useDecimalSize) {
+                    requestAmount = signedAmount;
+                } else {
+                    requestAmount = this.parseToInt (signedAmount);
+                }
             }
         }
         let request = undefined;
@@ -4511,7 +4547,7 @@ export default class gate extends Exchange {
                 // contract order
                 request = {
                     'contract': market['id'], // filled in prepareRequest above
-                    'size': amount, // int64, positive = bid, negative = ask
+                    'size': requestAmount, // positive = bid, negative = ask
                     // 'iceberg': 0, // int64, display size for iceberg order, 0 for non-iceberg, note that you will have to pay the taker fee for the hidden size
                     // 'close': false, // true to close the position, with size set to 0
                     // 'reduce_only': false, // St as true to be reduce-only order
@@ -4608,7 +4644,7 @@ export default class gate extends Exchange {
                 request = {
                     'initial': {
                         'contract': market['id'],
-                        'size': amount, // positive = buy, negative = sell, set to 0 to close the position
+                        'size': requestAmount, // positive = buy, negative = sell, set to 0 to close the position
                         // 'price': (price === 0) ? '0' : this.priceToPrecision (symbol, price), // set to 0 to use market price
                         // 'close': false, // set to true if trying to close the position
                         // 'tif': 'gtc', // gtc, ioc, if using market price, only ioc is supported
@@ -4655,6 +4691,9 @@ export default class gate extends Exchange {
                 }
                 if (clientOrderId !== undefined) {
                     request['initial']['text'] = clientOrderId;
+                }
+                if (useDecimalSize) {
+                    request['initial']['amount'] = requestAmount;
                 }
             } else {
                 // spot conditional order
@@ -4751,10 +4790,12 @@ export default class gate extends Exchange {
             if (market['spot']) {
                 request['amount'] = this.amountToPrecision (symbol, amount);
             } else {
-                if (side === 'sell') {
-                    request['size'] = this.parseToNumeric (Precise.stringNeg (this.amountToPrecision (symbol, amount)));
+                const amountToPrecision = this.amountToPrecision (symbol, amount);
+                const signedAmount = (side === 'sell') ? Precise.stringNeg (amountToPrecision) : amountToPrecision;
+                if (this.isDecimalSizeEnabled (market)) {
+                    request['size'] = signedAmount;
                 } else {
-                    request['size'] = this.parseToNumeric (this.amountToPrecision (symbol, amount));
+                    request['size'] = this.parseToNumeric (signedAmount);
                 }
             }
         }
@@ -7016,6 +7057,11 @@ export default class gate extends Exchange {
                 'SIGN': signature,
                 'Content-Type': 'application/json',
             };
+        }
+        if (this.shouldUseSizeDecimalHeader (api)) {
+            headers = this.extend ({
+                'X-Gate-Size-Decimal': '1',
+            }, headers);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
