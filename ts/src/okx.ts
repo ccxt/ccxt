@@ -420,6 +420,11 @@ export default class okx extends Exchange {
                         'tradingBot/recurring/orders-algo-history': 1,
                         'tradingBot/recurring/orders-algo-details': 1,
                         'tradingBot/recurring/sub-orders': 1,
+                        'tradingBot/dca/ongoing-list': 1,
+                        'tradingBot/dca/history-list': 1,
+                        'tradingBot/dca/orders': 1,
+                        'tradingBot/dca/position-details': 1,
+                        'tradingBot/dca/cycle-list': 1,
                         // earn
                         'finance/savings/balance': 5 / 3,
                         'finance/savings/lending-history': 5 / 3,
@@ -469,6 +474,9 @@ export default class okx extends Exchange {
                         'broker/nd/rebate-per-orders': 300, // not documented
                         'finance/sfp/dcd/order': 2, // not documented
                         'finance/sfp/dcd/orders': 2, // not documented
+                        'finance/sfp/dcd/currency-pair': 2,
+                        'finance/sfp/dcd/order-status': 2,
+                        'finance/sfp/dcd/order-history': 2,
                         // affiliate
                         'affiliate/invitee/detail': 1,
                         'users/partner/if-rebate': 1, // not documented
@@ -588,6 +596,14 @@ export default class okx extends Exchange {
                         'tradingBot/recurring/order-algo': 1,
                         'tradingBot/recurring/amend-order-algo': 1,
                         'tradingBot/recurring/stop-order-algo': 1,
+                        'tradingBot/dca/create': 1,
+                        'tradingBot/dca/amend-order-algo': 1,
+                        'tradingBot/dca/stop': 1,
+                        'tradingBot/dca/orders/manual-buy': 1,
+                        'tradingBot/dca/settings/reinvestment': 1,
+                        'tradingBot/dca/settings/take-profit': 1,
+                        'tradingBot/dca/margin/add': 1,
+                        'tradingBot/dca/margin/reduce': 1,
                         // earn
                         'finance/savings/purchase-redempt': 5 / 3,
                         'finance/savings/set-lending-rate': 5 / 3,
@@ -626,6 +642,9 @@ export default class okx extends Exchange {
                         'broker/nd/rebate-per-orders': 36000, // not documented
                         'finance/sfp/dcd/quote': 10, // not documented
                         'finance/sfp/dcd/order': 10, // not documented
+                        'finance/sfp/dcd/trade': 10,
+                        'finance/sfp/dcd/redeem-quote': 10,
+                        'finance/sfp/dcd/redeem': 10,
                         'broker/nd/report-subaccount-ip': 0.25, // not documented
                         'broker/dma/subaccount/apikey': 1 / 4,
                         'broker/dma/trades': 36000,
