@@ -423,7 +423,8 @@
                     35000,
                     {
                         "portfolioMargin": true,
-                        "triggerPrice": 45000
+                        "triggerPrice": 45000,
+                        "clientOrderId": "x-cvBPrNm9c1a92009869d4b76a84143"
                     }
                 ],
                 "output": "timestamp=1707112624772&symbol=BTCUSDT&newOrderRespType=RESULT&side=BUY&clientAlgoId=x-cvBPrNm9c1a92009869d4b76a84143&type=STOP&quantity=0.01&price=35000&triggerPrice=45000&algoType=CONDITIONAL&recvWindow=10000&signature=2cacd678b9199f4f75ed8f7eb48cc35afc648346fc436c3808983baf983323ab"
@@ -3420,7 +3421,7 @@
             {
                 "description": "Linear portfolio margin conditional fetch open order",
                 "method": "fetchOpenOrder",
-                "url": "https://papi.binance.com/papi/v1/um/algo/algoOrder?timestamp=1707894696072&symbol=BTCUSDT&algoId=4084339&recvWindow=10000&signature=22ae21d4e6cca439461b2deae7750b973f8b307025e2124e779e93eb86bcb1cd",
+                "url": "https://papi.binance.com/papi/v1/um/algo/algoOrder?timestamp=1707894696072&algoId=4084339&recvWindow=10000&signature=22ae21d4e6cca439461b2deae7750b973f8b307025e2124e779e93eb86bcb1cd",
                 "input": [
                     "4084339",
                     "BTC/USDT:USDT",
@@ -3433,7 +3434,7 @@
             {
                 "description": "Linear portfolio margin trigger fetch open order",
                 "method": "fetchOpenOrder",
-                "url": "https://papi.binance.com/papi/v1/um/algo/algoOrder?timestamp=1707894696072&symbol=BTCUSDT&algoId=4084339&recvWindow=10000&signature=22ae21d4e6cca439461b2deae7750b973f8b307025e2124e779e93eb86bcb1cd",
+                "url": "https://papi.binance.com/papi/v1/um/algo/algoOrder?timestamp=1707894696072&algoId=4084339&recvWindow=10000&signature=22ae21d4e6cca439461b2deae7750b973f8b307025e2124e779e93eb86bcb1cd",
                 "input": [
                     "4084339",
                     "BTC/USDT:USDT",
