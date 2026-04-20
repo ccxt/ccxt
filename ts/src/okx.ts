@@ -5798,7 +5798,8 @@ export default class okx extends Exchange {
         let network = undefined;
         const chain = this.safeString (transaction, 'chain');
         if (chain !== undefined) {
-            const [ , ...networkParts ] = chain.split ('-');
+            const chainParts = chain.split ('-');
+            const networkParts = this.arraySlice (chainParts, 1);
             const networkId = networkParts.join ('-');
             if (networkId !== undefined) {
                 network = this.networkIdToCode (networkId, code);
