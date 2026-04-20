@@ -1476,22 +1476,17 @@ export default class blofin extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const tpsl = this.safeBool (params, 'tpsl', false);
-        params = this.omit (params, 'tpsl');
-        let method = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'createOrder', 'method', 'privatePostTradeOrder');
         const isStopLossPriceDefined = this.safeString (params, 'stopLossPrice') !== undefined;
         const isTakeProfitPriceDefined = this.safeString (params, 'takeProfitPrice') !== undefined;
-        const hasTriggerPrice = this.safeString (params, 'triggerPrice') !== undefined;
-        const isType2Order = (isStopLossPriceDefined || isTakeProfitPriceDefined);
+        const isTriggerOrder = this.safeString (params, 'triggerPrice') !== undefined;
+        const isCombinedSlTp = (isStopLossPriceDefined && isTakeProfitPriceDefined);
+        const isSlOrTp = isStopLossPriceDefined || isTakeProfitPriceDefined;
         let response = undefined;
         const reduceOnly = this.safeBool (params, 'reduceOnly');
         if (reduceOnly !== undefined) {
             params['reduceOnly'] = reduceOnly ? 'true' : 'false';
         }
-        const isTpslOrder = tpsl || (method === 'privatePostTradeOrderTpsl') || isType2Order;
-        const isTriggerOrder = hasTriggerPrice || (method === 'privatePostTradeOrderAlgo');
-        if (isTpslOrder) {
+        if (isCombinedSlTp) {
             const tpslRequest = this.createTpslOrderRequest (symbol, type, side, amount, price, params);
             response = await this.privatePostTradeOrderTpsl (tpslRequest);
         } else if (isTriggerOrder) {
@@ -1501,7 +1496,7 @@ export default class blofin extends Exchange {
             const request = this.createOrderRequest (symbol, type, side, amount, price, params);
             response = await this.privatePostTradeOrder (request);
         }
-        if (isTpslOrder || isTriggerOrder) {
+        if (isCombinedSlTp || isSlOrTp || isTriggerOrder) {
             const dataDict = this.safeDict (response, 'data', {});
             return this.parseOrder (dataDict, market);
         }
@@ -1515,12 +1510,17 @@ export default class blofin extends Exchange {
 
     createTpslOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
-        const positionSide = this.safeString (params, 'positionSide', 'net');
+        const hedged = this.safeBool (params, 'hedged', false);
+        let positionSide: Str = 'net';
+        if (hedged) {
+            positionSide = (side === 'buy') ? 'short' : 'long';
+        }
         const request: Dict = {
             'instId': market['id'],
             'side': side,
             'positionSide': positionSide,
             'brokerId': this.safeString (this.options, 'brokerId', 'ec6dd3a7dd982d0b'),
+            'reduceOnly': this.safeBool (params, 'reduceOnly', true), // this is TP &  SL protective order, so it should be reduceOnly by default
         };
         if (amount !== undefined) {
             request['size'] = this.amountToPrecision (symbol, amount);
@@ -1529,25 +1529,18 @@ export default class blofin extends Exchange {
         if (marginMode !== 'cross' && marginMode !== 'isolated') {
             throw new BadRequest (this.id + ' createTpslOrder() requires a marginMode parameter that must be either cross or isolated');
         }
+        request['marginMode'] = marginMode;
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         if (stopLossPrice !== undefined) {
             request['slTriggerPrice'] = this.priceToPrecision (symbol, stopLossPrice);
-            if (type === 'market') {
-                request['slOrderPrice'] = '-1';
-            } else {
-                request['slOrderPrice'] = this.priceToPrecision (symbol, price);
-            }
-        } else if (takeProfitPrice !== undefined) {
-            request['tpTriggerPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
-            if (type === 'market') {
-                request['tpOrderPrice'] = '-1';
-            } else {
-                request['tpOrderPrice'] = this.priceToPrecision (symbol, price);
-            }
+            request['slOrderPrice'] = (type === 'market') ? '-1' : this.priceToPrecision (symbol, price);
         }
-        request['marginMode'] = marginMode;
-        params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice' ]);
+        if (takeProfitPrice !== undefined) {
+            request['tpTriggerPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
+            request['tpOrderPrice'] = (type === 'market') ? '-1' : this.priceToPrecision (symbol, price);
+        }
+        params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged' ]);
         return this.extend (request, params);
     }
 
