@@ -9611,13 +9611,14 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchFundingInterval
      * @description fetch the current funding rate interval
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-current-funding-rate
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-current-funding-rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingInterval (symbol: string, params = {}): Promise<FundingRate> {
-        return await this.fetchFundingRate (symbol, this.extend (params, { 'uta': false }));
+        return await this.fetchFundingRate (symbol, params);
     }
 
     /**
@@ -9645,11 +9646,14 @@ export default class kucoin extends Exchange {
             //     {
             //         "code": "200000",
             //         "data": {
-            //             "symbol": ".XBTUSDTMFPI8H",
-            //             "nextFundingRate": 7.4E-5,
-            //             "fundingTime": 1762444800000,
-            //             "fundingRateCap": 0.003,
-            //             "fundingRateFloor": -0.003
+            //             "symbol": ".ETHUSDTMFPI8H",
+            //             "nextFundingRate": -3.4E-5,
+            //             "fundingTime": 1776700800000,
+            //             "fundingRateCap": 0.00375,
+            //             "fundingRateFloor": -0.00375,
+            //             "currentGranularity": 28800000,
+            //             "newGranularity": 28800000,
+            //             "newGranularityStartTime": 1750147200000
             //         }
             //     }
             //
@@ -9661,13 +9665,13 @@ export default class kucoin extends Exchange {
             //         "data": {
             //             "symbol": ".ETHUSDTMFPI8H",
             //             "granularity": 28800000,
-            //             "timePoint": 1771747200000,
-            //             "value": 3.0E-6,
+            //             "timePoint": 1776672000000,
+            //             "value": -3.2E-5,
             //             "dailyInterestRate": 3.0E-4,
             //             "fundingRateCap": 0.00375,
             //             "fundingRateFloor": -0.00375,
             //             "period": 1,
-            //             "fundingTime": 1771776000000
+            //             "fundingTime": 1776700800000
             //         }
             //     }
             //
@@ -9680,29 +9684,34 @@ export default class kucoin extends Exchange {
     parseFundingRate (data, market: Market = undefined): FundingRate {
         // uta
         //     {
-        //         "symbol": ".XBTUSDTMFPI8H",
-        //         "nextFundingRate": 7.4E-5,
-        //         "fundingTime": 1762444800000,
-        //         "fundingRateCap": 0.003,
-        //         "fundingRateFloor": -0.003
+        //         "symbol": ".ETHUSDTMFPI8H",
+        //         "nextFundingRate": -3.4E-5,
+        //         "fundingTime": 1776700800000,
+        //         "fundingRateCap": 0.00375,
+        //         "fundingRateFloor": -0.00375,
+        //         "currentGranularity": 28800000,
+        //         "newGranularity": 28800000,
+        //         "newGranularityStartTime": 1750147200000
         //     }
         //
         // futures
         //     {
         //         "symbol": ".ETHUSDTMFPI8H",
         //         "granularity": 28800000,
-        //         "timePoint": 1771747200000,
-        //         "value": 3.0E-6,
+        //         "timePoint": 1776672000000,
+        //         "value": -3.2E-5,
         //         "dailyInterestRate": 3.0E-4,
         //         "fundingRateCap": 0.00375,
         //         "fundingRateFloor": -0.00375,
         //         "period": 1,
-        //         "fundingTime": 1771776000000
+        //         "fundingTime": 1776700800000
         //     }
         //
         const fundingTimestamp = this.safeInteger (data, 'fundingTime');
         const previousFundingTimestamp = this.safeInteger (data, 'timePoint');
+        const nextFundingTimestamp = this.safeInteger (data, 'newGranularityStartTime');
         const marketId = this.safeString (data, 'symbol');
+        const granularity = this.safeString2 (data, 'granularity', 'currentGranularity');
         return {
             'info': data,
             'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
@@ -9715,13 +9724,13 @@ export default class kucoin extends Exchange {
             'fundingRate': this.safeNumber2 (data, 'nextFundingRate', 'value'),
             'fundingTimestamp': fundingTimestamp,
             'fundingDatetime': this.iso8601 (fundingTimestamp),
-            'nextFundingRate': this.safeNumber (data, 'predictedValue'),
-            'nextFundingTimestamp': undefined,
-            'nextFundingDatetime': undefined,
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': this.iso8601 (nextFundingTimestamp),
             'previousFundingRate': undefined,
             'previousFundingTimestamp': previousFundingTimestamp,
             'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
-            'interval': this.parseFundingInterval (this.safeString (data, 'granularity')),
+            'interval': this.parseFundingInterval (granularity),
         } as FundingRate;
     }
 
