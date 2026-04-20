@@ -6,7 +6,7 @@ import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, B
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { ADL, Account, Balances, Bool, BorrowInterest, Currency, Currencies, DepositAddress, Dict, FundingHistory, FundingRate, Int, int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, OpenInterest, OpenInterests, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry } from './base/types.js';
+import type { ADL, Account, Balances, Bool, BorrowInterest, CrossBorrowRate, Currency, Currencies, DepositAddress, Dict, FundingHistory, FundingRate, Int, int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, OpenInterest, OpenInterests, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -62,7 +62,7 @@ export default class kucoin extends Exchange {
                 'fetchBorrowRateHistories': true,
                 'fetchBorrowRateHistory': true,
                 'fetchClosedOrders': true,
-                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRate': true,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
@@ -551,6 +551,7 @@ export default class kucoin extends Exchange {
                         'market/position-tiers': 40,
                         'market/open-interest': 20,
                         'server/status': 6,
+                        'market/borrowable-currency': 30,
                     },
                 },
                 'utaPrivate': {
@@ -576,6 +577,9 @@ export default class kucoin extends Exchange {
                         'sub-account/balance': 10,
                         'user/fee-rate': 6,
                         'dcp/query': 4,
+                        'unified/account/leverage': 20, // returns {"code":"404","msg":"Not Found","retry":false,"success":false}
+                        'position/funding-history': 30,
+                        'account/interest-limits': 20,
                     },
                     'post': {
                         'account/transfer': 8,
@@ -588,6 +592,7 @@ export default class kucoin extends Exchange {
                         '{accountMode}/order/cancel-all': 40,
                         'sub-account/canTransferOut': 10,
                         'dcp/set': 4,
+                        '{accountMode}/account/modify-leverage-margin-cross': 40,
                     },
                 },
             },
@@ -907,6 +912,9 @@ export default class kucoin extends Exchange {
                 },
                 'fetchBalance': {
                     'code': 'USDT', // for contract endpoint
+                },
+                'setLeverage': {
+                    'code': 'USDT', // for uta margin endpoint
                 },
                 'timeInForce': {
                     'IOC': 'IOC',
@@ -8931,12 +8939,25 @@ export default class kucoin extends Exchange {
         //         "dayRatio": "0.001"
         //     }
         //
+        // fetchCrossBorrowRate
+        //     {
+        //         "currentRateHourly": "0.00000353",
+        //         "currentRateDaily": "0.00008466",
+        //         "borrowLimitTotal": "600.00000000000000000000",
+        //         "borrowLimitTotalHold": "0.00000000000000000000",
+        //         "borrowLimitHold": "0.00000000000000000000",
+        //         "interestFreeBorrowLimit": "0.60000000000000000000"
+        //     }
+        //
         const timestampId = this.safeString2 (info, 'createdAt', 'timestamp');
-        const timestamp = this.parseToInt (timestampId.slice (0, 13));
+        let timestamp = this.milliseconds ();
+        if (timestampId !== undefined) {
+            timestamp = this.parseToInt (timestampId.slice (0, 13));
+        }
         const currencyId = this.safeString (info, 'currency');
         return {
             'currency': this.safeCurrencyCode (currencyId, currency),
-            'rate': this.safeNumber2 (info, 'dailyIntRate', 'dayRatio'),
+            'rate': this.safeNumberN (info, [ 'dailyIntRate', 'dayRatio', 'currentRateDaily' ]),
             'period': 86400000,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -9276,6 +9297,39 @@ export default class kucoin extends Exchange {
 
     /**
      * @method
+     * @name kucoin#fetchCrossBorrowRate
+     * @description fetch the rate of interest to borrow a currency for margin trading
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-borrowing-rates-and-limits
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+     */
+    async fetchCrossBorrowRate (code: string, params = {}): Promise<CrossBorrowRate> {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request: Dict = {
+            'currency': currency['id'],
+        };
+        const response = await this.utaPrivateGetAccountInterestLimits (this.extend (request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "currentRateHourly": "0.00000353",
+        //             "currentRateDaily": "0.00008466",
+        //             "borrowLimitTotal": "600.00000000000000000000",
+        //             "borrowLimitTotalHold": "0.00000000000000000000",
+        //             "borrowLimitHold": "0.00000000000000000000",
+        //             "interestFreeBorrowLimit": "0.60000000000000000000"
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseBorrowRate (data, currency);
+    }
+
+    /**
+     * @method
      * @name kucoin#borrowCrossMargin
      * @description create a loan to borrow margin
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/borrow
@@ -9520,13 +9574,16 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#setLeverage
      * @description set the level of leverage for a market
-     * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/modify-leverage
-     * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage
-     * @see https://www.kucoin.com/docs-new/rest/ua/modify-leverage-uta
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/modify-leverage // margin
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage // contract
+     * @see https://www.kucoin.com/docs-new/rest/ua/modify-cross-margin-leverage-uta // margin uta
+     * @see https://www.kucoin.com/docs-new/rest/ua/modify-leverage-uta // contract uta
      * @param {int } [leverage] New leverage multiplier. Must be greater than 1 and up to two decimal places, and cannot be less than the user's current debt leverage or greater than the system's maximum leverage
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.uta] *contract markets only* set to true for the unified trading account (uta)
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta)
+     * @param {string} [params.marginMode] *spot non-uta only* 'cross' or 'isolated' default is 'cross'
+     * @param {string} [params.code] *uta margin only* the unified currency code for the margin to set the leverage for
      * @returns {object} response from the exchange
      */
     async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
@@ -9543,26 +9600,40 @@ export default class kucoin extends Exchange {
                 return await this.setContractLeverage (leverage, symbol, params);
             }
         }
-        let uta = await this.isUTAEnabled ();
-        [ uta, params ] = this.handleOptionAndParams (params, 'setLeverage', 'uta', uta);
-        if (uta) {
-            throw new NotSupported (this.id + ' setLeverage with params["uta"] is supported for contract markets only');
-        }
+        const request: Dict = {
+            'leverage': this.numberToString (leverage),
+        };
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
-        if (marginMode === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage requires a marginMode parameter');
+        let uta = await this.isUTAEnabled ();
+        [ uta, params ] = this.handleOptionAndParams (params, 'setLeverage', 'uta', uta);
+        let response = undefined;
+        if (uta) {
+            if (marginMode === 'isolated') {
+                throw new NotSupported (this.id + ' unified trading account does not support isolated margin');
+            }
+            request['accountMode'] = 'unified';
+            let code = undefined;
+            [ code, params ] = this.handleOptionAndParams2 (params, 'setLeverage', 'currency', 'code');
+            if (code === undefined) {
+                throw new ArgumentsRequired (this.id + ' setLeverage requires a currency code in the params["code"] for unified trading account');
+            }
+            request['currency'] = this.currencyId (code);
+            response = await this.utaPrivatePostAccountModeAccountModifyLeverageMarginCross (this.extend (request, params));
+        } else {
+            if (marginMode === undefined) {
+                throw new ArgumentsRequired (this.id + ' setLeverage requires a marginMode parameter');
+            }
+            if (marginMode === 'isolated' && symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' setLeverage requires a symbol parameter for isolated margin');
+            }
+            if (symbol !== undefined) {
+                request['symbol'] = market['id'];
+            }
+            request['isIsolated'] = (marginMode === 'isolated');
+            response = await this.privatePostPositionUpdateUserLeverage (this.extend (request, params));
         }
-        const request: Dict = {};
-        if (marginMode === 'isolated' && symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage requires a symbol parameter for isolated margin');
-        }
-        if (symbol !== undefined) {
-            request['symbol'] = market['id'];
-        }
-        request['leverage'] = leverage.toString ();
-        request['isIsolated'] = (marginMode === 'isolated');
-        return await this.privatePostPositionUpdateUserLeverage (this.extend (request, params));
+        return response;
     }
 
     /**
@@ -9866,65 +9937,101 @@ export default class kucoin extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        if (symbol === undefined) {
+        await this.loadMarkets ();
+        let uta = await this.isUTAEnabled ();
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'uta', uta);
+        let request: Dict = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        } else if (!uta) {
             throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
         }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
-            'symbol': market['id'],
-        };
         if (since !== undefined) {
             request['startAt'] = since;
         }
-        if (limit !== undefined) {
-            // * Since is ignored if limit is defined
-            request['maxCount'] = limit;
+        let dataList = [];
+        if (uta) {
+            if (limit !== undefined) {
+                request['pageSize'] = limit;
+            }
+            [ request, params ] = this.handleUntilOption ('endAt', request, params);
+            const response = await this.utaPrivateGetPositionFundingHistory (this.extend (request, params));
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": {
+            //             "lastId": 2125247170385112,
+            //             "items": [
+            //                 {
+            //                     "symbol": "DOGEUSDTM",
+            //                     "marginMode": "CROSS",
+            //                     "fundingRate": "0.000172",
+            //                     "markPrice": "0.09326",
+            //                     "size": "-1",
+            //                     "positionValue": "-9.326",
+            //                     "fundingFee": "0.00160407",
+            //                     "settleCurrency": "USDT",
+            //                     "settlementTime": 1775030400000
+            //                 }
+            //             ]
+            //         }
+            //     }
+            const data = this.safeDict (response, 'data');
+            dataList = this.safeList (data, 'items', []);
+        } else {
+            if (limit !== undefined) {
+                // * Since is ignored if limit is defined
+                request['maxCount'] = limit;
+            }
+            const response = await this.futuresPrivateGetFundingHistory (this.extend (request, params));
+            //
+            //    {
+            //        "code": "200000",
+            //        "data": {
+            //            "dataList": [
+            //                {
+            //                    "id": 239471298749817,
+            //                    "symbol": "ETHUSDTM",
+            //                    "timePoint": 1638532800000,
+            //                    "fundingRate": 0.000100,
+            //                    "markPrice": 4612.8300000000,
+            //                    "positionQty": 12,
+            //                    "positionCost": 553.5396000000,
+            //                    "funding": -0.0553539600,
+            //                    "settleCurrency": "USDT"
+            //                },
+            //                ...
+            //            ],
+            //            "hasMore": true
+            //        }
+            //    }
+            //
+            const data = this.safeValue (response, 'data');
+            dataList = this.safeList (data, 'dataList', []);
         }
-        const response = await this.futuresPrivateGetFundingHistory (this.extend (request, params));
-        //
-        //    {
-        //        "code": "200000",
-        //        "data": {
-        //            "dataList": [
-        //                {
-        //                    "id": 239471298749817,
-        //                    "symbol": "ETHUSDTM",
-        //                    "timePoint": 1638532800000,
-        //                    "fundingRate": 0.000100,
-        //                    "markPrice": 4612.8300000000,
-        //                    "positionQty": 12,
-        //                    "positionCost": 553.5396000000,
-        //                    "funding": -0.0553539600,
-        //                    "settleCurrency": "USDT"
-        //                },
-        //                ...
-        //            ],
-        //            "hasMore": true
-        //        }
-        //    }
-        //
-        const data = this.safeValue (response, 'data');
-        const dataList = this.safeList (data, 'dataList', []);
         const fees = [];
         for (let i = 0; i < dataList.length; i++) {
             const listItem = dataList[i];
-            const timestamp = this.safeInteger (listItem, 'timePoint');
+            const timestamp = this.safeInteger2 (listItem, 'timePoint', 'settlementTime');
+            const marketId = this.safeString (listItem, 'symbol');
             fees.push ({
                 'info': listItem,
-                'symbol': symbol,
+                'symbol': this.safeSymbol (marketId, market),
                 'code': this.safeCurrencyCode (this.safeString (listItem, 'settleCurrency')),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
                 'id': this.safeNumber (listItem, 'id'),
-                'amount': this.safeNumber (listItem, 'funding'),
+                'amount': this.safeNumber2 (listItem, 'funding', 'fundingFee'),
                 'fundingRate': this.safeNumber (listItem, 'fundingRate'),
                 'markPrice': this.safeNumber (listItem, 'markPrice'),
-                'positionQty': this.safeNumber (listItem, 'positionQty'),
-                'positionCost': this.safeNumber (listItem, 'positionCost'),
+                'positionQty': this.safeNumber2 (listItem, 'positionQty', 'size'),
+                'positionCost': this.safeNumber2 (listItem, 'positionCost', 'positionValue'),
             });
         }
         return fees as FundingHistory[];
