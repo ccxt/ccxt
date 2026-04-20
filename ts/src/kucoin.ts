@@ -1359,7 +1359,7 @@ export default class kucoin extends Exchange {
                         'symbolRequired': true,
                     },
                     'fetchOrder': {
-                        'marginMode': false,
+                        'marginMode': true,
                         'trigger': true,
                         'trailing': false,
                         'symbolRequired': true,
@@ -4294,16 +4294,12 @@ export default class kucoin extends Exchange {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
         const marginModeDefined = (marginMode !== undefined);
-        const isSpotMargin = (isSpot && marginModeDefined);
-        if (isSpotMargin && isUnified) {
-            throw new NotSupported (this.id + ' createOrder() does not support spot margin orders with unified accountMode');
-        }
-        const tradeType = this.handleTradeType (isContract, marginMode, params);
+        const tradeType = this.handleTradeType (isContract, marginMode, isUnified, params);
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId', this.uuid ());
         params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
         const request: Dict = {
             'accountMode': accountMode, // 'unified' or 'classic',
-            'tradeType': tradeType, // 'SPOT', 'FUTURES', 'ISOLATED' or 'CROSS'
+            'tradeType': tradeType, // 'SPOT', 'FUTURES', 'MARGIN', 'ISOLATED' or 'CROSS'
             'clientOid': clientOrderId,
             'symbol': market['id'],
             // 'triggerDirection'- 'UP' or 'DOWN (required for trigger orders, supported for classic-FUTURES and unified-SPOT and unified-FUTURES)
@@ -4966,7 +4962,7 @@ export default class kucoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountMode] 'unified' or 'classic' (default is 'unified')
      * @param {string} [params.clientOrderId] client order id, required if id is not provided
-     * @param {string} [params.marginMode] 'cross' or 'isolated', required if fetching a margin order
+     * @param {string} [params.marginMode] 'cross' or 'isolated', required if fetching a margin order (unified accountMode supports only cross margin)
      * @returns Response from the exchange
      */
     async cancelUtaOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -4993,7 +4989,8 @@ export default class kucoin extends Exchange {
         request['accountMode'] = accountMode;
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrder', params);
-        const tradeType = this.handleTradeType (market['contract'], marginMode, params);
+        const isUnified = (accountMode === 'unified');
+        const tradeType = this.handleTradeType (market['contract'], marginMode, isUnified, params);
         request['tradeType'] = tradeType;
         const response = await this.utaPrivatePostAccountModeOrderCancel (this.extend (request, params));
         //
@@ -5518,6 +5515,7 @@ export default class kucoin extends Exchange {
      * @param {int} [params.until] End time in ms
      * @param {string} [params.side] *closed orders only* 'BUY' or 'SELL'
      * @param {string} [params.accountMode] 'unified' or 'classic' (default is unified)
+     * @param {string} [params.marginMode] 'cross' or 'isolated', only for margin orders (unified accountMode supports only cross margin)
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -5550,7 +5548,8 @@ export default class kucoin extends Exchange {
         }
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrdersByStatus', params);
-        const tradeType = this.handleTradeType (isContract, marginMode, params);
+        const isUnified = (accountMode === 'unified');
+        const tradeType = this.handleTradeType (isContract, marginMode, isUnified, params);
         params['tradeType'] = tradeType;
         if (since !== undefined) {
             request['startAt'] = since;
@@ -5917,7 +5916,7 @@ export default class kucoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountMode] 'unified' or 'classic' (default is 'unified')
      * @param {string} [params.clientOrderId] client order id, required if id is not provided
-     * @param {string} [params.marginMode] 'cross' or 'isolated', required if fetching a margin order
+     * @param {string} [params.marginMode] 'cross' or 'isolated', required if fetching a margin order (unified accountMode supports only cross margin)
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchUtaOrder (id: Str, symbol: Str = undefined, params = {}) {
@@ -5943,7 +5942,8 @@ export default class kucoin extends Exchange {
         request['accountMode'] = accountMode;
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrder', params);
-        const tradeType = this.handleTradeType (market['contract'], marginMode, params);
+        const isUnified = (accountMode === 'unified');
+        const tradeType = this.handleTradeType (market['contract'], marginMode, isUnified, params);
         request['tradeType'] = tradeType;
         const response = await this.utaPrivateGetAccountModeOrderDetail (this.extend (request, params));
         //
@@ -5991,13 +5991,20 @@ export default class kucoin extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    handleTradeType (isContractMarket = false, marginMode = undefined, params = {}) {
+    handleTradeType (isContractMarket = false, marginMode = undefined, isUnified = false, params = {}) {
         let tradeType = this.safeString (params, 'tradeType');
         if (tradeType === undefined) {
             if (isContractMarket) {
                 tradeType = 'FUTURES';
             } else if (marginMode !== undefined) {
                 tradeType = marginMode.toUpperCase ();
+                if (isUnified) {
+                    if (tradeType === 'ISOLATED') {
+                        throw new NotSupported (this.id + ' spot isolated margin is not supported for unified accountMode');
+                    } else {
+                        tradeType = 'MARGIN';
+                    }
+                }
             } else {
                 tradeType = 'SPOT';
             }
@@ -6738,7 +6745,7 @@ export default class kucoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {string} [params.accountMode] 'unified' or 'classic', defaults to 'unified'
-     * @param {string} [params.marginMode] 'cross' or 'isolated', only for margin trades
+     * @param {string} [params.marginMode] 'cross' or 'isolated', only for margin trades (unified accountMode support only cross margin)
      * @param {string} [params.side] 'BUY' or 'SELL' (both if not provided)
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
@@ -6766,13 +6773,14 @@ export default class kucoin extends Exchange {
         } else {
             isContract = true;
         }
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
-        const tradeType = this.handleTradeType (isContract, marginMode, params);
-        request['tradeType'] = tradeType;
         let accountMode = 'unified';
         [ accountMode, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'accountMode', accountMode);
         request['accountMode'] = accountMode;
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
+        const isUnified = (accountMode === 'unified');
+        const tradeType = this.handleTradeType (isContract, marginMode, isUnified, params);
+        request['tradeType'] = tradeType;
         if (since !== undefined) {
             request['startAt'] = since;
         }
@@ -10409,7 +10417,7 @@ export default class kucoin extends Exchange {
      * @param {string[]} [params.clientOrderIds] client order ids
      * @param {boolean} [params.uta] set to true to use the unified trading account (uta) endpoint, defaults to false for the contract orders
      * @param {string} [params.accountMode] *for uta endpoint only* 'unified' or 'classic' (default is 'unified')
-     * @param {string} [params.marginMode] *for margin orders only* 'cross' or 'isolated'
+     * @param {string} [params.marginMode] *for margin orders only* 'cross' or 'isolated' (unified accountMode supports cross margin only)
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
@@ -10461,7 +10469,8 @@ export default class kucoin extends Exchange {
             request['accountMode'] = accountMode;
             let marginMode = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrder', params);
-            const tradeType = this.handleTradeType (isContractMarket, marginMode, params);
+            const isUnified = (accountMode === 'unified');
+            const tradeType = this.handleTradeType (isContractMarket, marginMode, isUnified, params);
             request['tradeType'] = tradeType;
             request['cancelOrderList'] = ordersRequests;
             response = await this.utaPrivatePostAccountModeOrderCancelBatch (this.extend (request, params));
