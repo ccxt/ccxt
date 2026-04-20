@@ -6629,6 +6629,7 @@ export default class okx extends Exchange {
     parseFundingInterval (interval) {
         const intervals: Dict = {
             '3600000': '1h',
+            '7200000': '2h',
             '14400000': '4h',
             '28800000': '8h',
             '57600000': '16h',
