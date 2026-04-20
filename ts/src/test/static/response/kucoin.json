@@ -1,6 +1,8 @@
 {
     "exchange": "kucoin",
-    "skipKeys": [],
+    "skipKeys": [
+        "timestamp"
+    ],
     "options": {
         "uta": false
     },
