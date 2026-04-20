@@ -210,7 +210,7 @@ public final class Time {
     }
 
     public static String yymmdd(Object ts) {
-        return yymmdd(ts, "-");
+        return yymmdd(ts, "");
     }
 
     public static Object ymd(Object ts, Object infix) {
