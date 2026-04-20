@@ -97,5 +97,6 @@ declare class testMainClass {
     testModeTrade(): Promise<boolean>;
     testBackpack(): Promise<boolean>;
     testToobit(): Promise<boolean>;
+    testWeex(): Promise<void>;
 }
 export default testMainClass;

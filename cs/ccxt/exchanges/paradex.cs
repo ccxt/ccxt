@@ -542,7 +542,9 @@ public partial class paradex : Exchange
         //  }
         //
         object assetKind = this.safeString(market, "asset_kind");
-        object isOption = (isEqual(assetKind, "PERP_OPTION"));
+        object isOptionPerpetual = (isEqual(assetKind, "PERP_OPTION"));
+        object isOptionDelivery = (isEqual(assetKind, "OPTION"));
+        object isOption = isTrue(isOptionPerpetual) || isTrue(isOptionDelivery);
         object type = ((bool) isTrue((isOption))) ? "option" : "swap";
         object isSwap = (isEqual(type, "swap"));
         object marketId = this.safeString(market, "symbol");
@@ -561,7 +563,8 @@ public partial class paradex : Exchange
         if (isTrue(isOption))
         {
             object optionTypeSuffix = ((bool) isTrue((isEqual(optionType, "CALL")))) ? "C" : "P";
-            symbol = add(add(add(add(symbol, "-"), strikePrice), "-"), optionTypeSuffix);
+            object deliveryValue = ((bool) isTrue((isEqual(expiry, 0)))) ? "" : add(this.yymmdd(expiry), "-");
+            symbol = add(add(add(add(add(symbol, "-"), deliveryValue), strikePrice), "-"), optionTypeSuffix);
             makerFee = this.parseNumber("0.0003");
         } else
         {

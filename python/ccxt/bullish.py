@@ -832,7 +832,8 @@ class bullish(Exchange, ImplicitAPI):
                 expiryDatetime = self.safe_string(market, 'expiryDatetime')
                 idParts = id.split('-')
                 datePart = self.safe_string(idParts, 2)
-                symbol += '-' + datePart
+                dateYmd = datePart[2:]
+                symbol += '-' + dateYmd
                 if type == 'future':
                     future = True
                 elif type == 'option':

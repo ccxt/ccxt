@@ -1188,7 +1188,8 @@ public partial class bitfinex : Exchange
         //     ]
         //
         object length = getArrayLength(ticker);
-        object isFetchTicker = isTrue((isEqual(length, 10))) || isTrue((isEqual(length, 16)));
+        object firstValue = this.safeNumber(ticker, 0);
+        object isFetchTicker = !isEqual(firstValue, null); // if it's Nan, then it's string (symbol)
         object symbol = null;
         object minusIndex = 0;
         object isFundingCurrency = false;

@@ -548,7 +548,9 @@ export default class paradex extends Exchange {
         //  }
         //
         const assetKind = this.safeString (market, 'asset_kind');
-        const isOption = (assetKind === 'PERP_OPTION');
+        const isOptionPerpetual = (assetKind === 'PERP_OPTION');
+        const isOptionDelivery = (assetKind === 'OPTION');
+        const isOption = isOptionPerpetual || isOptionDelivery;
         const type = (isOption) ? 'option' : 'swap';
         const isSwap = (type === 'swap');
         const marketId = this.safeString (market, 'symbol');
@@ -566,7 +568,8 @@ export default class paradex extends Exchange {
         let makerFee = this.parseNumber ('-0.00005');
         if (isOption) {
             const optionTypeSuffix = (optionType === 'CALL') ? 'C' : 'P';
-            symbol = symbol + '-' + strikePrice + '-' + optionTypeSuffix;
+            const deliveryValue = (expiry === 0) ? '' : this.yymmdd (expiry) + '-';
+            symbol = symbol + '-' + deliveryValue + strikePrice + '-' + optionTypeSuffix;
             makerFee = this.parseNumber ('0.0003');
         } else {
             expiry = undefined;

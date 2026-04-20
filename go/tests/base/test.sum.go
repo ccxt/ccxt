@@ -11,7 +11,7 @@ func TestSum() {
 	exchange.InitParent(map[string]interface{}{
 		"id": "sampleexchange",
 	}, map[string]interface{}{}, exchange)
-	// testSharedMethods.assertDeepEqual (exchange, undefined, 'testSum', exchange.sum (), undefined); // todo: bugs in py
+	// assertDeepEqual (exchange, undefined, 'testSum', exchange.sum (), undefined); // todo: bugs in py
 	AssertDeepEqual(exchange, nil, "testSum", exchange.Sum(2), 2)
 	AssertDeepEqual(exchange, nil, "testSum", exchange.Sum(2, 30, 400), 432)
 }

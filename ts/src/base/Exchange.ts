@@ -1960,7 +1960,7 @@ export default class Exchange {
         return undefined;  // c# stub
     }
 
-    async loadLighterLibrary (libraryPath, chainId, privateKey, apiKeyIndex, accountIndex) {
+    async loadLighterLibrary (libraryPath, chainId, privateKey, apiKeyIndex, accountIndex, createClient = false) {
         // wasmExecPathExample: '/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js';
         // libraryPath eg: '/Users/cjg/Git/lighter-go/lighter.wasm';
         if (libraryPath === undefined || libraryPath === '') {
@@ -1980,11 +1980,17 @@ export default class Exchange {
         const bytes = new Uint8Array (readFile (libraryPath, null) as Buffer); // it should point to lighter.wasm
         const { instance } = await WebAssembly.instantiate (bytes, go.importObject);
         go.run (instance);
-        // createCLient
+        if (createClient) {
+            this.lighterCreateClient (undefined, chainId, privateKey, apiKeyIndex, accountIndex);
+        }
+        return {}; // empty object we will read it from globalThis
+    }
+
+    lighterCreateClient (signer, chainId, privateKey, apiKeyIndex, accountIndex) {
         const url = this.implodeHostname (this.urls['api']['public']);
         const res = globalThis.CreateClient (url, privateKey, chainId, apiKeyIndex, accountIndex);
         this.checkLighterSignedError (res);
-        return {}; // empty object we will read it from globalThis
+        return signer;
     }
 
     // eslint-disable-next-line no-unused-vars
@@ -2006,7 +2012,15 @@ export default class Exchange {
                 'OrderExpiry': order['order_expiry'],
             });
         }
-        const res = globalThis.SignCreateGroupedOrders (request['grouping_type'], ordersArr, orders.length, request['nonce'], request['api_key_index'], request['account_index']);
+        const res = globalThis.SignCreateGroupedOrders (
+            request['grouping_type'],
+            ordersArr,
+            orders.length,
+            0, // skip nonce
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index']
+        );
         this.checkLighterSignedError (res);
         return [ res.txType, res.txInfo ];
     }
@@ -2024,6 +2038,10 @@ export default class Exchange {
             request['reduce_only'],
             request['trigger_price'],
             request['order_expiry'],
+            request['integrator_account_index'],
+            request['integrator_taker_fee'],
+            request['integrator_maker_fee'],
+            0, // skip nonce
             request['nonce'],
             request['api_key_index'],
             request['account_index']
@@ -2042,6 +2060,7 @@ export default class Exchange {
         const res = (globalThis.SignCancelOrder (
             request['market_index'],
             request['order_index'],
+            0, // skip nonce
             request['nonce'],
             request['api_key_index'],
             request['account_index']
@@ -2055,6 +2074,7 @@ export default class Exchange {
             request['asset_index'],
             request['route_type'],
             request['amount'],
+            0, // skip nonce
             request['nonce'],
             request['api_key_index'],
             request['account_index']
@@ -2066,6 +2086,7 @@ export default class Exchange {
     // eslint-disable-next-line no-unused-vars
     lighterSignCreateSubAccount (signer, request): any[] {
         const res = (globalThis.SignCreateSubAccount (
+            0, // skip nonce
             request['nonce'],
             request['api_key_index'],
             request['account_index']
@@ -2078,6 +2099,7 @@ export default class Exchange {
         const res = (globalThis.SignCancelAllOrders (
             request['time_in_force'],
             request['time'],
+            0, // skip nonce
             request['nonce'],
             request['api_key_index'],
             request['account_index']
@@ -2093,6 +2115,10 @@ export default class Exchange {
             request['base_amount'],
             request['price'],
             request['trigger_price'],
+            request['integrator_account_index'],
+            request['integrator_taker_fee'],
+            request['integrator_maker_fee'],
+            0, // skip nonce
             request['nonce'],
             request['api_key_index'],
             request['account_index']
@@ -2110,6 +2136,7 @@ export default class Exchange {
             request['amount'],
             request['usdc_fee'],
             request['memo'],
+            0, // skip nonce
             request['nonce'],
             request['api_key_index'],
             request['account_index']
@@ -2123,6 +2150,7 @@ export default class Exchange {
             request['market_index'],
             request['initial_margin_fraction'],
             request['margin_mode'],
+            0, // skip nonce
             request['nonce'],
             request['api_key_index'],
             request['account_index']
@@ -2146,12 +2174,51 @@ export default class Exchange {
             request['market_index'],
             request['usdc_amount'],
             request['direction'],
+            0, // skip nonce
             request['nonce'],
             request['api_key_index'],
             request['account_index']
         );
         this.checkLighterSignedError (res);
         return [ res.txType, res.txInfo ];
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignApproveIntegrator (signer, request): any[] {
+        const res = globalThis.SignApproveIntegrator (
+            request['integrator_account_index'],
+            request['integrator_taker_fee'],
+            request['integrator_maker_fee'],
+            request['integrator_taker_fee'],
+            request['integrator_maker_fee'],
+            request['approval_expiry'],
+            0, // skip nonce
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index']
+        );
+        this.checkLighterSignedError (res);
+        return [ res.txType, res.txInfo, res.messageToSign ];
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterGenerateApiKey (signer): any[] {
+        const res = globalThis.GenerateAPIKey ();
+        this.checkLighterSignedError (res);
+        return [ res.privateKey, res.publicKey ];
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignChangePubkey (signer, request): any[] {
+        const res = globalThis.SignChangePubKey (
+            Buffer.from (request['pubkey']).toString (),
+            0, // skip nonce
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index']
+        );
+        this.checkLighterSignedError (res);
+        return [ res.txType, res.txInfo, res.messageToSign ];
     }
 
     /* eslint-enable */

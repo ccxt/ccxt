@@ -19,6 +19,10 @@ func (this *MexcCore) SpotPublicGetDefaultSymbols(args ...interface{}) <-chan in
 	return this.callEndpointAsync("spotPublicGetDefaultSymbols", args...)
 }
 
+func (this *MexcCore) SpotPublicGetSymbolOffline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetSymbolOffline", args...)
+}
+
 func (this *MexcCore) SpotPublicGetExchangeInfo(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("spotPublicGetExchangeInfo", args...)
 }
@@ -243,6 +247,18 @@ func (this *MexcCore) SpotPrivateGetRebateAffiliateCommissionDetail(args ...inte
 	return this.callEndpointAsync("spotPrivateGetRebateAffiliateCommissionDetail", args...)
 }
 
+func (this *MexcCore) SpotPrivateGetRebateAffiliateCampaign(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetRebateAffiliateCampaign", args...)
+}
+
+func (this *MexcCore) SpotPrivateGetRebateAffiliateReferral(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetRebateAffiliateReferral", args...)
+}
+
+func (this *MexcCore) SpotPrivateGetRebateAffiliateSubaffiliates(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetRebateAffiliateSubaffiliates", args...)
+}
+
 func (this *MexcCore) SpotPrivateGetMxDeductEnable(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("spotPrivateGetMxDeductEnable", args...)
 }
@@ -343,6 +359,14 @@ func (this *MexcCore) SpotPrivateDeleteSubAccountApiKey(args ...interface{}) <-c
 	return this.callEndpointAsync("spotPrivateDeleteSubAccountApiKey", args...)
 }
 
+func (this *MexcCore) SpotPrivateDeleteStrategyGroup(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateDeleteStrategyGroup", args...)
+}
+
+func (this *MexcCore) SpotPrivateDeleteStrategyGroupUid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateDeleteStrategyGroupUid", args...)
+}
+
 func (this *MexcCore) SpotPrivateDeleteMarginOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("spotPrivateDeleteMarginOrder", args...)
 }
@@ -435,6 +459,54 @@ func (this *MexcCore) ContractPrivateGetAccountTransferRecord(args ...interface{
 	return this.callEndpointAsync("contractPrivateGetAccountTransferRecord", args...)
 }
 
+func (this *MexcCore) ContractPrivateGetAccountProfitRateType(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetAccountProfitRateType", args...)
+}
+
+func (this *MexcCore) ContractPrivateGetAccountAssetAnalysisType(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetAccountAssetAnalysisType", args...)
+}
+
+func (this *MexcCore) ContractPrivateGetAccountFeeDeductConfigs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetAccountFeeDeductConfigs", args...)
+}
+
+func (this *MexcCore) ContractPrivateGetAccountAssetAnalysisYesterdayPnl(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetAccountAssetAnalysisYesterdayPnl", args...)
+}
+
+func (this *MexcCore) ContractPrivateGetAccountAssetAnalysisTodayPnl(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetAccountAssetAnalysisTodayPnl", args...)
+}
+
+func (this *MexcCore) ContractPrivateGetAccountConfigContractFeeDiscountConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetAccountConfigContractFeeDiscountConfig", args...)
+}
+
+func (this *MexcCore) ContractPrivateGetOrderFeeDetails(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetOrderFeeDetails", args...)
+}
+
+func (this *MexcCore) ContractPrivateGetAccountDiscountType(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetAccountDiscountType", args...)
+}
+
+func (this *MexcCore) ContractPrivateGetAccountAssetAnalysisExport(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetAccountAssetAnalysisExport", args...)
+}
+
+func (this *MexcCore) ContractPrivateGetAccountAssetBookOrderDealFeeTotal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetAccountAssetBookOrderDealFeeTotal", args...)
+}
+
+func (this *MexcCore) ContractPrivateGetAccountContractFeeRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetAccountContractFeeRate", args...)
+}
+
+func (this *MexcCore) ContractPrivateGetAccountContractZeroFeeRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetAccountContractZeroFeeRate", args...)
+}
+
 func (this *MexcCore) ContractPrivateGetPositionListHistoryPositions(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("contractPrivateGetPositionListHistoryPositions", args...)
 }
@@ -459,6 +531,10 @@ func (this *MexcCore) ContractPrivateGetOrderListHistoryOrders(args ...interface
 	return this.callEndpointAsync("contractPrivateGetOrderListHistoryOrders", args...)
 }
 
+func (this *MexcCore) ContractPrivateGetOrderListOrderDealsV3(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetOrderListOrderDealsV3", args...)
+}
+
 func (this *MexcCore) ContractPrivateGetOrderExternalSymbolExternalOid(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("contractPrivateGetOrderExternalSymbolExternalOid", args...)
 }
@@ -479,12 +555,20 @@ func (this *MexcCore) ContractPrivateGetOrderListOrderDeals(args ...interface{})
 	return this.callEndpointAsync("contractPrivateGetOrderListOrderDeals", args...)
 }
 
+func (this *MexcCore) ContractPrivateGetOrderListCloseOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetOrderListCloseOrders", args...)
+}
+
 func (this *MexcCore) ContractPrivateGetPlanorderListOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("contractPrivateGetPlanorderListOrders", args...)
 }
 
 func (this *MexcCore) ContractPrivateGetStoporderListOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("contractPrivateGetStoporderListOrders", args...)
+}
+
+func (this *MexcCore) ContractPrivateGetStoporderOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetStoporderOpenOrders", args...)
 }
 
 func (this *MexcCore) ContractPrivateGetStoporderOrderDetailsStopOrderId(args ...interface{}) <-chan interface{} {
@@ -503,8 +587,44 @@ func (this *MexcCore) ContractPrivateGetPositionLeverage(args ...interface{}) <-
 	return this.callEndpointAsync("contractPrivateGetPositionLeverage", args...)
 }
 
+func (this *MexcCore) ContractPrivateGetAccountTieredFeeRateV2(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetAccountTieredFeeRateV2", args...)
+}
+
+func (this *MexcCore) ContractPrivateGetTrackorderListOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetTrackorderListOrders", args...)
+}
+
+func (this *MexcCore) ContractPrivateGetMarketMakerSelfTradeBlacklist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetMarketMakerSelfTradeBlacklist", args...)
+}
+
+func (this *MexcCore) ContractPrivateGetMarketMakerSelfTradeBlacklistSearch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetMarketMakerSelfTradeBlacklistSearch", args...)
+}
+
+func (this *MexcCore) ContractPrivatePostAccountAssetAnalysisV3(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostAccountAssetAnalysisV3", args...)
+}
+
+func (this *MexcCore) ContractPrivatePostAccountAssetAnalysisCalendarDailyV3(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostAccountAssetAnalysisCalendarDailyV3", args...)
+}
+
+func (this *MexcCore) ContractPrivatePostAccountAssetAnalysisCalendarMonthlyV3(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostAccountAssetAnalysisCalendarMonthlyV3", args...)
+}
+
+func (this *MexcCore) ContractPrivatePostAccountAssetAnalysisRecentV3(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostAccountAssetAnalysisRecentV3", args...)
+}
+
 func (this *MexcCore) ContractPrivatePostPositionChangeMargin(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("contractPrivatePostPositionChangeMargin", args...)
+}
+
+func (this *MexcCore) ContractPrivatePostPositionChangeAutoAddIm(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostPositionChangeAutoAddIm", args...)
 }
 
 func (this *MexcCore) ContractPrivatePostPositionChangeLeverage(args ...interface{}) <-chan interface{} {
@@ -515,6 +635,18 @@ func (this *MexcCore) ContractPrivatePostPositionChangePositionMode(args ...inte
 	return this.callEndpointAsync("contractPrivatePostPositionChangePositionMode", args...)
 }
 
+func (this *MexcCore) ContractPrivatePostPositionReverse(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostPositionReverse", args...)
+}
+
+func (this *MexcCore) ContractPrivatePostPositionCloseAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostPositionCloseAll", args...)
+}
+
+func (this *MexcCore) ContractPrivatePostOrderCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostOrderCreate", args...)
+}
+
 func (this *MexcCore) ContractPrivatePostOrderSubmit(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("contractPrivatePostOrderSubmit", args...)
 }
@@ -523,8 +655,20 @@ func (this *MexcCore) ContractPrivatePostOrderSubmitBatch(args ...interface{}) <
 	return this.callEndpointAsync("contractPrivatePostOrderSubmitBatch", args...)
 }
 
+func (this *MexcCore) ContractPrivatePostOrderChaseLimitOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostOrderChaseLimitOrder", args...)
+}
+
+func (this *MexcCore) ContractPrivatePostOrderChangeLimitOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostOrderChangeLimitOrder", args...)
+}
+
 func (this *MexcCore) ContractPrivatePostOrderCancel(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("contractPrivatePostOrderCancel", args...)
+}
+
+func (this *MexcCore) ContractPrivatePostOrderBatchCancelWithExternal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostOrderBatchCancelWithExternal", args...)
 }
 
 func (this *MexcCore) ContractPrivatePostOrderCancelWithExternal(args ...interface{}) <-chan interface{} {
@@ -535,6 +679,14 @@ func (this *MexcCore) ContractPrivatePostOrderCancelAll(args ...interface{}) <-c
 	return this.callEndpointAsync("contractPrivatePostOrderCancelAll", args...)
 }
 
+func (this *MexcCore) ContractPrivatePostOrderOpenOrderTotalCount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostOrderOpenOrderTotalCount", args...)
+}
+
+func (this *MexcCore) ContractPrivatePostOrderBatchQueryWithExternal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostOrderBatchQueryWithExternal", args...)
+}
+
 func (this *MexcCore) ContractPrivatePostAccountChangeRiskLevel(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("contractPrivatePostAccountChangeRiskLevel", args...)
 }
@@ -543,12 +695,24 @@ func (this *MexcCore) ContractPrivatePostPlanorderPlace(args ...interface{}) <-c
 	return this.callEndpointAsync("contractPrivatePostPlanorderPlace", args...)
 }
 
+func (this *MexcCore) ContractPrivatePostPlanorderPlaceV2(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostPlanorderPlaceV2", args...)
+}
+
 func (this *MexcCore) ContractPrivatePostPlanorderCancel(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("contractPrivatePostPlanorderCancel", args...)
 }
 
 func (this *MexcCore) ContractPrivatePostPlanorderCancelAll(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("contractPrivatePostPlanorderCancelAll", args...)
+}
+
+func (this *MexcCore) ContractPrivatePostPlanorderChangeStopOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostPlanorderChangeStopOrder", args...)
+}
+
+func (this *MexcCore) ContractPrivatePostStoporderPlace(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostStoporderPlace", args...)
 }
 
 func (this *MexcCore) ContractPrivatePostStoporderCancel(args ...interface{}) <-chan interface{} {
@@ -565,6 +729,30 @@ func (this *MexcCore) ContractPrivatePostStoporderChangePrice(args ...interface{
 
 func (this *MexcCore) ContractPrivatePostStoporderChangePlanPrice(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("contractPrivatePostStoporderChangePlanPrice", args...)
+}
+
+func (this *MexcCore) ContractPrivatePostTrackorderPlace(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostTrackorderPlace", args...)
+}
+
+func (this *MexcCore) ContractPrivatePostTrackorderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostTrackorderCancel", args...)
+}
+
+func (this *MexcCore) ContractPrivatePostTrackorderChangeOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostTrackorderChangeOrder", args...)
+}
+
+func (this *MexcCore) ContractPrivatePostMarketMakerSelfTradeBlacklistCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostMarketMakerSelfTradeBlacklistCreate", args...)
+}
+
+func (this *MexcCore) ContractPrivatePostMarketMakerSelfTradeBlacklistUpdate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostMarketMakerSelfTradeBlacklistUpdate", args...)
+}
+
+func (this *MexcCore) ContractPrivatePostMarketMakerSelfTradeBlacklistDelete(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostMarketMakerSelfTradeBlacklistDelete", args...)
 }
 
 func (this *MexcCore) Spot2PublicGetMarketSymbols(args ...interface{}) <-chan interface{} {
@@ -699,6 +887,10 @@ func (this *MexcCore) BrokerPrivateGetSubAccountList(args ...interface{}) <-chan
 	return this.callEndpointAsync("brokerPrivateGetSubAccountList", args...)
 }
 
+func (this *MexcCore) BrokerPrivateGetSubAccountStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("brokerPrivateGetSubAccountStatus", args...)
+}
+
 func (this *MexcCore) BrokerPrivateGetSubAccountApiKey(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("brokerPrivateGetSubAccountApiKey", args...)
 }
@@ -713,6 +905,10 @@ func (this *MexcCore) BrokerPrivateGetCapitalDepositSubHisrec(args ...interface{
 
 func (this *MexcCore) BrokerPrivateGetCapitalDepositSubHisrecGetall(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("brokerPrivateGetCapitalDepositSubHisrecGetall", args...)
+}
+
+func (this *MexcCore) BrokerPrivateGetRebateTaxQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("brokerPrivateGetRebateTaxQuery", args...)
 }
 
 func (this *MexcCore) BrokerPrivatePostSubAccountVirtualSubAccount(args ...interface{}) <-chan interface{} {

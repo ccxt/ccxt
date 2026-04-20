@@ -357,6 +357,7 @@ class testMainClass {
                 $is_auth_error = ($e instanceof AuthenticationError);
                 $is_not_supported = ($e instanceof NotSupported);
                 $is_operation_failed = ($e instanceof OperationFailed); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
+                $last_url_msg = $this->ws_tests ? '' : ' (Last url: ' . $exchange->last_request_url . ' )';
                 if ($is_operation_failed) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if ($i === $max_retries - 1) {
@@ -387,7 +388,7 @@ class testMainClass {
                         }
                         // output the message
                         $fail_type = $should_fail ? '[TEST_FAILURE]' : '[TEST_WARNING]';
-                        dump($fail_type, 'Method could not be tested due to a repeated Network/Availability issues', ' | ', $exchange->id, $method_name, $args_stringified, exception_message($e));
+                        dump($fail_type, $exchange->id, $method_name, $args_stringified, $last_url_msg, 'Method could not be tested due to a repeated Network/Availability issues', ' | ', exception_message($e));
                         return $ret_success;
                     } else {
                         // wait and retry again
@@ -397,14 +398,14 @@ class testMainClass {
                 } else {
                     // if it's loadMarkets, then fail test, because it's mandatory for tests
                     if ($is_load_markets) {
-                        dump('[TEST_FAILURE]', 'Exchange can not load markets', exception_message($e), $exchange->id, $method_name, $args_stringified);
+                        dump('[TEST_FAILURE]', $exchange->id, $method_name, $args_stringified, $last_url_msg, 'Exchange can not load markets', exception_message($e));
                         return false;
                     }
                     // if the specific arguments to the test method throws "NotSupported" exception
                     // then let's don't fail the test
                     if ($is_not_supported) {
                         if ($this->info) {
-                            dump('[INFO] NOT_SUPPORTED', exception_message($e), $exchange->id, $method_name, $args_stringified);
+                            dump('[INFO] NOT_SUPPORTED', $exchange->id, $method_name, $args_stringified, $last_url_msg, exception_message($e));
                         }
                         return true;
                     }
@@ -412,11 +413,11 @@ class testMainClass {
                     if ($is_public && $is_auth_error) {
                         if ($this->info) {
                             // todo - turn into warning
-                            dump('[INFO]', 'Authentication problem for public method', exception_message($e), $exchange->id, $method_name, $args_stringified);
+                            dump('[INFO]', $exchange->id, $method_name, $args_stringified, $last_url_msg, 'Authentication problem for public method', exception_message($e));
                         }
                         return true;
                     } else {
-                        dump('[TEST_FAILURE]', exception_message($e), $exchange->id, $method_name, $args_stringified);
+                        dump('[TEST_FAILURE]', $exchange->id, $method_name, $args_stringified, $last_url_msg, exception_message($e));
                         return false;
                     }
                 }
@@ -1198,8 +1199,11 @@ class testMainClass {
                         $library_path = $base_path . 'lighter-signer-linux-arm64.so';
                     }
                 } else {
-                    // assume macos arm64
-                    $library_path = $base_path . 'lighter-signer-darwin-arm64.dylib';
+                    if (is_amd64()) {
+                        $library_path = $base_path . 'lighter-signer-darwin-x86.dylib';
+                    } else {
+                        $library_path = $base_path . 'lighter-signer-darwin-arm64.dylib';
+                    }
                 }
             }
         }
@@ -1492,7 +1496,7 @@ class testMainClass {
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit()];
+        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit(), $this->test_weex()];
         ($promises);
         $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
         dump('[INFO]' . $success_message);
@@ -2183,5 +2187,26 @@ class testMainClass {
             close($exchange);
         }
         return true;
+    }
+
+    public function test_weex() {
+        $exchange = $this->init_offline_exchange('weex');
+        $id = 'b-WEEX111125';
+        assert($exchange->options['partner'] === $id, 'weex - id: ' . $id . ' not in options');
+        $request = null;
+        try {
+            $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch(\Throwable $e) {
+            $request = json_parse($exchange->last_request_body);
+        }
+        $client_order_id = $request['newClientOrderId'];
+        assert(str_starts_with($client_order_id, $id), 'weex - newClientOrderId: ' . $client_order_id . ' for spot order does not start with id: ' . $id);
+        try {
+            $exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
+        } catch(\Throwable $e) {
+            $request = json_parse($exchange->last_request_body);
+        }
+        $client_order_id = $request['newClientOrderId'];
+        assert(str_starts_with($client_order_id, $id), 'weex - newClientOrderId: ' . $client_order_id . ' for swap order does not start with id: ' . $id);
     }
 }

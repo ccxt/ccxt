@@ -3095,6 +3095,10 @@ func (this *BinanceCore) PapiPostUmFeeBurn(args ...interface{}) <-chan interface
 	return this.callEndpointAsync("papiPostUmFeeBurn", args...)
 }
 
+func (this *BinanceCore) PapiPostUmStockContract(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiPostUmStockContract", args...)
+}
+
 func (this *BinanceCore) PapiPutListenKey(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("papiPutListenKey", args...)
 }

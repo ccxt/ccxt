@@ -562,6 +562,7 @@ export default class kraken extends Exchange {
                     'EFunding:No funding method': BadRequest,
                     'EFunding:Unknown asset': BadSymbol,
                     'EService:Market in post_only mode': OnMaintenance,
+                    'EService:Market in cancel_only mode': OnMaintenance,
                     'EGeneral:Too many requests': DDoSProtection,
                     'ETrade:User Locked': AccountSuspended, // {"error":["ETrade:User Locked"]}
                 },

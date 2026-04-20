@@ -9392,6 +9392,8 @@ class kucoin(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol of the market the position is held in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
+        :param integer [params.pageSize]: *uta only* page size for the uta endpoint(default 50, max 200)
+        :param integer [params.pageNumber]: *uta only* page number for the uta endpoint(default 1)
         :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
@@ -9490,6 +9492,8 @@ class kucoin(Exchange, ImplicitAPI):
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
+        :param integer [params.pageSize]: *uta only* page size for the uta endpoint(default 50, max 200)
+        :param integer [params.pageNumber]: *uta only* page number for the uta endpoint(default 1)
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
@@ -9497,7 +9501,7 @@ class kucoin(Exchange, ImplicitAPI):
         uta, params = self.handle_option_and_params(params, 'fetchPositions', 'uta', uta)
         response = None
         if uta:
-            response = self.utaPrivateGetAccountModePositionOpenList(self.extend(params, {'accountMode': 'unified'}))
+            response = self.utaPrivateGetAccountModePositionOpenList(self.extend({'accountMode': 'unified', 'limit': 200}, params))
         else:
             response = self.futuresPrivateGetPositions(params)
             #

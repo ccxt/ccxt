@@ -9967,6 +9967,8 @@ class kucoin extends kucoin$1["default"] {
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {integer} [params.pageSize] *uta only* page size for the uta endpoint (default 50, max 200)
+     * @param {integer} [params.pageNumber] *uta only* page number for the uta endpoint (default 1)
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition(symbol, params = {}) {
@@ -10067,6 +10069,8 @@ class kucoin extends kucoin$1["default"] {
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {integer} [params.pageSize] *uta only* page size for the uta endpoint (default 50, max 200)
+     * @param {integer} [params.pageNumber] *uta only* page number for the uta endpoint (default 1)
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
@@ -10075,7 +10079,7 @@ class kucoin extends kucoin$1["default"] {
         [uta, params] = this.handleOptionAndParams(params, 'fetchPositions', 'uta', uta);
         let response = undefined;
         if (uta) {
-            response = await this.utaPrivateGetAccountModePositionOpenList(this.extend(params, { 'accountMode': 'unified' }));
+            response = await this.utaPrivateGetAccountModePositionOpenList(this.extend({ 'accountMode': 'unified', 'limit': 200 }, params));
         }
         else {
             response = await this.futuresPrivateGetPositions(params);

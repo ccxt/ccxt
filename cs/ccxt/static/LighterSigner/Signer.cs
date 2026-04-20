@@ -63,6 +63,8 @@ namespace LighterSigner
             _signUpdateLeverage = _lib.GetFunction<SignUpdateLeverageDelegate>("SignUpdateLeverage");
             _createAuthToken = _lib.GetFunction<CreateAuthTokenDelegate>("CreateAuthToken");
             _signUpdateMargin = _lib.GetFunction<SignUpdateMarginDelegate>("SignUpdateMargin");
+            _signApproveIntegrator = _lib.GetFunction<SignApproveIntegratorDelegate>("SignApproveIntegrator");
+            _free = _lib.GetFunction<FreeDelegate>("Free");
         }
 
         public void Dispose()
@@ -150,7 +152,7 @@ namespace LighterSigner
         private delegate IntPtr CheckClientDelegate(int apiKeyIndex, long accountIndex);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate SignedTxResponse SignChangePubKeyDelegate(IntPtr pubKey, long nonce, int apiKeyIndex, long accountIndex);
+        private delegate SignedTxResponse SignChangePubKeyDelegate(IntPtr pubKey, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate SignedTxResponse SignCreateOrderDelegate(
@@ -164,6 +166,10 @@ namespace LighterSigner
             int reduceOnly,
             int triggerPrice,
             long orderExpiry,
+            long integratorAccountIndex,
+            int integratorTakerFee,
+            int integratorMakerFee,
+            byte skipNonce,
             long nonce,
             int apiKeyIndex,
             long accountIndex);
@@ -173,24 +179,28 @@ namespace LighterSigner
             byte groupingType,
             IntPtr orders,
             int len,
+            long integratorAccountIndex,
+            int integratorTakerFee,
+            int integratorMakerFee,
+            byte skipNonce,
             long nonce,
             int apiKeyIndex,
             long accountIndex);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate SignedTxResponse SignCancelOrderDelegate(int marketIndex, long orderIndex, long nonce, int apiKeyIndex, long accountIndex);
+        private delegate SignedTxResponse SignCancelOrderDelegate(int marketIndex, long orderIndex, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate SignedTxResponse SignWithdrawDelegate(int assetIndex, int routeType, ulong amount, long nonce, int apiKeyIndex, long accountIndex);
+        private delegate SignedTxResponse SignWithdrawDelegate(int assetIndex, int routeType, ulong amount, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate SignedTxResponse SignCreateSubAccountDelegate(long nonce, int apiKeyIndex, long accountIndex);
+        private delegate SignedTxResponse SignCreateSubAccountDelegate(byte skipNonce, long nonce, int apiKeyIndex, long accountIndex);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate SignedTxResponse SignCancelAllOrdersDelegate(int timeInForce, long time, long nonce, int apiKeyIndex, long accountIndex);
+        private delegate SignedTxResponse SignCancelAllOrdersDelegate(int timeInForce, long time, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate SignedTxResponse SignModifyOrderDelegate(int marketIndex, long index, long baseAmount, long price, long triggerPrice, long nonce, int apiKeyIndex, long accountIndex);
+        private delegate SignedTxResponse SignModifyOrderDelegate(int marketIndex, long index, long baseAmount, long price, long triggerPrice, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate SignedTxResponse SignTransferDelegate(
@@ -201,30 +211,37 @@ namespace LighterSigner
             long amount,
             long usdcFee,
             IntPtr memo,
+            byte skipNonce,
             long nonce,
             int apiKeyIndex,
             long accountIndex);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate SignedTxResponse SignCreatePublicPoolDelegate(long operatorFee, int initialTotalShares, long minOperatorShareRate, long nonce, int apiKeyIndex, long accountIndex);
+        private delegate SignedTxResponse SignCreatePublicPoolDelegate(long operatorFee, int initialTotalShares, long minOperatorShareRate, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate SignedTxResponse SignUpdatePublicPoolDelegate(long publicPoolIndex, int status, long operatorFee, int minOperatorShareRate, long nonce, int apiKeyIndex, long accountIndex);
+        private delegate SignedTxResponse SignUpdatePublicPoolDelegate(long publicPoolIndex, int status, long operatorFee, int minOperatorShareRate, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate SignedTxResponse SignMintSharesDelegate(long publicPoolIndex, long shareAmount, long nonce, int apiKeyIndex, long accountIndex);
+        private delegate SignedTxResponse SignMintSharesDelegate(long publicPoolIndex, long shareAmount, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate SignedTxResponse SignBurnSharesDelegate(long publicPoolIndex, long shareAmount, long nonce, int apiKeyIndex, long accountIndex);
+        private delegate SignedTxResponse SignBurnSharesDelegate(long publicPoolIndex, long shareAmount, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate SignedTxResponse SignUpdateLeverageDelegate(int marketIndex, int initialMarginFraction, int marginMode, long nonce, int apiKeyIndex, long accountIndex);
+        private delegate SignedTxResponse SignUpdateLeverageDelegate(int marketIndex, int initialMarginFraction, int marginMode, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate StrOrErr CreateAuthTokenDelegate(long deadline, int apiKeyIndex, long accountIndex);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate SignedTxResponse SignUpdateMarginDelegate(int marketIndex, long usdcAmount, int direction, long nonce, int apiKeyIndex, long accountIndex);
+        private delegate SignedTxResponse SignUpdateMarginDelegate(int marketIndex, long usdcAmount, int direction, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate SignedTxResponse SignApproveIntegratorDelegate(long integratorIndex, int maxPerpsTakerFee, int maxPerpsMakerFee, int maxSpotTakerFee, int maxSpotMakerFee, long approvalExpiry, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate SignedTxResponse FreeDelegate(int ptr);
 
         // bound delegates
         private readonly GenerateAPIKeyDelegate _generateApiKey;
@@ -246,6 +263,8 @@ namespace LighterSigner
         private readonly SignUpdateLeverageDelegate _signUpdateLeverage;
         private readonly CreateAuthTokenDelegate _createAuthToken;
         private readonly SignUpdateMarginDelegate _signUpdateMargin;
+        private readonly SignApproveIntegratorDelegate _signApproveIntegrator;
+        private readonly FreeDelegate _free;
 
         // -----------------------------
         // Public API (mirrors PHP)
@@ -284,13 +303,13 @@ namespace LighterSigner
                 throw new InvalidOperationException("CheckClient failed: " + PtrToUtf8StringOrEmpty(errPtr));
         }
 
-        public SignedTx SignChangePubKey(string pubKey, long nonce, int apiKeyIndex, long accountIndex)
+        public SignedTx SignChangePubKey(string pubKey, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex)
         {
             EnsureNotDisposed();
 
             using (var pk = Utf8Scope.From(pubKey))
             {
-                var r = _signChangePubKey(pk.Ptr, nonce, apiKeyIndex, accountIndex);
+                var r = _signChangePubKey(pk.Ptr, skipNonce, nonce, apiKeyIndex, accountIndex);
                 return ParseSignedTx(r);
             }
         }
@@ -306,6 +325,10 @@ namespace LighterSigner
             int reduceOnly,
             int triggerPrice,
             long orderExpiry,
+            long integratorAccountIndex,
+            int integratorTakerFee,
+            int integratorMakerFee,
+            byte skipNonce,
             long nonce,
             int apiKeyIndex,
             long accountIndex)
@@ -314,7 +337,8 @@ namespace LighterSigner
 
             var r = _signCreateOrder(
                 marketIndex, clientOrderIndex, baseAmount, price, isAsk, orderType, timeInForce,
-                reduceOnly, triggerPrice, orderExpiry, nonce, apiKeyIndex, accountIndex);
+                reduceOnly, triggerPrice, orderExpiry, integratorAccountIndex, integratorTakerFee,
+                integratorMakerFee, skipNonce, nonce, apiKeyIndex, accountIndex);
 
             return ParseSignedTx(r);
         }
@@ -322,6 +346,10 @@ namespace LighterSigner
         public SignedTx SignCreateGroupedOrders(
             byte groupingType,
             IReadOnlyList<CreateOrderTxReq> orders,
+            long integratorAccountIndex,
+            int integratorTakerFee,
+            int integratorMakerFee,
+            byte skipNonce,
             long nonce,
             int apiKeyIndex,
             long accountIndex)
@@ -338,7 +366,7 @@ namespace LighterSigner
             try
             {
                 var ptr = handle.AddrOfPinnedObject();
-                var r = _signCreateGroupedOrders(groupingType, ptr, arr.Length, nonce, apiKeyIndex, accountIndex);
+                var r = _signCreateGroupedOrders(groupingType, ptr, arr.Length, integratorAccountIndex, integratorTakerFee, integratorMakerFee, skipNonce, nonce, apiKeyIndex, accountIndex);
                 return ParseSignedTx(r);
             }
             finally
@@ -347,46 +375,46 @@ namespace LighterSigner
             }
         }
 
-        public SignedTx SignCancelOrder(int marketIndex, long orderIndex, long nonce, int apiKeyIndex, long accountIndex)
-            => ParseSignedTx(_signCancelOrder(marketIndex, orderIndex, nonce, apiKeyIndex, accountIndex));
+        public SignedTx SignCancelOrder(int marketIndex, long orderIndex, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex)
+            => ParseSignedTx(_signCancelOrder(marketIndex, orderIndex, skipNonce, nonce, apiKeyIndex, accountIndex));
 
-        public SignedTx SignWithdraw(int assetIndex, int routeType, ulong amount, long nonce, int apiKeyIndex, long accountIndex)
-            => ParseSignedTx(_signWithdraw(assetIndex, routeType, amount, nonce, apiKeyIndex, accountIndex));
+        public SignedTx SignWithdraw(int assetIndex, int routeType, ulong amount, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex)
+            => ParseSignedTx(_signWithdraw(assetIndex, routeType, amount, skipNonce, nonce, apiKeyIndex, accountIndex));
 
-        public SignedTx SignCreateSubAccount(long nonce, int apiKeyIndex, long accountIndex)
-            => ParseSignedTx(_signCreateSubAccount(nonce, apiKeyIndex, accountIndex));
+        public SignedTx SignCreateSubAccount(byte skipNonce,long nonce, int apiKeyIndex, long accountIndex)
+            => ParseSignedTx(_signCreateSubAccount(skipNonce, nonce, apiKeyIndex, accountIndex));
 
-        public SignedTx SignCancelAllOrders(int timeInForce, long time, long nonce, int apiKeyIndex, long accountIndex)
-            => ParseSignedTx(_signCancelAllOrders(timeInForce, time, nonce, apiKeyIndex, accountIndex));
+        public SignedTx SignCancelAllOrders(int timeInForce, long time, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex)
+            => ParseSignedTx(_signCancelAllOrders(timeInForce, time, skipNonce, nonce, apiKeyIndex, accountIndex));
 
-        public SignedTx SignModifyOrder(int marketIndex, long index, long baseAmount, long price, long triggerPrice, long nonce, int apiKeyIndex, long accountIndex)
-            => ParseSignedTx(_signModifyOrder(marketIndex, index, baseAmount, price, triggerPrice, nonce, apiKeyIndex, accountIndex));
+        public SignedTx SignModifyOrder(int marketIndex, long index, long baseAmount, long price, long triggerPrice, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex)
+            => ParseSignedTx(_signModifyOrder(marketIndex, index, baseAmount, price, triggerPrice, skipNonce, nonce, apiKeyIndex, accountIndex));
 
-        public SignedTx SignTransfer(long toAccountIndex, short assetIndex, byte fromRouteType, byte toRouteType, long amount, long usdcFee, string memo, long nonce, int apiKeyIndex, long accountIndex)
+        public SignedTx SignTransfer(long toAccountIndex, short assetIndex, byte fromRouteType, byte toRouteType, long amount, long usdcFee, string memo, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex)
         {
             EnsureNotDisposed();
 
             using (var m = Utf8Scope.From(memo))
             {
-                var r = _signTransfer(toAccountIndex, assetIndex, fromRouteType, toRouteType, amount, usdcFee, m.Ptr, nonce, apiKeyIndex, accountIndex);
+                var r = _signTransfer(toAccountIndex, assetIndex, fromRouteType, toRouteType, amount, usdcFee, m.Ptr, skipNonce, nonce, apiKeyIndex, accountIndex);
                 return ParseSignedTx(r);
             }
         }
 
-        public SignedTx SignCreatePublicPool(long operatorFee, int initialTotalShares, long minOperatorShareRate, long nonce, int apiKeyIndex, long accountIndex)
-            => ParseSignedTx(_signCreatePublicPool(operatorFee, initialTotalShares, minOperatorShareRate, nonce, apiKeyIndex, accountIndex));
+        public SignedTx SignCreatePublicPool(long operatorFee, int initialTotalShares, long minOperatorShareRate, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex)
+            => ParseSignedTx(_signCreatePublicPool(operatorFee, initialTotalShares, minOperatorShareRate, skipNonce, nonce, apiKeyIndex, accountIndex));
 
-        public SignedTx SignUpdatePublicPool(long publicPoolIndex, int status, long operatorFee, int minOperatorShareRate, long nonce, int apiKeyIndex, long accountIndex)
-            => ParseSignedTx(_signUpdatePublicPool(publicPoolIndex, status, operatorFee, minOperatorShareRate, nonce, apiKeyIndex, accountIndex));
+        public SignedTx SignUpdatePublicPool(long publicPoolIndex, int status, long operatorFee, int minOperatorShareRate, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex)
+            => ParseSignedTx(_signUpdatePublicPool(publicPoolIndex, status, operatorFee, minOperatorShareRate, skipNonce, nonce, apiKeyIndex, accountIndex));
 
-        public SignedTx SignMintShares(long publicPoolIndex, long shareAmount, long nonce, int apiKeyIndex, long accountIndex)
-            => ParseSignedTx(_signMintShares(publicPoolIndex, shareAmount, nonce, apiKeyIndex, accountIndex));
+        public SignedTx SignMintShares(long publicPoolIndex, long shareAmount, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex)
+            => ParseSignedTx(_signMintShares(publicPoolIndex, shareAmount, skipNonce, nonce, apiKeyIndex, accountIndex));
 
-        public SignedTx SignBurnShares(long publicPoolIndex, long shareAmount, long nonce, int apiKeyIndex, long accountIndex)
-            => ParseSignedTx(_signBurnShares(publicPoolIndex, shareAmount, nonce, apiKeyIndex, accountIndex));
+        public SignedTx SignBurnShares(long publicPoolIndex, long shareAmount, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex)
+            => ParseSignedTx(_signBurnShares(publicPoolIndex, shareAmount, skipNonce, nonce, apiKeyIndex, accountIndex));
 
-        public SignedTx SignUpdateLeverage(int marketIndex, int initialMarginFraction, int marginMode, long nonce, int apiKeyIndex, long accountIndex)
-            => ParseSignedTx(_signUpdateLeverage(marketIndex, initialMarginFraction, marginMode, nonce, apiKeyIndex, accountIndex));
+        public SignedTx SignUpdateLeverage(int marketIndex, int initialMarginFraction, int marginMode, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex)
+            => ParseSignedTx(_signUpdateLeverage(marketIndex, initialMarginFraction, marginMode, skipNonce, nonce, apiKeyIndex, accountIndex));
 
         public string CreateAuthToken(long deadline, int apiKeyIndex, long accountIndex)
         {
@@ -400,8 +428,38 @@ namespace LighterSigner
             return PtrToUtf8StringOrEmpty(r.str);
         }
 
-        public SignedTx SignUpdateMargin(int marketIndex, long usdcAmount, int direction, long nonce, int apiKeyIndex, long accountIndex)
-            => ParseSignedTx(_signUpdateMargin(marketIndex, usdcAmount, direction, nonce, apiKeyIndex, accountIndex));
+        public SignedTx SignUpdateMargin(int marketIndex, long usdcAmount, int direction, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex)
+            => ParseSignedTx(_signUpdateMargin(marketIndex, usdcAmount, direction, skipNonce, nonce, apiKeyIndex, accountIndex));
+
+        public SignedTx SignApproveIntegrator(
+            long integratorAccountIndex,
+            int integratorTakerFee,
+            int integratorMakerFee,
+            long approvalExpiry,
+            byte skipNonce,
+            long nonce,
+            int apiKeyIndex,
+            long accountIndex)
+        {
+            EnsureNotDisposed();
+
+            var r = _signApproveIntegrator(
+                integratorAccountIndex,
+                integratorTakerFee,
+                integratorMakerFee,
+                integratorTakerFee,
+                integratorMakerFee,
+                approvalExpiry,
+                skipNonce,
+                nonce,
+                apiKeyIndex,
+                accountIndex);
+
+            var err = PtrToUtf8StringOrNull(r.err);
+            if (err != null) throw new InvalidOperationException($"SignApproveIntegrator failed: {err}");
+
+            return ParseSignedTx(r);
+        }
 
         // -----------------------------
         // Helpers

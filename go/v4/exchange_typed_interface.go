@@ -499,6 +499,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "p2b":
 		itf := NewP2b(options)
 		return itf
+	case "pacifica":
+		itf := NewPacifica(options)
+		return itf
 	case "paradex":
 		itf := NewParadex(options)
 		return itf
@@ -522,6 +525,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 		return itf
 	case "wavesexchange":
 		itf := NewWavesexchange(options)
+		return itf
+	case "weex":
+		itf := NewWeex(options)
 		return itf
 	case "whitebit":
 		itf := NewWhitebit(options)
