@@ -12,7 +12,10 @@
                 "input": [
                     "DOGE/USDT:USDT",
                     1775030400000,
-                    1
+                    1,
+                    {
+                        "uta": true
+                    }
                 ],
                 "httpResponse": {
                     "code": "200000",
