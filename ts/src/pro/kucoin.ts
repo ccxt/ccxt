@@ -413,10 +413,12 @@ export default class kucoin extends kucoinRest {
      * @see https://www.kucoin.com/docs-new/3470063w0
      * @see https://www.kucoin.com/docs-new/3470064w0
      * @see https://www.kucoin.com/docs-new/3470081w0
+     * @see https://www.kucoin.com/docs-new/3470222w0
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] *spot markets only* either '/market/snapshot' or '/market/ticker' default is '/market/ticker'
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -425,9 +427,11 @@ export default class kucoin extends kucoinRest {
         const firstMarket = this.getMarketFromSymbols (symbols);
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchTickers', firstMarket, params);
+        let uta = false;
+        [ uta, params ] = this.handleOptionAndParams (params, 'watchTickers', 'uta', uta);
         const isFuturesMethod = (marketType !== 'spot') && (marketType !== 'margin');
-        if (isFuturesMethod && symbols === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchTickers() requires a list of symbols for ' + marketType + ' markets');
+        if ((isFuturesMethod || uta) && symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchTickers() requires a list of symbols for ' + marketType + ' markets and unified trading account (uta)');
         }
         const messageHash = 'tickers';
         let method = '/market/ticker';
@@ -463,6 +467,51 @@ export default class kucoin extends kucoinRest {
                 newDict[tickers['symbol']] = tickers;
                 return newDict;
             }
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
+    }
+
+    async subscribePublicMultipleUta (messageHashes, channel, symbols, params = {}, subscription = undefined) {
+        const requestId = this.requestId ().toString ();
+        const market = this.getMarketFromSymbols (symbols);
+        const urlType = market['contract'] ? 'futures' : 'spot';
+        const tradeType = urlType.toUpperCase ();
+        let action = 'subscribe';
+        if (subscription !== undefined) {
+            const unsubscribe = this.safeBool (subscription, 'unsubscribe', false);
+            action = unsubscribe ? 'unsubscribe' : action;
+        }
+        const request: Dict = {
+            'id': requestId,
+            'action': action,
+            'channel': channel,
+            'tradeType': tradeType,
+            'symbols': this.marketIds (symbols),
+        };
+        const message = this.extend (request, params);
+        const url = this.safeString (this.urls['api']['ws'], urlType);
+        const client = this.client (url);
+        const messageHashWithSymbols = channel + ':' + symbols.join (',');
+        if (!(messageHashWithSymbols in client.subscriptions)) {
+            client.subscriptions[requestId] = messageHashWithSymbols;
+        }
+        return await this.watchMultiple (url, messageHashes, message, messageHashes, subscription);
+    }
+
+    async watchUtaTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false, true);
+        const messageHash = 'uta:ticker';
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = this.safeString (symbols, i);
+            const market = this.market (symbol);
+            const subMessageHash = messageHash + ':' + market['symbol'];
+            messageHashes.push (subMessageHash);
+        }
+        const tickers = await this.subscribePublicMultipleUta (messageHashes, 'ticker', symbols, params);
+        if (this.newUpdates) {
+            return tickers;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
