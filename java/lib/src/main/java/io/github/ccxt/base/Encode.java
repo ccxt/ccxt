@@ -4,6 +4,7 @@ package io.github.ccxt.base;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -222,10 +223,24 @@ public final class Encode {
         return binaryToHex(buff);
     }
 
-    // NOTE: the original C# returned hex here as well; we keep the same behavior.
     public static String binaryToBase58(Object buff2) {
         byte[] buff = (byte[]) buff2;
-        return binaryToHex(buff);
+        if (buff.length == 0) return "";
+        int zeros = 0;
+        while (zeros < buff.length && buff[zeros] == 0) zeros++;
+        // prepend a 0 byte so BigInteger treats input as unsigned
+        byte[] unsigned = new byte[buff.length + 1];
+        System.arraycopy(buff, 0, unsigned, 1, buff.length);
+        BigInteger n = new BigInteger(unsigned);
+        BigInteger base = BigInteger.valueOf(58);
+        StringBuilder sb = new StringBuilder();
+        while (n.signum() > 0) {
+            BigInteger[] qr = n.divideAndRemainder(base);
+            sb.insert(0, B58_ALPHABET.charAt(qr[1].intValue()));
+            n = qr[0];
+        }
+        for (int i = 0; i < zeros; i++) sb.insert(0, '1');
+        return sb.toString();
     }
 
     public static String intToBase16(Object number) {
@@ -279,14 +294,14 @@ public final class Encode {
         List<String> keys = new ArrayList<>(params.keySet());
         List<String> out = new ArrayList<>();
         for (String key : keys) {
+            String encodedKey = urlEncode(key);
             Object value = params.get(key);
             if (value instanceof List<?> list) {
                 for (Object item : list) {
-                    out.add(key + "=" + String.valueOf(item));
+                    out.add(encodedKey + "=" + urlEncode(String.valueOf(item)));
                 }
             } else {
-                String encodedValue = urlEncode(value.toString());
-                out.add(key + "=" + encodedValue);
+                out.add(encodedKey + "=" + urlEncode(value.toString()));
             }
         }
         return String.join("&", out);

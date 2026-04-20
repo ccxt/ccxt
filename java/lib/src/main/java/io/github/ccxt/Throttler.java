@@ -214,9 +214,15 @@ public class Throttler {
                 }
 
                 // If queue still has items, compute exact wait until oldest entry expires
-                if (!queue.isEmpty() && !timestamps.isEmpty()) {
-                    sleepMs = (timestamps.get(0).timestamp + (long) windowSize) - now;
-                    if (sleepMs < 1) sleepMs = 1;
+                if (!queue.isEmpty()) {
+                    if (!timestamps.isEmpty()) {
+                        sleepMs = (timestamps.get(0).timestamp + (long) windowSize) - now;
+                        if (sleepMs < 1) sleepMs = 1;
+                    } else if (toComplete.isEmpty()) {
+                        // Inner loop made no progress AND no history to wait on — prevents
+                        // 100% CPU spin when head cost exceeds maxWeight (e.g. maxWeight=0).
+                        sleepMs = Math.max(1, (long) (delay * 1000));
+                    }
                 }
             } finally {
                 lock.unlock();

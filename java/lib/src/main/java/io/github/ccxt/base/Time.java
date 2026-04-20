@@ -115,22 +115,20 @@ public final class Time {
         }
 
         try {
-            // Handle: "2023-05-08T17:04:43+0000" (strip "+0000" part like C# code)
-            if (datetime.contains("+0")) {
-                int plus = datetime.indexOf('+');
-                if (plus >= 0) {
-                    datetime = datetime.substring(0, plus);
-                }
-            }
-
-            // ISO 8601 with Z, e.g. "1986-04-26T01:23:47.000Z"
             if (datetime.indexOf('T') >= 0) {
-                // If it has no zone/offset, parse as LocalDateTime and assume UTC
-                if (!datetime.endsWith("Z") && !datetime.matches(".*[+-]\\d{2}:?\\d{2}$")) {
-                    LocalDateTime ldt = LocalDateTime.parse(datetime);
-                    return ldt.toInstant(ZoneOffset.UTC).toEpochMilli();
+                if (datetime.endsWith("Z")) {
+                    return Instant.parse(datetime).toEpochMilli();
                 }
-                return Instant.parse(datetime).toEpochMilli();
+                // Offset form: "+HH:MM", "+HHMM", "-HH:MM", "-HHMM" at the tail
+                if (datetime.matches(".*[+-]\\d{2}:?\\d{2}$")) {
+                    // ISO_OFFSET_DATE_TIME requires "+HH:MM"; insert colon if absent
+                    String normalized = datetime.replaceFirst("([+-]\\d{2})(\\d{2})$", "$1:$2");
+                    return OffsetDateTime.parse(normalized, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+                            .toInstant().toEpochMilli();
+                }
+                // No zone/offset: treat as UTC
+                LocalDateTime ldt = LocalDateTime.parse(datetime);
+                return ldt.toInstant(ZoneOffset.UTC).toEpochMilli();
             }
 
             // Space format, e.g. "2019-08-12 13:20:00" (treat as UTC)

@@ -237,13 +237,9 @@ public final class Crypto {
             byte[] sig = rsaSign(token, toString(secret), algorithm);
             signatureB64Url = Base64ToBase64Url(BinaryToBase64(sig), true);
         } else if ("ES".equals(algoType)) {
-            // ES256: sign over P-256 -> r|s then base64url(r||s)
-            Map<String, Object> ec = Ecdsa(token, secret, p256(), hash);
-            String rHex = toString(ec.get("r"));
-            String sHex = toString(ec.get("s"));
-            // byte[] rs = Hex.decode(rHex + sHex);
-            throw new UnsupportedOperationException("ES256 signing not implemented");
-            // signatureB64Url = Base64ToBase64Url(BinaryToBase64(rs), true);
+            // ES256: sign over P-256 -> r||s then base64url
+            byte[] rs = es256Sign(token, toString(secret));
+            signatureB64Url = Base64ToBase64Url(BinaryToBase64(rs), true);
         } else if ("Ed".equals(algoType)) {
             // Ed25519
             String base64Sig = toString(Eddsa(token, secret, ed25519()));
@@ -359,6 +355,62 @@ public final class Crypto {
         }
 
         throw new IllegalArgumentException("Unsupported PEM type (expected PKCS#8 or PKCS#1 RSA private key).");
+    }
+
+    // ====================================================
+    // ES256 JWT signing (P-256 ECDSA)
+    // Returns raw 64-byte r||s (IEEE P1363 format)
+    // ====================================================
+
+    static byte[] es256Sign(String token, String pem) {
+        try {
+            PrivateKey key = ecP256PrivateKeyFromPem(pem);
+            Signature sig = Signature.getInstance("SHA256withECDSAinP1363Format");
+            sig.initSign(key);
+            sig.update(token.getBytes(StandardCharsets.US_ASCII));
+            return sig.sign();
+        } catch (Exception e) {
+            throw new RuntimeException("ES256 signing failed: " + e.getMessage(), e);
+        }
+    }
+
+    private static PrivateKey ecP256PrivateKeyFromPem(String pem) throws Exception {
+        if (pem == null) throw new IllegalArgumentException("pem is null");
+        String p = pem.trim();
+        if (!p.isEmpty() && p.charAt(0) == '\uFEFF') p = p.substring(1);
+
+        byte[] pkcs8;
+        if (!p.contains("-----BEGIN")) {
+            // raw base64 PKCS#8
+            pkcs8 = Base64.getMimeDecoder().decode(p);
+        } else if (p.contains("-----BEGIN PRIVATE KEY-----")) {
+            pkcs8 = decodePemBody(p, "-----BEGIN PRIVATE KEY-----", "-----END PRIVATE KEY-----");
+        } else if (p.contains("-----BEGIN EC PRIVATE KEY-----")) {
+            // SEC1 -> wrap into PKCS#8 with P-256 OID
+            byte[] sec1 = decodePemBody(p, "-----BEGIN EC PRIVATE KEY-----", "-----END EC PRIVATE KEY-----");
+            pkcs8 = wrapSec1EcP256ToPkcs8(sec1);
+        } else {
+            throw new IllegalArgumentException("Unsupported PEM type (expected PKCS#8 or SEC1 EC private key).");
+        }
+        return KeyFactory.getInstance("EC").generatePrivate(new PKCS8EncodedKeySpec(pkcs8));
+    }
+
+    /**
+     * Wrap a SEC1 ECPrivateKey DER (RFC 5915) into PKCS#8 PrivateKeyInfo with the
+     * prime256v1 (P-256) named-curve AlgorithmIdentifier.
+     */
+    private static byte[] wrapSec1EcP256ToPkcs8(byte[] sec1Der) {
+        // AlgorithmIdentifier: SEQUENCE { OID id-ecPublicKey (1.2.840.10045.2.1),
+        //                                 OID prime256v1   (1.2.840.10045.3.1.7) }
+        byte[] algId = new byte[] {
+                0x30, 0x13,
+                0x06, 0x07, 0x2A, (byte)0x86, 0x48, (byte)0xCE, 0x3D, 0x02, 0x01,
+                0x06, 0x08, 0x2A, (byte)0x86, 0x48, (byte)0xCE, 0x3D, 0x03, 0x01, 0x07
+        };
+        byte[] version = new byte[] { 0x02, 0x01, 0x00 };
+        byte[] privateKeyOctetString = derOctetString(sec1Der);
+        byte[] seqContent = concat(version, algId, privateKeyOctetString);
+        return derSequence(seqContent);
     }
 
     // ====================================================
