@@ -1,105 +1,10 @@
 {
     "exchange": "kucoin",
-    "skipKeys": [
-        "timestamp"
-    ],
+    "skipKeys": [],
     "options": {
         "uta": false
     },
     "methods": {
-        "fetchFundingHistory": [
-            {
-                "description": "fetch funding history with uta",
-                "method": "fetchFundingHistory",
-                "input": [
-                    "DOGE/USDT:USDT",
-                    1775030400000,
-                    1,
-                    {
-                        "uta": true
-                    }
-                ],
-                "httpResponse": {
-                    "code": "200000",
-                    "data": {
-                        "lastId": 2125247182342309,
-                        "items": [
-                            {
-                                "symbol": "DOGEUSDTM",
-                                "marginMode": "CROSS",
-                                "fundingRate": "0.000172",
-                                "markPrice": "0.09326",
-                                "size": "-1",
-                                "positionValue": "-9.326",
-                                "fundingFee": "0.00160407",
-                                "settleCurrency": "USDT",
-                                "settlementTime": 1775030400000
-                            }
-                        ]
-                    }
-                },
-                "parsedResponse": [
-                    {
-                        "info": {
-                            "symbol": "DOGEUSDTM",
-                            "marginMode": "CROSS",
-                            "fundingRate": "0.000172",
-                            "markPrice": "0.09326",
-                            "size": "-1",
-                            "positionValue": "-9.326",
-                            "fundingFee": "0.00160407",
-                            "settleCurrency": "USDT",
-                            "settlementTime": 1775030400000
-                        },
-                        "symbol": "DOGE/USDT:USDT",
-                        "code": "USDT",
-                        "timestamp": 1775030400000,
-                        "datetime": "2026-04-01T08:00:00.000Z",
-                        "id": null,
-                        "amount": 0.00160407,
-                        "fundingRate": 0.000172,
-                        "markPrice": 0.09326,
-                        "positionQty": -1,
-                        "positionCost": -9.326
-                    }
-                ]
-            }
-        ],
-        "fetchCrossBorrowRate": [
-            {
-                "description": "fetch cross borrow rate",
-                "method": "fetchCrossBorrowRate",
-                "input": [
-                    "ETH"
-                ],
-                "httpResponse": {
-                    "code": "200000",
-                    "data": {
-                        "currentRateHourly": "0.00000353",
-                        "currentRateDaily": "0.00008466",
-                        "borrowLimitTotal": "600.00000000000000000000",
-                        "borrowLimitTotalHold": "0.00000000000000000000",
-                        "borrowLimitHold": "0.00000000000000000000",
-                        "interestFreeBorrowLimit": "0.60000000000000000000"
-                    }
-                },
-                "parsedResponse": {
-                    "currency": "ETH",
-                    "rate": 0.00008466,
-                    "period": 86400000,
-                    "timestamp": 1776698870832,
-                    "datetime": "2026-04-20T15:27:50.832Z",
-                    "info": {
-                        "currentRateHourly": "0.00000353",
-                        "currentRateDaily": "0.00008466",
-                        "borrowLimitTotal": "600.00000000000000000000",
-                        "borrowLimitTotalHold": "0.00000000000000000000",
-                        "borrowLimitHold": "0.00000000000000000000",
-                        "interestFreeBorrowLimit": "0.60000000000000000000"
-                    }
-                }
-            }
-        ],
         "fetchFundingRate": [
             {
                 "description": "fetch funding rate from uta",
