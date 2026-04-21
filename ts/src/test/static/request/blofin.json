@@ -155,16 +155,16 @@
                 "method": "createOrder",
                 "url": "https://openapi.blofin.com/api/v1/trade/order-algo",
                 "input": [
-                    "ETH/USDT:USDT",
+                    "LTC/USDT:USDT",
                     "market",
                     "sell",
-                    0.1,
+                    1,
                     null,
                     {
-                        "takeProfitPrice": 2000
+                        "takeProfitPrice": 200
                     }
                 ],
-                "output": "{\"instId\":\"ETH-USDT\",\"side\":\"sell\",\"orderType\":\"trigger\",\"size\":\"0.1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"cross\",\"triggerPrice\":\"2000\",\"orderPrice\":\"-1\",\"reduceOnly\":true}"
+                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"orderType\":\"trigger\",\"size\":\"1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"cross\",\"triggerPrice\":\"200\",\"orderPrice\":\"-1\",\"reduceOnly\":true}"
             },
             {
                 "description": "stopLossPrice",

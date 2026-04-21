@@ -1534,7 +1534,6 @@ export default class blofin extends Exchange {
         if (marginMode !== 'cross' && marginMode !== 'isolated') {
             throw new BadRequest (this.id + ' createTpslOrder() requires a marginMode parameter that must be either cross or isolated');
         }
-        request['marginMode'] = marginMode;
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         if (stopLossPrice !== undefined) {
@@ -1545,6 +1544,7 @@ export default class blofin extends Exchange {
             request['tpTriggerPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
             request['tpOrderPrice'] = (type === 'market') ? '-1' : this.priceToPrecision (symbol, price);
         }
+        request['marginMode'] = marginMode;
         params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged' ]);
         return this.extend (request, params);
     }
