@@ -1305,6 +1305,46 @@ class NewTranspiler {
         return content;
     }
 
+    /**
+     * Convert `return null;` → `return;` inside `public void` method bodies.
+     * The transpiler emits `return null;` for bare `return;` statements in TS,
+     * which is invalid in Java void context. Tracks brace depth to stay within
+     * the method body only.
+     */
+    fixVoidReturnNull(content: string): string {
+        const lines = content.split('\n');
+        let depth = 0;
+        let armed = false;
+        let inVoid = false;
+        let entryDepth = -1;
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            if (!inVoid && !armed && /^\s*public\s+void\s+\w+\s*\(/.test(line)) {
+                armed = true;
+            }
+            if (inVoid) {
+                lines[i] = line.replace(/\breturn null;/g, 'return;');
+            }
+            for (const ch of line) {
+                if (ch === '{') {
+                    if (armed && !inVoid) {
+                        inVoid = true;
+                        entryDepth = depth;
+                        armed = false;
+                    }
+                    depth++;
+                } else if (ch === '}') {
+                    depth--;
+                    if (inVoid && depth === entryDepth) {
+                        inVoid = false;
+                        entryDepth = -1;
+                    }
+                }
+            }
+        }
+        return lines.join('\n');
+    }
+
     postProcessWsJava(content: string, name: string): string {
         const cap = this.capitalize(name) + 'Core'; // WS classes are now named *Core
 
@@ -1590,6 +1630,11 @@ class NewTranspiler {
 
         // ── Void supplyAsync return null insertion ──
         content = this.insertReturnNullInSupplyAsync(content);
+
+        // Must run AFTER insertReturnNullInSupplyAsync because that step converts
+        // `return;` → `return null;` and may leak into void event-handler methods
+        // when its supplyAsync counter doesn't decrement correctly across methods.
+        content = this.fixVoidReturnNull(content);
 
         return content;
     }

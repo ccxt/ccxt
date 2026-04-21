@@ -421,12 +421,16 @@ if (!fs.existsSync(EXCHANGES_FOLDER)) {
 const coreFiles = fs.readdirSync(EXCHANGES_FOLDER).filter(f => f.endsWith('Core.java'));
 let generated = 0;
 
+// REST typed wrappers include only non-watch methods. Watch/*Ws methods live on
+// the pro typed wrapper (generated below), since their implementations are in
+// the WS Core (pro/<Exchange>Core.java), not the REST Core.
+const restMethods = methods.filter(m => !m.isWatch);
 for (const coreFile of coreFiles) {
     const exchangeId = coreFile.replace('Core.java', '').toLowerCase();
     const className = capitalize(exchangeId);
     const outputPath = `${EXCHANGES_FOLDER}${className}.java`;
 
-    const content = generateTypedExchangeClass(exchangeId, methods);
+    const content = generateTypedExchangeClass(exchangeId, restMethods);
     fs.writeFileSync(outputPath, content, 'utf-8');
     generated++;
 }

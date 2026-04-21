@@ -97,69 +97,6 @@ public class Binance extends BinanceCore {
     }
 
     @SuppressWarnings("unchecked")
-    public List<Liquidation> watchLiquidations(String symbol, Long since, Long limit, Map<String, Object> params) {
-        Object res = super.watchLiquidations(symbol, since, limit, params).join();
-        return toTypedList(res, Liquidation::new);
-    }
-    public List<Liquidation> watchLiquidations(String symbol) { return watchLiquidations(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Liquidation> watchLiquidationsForSymbols(Object symbols, Long since, Long limit, Map<String, Object> params) {
-        Object res = super.watchLiquidationsForSymbols(symbols, since, limit, params).join();
-        return toTypedList(res, Liquidation::new);
-    }
-    public List<Liquidation> watchLiquidationsForSymbols(Object symbols) { return watchLiquidationsForSymbols(symbols, (Long) null, (Long) null, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Liquidation> watchMyLiquidations(String symbol, Long since, Long limit, Map<String, Object> params) {
-        Object res = super.watchMyLiquidations(symbol, since, limit, params).join();
-        return toTypedList(res, Liquidation::new);
-    }
-    public List<Liquidation> watchMyLiquidations(String symbol) { return watchMyLiquidations(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Liquidation> watchMyLiquidationsForSymbols(Object symbols, Long since, Long limit, Map<String, Object> params) {
-        Object res = super.watchMyLiquidationsForSymbols(symbols, since, limit, params).join();
-        return toTypedList(res, Liquidation::new);
-    }
-    public List<Liquidation> watchMyLiquidationsForSymbols(Object symbols) { return watchMyLiquidationsForSymbols(symbols, (Long) null, (Long) null, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Trade> watchTrades(String symbol, Long since, Long limit, Map<String, Object> params) {
-        Object res = super.watchTrades(symbol, since, limit, params).join();
-        return toTypedList(res, Trade::new);
-    }
-    public List<Trade> watchTrades(String symbol) { return watchTrades(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Trade> watchTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> params) {
-        Object res = super.watchTradesForSymbols(symbols, since, limit, params).join();
-        return toTypedList(res, Trade::new);
-    }
-    public List<Trade> watchTradesForSymbols(Object symbols) { return watchTradesForSymbols(symbols, (Long) null, (Long) null, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Trade> watchMyTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> params) {
-        Object res = super.watchMyTradesForSymbols(symbols, since, limit, params).join();
-        return toTypedList(res, Trade::new);
-    }
-    public List<Trade> watchMyTradesForSymbols(Object symbols) { return watchMyTradesForSymbols(symbols, (Long) null, (Long) null, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public List<Order> watchOrdersForSymbols(Object symbols, Long since, Long limit, Map<String, Object> params) {
-        Object res = super.watchOrdersForSymbols(symbols, since, limit, params).join();
-        return toTypedList(res, Order::new);
-    }
-    public List<Order> watchOrdersForSymbols(Object symbols) { return watchOrdersForSymbols(symbols, (Long) null, (Long) null, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public OrderBook watchOrderBookForSymbols(Object symbols, Long limit, Map<String, Object> params) {
-        Object res = super.watchOrderBookForSymbols(symbols, limit, params).join();
-        return new OrderBook(res);
-    }
-    public OrderBook watchOrderBookForSymbols(Object symbols) { return watchOrderBookForSymbols(symbols, (Long) null, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
     public List<DepositAddress> fetchDepositAddresses(List<String> codes, Map<String, Object> params) {
         Object res = super.fetchDepositAddresses(codes, params).join();
         return toTypedList(res, DepositAddress::new);
@@ -211,13 +148,6 @@ public class Binance extends BinanceCore {
     public CompletableFuture<MarginModes> fetchMarginModesAsync(List<String> symbols, Map<String, Object> params) {
         return super.fetchMarginModes(symbols, params).thenApply(MarginModes::new);
     }
-
-    @SuppressWarnings("unchecked")
-    public OrderBook watchOrderBook(String symbol, Long limit, Map<String, Object> params) {
-        Object res = super.watchOrderBook(symbol, limit, params).join();
-        return new OrderBook(res);
-    }
-    public OrderBook watchOrderBook(String symbol) { return watchOrderBook(symbol, (Long) null, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public Long fetchTime(Map<String, Object> params) {
@@ -277,19 +207,6 @@ public class Binance extends BinanceCore {
     @SuppressWarnings("unchecked")
     public CompletableFuture<FundingRates> fetchFundingIntervalsAsync(List<String> symbols, Map<String, Object> params) {
         return super.fetchFundingIntervals(symbols, params).thenApply(FundingRates::new);
-    }
-
-    @SuppressWarnings("unchecked")
-    public FundingRate watchFundingRate(String symbol, Map<String, Object> params) {
-        Object res = super.watchFundingRate(symbol, params).join();
-        return new FundingRate(res);
-    }
-    public FundingRate watchFundingRate(String symbol) { return watchFundingRate(symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public FundingRates watchFundingRates(List<String> symbols, Map<String, Object> params) {
-        Object res = super.watchFundingRates(symbols, params).join();
-        return new FundingRates(res);
     }
 
     @SuppressWarnings("unchecked")
@@ -476,13 +393,6 @@ public class Binance extends BinanceCore {
     }
 
     @SuppressWarnings("unchecked")
-    public List<OHLCV> watchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) {
-        Object res = super.watchOHLCV(symbol, timeframe, since, limit, params).join();
-        return toTypedList(res, OHLCV::new);
-    }
-    public List<OHLCV> watchOHLCV(String symbol) { return watchOHLCV(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
     public Order editLimitBuyOrder(String id, String symbol, Double amount, Double price, Map<String, Object> params) {
         Object res = super.editLimitBuyOrder(id, symbol, amount, price, params).join();
         return new Order(res);
@@ -568,24 +478,6 @@ public class Binance extends BinanceCore {
     @SuppressWarnings("unchecked")
     public CompletableFuture<List<Position>> fetchPositionWsAsync(String symbol, Map<String, Object> params) {
         return super.fetchPositionWs(symbol, params).thenApply(res -> toTypedList(res, Position::new));
-    }
-
-    @SuppressWarnings("unchecked")
-    public Position watchPosition(String symbol, Map<String, Object> params) {
-        Object res = super.watchPosition(symbol, params).join();
-        return new Position(res);
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<Position> watchPositions(List<String> symbols, Long since, Long limit, Map<String, Object> params) {
-        Object res = super.watchPositions(symbols, since, limit, params).join();
-        return toTypedList(res, Position::new);
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<Position> watchPositionForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> params) {
-        Object res = super.watchPositionForSymbols(symbols, since, limit, params).join();
-        return toTypedList(res, Position::new);
     }
 
     @SuppressWarnings("unchecked")
@@ -702,12 +594,6 @@ public class Binance extends BinanceCore {
     }
 
     @SuppressWarnings("unchecked")
-    public Balances watchBalance(Map<String, Object> params) {
-        Object res = super.watchBalance(params).join();
-        return new Balances(res);
-    }
-
-    @SuppressWarnings("unchecked")
     public Balance fetchPartialBalance(Object part, Map<String, Object> params) {
         Object res = super.fetchPartialBalance(part, params).join();
         return new Balance(res);
@@ -815,13 +701,6 @@ public class Binance extends BinanceCore {
     }
 
     @SuppressWarnings("unchecked")
-    public Ticker watchTicker(String symbol, Map<String, Object> params) {
-        Object res = super.watchTicker(symbol, params).join();
-        return new Ticker(res);
-    }
-    public Ticker watchTicker(String symbol) { return watchTicker(symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
     public Tickers fetchTickers(List<String> symbols, Map<String, Object> params) {
         Object res = super.fetchTickers(symbols, params).join();
         return new Tickers(res);
@@ -869,18 +748,6 @@ public class Binance extends BinanceCore {
     @SuppressWarnings("unchecked")
     public CompletableFuture<Tickers> fetchTickersWsAsync(List<String> symbols, Map<String, Object> params) {
         return super.fetchTickersWs(symbols, params).thenApply(Tickers::new);
-    }
-
-    @SuppressWarnings("unchecked")
-    public Tickers watchBidsAsks(List<String> symbols, Map<String, Object> params) {
-        Object res = super.watchBidsAsks(symbols, params).join();
-        return new Tickers(res);
-    }
-
-    @SuppressWarnings("unchecked")
-    public Tickers watchTickers(List<String> symbols, Map<String, Object> params) {
-        Object res = super.watchTickers(symbols, params).join();
-        return new Tickers(res);
     }
 
     @SuppressWarnings("unchecked")
@@ -1394,12 +1261,6 @@ public class Binance extends BinanceCore {
     }
 
     @SuppressWarnings("unchecked")
-    public List<Order> watchOrders(String symbol, Long since, Long limit, Map<String, Object> params) {
-        Object res = super.watchOrders(symbol, since, limit, params).join();
-        return toTypedList(res, Order::new);
-    }
-
-    @SuppressWarnings("unchecked")
     public List<Order> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> params) {
         Object res = super.fetchOpenOrders(symbol, since, limit, params).join();
         return toTypedList(res, Order::new);
@@ -1498,12 +1359,6 @@ public class Binance extends BinanceCore {
     @SuppressWarnings("unchecked")
     public CompletableFuture<List<Trade>> fetchMyTradesWsAsync(String symbol, Long since, Long limit, Map<String, Object> params) {
         return super.fetchMyTradesWs(symbol, since, limit, params).thenApply(res -> toTypedList(res, Trade::new));
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<Trade> watchMyTrades(String symbol, Long since, Long limit, Map<String, Object> params) {
-        Object res = super.watchMyTrades(symbol, since, limit, params).join();
-        return toTypedList(res, Trade::new);
     }
 
     @SuppressWarnings("unchecked")
@@ -2073,19 +1928,6 @@ public class Binance extends BinanceCore {
     @SuppressWarnings("unchecked")
     public CompletableFuture<List<TransferEntry>> fetchTransfersAsync(String code, Long since, Long limit, Map<String, Object> params) {
         return super.fetchTransfers(code, since, limit, params).thenApply(res -> toTypedList(res, TransferEntry::new));
-    }
-
-    @SuppressWarnings("unchecked")
-    public Ticker watchMarkPrice(String symbol, Map<String, Object> params) {
-        Object res = super.watchMarkPrice(symbol, params).join();
-        return new Ticker(res);
-    }
-    public Ticker watchMarkPrice(String symbol) { return watchMarkPrice(symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Tickers watchMarkPrices(List<String> symbols, Map<String, Object> params) {
-        Object res = super.watchMarkPrices(symbols, params).join();
-        return new Tickers(res);
     }
 
     @SuppressWarnings("unchecked")
