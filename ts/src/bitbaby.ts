@@ -477,7 +477,7 @@ export default class bitbaby extends Exchange {
                         'limit': 1000,
                         'trigger': true,
                         'trailing': false,
-                        'symbolRequired': true,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': undefined,
@@ -1740,20 +1740,24 @@ export default class bitbaby extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'contract' default is 'spot' (used if symbol is not provided)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
         }
-        const market = this.market (symbol);
-        const marketId = market['id'];
-        const isContract = market['contract'];
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const isContract = ((marketType !== 'spot') && (marketType !== 'margin'));
         const request: Dict = {};
         let response = undefined;
         if (isContract) {
-            request['contractName'] = marketId;
+            if (market !== undefined) {
+                request['contractName'] = market['id'];
+            }
             //
             //     [
             //         {
@@ -1781,7 +1785,10 @@ export default class bitbaby extends Exchange {
                 response = []; // if no open orders, the exchange returns an object with empty data instead of an empty array
             }
         } else {
-            request['symbol'] = marketId;
+            if (market === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument for spot markets');
+            }
+            request['symbol'] = market['id'];
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
