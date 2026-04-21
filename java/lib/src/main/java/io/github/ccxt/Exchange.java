@@ -1702,6 +1702,46 @@ public class Exchange {
     }
 
     /**
+     * Schedule a method-name callback on the virtual executor after a delay.
+     * Used by WS transpile output to replace TS `this.delay(ms, "name", ...args)`.
+     * Method params are effectively final so this avoids lambda-capture errors
+     * an inline spawn rewrite would hit with reassignable locals.
+     */
+    public void scheduleCallback(Object delayMs, String methodName, Object... args) {
+        this.spawn(() -> {
+            try {
+                Thread.sleep(((Number) delayMs).longValue());
+                Helpers.callDynamically(this, methodName, args);
+            } catch (Exception ignored) {
+            }
+        });
+    }
+
+    /**
+     * Start an async method-name call on the virtual executor and return a
+     * Future that resolves with the result (or is rejected on failure). Used
+     * by WS transpile output to replace TS `this.spawn(this.method, ...args)`
+     * when the return value is captured (e.g., stored in a cache). Mirrors
+     * how the TS Promise returned by `this.spawn(...)` is consumed.
+     */
+    public io.github.ccxt.ws.Future spawnWithResult(String methodName, Object... args) {
+        io.github.ccxt.ws.Future fut = new io.github.ccxt.ws.Future();
+        this.spawn(() -> {
+            try {
+                Object result = Helpers.callDynamically(this, methodName, args);
+                // callDynamically may return a CompletableFuture — unwrap
+                if (result instanceof java.util.concurrent.CompletableFuture<?> cf) {
+                    result = cf.join();
+                }
+                fut.resolve(result);
+            } catch (Exception e) {
+                fut.reject(e);
+            }
+        });
+        return fut;
+    }
+
+    /**
      * Load order book snapshot from REST and merge with cached deltas.
      * Matches TS base Exchange.loadOrderBook().
      */

@@ -1311,12 +1311,207 @@ class NewTranspiler {
      * which is invalid in Java void context. Tracks brace depth to stay within
      * the method body only.
      */
+    /**
+     * Read `exchanges/<Exchange>.java` (the typed REST wrapper) and collect all
+     * public method names (typed overloads). Used by redirectToAsyncOnJoin to
+     * scope the rewrite to methods that actually shadow the untyped varargs
+     * base.
+     */
+    collectTypedRestMethodNames(name: string): Set<string> {
+        const path = EXCHANGES_FOLDER + this.capitalize(name) + '.java';
+        try {
+            const content = fs.readFileSync(path, 'utf-8');
+            return this.collectMethodNamesInClass(content);
+        } catch {
+            return new Set();
+        }
+    }
+
+    /**
+     * Collect every method name defined inside the class body of the given
+     * file. Used for method-reference-as-value rewriting so we don't need a
+     * hardcoded whitelist.
+     */
+    collectMethodNamesInClass(content: string): Set<string> {
+        const names = new Set<string>();
+        const re = /^\s{4}(?:public|private|protected)\s+[^=]+?\s+(\w+)\s*\(/gm;
+        let m;
+        while ((m = re.exec(content)) !== null) {
+            const n = m[1];
+            // Skip obvious non-method tokens that could sneak through
+            if (n === 'this' || n === 'class' || n === 'if' || n === 'for' || n === 'while') continue;
+            names.add(n);
+        }
+        return names;
+    }
+
+    /**
+     * Rewrite `(this.X(arg1, arg2, ...)).join()` inside WS cores, where X is a
+     * typed REST method on the exchange's REST typed wrapper, to cast every
+     * argument to `(Object)` so the call dispatches to the untyped `X(Object...)`
+     * varargs inherited from the REST untyped Core instead of the typed
+     * overload (which would return the typed value directly and break `.join()`).
+     *
+     * Scoped to methods we can verify exist on the typed REST wrapper file to
+     * avoid breaking WS-core local helpers.
+     */
+    redirectToAsyncOnJoin(content: string, name: string): string {
+        const typedRestMethods = this.collectTypedRestMethodNames(name);
+        if (typedRestMethods.size === 0) return content;
+        // loadMarkets has a special typed signature `loadMarkets(boolean reload)`;
+        // the untyped base accepts 0 args, so a zero-arg call is already unambiguous
+        // and we shouldn't touch it.
+        typedRestMethods.delete('loadMarkets');
+        const pattern = /\(this\.(\w+)\(/g;
+        let result = '';
+        let lastIdx = 0;
+        let match;
+        while ((match = pattern.exec(content)) !== null) {
+            const methodName = match[1];
+            if (!typedRestMethods.has(methodName)) {
+                continue;
+            }
+            const argsStart = match.index + match[0].length;
+            let depth = 1;
+            let j = argsStart;
+            while (j < content.length && depth > 0) {
+                if (content[j] === '(') depth++;
+                else if (content[j] === ')') depth--;
+                j++;
+            }
+            // j now points just past the closing ')' of the method call.
+            // Expect outer ')' + '.join()' to confirm this is a CompletableFuture-style use.
+            if (j < content.length && content[j] === ')' && content.substring(j + 1, j + 8) === '.join()') {
+                const argsRaw = content.substring(argsStart, j - 1);
+                // Zero-arg calls are already unambiguous (typed overloads require
+                // 1+ args); only cast when there are real args.
+                const argsCast = argsRaw.trim().length === 0
+                    ? argsRaw
+                    : this.splitTopLevelArgs(argsRaw).map(a => `(Object)(${a.trim()})`).join(', ');
+                result += content.substring(lastIdx, match.index);
+                result += `(this.${methodName}(${argsCast})).join()`;
+                lastIdx = j + 8;
+                pattern.lastIndex = lastIdx;
+            }
+        }
+        result += content.substring(lastIdx);
+        return result;
+    }
+
+    /**
+     * Rewrite `this.delay(ms, "methodName", arg1, arg2, ...)` to a spawn-and-sleep
+     * lambda that dispatches the callback via Helpers.callDynamically. Uses
+     * balanced-paren walking to support any number of args and arbitrary nested
+     * expressions.
+     */
+    rewriteDelayWithStringCallback(content: string): string {
+        const pattern = /this\.delay\(/g;
+        let result = '';
+        let lastIdx = 0;
+        let match;
+        while ((match = pattern.exec(content)) !== null) {
+            const openIdx = match.index + match[0].length;
+            let depth = 1;
+            let i = openIdx;
+            while (i < content.length && depth > 0) {
+                const ch = content[i];
+                if (ch === '(') depth++;
+                else if (ch === ')') depth--;
+                i++;
+            }
+            const argsRaw = content.substring(openIdx, i - 1);
+            const args = this.splitTopLevelArgs(argsRaw);
+            if (args.length < 2) continue;
+            const delayMs = args[0].trim();
+            const callback = args[1].trim();
+            const callbackMatch = callback.match(/^"(\w+)"$/);
+            if (!callbackMatch) continue; // only rewrite string-literal callback form
+            const callbackName = callbackMatch[1];
+            const extraArgs = args.slice(2).map(a => a.trim()).join(', ');
+            result += content.substring(lastIdx, match.index);
+            const extraArgsList = extraArgs.length > 0 ? `, ${extraArgs}` : '';
+            result += `this.scheduleCallback(${delayMs}, "${callbackName}"${extraArgsList})`;
+            lastIdx = i;
+            pattern.lastIndex = i;
+        }
+        result += content.substring(lastIdx);
+        return result;
+    }
+
+    /**
+     * Split a method-args string by commas at nesting depth 0. Preserves parens,
+     * brackets, and braces in nested expressions.
+     */
+    splitTopLevelArgs(args: string): string[] {
+        const out: string[] = [];
+        let depth = 0;
+        let angleDepth = 0;
+        let start = 0;
+        let inStr: string | null = null;
+        for (let i = 0; i < args.length; i++) {
+            const ch = args[i];
+            if (inStr !== null) {
+                if (ch === '\\' && i + 1 < args.length) { i++; continue; }
+                if (ch === inStr) inStr = null;
+                continue;
+            }
+            if (ch === '"' || ch === '\'') { inStr = ch; continue; }
+            if (ch === '(' || ch === '[' || ch === '{') depth++;
+            else if (ch === ')' || ch === ']' || ch === '}') depth--;
+            // Track generic type params <...>. Only treat `<` as an open when it
+            // looks like a generic (followed by an identifier or another `<`).
+            // Comparison operators like `x < y` have space around `<`, so this
+            // heuristic is safe for well-formatted transpiled code.
+            else if (ch === '<' && depth === 0 && i + 1 < args.length && /[A-Za-z_<]/.test(args[i + 1])) {
+                angleDepth++;
+            } else if (ch === '>' && angleDepth > 0) {
+                angleDepth--;
+            } else if (ch === ',' && depth === 0 && angleDepth === 0) {
+                out.push(args.substring(start, i));
+                start = i + 1;
+            }
+        }
+        if (start < args.length) out.push(args.substring(start));
+        return out;
+    }
+
     fixVoidReturnNull(content: string): string {
         const lines = content.split('\n');
         let depth = 0;
         let armed = false;
         let inVoid = false;
         let entryDepth = -1;
+        let inBlockComment = false;
+        const stripForBraceCount = (raw: string): string => {
+            // Remove line comments, string literals, and block-comment segments so
+            // brace tracking stays accurate. Brace chars inside those contexts
+            // must not affect depth.
+            let s = raw;
+            // Handle /* ... */ segments across and within lines
+            if (inBlockComment) {
+                const end = s.indexOf('*/');
+                if (end < 0) return '';
+                s = s.substring(end + 2);
+                inBlockComment = false;
+            }
+            while (true) {
+                const start = s.indexOf('/*');
+                if (start < 0) break;
+                const end = s.indexOf('*/', start + 2);
+                if (end < 0) {
+                    inBlockComment = true;
+                    s = s.substring(0, start);
+                    break;
+                }
+                s = s.substring(0, start) + s.substring(end + 2);
+            }
+            // Strip string literals (simple; doesn't handle escaped quotes beyond \\)
+            s = s.replace(/"(?:[^"\\]|\\.)*"/g, '""');
+            s = s.replace(/'(?:[^'\\]|\\.)*'/g, "''");
+            // Strip line comments
+            s = s.replace(/\/\/.*$/, '');
+            return s;
+        };
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             if (!inVoid && !armed && /^\s*public\s+void\s+\w+\s*\(/.test(line)) {
@@ -1325,7 +1520,8 @@ class NewTranspiler {
             if (inVoid) {
                 lines[i] = line.replace(/\breturn null;/g, 'return;');
             }
-            for (const ch of line) {
+            const counted = stripForBraceCount(line);
+            for (const ch of counted) {
                 if (ch === '{') {
                     if (armed && !inVoid) {
                         inVoid = true;
@@ -1443,17 +1639,36 @@ class NewTranspiler {
         content = content.replace(/(?<![.\w])([a-z]\w+)\.nonce\b(?!\()/gm, 'Helpers.GetValue($1, "nonce")');
 
         // ── Method references in subscription maps → string name ──
-        content = content.replace(new RegExp(`${cap}\\.this\\.(handle\\w+)\\s*(?=[,;)\\s])`, 'gm'), '"$1"');
-        // Also match this.handleXyz as a value (not a call)
-        content = content.replace(/(?<!=\s)this\.(handle\w+)\s*(?=[,;)\s])/gm, '"$1"');
-        // method = this.handleXyz; → method = "handleXyz";
-        content = content.replace(/=\s*this\.(handle\w+)\s*;/gm, '= "$1";');
-        // Also for specific non-handle methods used as callback references
-        // Only match known callback method patterns, NOT field access like this.apiKey
-        const callbackMethods = ['ping', 'negotiate', 'negotiateHelper', 'keepAliveListenKey',
-            'fetchOrderBookSnapshot', 'loadOrderBook', 'loadBalanceSnapshot', 'loadPositionsSnapshot'];
-        for (const method of callbackMethods) {
-            content = content.replace(new RegExp(`${cap}\\.this\\.${method}\\s*(?=[,;)])`, 'gm'), `"${method}"`);
+        // Dynamically detect every method defined in this class, plus a fixed
+        // whitelist of base-class methods used as callback refs (defined on
+        // Exchange/base, so file-local detection can't see them). Rewrite
+        // `this.<method>` / `<ClassName>.this.<method>` used as a value (not a
+        // call, assignment target, or member-access base) to the string literal
+        // `"<method>"`. Dispatch uses Helpers.callDynamically at call-site.
+        const baseClassCallbacks = [
+            'ping', 'negotiate', 'negotiateHelper', 'keepAliveListenKey',
+            'fetchOrderBookSnapshot', 'loadOrderBook', 'loadBalanceSnapshot',
+            'loadPositionsSnapshot',
+        ];
+        const methodNames = this.collectMethodNamesInClass(content);
+        for (const b of baseClassCallbacks) methodNames.add(b);
+        if (methodNames.size > 0) {
+            const namesPattern = Array.from(methodNames).join('|');
+            // ClassName.this.method (as value)
+            content = content.replace(
+                new RegExp(`${cap}\\.this\\.(${namesPattern})\\s*(?=[,;)\\s])`, 'gm'),
+                '"$1"'
+            );
+            // this.method (as value, not preceded by '=' which would be wrong context)
+            content = content.replace(
+                new RegExp(`(?<!=\\s)this\\.(${namesPattern})\\s*(?=[,;)\\s])`, 'gm'),
+                '"$1"'
+            );
+            // var = this.method;  → var = "method";
+            content = content.replace(
+                new RegExp(`=\\s*this\\.(${namesPattern})\\s*;`, 'gm'),
+                '= "$1";'
+            );
         }
 
         // ── .call(this, args) → reflection dispatch — use balanced parens ──
@@ -1471,6 +1686,14 @@ class NewTranspiler {
         content = content.replace(/this\.spawn\(this\.(\w+),\s*([^)]*(?:\([^)]*\)[^)]*)*)\)(?=\))/gm,
             (match: string, method: string, args: string) => {
                 return `this.${method}(${args})`;
+            });
+        // this.spawn("methodName", args) as expression — the method-ref-as-string
+        // pass above has already converted this.methodRef → "methodRef" by the time
+        // we get here. Rewrite to spawnWithResult which returns a Future capturing
+        // the async call's outcome.
+        content = content.replace(/this\.spawn\("(\w+)",\s*([^)]*(?:\([^)]*\)[^)]*)*)\)(?=\))/gm,
+            (match: string, methodName: string, args: string) => {
+                return `this.spawnWithResult("${methodName}", ${args})`;
             });
 
         // ── watch/watchMultiple missing 5th arg ──
@@ -1542,10 +1765,16 @@ class NewTranspiler {
         });
 
         // ── this.delay → spawn with sleep ──
+        // Existing forms: `this.delay(ms, this.methodName, args...)` where callback
+        // is a method reference. Handled first.
         content = content.replace(/this\.delay\(([^,]+),\s*this\.(\w+),\s*([^)]+)\)/gm,
             'this.spawn(() -> { try { Thread.sleep(((Number)$1).longValue()); this.$2($3); } catch(Exception _e) {} })');
         content = content.replace(/this\.delay\(([^,]+),\s*this\.(\w+)\)/gm,
             'this.spawn(() -> { try { Thread.sleep(((Number)$1).longValue()); this.$2(); } catch(Exception _e) {} })');
+        // Generalized form: `this.delay(ms, "methodName", ...args)` where the callback
+        // is already a string literal (the method-ref-as-string rewrite above converts
+        // `this.method` → `"method"`). Dispatch dynamically via Helpers.callDynamically.
+        content = this.rewriteDelayWithStringCallback(content);
 
         // ── String type fixes ──
         content = content.replace(/String (\w+) = ((?:this\.\w+\(|Helpers\.)[^;]+);/gm, 'Object $1 = $2;');
@@ -1631,10 +1860,15 @@ class NewTranspiler {
         // ── Void supplyAsync return null insertion ──
         content = this.insertReturnNullInSupplyAsync(content);
 
-        // Must run AFTER insertReturnNullInSupplyAsync because that step converts
-        // `return;` → `return null;` and may leak into void event-handler methods
-        // when its supplyAsync counter doesn't decrement correctly across methods.
+        // Runs AFTER insertReturnNullInSupplyAsync to fix `return null;` leakage
+        // into void event-handler methods. Uses comment/string-aware brace tracking
+        // to avoid false state from brace chars in `//` comment blocks.
         content = this.fixVoidReturnNull(content);
+
+        // Redirect `(this.restMethod(...)).join()` to `(this.restMethodAsync(...)).join()`
+        // so the typed REST overload (returning a typed value directly) doesn't shadow
+        // the future-returning variant the transpiled WS code expects.
+        content = this.redirectToAsyncOnJoin(content, name);
 
         return content;
     }
