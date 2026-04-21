@@ -1,3 +1,28 @@
+<a id="v4.5.50"></a>
+# [v4.5.50](https://github.com/ccxt/ccxt/releases/tag/v4.5.50) - 2026-04-20
+
+## What's Changed
+* chore(hibachi): test ip by [@ttodua](https://github.com/ttodua) in [#28403](https://github.com/ccxt/ccxt/pull/28403)
+* test: show url on failure by [@ttodua](https://github.com/ttodua) in [#28400](https://github.com/ccxt/ccxt/pull/28400)
+* fix(weex): update link by [@carlosmiei](https://github.com/carlosmiei) in [#28418](https://github.com/ccxt/ccxt/pull/28418)
+* bitget: map 40917 to InvalidOrder by [@ABSllk](https://github.com/ABSllk) in [#28420](https://github.com/ccxt/ccxt/pull/28420)
+* chore(deps-dev): bump protobufjs from 7.5.3 to 7.5.5 by [@dependabot](https://github.com/dependabot)[bot] in [#28421](https://github.com/ccxt/ccxt/pull/28421)
+* feat(lighter): api upgrade and add builder code by [@sc0Vu](https://github.com/sc0Vu) in [#28112](https://github.com/ccxt/ccxt/pull/28112)
+* feat(okx): add 15 documented endpoints missing from implicit API by [@lucasjamar](https://github.com/lucasjamar) in [#28427](https://github.com/ccxt/ccxt/pull/28427)
+* feat(okx): add DCA Trading and missing Dual Investment endpoints by [@lucasjamar](https://github.com/lucasjamar) in [#28425](https://github.com/ccxt/ccxt/pull/28425)
+* feat(okx): parseFundingInterval add 2h interval by [@Dan-krm](https://github.com/Dan-krm) in [#28431](https://github.com/ccxt/ccxt/pull/28431)
+* gate: fix RED market alias by [@stevelee477](https://github.com/stevelee477) in [#28423](https://github.com/ccxt/ccxt/pull/28423)
+* fix(okx): parseTransaction - parse network from chain param by [@simbesh](https://github.com/simbesh) in [#28430](https://github.com/ccxt/ccxt/pull/28430)
+* hyperliquid: add watchBalance and watchPosition by [@sc0Vu](https://github.com/sc0Vu) in [#28419](https://github.com/ccxt/ccxt/pull/28419)
+
+## New Contributors
+* [@stevelee477](https://github.com/stevelee477) made their first contribution in [#28423](https://github.com/ccxt/ccxt/pull/28423)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/go/v4.5.49...v4.5.50
+
+[Changes][v4.5.50]
+
+
 <a id="v4.5.49"></a>
 # [v4.5.49](https://github.com/ccxt/ccxt/releases/tag/v4.5.49) - 2026-04-15
 
@@ -12918,6 +12943,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.50]: https://github.com/ccxt/ccxt/compare/v4.5.49...v4.5.50
 [v4.5.49]: https://github.com/ccxt/ccxt/compare/v4.5.48...v4.5.49
 [v4.5.48]: https://github.com/ccxt/ccxt/compare/v4.5.47...v4.5.48
 [v4.5.47]: https://github.com/ccxt/ccxt/compare/v4.5.46...v4.5.47

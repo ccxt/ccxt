@@ -206,6 +206,7 @@ class okx extends okx$1["default"] {
                         'market/option/instrument-family-trades': 1,
                         'market/platform-24-volume': 10,
                         'market/call-auction-detail': 1,
+                        'market/call-auction-details': 1,
                         'market/books-sbe': 10,
                         'market/block-tickers': 1,
                         'market/block-ticker': 1,
@@ -246,6 +247,9 @@ class okx extends okx$1["default"] {
                         'public/premium-history': 1,
                         'public/economic-calendar': 50,
                         'public/market-data-history': 4,
+                        'public/event-contract/events': 1,
+                        'public/event-contract/markets': 1,
+                        'public/event-contract/series': 1,
                         'public/vip-interest-rate-loan-quota': 10,
                         // rubik
                         'rubik/stat/trading-data/support-coin': 4,
@@ -254,6 +258,7 @@ class okx extends okx$1["default"] {
                         'rubik/stat/taker-volume-contract': 4,
                         'rubik/stat/margin/loan-ratio': 4,
                         'rubik/stat/contracts/long-short-account-ratio-contract-top-trader': 4,
+                        'rubik/stat/contracts/long-short-position-ratio-contract-top-trader': 4,
                         'rubik/stat/contracts/long-short-account-ratio-contract': 4,
                         'rubik/stat/contracts/long-short-account-ratio': 4,
                         'rubik/stat/contracts/open-interest-volume': 4,
@@ -295,6 +300,7 @@ class okx extends okx$1["default"] {
                         'copytrading/public-copy-traders': 4,
                         'support/announcements': 4,
                         'support/announcements-types': 20,
+                        'support/announcement-types': 20,
                     },
                     'post': {
                         'tradingBot/grid/min-investment': 1, // public
@@ -361,6 +367,7 @@ class okx extends okx$1["default"] {
                         'account/bills-archive': 4,
                         'account/bills-history-archive': 2,
                         'account/config': 4,
+                        'account/subtypes': 4,
                         'account/max-size': 1,
                         'account/max-avail-size': 1,
                         'account/leverage-info': 1,
@@ -420,6 +427,11 @@ class okx extends okx$1["default"] {
                         'tradingBot/recurring/orders-algo-history': 1,
                         'tradingBot/recurring/orders-algo-details': 1,
                         'tradingBot/recurring/sub-orders': 1,
+                        'tradingBot/dca/ongoing-list': 1,
+                        'tradingBot/dca/history-list': 1,
+                        'tradingBot/dca/orders': 1,
+                        'tradingBot/dca/position-details': 1,
+                        'tradingBot/dca/cycle-list': 1,
                         // earn
                         'finance/savings/balance': 5 / 3,
                         'finance/savings/lending-history': 5 / 3,
@@ -469,6 +481,9 @@ class okx extends okx$1["default"] {
                         'broker/nd/rebate-per-orders': 300,
                         'finance/sfp/dcd/order': 2,
                         'finance/sfp/dcd/orders': 2,
+                        'finance/sfp/dcd/currency-pair': 2,
+                        'finance/sfp/dcd/order-status': 2,
+                        'finance/sfp/dcd/order-history': 2,
                         // affiliate
                         'affiliate/invitee/detail': 1,
                         'users/partner/if-rebate': 1,
@@ -539,6 +554,7 @@ class okx extends okx$1["default"] {
                         'account/position-builder': 10,
                         'account/position-builder-graph': 50,
                         'account/set-riskOffset-type': 2,
+                        'account/set-riskOffset-amt': 2,
                         'account/activate-option': 4,
                         'account/set-auto-loan': 4,
                         'account/account-level-switch-preset': 4,
@@ -565,6 +581,7 @@ class okx extends okx$1["default"] {
                         'users/subaccount/set-transfer-out': 10,
                         // grid trading
                         'tradingBot/grid/order-algo': 1,
+                        'tradingBot/grid/copy-order-algo': 1,
                         'tradingBot/grid/amend-algo-basic-param': 1,
                         'tradingBot/grid/amend-order-algo': 1,
                         'tradingBot/grid/stop-order-algo': 1,
@@ -588,6 +605,20 @@ class okx extends okx$1["default"] {
                         'tradingBot/recurring/order-algo': 1,
                         'tradingBot/recurring/amend-order-algo': 1,
                         'tradingBot/recurring/stop-order-algo': 1,
+                        'tradingBot/dca/create': 1,
+                        'tradingBot/dca/amend-order-algo': 1,
+                        'tradingBot/dca/stop': 1,
+                        'tradingBot/dca/orders/manual-buy': 1,
+                        'tradingBot/dca/settings/reinvestment': 1,
+                        'tradingBot/dca/settings/take-profit': 1,
+                        'tradingBot/dca/margin/add': 1,
+                        'tradingBot/dca/margin/reduce': 1,
+                        'tradingBot/recurring/add-investment': 1,
+                        'tradingBot/recurring/amend-price-range': 1,
+                        'tradingBot/recurring/amend-recurring-amount': 1,
+                        'tradingBot/recurring/amend-recurring-time': 1,
+                        'tradingBot/recurring/pause': 1,
+                        'tradingBot/recurring/restart': 1,
                         // earn
                         'finance/savings/purchase-redempt': 5 / 3,
                         'finance/savings/set-lending-rate': 5 / 3,
@@ -626,6 +657,9 @@ class okx extends okx$1["default"] {
                         'broker/nd/rebate-per-orders': 36000,
                         'finance/sfp/dcd/quote': 10,
                         'finance/sfp/dcd/order': 10,
+                        'finance/sfp/dcd/trade': 10,
+                        'finance/sfp/dcd/redeem-quote': 10,
+                        'finance/sfp/dcd/redeem': 10,
                         'broker/nd/report-subaccount-ip': 0.25,
                         'broker/dma/subaccount/apikey': 1 / 4,
                         'broker/dma/trades': 36000,
@@ -5779,6 +5813,16 @@ class okx extends okx$1["default"] {
         }
         const currencyId = this.safeString(transaction, 'ccy');
         const code = this.safeCurrencyCode(currencyId);
+        let network = undefined;
+        const chain = this.safeString(transaction, 'chain');
+        if (chain !== undefined) {
+            const chainParts = chain.split('-');
+            const networkParts = this.arraySlice(chainParts, 1);
+            const networkId = networkParts.join('-');
+            if (networkId !== undefined) {
+                network = this.networkIdToCode(networkId, code);
+            }
+        }
         const amount = this.safeNumber(transaction, 'amt');
         const status = this.parseTransactionStatus(this.safeString(transaction, 'state'));
         const txid = this.safeString(transaction, 'txId');
@@ -5796,7 +5840,7 @@ class okx extends okx$1["default"] {
             'id': id,
             'currency': code,
             'amount': amount,
-            'network': undefined,
+            'network': network,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': address,
@@ -6613,6 +6657,7 @@ class okx extends okx$1["default"] {
     parseFundingInterval(interval) {
         const intervals = {
             '3600000': '1h',
+            '7200000': '2h',
             '14400000': '4h',
             '28800000': '8h',
             '57600000': '16h',

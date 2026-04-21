@@ -116,6 +116,7 @@ public partial class lighter : ccxt.lighter
     public async virtual Task<object> subscribePrivate(object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        await this.preLoadLighterLibrary();
         ((IDictionary<string,object>)parameters)["auth"] = this.createAuth(parameters);
         return await this.subscribePublic(messageHash, parameters);
     }

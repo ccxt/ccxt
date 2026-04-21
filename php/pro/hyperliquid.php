@@ -21,7 +21,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'createOrderWs' => true,
                 'createOrdersWs' => true,
                 'editOrderWs' => true,
-                'watchBalance' => false,
+                'watchBalance' => true,
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
                 'watchOrderBook' => true,
@@ -31,6 +31,9 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'watchTrades' => true,
                 'watchTradesForSymbols' => false,
                 'watchPosition' => false,
+                'unWatchBalance' => true,
+                'watchPositions' => true,
+                'unWatchPositions' => true,
                 'unWatchOrderBook' => true,
                 'unWatchTickers' => true,
                 'unWatchTrades' => true,
@@ -975,6 +978,347 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $client->resolve ($payload, $id);
     }
 
+    public function watch_balance($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * watch balance and get the amount of funds available for trading or funds locked in orders
+             *
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+             *
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->dex] for for hip3 tokens $subscription, eg => 'xyz' or 'flx'
+             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            $userAddress = null;
+            list($userAddress, $params) = $this->handlePublicAddress ('watchBalance', $params);
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
+            $isUnifiedEnabled = null;
+            list($isUnifiedEnabled, $params) = Async\await($this->isUnifiedEnabled ('watchBalance', $userAddress, false, $params));
+            $dex = $this->safe_string($params, 'dex');
+            $isSpot = (($type === 'spot') || $isUnifiedEnabled) && ($dex === null);
+            $topic = ($isSpot) ? 'spotState' : 'clearinghouseState';
+            $messageHash = $topic . '::balance';
+            $url = $this->urls['api']['ws']['public'];
+            $subscription = array(
+                'type' => $topic,
+                'user' => $userAddress,
+            );
+            if ($isSpot) {
+                if ($isUnifiedEnabled) {
+                    $subscription['isPortfolioMargin'] = true;
+                }
+            } else {
+                if ($dex !== null) {
+                    $subscription['dex'] = $dex;
+                }
+            }
+            $request = array(
+                'method' => 'subscribe',
+                'subscription' => $subscription,
+            );
+            $message = $this->extend($request, $params);
+            return Async\await($this->watch($url, $messageHash, $message, $topic));
+        }) ();
+    }
+
+    public function un_watch_balance($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * unWatches balance
+             *
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+             *
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} status of the unwatch $request
+             */
+            Async\await($this->load_markets());
+            $url = $this->urls['api']['ws']['public'];
+            $userAddress = null;
+            list($userAddress, $params) = $this->handlePublicAddress ('unWatchBalance', $params);
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('unWatchBalance', null, $params);
+            $isUnifiedEnabled = null;
+            list($isUnifiedEnabled, $params) = Async\await($this->isUnifiedEnabled ('unWatchBalance', $userAddress, false, $params));
+            $dex = $this->safe_string($params, 'dex');
+            $isSpot = (($type === 'spot') || $isUnifiedEnabled) && ($dex === null);
+            $topic = ($isSpot) ? 'spotState' : 'clearinghouseState';
+            $messageHash = 'unsubscribe' . ':' . $topic;
+            $request = array(
+                'method' => 'unsubscribe',
+                'subscription' => array(
+                    'type' => $topic,
+                    'user' => $userAddress,
+                ),
+            );
+            $message = $this->extend($request, $params);
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        }) ();
+    }
+
+    public function handle_balance(Client $client, $message) {
+        //
+        // spot
+        // {
+        //     "channel" => "spotState",
+        //     "data" => {
+        //         "user" => "0xeeeeexxxxeeeee",
+        //         "spotState" => {
+        //             "balances" => array(
+        //                 {
+        //                     "coin" => "USDH",
+        //                     "token" => 360,
+        //                     "total" => "0.0",
+        //                     "hold" => "0.0",
+        //                     "entryNtl" => "0.0"
+        //                 }
+        //             ),
+        //             "tokenToAvailableAfterMaintenance" => array(
+        //                 array(
+        //                     0,
+        //                     "56.1"
+        //                 )
+        //             )
+        //         }
+        //     }
+        // }
+        // swap
+        // {
+        //     "channel" => "clearinghouseState",
+        //     "data" => {
+        //         "dex" => "",
+        //         "user" => "0xeeeeexxxxeeeee",
+        //         "clearinghouseState" => {
+        //             "marginSummary" => array(
+        //                 "accountValue" => "0.0",
+        //                 "totalNtlPos" => "0.0",
+        //                 "totalRawUsd" => "0.0",
+        //                 "totalMarginUsed" => "0.0"
+        //             ),
+        //             "crossMarginSummary" => array(
+        //                 "accountValue" => "0.0",
+        //                 "totalNtlPos" => "0.0",
+        //                 "totalRawUsd" => "0.0",
+        //                 "totalMarginUsed" => "0.0"
+        //             ),
+        //             "crossMaintenanceMarginUsed" => "0.0",
+        //             "withdrawable" => "0.0",
+        //             "assetPositions" => array(),
+        //             "time" => 1776000003409
+        //         }
+        //     }
+        // }
+        //
+        if ($this->balance === null) {
+            $this->balance = array();
+        }
+        $topic = $this->safe_value($message, 'channel');
+        $messageHash = $topic . '::balance';
+        $info = null;
+        $rawBalances = array();
+        $account = null;
+        $timestamp = null;
+        $data = $this->safe_value($message, 'data', array());
+        if ($topic === 'spotState') {
+            $spotState = $this->safe_dict($data, 'spotState');
+            $rawBalances = $this->safe_list($spotState, 'balances');
+            $account = 'spot';
+            $info = $rawBalances;
+        }
+        if ($topic === 'clearinghouseState') {
+            $account = 'swap';
+            $clearinghouseState = $this->safe_dict($data, 'clearinghouseState');
+            $rawBalances[] = $clearinghouseState;
+            $info = $clearinghouseState;
+            $timestamp = $this->safe_integer($clearinghouseState, 'time');
+            $this->handle_positions($client, $message);
+        }
+        for ($i = 0; $i < count($rawBalances); $i++) {
+            $this->parse_ws_balance($rawBalances[$i], $account);
+        }
+        if ($this->safe_value($this->balance, $account) === null) {
+            $this->balance[$account] = array();
+        }
+        $this->balance[$account]['info'] = $info;
+        $this->balance[$account]['timestamp'] = $timestamp;
+        $this->balance[$account]['datetime'] = $this->iso8601($timestamp);
+        $this->balance[$account] = $this->safe_balance($this->balance[$account]);
+        $client->resolve ($this->balance[$account], $messageHash);
+    }
+
+    public function parse_ws_balance($balance, $accountType = null) {
+        //
+        // spot
+        //     {
+        //         "coin" => "USDH",
+        //         "token" => 360,
+        //         "total" => "0.0",
+        //         "hold" => "0.0",
+        //         "entryNtl" => "0.0"
+        //     }
+        // swap
+        //     {
+        //         "marginSummary" => array(
+        //             "accountValue" => "0.0",
+        //             "totalNtlPos" => "0.0",
+        //             "totalRawUsd" => "0.0",
+        //             "totalMarginUsed" => "0.0"
+        //         ),
+        //         "crossMarginSummary" => array(
+        //             "accountValue" => "0.0",
+        //             "totalNtlPos" => "0.0",
+        //             "totalRawUsd" => "0.0",
+        //             "totalMarginUsed" => "0.0"
+        //         ),
+        //         "crossMaintenanceMarginUsed" => "0.0",
+        //         "withdrawable" => "0.0",
+        //         "assetPositions" => array(),
+        //         "time" => 1776000003409
+        //     }
+        //
+        $account = $this->account();
+        $currencyId = $this->safe_string($balance, 'coin');
+        $code = null;
+        if ($currencyId === null) {
+            $code = 'USDC';
+            $marginSummary = $this->safe_dict($balance, 'marginSummary', array());
+            $account['free'] = $this->safe_string($balance, 'withdrawable');
+            $account['used'] = $this->safe_string($marginSummary, 'totalMarginUsed');
+            $account['total'] = $this->safe_string($marginSummary, 'accountValue');
+        } else {
+            $code = $this->safe_currency_code($currencyId);
+            $account['used'] = $this->safe_string($balance, 'hold');
+            $account['total'] = $this->safe_string($balance, 'total');
+        }
+        if ($accountType !== null) {
+            if ($this->safe_value($this->balance, $accountType) === null) {
+                $this->balance[$accountType] = array();
+            }
+            $this->balance[$accountType][$code] = $account;
+        } else {
+            $this->balance[$code] = $account;
+        }
+    }
+
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             *
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+             *
+             * watch all open positions
+             * @param {string[]} [$symbols] list of unified market $symbols
+             * @param {int} [$since] the earliest time in ms to fetch positions for
+             * @param {int} [$limit] the maximum number of positions to retrieve
+             * @param {array} $params extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             */
+            Async\await($this->load_markets());
+            $userAddress = null;
+            list($userAddress, $params) = $this->handlePublicAddress ('watchPositions', $params);
+            $topic = 'clearinghouseState';
+            $messageHash = $topic . '::positions';
+            if (!$this->is_empty($symbols)) {
+                $symbols = $this->market_symbols($symbols);
+                $messageHash .= '::' . implode(',', $symbols);
+            }
+            $url = $this->urls['api']['ws']['public'];
+            $subscription = array(
+                'type' => $topic,
+                'user' => $userAddress,
+            );
+            $dexName = $this->getDexFromSymbols ('watchPositions', $symbols);
+            if ($dexName !== null) {
+                $subscription['dex'] = $dexName;
+            }
+            $request = array(
+                'method' => 'subscribe',
+                'subscription' => $subscription,
+            );
+            $message = $this->extend($request, $params);
+            $client = $this->client($url);
+            $this->set_positions_cache($client, $symbols);
+            $cache = $this->positions;
+            $newPositions = Async\await($this->watch($url, $messageHash, $message, $topic));
+            if ($this->newUpdates) {
+                return $newPositions;
+            }
+            return $this->filter_by_symbols_since_limit($cache, $symbols, $since, $limit, true);
+        }) ();
+    }
+
+    public function set_positions_cache(Client $client, ?array $symbols = null) {
+        if ($this->positions !== null) {
+            return;
+        }
+        $this->positions = new ArrayCacheBySymbolBySide ();
+    }
+
+    public function handle_positions($client, $message) {
+        if ($this->positions === null) {
+            $this->positions = new ArrayCacheBySymbolBySide ();
+        }
+        $cache = $this->positions;
+        $data = $this->safe_dict($message, 'data', array());
+        $clearinghouseState = $this->safe_dict($data, 'clearinghouseState', array());
+        $newPositions = array();
+        $rawPositions = $this->safe_list($clearinghouseState, 'assetPositions', array());
+        for ($i = 0; $i < count($rawPositions); $i++) {
+            $rawPosition = $rawPositions[$i];
+            $position = $this->parse_position($rawPosition);
+            $newPositions[] = $position;
+            $cache->append ($position);
+        }
+        $baseMessageHash = 'clearinghouseState::positions';
+        $messageHashes = $this->find_message_hashes($client, $baseMessageHash);
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            $parts = explode('::', $messageHash);
+            $symbolsString = $this->safe_string($parts, 2);
+            if ($symbolsString === null) {
+                continue;
+            }
+            $symbols = explode(',', $symbolsString);
+            $positions = $this->filter_by_array($newPositions, 'symbol', $symbols, false);
+            if (!$this->is_empty($positions)) {
+                $client->resolve ($positions, $messageHash);
+            }
+        }
+        $client->resolve ($newPositions, $baseMessageHash);
+    }
+
+    public function un_watch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * unWatches all open positions
+             *
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+             *
+             * @param {string[]} [$symbols] list of unified market $symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} status of the unwatch $request
+             */
+            Async\await($this->load_markets());
+            if (!$this->is_empty($symbols)) {
+                throw new NotSupported($this->id . ' unWatchPositions() does not support a symbol parameter, you must unwatch all orders');
+            }
+            $messageHash = 'unsubscribe:clearinghouseState';
+            $url = $this->urls['api']['ws']['public'];
+            $userAddress = null;
+            list($userAddress, $params) = $this->handlePublicAddress ('unWatchPositions', $params);
+            $request = array(
+                'method' => 'unsubscribe',
+                'subscription' => array(
+                    'type' => 'clearinghouseState',
+                    'user' => $userAddress,
+                ),
+            );
+            $message = $this->extend($request, $params);
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        }) ();
+    }
+
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
@@ -1242,6 +1586,29 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $this->clean_cache($topicStructure);
     }
 
+    public function handle_positions_unsubscription(Client $client, array $subscription) {
+        $subHash = 'clearinghouseState';
+        $unSubHash = 'unsubscribe:' . $subHash;
+        $this->clean_unsubscription($client, $subHash, $unSubHash, true);
+        $topicStructure = array(
+            'topic' => 'positions',
+        );
+        $this->clean_cache($topicStructure);
+        // clean swap balance if it existed
+        if (is_array($this->balance) && array_key_exists('swap', $this->balance)) {
+            unset($this->balance['swap']);
+        }
+    }
+
+    public function handle_spot_balance_unsubscription(Client $client, array $subscription) {
+        $subHash = 'spotState';
+        $unSubHash = 'unsubscribe:' . $subHash;
+        $this->clean_unsubscription($client, $subHash, $unSubHash, true);
+        if (is_array($this->balance) && array_key_exists('spot', $this->balance)) {
+            unset($this->balance['spot']);
+        }
+    }
+
     public function handle_subscription_response(Client $client, $message) {
         // {
         //     "channel":"subscriptionResponse",
@@ -1284,6 +1651,10 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 $this->handle_order_unsubscription($client, $subscription);
             } elseif ($type === 'userFills') {
                 $this->handle_my_trades_unsubscription($client, $subscription);
+            } elseif ($type === 'clearinghoustState') {
+                $this->handle_positions_unsubscription($client, $subscription);
+            } elseif ($type === 'spotState') {
+                $this->handle_spot_balance_unsubscription($client, $subscription);
             }
         }
     }
@@ -1318,6 +1689,8 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             'allMids' => array($this, 'handle_ws_tickers'),
             'post' => array($this, 'handle_ws_post'),
             'subscriptionResponse' => array($this, 'handle_subscription_response'),
+            'clearinghouseState' => array($this, 'handle_balance'),
+            'spotState' => array($this, 'handle_balance'),
         );
         $exacMethod = $this->safe_value($methods, $topic);
         if ($exacMethod !== null) {

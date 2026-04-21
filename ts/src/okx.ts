@@ -5798,6 +5798,16 @@ export default class okx extends Exchange {
         }
         const currencyId = this.safeString (transaction, 'ccy');
         const code = this.safeCurrencyCode (currencyId);
+        let network = undefined;
+        const chain = this.safeString (transaction, 'chain');
+        if (chain !== undefined) {
+            const chainParts = chain.split ('-');
+            const networkParts = this.arraySlice (chainParts, 1);
+            const networkId = networkParts.join ('-');
+            if (networkId !== undefined) {
+                network = this.networkIdToCode (networkId, code);
+            }
+        }
         const amount = this.safeNumber (transaction, 'amt');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
         const txid = this.safeString (transaction, 'txId');
@@ -5814,7 +5824,7 @@ export default class okx extends Exchange {
             'id': id,
             'currency': code,
             'amount': amount,
-            'network': undefined,
+            'network': network,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': address,
@@ -6632,6 +6642,7 @@ export default class okx extends Exchange {
     parseFundingInterval (interval) {
         const intervals: Dict = {
             '3600000': '1h',
+            '7200000': '2h',
             '14400000': '4h',
             '28800000': '8h',
             '57600000': '16h',

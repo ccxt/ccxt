@@ -230,7 +230,8 @@ class okx(Exchange, ImplicitAPI):
                         'market/history-trades': 2,
                         'market/option/instrument-family-trades': 1,
                         'market/platform-24-volume': 10,
-                        'market/call-auction-detail': 1,
+                        'market/call-auction-detail': 1,  # deprecated, use call-auction-details
+                        'market/call-auction-details': 1,
                         'market/books-sbe': 10,
                         'market/block-tickers': 1,
                         'market/block-ticker': 1,
@@ -271,6 +272,9 @@ class okx(Exchange, ImplicitAPI):
                         'public/premium-history': 1,
                         'public/economic-calendar': 50,
                         'public/market-data-history': 4,
+                        'public/event-contract/events': 1,
+                        'public/event-contract/markets': 1,
+                        'public/event-contract/series': 1,
                         'public/vip-interest-rate-loan-quota': 10,  # not documented
                         # rubik
                         'rubik/stat/trading-data/support-coin': 4,
@@ -279,6 +283,7 @@ class okx(Exchange, ImplicitAPI):
                         'rubik/stat/taker-volume-contract': 4,
                         'rubik/stat/margin/loan-ratio': 4,
                         'rubik/stat/contracts/long-short-account-ratio-contract-top-trader': 4,
+                        'rubik/stat/contracts/long-short-position-ratio-contract-top-trader': 4,
                         'rubik/stat/contracts/long-short-account-ratio-contract': 4,
                         'rubik/stat/contracts/long-short-account-ratio': 4,
                         'rubik/stat/contracts/open-interest-volume': 4,
@@ -319,7 +324,8 @@ class okx(Exchange, ImplicitAPI):
                         'copytrading/public-subpositions-history': 4,
                         'copytrading/public-copy-traders': 4,
                         'support/announcements': 4,
-                        'support/announcements-types': 20,
+                        'support/announcements-types': 20,  # typo, use announcement-types
+                        'support/announcement-types': 20,
                     },
                     'post': {
                         'tradingBot/grid/min-investment': 1,  # public
@@ -386,6 +392,7 @@ class okx(Exchange, ImplicitAPI):
                         'account/bills-archive': 4,
                         'account/bills-history-archive': 2,
                         'account/config': 4,
+                        'account/subtypes': 4,
                         'account/max-size': 1,
                         'account/max-avail-size': 1,
                         'account/leverage-info': 1,
@@ -445,6 +452,11 @@ class okx(Exchange, ImplicitAPI):
                         'tradingBot/recurring/orders-algo-history': 1,
                         'tradingBot/recurring/orders-algo-details': 1,
                         'tradingBot/recurring/sub-orders': 1,
+                        'tradingBot/dca/ongoing-list': 1,
+                        'tradingBot/dca/history-list': 1,
+                        'tradingBot/dca/orders': 1,
+                        'tradingBot/dca/position-details': 1,
+                        'tradingBot/dca/cycle-list': 1,
                         # earn
                         'finance/savings/balance': 5 / 3,
                         'finance/savings/lending-history': 5 / 3,
@@ -494,6 +506,9 @@ class okx(Exchange, ImplicitAPI):
                         'broker/nd/rebate-per-orders': 300,  # not documented
                         'finance/sfp/dcd/order': 2,  # not documented
                         'finance/sfp/dcd/orders': 2,  # not documented
+                        'finance/sfp/dcd/currency-pair': 2,
+                        'finance/sfp/dcd/order-status': 2,
+                        'finance/sfp/dcd/order-history': 2,
                         # affiliate
                         'affiliate/invitee/detail': 1,
                         'users/partner/if-rebate': 1,  # not documented
@@ -564,6 +579,7 @@ class okx(Exchange, ImplicitAPI):
                         'account/position-builder': 10,
                         'account/position-builder-graph': 50,
                         'account/set-riskOffset-type': 2,
+                        'account/set-riskOffset-amt': 2,
                         'account/activate-option': 4,
                         'account/set-auto-loan': 4,
                         'account/account-level-switch-preset': 4,
@@ -590,6 +606,7 @@ class okx(Exchange, ImplicitAPI):
                         'users/subaccount/set-transfer-out': 10,
                         # grid trading
                         'tradingBot/grid/order-algo': 1,
+                        'tradingBot/grid/copy-order-algo': 1,
                         'tradingBot/grid/amend-algo-basic-param': 1,
                         'tradingBot/grid/amend-order-algo': 1,
                         'tradingBot/grid/stop-order-algo': 1,
@@ -613,6 +630,20 @@ class okx(Exchange, ImplicitAPI):
                         'tradingBot/recurring/order-algo': 1,
                         'tradingBot/recurring/amend-order-algo': 1,
                         'tradingBot/recurring/stop-order-algo': 1,
+                        'tradingBot/dca/create': 1,
+                        'tradingBot/dca/amend-order-algo': 1,
+                        'tradingBot/dca/stop': 1,
+                        'tradingBot/dca/orders/manual-buy': 1,
+                        'tradingBot/dca/settings/reinvestment': 1,
+                        'tradingBot/dca/settings/take-profit': 1,
+                        'tradingBot/dca/margin/add': 1,
+                        'tradingBot/dca/margin/reduce': 1,
+                        'tradingBot/recurring/add-investment': 1,
+                        'tradingBot/recurring/amend-price-range': 1,
+                        'tradingBot/recurring/amend-recurring-amount': 1,
+                        'tradingBot/recurring/amend-recurring-time': 1,
+                        'tradingBot/recurring/pause': 1,
+                        'tradingBot/recurring/restart': 1,
                         # earn
                         'finance/savings/purchase-redempt': 5 / 3,
                         'finance/savings/set-lending-rate': 5 / 3,
@@ -651,6 +682,9 @@ class okx(Exchange, ImplicitAPI):
                         'broker/nd/rebate-per-orders': 36000,  # not documented
                         'finance/sfp/dcd/quote': 10,  # not documented
                         'finance/sfp/dcd/order': 10,  # not documented
+                        'finance/sfp/dcd/trade': 10,
+                        'finance/sfp/dcd/redeem-quote': 10,
+                        'finance/sfp/dcd/redeem': 10,
                         'broker/nd/report-subaccount-ip': 0.25,  # not documented
                         'broker/dma/subaccount/apikey': 1 / 4,
                         'broker/dma/trades': 36000,
@@ -5500,6 +5534,14 @@ class okx(Exchange, ImplicitAPI):
             type = 'deposit'
         currencyId = self.safe_string(transaction, 'ccy')
         code = self.safe_currency_code(currencyId)
+        network = None
+        chain = self.safe_string(transaction, 'chain')
+        if chain is not None:
+            chainParts = chain.split('-')
+            networkParts = self.array_slice(chainParts, 1)
+            networkId = '-'.join(networkParts)
+            if networkId is not None:
+                network = self.network_id_to_code(networkId, code)
         amount = self.safe_number(transaction, 'amt')
         status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
         txid = self.safe_string(transaction, 'txId')
@@ -5515,7 +5557,7 @@ class okx(Exchange, ImplicitAPI):
             'id': id,
             'currency': code,
             'amount': amount,
-            'network': None,
+            'network': network,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': address,
@@ -6282,6 +6324,7 @@ class okx(Exchange, ImplicitAPI):
     def parse_funding_interval(self, interval):
         intervals: dict = {
             '3600000': '1h',
+            '7200000': '2h',
             '14400000': '4h',
             '28800000': '8h',
             '57600000': '16h',

@@ -1280,7 +1280,8 @@ class blofin extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params, 'cross');
         $request['marginMode'] = $marginMode;
-        $triggerPrice = $this->safe_string($params, 'triggerPrice');
+        $triggerPriceAny = $this->safe_string_n($params, array( 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        $triggerPriceSlTp = $this->safe_string_2($params, 'stopLossPrice', 'takeProfitPrice');
         $timeInForce = $this->safe_string($params, 'timeInForce', 'GTC');
         $isHedged = $this->safe_bool($params, 'hedged', false);
         if ($isHedged) {
@@ -1293,7 +1294,7 @@ class blofin extends Exchange {
         if ($isMarketOrder || $marketIOC) {
             $request['orderType'] = 'market';
         } else {
-            $key = ($triggerPrice !== null) ? 'orderPrice' : 'price';
+            $key = ($triggerPriceAny !== null) ? 'orderPrice' : 'price';
             $request[$key] = $this->price_to_precision($symbol, $price);
         }
         $postOnly = false;
@@ -1319,12 +1320,16 @@ class blofin extends Exchange {
                 $tpPrice = $this->safe_string($takeProfit, 'price', '-1');
                 $request['tpOrderPrice'] = $this->price_to_precision($symbol, $tpPrice);
             }
-        } elseif ($triggerPrice !== null) {
+        } elseif ($triggerPriceAny !== null) {
             $request['orderType'] = 'trigger';
-            $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+            $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPriceAny);
             if ($isMarketOrder) {
                 $request['orderPrice'] = '-1';
             }
+            if ($triggerPriceSlTp !== null) {
+                $request['reduceOnly'] = true;
+            }
+            $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ));
         }
         return $this->extend($request, $params);
     }
@@ -1471,7 +1476,7 @@ class blofin extends Exchange {
              * create a trade $order
              *
              * @see https://blofin.com/docs#place-$order
-             * @see https://blofin.com/docs#place-$tpsl-$order
+             * @see https://blofin.com/docs#place-tpsl-$order
              *
              * @param {string} $symbol unified $symbol of the $market to create an $order in
              * @param {string} $type 'market' or 'limit' or 'post_only' or 'ioc' or 'fok'
@@ -1498,32 +1503,27 @@ class blofin extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $tpsl = $this->safe_bool($params, 'tpsl', false);
-            $params = $this->omit($params, 'tpsl');
-            $method = null;
-            list($method, $params) = $this->handle_option_and_params($params, 'createOrder', 'method', 'privatePostTradeOrder');
             $isStopLossPriceDefined = $this->safe_string($params, 'stopLossPrice') !== null;
             $isTakeProfitPriceDefined = $this->safe_string($params, 'takeProfitPrice') !== null;
-            $hasTriggerPrice = $this->safe_string($params, 'triggerPrice') !== null;
-            $isType2Order = ($isStopLossPriceDefined || $isTakeProfitPriceDefined);
+            $isTriggerOrder = $this->safe_string($params, 'triggerPrice') !== null;
+            $isCombinedSlTp = ($isStopLossPriceDefined && $isTakeProfitPriceDefined);
+            $isSlOrTp = $isStopLossPriceDefined || $isTakeProfitPriceDefined;
             $response = null;
             $reduceOnly = $this->safe_bool($params, 'reduceOnly');
             if ($reduceOnly !== null) {
                 $params['reduceOnly'] = $reduceOnly ? 'true' : 'false';
             }
-            $isTpslOrder = $tpsl || ($method === 'privatePostTradeOrderTpsl') || $isType2Order;
-            $isTriggerOrder = $hasTriggerPrice || ($method === 'privatePostTradeOrderAlgo');
-            if ($isTpslOrder) {
+            if ($isCombinedSlTp) {
                 $tpslRequest = $this->create_tpsl_order_request($symbol, $type, $side, $amount, $price, $params);
                 $response = Async\await($this->privatePostTradeOrderTpsl ($tpslRequest));
-            } elseif ($isTriggerOrder) {
+            } elseif ($isTriggerOrder || $isSlOrTp) {
                 $triggerRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
                 $response = Async\await($this->privatePostTradeOrderAlgo ($triggerRequest));
             } else {
                 $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
                 $response = Async\await($this->privatePostTradeOrder ($request));
             }
-            if ($isTpslOrder || $isTriggerOrder) {
+            if ($isCombinedSlTp || $isSlOrTp || $isTriggerOrder) {
                 $dataDict = $this->safe_dict($response, 'data', array());
                 return $this->parse_order($dataDict, $market);
             }
@@ -1538,12 +1538,17 @@ class blofin extends Exchange {
 
     public function create_tpsl_order_request(string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         $market = $this->market($symbol);
-        $positionSide = $this->safe_string($params, 'positionSide', 'net');
+        $hedged = $this->safe_bool($params, 'hedged', false);
+        $positionSide = 'net';
+        if ($hedged) {
+            $positionSide = ($side === 'buy') ? 'short' : 'long';
+        }
         $request = array(
             'instId' => $market['id'],
             'side' => $side,
             'positionSide' => $positionSide,
             'brokerId' => $this->safe_string($this->options, 'brokerId', 'ec6dd3a7dd982d0b'),
+            'reduceOnly' => $this->safe_bool($params, 'reduceOnly', true), // this is TP &  SL protective order, so it should be reduceOnly by default
         );
         if ($amount !== null) {
             $request['size'] = $this->amount_to_precision($symbol, $amount);
@@ -1556,21 +1561,14 @@ class blofin extends Exchange {
         $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
         if ($stopLossPrice !== null) {
             $request['slTriggerPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
-            if ($type === 'market') {
-                $request['slOrderPrice'] = '-1';
-            } else {
-                $request['slOrderPrice'] = $this->price_to_precision($symbol, $price);
-            }
-        } elseif ($takeProfitPrice !== null) {
+            $request['slOrderPrice'] = ($type === 'market') ? '-1' : $this->price_to_precision($symbol, $price);
+        }
+        if ($takeProfitPrice !== null) {
             $request['tpTriggerPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
-            if ($type === 'market') {
-                $request['tpOrderPrice'] = '-1';
-            } else {
-                $request['tpOrderPrice'] = $this->price_to_precision($symbol, $price);
-            }
+            $request['tpOrderPrice'] = ($type === 'market') ? '-1' : $this->price_to_precision($symbol, $price);
         }
         $request['marginMode'] = $marginMode;
-        $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice' ));
+        $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged' ));
         return $this->extend($request, $params);
     }
 

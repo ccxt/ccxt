@@ -7545,6 +7545,24 @@ transfer currency internally between wallets on the same account with uta endpoi
 
 ---
 
+<a name="unWatchBalance" id="unwatchbalance"></a>
+
+## unWatchBalance
+unWatches balance
+
+**Kind**: instance   
+**Returns**: <code>object</code> - status of the unwatch request
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+##### Supported exchanges
+* [hyperliquid](/exchanges/hyperliquid.md#unwatchbalance)
+
+---
+
 <a name="unWatchBidsAsks" id="unwatchbidsasks"></a>
 
 ## unWatchBidsAsks
@@ -7833,6 +7851,7 @@ unWatches from the stream channel
 * [backpack](/exchanges/backpack.md#unwatchpositions)
 * [bitmart](/exchanges/bitmart.md#unwatchpositions)
 * [bybit](/exchanges/bybit.md#unwatchpositions)
+* [hyperliquid](/exchanges/hyperliquid.md#unwatchpositions)
 * [weex](/exchanges/weex.md#unwatchpositions)
 
 ---
@@ -8051,6 +8070,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 * [hashkey](/exchanges/hashkey.md#watchbalance)
 * [hollaex](/exchanges/hollaex.md#watchbalance)
 * [htx](/exchanges/htx.md#watchbalance)
+* [hyperliquid](/exchanges/hyperliquid.md#watchbalance)
 * [kucoin](/exchanges/kucoin.md#watchbalance)
 * [lbank](/exchanges/lbank.md#watchbalance)
 * [lighter](/exchanges/lighter.md#watchbalance)
@@ -8736,6 +8756,7 @@ watch all open positions
 * [grvt](/exchanges/grvt.md#watchpositions)
 * [hashkey](/exchanges/hashkey.md#watchpositions)
 * [htx](/exchanges/htx.md#watchpositions)
+* [hyperliquid](/exchanges/hyperliquid.md#watchpositions)
 * [modetrade](/exchanges/modetrade.md#watchpositions)
 * [okx](/exchanges/okx.md#watchpositions)
 * [oxfun](/exchanges/oxfun.md#watchpositions)

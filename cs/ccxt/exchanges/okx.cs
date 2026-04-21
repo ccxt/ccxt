@@ -194,6 +194,7 @@ public partial class okx : Exchange
                         { "market/option/instrument-family-trades", 1 },
                         { "market/platform-24-volume", 10 },
                         { "market/call-auction-detail", 1 },
+                        { "market/call-auction-details", 1 },
                         { "market/books-sbe", 10 },
                         { "market/block-tickers", 1 },
                         { "market/block-ticker", 1 },
@@ -233,6 +234,9 @@ public partial class okx : Exchange
                         { "public/premium-history", 1 },
                         { "public/economic-calendar", 50 },
                         { "public/market-data-history", 4 },
+                        { "public/event-contract/events", 1 },
+                        { "public/event-contract/markets", 1 },
+                        { "public/event-contract/series", 1 },
                         { "public/vip-interest-rate-loan-quota", 10 },
                         { "rubik/stat/trading-data/support-coin", 4 },
                         { "rubik/stat/contracts/open-interest-history", 2 },
@@ -240,6 +244,7 @@ public partial class okx : Exchange
                         { "rubik/stat/taker-volume-contract", 4 },
                         { "rubik/stat/margin/loan-ratio", 4 },
                         { "rubik/stat/contracts/long-short-account-ratio-contract-top-trader", 4 },
+                        { "rubik/stat/contracts/long-short-position-ratio-contract-top-trader", 4 },
                         { "rubik/stat/contracts/long-short-account-ratio-contract", 4 },
                         { "rubik/stat/contracts/long-short-account-ratio", 4 },
                         { "rubik/stat/contracts/open-interest-volume", 4 },
@@ -277,6 +282,7 @@ public partial class okx : Exchange
                         { "copytrading/public-copy-traders", 4 },
                         { "support/announcements", 4 },
                         { "support/announcements-types", 20 },
+                        { "support/announcement-types", 20 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "tradingBot/grid/min-investment", 1 },
@@ -338,6 +344,7 @@ public partial class okx : Exchange
                         { "account/bills-archive", 4 },
                         { "account/bills-history-archive", 2 },
                         { "account/config", 4 },
+                        { "account/subtypes", 4 },
                         { "account/max-size", 1 },
                         { "account/max-avail-size", 1 },
                         { "account/leverage-info", 1 },
@@ -395,6 +402,11 @@ public partial class okx : Exchange
                         { "tradingBot/recurring/orders-algo-history", 1 },
                         { "tradingBot/recurring/orders-algo-details", 1 },
                         { "tradingBot/recurring/sub-orders", 1 },
+                        { "tradingBot/dca/ongoing-list", 1 },
+                        { "tradingBot/dca/history-list", 1 },
+                        { "tradingBot/dca/orders", 1 },
+                        { "tradingBot/dca/position-details", 1 },
+                        { "tradingBot/dca/cycle-list", 1 },
                         { "finance/savings/balance", divide(5, 3) },
                         { "finance/savings/lending-history", divide(5, 3) },
                         { "finance/staking-defi/offers", divide(10, 3) },
@@ -440,6 +452,9 @@ public partial class okx : Exchange
                         { "broker/nd/rebate-per-orders", 300 },
                         { "finance/sfp/dcd/order", 2 },
                         { "finance/sfp/dcd/orders", 2 },
+                        { "finance/sfp/dcd/currency-pair", 2 },
+                        { "finance/sfp/dcd/order-status", 2 },
+                        { "finance/sfp/dcd/order-history", 2 },
                         { "affiliate/invitee/detail", 1 },
                         { "users/partner/if-rebate", 1 },
                         { "support/announcements", 4 },
@@ -504,6 +519,7 @@ public partial class okx : Exchange
                         { "account/position-builder", 10 },
                         { "account/position-builder-graph", 50 },
                         { "account/set-riskOffset-type", 2 },
+                        { "account/set-riskOffset-amt", 2 },
                         { "account/activate-option", 4 },
                         { "account/set-auto-loan", 4 },
                         { "account/account-level-switch-preset", 4 },
@@ -528,6 +544,7 @@ public partial class okx : Exchange
                         { "users/subaccount/delete-apikey", 10 },
                         { "users/subaccount/set-transfer-out", 10 },
                         { "tradingBot/grid/order-algo", 1 },
+                        { "tradingBot/grid/copy-order-algo", 1 },
                         { "tradingBot/grid/amend-algo-basic-param", 1 },
                         { "tradingBot/grid/amend-order-algo", 1 },
                         { "tradingBot/grid/stop-order-algo", 1 },
@@ -551,6 +568,20 @@ public partial class okx : Exchange
                         { "tradingBot/recurring/order-algo", 1 },
                         { "tradingBot/recurring/amend-order-algo", 1 },
                         { "tradingBot/recurring/stop-order-algo", 1 },
+                        { "tradingBot/dca/create", 1 },
+                        { "tradingBot/dca/amend-order-algo", 1 },
+                        { "tradingBot/dca/stop", 1 },
+                        { "tradingBot/dca/orders/manual-buy", 1 },
+                        { "tradingBot/dca/settings/reinvestment", 1 },
+                        { "tradingBot/dca/settings/take-profit", 1 },
+                        { "tradingBot/dca/margin/add", 1 },
+                        { "tradingBot/dca/margin/reduce", 1 },
+                        { "tradingBot/recurring/add-investment", 1 },
+                        { "tradingBot/recurring/amend-price-range", 1 },
+                        { "tradingBot/recurring/amend-recurring-amount", 1 },
+                        { "tradingBot/recurring/amend-recurring-time", 1 },
+                        { "tradingBot/recurring/pause", 1 },
+                        { "tradingBot/recurring/restart", 1 },
                         { "finance/savings/purchase-redempt", divide(5, 3) },
                         { "finance/savings/set-lending-rate", divide(5, 3) },
                         { "finance/staking-defi/purchase", 5 },
@@ -585,6 +616,9 @@ public partial class okx : Exchange
                         { "broker/nd/rebate-per-orders", 36000 },
                         { "finance/sfp/dcd/quote", 10 },
                         { "finance/sfp/dcd/order", 10 },
+                        { "finance/sfp/dcd/trade", 10 },
+                        { "finance/sfp/dcd/redeem-quote", 10 },
+                        { "finance/sfp/dcd/redeem", 10 },
                         { "broker/nd/report-subaccount-ip", 0.25 },
                         { "broker/dma/subaccount/apikey", divide(1, 4) },
                         { "broker/dma/trades", 36000 },
@@ -6037,6 +6071,18 @@ public partial class okx : Exchange
         }
         object currencyId = this.safeString(transaction, "ccy");
         object code = this.safeCurrencyCode(currencyId);
+        object network = null;
+        object chain = this.safeString(transaction, "chain");
+        if (isTrue(!isEqual(chain, null)))
+        {
+            object chainParts = ((string)chain).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+            object networkParts = this.arraySlice(chainParts, 1);
+            object networkId = String.Join("-", ((IList<object>)networkParts).ToArray());
+            if (isTrue(!isEqual(networkId, null)))
+            {
+                network = this.networkIdToCode(networkId, code);
+            }
+        }
         object amount = this.safeNumber(transaction, "amt");
         object status = this.parseTransactionStatus(this.safeString(transaction, "state"));
         object txid = this.safeString(transaction, "txId");
@@ -6055,7 +6101,7 @@ public partial class okx : Exchange
             { "id", id },
             { "currency", code },
             { "amount", amount },
-            { "network", null },
+            { "network", network },
             { "addressFrom", addressFrom },
             { "addressTo", addressTo },
             { "address", address },
@@ -6942,6 +6988,7 @@ public partial class okx : Exchange
     {
         object intervals = new Dictionary<string, object>() {
             { "3600000", "1h" },
+            { "7200000", "2h" },
             { "14400000", "4h" },
             { "28800000", "8h" },
             { "57600000", "16h" },

@@ -1245,7 +1245,8 @@ export default class blofin extends Exchange {
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('createOrder', params, 'cross');
         request['marginMode'] = marginMode;
-        const triggerPrice = this.safeString(params, 'triggerPrice');
+        const triggerPriceAny = this.safeStringN(params, ['triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
+        const triggerPriceSlTp = this.safeString2(params, 'stopLossPrice', 'takeProfitPrice');
         const timeInForce = this.safeString(params, 'timeInForce', 'GTC');
         const isHedged = this.safeBool(params, 'hedged', false);
         if (isHedged) {
@@ -1259,7 +1260,7 @@ export default class blofin extends Exchange {
             request['orderType'] = 'market';
         }
         else {
-            const key = (triggerPrice !== undefined) ? 'orderPrice' : 'price';
+            const key = (triggerPriceAny !== undefined) ? 'orderPrice' : 'price';
             request[key] = this.priceToPrecision(symbol, price);
         }
         let postOnly = false;
@@ -1286,12 +1287,16 @@ export default class blofin extends Exchange {
                 request['tpOrderPrice'] = this.priceToPrecision(symbol, tpPrice);
             }
         }
-        else if (triggerPrice !== undefined) {
+        else if (triggerPriceAny !== undefined) {
             request['orderType'] = 'trigger';
-            request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
+            request['triggerPrice'] = this.priceToPrecision(symbol, triggerPriceAny);
             if (isMarketOrder) {
                 request['orderPrice'] = '-1';
             }
+            if (triggerPriceSlTp !== undefined) {
+                request['reduceOnly'] = true;
+            }
+            params = this.omit(params, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice']);
         }
         return this.extend(request, params);
     }
@@ -1464,26 +1469,21 @@ export default class blofin extends Exchange {
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        const tpsl = this.safeBool(params, 'tpsl', false);
-        params = this.omit(params, 'tpsl');
-        let method = undefined;
-        [method, params] = this.handleOptionAndParams(params, 'createOrder', 'method', 'privatePostTradeOrder');
         const isStopLossPriceDefined = this.safeString(params, 'stopLossPrice') !== undefined;
         const isTakeProfitPriceDefined = this.safeString(params, 'takeProfitPrice') !== undefined;
-        const hasTriggerPrice = this.safeString(params, 'triggerPrice') !== undefined;
-        const isType2Order = (isStopLossPriceDefined || isTakeProfitPriceDefined);
+        const isTriggerOrder = this.safeString(params, 'triggerPrice') !== undefined;
+        const isCombinedSlTp = (isStopLossPriceDefined && isTakeProfitPriceDefined);
+        const isSlOrTp = isStopLossPriceDefined || isTakeProfitPriceDefined;
         let response = undefined;
         const reduceOnly = this.safeBool(params, 'reduceOnly');
         if (reduceOnly !== undefined) {
             params['reduceOnly'] = reduceOnly ? 'true' : 'false';
         }
-        const isTpslOrder = tpsl || (method === 'privatePostTradeOrderTpsl') || isType2Order;
-        const isTriggerOrder = hasTriggerPrice || (method === 'privatePostTradeOrderAlgo');
-        if (isTpslOrder) {
+        if (isCombinedSlTp) {
             const tpslRequest = this.createTpslOrderRequest(symbol, type, side, amount, price, params);
             response = await this.privatePostTradeOrderTpsl(tpslRequest);
         }
-        else if (isTriggerOrder) {
+        else if (isTriggerOrder || isSlOrTp) {
             const triggerRequest = this.createOrderRequest(symbol, type, side, amount, price, params);
             response = await this.privatePostTradeOrderAlgo(triggerRequest);
         }
@@ -1491,7 +1491,7 @@ export default class blofin extends Exchange {
             const request = this.createOrderRequest(symbol, type, side, amount, price, params);
             response = await this.privatePostTradeOrder(request);
         }
-        if (isTpslOrder || isTriggerOrder) {
+        if (isCombinedSlTp || isSlOrTp || isTriggerOrder) {
             const dataDict = this.safeDict(response, 'data', {});
             return this.parseOrder(dataDict, market);
         }
@@ -1504,12 +1504,17 @@ export default class blofin extends Exchange {
     }
     createTpslOrderRequest(symbol, type, side, amount = undefined, price = undefined, params = {}) {
         const market = this.market(symbol);
-        const positionSide = this.safeString(params, 'positionSide', 'net');
+        const hedged = this.safeBool(params, 'hedged', false);
+        let positionSide = 'net';
+        if (hedged) {
+            positionSide = (side === 'buy') ? 'short' : 'long';
+        }
         const request = {
             'instId': market['id'],
             'side': side,
             'positionSide': positionSide,
             'brokerId': this.safeString(this.options, 'brokerId', 'ec6dd3a7dd982d0b'),
+            'reduceOnly': this.safeBool(params, 'reduceOnly', true), // this is TP &  SL protective order, so it should be reduceOnly by default
         };
         if (amount !== undefined) {
             request['size'] = this.amountToPrecision(symbol, amount);
@@ -1522,24 +1527,14 @@ export default class blofin extends Exchange {
         const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
         if (stopLossPrice !== undefined) {
             request['slTriggerPrice'] = this.priceToPrecision(symbol, stopLossPrice);
-            if (type === 'market') {
-                request['slOrderPrice'] = '-1';
-            }
-            else {
-                request['slOrderPrice'] = this.priceToPrecision(symbol, price);
-            }
+            request['slOrderPrice'] = (type === 'market') ? '-1' : this.priceToPrecision(symbol, price);
         }
-        else if (takeProfitPrice !== undefined) {
+        if (takeProfitPrice !== undefined) {
             request['tpTriggerPrice'] = this.priceToPrecision(symbol, takeProfitPrice);
-            if (type === 'market') {
-                request['tpOrderPrice'] = '-1';
-            }
-            else {
-                request['tpOrderPrice'] = this.priceToPrecision(symbol, price);
-            }
+            request['tpOrderPrice'] = (type === 'market') ? '-1' : this.priceToPrecision(symbol, price);
         }
         request['marginMode'] = marginMode;
-        params = this.omit(params, ['stopLossPrice', 'takeProfitPrice']);
+        params = this.omit(params, ['stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged']);
         return this.extend(request, params);
     }
     /**
