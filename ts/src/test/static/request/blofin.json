@@ -34,6 +34,24 @@
             }
         ],
         "createOrder": [
+            
+            {
+                "description": "perp, exit tp & sl combined",
+                "method": "createOrder",
+                "url": "https://openapi.blofin.com/api/v1/trade/order-tpsl",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.1,
+                    null,
+                    {
+                        "takeProfitPrice": 2555,
+                        "stopLossPrice": 2000
+                    }
+                ],
+                "output": "{\"instId\":\"ETH-USDT\",\"side\":\"sell\",\"positionSide\":\"net\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"reduceOnly\":true,\"size\":\"0.1\",\"marginMode\":\"cross\",\"slTriggerPrice\":\"2000\",\"slOrderPrice\":\"-1\",\"tpTriggerPrice\":\"2555\",\"tpOrderPrice\":\"-1\"}"
+            },
             {
                 "description": "trigger market order",
                 "method": "createOrder",
@@ -116,24 +134,6 @@
                     }
                 ],
                 "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"orderType\":\"market\",\"size\":\"1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"cross\",\"reduceOnly\":\"true\"}"
-            },
-            
-            {
-                "description": "perp, tp & sl combined",
-                "method": "createOrder",
-                "url": "https://openapi.blofin.com/api/v1/trade/order-tpsl",
-                "input": [
-                    "ETH/USDT:USDT",
-                    "market",
-                    "sell",
-                    0.1,
-                    null,
-                    {
-                        "takeProfitPrice": 2555,
-                        "stopLossPrice": 2000
-                    }
-                ],
-                "output": "{\"instId\":\"ETH-USDT\",\"side\":\"sell\",\"positionSide\":\"net\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"reduceOnly\":true,\"size\":\"0.1\",\"marginMode\":\"cross\",\"slTriggerPrice\":\"2000\",\"slOrderPrice\":\"-1\",\"tpTriggerPrice\":\"2555\",\"tpOrderPrice\":\"-1\"}"
             },
             {
                 "description": "takeProfitPrice",
