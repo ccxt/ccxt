@@ -1516,7 +1516,7 @@ export default class blofin extends Exchange {
     createTpslOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
         const hedged = this.safeBool (params, 'hedged', false);
-        let positionSide: Str = 'net';
+        let positionSide = 'net';
         if (hedged) {
             positionSide = (side === 'buy') ? 'short' : 'long';
         }
