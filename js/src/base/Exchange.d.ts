@@ -414,7 +414,8 @@ export default class Exchange {
     binaryLength(binary: Uint8Array): number;
     lockId(): any;
     unlockId(): any;
-    loadLighterLibrary(libraryPath: any, chainId: any, privateKey: any, apiKeyIndex: any, accountIndex: any): Promise<{}>;
+    loadLighterLibrary(libraryPath: any, chainId: any, privateKey: any, apiKeyIndex: any, accountIndex: any, createClient?: boolean): Promise<{}>;
+    lighterCreateClient(signer: any, chainId: any, privateKey: any, apiKeyIndex: any, accountIndex: any): any;
     lighterSignCreateGroupedOrders(signer: any, request: any): any[];
     lighterSignCreateOrder(signer: any, request: any): any[];
     checkLighterSignedError(result: any): void;
@@ -427,6 +428,9 @@ export default class Exchange {
     lighterSignUpdateLeverage(signer: any, request: any): any[];
     lighterCreateAuthToken(signer: any, request: any): string;
     lighterSignUpdateMargin(signer: any, request: any): any[];
+    lighterSignApproveIntegrator(signer: any, request: any): any[];
+    lighterGenerateApiKey(signer: any): any[];
+    lighterSignChangePubkey(signer: any, request: any): any[];
     describe(): any;
     safeBoolN(dictionaryOrList: any, keys: IndexType[], defaultValue?: boolean): boolean | undefined;
     safeBool2(dictionary: any, key1: IndexType, key2: IndexType, defaultValue?: boolean): boolean | undefined;

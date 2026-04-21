@@ -337,6 +337,7 @@ class bitfinex extends Exchange {
             'precisionMode' => SIGNIFICANT_DIGITS,
             'options' => array(
                 'precision' => 'R0', // P0, P1, P2, P3, P4, R0
+                'defaultCurrencyPrecision' => 8, // default currency precision
                 // convert 'EXCHANGE MARKET' to lowercase 'market'
                 // convert 'EXCHANGE LIMIT' to lowercase 'limit'
                 // everything else remains uppercase
@@ -736,6 +737,7 @@ class bitfinex extends Exchange {
             'pub:map:currency:tx:fee', // maps currencies to their withdrawal $fees https://github.com/ccxt/ccxt/issues/7745,
             'pub:map:tx:method', // maps withdrawal/deposit methods to their API symbols
             'pub:info:tx:status', // maps withdrawal/deposit statuses, coins => 1 = enabled, 0 = maintenance
+            'pub:list:currency:margin', // margin enabled currencies
         );
         $config = implode(',', $labels);
         $request = array(
@@ -835,6 +837,7 @@ class bitfinex extends Exchange {
             'fees' => $this->index_by($this->safe_list($response, 7, array()), 0),
             'networks' => $this->safe_list($response, 8, array()),
             'statuses' => $this->index_by($this->safe_list($response, 9, array()), 0),
+            'marginables' => $this->safe_list($response, 10, array()),
         );
         $indexedNetworks = array();
         for ($i = 0; $i < count($indexed['networks']); $i++) {
@@ -866,7 +869,7 @@ class bitfinex extends Exchange {
             $fees = $this->safe_list($feeValues, 1, array());
             $fee = $this->safe_number($fees, 1);
             $undl = $this->safe_list($indexed['undl'], $id, array());
-            $precision = '8'; // default $precision, todo => fix "magic constants"
+            $precision = $this->safe_string($this->options, 'defaultCurrencyPrecision', '8');
             $networks = array();
             $netwokIds = $this->safe_list($indexedNetworks, $id, array());
             for ($j = 0; $j < count($netwokIds); $j++) {
@@ -900,10 +903,10 @@ class bitfinex extends Exchange {
                 'deposit' => null,
                 'withdraw' => null,
                 'fee' => $fee,
-                'precision' => intval($precision),
+                'precision' => $this->parse_number($precision),
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->parse_number($this->parse_precision($precision)),
+                        'min' => null,
                         'max' => null,
                     ),
                     'withdraw' => array(
@@ -912,6 +915,7 @@ class bitfinex extends Exchange {
                     ),
                 ),
                 'networks' => $networks,
+                'margin' => $this->in_array($id, $indexed['marginables']),
             ));
         }
         return $result;
@@ -1201,7 +1205,8 @@ class bitfinex extends Exchange {
         //     )
         //
         $length = count($ticker);
-        $isFetchTicker = ($length === 10) || ($length === 16);
+        $firstValue = $this->safe_number($ticker, 0);
+        $isFetchTicker = $firstValue !== null; // if it's Nan, then it's string ($symbol)
         $symbol = null;
         $minusIndex = 0;
         $isFundingCurrency = false;

@@ -246,8 +246,12 @@ github.com/dop251/goja_nodejs v0.0.0-20211022123610-8dd9abb0616d h1:W1n4DvpzZGOI
 github.com/dop251/goja_nodejs v0.0.0-20211022123610-8dd9abb0616d/go.mod h1:DngW8aVqWbuLRMHItjPUyqdj+HWPvnQe8V8y1nDpIbM=
 github.com/eknkc/amber v0.0.0-20171010120322-cdade1c07385 h1:clC1lXBpe2kTj2VHdaIu9ajZQe4kcEY9j0NsnDDBZ3o=
 github.com/eknkc/amber v0.0.0-20171010120322-cdade1c07385/go.mod h1:0vRUJqYpeSZifjYj7uP3BG/gKcuzL9xWVV/Y+cK33KM=
+github.com/elliottech/lighter-go v1.0.6 h1:KI+A09jyGRBNMNCtQt8NemQ5noxdVJ9xWwLshouHoes=
+github.com/elliottech/lighter-go v1.0.6/go.mod h1:G5QpWXZfa/ge3EGjrAL3ls11IPUa5KCVt+PG2CQmYnU=
 github.com/elliottech/poseidon_crypto v0.0.11 h1:iX4rCg0m1XIX/7mhXVUEYUJIdQD57zNGNLeb6RZRl7g=
 github.com/elliottech/poseidon_crypto v0.0.11/go.mod h1:NhWxSjPGr5JXRuB2Aepl/+ZrbmUG3hvku/GarB1JR8c=
+github.com/elliottech/poseidon_crypto v0.0.15 h1:+f/YTnIFEWX1Xss75Ky7QRvhDpR372XAAMtpWxKvp+k=
+github.com/elliottech/poseidon_crypto v0.0.15/go.mod h1:/nFxH8V+3yk3eakI+Arlu5U8XwRXgydBvsiwfA/yYrg=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1mIlRU8Am5FuJP05cCM98=

@@ -302,6 +302,7 @@ public partial class bitfinex : Exchange
             { "precisionMode", SIGNIFICANT_DIGITS },
             { "options", new Dictionary<string, object>() {
                 { "precision", "R0" },
+                { "defaultCurrencyPrecision", 8 },
                 { "exchangeTypes", new Dictionary<string, object>() {
                     { "MARKET", "market" },
                     { "EXCHANGE MARKET", "market" },
@@ -690,7 +691,7 @@ public partial class bitfinex : Exchange
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object labels = new List<object>() {"pub:list:currency", "pub:map:currency:sym", "pub:map:currency:label", "pub:map:currency:unit", "pub:map:currency:undl", "pub:map:currency:pool", "pub:map:currency:explorer", "pub:map:currency:tx:fee", "pub:map:tx:method", "pub:info:tx:status"};
+        object labels = new List<object>() {"pub:list:currency", "pub:map:currency:sym", "pub:map:currency:label", "pub:map:currency:unit", "pub:map:currency:undl", "pub:map:currency:pool", "pub:map:currency:explorer", "pub:map:currency:tx:fee", "pub:map:tx:method", "pub:info:tx:status", "pub:list:currency:margin"};
         object config = String.Join(",", ((IList<object>)labels).ToArray());
         object request = new Dictionary<string, object>() {
             { "config", config },
@@ -789,6 +790,7 @@ public partial class bitfinex : Exchange
             { "fees", this.indexBy(this.safeList(response, 7, new List<object>() {}), 0) },
             { "networks", this.safeList(response, 8, new List<object>() {}) },
             { "statuses", this.indexBy(this.safeList(response, 9, new List<object>() {}), 0) },
+            { "marginables", this.safeList(response, 10, new List<object>() {}) },
         };
         object indexedNetworks = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(getValue(indexed, "networks"))); postFixIncrement(ref i))
@@ -822,7 +824,7 @@ public partial class bitfinex : Exchange
             object fees = this.safeList(feeValues, 1, new List<object>() {});
             object fee = this.safeNumber(fees, 1);
             object undl = this.safeList(getValue(indexed, "undl"), id, new List<object>() {});
-            object precision = "8"; // default precision, todo: fix "magic constants"
+            object precision = this.safeString(this.options, "defaultCurrencyPrecision", "8");
             object networks = new Dictionary<string, object>() {};
             object netwokIds = this.safeList(indexedNetworks, id, new List<object>() {});
             for (object j = 0; isLessThan(j, getArrayLength(netwokIds)); postFixIncrement(ref j))
@@ -857,10 +859,10 @@ public partial class bitfinex : Exchange
                 { "deposit", null },
                 { "withdraw", null },
                 { "fee", fee },
-                { "precision", parseInt(precision) },
+                { "precision", this.parseNumber(precision) },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(this.parsePrecision(precision)) },
+                        { "min", null },
                         { "max", null },
                     } },
                     { "withdraw", new Dictionary<string, object>() {
@@ -869,6 +871,7 @@ public partial class bitfinex : Exchange
                     } },
                 } },
                 { "networks", networks },
+                { "margin", this.inArray(id, getValue(indexed, "marginables")) },
             });
         }
         return result;
@@ -1185,7 +1188,8 @@ public partial class bitfinex : Exchange
         //     ]
         //
         object length = getArrayLength(ticker);
-        object isFetchTicker = isTrue((isEqual(length, 10))) || isTrue((isEqual(length, 16)));
+        object firstValue = this.safeNumber(ticker, 0);
+        object isFetchTicker = !isEqual(firstValue, null); // if it's Nan, then it's string (symbol)
         object symbol = null;
         object minusIndex = 0;
         object isFundingCurrency = false;

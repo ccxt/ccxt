@@ -30,7 +30,7 @@ async function testWatchTradesForSymbols (exchange: Exchange, skippedProperties:
                 testTrade (exchange, skippedProperties, method, trade, symbol, now);
                 testSharedMethods.assertInArray (exchange, skippedProperties, method, trade, 'symbol', symbols);
             }
-            if (!('timestamp' in skippedProperties)) {
+            if (!('timestampSort' in skippedProperties)) {
                 testSharedMethods.assertTimestampOrder (exchange, method, symbol, response);
             }
         }

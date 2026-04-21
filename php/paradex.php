@@ -540,7 +540,9 @@ class paradex extends Exchange {
         //  }
         //
         $assetKind = $this->safe_string($market, 'asset_kind');
-        $isOption = ($assetKind === 'PERP_OPTION');
+        $isOptionPerpetual = ($assetKind === 'PERP_OPTION');
+        $isOptionDelivery = ($assetKind === 'OPTION');
+        $isOption = $isOptionPerpetual || $isOptionDelivery;
         $type = ($isOption) ? 'option' : 'swap';
         $isSwap = ($type === 'swap');
         $marketId = $this->safe_string($market, 'symbol');
@@ -558,7 +560,8 @@ class paradex extends Exchange {
         $makerFee = $this->parse_number('-0.00005');
         if ($isOption) {
             $optionTypeSuffix = ($optionType === 'CALL') ? 'C' : 'P';
-            $symbol = $symbol . '-' . $strikePrice . '-' . $optionTypeSuffix;
+            $deliveryValue = ($expiry === 0) ? '' : $this->yymmdd($expiry) . '-';
+            $symbol = $symbol . '-' . $deliveryValue . $strikePrice . '-' . $optionTypeSuffix;
             $makerFee = $this->parse_number('0.0003');
         } else {
             $expiry = null;

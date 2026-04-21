@@ -263,9 +263,9 @@
         ],
         "fetchPositions": [
             {
-                "description": "fetch positions with uta",
+                "description": "uta positions",
                 "method": "fetchPositions",
-                "url": "https://api.kucoin.com/api/ua/v1/unified/position/open-list",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/position/open-list?limit=200",
                 "input": [
                     null,
                     {

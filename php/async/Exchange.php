@@ -46,11 +46,11 @@ use Lighter\Signer;
 
 use Exception;
 
-$version = '4.5.47';
+$version = '4.5.50';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.47';
+    const VERSION = '4.5.50';
 
     public $browser;
     public $marketsLoading = null;
@@ -365,9 +365,9 @@ class Exchange extends \ccxt\Exchange {
         return $dict;
     }
 
-    public function load_lighter_library($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex) {
-        return Async\async(function () use ($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex) {
-            return $this->load_lighter_library_helper($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex);
+    public function load_lighter_library($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex, $createClient = false) {
+        return Async\async(function () use ($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex, $createClient) {
+            return $this->load_lighter_library_helper($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex, $createClient);
         }) ();
     }
 

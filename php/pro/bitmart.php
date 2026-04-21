@@ -528,17 +528,17 @@ class bitmart extends \ccxt\async\bitmart {
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('watchBidsAsks', $firstMarket, $params);
             $url = $this->implode_hostname($this->urls['api']['ws'][$marketType]['public']);
-            $channelType = ($marketType === 'spot') ? 'spot' : 'futures';
+            $channelType = ($marketType === 'spot') ? 'spot/bookTicker' : 'futures/ticker';
             $actionType = ($marketType === 'spot') ? 'op' : 'action';
             $rawSubscriptions = array();
             $messageHashes = array();
             for ($i = 0; $i < count($symbols); $i++) {
                 $market = $this->market($symbols[$i]);
-                $rawSubscriptions[] = $channelType . '/ticker:' . $market['id'];
+                $rawSubscriptions[] = $channelType . ':' . $market['id'];
                 $messageHashes[] = 'bidask:' . $symbols[$i];
             }
             if ($marketType !== 'spot') {
-                $rawSubscriptions = array( $channelType . '/ticker' );
+                $rawSubscriptions = array( $channelType );
             }
             $request = array(
                 'args' => $rawSubscriptions,
@@ -2177,6 +2177,7 @@ class bitmart extends \ccxt\async\bitmart {
             $channel = $this->safe_string_2($message, 'table', 'group');
             $methods = array(
                 'depth' => array($this, 'handle_order_book'),
+                'bookTicker' => array($this, 'handle_bid_ask'),
                 'ticker' => array($this, 'handle_ticker'),
                 'trade' => array($this, 'handle_trade'),
                 'kline' => array($this, 'handle_ohlcv'),

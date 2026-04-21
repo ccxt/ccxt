@@ -561,6 +561,7 @@ class kraken extends kraken$1["default"] {
                     'EFunding:No funding method': errors.BadRequest,
                     'EFunding:Unknown asset': errors.BadSymbol,
                     'EService:Market in post_only mode': errors.OnMaintenance,
+                    'EService:Market in cancel_only mode': errors.OnMaintenance,
                     'EGeneral:Too many requests': errors.DDoSProtection,
                     'ETrade:User Locked': errors.AccountSuspended, // {"error":["ETrade:User Locked"]}
                 },

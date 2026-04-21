@@ -1201,6 +1201,7 @@ export default class binance extends Exchange {
                         'asset-collection': 6,
                         'margin/repay-debt': 3000,
                         'um/feeBurn': 1,
+                        'um/stock/contract': 1,
                     },
                     'put': {
                         'listenKey': 0.2,
@@ -2864,9 +2865,6 @@ export default class binance extends Exchange {
             return this.createExpiredOptionMarket(marketId);
         }
         return super.safeMarket(marketId, market, delimiter, marketType);
-    }
-    costToPrecision(symbol, cost) {
-        return this.decimalToPrecision(cost, TRUNCATE, this.markets[symbol]['precision']['quote'], this.precisionMode, this.paddingMode);
     }
     nonce() {
         return this.milliseconds() - this.options['timeDifference'];

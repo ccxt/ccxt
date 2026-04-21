@@ -1306,7 +1306,8 @@ public partial class blofin : Exchange
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         ((IDictionary<string,object>)request)["marginMode"] = marginMode;
-        object triggerPrice = this.safeString(parameters, "triggerPrice");
+        object triggerPriceAny = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopLossPrice", "takeProfitPrice"});
+        object triggerPriceSlTp = this.safeString2(parameters, "stopLossPrice", "takeProfitPrice");
         object timeInForce = this.safeString(parameters, "timeInForce", "GTC");
         object isHedged = this.safeBool(parameters, "hedged", false);
         if (isTrue(isHedged))
@@ -1322,7 +1323,7 @@ public partial class blofin : Exchange
             ((IDictionary<string,object>)request)["orderType"] = "market";
         } else
         {
-            object key = ((bool) isTrue((!isEqual(triggerPrice, null)))) ? "orderPrice" : "price";
+            object key = ((bool) isTrue((!isEqual(triggerPriceAny, null)))) ? "orderPrice" : "price";
             ((IDictionary<string,object>)request)[(string)key] = this.priceToPrecision(symbol, price);
         }
         object postOnly = false;
@@ -1354,14 +1355,19 @@ public partial class blofin : Exchange
                 object tpPrice = this.safeString(takeProfit, "price", "-1");
                 ((IDictionary<string,object>)request)["tpOrderPrice"] = this.priceToPrecision(symbol, tpPrice);
             }
-        } else if (isTrue(!isEqual(triggerPrice, null)))
+        } else if (isTrue(!isEqual(triggerPriceAny, null)))
         {
             ((IDictionary<string,object>)request)["orderType"] = "trigger";
-            ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
+            ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPriceAny);
             if (isTrue(isMarketOrder))
             {
                 ((IDictionary<string,object>)request)["orderPrice"] = "-1";
             }
+            if (isTrue(!isEqual(triggerPriceSlTp, null)))
+            {
+                ((IDictionary<string,object>)request)["reduceOnly"] = true;
+            }
+            parameters = this.omit(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice", "triggerPrice"});
         }
         return this.extend(request, parameters);
     }
@@ -1545,29 +1551,22 @@ public partial class blofin : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object tpsl = this.safeBool(parameters, "tpsl", false);
-        parameters = this.omit(parameters, "tpsl");
-        object method = null;
-        var methodparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "method", "privatePostTradeOrder");
-        method = ((IList<object>)methodparametersVariable)[0];
-        parameters = ((IList<object>)methodparametersVariable)[1];
         object isStopLossPriceDefined = !isEqual(this.safeString(parameters, "stopLossPrice"), null);
         object isTakeProfitPriceDefined = !isEqual(this.safeString(parameters, "takeProfitPrice"), null);
-        object hasTriggerPrice = !isEqual(this.safeString(parameters, "triggerPrice"), null);
-        object isType2Order = (isTrue(isStopLossPriceDefined) || isTrue(isTakeProfitPriceDefined));
+        object isTriggerOrder = !isEqual(this.safeString(parameters, "triggerPrice"), null);
+        object isCombinedSlTp = (isTrue(isStopLossPriceDefined) && isTrue(isTakeProfitPriceDefined));
+        object isSlOrTp = isTrue(isStopLossPriceDefined) || isTrue(isTakeProfitPriceDefined);
         object response = null;
         object reduceOnly = this.safeBool(parameters, "reduceOnly");
         if (isTrue(!isEqual(reduceOnly, null)))
         {
             ((IDictionary<string,object>)parameters)["reduceOnly"] = ((bool) isTrue(reduceOnly)) ? "true" : "false";
         }
-        object isTpslOrder = isTrue(isTrue(tpsl) || isTrue((isEqual(method, "privatePostTradeOrderTpsl")))) || isTrue(isType2Order);
-        object isTriggerOrder = isTrue(hasTriggerPrice) || isTrue((isEqual(method, "privatePostTradeOrderAlgo")));
-        if (isTrue(isTpslOrder))
+        if (isTrue(isCombinedSlTp))
         {
             object tpslRequest = this.createTpslOrderRequest(symbol, type, side, amount, price, parameters);
             response = await this.privatePostTradeOrderTpsl(tpslRequest);
-        } else if (isTrue(isTriggerOrder))
+        } else if (isTrue(isTrue(isTriggerOrder) || isTrue(isSlOrTp)))
         {
             object triggerRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             response = await this.privatePostTradeOrderAlgo(triggerRequest);
@@ -1576,7 +1575,7 @@ public partial class blofin : Exchange
             object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             response = await this.privatePostTradeOrder(request);
         }
-        if (isTrue(isTrue(isTpslOrder) || isTrue(isTriggerOrder)))
+        if (isTrue(isTrue(isTrue(isCombinedSlTp) || isTrue(isSlOrTp)) || isTrue(isTriggerOrder)))
         {
             object dataDict = this.safeDict(response, "data", new Dictionary<string, object>() {});
             return this.parseOrder(dataDict, market);
@@ -1593,12 +1592,18 @@ public partial class blofin : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
-        object positionSide = this.safeString(parameters, "positionSide", "net");
+        object hedged = this.safeBool(parameters, "hedged", false);
+        object positionSide = "net";
+        if (isTrue(hedged))
+        {
+            positionSide = ((bool) isTrue((isEqual(side, "buy")))) ? "short" : "long";
+        }
         object request = new Dictionary<string, object>() {
             { "instId", getValue(market, "id") },
             { "side", side },
             { "positionSide", positionSide },
             { "brokerId", this.safeString(this.options, "brokerId", "ec6dd3a7dd982d0b") },
+            { "reduceOnly", this.safeBool(parameters, "reduceOnly", true) },
         };
         if (isTrue(!isEqual(amount, null)))
         {
@@ -1614,26 +1619,15 @@ public partial class blofin : Exchange
         if (isTrue(!isEqual(stopLossPrice, null)))
         {
             ((IDictionary<string,object>)request)["slTriggerPrice"] = this.priceToPrecision(symbol, stopLossPrice);
-            if (isTrue(isEqual(type, "market")))
-            {
-                ((IDictionary<string,object>)request)["slOrderPrice"] = "-1";
-            } else
-            {
-                ((IDictionary<string,object>)request)["slOrderPrice"] = this.priceToPrecision(symbol, price);
-            }
-        } else if (isTrue(!isEqual(takeProfitPrice, null)))
+            ((IDictionary<string,object>)request)["slOrderPrice"] = ((bool) isTrue((isEqual(type, "market")))) ? "-1" : this.priceToPrecision(symbol, price);
+        }
+        if (isTrue(!isEqual(takeProfitPrice, null)))
         {
             ((IDictionary<string,object>)request)["tpTriggerPrice"] = this.priceToPrecision(symbol, takeProfitPrice);
-            if (isTrue(isEqual(type, "market")))
-            {
-                ((IDictionary<string,object>)request)["tpOrderPrice"] = "-1";
-            } else
-            {
-                ((IDictionary<string,object>)request)["tpOrderPrice"] = this.priceToPrecision(symbol, price);
-            }
+            ((IDictionary<string,object>)request)["tpOrderPrice"] = ((bool) isTrue((isEqual(type, "market")))) ? "-1" : this.priceToPrecision(symbol, price);
         }
         ((IDictionary<string,object>)request)["marginMode"] = marginMode;
-        parameters = this.omit(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice"});
+        parameters = this.omit(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice", "reduceOnly", "hedged"});
         return this.extend(request, parameters);
     }
 

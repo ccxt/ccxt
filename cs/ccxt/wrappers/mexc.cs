@@ -302,6 +302,7 @@ public partial class mexc
     /// </summary>
     /// <remarks>
     /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints#place-order"/>  <br/>
     /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance"/>  <br/>
     /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance"/>  <br/>
     /// <list type="table">
@@ -439,6 +440,7 @@ public partial class mexc
     /// create a trade order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints#place-order"/>  <br/>
     /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order"/>  <br/>
     /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance"/>  <br/>
     /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance"/>  <br/>

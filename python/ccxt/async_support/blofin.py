@@ -1223,7 +1223,8 @@ class blofin(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('createOrder', params, 'cross')
         request['marginMode'] = marginMode
-        triggerPrice = self.safe_string(params, 'triggerPrice')
+        triggerPriceAny = self.safe_string_n(params, ['triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
+        triggerPriceSlTp = self.safe_string_2(params, 'stopLossPrice', 'takeProfitPrice')
         timeInForce = self.safe_string(params, 'timeInForce', 'GTC')
         isHedged = self.safe_bool(params, 'hedged', False)
         if isHedged:
@@ -1235,7 +1236,7 @@ class blofin(Exchange, ImplicitAPI):
         if isMarketOrder or marketIOC:
             request['orderType'] = 'market'
         else:
-            key = 'orderPrice' if (triggerPrice is not None) else 'price'
+            key = 'orderPrice' if (triggerPriceAny is not None) else 'price'
             request[key] = self.price_to_precision(symbol, price)
         postOnly = False
         postOnly, params = self.handle_post_only(isMarketOrder, type == 'post_only', params)
@@ -1257,11 +1258,14 @@ class blofin(Exchange, ImplicitAPI):
                 request['tpTriggerPrice'] = self.price_to_precision(symbol, tpTriggerPrice)
                 tpPrice = self.safe_string(takeProfit, 'price', '-1')
                 request['tpOrderPrice'] = self.price_to_precision(symbol, tpPrice)
-        elif triggerPrice is not None:
+        elif triggerPriceAny is not None:
             request['orderType'] = 'trigger'
-            request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
+            request['triggerPrice'] = self.price_to_precision(symbol, triggerPriceAny)
             if isMarketOrder:
                 request['orderPrice'] = '-1'
+            if triggerPriceSlTp is not None:
+                request['reduceOnly'] = True
+            params = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice'])
         return self.extend(request, params)
 
     def parse_order_status(self, status: Str):
@@ -1426,30 +1430,25 @@ class blofin(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        tpsl = self.safe_bool(params, 'tpsl', False)
-        params = self.omit(params, 'tpsl')
-        method = None
-        method, params = self.handle_option_and_params(params, 'createOrder', 'method', 'privatePostTradeOrder')
         isStopLossPriceDefined = self.safe_string(params, 'stopLossPrice') is not None
         isTakeProfitPriceDefined = self.safe_string(params, 'takeProfitPrice') is not None
-        hasTriggerPrice = self.safe_string(params, 'triggerPrice') is not None
-        isType2Order = (isStopLossPriceDefined or isTakeProfitPriceDefined)
+        isTriggerOrder = self.safe_string(params, 'triggerPrice') is not None
+        isCombinedSlTp = (isStopLossPriceDefined and isTakeProfitPriceDefined)
+        isSlOrTp = isStopLossPriceDefined or isTakeProfitPriceDefined
         response = None
         reduceOnly = self.safe_bool(params, 'reduceOnly')
         if reduceOnly is not None:
             params['reduceOnly'] = 'true' if reduceOnly else 'false'
-        isTpslOrder = tpsl or (method == 'privatePostTradeOrderTpsl') or isType2Order
-        isTriggerOrder = hasTriggerPrice or (method == 'privatePostTradeOrderAlgo')
-        if isTpslOrder:
+        if isCombinedSlTp:
             tpslRequest = self.create_tpsl_order_request(symbol, type, side, amount, price, params)
             response = await self.privatePostTradeOrderTpsl(tpslRequest)
-        elif isTriggerOrder:
+        elif isTriggerOrder or isSlOrTp:
             triggerRequest = self.create_order_request(symbol, type, side, amount, price, params)
             response = await self.privatePostTradeOrderAlgo(triggerRequest)
         else:
             request = self.create_order_request(symbol, type, side, amount, price, params)
             response = await self.privatePostTradeOrder(request)
-        if isTpslOrder or isTriggerOrder:
+        if isCombinedSlTp or isSlOrTp or isTriggerOrder:
             dataDict = self.safe_dict(response, 'data', {})
             return self.parse_order(dataDict, market)
         data = self.safe_list(response, 'data', [])
@@ -1461,12 +1460,16 @@ class blofin(Exchange, ImplicitAPI):
 
     def create_tpsl_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         market = self.market(symbol)
-        positionSide = self.safe_string(params, 'positionSide', 'net')
+        hedged = self.safe_bool(params, 'hedged', False)
+        positionSide = 'net'
+        if hedged:
+            positionSide = 'short' if (side == 'buy') else 'long'
         request: dict = {
             'instId': market['id'],
             'side': side,
             'positionSide': positionSide,
             'brokerId': self.safe_string(self.options, 'brokerId', 'ec6dd3a7dd982d0b'),
+            'reduceOnly': self.safe_bool(params, 'reduceOnly', True),  # self is TP &  SL protective order, so it should be reduceOnly by default
         }
         if amount is not None:
             request['size'] = self.amount_to_precision(symbol, amount)
@@ -1477,18 +1480,12 @@ class blofin(Exchange, ImplicitAPI):
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
         if stopLossPrice is not None:
             request['slTriggerPrice'] = self.price_to_precision(symbol, stopLossPrice)
-            if type == 'market':
-                request['slOrderPrice'] = '-1'
-            else:
-                request['slOrderPrice'] = self.price_to_precision(symbol, price)
-        elif takeProfitPrice is not None:
+            request['slOrderPrice'] = '-1' if (type == 'market') else self.price_to_precision(symbol, price)
+        if takeProfitPrice is not None:
             request['tpTriggerPrice'] = self.price_to_precision(symbol, takeProfitPrice)
-            if type == 'market':
-                request['tpOrderPrice'] = '-1'
-            else:
-                request['tpOrderPrice'] = self.price_to_precision(symbol, price)
+            request['tpOrderPrice'] = '-1' if (type == 'market') else self.price_to_precision(symbol, price)
         request['marginMode'] = marginMode
-        params = self.omit(params, ['stopLossPrice', 'takeProfitPrice'])
+        params = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged'])
         return self.extend(request, params)
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):

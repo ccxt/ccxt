@@ -358,6 +358,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'precisionMode': SIGNIFICANT_DIGITS,
             'options': {
                 'precision': 'R0',  # P0, P1, P2, P3, P4, R0
+                'defaultCurrencyPrecision': 8,  # default currency precision
                 # convert 'EXCHANGE MARKET' to lowercase 'market'
                 # convert 'EXCHANGE LIMIT' to lowercase 'limit'
                 # everything else remains uppercase
@@ -745,6 +746,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'pub:map:currency:tx:fee',  # maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745,
             'pub:map:tx:method',  # maps withdrawal/deposit methods to their API symbols
             'pub:info:tx:status',  # maps withdrawal/deposit statuses, coins: 1 = enabled, 0 = maintenance
+            'pub:list:currency:margin',  # margin enabled currencies
         ]
         config = ','.join(labels)
         request: dict = {
@@ -844,6 +846,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'fees': self.index_by(self.safe_list(response, 7, []), 0),
             'networks': self.safe_list(response, 8, []),
             'statuses': self.index_by(self.safe_list(response, 9, []), 0),
+            'marginables': self.safe_list(response, 10, []),
         }
         indexedNetworks: dict = {}
         for i in range(0, len(indexed['networks'])):
@@ -873,7 +876,7 @@ class bitfinex(Exchange, ImplicitAPI):
             fees = self.safe_list(feeValues, 1, [])
             fee = self.safe_number(fees, 1)
             undl = self.safe_list(indexed['undl'], id, [])
-            precision = '8'  # default precision, todo: fix "magic constants"
+            precision = self.safe_string(self.options, 'defaultCurrencyPrecision', '8')
             networks: dict = {}
             netwokIds = self.safe_list(indexedNetworks, id, [])
             for j in range(0, len(netwokIds)):
@@ -906,10 +909,10 @@ class bitfinex(Exchange, ImplicitAPI):
                 'deposit': None,
                 'withdraw': None,
                 'fee': fee,
-                'precision': int(precision),
+                'precision': self.parse_number(precision),
                 'limits': {
                     'amount': {
-                        'min': self.parse_number(self.parse_precision(precision)),
+                        'min': None,
                         'max': None,
                     },
                     'withdraw': {
@@ -918,6 +921,7 @@ class bitfinex(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': networks,
+                'margin': self.in_array(id, indexed['marginables']),
             })
         return result
 
@@ -1188,7 +1192,8 @@ class bitfinex(Exchange, ImplicitAPI):
         #     ]
         #
         length = len(ticker)
-        isFetchTicker = (length == 10) or (length == 16)
+        firstValue = self.safe_number(ticker, 0)
+        isFetchTicker = firstValue is not None  # if it's Nan, then it's string(symbol)
         symbol: Str = None
         minusIndex = 0
         isFundingCurrency = False
