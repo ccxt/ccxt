@@ -1259,7 +1259,8 @@ export default class blofin extends Exchange {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params, 'cross');
         request['marginMode'] = marginMode;
-        const triggerPrice = this.safeString (params, 'triggerPrice');
+        const triggerPriceAny = this.safeStringN (params, [ 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        const triggerPriceSlTp = this.safeString2 (params, 'stopLossPrice', 'takeProfitPrice');
         const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
         const isHedged = this.safeBool (params, 'hedged', false);
         if (isHedged) {
@@ -1272,7 +1273,7 @@ export default class blofin extends Exchange {
         if (isMarketOrder || marketIOC) {
             request['orderType'] = 'market';
         } else {
-            const key = (triggerPrice !== undefined) ? 'orderPrice' : 'price';
+            const key = (triggerPriceAny !== undefined) ? 'orderPrice' : 'price';
             request[key] = this.priceToPrecision (symbol, price);
         }
         let postOnly = false;
@@ -1298,12 +1299,16 @@ export default class blofin extends Exchange {
                 const tpPrice = this.safeString (takeProfit, 'price', '-1');
                 request['tpOrderPrice'] = this.priceToPrecision (symbol, tpPrice);
             }
-        } else if (triggerPrice !== undefined) {
+        } else if (triggerPriceAny !== undefined) {
             request['orderType'] = 'trigger';
-            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPriceAny);
             if (isMarketOrder) {
                 request['orderPrice'] = '-1';
             }
+            if (triggerPriceSlTp !== undefined) {
+                request['reduceOnly'] = true;
+            }
+            params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ]);
         }
         return this.extend (request, params);
     }
@@ -1489,7 +1494,7 @@ export default class blofin extends Exchange {
         if (isCombinedSlTp) {
             const tpslRequest = this.createTpslOrderRequest (symbol, type, side, amount, price, params);
             response = await this.privatePostTradeOrderTpsl (tpslRequest);
-        } else if (isTriggerOrder) {
+        } else if (isTriggerOrder || isSlOrTp) {
             const triggerRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
             response = await this.privatePostTradeOrderAlgo (triggerRequest);
         } else {
