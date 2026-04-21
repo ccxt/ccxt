@@ -222,7 +222,7 @@
     "as-table": "^1.0.55",
     "asciichart": "^1.5.25",
     "assert": "^2.0.0",
-    "ast-transpiler": "^0.0.84",
+    "ast-transpiler": "github:pcriadoperez/ast-transpiler#7cdb7f542551b577a42ba4af340acb62118872f1",
     "blessed": "^0.1.81",
     "clipboardy": "^5.0.0",
     "commander": "^14.0.1",
