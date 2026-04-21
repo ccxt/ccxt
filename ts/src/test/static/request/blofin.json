@@ -34,7 +34,6 @@
             }
         ],
         "createOrder": [
-            
             {
                 "description": "perp, exit tp & sl combined",
                 "method": "createOrder",
@@ -51,6 +50,22 @@
                     }
                 ],
                 "output": "{\"instId\":\"ETH-USDT\",\"side\":\"sell\",\"positionSide\":\"net\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"reduceOnly\":true,\"size\":\"0.1\",\"marginMode\":\"cross\",\"slTriggerPrice\":\"2000\",\"slOrderPrice\":\"-1\",\"tpTriggerPrice\":\"2555\",\"tpOrderPrice\":\"-1\"}"
+            },
+            {
+                "description": "triger limit order",
+                "method": "createOrder",
+                "url": "https://openapi.blofin.com/api/v1/trade/order-algo",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    90,
+                    {
+                        "triggerPrice": 91
+                    }
+                ],
+                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"orderType\":\"trigger\",\"size\":\"1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"cross\",\"orderPrice\":\"90\",\"triggerPrice\":\"91\"}"
             },
             {
                 "description": "trigger market order",
@@ -156,32 +171,16 @@
                 "method": "createOrder",
                 "url": "https://openapi.blofin.com/api/v1/trade/order-algo",
                 "input": [
-                    "ETH/USDT:USDT",
+                    "LTC/USDT:USDT",
                     "market",
                     "sell",
-                    0.1,
+                    1,
                     null,
                     {
-                        "stopLossPrice": 2000
+                        "stopLossPrice": 50
                     }
                 ],
-                "output": "{\"instId\":\"ETH-USDT\",\"side\":\"sell\",\"orderType\":\"trigger\",\"size\":\"0.1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"cross\",\"triggerPrice\":\"2000\",\"orderPrice\":\"-1\",\"reduceOnly\":true}"
-            },
-            {
-                "description": "triger limit order",
-                "method": "createOrder",
-                "url": "https://openapi.blofin.com/api/v1/trade/order-algo",
-                "input": [
-                    "LTC/USDT:USDT",
-                    "limit",
-                    "buy",
-                    1,
-                    90,
-                    {
-                        "triggerPrice": 91
-                    }
-                ],
-                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"orderType\":\"trigger\",\"size\":\"1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"cross\",\"orderPrice\":\"90\",\"triggerPrice\":\"91\"}"
+                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"orderType\":\"trigger\",\"size\":\"1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"cross\",\"triggerPrice\":\"50\",\"orderPrice\":\"-1\",\"reduceOnly\":true}"
             }
         ],
         "cancelOrder": [
