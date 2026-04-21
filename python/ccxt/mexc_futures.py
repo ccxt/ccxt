@@ -65,6 +65,8 @@ class mexc_futures(mexc_abs):
                 params = self.extend(params, {'orderType': 5})
             if 'triggerType' not in params:
                 params = self.extend(params, {'triggerType': 2 if side == 'sell' else 1})
+            if 'executeCycle' not in params:
+                params = self.extend(params, {'executeCycle': 3})
         return super().create_swap_order(market, type, side, amount, price, marginMode, params)
 
     def fetch_order(self, id: str, symbol=None, params={}):
