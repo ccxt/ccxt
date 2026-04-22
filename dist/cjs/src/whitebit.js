@@ -428,6 +428,8 @@ class whitebit extends whitebit$1["default"] {
                 },
                 'broad': {
                     'limit must be less than or equal to': errors.BadRequest,
+                    'The Price should be less than or equal to': errors.InvalidOrder,
+                    'The Price should be greater than or equal to': errors.InvalidOrder,
                     'This action is unauthorized': errors.PermissionDenied,
                     'Given amount is less than min amount': errors.InvalidOrder,
                     'Min amount step': errors.InvalidOrder,
