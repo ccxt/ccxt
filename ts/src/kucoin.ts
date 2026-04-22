@@ -11256,7 +11256,7 @@ export default class kucoin extends Exchange {
             if (((method === 'GET') || (method === 'DELETE')) && (path !== 'orders/multi-cancel')) {
                 endpoint += '?' + this.rawencode (query);
             } else {
-                if (endpoint === '/api/ua/v1/classic/order/place') {
+                if ((endpoint === '/api/ua/v1/classic/order/place') || (endpoint === '/api/ua/v1/classic/order/place/batch') || (endpoint === '/api/ua/v1/classic/order/cancel') || (endpoint === '/api/ua/v1/classic/order/cancel/batch')) {
                     endpoint += '?tradeType=' + tradeType;
                 }
                 body = this.json (query);
