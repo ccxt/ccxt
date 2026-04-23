@@ -84,16 +84,11 @@ export default class aster extends asterRest {
         });
     }
 
-    getAccountTypeFromSubscriptions (subscriptions: string[]): string {
-        let accountType = '';
-        for (let i = 0; i < subscriptions.length; i++) {
-            const subscription = subscriptions[i];
-            if ((subscription === 'spot') || (subscription === 'swap')) {
-                accountType = subscription;
-                break;
-            }
+    getAccountTypeFromUrl (url: string): string {
+        if (url.indexOf ('fstream') > -1) {
+            return 'swap';
         }
-        return accountType;
+        return 'spot';
     }
 
     /**
@@ -369,9 +364,7 @@ export default class aster extends asterRest {
         //         }
         //     }
         //
-        const subscriptions = client.subscriptions;
-        const subscriptionsKeys = Object.keys (subscriptions);
-        const marketType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
+        const marketType = this.getAccountTypeFromUrl (client.url);
         const ticker = this.safeDict (message, 'data');
         const parsed = this.parseWsTicker (ticker, marketType);
         const symbol = parsed['symbol'];
@@ -515,9 +508,7 @@ export default class aster extends asterRest {
         //         }
         //     }
         //
-        const subscriptions = client.subscriptions;
-        const subscriptionsKeys = Object.keys (subscriptions);
-        const marketType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
+        const marketType = this.getAccountTypeFromUrl (client.url);
         const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
@@ -676,9 +667,7 @@ export default class aster extends asterRest {
         //         }
         //     }
         //
-        const subscriptions = client.subscriptions;
-        const subscriptionsKeys = Object.keys (subscriptions);
-        const marketType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
+        const marketType = this.getAccountTypeFromUrl (client.url);
         const trade = this.safeDict (message, 'data');
         const marketId = this.safeString (trade, 's');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
@@ -1004,9 +993,7 @@ export default class aster extends asterRest {
         //         }
         //     }
         //
-        const subscriptions = client.subscriptions;
-        const subscriptionsKeys = Object.keys (subscriptions);
-        const marketType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
+        const marketType = this.getAccountTypeFromUrl (client.url);
         const data = this.safeDict (message, 'data');
         const marketId = this.safeString (data, 's');
         const timestamp = this.safeInteger (data, 'T');
@@ -1183,9 +1170,7 @@ export default class aster extends asterRest {
         //         }
         //     }
         //
-        const subscriptions = client.subscriptions;
-        const subscriptionsKeys = Object.keys (subscriptions);
-        const marketType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
+        const marketType = this.getAccountTypeFromUrl (client.url);
         const data = this.safeDict (message, 'data');
         const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
@@ -1388,9 +1373,7 @@ export default class aster extends asterRest {
         //         }
         //     }
         //
-        const subscriptions = client.subscriptions;
-        const subscriptionsKeys = Object.keys (subscriptions);
-        const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
+        const accountType = this.getAccountTypeFromUrl (client.url);
         const messageHash = accountType + ':balance';
         if (this.balance[accountType] === undefined) {
             this.balance[accountType] = {};
@@ -1923,9 +1906,7 @@ export default class aster extends asterRest {
 
     getMarketFromOrder (client: Client, order) {
         const marketId = this.safeString (order, 's');
-        const subscriptions = client.subscriptions;
-        const subscriptionsKeys = Object.keys (subscriptions);
-        const marketType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
+        const marketType = this.getAccountTypeFromUrl (client.url);
         return this.safeMarket (marketId, undefined, undefined, marketType);
     }
 
