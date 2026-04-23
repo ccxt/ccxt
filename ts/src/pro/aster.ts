@@ -159,7 +159,7 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@ticker');
             messageHashes.push ('ticker:' + market['symbol']);
         }
-        const newTicker = await this.watchMultiple (url, messageHashes, this.extend (request, params), [ type ]);
+        const newTicker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
         if (this.newUpdates) {
             const result: Dict = {};
             result[newTicker['symbol']] = newTicker;
@@ -203,7 +203,7 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@ticker');
             messageHashes.push ('unsubscribe:ticker:' + market['symbol']);
         }
-        return await this.watchMultiple (url, messageHashes, this.extend (request, params), [ type ]);
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
     }
 
     /**
@@ -276,7 +276,7 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@markPrice' + suffix);
             messageHashes.push ('ticker:' + market['symbol']);
         }
-        const newTicker = await this.watchMultiple (url, messageHashes, this.extend (request, params), [ type ]);
+        const newTicker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
         if (this.newUpdates) {
             const result = {};
             result[newTicker['symbol']] = newTicker;
@@ -322,7 +322,7 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@markPrice' + suffix);
             messageHashes.push ('unsubscribe:ticker:' + market['symbol']);
         }
-        return await this.watchMultiple (url, messageHashes, this.extend (request, params), [ type ]);
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
     }
 
     handleTicker (client: Client, message) {
@@ -447,7 +447,7 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@bookTicker');
             messageHashes.push ('bidask:' + market['symbol']);
         }
-        const newTicker = await this.watchMultiple (url, messageHashes, this.extend (request, params), [ type ]);
+        const newTicker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
         if (this.newUpdates) {
             const result = {};
             result[newTicker['symbol']] = newTicker;
@@ -488,7 +488,7 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@bookTicker');
             messageHashes.push ('unsubscribe:bidask:' + market['symbol']);
         }
-        return await this.watchMultiple (url, messageHashes, this.extend (request, params), [ type ]);
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
     }
 
     handleBidAsk (client: Client, message) {
@@ -602,7 +602,7 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@aggTrade');
             messageHashes.push ('trade:' + market['symbol']);
         }
-        const trades = await this.watchMultiple (url, messageHashes, this.extend (request, params), [ type ]);
+        const trades = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -646,7 +646,7 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@aggTrade');
             messageHashes.push ('unsubscribe:trade:' + market['symbol']);
         }
-        return await this.watchMultiple (url, messageHashes, this.extend (request, params), [ type ]);
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
     }
 
     handleTrade (client: Client, message) {
@@ -963,7 +963,7 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@depth' + limit);
             messageHashes.push ('unsubscribe:orderbook:' + market['symbol']);
         }
-        return await this.watchMultiple (url, messageHashes, this.extend (request, params), [ type ]);
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
     }
 
     handleOrderBook (client: Client, message) {
@@ -1089,7 +1089,7 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@kline_' + timeframeId);
             messageHashes.push ('ohlcv:' + market['symbol'] + ':' + unfiedTimeframe);
         }
-        const [ symbol, timeframe, stored ] = await this.watchMultiple (url, messageHashes, this.extend (request, params), [ type ]);
+        const [ symbol, timeframe, stored ] = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
         if (this.newUpdates) {
             limit = stored.getLimit (symbol, limit);
         }
@@ -1137,7 +1137,7 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@kline_' + timeframeId);
             messageHashes.push ('unsubscribe:ohlcv:' + market['symbol'] + ':' + unfiedTimeframe);
         }
-        return await this.watchMultiple (url, messageHashes, this.extend (request, params), [ type ]);
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
     }
 
     handleOHLCV (client: Client, message) {
