@@ -929,7 +929,7 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@depth' + limit.toString ());
             messageHashes.push ('orderbook:' + market['symbol']);
         }
-        const orderbook = await this.watchMultiple (url, messageHashes, this.extend (request, params), [ type ]);
+        const orderbook = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
         return orderbook.limit ();
     }
 
