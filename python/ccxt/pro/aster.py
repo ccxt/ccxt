@@ -86,14 +86,10 @@ class aster(ccxt.async_support.aster):
             'exceptions': {},
         })
 
-    def get_account_type_from_subscriptions(self, subscriptions: List[str]) -> str:
-        accountType = ''
-        for i in range(0, len(subscriptions)):
-            subscription = subscriptions[i]
-            if (subscription == 'spot') or (subscription == 'swap'):
-                accountType = subscription
-                break
-        return accountType
+    def get_account_type_from_url(self, url: str) -> str:
+        if url.find('fstream') > -1:
+            return 'swap'
+        return 'spot'
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
@@ -159,7 +155,7 @@ class aster(ccxt.async_support.aster):
             market = self.market(symbol)
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@ticker')
             messageHashes.append('ticker:' + market['symbol'])
-        newTicker = await self.watch_multiple(url, messageHashes, self.extend(request, params), [type])
+        newTicker = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         if self.newUpdates:
             result: dict = {}
             result[newTicker['symbol']] = newTicker
@@ -199,7 +195,7 @@ class aster(ccxt.async_support.aster):
             market = self.market(symbol)
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@ticker')
             messageHashes.append('unsubscribe:ticker:' + market['symbol'])
-        return await self.watch_multiple(url, messageHashes, self.extend(request, params), [type])
+        return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
 
     async def watch_mark_price(self, symbol: str, params={}) -> Ticker:
         """
@@ -267,7 +263,7 @@ class aster(ccxt.async_support.aster):
             suffix = '@1s' if (use1sFreq) else ''
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@markPrice' + suffix)
             messageHashes.append('ticker:' + market['symbol'])
-        newTicker = await self.watch_multiple(url, messageHashes, self.extend(request, params), [type])
+        newTicker = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         if self.newUpdates:
             result = {}
             result[newTicker['symbol']] = newTicker
@@ -309,7 +305,7 @@ class aster(ccxt.async_support.aster):
             suffix = '@1s' if (use1sFreq) else ''
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@markPrice' + suffix)
             messageHashes.append('unsubscribe:ticker:' + market['symbol'])
-        return await self.watch_multiple(url, messageHashes, self.extend(request, params), [type])
+        return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
 
     def handle_ticker(self, client: Client, message):
         #
@@ -350,9 +346,7 @@ class aster(ccxt.async_support.aster):
         #         }
         #     }
         #
-        subscriptions = client.subscriptions
-        subscriptionsKeys = list(subscriptions.keys())
-        marketType = self.get_account_type_from_subscriptions(subscriptionsKeys)
+        marketType = self.get_account_type_from_url(client.url)
         ticker = self.safe_dict(message, 'data')
         parsed = self.parse_ws_ticker(ticker, marketType)
         symbol = parsed['symbol']
@@ -430,7 +424,7 @@ class aster(ccxt.async_support.aster):
             market = self.market(symbol)
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@bookTicker')
             messageHashes.append('bidask:' + market['symbol'])
-        newTicker = await self.watch_multiple(url, messageHashes, self.extend(request, params), [type])
+        newTicker = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         if self.newUpdates:
             result = {}
             result[newTicker['symbol']] = newTicker
@@ -467,7 +461,7 @@ class aster(ccxt.async_support.aster):
             market = self.market(symbol)
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@bookTicker')
             messageHashes.append('unsubscribe:bidask:' + market['symbol'])
-        return await self.watch_multiple(url, messageHashes, self.extend(request, params), [type])
+        return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
 
     def handle_bid_ask(self, client: Client, message):
         #
@@ -486,9 +480,7 @@ class aster(ccxt.async_support.aster):
         #         }
         #     }
         #
-        subscriptions = client.subscriptions
-        subscriptionsKeys = list(subscriptions.keys())
-        marketType = self.get_account_type_from_subscriptions(subscriptionsKeys)
+        marketType = self.get_account_type_from_url(client.url)
         data = self.safe_dict(message, 'data', {})
         marketId = self.safe_string(data, 's')
         market = self.safe_market(marketId, None, None, marketType)
@@ -576,7 +568,7 @@ class aster(ccxt.async_support.aster):
             market = self.market(symbol)
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@aggTrade')
             messageHashes.append('trade:' + market['symbol'])
-        trades = await self.watch_multiple(url, messageHashes, self.extend(request, params), [type])
+        trades = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         if self.newUpdates:
             first = self.safe_value(trades, 0)
             tradeSymbol = self.safe_string(first, 'symbol')
@@ -616,7 +608,7 @@ class aster(ccxt.async_support.aster):
             market = self.market(symbol)
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@aggTrade')
             messageHashes.append('unsubscribe:trade:' + market['symbol'])
-        return await self.watch_multiple(url, messageHashes, self.extend(request, params), [type])
+        return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
 
     def handle_trade(self, client: Client, message):
         #
@@ -636,9 +628,7 @@ class aster(ccxt.async_support.aster):
         #         }
         #     }
         #
-        subscriptions = client.subscriptions
-        subscriptionsKeys = list(subscriptions.keys())
-        marketType = self.get_account_type_from_subscriptions(subscriptionsKeys)
+        marketType = self.get_account_type_from_url(client.url)
         trade = self.safe_dict(message, 'data')
         marketId = self.safe_string(trade, 's')
         market = self.safe_market(marketId, None, None, marketType)
@@ -875,7 +865,7 @@ class aster(ccxt.async_support.aster):
             market = self.market(symbol)
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@depth' + str(limit))
             messageHashes.append('orderbook:' + market['symbol'])
-        orderbook = await self.watch_multiple(url, messageHashes, self.extend(request, params), [type])
+        orderbook = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         return orderbook.limit()
 
     async def un_watch_order_book_for_symbols(self, symbols: List[str], params={}) -> Any:
@@ -916,7 +906,7 @@ class aster(ccxt.async_support.aster):
             market = self.market(symbol)
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@depth' + limit)
             messageHashes.append('unsubscribe:orderbook:' + market['symbol'])
-        return await self.watch_multiple(url, messageHashes, self.extend(request, params), [type])
+        return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
 
     def handle_order_book(self, client: Client, message):
         #
@@ -945,9 +935,7 @@ class aster(ccxt.async_support.aster):
         #         }
         #     }
         #
-        subscriptions = client.subscriptions
-        subscriptionsKeys = list(subscriptions.keys())
-        marketType = self.get_account_type_from_subscriptions(subscriptionsKeys)
+        marketType = self.get_account_type_from_url(client.url)
         data = self.safe_dict(message, 'data')
         marketId = self.safe_string(data, 's')
         timestamp = self.safe_integer(data, 'T')
@@ -1037,7 +1025,7 @@ class aster(ccxt.async_support.aster):
             timeframeId = self.safe_string(self.timeframes, unfiedTimeframe, unfiedTimeframe)
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@kline_' + timeframeId)
             messageHashes.append('ohlcv:' + market['symbol'] + ':' + unfiedTimeframe)
-        symbol, timeframe, stored = await self.watch_multiple(url, messageHashes, self.extend(request, params), [type])
+        symbol, timeframe, stored = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         if self.newUpdates:
             limit = stored.getLimit(symbol, limit)
         filtered = self.filter_by_since_limit(stored, since, limit, 0, True)
@@ -1081,7 +1069,7 @@ class aster(ccxt.async_support.aster):
             timeframeId = self.safe_string(self.timeframes, unfiedTimeframe, unfiedTimeframe)
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@kline_' + timeframeId)
             messageHashes.append('unsubscribe:ohlcv:' + market['symbol'] + ':' + unfiedTimeframe)
-        return await self.watch_multiple(url, messageHashes, self.extend(request, params), [type])
+        return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
 
     def handle_ohlcv(self, client: Client, message):
         #
@@ -1113,9 +1101,7 @@ class aster(ccxt.async_support.aster):
         #         }
         #     }
         #
-        subscriptions = client.subscriptions
-        subscriptionsKeys = list(subscriptions.keys())
-        marketType = self.get_account_type_from_subscriptions(subscriptionsKeys)
+        marketType = self.get_account_type_from_url(client.url)
         data = self.safe_dict(message, 'data')
         marketId = self.safe_string(data, 's')
         market = self.safe_market(marketId, None, None, marketType)
@@ -1298,9 +1284,7 @@ class aster(ccxt.async_support.aster):
         #         }
         #     }
         #
-        subscriptions = client.subscriptions
-        subscriptionsKeys = list(subscriptions.keys())
-        accountType = self.get_account_type_from_subscriptions(subscriptionsKeys)
+        accountType = self.get_account_type_from_url(client.url)
         messageHash = accountType + ':balance'
         if self.balance[accountType] is None:
             self.balance[accountType] = {}
@@ -1778,9 +1762,7 @@ class aster(ccxt.async_support.aster):
 
     def get_market_from_order(self, client: Client, order):
         marketId = self.safe_string(order, 's')
-        subscriptions = client.subscriptions
-        subscriptionsKeys = list(subscriptions.keys())
-        marketType = self.get_account_type_from_subscriptions(subscriptionsKeys)
+        marketType = self.get_account_type_from_url(client.url)
         return self.safe_market(marketId, None, None, marketType)
 
     def handle_message(self, client: Client, message):

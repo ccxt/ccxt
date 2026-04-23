@@ -5508,15 +5508,25 @@ class binance(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, type: Str):
-        types = {
-            'limit_maker': 'limit',
-            'stop': 'limit',
-            'stop_market': 'market',
-            'take_profit': 'limit',
-            'take_profit_market': 'market',
-            'trailing_stop_market': 'market',
-        }
+    def parse_order_type(self, type: Str, marketType: Str):
+        types = {}
+        if (marketType is not None) and marketType == 'spot':
+            types = {
+                'limit_maker': 'limit',
+                'stop_loss_limit': 'limit',
+                'stop_loss': 'market',
+                'take_profit_limit': 'limit',
+                'take_profit': 'market',
+            }
+        else:
+            types = {
+                'limit_maker': 'limit',
+                'stop': 'limit',
+                'stop_market': 'market',
+                'take_profit': 'limit',
+                'take_profit_market': 'market',
+                'trailing_stop_market': 'market',
+            }
         return self.safe_string(types, type, type)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
@@ -6096,7 +6106,7 @@ class binance(Exchange, ImplicitAPI):
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': lastUpdateTimestamp,
             'symbol': symbol,
-            'type': self.parse_order_type(type),
+            'type': self.parse_order_type(type, marketType),
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'reduceOnly': self.safe_bool(order, 'reduceOnly'),

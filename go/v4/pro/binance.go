@@ -4853,7 +4853,7 @@ func  (this *BinanceCore) ParseWsOrder(order interface{}, optionalArgs ...interf
         "datetime": this.Iso8601(timestamp),
         "lastTradeTimestamp": lastTradeTimestamp,
         "lastUpdateTimestamp": lastUpdateTimestamp,
-        "type": this.ParseOrderType(this.SafeStringLower(order, "o")),
+        "type": this.ParseOrderType(this.SafeStringLower(order, "o"), marketType),
         "timeInForce": timeInForce,
         "postOnly": nil,
         "reduceOnly": this.SafeBool(order, "R"),
