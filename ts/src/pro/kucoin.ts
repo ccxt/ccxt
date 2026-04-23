@@ -1880,7 +1880,7 @@ export default class kucoin extends kucoinRest {
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let uta = this.isUTAEnabled ();
+        let uta = await this.isUTAEnabled ();
         [ uta, params ] = this.handleOptionAndParams (params, 'watchOrders', 'uta', uta);
         let market = undefined;
         let messageHash = 'orders';
@@ -2284,7 +2284,7 @@ export default class kucoin extends kucoinRest {
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         const isFuturesMethod = ((marketType !== 'spot') && (marketType !== 'margin'));
-        let uta = this.isUTAEnabled ();
+        let uta = await this.isUTAEnabled ();
         [ uta, params ] = this.handleOptionAndParams (params, 'watchMyTrades', 'uta', uta);
         let trades = undefined;
         if (uta) {
