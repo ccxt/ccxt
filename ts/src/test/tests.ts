@@ -1881,7 +1881,7 @@ class testMainClass {
         assert (futureId === id, 'kucoinfutures - id: ' + futureId + ' not in options.');
         assert (futureKey === '1b327198-f30c-4f14-a0ac-918871282f15', 'kucoinfutures - key: ' + futureKey + ' not in options.');
         try {
-            await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
+            await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, { 'uta': false });
         } catch (e) {
             reqHeaders = exchange.last_request_headers;
         }
