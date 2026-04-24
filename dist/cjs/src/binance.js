@@ -1200,6 +1200,7 @@ class binance extends binance$1["default"] {
                         'asset-collection': 6,
                         'margin/repay-debt': 3000,
                         'um/feeBurn': 1,
+                        'um/stock/contract': 1,
                     },
                     'put': {
                         'listenKey': 0.2,
@@ -2863,9 +2864,6 @@ class binance extends binance$1["default"] {
             return this.createExpiredOptionMarket(marketId);
         }
         return super.safeMarket(marketId, market, delimiter, marketType);
-    }
-    costToPrecision(symbol, cost) {
-        return this.decimalToPrecision(cost, number.TRUNCATE, this.markets[symbol]['precision']['quote'], this.precisionMode, this.paddingMode);
     }
     nonce() {
         return this.milliseconds() - this.options['timeDifference'];
@@ -5741,15 +5739,27 @@ class binance extends binance$1["default"] {
         };
         return this.safeString(statuses, status, status);
     }
-    parseOrderType(type) {
-        const types = {
-            'limit_maker': 'limit',
-            'stop': 'limit',
-            'stop_market': 'market',
-            'take_profit': 'limit',
-            'take_profit_market': 'market',
-            'trailing_stop_market': 'market',
-        };
+    parseOrderType(type, marketType) {
+        let types = {};
+        if ((marketType !== undefined) && marketType === 'spot') {
+            types = {
+                'limit_maker': 'limit',
+                'stop_loss_limit': 'limit',
+                'stop_loss': 'market',
+                'take_profit_limit': 'limit',
+                'take_profit': 'market',
+            };
+        }
+        else {
+            types = {
+                'limit_maker': 'limit',
+                'stop': 'limit',
+                'stop_market': 'market',
+                'take_profit': 'limit',
+                'take_profit_market': 'market',
+                'trailing_stop_market': 'market',
+            };
+        }
         return this.safeString(types, type, type);
     }
     parseOrder(order, market = undefined) {
@@ -6337,7 +6347,7 @@ class binance extends binance$1["default"] {
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': lastUpdateTimestamp,
             'symbol': symbol,
-            'type': this.parseOrderType(type),
+            'type': this.parseOrderType(type, marketType),
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'reduceOnly': this.safeBool(order, 'reduceOnly'),

@@ -1244,7 +1244,8 @@ class blofin extends blofin$1["default"] {
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('createOrder', params, 'cross');
         request['marginMode'] = marginMode;
-        const triggerPrice = this.safeString(params, 'triggerPrice');
+        const triggerPriceAny = this.safeStringN(params, ['triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
+        const triggerPriceSlTp = this.safeString2(params, 'stopLossPrice', 'takeProfitPrice');
         const timeInForce = this.safeString(params, 'timeInForce', 'GTC');
         const isHedged = this.safeBool(params, 'hedged', false);
         if (isHedged) {
@@ -1258,7 +1259,7 @@ class blofin extends blofin$1["default"] {
             request['orderType'] = 'market';
         }
         else {
-            const key = (triggerPrice !== undefined) ? 'orderPrice' : 'price';
+            const key = (triggerPriceAny !== undefined) ? 'orderPrice' : 'price';
             request[key] = this.priceToPrecision(symbol, price);
         }
         let postOnly = false;
@@ -1285,12 +1286,16 @@ class blofin extends blofin$1["default"] {
                 request['tpOrderPrice'] = this.priceToPrecision(symbol, tpPrice);
             }
         }
-        else if (triggerPrice !== undefined) {
+        else if (triggerPriceAny !== undefined) {
             request['orderType'] = 'trigger';
-            request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
+            request['triggerPrice'] = this.priceToPrecision(symbol, triggerPriceAny);
             if (isMarketOrder) {
                 request['orderPrice'] = '-1';
             }
+            if (triggerPriceSlTp !== undefined) {
+                request['reduceOnly'] = true;
+            }
+            params = this.omit(params, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice']);
         }
         return this.extend(request, params);
     }
@@ -1463,26 +1468,21 @@ class blofin extends blofin$1["default"] {
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        const tpsl = this.safeBool(params, 'tpsl', false);
-        params = this.omit(params, 'tpsl');
-        let method = undefined;
-        [method, params] = this.handleOptionAndParams(params, 'createOrder', 'method', 'privatePostTradeOrder');
         const isStopLossPriceDefined = this.safeString(params, 'stopLossPrice') !== undefined;
         const isTakeProfitPriceDefined = this.safeString(params, 'takeProfitPrice') !== undefined;
-        const hasTriggerPrice = this.safeString(params, 'triggerPrice') !== undefined;
-        const isType2Order = (isStopLossPriceDefined || isTakeProfitPriceDefined);
+        const isTriggerOrder = this.safeString(params, 'triggerPrice') !== undefined;
+        const isCombinedSlTp = (isStopLossPriceDefined && isTakeProfitPriceDefined);
+        const isSlOrTp = isStopLossPriceDefined || isTakeProfitPriceDefined;
         let response = undefined;
         const reduceOnly = this.safeBool(params, 'reduceOnly');
         if (reduceOnly !== undefined) {
             params['reduceOnly'] = reduceOnly ? 'true' : 'false';
         }
-        const isTpslOrder = tpsl || (method === 'privatePostTradeOrderTpsl') || isType2Order;
-        const isTriggerOrder = hasTriggerPrice || (method === 'privatePostTradeOrderAlgo');
-        if (isTpslOrder) {
+        if (isCombinedSlTp) {
             const tpslRequest = this.createTpslOrderRequest(symbol, type, side, amount, price, params);
             response = await this.privatePostTradeOrderTpsl(tpslRequest);
         }
-        else if (isTriggerOrder) {
+        else if (isTriggerOrder || isSlOrTp) {
             const triggerRequest = this.createOrderRequest(symbol, type, side, amount, price, params);
             response = await this.privatePostTradeOrderAlgo(triggerRequest);
         }
@@ -1490,7 +1490,7 @@ class blofin extends blofin$1["default"] {
             const request = this.createOrderRequest(symbol, type, side, amount, price, params);
             response = await this.privatePostTradeOrder(request);
         }
-        if (isTpslOrder || isTriggerOrder) {
+        if (isCombinedSlTp || isSlOrTp || isTriggerOrder) {
             const dataDict = this.safeDict(response, 'data', {});
             return this.parseOrder(dataDict, market);
         }
@@ -1503,12 +1503,17 @@ class blofin extends blofin$1["default"] {
     }
     createTpslOrderRequest(symbol, type, side, amount = undefined, price = undefined, params = {}) {
         const market = this.market(symbol);
-        const positionSide = this.safeString(params, 'positionSide', 'net');
+        const hedged = this.safeBool(params, 'hedged', false);
+        let positionSide = 'net';
+        if (hedged) {
+            positionSide = (side === 'buy') ? 'short' : 'long';
+        }
         const request = {
             'instId': market['id'],
             'side': side,
             'positionSide': positionSide,
             'brokerId': this.safeString(this.options, 'brokerId', 'ec6dd3a7dd982d0b'),
+            'reduceOnly': this.safeBool(params, 'reduceOnly', true), // this is TP &  SL protective order, so it should be reduceOnly by default
         };
         if (amount !== undefined) {
             request['size'] = this.amountToPrecision(symbol, amount);
@@ -1521,24 +1526,14 @@ class blofin extends blofin$1["default"] {
         const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
         if (stopLossPrice !== undefined) {
             request['slTriggerPrice'] = this.priceToPrecision(symbol, stopLossPrice);
-            if (type === 'market') {
-                request['slOrderPrice'] = '-1';
-            }
-            else {
-                request['slOrderPrice'] = this.priceToPrecision(symbol, price);
-            }
+            request['slOrderPrice'] = (type === 'market') ? '-1' : this.priceToPrecision(symbol, price);
         }
-        else if (takeProfitPrice !== undefined) {
+        if (takeProfitPrice !== undefined) {
             request['tpTriggerPrice'] = this.priceToPrecision(symbol, takeProfitPrice);
-            if (type === 'market') {
-                request['tpOrderPrice'] = '-1';
-            }
-            else {
-                request['tpOrderPrice'] = this.priceToPrecision(symbol, price);
-            }
+            request['tpOrderPrice'] = (type === 'market') ? '-1' : this.priceToPrecision(symbol, price);
         }
         request['marginMode'] = marginMode;
-        params = this.omit(params, ['stopLossPrice', 'takeProfitPrice']);
+        params = this.omit(params, ['stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged']);
         return this.extend(request, params);
     }
     /**
@@ -1888,6 +1883,7 @@ class blofin extends blofin$1["default"] {
         //
         let type = undefined;
         let id = undefined;
+        let status = undefined;
         const withdrawalId = this.safeString(transaction, 'withdrawId');
         const depositId = this.safeString(transaction, 'depositId');
         const addressTo = this.safeString(transaction, 'address');
@@ -1896,15 +1892,16 @@ class blofin extends blofin$1["default"] {
         if (withdrawalId !== undefined) {
             type = 'withdrawal';
             id = withdrawalId;
+            status = this.parseTransactionWithdrawalStatus(this.safeString(transaction, 'state'));
         }
         else {
             id = depositId;
             type = 'deposit';
+            status = this.parseTransactionDepositStatus(this.safeString(transaction, 'state'));
         }
         const currencyId = this.safeString(transaction, 'currency');
         const code = this.safeCurrencyCode(currencyId);
         const amount = this.safeNumber(transaction, 'amount');
-        const status = this.parseTransactionStatus(this.safeString(transaction, 'state'));
         const txid = this.safeString(transaction, 'txId');
         const timestamp = this.safeInteger(transaction, 'ts');
         const feeCurrencyId = this.safeString(transaction, 'feeCurrency');
@@ -1936,7 +1933,18 @@ class blofin extends blofin$1["default"] {
             },
         };
     }
-    parseTransactionStatus(status) {
+    parseTransactionWithdrawalStatus(status) {
+        const statuses = {
+            '0': 'pending',
+            '2': 'failed',
+            '3': 'ok',
+            '4': 'failed',
+            '6': 'pending',
+            '7': 'pending',
+        };
+        return this.safeString(statuses, status, status);
+    }
+    parseTransactionDepositStatus(status) {
         const statuses = {
             '0': 'pending',
             '1': 'ok',

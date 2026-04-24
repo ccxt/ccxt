@@ -4,8 +4,8 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support
-from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Bool, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import NotSupported
@@ -22,7 +22,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
                 'createOrderWs': True,
                 'createOrdersWs': True,
                 'editOrderWs': True,
-                'watchBalance': False,
+                'watchBalance': True,
                 'watchMyTrades': True,
                 'watchOHLCV': True,
                 'watchOrderBook': True,
@@ -32,6 +32,9 @@ class hyperliquid(ccxt.async_support.hyperliquid):
                 'watchTrades': True,
                 'watchTradesForSymbols': False,
                 'watchPosition': False,
+                'unWatchBalance': True,
+                'watchPositions': True,
+                'unWatchPositions': True,
                 'unWatchOrderBook': True,
                 'unWatchTickers': True,
                 'unWatchTrades': True,
@@ -892,6 +895,310 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         payload = self.safe_dict(response, 'payload')
         client.resolve(payload, id)
 
+    async def watch_balance(self, params={}) -> Balances:
+        """
+        watch balance and get the amount of funds available for trading or funds locked in orders
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.dex]: for for hip3 tokens subscription, eg: 'xyz' or 'flx'
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
+        """
+        await self.load_markets()
+        userAddress = None
+        userAddress, params = self.handlePublicAddress('watchBalance', params)
+        type = None
+        type, params = self.handle_market_type_and_params('watchBalance', None, params)
+        isUnifiedEnabled = None
+        isUnifiedEnabled, params = await self.isUnifiedEnabled('watchBalance', userAddress, False, params)
+        dex = self.safe_string(params, 'dex')
+        isSpot = ((type == 'spot') or isUnifiedEnabled) and (dex is None)
+        topic = 'spotState' if (isSpot) else 'clearinghouseState'
+        messageHash = topic + '::balance'
+        url = self.urls['api']['ws']['public']
+        subscription = {
+            'type': topic,
+            'user': userAddress,
+        }
+        if isSpot:
+            if isUnifiedEnabled:
+                subscription['isPortfolioMargin'] = True
+        else:
+            if dex is not None:
+                subscription['dex'] = dex
+        request: dict = {
+            'method': 'subscribe',
+            'subscription': subscription,
+        }
+        message = self.extend(request, params)
+        return await self.watch(url, messageHash, message, topic)
+
+    async def un_watch_balance(self, params={}) -> Any:
+        """
+        unWatches balance
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: status of the unwatch request
+        """
+        await self.load_markets()
+        url = self.urls['api']['ws']['public']
+        userAddress = None
+        userAddress, params = self.handlePublicAddress('unWatchBalance', params)
+        type = None
+        type, params = self.handle_market_type_and_params('unWatchBalance', None, params)
+        isUnifiedEnabled = None
+        isUnifiedEnabled, params = await self.isUnifiedEnabled('unWatchBalance', userAddress, False, params)
+        dex = self.safe_string(params, 'dex')
+        isSpot = ((type == 'spot') or isUnifiedEnabled) and (dex is None)
+        topic = 'spotState' if (isSpot) else 'clearinghouseState'
+        messageHash = 'unsubscribe' + ':' + topic
+        request: dict = {
+            'method': 'unsubscribe',
+            'subscription': {
+                'type': topic,
+                'user': userAddress,
+            },
+        }
+        message = self.extend(request, params)
+        return await self.watch(url, messageHash, message, messageHash)
+
+    def handle_balance(self, client: Client, message):
+        #
+        # spot
+        # {
+        #     "channel": "spotState",
+        #     "data": {
+        #         "user": "0xeeeeexxxxeeeee",
+        #         "spotState": {
+        #             "balances": [
+        #                 {
+        #                     "coin": "USDH",
+        #                     "token": 360,
+        #                     "total": "0.0",
+        #                     "hold": "0.0",
+        #                     "entryNtl": "0.0"
+        #                 }
+        #             ],
+        #             "tokenToAvailableAfterMaintenance": [
+        #                 [
+        #                     0,
+        #                     "56.1"
+        #                 ]
+        #             ]
+        #         }
+        #     }
+        # }
+        # swap
+        # {
+        #     "channel": "clearinghouseState",
+        #     "data": {
+        #         "dex": "",
+        #         "user": "0xeeeeexxxxeeeee",
+        #         "clearinghouseState": {
+        #             "marginSummary": {
+        #                 "accountValue": "0.0",
+        #                 "totalNtlPos": "0.0",
+        #                 "totalRawUsd": "0.0",
+        #                 "totalMarginUsed": "0.0"
+        #             },
+        #             "crossMarginSummary": {
+        #                 "accountValue": "0.0",
+        #                 "totalNtlPos": "0.0",
+        #                 "totalRawUsd": "0.0",
+        #                 "totalMarginUsed": "0.0"
+        #             },
+        #             "crossMaintenanceMarginUsed": "0.0",
+        #             "withdrawable": "0.0",
+        #             "assetPositions": [],
+        #             "time": 1776000003409
+        #         }
+        #     }
+        # }
+        #
+        if self.balance is None:
+            self.balance = {}
+        topic = self.safe_value(message, 'channel')
+        messageHash = topic + '::balance'
+        info = None
+        rawBalances = []
+        account = None
+        timestamp = None
+        data = self.safe_value(message, 'data', [])
+        if topic == 'spotState':
+            spotState = self.safe_dict(data, 'spotState')
+            rawBalances = self.safe_list(spotState, 'balances')
+            account = 'spot'
+            info = rawBalances
+        if topic == 'clearinghouseState':
+            account = 'swap'
+            clearinghouseState = self.safe_dict(data, 'clearinghouseState')
+            rawBalances.append(clearinghouseState)
+            info = clearinghouseState
+            timestamp = self.safe_integer(clearinghouseState, 'time')
+            self.handle_positions(client, message)
+        for i in range(0, len(rawBalances)):
+            self.parse_ws_balance(rawBalances[i], account)
+        if self.safe_value(self.balance, account) is None:
+            self.balance[account] = {}
+        self.balance[account]['info'] = info
+        self.balance[account]['timestamp'] = timestamp
+        self.balance[account]['datetime'] = self.iso8601(timestamp)
+        self.balance[account] = self.safe_balance(self.balance[account])
+        client.resolve(self.balance[account], messageHash)
+
+    def parse_ws_balance(self, balance, accountType=None):
+        #
+        # spot
+        #     {
+        #         "coin": "USDH",
+        #         "token": 360,
+        #         "total": "0.0",
+        #         "hold": "0.0",
+        #         "entryNtl": "0.0"
+        #     }
+        # swap
+        #     {
+        #         "marginSummary": {
+        #             "accountValue": "0.0",
+        #             "totalNtlPos": "0.0",
+        #             "totalRawUsd": "0.0",
+        #             "totalMarginUsed": "0.0"
+        #         },
+        #         "crossMarginSummary": {
+        #             "accountValue": "0.0",
+        #             "totalNtlPos": "0.0",
+        #             "totalRawUsd": "0.0",
+        #             "totalMarginUsed": "0.0"
+        #         },
+        #         "crossMaintenanceMarginUsed": "0.0",
+        #         "withdrawable": "0.0",
+        #         "assetPositions": [],
+        #         "time": 1776000003409
+        #     }
+        #
+        account = self.account()
+        currencyId = self.safe_string(balance, 'coin')
+        code = None
+        if currencyId is None:
+            code = 'USDC'
+            marginSummary = self.safe_dict(balance, 'marginSummary', {})
+            account['free'] = self.safe_string(balance, 'withdrawable')
+            account['used'] = self.safe_string(marginSummary, 'totalMarginUsed')
+            account['total'] = self.safe_string(marginSummary, 'accountValue')
+        else:
+            code = self.safe_currency_code(currencyId)
+            account['used'] = self.safe_string(balance, 'hold')
+            account['total'] = self.safe_string(balance, 'total')
+        if accountType is not None:
+            if self.safe_value(self.balance, accountType) is None:
+                self.balance[accountType] = {}
+            self.balance[accountType][code] = account
+        else:
+            self.balance[code] = account
+
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+        """
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+
+        watch all open positions
+        :param str[] [symbols]: list of unified market symbols
+        :param int [since]: the earliest time in ms to fetch positions for
+        :param int [limit]: the maximum number of positions to retrieve
+        :param dict params: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
+        await self.load_markets()
+        userAddress = None
+        userAddress, params = self.handlePublicAddress('watchPositions', params)
+        topic = 'clearinghouseState'
+        messageHash = topic + '::positions'
+        if not self.is_empty(symbols):
+            symbols = self.market_symbols(symbols)
+            messageHash += '::' + ','.join(symbols)
+        url = self.urls['api']['ws']['public']
+        subscription = {
+            'type': topic,
+            'user': userAddress,
+        }
+        dexName = self.getDexFromSymbols('watchPositions', symbols)
+        if dexName is not None:
+            subscription['dex'] = dexName
+        request: dict = {
+            'method': 'subscribe',
+            'subscription': subscription,
+        }
+        message = self.extend(request, params)
+        client = self.client(url)
+        self.set_positions_cache(client, symbols)
+        cache = self.positions
+        newPositions = await self.watch(url, messageHash, message, topic)
+        if self.newUpdates:
+            return newPositions
+        return self.filter_by_symbols_since_limit(cache, symbols, since, limit, True)
+
+    def set_positions_cache(self, client: Client, symbols: Strings = None):
+        if self.positions is not None:
+            return
+        self.positions = ArrayCacheBySymbolBySide()
+
+    def handle_positions(self, client, message):
+        if self.positions is None:
+            self.positions = ArrayCacheBySymbolBySide()
+        cache = self.positions
+        data = self.safe_dict(message, 'data', {})
+        clearinghouseState = self.safe_dict(data, 'clearinghouseState', {})
+        newPositions = []
+        rawPositions = self.safe_list(clearinghouseState, 'assetPositions', [])
+        for i in range(0, len(rawPositions)):
+            rawPosition = rawPositions[i]
+            position = self.parse_position(rawPosition)
+            newPositions.append(position)
+            cache.append(position)
+        baseMessageHash = 'clearinghouseState::positions'
+        messageHashes = self.find_message_hashes(client, baseMessageHash)
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            parts = messageHash.split('::')
+            symbolsString = self.safe_string(parts, 2)
+            if symbolsString is None:
+                continue
+            symbols = symbolsString.split(',')
+            positions = self.filter_by_array(newPositions, 'symbol', symbols, False)
+            if not self.is_empty(positions):
+                client.resolve(positions, messageHash)
+        client.resolve(newPositions, baseMessageHash)
+
+    async def un_watch_positions(self, symbols: Strings = None, params={}) -> Any:
+        """
+        unWatches all open positions
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+
+        :param str[] [symbols]: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: status of the unwatch request
+        """
+        await self.load_markets()
+        if not self.is_empty(symbols):
+            raise NotSupported(self.id + ' unWatchPositions() does not support a symbol parameter, you must unwatch all orders')
+        messageHash = 'unsubscribe:clearinghouseState'
+        url = self.urls['api']['ws']['public']
+        userAddress = None
+        userAddress, params = self.handlePublicAddress('unWatchPositions', params)
+        request: dict = {
+            'method': 'unsubscribe',
+            'subscription': {
+                'type': 'clearinghouseState',
+                'user': userAddress,
+            },
+        }
+        message = self.extend(request, params)
+        return await self.watch(url, messageHash, message, messageHash)
+
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
@@ -1128,6 +1435,25 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         }
         self.clean_cache(topicStructure)
 
+    def handle_positions_unsubscription(self, client: Client, subscription: dict):
+        subHash = 'clearinghouseState'
+        unSubHash = 'unsubscribe:' + subHash
+        self.clean_unsubscription(client, subHash, unSubHash, True)
+        topicStructure = {
+            'topic': 'positions',
+        }
+        self.clean_cache(topicStructure)
+        # clean swap balance if it existed
+        if 'swap' in self.balance:
+            del self.balance['swap']
+
+    def handle_spot_balance_unsubscription(self, client: Client, subscription: dict):
+        subHash = 'spotState'
+        unSubHash = 'unsubscribe:' + subHash
+        self.clean_unsubscription(client, subHash, unSubHash, True)
+        if 'spot' in self.balance:
+            del self.balance['spot']
+
     def handle_subscription_response(self, client: Client, message):
         # {
         #     "channel":"subscriptionResponse",
@@ -1170,6 +1496,10 @@ class hyperliquid(ccxt.async_support.hyperliquid):
                 self.handle_order_unsubscription(client, subscription)
             elif type == 'userFills':
                 self.handle_my_trades_unsubscription(client, subscription)
+            elif type == 'clearinghoustState':
+                self.handle_positions_unsubscription(client, subscription)
+            elif type == 'spotState':
+                self.handle_spot_balance_unsubscription(client, subscription)
 
     def handle_message(self, client: Client, message):
         #
@@ -1200,6 +1530,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'allMids': self.handle_ws_tickers,
             'post': self.handle_ws_post,
             'subscriptionResponse': self.handle_subscription_response,
+            'clearinghouseState': self.handle_balance,
+            'spotState': self.handle_balance,
         }
         exacMethod = self.safe_value(methods, topic)
         if exacMethod is not None:

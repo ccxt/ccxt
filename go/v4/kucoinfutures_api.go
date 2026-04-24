@@ -1259,6 +1259,10 @@ func (this *KucoinfuturesCore) UtaGetServerStatus(args ...interface{}) <-chan in
 	return this.callEndpointAsync("utaGetServerStatus", args...)
 }
 
+func (this *KucoinfuturesCore) UtaGetMarketBorrowableCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("utaGetMarketBorrowableCurrency", args...)
+}
+
 func (this *KucoinfuturesCore) UtaPrivateGetMarketOrderbook(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("utaPrivateGetMarketOrderbook", args...)
 }
@@ -1343,6 +1347,18 @@ func (this *KucoinfuturesCore) UtaPrivateGetDcpQuery(args ...interface{}) <-chan
 	return this.callEndpointAsync("utaPrivateGetDcpQuery", args...)
 }
 
+func (this *KucoinfuturesCore) UtaPrivateGetUnifiedAccountLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("utaPrivateGetUnifiedAccountLeverage", args...)
+}
+
+func (this *KucoinfuturesCore) UtaPrivateGetPositionFundingHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("utaPrivateGetPositionFundingHistory", args...)
+}
+
+func (this *KucoinfuturesCore) UtaPrivateGetAccountInterestLimits(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("utaPrivateGetAccountInterestLimits", args...)
+}
+
 func (this *KucoinfuturesCore) UtaPrivatePostAccountTransfer(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("utaPrivatePostAccountTransfer", args...)
 }
@@ -1381,4 +1397,8 @@ func (this *KucoinfuturesCore) UtaPrivatePostSubAccountCanTransferOut(args ...in
 
 func (this *KucoinfuturesCore) UtaPrivatePostDcpSet(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("utaPrivatePostDcpSet", args...)
+}
+
+func (this *KucoinfuturesCore) UtaPrivatePostAccountModeAccountModifyLeverageMarginCross(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("utaPrivatePostAccountModeAccountModifyLeverageMarginCross", args...)
 }

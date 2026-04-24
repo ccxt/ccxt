@@ -749,6 +749,13 @@ class bitvavo extends \ccxt\async\bitvavo {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $request = array();
+            $operatorId = null;
+            list($operatorId, $params) = $this->handle_option_and_params($params, 'cancelAllOrdersWs', 'operatorId');
+            if ($operatorId !== null) {
+                $request['operatorId'] = $this->parse_to_int($operatorId);
+            } else {
+                throw new ArgumentsRequired($this->id . ' canceAllOrdersWs() requires an $operatorId in $params or options, eg => exchange.options[\'operatorId\'] = 1234567890');
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);

@@ -234,11 +234,20 @@ class binance(ccxt.async_support.binance):
     def get_ws_url(self, type, category):
         baseUrl = self.urls['api']['ws'][type]
         if type == 'future':
-            return baseUrl.replace('/ws', '/' + category + '/ws')
+            # skip URL manipulation for proxied/bridge URLs(contain an embedded protocol)
+            firstProtocol = baseUrl.find('://')
+            if firstProtocol != -1 and baseUrl.find('://', firstProtocol + 3) != -1:
+                return baseUrl
+            # only rewrite when the URL ends with exactly "/ws"
+            # self avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
+            if baseUrl.endswith('/ws'):
+                prefix = baseUrl[0:len(baseUrl) - 3]
+                return prefix + '/' + category + '/ws'
+            return baseUrl
         return baseUrl
 
     def get_future_ws_category(self, channel):
-        if channel == 'depth' or channel == 'rpiDepth' or channel == 'bookTicker' or channel == 'trade' or channel == 'aggTrade':
+        if channel == 'depth' or channel == 'rpiDepth' or channel == 'bookTicker' or channel == 'trade':
             return 'public'
         return 'market'
 
@@ -3649,7 +3658,7 @@ class binance(ccxt.async_support.binance):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': lastUpdateTimestamp,
-            'type': self.parseOrderType(self.safe_string_lower(order, 'o')),
+            'type': self.parseOrderType(self.safe_string_lower(order, 'o'), marketType),
             'timeInForce': timeInForce,
             'postOnly': None,
             'reduceOnly': self.safe_bool(order, 'R'),

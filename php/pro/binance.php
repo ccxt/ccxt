@@ -240,13 +240,24 @@ class binance extends \ccxt\async\binance {
     public function get_ws_url($type, $category) {
         $baseUrl = $this->urls['api']['ws'][$type];
         if ($type === 'future') {
-            return str_replace('/ws', '/' . $category . '/ws', $baseUrl);
+            // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
+            $firstProtocol = mb_strpos($baseUrl, '://');
+            if ($firstProtocol !== -1 && mb_strpos($baseUrl, '://', $firstProtocol + 3) !== -1) {
+                return $baseUrl;
+            }
+            // only rewrite when the URL ends with exactly "/ws"
+            // this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
+            if (str_ends_with($baseUrl, '/ws')) {
+                $prefix = mb_substr($baseUrl, 0, strlen($baseUrl) - 3 - 0);
+                return $prefix . '/' . $category . '/ws';
+            }
+            return $baseUrl;
         }
         return $baseUrl;
     }
 
     public function get_future_ws_category($channel) {
-        if ($channel === 'depth' || $channel === 'rpiDepth' || $channel === 'bookTicker' || $channel === 'trade' || $channel === 'aggTrade') {
+        if ($channel === 'depth' || $channel === 'rpiDepth' || $channel === 'bookTicker' || $channel === 'trade') {
             return 'public';
         }
         return 'market';
@@ -4038,7 +4049,7 @@ class binance extends \ccxt\async\binance {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'lastUpdateTimestamp' => $lastUpdateTimestamp,
-            'type' => $this->parseOrderType ($this->safe_string_lower($order, 'o')),
+            'type' => $this->parseOrderType ($this->safe_string_lower($order, 'o'), $marketType),
             'timeInForce' => $timeInForce,
             'postOnly' => null,
             'reduceOnly' => $this->safe_bool($order, 'R'),

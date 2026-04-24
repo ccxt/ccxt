@@ -389,6 +389,7 @@ class testMainClass {
                 const isAuthError = (e instanceof AuthenticationError);
                 const isNotSupported = (e instanceof NotSupported);
                 const isOperationFailed = (e instanceof OperationFailed); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
+                const lastUrlMsg = this.wsTests ? '' : ' (Last url: ' + exchange.last_request_url + ' )';
                 if (isOperationFailed) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i === maxRetries - 1) {
@@ -420,7 +421,7 @@ class testMainClass {
                         }
                         // output the message
                         const failType = shouldFail ? '[TEST_FAILURE]' : '[TEST_WARNING]';
-                        dump (failType, 'Method could not be tested due to a repeated Network/Availability issues', ' | ', exchange.id, methodName, argsStringified, exceptionMessage (e));
+                        dump (failType, exchange.id, methodName, argsStringified, lastUrlMsg, 'Method could not be tested due to a repeated Network/Availability issues', ' | ', exceptionMessage (e));
                         return retSuccess;
                     }
                     else {
@@ -435,14 +436,14 @@ class testMainClass {
                 else {
                     // if it's loadMarkets, then fail test, because it's mandatory for tests
                     if (isLoadMarkets) {
-                        dump ('[TEST_FAILURE]', 'Exchange can not load markets', exceptionMessage (e), exchange.id, methodName, argsStringified);
+                        dump ('[TEST_FAILURE]', exchange.id, methodName, argsStringified, lastUrlMsg, 'Exchange can not load markets', exceptionMessage (e));
                         return false;
                     }
                     // if the specific arguments to the test method throws "NotSupported" exception
                     // then let's don't fail the test
                     if (isNotSupported) {
                         if (this.info) {
-                            dump ('[INFO] NOT_SUPPORTED', exceptionMessage (e), exchange.id, methodName, argsStringified);
+                            dump ('[INFO] NOT_SUPPORTED', exchange.id, methodName, argsStringified, lastUrlMsg, exceptionMessage (e));
                         }
                         return true;
                     }
@@ -450,13 +451,13 @@ class testMainClass {
                     if (isPublic && isAuthError) {
                         if (this.info) {
                             // todo - turn into warning
-                            dump ('[INFO]', 'Authentication problem for public method', exceptionMessage (e), exchange.id, methodName, argsStringified);
+                            dump ('[INFO]', exchange.id, methodName, argsStringified, lastUrlMsg, 'Authentication problem for public method', exceptionMessage (e));
                         }
                         return true;
                     }
                     // in rest of the cases, fail the test
                     else {
-                        dump ('[TEST_FAILURE]', exceptionMessage (e), exchange.id, methodName, argsStringified);
+                        dump ('[TEST_FAILURE]', exchange.id, methodName, argsStringified, lastUrlMsg, exceptionMessage (e));
                         return false;
                     }
                 }
@@ -1329,8 +1330,11 @@ class testMainClass {
                         libraryPath = basePath + 'lighter-signer-linux-arm64.so';
                     }
                 } else {
-                    // assume macos arm64
-                    libraryPath = basePath + 'lighter-signer-darwin-arm64.dylib';
+                    if (isAmd64 ()) {
+                        libraryPath = basePath + 'lighter-signer-darwin-x86.dylib';
+                    } else {
+                        libraryPath = basePath + 'lighter-signer-darwin-arm64.dylib';
+                    }
                 }
             }
         }
@@ -1667,7 +1671,8 @@ class testMainClass {
             this.testDerive (),
             this.testModeTrade (),
             this.testBackpack (),
-            this.testToobit ()
+            this.testToobit (),
+            this.testWeex ()
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -2332,6 +2337,27 @@ class testMainClass {
             await close (exchange);
         }
         return true;
+    }
+
+    async testWeex () {
+        const exchange = this.initOfflineExchange ('weex');
+        const id = 'b-WEEX111125';
+        assert (exchange.options['partner'] === id, 'weex - id: ' + id + ' not in options');
+        let request = undefined;
+        try {
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            request = jsonParse (exchange.last_request_body);
+        }
+        let clientOrderId = request['newClientOrderId'];
+        assert (clientOrderId.startsWith (id), 'weex - newClientOrderId: ' + clientOrderId + ' for spot order does not start with id: ' + id);
+        try {
+            await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            request = jsonParse (exchange.last_request_body);
+        }
+        clientOrderId = request['newClientOrderId'];
+        assert (clientOrderId.startsWith (id), 'weex - newClientOrderId: ' + clientOrderId + ' for swap order does not start with id: ' + id);
     }
 }
 

@@ -223,6 +223,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) ccxt.IExc
     case "p2b":
         itf := NewP2b(options)
         return itf
+    case "pacifica":
+        itf := NewPacifica(options)
+        return itf
     case "paradex":
         itf := NewParadex(options)
         return itf
@@ -237,6 +240,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) ccxt.IExc
         return itf
     case "upbit":
         itf := NewUpbit(options)
+        return itf
+    case "weex":
+        itf := NewWeex(options)
         return itf
     case "whitebit":
         itf := NewWhitebit(options)

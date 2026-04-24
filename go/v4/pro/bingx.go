@@ -398,7 +398,7 @@ func  (this *BingxCore) GetMessageHash(unifiedChannel interface{}, optionalArgs 
     if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
         hash = ccxt.Add(hash, ccxt.Add("::", symbol))
     } else {
-        hash = ccxt.Add(hash, "s") // tickers, orderbooks, ohlcvs ...
+        hash = ccxt.Add(hash, "s") // tickers, orderbooks, ohlcvs, etc ...
     }
     if ccxt.IsTrue(!ccxt.IsEqual(extra, nil)) {
         hash = ccxt.Add(hash, ccxt.Add("::", extra))

@@ -222,6 +222,10 @@ public partial class gate : ccxt.gate
     public async override Task<object> cancelAllOrdersWs(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " cancelAllOrdersWs() requires a symbol argument")) ;
+        }
         await this.loadMarkets();
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
         object trigger = this.safeBool2(parameters, "stop", "trigger");

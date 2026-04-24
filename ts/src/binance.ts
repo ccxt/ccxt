@@ -1200,6 +1200,7 @@ export default class binance extends Exchange {
                         'asset-collection': 6,
                         'margin/repay-debt': 3000,
                         'um/feeBurn': 1,
+                        'um/stock/contract': 1,
                     },
                     'put': {
                         'listenKey': 0.2,
@@ -2860,10 +2861,6 @@ export default class binance extends Exchange {
             return this.createExpiredOptionMarket (marketId);
         }
         return super.safeMarket (marketId, market, delimiter, marketType);
-    }
-
-    costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['quote'], this.precisionMode, this.paddingMode);
     }
 
     nonce () {
@@ -5679,15 +5676,26 @@ export default class binance extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (type: Str) {
-        const types = {
-            'limit_maker': 'limit',
-            'stop': 'limit',
-            'stop_market': 'market',
-            'take_profit': 'limit',
-            'take_profit_market': 'market',
-            'trailing_stop_market': 'market',
-        };
+    parseOrderType (type: Str, marketType: Str) {
+        let types = {};
+        if ((marketType !== undefined) && marketType === 'spot') {
+            types = {
+                'limit_maker': 'limit',
+                'stop_loss_limit': 'limit',
+                'stop_loss': 'market',
+                'take_profit_limit': 'limit',
+                'take_profit': 'market',
+            };
+        } else {
+            types = {
+                'limit_maker': 'limit',
+                'stop': 'limit',
+                'stop_market': 'market',
+                'take_profit': 'limit',
+                'take_profit_market': 'market',
+                'trailing_stop_market': 'market',
+            };
+        }
         return this.safeString (types, type, type);
     }
 
@@ -6275,7 +6283,7 @@ export default class binance extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': lastUpdateTimestamp,
             'symbol': symbol,
-            'type': this.parseOrderType (type),
+            'type': this.parseOrderType (type, marketType),
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'reduceOnly': this.safeBool (order, 'reduceOnly'),

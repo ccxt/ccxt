@@ -820,7 +820,8 @@ class bullish extends bullish$1["default"] {
                 expiryDatetime = this.safeString(market, 'expiryDatetime');
                 const idParts = id.split('-');
                 const datePart = this.safeString(idParts, 2);
-                symbol += '-' + datePart;
+                const dateYmd = datePart.slice(2);
+                symbol += '-' + dateYmd;
                 if (type === 'future') {
                     future = true;
                 }

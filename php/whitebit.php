@@ -423,6 +423,8 @@ class whitebit extends Exchange {
                 ),
                 'broad' => array(
                     'limit must be less than or equal to' => '\\ccxt\\BadRequest',
+                    'The Price should be less than or equal to' => '\\ccxt\\InvalidOrder', // array("code":250,"errors":array("price":["The Price should be less than or equal to 1.277"]),"message":"Validation failed")
+                    'The Price should be greater than or equal to' => '\\ccxt\\InvalidOrder', // array("code":250,"errors":array("price":["The Price should be greater than or equal to 0.0029"]),"message":"Validation failed")
                     'This action is unauthorized' => '\\ccxt\\PermissionDenied', // array("code":2,"message":"This action is unauthorized. Enable your key in API settings")
                     'Given amount is less than min amount' => '\\ccxt\\InvalidOrder', // array("code":0,"message":"Validation failed","errors":array("amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]))
                     'Min amount step' => '\\ccxt\\InvalidOrder', // array("code":32,"errors":array("amount":["Min amount step = 0.01"]),"message":"Validation failed")

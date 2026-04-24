@@ -6,6 +6,9 @@
         "bizNo"
     ],
     "outputType": "json",
+    "options": {
+        "uta": false
+    },
     "methods": {
         "createOrder": [
             {

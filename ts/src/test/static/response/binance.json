@@ -600,7 +600,7 @@
                     "lastTradeTimestamp": null,
                     "lastUpdateTimestamp": 1758618616599,
                     "symbol": "ETH/USDT",
-                    "type": "limit",
+                    "type": "market",
                     "timeInForce": "GTC",
                     "postOnly": false,
                     "reduceOnly": null,

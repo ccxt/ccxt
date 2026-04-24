@@ -30,7 +30,7 @@ type WSClient struct {
 
 	ConnectionStarted int64
 	Protocols         any
-	Options           any
+	Options           map[string]any
 	StartedConnecting bool
 	ProxyUrl          string
 
@@ -48,6 +48,17 @@ func NewWSClient(url string, onMessageCallback func(client any, err any), onErro
 		ProxyUrl: proxyUrl,
 	}
 	wsClient.StartedConnecting = false
+
+	if len(config) > 0 {
+		opt, ok := config[0]["options"]
+		if ok {
+			if options, ok := opt.(map[string]any); ok {
+				wsClient.Options = options
+			}
+		} else {
+			wsClient.Options = config[0]
+		}
+	}
 
 	return wsClient
 }
@@ -78,6 +89,19 @@ func (this *WSClient) CreateConnection() error {
 	if this.Protocols != nil {
 		if protocols, ok := this.Protocols.([]string); ok {
 			headers.Set("Sec-WebSocket-Protocol", strings.Join(protocols, ", "))
+		}
+	}
+
+	// read from options headers if present
+	if this.Options != nil {
+		if headersOption, ok := this.Options["headers"]; ok {
+			if headersMap, ok := headersOption.(map[string]any); ok {
+				for key, value := range headersMap {
+					if strValue, ok := value.(string); ok {
+						headers.Set(key, strValue)
+					}
+				}
+			}
 		}
 	}
 

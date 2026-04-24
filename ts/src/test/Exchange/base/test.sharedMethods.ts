@@ -622,7 +622,19 @@ function assertDeepEqual (exchange: Exchange, skippedProperties: any, method: st
     assert (deepEqual (exchange, a, b), 'two dicts do not match: ' + exchange.jsonStringifyWithNull (a) + ' != ' + exchange.jsonStringifyWithNull (b) + logText);
 }
 
+function exchangeProp (exchange: Exchange, key: string, defaultValue: any = undefined) {
+    const value = exchange.getProperty (exchange, key.toString ());
+    if (value !== undefined) {
+        return value;
+    }
+    // try UpperCase key also, for other langs
+    const keyUpper = exchange.capitalize (key.toString ());
+    return exchange.getProperty (exchange, keyUpper, defaultValue);
+}
+
+
 export default {
+    exchangeProp,
     deepEqual,
     assertDeepEqual,
     logTemplate,

@@ -223,6 +223,8 @@ class gate(ccxt.async_support.gate):
         :param str [params.channel]: the channel to use, defaults to spot.order_cancel_cp or futures.order_cancel_cp
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelAllOrdersWs() requires a symbol argument')
         await self.load_markets()
         market = None if (symbol is None) else self.market(symbol)
         trigger = self.safe_bool_2(params, 'stop', 'trigger')

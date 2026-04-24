@@ -1217,11 +1217,14 @@ func (this *Exchange) ExceptionMessage(exc any, includeStack ...any) any {
 	return message[:length]
 }
 
-func (this *Exchange) GetProperty(obj any, property any) any {
+func (this *Exchange) GetProperty(obj any, property any, defaultValue ...any) any {
 	// Convert property to string
 	propName, ok := property.(string)
 	if !ok {
 		// fmt.Println("Property should be a string")
+		if len(defaultValue) > 0 {
+			return defaultValue[0]
+		}
 		return nil
 	}
 
@@ -1237,6 +1240,9 @@ func (this *Exchange) GetProperty(obj any, property any) any {
 		return field.Interface()
 	} else {
 		// fmt.Printf("Field '%s' is either invalid or cannot be accessed\n", propName)
+		if len(defaultValue) > 0 {
+			return defaultValue[0]
+		}
 		return nil
 	}
 }

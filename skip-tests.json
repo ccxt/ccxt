@@ -588,8 +588,8 @@
         }
     },
     "btcbox": {
-        "skip": "temporary reorg on exchange, lets wait 2 more weeks",
-        "until":"2026-04-06",
+        "skip": "temporary reorg on exchange, lets wait few more weeks",
+        "until":"2026-05-01",
         "skipMethods": {
             "loadMarkets": {
                 "precision":"is undefined"
@@ -728,6 +728,12 @@
             "watchTickers": "closes connection",
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
+            },
+            "watchTrades": {
+                "timestampSort": "https://github.com/ccxt/ccxt/actions/runs/24385112543/job/71217585200?pr=14269#step:11:545"
+            },
+            "watchTradesForSymbols": {
+                "timestampSort": "same"
             }
         }
     },
@@ -844,6 +850,9 @@
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
                 "compareOHLC": "todo"
+            },
+            "watchTrades": {
+                "timestampSort": "https://github.com/ccxt/ccxt/actions/runs/24385112543/job/71217585200?pr=14269#step:11:625"
             },
             "fetchOHLCV": "cant be tested because of additional required param",
             "watchOHLCV": "does not work for 1min",
@@ -1266,6 +1275,8 @@
         }
     },
     "hibachi": {
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "only have USDT"
@@ -2267,6 +2278,37 @@
             },
             "fetchTickers": {
                 "compareOHLC": "broken https://github.com/ccxt/ccxt/actions/runs/23807522040/job/69385956136?pr=28306#step:11:315"
+            }
+        }
+    },
+    "weex": {
+        "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "i.e. weex does not have currency code AXL"
+            },
+            "fetchCurrencies": {
+                "precision": "not provided if currency has no networks"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo",
+                "maxIncrease": "change should be above -price is failing"
+            },
+            "ticker": {
+                "compareOHLC": "open could be lower than low",
+                "spread": "messed bid-ask",
+                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "fetchOrderBook": {
+                "timestamp": "not provided"
+            },
+            "fetchTrades": {
+                "side": "not provided"
+            },
+            "watchTrades": {
+                "side": "not provided"
+            },
+            "watchTradesForSymbols": {
+                "side": "not provided"
             }
         }
     }

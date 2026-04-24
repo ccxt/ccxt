@@ -731,6 +731,17 @@ public partial class testMainClass : BaseTest
             object logText = logTemplate(exchange, method, new Dictionary<string, object>() {});
             assert(deepEqual(exchange, a, b), add(add(add(add("two dicts do not match: ", json(a)), " != "), json(b)), logText));
         }
+        public object exchangeProp(Exchange exchange, object key, object defaultValue = null)
+        {
+            object value = exchange.getProperty(exchange, ((object)key).ToString());
+            if (isTrue(!isEqual(value, null)))
+            {
+                return value;
+            }
+            // try UpperCase key also, for other langs
+            object keyUpper = exchange.capitalize(((object)key).ToString());
+            return exchange.getProperty(exchange, keyUpper, defaultValue);
+        }
 
     }
 }

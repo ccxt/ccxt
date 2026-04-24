@@ -3,8 +3,8 @@
 import hyperliquidRest from '../hyperliquid.js';
 import { NotSupported } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
-import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest, Bool } from '../base/types.js';
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest, Bool, Balances, Position } from '../base/types.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -18,7 +18,7 @@ export default class hyperliquid extends hyperliquidRest {
                 'createOrderWs': true,
                 'createOrdersWs': true,
                 'editOrderWs': true,
-                'watchBalance': false,
+                'watchBalance': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
@@ -28,6 +28,9 @@ export default class hyperliquid extends hyperliquidRest {
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchPosition': false,
+                'unWatchBalance': true,
+                'watchPositions': true,
+                'unWatchPositions': true,
                 'unWatchOrderBook': true,
                 'unWatchTickers': true,
                 'unWatchTrades': true,
@@ -943,6 +946,339 @@ export default class hyperliquid extends hyperliquidRest {
 
     /**
      * @method
+     * @name hyperliquid#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.dex] for for hip3 tokens subscription, eg: 'xyz' or 'flx'
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    async watchBalance (params = {}): Promise<Balances> {
+        await this.loadMarkets ();
+        let userAddress = undefined;
+        [ userAddress, params ] = this.handlePublicAddress ('watchBalance', params);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        let isUnifiedEnabled = undefined;
+        [ isUnifiedEnabled, params ] = await this.isUnifiedEnabled ('watchBalance', userAddress, false, params);
+        const dex = this.safeString (params, 'dex');
+        const isSpot = ((type === 'spot') || isUnifiedEnabled) && (dex === undefined);
+        const topic = (isSpot) ? 'spotState' : 'clearinghouseState';
+        const messageHash = topic + '::balance';
+        const url = this.urls['api']['ws']['public'];
+        const subscription = {
+            'type': topic,
+            'user': userAddress,
+        };
+        if (isSpot) {
+            if (isUnifiedEnabled) {
+                subscription['isPortfolioMargin'] = true;
+            }
+        } else {
+            if (dex !== undefined) {
+                subscription['dex'] = dex;
+            }
+        }
+        const request: Dict = {
+            'method': 'subscribe',
+            'subscription': subscription,
+        };
+        const message = this.extend (request, params);
+        return await this.watch (url, messageHash, message, topic);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#unWatchBalance
+     * @description unWatches balance
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} status of the unwatch request
+     */
+    async unWatchBalance (params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const url = this.urls['api']['ws']['public'];
+        let userAddress = undefined;
+        [ userAddress, params ] = this.handlePublicAddress ('unWatchBalance', params);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('unWatchBalance', undefined, params);
+        let isUnifiedEnabled = undefined;
+        [ isUnifiedEnabled, params ] = await this.isUnifiedEnabled ('unWatchBalance', userAddress, false, params);
+        const dex = this.safeString (params, 'dex');
+        const isSpot = ((type === 'spot') || isUnifiedEnabled) && (dex === undefined);
+        const topic = (isSpot) ? 'spotState' : 'clearinghouseState';
+        const messageHash = 'unsubscribe' + ':' + topic;
+        const request: Dict = {
+            'method': 'unsubscribe',
+            'subscription': {
+                'type': topic,
+                'user': userAddress,
+            },
+        };
+        const message = this.extend (request, params);
+        return await this.watch (url, messageHash, message, messageHash);
+    }
+
+    handleBalance (client: Client, message) {
+        //
+        // spot
+        // {
+        //     "channel": "spotState",
+        //     "data": {
+        //         "user": "0xeeeeexxxxeeeee",
+        //         "spotState": {
+        //             "balances": [
+        //                 {
+        //                     "coin": "USDH",
+        //                     "token": 360,
+        //                     "total": "0.0",
+        //                     "hold": "0.0",
+        //                     "entryNtl": "0.0"
+        //                 }
+        //             ],
+        //             "tokenToAvailableAfterMaintenance": [
+        //                 [
+        //                     0,
+        //                     "56.1"
+        //                 ]
+        //             ]
+        //         }
+        //     }
+        // }
+        // swap
+        // {
+        //     "channel": "clearinghouseState",
+        //     "data": {
+        //         "dex": "",
+        //         "user": "0xeeeeexxxxeeeee",
+        //         "clearinghouseState": {
+        //             "marginSummary": {
+        //                 "accountValue": "0.0",
+        //                 "totalNtlPos": "0.0",
+        //                 "totalRawUsd": "0.0",
+        //                 "totalMarginUsed": "0.0"
+        //             },
+        //             "crossMarginSummary": {
+        //                 "accountValue": "0.0",
+        //                 "totalNtlPos": "0.0",
+        //                 "totalRawUsd": "0.0",
+        //                 "totalMarginUsed": "0.0"
+        //             },
+        //             "crossMaintenanceMarginUsed": "0.0",
+        //             "withdrawable": "0.0",
+        //             "assetPositions": [],
+        //             "time": 1776000003409
+        //         }
+        //     }
+        // }
+        //
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        const topic = this.safeValue (message, 'channel');
+        const messageHash = topic + '::balance';
+        let info = undefined;
+        let rawBalances = [];
+        let account = undefined;
+        let timestamp = undefined;
+        const data = this.safeValue (message, 'data', []);
+        if (topic === 'spotState') {
+            const spotState = this.safeDict (data, 'spotState');
+            rawBalances = this.safeList (spotState, 'balances');
+            account = 'spot';
+            info = rawBalances;
+        }
+        if (topic === 'clearinghouseState') {
+            account = 'swap';
+            const clearinghouseState = this.safeDict (data, 'clearinghouseState');
+            rawBalances.push (clearinghouseState);
+            info = clearinghouseState;
+            timestamp = this.safeInteger (clearinghouseState, 'time');
+            this.handlePositions (client, message);
+        }
+        for (let i = 0; i < rawBalances.length; i++) {
+            this.parseWsBalance (rawBalances[i], account);
+        }
+        if (this.safeValue (this.balance, account) === undefined) {
+            this.balance[account] = {};
+        }
+        this.balance[account]['info'] = info;
+        this.balance[account]['timestamp'] = timestamp;
+        this.balance[account]['datetime'] = this.iso8601 (timestamp);
+        this.balance[account] = this.safeBalance (this.balance[account]);
+        client.resolve (this.balance[account], messageHash);
+    }
+
+    parseWsBalance (balance, accountType = undefined) {
+        //
+        // spot
+        //     {
+        //         "coin": "USDH",
+        //         "token": 360,
+        //         "total": "0.0",
+        //         "hold": "0.0",
+        //         "entryNtl": "0.0"
+        //     }
+        // swap
+        //     {
+        //         "marginSummary": {
+        //             "accountValue": "0.0",
+        //             "totalNtlPos": "0.0",
+        //             "totalRawUsd": "0.0",
+        //             "totalMarginUsed": "0.0"
+        //         },
+        //         "crossMarginSummary": {
+        //             "accountValue": "0.0",
+        //             "totalNtlPos": "0.0",
+        //             "totalRawUsd": "0.0",
+        //             "totalMarginUsed": "0.0"
+        //         },
+        //         "crossMaintenanceMarginUsed": "0.0",
+        //         "withdrawable": "0.0",
+        //         "assetPositions": [],
+        //         "time": 1776000003409
+        //     }
+        //
+        const account = this.account ();
+        const currencyId = this.safeString (balance, 'coin');
+        let code = undefined;
+        if (currencyId === undefined) {
+            code = 'USDC';
+            const marginSummary = this.safeDict (balance, 'marginSummary', {});
+            account['free'] = this.safeString (balance, 'withdrawable');
+            account['used'] = this.safeString (marginSummary, 'totalMarginUsed');
+            account['total'] = this.safeString (marginSummary, 'accountValue');
+        } else {
+            code = this.safeCurrencyCode (currencyId);
+            account['used'] = this.safeString (balance, 'hold');
+            account['total'] = this.safeString (balance, 'total');
+        }
+        if (accountType !== undefined) {
+            if (this.safeValue (this.balance, accountType) === undefined) {
+                this.balance[accountType] = {};
+            }
+            this.balance[accountType][code] = account;
+        } else {
+            this.balance[code] = account;
+        }
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#watchPositions
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @description watch all open positions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of positions to retrieve
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        let userAddress = undefined;
+        [ userAddress, params ] = this.handlePublicAddress ('watchPositions', params);
+        const topic = 'clearinghouseState';
+        let messageHash = topic + '::positions';
+        if (!this.isEmpty (symbols)) {
+            symbols = this.marketSymbols (symbols);
+            messageHash += '::' + symbols.join (',');
+        }
+        const url = this.urls['api']['ws']['public'];
+        const subscription = {
+            'type': topic,
+            'user': userAddress,
+        };
+        const dexName = this.getDexFromSymbols ('watchPositions', symbols);
+        if (dexName !== undefined) {
+            subscription['dex'] = dexName;
+        }
+        const request: Dict = {
+            'method': 'subscribe',
+            'subscription': subscription,
+        };
+        const message = this.extend (request, params);
+        const client = this.client (url);
+        this.setPositionsCache (client, symbols);
+        const cache = this.positions;
+        const newPositions = await this.watch (url, messageHash, message, topic);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
+    }
+
+    setPositionsCache (client: Client, symbols: Strings = undefined) {
+        if (this.positions !== undefined) {
+            return;
+        }
+        this.positions = new ArrayCacheBySymbolBySide ();
+    }
+
+    handlePositions (client, message) {
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+        const cache = this.positions;
+        const data = this.safeDict (message, 'data', {});
+        const clearinghouseState = this.safeDict (data, 'clearinghouseState', {});
+        const newPositions = [];
+        const rawPositions = this.safeList (clearinghouseState, 'assetPositions', []);
+        for (let i = 0; i < rawPositions.length; i++) {
+            const rawPosition = rawPositions[i];
+            const position = this.parsePosition (rawPosition);
+            newPositions.push (position);
+            cache.append (position);
+        }
+        const baseMessageHash = 'clearinghouseState::positions';
+        const messageHashes = this.findMessageHashes (client, baseMessageHash);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsString = this.safeString (parts, 2);
+            if (symbolsString === undefined) {
+                continue;
+            }
+            const symbols = symbolsString.split (',');
+            const positions = this.filterByArray (newPositions, 'symbol', symbols, false);
+            if (!this.isEmpty (positions)) {
+                client.resolve (positions, messageHash);
+            }
+        }
+        client.resolve (newPositions, baseMessageHash);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#unWatchPositions
+     * @description unWatches all open positions
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} status of the unwatch request
+     */
+    async unWatchPositions (symbols: Strings = undefined, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        if (!this.isEmpty (symbols)) {
+            throw new NotSupported (this.id + ' unWatchPositions() does not support a symbol parameter, you must unwatch all orders');
+        }
+        const messageHash = 'unsubscribe:clearinghouseState';
+        const url = this.urls['api']['ws']['public'];
+        let userAddress = undefined;
+        [ userAddress, params ] = this.handlePublicAddress ('unWatchPositions', params);
+        const request: Dict = {
+            'method': 'unsubscribe',
+            'subscription': {
+                'type': 'clearinghouseState',
+                'user': userAddress,
+            },
+        };
+        const message = this.extend (request, params);
+        return await this.watch (url, messageHash, message, messageHash);
+    }
+
+    /**
+     * @method
      * @name hyperliquid#watchOrders
      * @description watches information on multiple orders made by the user
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
@@ -1204,6 +1540,29 @@ export default class hyperliquid extends hyperliquidRest {
         this.cleanCache (topicStructure);
     }
 
+    handlePositionsUnsubscription (client: Client, subscription: Dict) {
+        const subHash = 'clearinghouseState';
+        const unSubHash = 'unsubscribe:' + subHash;
+        this.cleanUnsubscription (client, subHash, unSubHash, true);
+        const topicStructure = {
+            'topic': 'positions',
+        };
+        this.cleanCache (topicStructure);
+        // clean swap balance if it existed
+        if ('swap' in this.balance) {
+            delete this.balance['swap'];
+        }
+    }
+
+    handleSpotBalanceUnsubscription (client: Client, subscription: Dict) {
+        const subHash = 'spotState';
+        const unSubHash = 'unsubscribe:' + subHash;
+        this.cleanUnsubscription (client, subHash, unSubHash, true);
+        if ('spot' in this.balance) {
+            delete this.balance['spot'];
+        }
+    }
+
     handleSubscriptionResponse (client: Client, message) {
         // {
         //     "channel":"subscriptionResponse",
@@ -1246,6 +1605,10 @@ export default class hyperliquid extends hyperliquidRest {
                 this.handleOrderUnsubscription (client, subscription);
             } else if (type === 'userFills') {
                 this.handleMyTradesUnsubscription (client, subscription);
+            } else if (type === 'clearinghoustState') {
+                this.handlePositionsUnsubscription (client, subscription);
+            } else if (type === 'spotState') {
+                this.handleSpotBalanceUnsubscription (client, subscription);
             }
         }
     }
@@ -1280,6 +1643,8 @@ export default class hyperliquid extends hyperliquidRest {
             'allMids': this.handleWsTickers,
             'post': this.handleWsPost,
             'subscriptionResponse': this.handleSubscriptionResponse,
+            'clearinghouseState': this.handleBalance,
+            'spotState': this.handleBalance,
         };
         const exacMethod = this.safeValue (methods, topic);
         if (exacMethod !== undefined) {

@@ -177,6 +177,7 @@ export default class mexc extends Exchange {
      * @name mexc#createOrder
      * @description create a trade order
      * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints#place-order
      * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
      * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
      * @param {string} symbol unified symbol of the market to create an order in
@@ -223,6 +224,7 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#createSwapOrder
      * @description create a trade order
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints#place-order
      * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
      * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
      * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance

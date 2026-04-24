@@ -951,6 +951,309 @@
         ],
         "createOrder": [
             {
+                "description": "takeProfitPrice",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.1,
+                    null,
+                    {
+                        "takeProfitPrice": 2000
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": {
+                        "algoId": "10008731103",
+                        "clientOrderId": null,
+                        "msg": null,
+                        "code": "0"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "algoId": "10008731103",
+                        "clientOrderId": null,
+                        "msg": null,
+                        "code": "0"
+                    },
+                    "id": "10008731103",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "ETH/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "stopLossTriggerPrice": null,
+                    "takeProfitTriggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": false,
+                    "fees": [],
+                    "stopPrice": null,
+                    "triggerPrice": null
+                }
+            },
+            {
+                "description": "regular trigger order",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.1,
+                    null,
+                    {
+                        "stopLossPrice": 2000
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": {
+                        "algoId": "10008730621",
+                        "clientOrderId": null,
+                        "msg": null,
+                        "code": "0"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "algoId": "10008730621",
+                        "clientOrderId": null,
+                        "msg": null,
+                        "code": "0"
+                    },
+                    "id": "10008730621",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "ETH/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "stopLossTriggerPrice": null,
+                    "takeProfitTriggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": false,
+                    "fees": [],
+                    "stopPrice": null,
+                    "triggerPrice": null
+                }
+            },
+            {
+                "description": "regular trigger order",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.1,
+                    null,
+                    {
+                        "triggerPrice": 2000
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": {
+                        "algoId": "10008730484",
+                        "clientOrderId": null,
+                        "msg": null,
+                        "code": "0"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "algoId": "10008730484",
+                        "clientOrderId": null,
+                        "msg": null,
+                        "code": "0"
+                    },
+                    "id": "10008730484",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "ETH/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "stopLossTriggerPrice": null,
+                    "takeProfitTriggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": false,
+                    "fees": [],
+                    "stopPrice": null,
+                    "triggerPrice": null
+                }
+            },
+            {
+                "description": "regular trigger order",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.1,
+                    null,
+                    {
+                        "triggerOrder": 2000
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": [
+                        {
+                            "orderId": "1000147281717",
+                            "clientOrderId": "",
+                            "code": "0",
+                            "msg": "Order placed"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "1000147281717",
+                        "clientOrderId": "",
+                        "code": "0",
+                        "msg": "Order placed"
+                    },
+                    "id": "1000147281717",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "ETH/USDT:USDT",
+                    "type": "market",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "sell",
+                    "price": null,
+                    "stopLossTriggerPrice": null,
+                    "takeProfitTriggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": false,
+                    "fees": [],
+                    "stopPrice": null,
+                    "triggerPrice": null
+                }
+            },
+            {
+                "description": "perp, tp & sl combined",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.1,
+                    null,
+                    {
+                        "takeProfitPrice": 2555,
+                        "stopLossPrice": 2000
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Order placed",
+                    "data": {
+                        "tpslId": "10008676376",
+                        "clientOrderId": null,
+                        "code": "0",
+                        "msg": null
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "tpslId": "10008676376",
+                        "clientOrderId": null,
+                        "code": "0",
+                        "msg": null
+                    },
+                    "id": "10008676376",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "ETH/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "stopLossTriggerPrice": null,
+                    "takeProfitTriggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": false,
+                    "fees": [],
+                    "stopPrice": null,
+                    "triggerPrice": null
+                }
+            },
+            {
                 "description": "trigger market order",
                 "method": "createOrder",
                 "input": [

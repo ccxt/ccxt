@@ -954,15 +954,24 @@ func  (this *BitvavoCore) CancelAllOrdersWs(optionalArgs ...interface{}) <- chan
             retRes7278 := (<-this.Authenticate())
             ccxt.PanicOnError(retRes7278)
             var request interface{} = map[string]interface{} {}
+            var operatorId interface{} = nil
+            operatorIdparamsVariable := this.HandleOptionAndParams(params, "cancelAllOrdersWs", "operatorId")
+            operatorId = ccxt.GetValue(operatorIdparamsVariable,0)
+            params = ccxt.GetValue(operatorIdparamsVariable,1)
+            if ccxt.IsTrue(!ccxt.IsEqual(operatorId, nil)) {
+                ccxt.AddElementToObject(request, "operatorId", this.ParseToInt(operatorId))
+            } else {
+                panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " canceAllOrdersWs() requires an operatorId in params or options, eg: exchange.options[\\'operatorId\\'] = 1234567890")))
+            }
             var market interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
                 ccxt.AddElementToObject(request, "market", ccxt.GetValue(market, "id"))
             }
         
-                retRes73415 :=  (<-this.WatchRequest("privateCancelOrders", this.Extend(request, params)))
-                ccxt.PanicOnError(retRes73415)
-                ch <- retRes73415
+                retRes74115 :=  (<-this.WatchRequest("privateCancelOrders", this.Extend(request, params)))
+                ccxt.PanicOnError(retRes74115)
+                ch <- retRes74115
                 return nil
         
             }()
@@ -1011,20 +1020,20 @@ func  (this *BitvavoCore) FetchOrderWs(id interface{}, optionalArgs ...interface
                 panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " fetchOrder() requires a symbol argument")))
             }
         
-            retRes7728 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7728)
+            retRes7798 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes7798)
         
-            retRes7738 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes7738)
+            retRes7808 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes7808)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "orderId": id,
                 "market": ccxt.GetValue(market, "id"),
             }
         
-                retRes77915 :=  (<-this.WatchRequest("privateGetOrder", this.Extend(request, params)))
-                ccxt.PanicOnError(retRes77915)
-                ch <- retRes77915
+                retRes78615 :=  (<-this.WatchRequest("privateGetOrder", this.Extend(request, params)))
+                ccxt.PanicOnError(retRes78615)
+                ch <- retRes78615
                 return nil
         
             }()
@@ -1058,11 +1067,11 @@ func  (this *BitvavoCore) FetchOrdersWs(optionalArgs ...interface{}) <- chan int
                 panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " fetchOrdersWs() requires a symbol argument")))
             }
         
-            retRes7978 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7978)
+            retRes8048 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes8048)
         
-            retRes7988 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes7988)
+            retRes8058 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes8058)
             var request interface{} = this.FetchOrdersRequest(symbol, since, limit, params)
         
             orders:= (<-this.WatchRequest("privateGetOrders", request))
@@ -1091,9 +1100,9 @@ func  (this *BitvavoCore) WatchRequest(action interface{}, request interface{}) 
             ccxt.AddElementToObject(request, "requestId", messageHash)
             var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
         
-                retRes81715 :=  (<-this.Watch(url, messageHashStr, request, messageHashStr))
-                ccxt.PanicOnError(retRes81715)
-                ch <- retRes81715
+                retRes82415 :=  (<-this.Watch(url, messageHashStr, request, messageHashStr))
+                ccxt.PanicOnError(retRes82415)
+                ch <- retRes82415
                 return nil
         
             }()
@@ -1123,11 +1132,11 @@ func  (this *BitvavoCore) FetchOpenOrdersWs(optionalArgs ...interface{}) <- chan
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes8318 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes8318)
+            retRes8388 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes8388)
         
-            retRes8328 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes8328)
+            retRes8398 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes8398)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -1172,11 +1181,11 @@ func  (this *BitvavoCore) FetchMyTradesWs(optionalArgs ...interface{}) <- chan i
                 panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " fetchMyTradesWs() requires a symbol argument")))
             }
         
-            retRes8608 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes8608)
+            retRes8678 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes8678)
         
-            retRes8618 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes8618)
+            retRes8688 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes8688)
             var request interface{} = this.FetchMyTradesRequest(symbol, since, limit, params)
         
             myTrades:= (<-this.WatchRequest("privateGetTrades", request))
@@ -1243,16 +1252,16 @@ func  (this *BitvavoCore) WithdrawWs(code interface{}, amount interface{}, addre
             params = ccxt.GetValue(tagparamsVariable,1)
             this.CheckAddress(address)
         
-            retRes9128 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes9128)
+            retRes9198 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes9198)
         
-            retRes9138 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes9138)
+            retRes9208 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes9208)
             var request interface{} = this.WithdrawRequest(code, amount, address, tag, params)
         
-                retRes91515 :=  (<-this.WatchRequest("privateWithdrawAssets", request))
-                ccxt.PanicOnError(retRes91515)
-                ch <- retRes91515
+                retRes92215 :=  (<-this.WatchRequest("privateWithdrawAssets", request))
+                ccxt.PanicOnError(retRes92215)
+                ch <- retRes92215
                 return nil
         
             }()
@@ -1301,11 +1310,11 @@ func  (this *BitvavoCore) FetchWithdrawalsWs(optionalArgs ...interface{}) <- cha
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes9498 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes9498)
+            retRes9568 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes9568)
         
-            retRes9508 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes9508)
+            retRes9578 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes9578)
             var request interface{} = this.FetchWithdrawalsRequest(code, since, limit, params)
         
             withdraws:= (<-this.WatchRequest("privateGetWithdrawalHistory", request))
@@ -1368,8 +1377,8 @@ func  (this *BitvavoCore) FetchOHLCVWs(symbol interface{}, optionalArgs ...inter
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes9938 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes9938)
+            retRes10008 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes10008)
             var request interface{} = this.FetchOHLCVRequest(symbol, timeframe, since, limit, params)
             var action interface{} = "getCandles"
         
@@ -1407,11 +1416,11 @@ func  (this *BitvavoCore) FetchDepositsWs(optionalArgs ...interface{}) <- chan i
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes10128 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes10128)
+            retRes10198 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes10198)
         
-            retRes10138 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes10138)
+            retRes10208 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes10208)
             var request interface{} = this.FetchDepositsRequest(code, since, limit, params)
         
             deposits:= (<-this.WatchRequest("privateGetDepositHistory", request))
@@ -1462,15 +1471,15 @@ func  (this *BitvavoCore) FetchTradingFeesWs(optionalArgs ...interface{}) <- cha
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes10508 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes10508)
+            retRes10578 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes10578)
         
-            retRes10518 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes10518)
+            retRes10588 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes10588)
         
-                retRes105215 :=  (<-this.WatchRequest("privateGetAccount", params))
-                ccxt.PanicOnError(retRes105215)
-                ch <- retRes105215
+                retRes105915 :=  (<-this.WatchRequest("privateGetAccount", params))
+                ccxt.PanicOnError(retRes105915)
+                ch <- retRes105915
                 return nil
         
             }()
@@ -1492,9 +1501,9 @@ func  (this *BitvavoCore) FetchMarketsWs(optionalArgs ...interface{}) <- chan in
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes106415 :=  (<-this.WatchRequest("getMarkets", params))
-                ccxt.PanicOnError(retRes106415)
-                ch <- retRes106415
+                retRes107115 :=  (<-this.WatchRequest("getMarkets", params))
+                ccxt.PanicOnError(retRes107115)
+                ch <- retRes107115
                 return nil
         
             }()
@@ -1516,12 +1525,12 @@ func  (this *BitvavoCore) FetchCurrenciesWs(optionalArgs ...interface{}) <- chan
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes10768 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes10768)
+            retRes10838 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes10838)
         
-                retRes107715 :=  (<-this.WatchRequest("getAssets", params))
-                ccxt.PanicOnError(retRes107715)
-                ch <- retRes107715
+                retRes108415 :=  (<-this.WatchRequest("getAssets", params))
+                ccxt.PanicOnError(retRes108415)
+                ch <- retRes108415
                 return nil
         
             }()
@@ -1587,15 +1596,15 @@ func  (this *BitvavoCore) FetchBalanceWs(optionalArgs ...interface{}) <- chan in
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes11358 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes11358)
+            retRes11428 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes11428)
         
-            retRes11368 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes11368)
+            retRes11438 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes11438)
         
-                retRes113715 :=  (<-this.WatchRequest("privateGetBalance", params))
-                ccxt.PanicOnError(retRes113715)
-                ch <- retRes113715
+                retRes114415 :=  (<-this.WatchRequest("privateGetBalance", params))
+                ccxt.PanicOnError(retRes114415)
+                ch <- retRes114415
                 return nil
         
             }()

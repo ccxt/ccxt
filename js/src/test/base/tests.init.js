@@ -58,6 +58,7 @@ import testUrlencodeNested from './test.urlencodeNested.js';
 import testClone from './test.clone.js';
 import testStringToBase16 from './test.stringToBase16.js';
 import testCapitalize from './test.capitalize.js';
+import testBinaryConcat from './test.binaryConcat.js';
 import testConstants from './test.constants.js';
 import testBase58ToBinary from './test.base58ToBinary.js';
 import testIsJsonEncodedObject from './test.isJsonEncodedObject.js';
@@ -100,6 +101,7 @@ async function baseTestsInit() {
     testHandleMethods();
     testRemoveRepeatedElementsFromArray();
     testIsEmpty();
+    testBinaryConcat();
     testUrlencodeWithArrayRepeat();
     testParsePrecision();
     testPrecisionFromString();

@@ -289,6 +289,7 @@ class testMainClass:
                 is_auth_error = (isinstance(e, AuthenticationError))
                 is_not_supported = (isinstance(e, NotSupported))
                 is_operation_failed = (isinstance(e, OperationFailed))  # includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
+                last_url_msg = '' if self.ws_tests else ' (Last url: ' + exchange.last_request_url + ' )'
                 if is_operation_failed:
                     # if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if i == max_retries - 1:
@@ -316,7 +317,7 @@ class testMainClass:
                                 ret_success = True
                         # output the message
                         fail_type = '[TEST_FAILURE]' if should_fail else '[TEST_WARNING]'
-                        dump(fail_type, 'Method could not be tested due to a repeated Network/Availability issues', ' | ', exchange.id, method_name, args_stringified, exception_message(e))
+                        dump(fail_type, exchange.id, method_name, args_stringified, last_url_msg, 'Method could not be tested due to a repeated Network/Availability issues', ' | ', exception_message(e))
                         return ret_success
                     else:
                         # wait and retry again
@@ -325,22 +326,22 @@ class testMainClass:
                 else:
                     # if it's loadMarkets, then fail test, because it's mandatory for tests
                     if is_load_markets:
-                        dump('[TEST_FAILURE]', 'Exchange can not load markets', exception_message(e), exchange.id, method_name, args_stringified)
+                        dump('[TEST_FAILURE]', exchange.id, method_name, args_stringified, last_url_msg, 'Exchange can not load markets', exception_message(e))
                         return False
                     # if the specific arguments to the test method throws "NotSupported" exception
                     # then let's don't fail the test
                     if is_not_supported:
                         if self.info:
-                            dump('[INFO] NOT_SUPPORTED', exception_message(e), exchange.id, method_name, args_stringified)
+                            dump('[INFO] NOT_SUPPORTED', exchange.id, method_name, args_stringified, last_url_msg, exception_message(e))
                         return True
                     # If public test faces authentication error, we don't break (see comments under `testSafe` method)
                     if is_public and is_auth_error:
                         if self.info:
                             # todo - turn into warning
-                            dump('[INFO]', 'Authentication problem for public method', exception_message(e), exchange.id, method_name, args_stringified)
+                            dump('[INFO]', exchange.id, method_name, args_stringified, last_url_msg, 'Authentication problem for public method', exception_message(e))
                         return True
                     else:
-                        dump('[TEST_FAILURE]', exception_message(e), exchange.id, method_name, args_stringified)
+                        dump('[TEST_FAILURE]', exchange.id, method_name, args_stringified, last_url_msg, exception_message(e))
                         return False
         return True
 
@@ -984,8 +985,10 @@ class testMainClass:
                     else:
                         library_path = base_path + 'lighter-signer-linux-arm64.so'
                 else:
-                    # assume macos arm64
-                    library_path = base_path + 'lighter-signer-darwin-arm64.dylib'
+                    if is_amd64():
+                        library_path = base_path + 'lighter-signer-darwin-x86.dylib'
+                    else:
+                        library_path = base_path + 'lighter-signer-darwin-arm64.dylib'
         options = {
             'markets': markets,
             'currencies': currencies,
@@ -1226,7 +1229,7 @@ class testMainClass:
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex()]
         (promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1823,3 +1826,21 @@ class testMainClass:
         if not is_sync():
             close(exchange)
         return True
+
+    def test_weex(self):
+        exchange = self.init_offline_exchange('weex')
+        id = 'b-WEEX111125'
+        assert exchange.options['partner'] == id, 'weex - id: ' + id + ' not in options'
+        request = None
+        try:
+            exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        client_order_id = request['newClientOrderId']
+        assert client_order_id.startswith(id), 'weex - newClientOrderId: ' + client_order_id + ' for spot order does not start with id: ' + id
+        try:
+            exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        client_order_id = request['newClientOrderId']
+        assert client_order_id.startswith(id), 'weex - newClientOrderId: ' + client_order_id + ' for swap order does not start with id: ' + id

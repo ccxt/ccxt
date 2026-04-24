@@ -715,7 +715,6 @@ class gate extends Exchange {
                 'MPH' => 'MORPHER', // conflict with 88MPH
                 'POINT' => 'GATEPOINT',
                 'RAI' => 'RAIREFLEXINDEX', // conflict with RAI Finance
-                'RED' => 'RedLang',
                 'SBTC' => 'SUPERBITCOIN',
                 'TNC' => 'TRINITYNETWORKCREDIT',
                 'VAI' => 'VAIOT',

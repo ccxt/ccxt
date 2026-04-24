@@ -263,7 +263,8 @@ export default class blofin extends Exchange {
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatus(status: Str): string;
+    parseTransactionWithdrawalStatus(status: Str): string;
+    parseTransactionDepositStatus(status: Str): string;
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     parseIds(ids: any): any;
