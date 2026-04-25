@@ -1645,9 +1645,9 @@ ${constStatements.join('\n')}
             // baseClass = baseClass.replaceAll(/(?<!<-)this\.callInternal/gm, "<-this.callInternal");
             [/callDynamically\(/gm, 'this.CallDynamically('], //fix this on the transpiler
             [/throwDynamicException\(/gm, 'ThrowDynamicException('], //fix this on the transpiler
-            [/currentRestInstance interface\{\},/g, "currentRestInstance Exchange,"],
-            [/parentRestInstance interface\{\},/g, "parentRestInstance Exchange,"],
-            [/client interface\{\},/g, "client *Client,"],
+            [/currentRestInstance any,/g, "currentRestInstance Exchange,"],
+            [/parentRestInstance any,/g, "parentRestInstance Exchange,"],
+            [/client any,/g, "client *Client,"],
             [/this.Number = String/g, 'this.Number = "string"'],
             [/(\w+)(\.StoreArray\(.+\))/gm, '($1.(*OrderBookSide))$2'], // tmp fix for c#
             [/ch <- nil\s+\/\/.+/g, ''],
@@ -1677,7 +1677,7 @@ ${constStatements.join('\n')}
             [/GetDescribeForExtendedWsExchange\(currentRestInstance \*Exchange, parentRestInstance \*Exchange/g, 'GetDescribeForExtendedWsExchange(currentRestInstance Describer, parentRestInstance Describer'],
             [/(var \w+ any) = client.Futures/g, '$1 = (client.(Client)).Futures'], // tmp fix for go not needed after ws-merge
             // Fix setMarketsFromExchange parameter type
-            [/func\s+\(this \*Exchange\)\s+SetMarketsFromExchange\(sourceExchange interface\{\}\)/g, 'func (this *Exchange) SetMarketsFromExchange(sourceExchange *Exchange)'],
+            [/func\s+\(this \*Exchange\)\s+SetMarketsFromExchange\(sourceExchange any\)/g, 'func (this *Exchange) SetMarketsFromExchange(sourceExchange *Exchange)'],
         ]);
 
         const jsDelimiter = '// ' + delimiter;
@@ -2155,7 +2155,7 @@ ${caseStatements.join('\n')}
                 [/base\.(\w+)\(/gm, "this.Exchange.$1("],
                 [/base\.Describe/gm, "this.Exchange.Describe"],
                 [/"\0"/gm, '"\/\/\" + "0"'], // check this later in bl3p
-                [/var (precise|preciseAmount) interface\{\} = /gm, "$1 := "],
+                [/var (precise|preciseAmount) any = /gm, "$1 := "],
                 [/binaryMessage.ByteLength/gm, 'GetValue(binaryMessage, "byteLength")'], // idex tmp fix
                 [/ToString\((precise\w*)\)/gm, "$1.ToString()"],
                 [/<\-callDynamically/gm, '<-this.CallDynamically'],
@@ -2394,8 +2394,8 @@ func (this *${className}) Init(userConfig map[string]any) {
             let content = go.content;
             content = this.regexAll (content, [
                 [/(\w+) := NewCcxt\.Exchange\(([\S\s]+?)\)/gm, '$1 := ccxt.NewExchange().(*ccxt.Exchange); $1.DerivedExchange = $1; $1.InitParent($2, map[string]any{}, $1)' ],
-                [/exchange interface\{\}, /g,'exchange *ccxt.Exchange, '], // in arguments
-                [/ interface\{\}(?= \= map\[string\]interface\{\} )/g, ' map[string]any'], // fix incorrect variable type
+                [/exchange any, /g,'exchange *ccxt.Exchange, '], // in arguments
+                [/ any(?= \= map\[string\]any )/g, ' map[string]any'], // fix incorrect variable type
                 [ /any\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
                 [/Precise\.String/gm, 'ccxt.Precise.String'],
                 [ /testSharedMethods\./gm, '' ], // no need of class reference
@@ -2450,12 +2450,12 @@ func (this *${className}) Init(userConfig map[string]any) {
         // ad-hoc fixes
         contentIndentend = this.regexAll (contentIndentend, [
             [/var (mockedExchange|exchange) any =/g, 'var $1 ccxt.ICoreExchange ='],
-            [/exchange interface\{\}([,)])/g, 'exchange ccxt.ICoreExchange$1'],
+            [/exchange any([,)])/g, 'exchange ccxt.ICoreExchange$1'],
             [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],
             [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
-            [/InitOfflineExchange\(exchangeName any\) interface\{\}  {/g, 'InitOfflineExchange(exchangeName any) ccxt.ICoreExchange {'],
+            [/InitOfflineExchange\(exchangeName any\) any  {/g, 'InitOfflineExchange(exchangeName any) ccxt.ICoreExchange {'],
             [/assert\(/g, 'Assert('],
-            [/OnlySpecificTests \[\]interface\{\}/g, 'OnlySpecificTests any '],
+            [/OnlySpecificTests \[\]any/g, 'OnlySpecificTests any '],
             [ /any\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
         ]);
 
@@ -2545,7 +2545,7 @@ func (this *${className}) Init(userConfig map[string]any) {
 
             let regexes = [
                 [/exchange := (?:&)?ccxt\.Exchange\{\}/g, 'exchange := ccxt.NewExchange()'],
-                [/exchange interface\{\}([,)])/g, 'exchange ccxt.ICoreExchange$1'],
+                [/exchange any([,)])/g, 'exchange ccxt.ICoreExchange$1'],
                 [/testSharedMethods\./g, ''], // no need of class reference
                 [/assert/gm, 'Assert'],
                 [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],

@@ -110,7 +110,7 @@ type MarketInterface struct {
 // CreateMarketInterface initializes the MarketInterface struct
 func NewMarketInterface(data any) MarketInterface {
 	if data == nil {
-		return Marketany
+		return MarketInterface{}
 	}
 
 	m := data.(map[string]any)
@@ -1834,7 +1834,7 @@ func NewTradingFees(data2 any) TradingFees {
 func (t *TradingFees) Get(key string) (TradingFeeInterface, error) {
 	fee, exists := t.TradingFees[key]
 	if !exists {
-		return TradingFeeany, fmt.Errorf("the key '%s' was not found in the tradingFees", key)
+		return TradingFeeInterface{}, fmt.Errorf("the key '%s' was not found in the tradingFees", key)
 	}
 	return fee, nil
 }
