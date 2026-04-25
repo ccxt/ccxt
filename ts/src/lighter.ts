@@ -657,7 +657,7 @@ export default class lighter extends Exchange {
         const strAccountIndex = this.numberToString (accountIndex);
         const strApiKeyIndex = this.numberToString (apiKeyIndex);
         const signer = await this.loadAccount (this.options['chainId'], this.getLighterPrivateKey (strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
-        const nonce = await this.fetchNonce (accountIndex, apiKeyIndex, params);
+        const nonce = await this.fetchNonce (accountIndex, apiKeyIndex, this.extend (params, { 'skipNonce': false }));
         const expiry = this.milliseconds () + 365 * 864000;
         const signRaw = {
             'integrator_account_index': builder,
@@ -687,7 +687,7 @@ export default class lighter extends Exchange {
         const strApiKeyIndex = this.numberToString (apiKeyIndex);
         const signerNotLoad = this.options['auths'][strAccountIndex][strApiKeyIndex]['signer'];
         const [ privateKey, publicKey ] = this.lighterGenerateApiKey (signerNotLoad);
-        const nonce = await this.fetchNonce (accountIndex, apiKeyIndex, params);
+        const nonce = await this.fetchNonce (accountIndex, apiKeyIndex, this.extend (params, { 'skipNonce': false }));
         const signRaw = {
             'pubkey': this.encode (publicKey),
             'nonce': nonce,
@@ -884,6 +884,12 @@ export default class lighter extends Exchange {
         const nonceInOptions = this.safeInteger (this.options, 'nonce');
         if (nonceInOptions !== undefined) {
             return nonceInOptions;
+        }
+        // avoid skipNonce for l1 operations
+        let skipNonce = true;
+        [ skipNonce, params ] = this.handleOptionAndParams (params, 'fetchNonce', 'skipNonce', true);
+        if (skipNonce) {
+            return this.milliseconds ();
         }
         const response = await this.publicGetNextNonce ({ 'account_index': accountIndex, 'api_key_index': apiKeyIndex });
         return this.safeInteger (response, 'nonce');
