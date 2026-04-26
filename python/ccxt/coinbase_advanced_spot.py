@@ -17,6 +17,15 @@ class coinbase_advanced_spot(coinbase):
             },
         })
 
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response,
+                      requestHeaders, requestBody):
+        if response is None:
+            return None
+        error_details = self.safe_string(response, 'error_details')
+        if self.safe_string(response, 'error_description') is None and error_details is not None:
+            response = self.extend(response, {'error_description': error_details})
+        return super().handle_errors(code, reason, url, method, headers, body, response, requestHeaders, requestBody)
+
     def __init__(self, config={}):
         super().__init__(config)
         self.options['fetchBalance'] = 'v3PrivateGetBrokerageAccounts'
