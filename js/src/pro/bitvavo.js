@@ -700,6 +700,14 @@ export default class bitvavo extends bitvavoRest {
         await this.loadMarkets();
         await this.authenticate();
         const request = {};
+        let operatorId = undefined;
+        [operatorId, params] = this.handleOptionAndParams(params, 'cancelAllOrdersWs', 'operatorId');
+        if (operatorId !== undefined) {
+            request['operatorId'] = this.parseToInt(operatorId);
+        }
+        else {
+            throw new ArgumentsRequired(this.id + ' canceAllOrdersWs() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);

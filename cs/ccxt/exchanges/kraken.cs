@@ -514,6 +514,7 @@ public partial class kraken : Exchange
                     { "EFunding:No funding method", typeof(BadRequest) },
                     { "EFunding:Unknown asset", typeof(BadSymbol) },
                     { "EService:Market in post_only mode", typeof(OnMaintenance) },
+                    { "EService:Market in cancel_only mode", typeof(OnMaintenance) },
                     { "EGeneral:Too many requests", typeof(DDoSProtection) },
                     { "ETrade:User Locked", typeof(AccountSuspended) },
                 } },

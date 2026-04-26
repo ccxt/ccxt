@@ -11,6 +11,7 @@ var FunctionsMap = map[string]interface{}{
 	"base16ToBinary":                  TestBase16ToBinary,
 	"base58ToBinary":                  TestBase58ToBinary,
 	"base64ToBinary":                  TestBase64ToBinary,
+	"binaryConcat":                    TestBinaryConcat,
 	"binaryToBase16":                  TestBinaryToBase16,
 	"binaryToBase58":                  TestBinaryToBase58,
 	"binaryToBase64":                  TestBinaryToBase64,

@@ -376,6 +376,7 @@ class Transpiler {
     getPHPSyncRegexes () {
         return [
             [ /Async\\await\(Promise\\all\((.+)\)\)/g, '$1' ], // remove line entirely
+            [ /Promise\\all\((.+)\)/g, '$1' ], // remove line entirely
             // delete await, the following regex does not pick up multiline await calls
             [ /\bAsync\\await\((.+)\);/g, '$1;' ],
             // hence the following regex is added with a dotAll modifier 's'
@@ -2493,12 +2494,12 @@ class Transpiler {
 
             if (this.buildPHP && this.buildPython) {
                 phpAsync = phpFixes(result[0].content);
-                phpSync = phpFixes(result[1].content);
+                phpSync = this.transpileAsyncPHPToSyncPHP (phpFixes(result[1].content));
                 pythonSync = pyFixes (result[2].content, true);
                 pythonAsync = pyFixes (result[3].content);
             } else if (this.buildPHP) {
                 phpAsync = phpFixes(result[0].content);
-                phpSync = phpFixes(result[1].content);
+                phpSync = this.transpileAsyncPHPToSyncPHP (phpFixes(result[1].content));
             } else if (this.buildPython) {
                 pythonAsync = pyFixes(result[1].content);
                 pythonSync = pyFixes(result[0].content);

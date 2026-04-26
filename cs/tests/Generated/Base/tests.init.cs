@@ -46,6 +46,7 @@ public partial class BaseTest
             testHandleMethods();
             testRemoveRepeatedElementsFromArray();
             testIsEmpty();
+            testBinaryConcat();
             testUrlencodeWithArrayRepeat();
             testParsePrecision();
             testPrecisionFromString();

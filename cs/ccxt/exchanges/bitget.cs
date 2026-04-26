@@ -1353,6 +1353,7 @@ public partial class bitget : Exchange
                     { "43115", typeof(OnMaintenance) },
                     { "45110", typeof(InvalidOrder) },
                     { "40774", typeof(InvalidOrder) },
+                    { "40917", typeof(InvalidOrder) },
                     { "45122", typeof(InvalidOrder) },
                     { "invalid sign", typeof(AuthenticationError) },
                     { "invalid currency", typeof(BadSymbol) },

@@ -982,7 +982,7 @@ func  (this *CoinbaseCore) HandleTrade(client interface{}, message interface{}) 
         var currentEvent interface{} = ccxt.GetValue(events, i)
         var currentTrades interface{} = this.SafeList(currentEvent, "trades")
         for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(currentTrades)); j++ {
-            var item interface{} = ccxt.GetValue(currentTrades, i)
+            var item interface{} = ccxt.GetValue(currentTrades, j)
             tradesArray.(ccxt.Appender).Append(this.ParseTrade(item))
         }
     }

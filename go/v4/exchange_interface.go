@@ -228,7 +228,8 @@ type ICoreExchange interface {
 	CheckProxySettings(optionalArgs ...interface{}) interface{}
 	IsTickPrecision() interface{}
 	SetProperty(obj interface{}, property interface{}, defaultValue interface{})
-	GetProperty(obj interface{}, property interface{}) interface{}
+	Capitalize(value interface{}) string
+	GetProperty(obj interface{}, property interface{}, defaultValue ...interface{}) interface{}
 	ExceptionMessage(exc interface{}, includeStack ...interface{}) interface{}
 	SetProxyUrl(proxyUrl interface{})
 	SetSocksProxy(proxyUrl interface{})

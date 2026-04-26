@@ -10493,6 +10493,8 @@ public partial class kucoin : Exchange
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {integer} [params.pageSize] *uta only* page size for the uta endpoint (default 50, max 200)
+     * @param {integer} [params.pageNumber] *uta only* page number for the uta endpoint (default 1)
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
@@ -10599,6 +10601,8 @@ public partial class kucoin : Exchange
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {integer} [params.pageSize] *uta only* page size for the uta endpoint (default 50, max 200)
+     * @param {integer} [params.pageNumber] *uta only* page number for the uta endpoint (default 1)
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
@@ -10612,9 +10616,10 @@ public partial class kucoin : Exchange
         object response = null;
         if (isTrue(uta))
         {
-            response = await this.utaPrivateGetAccountModePositionOpenList(this.extend(parameters, new Dictionary<string, object>() {
+            response = await this.utaPrivateGetAccountModePositionOpenList(this.extend(new Dictionary<string, object>() {
                 { "accountMode", "unified" },
-            }));
+                { "limit", 200 },
+            }, parameters));
         } else
         {
             response = await this.futuresPrivateGetPositions(parameters);

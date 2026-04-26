@@ -1393,6 +1393,7 @@ class bitget extends bitget$1["default"] {
                     '43115': errors.OnMaintenance,
                     '45110': errors.InvalidOrder,
                     '40774': errors.InvalidOrder,
+                    '40917': errors.InvalidOrder,
                     '45122': errors.InvalidOrder,
                     // spot
                     'invalid sign': errors.AuthenticationError,

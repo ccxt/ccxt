@@ -569,19 +569,19 @@ public partial class bitmart : ccxt.bitmart
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object url = this.implodeHostname(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), marketType), "public"));
-        object channelType = ((bool) isTrue((isEqual(marketType, "spot")))) ? "spot" : "futures";
+        object channelType = ((bool) isTrue((isEqual(marketType, "spot")))) ? "spot/bookTicker" : "futures/ticker";
         object actionType = ((bool) isTrue((isEqual(marketType, "spot")))) ? "op" : "action";
         object rawSubscriptions = new List<object>() {};
         object messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object market = this.market(getValue(symbols, i));
-            ((IList<object>)rawSubscriptions).Add(add(add(channelType, "/ticker:"), getValue(market, "id")));
+            ((IList<object>)rawSubscriptions).Add(add(add(channelType, ":"), getValue(market, "id")));
             ((IList<object>)messageHashes).Add(add("bidask:", getValue(symbols, i)));
         }
         if (isTrue(!isEqual(marketType, "spot")))
         {
-            rawSubscriptions = new List<object>() {add(channelType, "/ticker")};
+            rawSubscriptions = new List<object>() {channelType};
         }
         object request = new Dictionary<string, object>() {
             { "args", rawSubscriptions },
@@ -2377,6 +2377,7 @@ public partial class bitmart : ccxt.bitmart
             object channel = this.safeString2(message, "table", "group");
             object methods = new Dictionary<string, object>() {
                 { "depth", this.handleOrderBook },
+                { "bookTicker", this.handleBidAsk },
                 { "ticker", this.handleTicker },
                 { "trade", this.handleTrade },
                 { "kline", this.handleOHLCV },

@@ -37,6 +37,6 @@ async def test_watch_trades_for_symbols(exchange, skipped_properties, symbols):
                 symbol = trade['symbol']
                 test_trade(exchange, skipped_properties, method, trade, symbol, now)
                 test_shared_methods.assert_in_array(exchange, skipped_properties, method, trade, 'symbol', symbols)
-            if not ('timestamp' in skipped_properties):
+            if not ('timestampSort' in skipped_properties):
                 test_shared_methods.assert_timestamp_order(exchange, method, symbol, response)
     return True

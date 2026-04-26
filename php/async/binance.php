@@ -1205,6 +1205,7 @@ class binance extends Exchange {
                         'asset-collection' => 6,
                         'margin/repay-debt' => 3000,
                         'um/feeBurn' => 1,
+                        'um/stock/contract' => 1,
                     ),
                     'put' => array(
                         'listenKey' => 0.2,
@@ -2865,10 +2866,6 @@ class binance extends Exchange {
             return $this->create_expired_option_market($marketId);
         }
         return parent::safe_market($marketId, $market, $delimiter, $marketType);
-    }
-
-    public function cost_to_precision($symbol, $cost) {
-        return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['quote'], $this->precisionMode, $this->paddingMode);
     }
 
     public function nonce() {
@@ -5720,15 +5717,26 @@ class binance extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type(?string $type) {
-        $types = array(
-            'limit_maker' => 'limit',
-            'stop' => 'limit',
-            'stop_market' => 'market',
-            'take_profit' => 'limit',
-            'take_profit_market' => 'market',
-            'trailing_stop_market' => 'market',
-        );
+    public function parse_order_type_by_market(?string $type, ?string $marketType) {
+        $types = array();
+        if (($marketType !== null) && $marketType === 'spot') {
+            $types = array(
+                'limit_maker' => 'limit',
+                'stop_loss_limit' => 'limit',
+                'stop_loss' => 'market',
+                'take_profit_limit' => 'limit',
+                'take_profit' => 'market',
+            );
+        } else {
+            $types = array(
+                'limit_maker' => 'limit',
+                'stop' => 'limit',
+                'stop_market' => 'market',
+                'take_profit' => 'limit',
+                'take_profit_market' => 'market',
+                'trailing_stop_market' => 'market',
+            );
+        }
         return $this->safe_string($types, $type, $type);
     }
 
@@ -6316,7 +6324,7 @@ class binance extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'lastUpdateTimestamp' => $lastUpdateTimestamp,
             'symbol' => $symbol,
-            'type' => $this->parse_order_type($type),
+            'type' => $this->parse_order_type_by_market($type, $marketType),
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
             'reduceOnly' => $this->safe_bool($order, 'reduceOnly'),

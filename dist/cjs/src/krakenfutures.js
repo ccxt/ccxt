@@ -1569,7 +1569,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             request['count'] = limit;
         }
         if (since !== undefined) {
-            request['from'] = since;
+            request['since'] = since;
         }
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         let response = undefined;
@@ -1586,12 +1586,21 @@ class krakenfutures extends krakenfutures$1["default"] {
             const order = allOrders[i];
             const event = this.safeDict(order, 'event', {});
             const orderPlaced = this.safeDict2(event, 'OrderPlaced', 'OrderTriggerActivated');
+            const orderUpdated = this.safeDict(event, 'OrderUpdated');
             if (orderPlaced !== undefined) {
                 const innerOrder = this.safeDict(orderPlaced, 'order', {});
                 const filled = this.safeString(innerOrder, 'filled');
                 if (filled !== '0') {
                     innerOrder['status'] = 'closed'; // status not available in the response
                     closedOrders.push(innerOrder);
+                }
+            }
+            else if (orderUpdated !== undefined) {
+                const reason = this.safeString(orderUpdated, 'reason');
+                if (reason === 'full_fill') {
+                    const newOrder = this.safeDict(orderUpdated, 'newOrder', {});
+                    newOrder['status'] = 'closed';
+                    closedOrders.push(newOrder);
                 }
             }
         }

@@ -2398,7 +2398,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 [/ interface\{\}(?= \= map\[string\]interface\{\} )/g, ' map[string]interface{}'], // fix incorrect variable type
                 [ /interface{}\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
                 [/Precise\.String/gm, 'ccxt.Precise.String'],
-                [ /testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual' ], // deepEqual added
+                [ /testSharedMethods\./gm, '' ], // no need of class reference
                 [ /func Equals\(.+\n.*\n.*\n.*\}/gm, '' ], // remove equals
                 [ /\@SKIP_START_GO[\s\S]*?\@SKIP_END_GO/gm, '' ],
                 // Match ArrayCache variables and cast to appropriate type based on variable name
@@ -2546,7 +2546,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             let regexes = [
                 [/exchange := (?:&)?ccxt\.Exchange\{\}/g, 'exchange := ccxt.NewExchange()'],
                 [/exchange interface\{\}([,)])/g, 'exchange ccxt.ICoreExchange$1'],
-                [/testSharedMethods\./g, ''],
+                [/testSharedMethods\./g, ''], // no need of class reference
                 [/assert/gm, 'Assert'],
                 [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],
                 [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
@@ -2714,6 +2714,7 @@ if (isMainEntry(import.meta.url)) {
     const examples = process.argv.includes ('--examples');
     const force = process.argv.includes ('--force');
     const child = process.argv.includes ('--child');
+    const baseClassOnly = process.argv.includes ('--baseClass')
     const exchange = process.argv.includes ('--exchange');
     if (exchange) {
         transpiledExchanges = [ exchange ];
@@ -2724,7 +2725,9 @@ if (isMainEntry(import.meta.url)) {
         log.bright.green ({ force });
     }
     const transpiler = new NewTranspiler (ws);
-    if (ws) {
+    if (baseClassOnly) {
+        transpiler.transpileBaseMethods (TS_BASE_FILE)
+    } else if (ws) {
         await transpiler.transpileWS (force);
     } else if (test) {
         transpiler.transpileTests ();

@@ -330,7 +330,7 @@ class bingx(ccxt.async_support.bingx):
         if symbol is not None:
             hash += '::' + symbol
         else:
-            hash += 's'  # tickers, orderbooks, ohlcvs ...
+            hash += 's'  # tickers, orderbooks, ohlcvs, etc ...
         if extra is not None:
             hash += '::' + extra
         return hash
