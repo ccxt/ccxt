@@ -1,12 +1,22 @@
 from typing import List, Optional
 
 from ccxt.coinbase import coinbase
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.types import Int, Market, Trade
 
 COINBASE_ADVANCED_SPOT = 'Coinbase Advanced Spot'
 
 
 class coinbase_advanced_spot(coinbase):
+    def describe(self):
+        return self.deep_extend(super().describe(), {
+            'exceptions': {
+                'broad': {
+                    'Missing required scopes': PermissionDenied,
+                },
+            },
+        })
+
     def __init__(self, config={}):
         super().__init__(config)
         self.options['fetchBalance'] = 'v3PrivateGetBrokerageAccounts'
