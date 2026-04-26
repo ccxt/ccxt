@@ -108,7 +108,6 @@ export default class gate extends gateRest {
                     'name': 'tickers', // or book_ticker
                 },
                 'watchOrderBook': {
-                    'interval': '100ms',
                     'snapshotDelay': 10, // how many deltas to cache before fetching a snapshot
                     'snapshotMaxRetries': 3,
                     'checksum': true,
@@ -404,19 +403,25 @@ export default class gate extends gateRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const marketId = market['id'];
-        const [ interval, query ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', '100ms');
+        const intervalDefault = (market['spot']) ? '50' : '100ms';
+        const [ interval, query ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', intervalDefault);
         const messageType = this.getTypeByMarket (market);
-        const channel = messageType + '.order_book_update';
         const messageHash = 'orderbook' + ':' + symbol;
         const url = this.getUrlByMarket (market);
-        const payload = [ marketId, interval ];
         if (limit === undefined) {
-            limit = 100; // max 100 atm
+            limit = (market['spot']) ? 400 : 100; // max 100 atm
             if (messageType === 'options') {
                 limit = 50; // max 50 for options
             }
         }
-        if (market['contract']) {
+        let payload = [];
+        let channel = '';
+        if (market['spot']) {
+            channel = 'spot.obu';
+            payload = [ 'ob.' + market['id'] + '.' + interval ];
+        } else {
+            channel = messageType + '.order_book_update';
+            payload = [ marketId, interval ];
             const stringLimit = limit.toString ();
             payload.push (stringLimit);
         }
@@ -1949,6 +1954,11 @@ export default class gate extends gateRest {
             return;
         }
         const channel = this.safeString (message, 'channel', '');
+        // after supporting more method we can create a mapping for this
+        if (channel === 'spot.obu') {
+            this.handleOrderBook (client, message);
+            return;
+        }
         const channelParts = channel.split ('.');
         const channelType = this.safeValue (channelParts, 1);
         const v4Methods: Dict = {
