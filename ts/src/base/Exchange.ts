@@ -952,7 +952,7 @@ export default class Exchange {
         if (userAgent && isNode) {
             if (typeof userAgent === 'string') {
                 headers = this.extend ({ 'User-Agent': userAgent }, headers);
-            } else if ((typeof userAgent === 'object') && ('User-Agent' in userAgent)) {
+            } else if (this.isDictionary (userAgent) && ('User-Agent' in userAgent)) {
                 headers = this.extend (userAgent, headers);
             }
         }
@@ -2653,7 +2653,7 @@ export default class Exchange {
         if (value === undefined) {
             return defaultValue;
         }
-        if ((typeof value === 'object') && !Array.isArray (value)) {
+        if (this.isDictionary (value)) {
             return value;
         }
         return defaultValue;
@@ -2670,7 +2670,7 @@ export default class Exchange {
         if (value === undefined) {
             return defaultValue;
         }
-        if ((typeof value === 'object') && !Array.isArray (value)) {
+        if (this.isDictionary (value)) {
             return value;
         }
         return defaultValue;
@@ -2701,6 +2701,10 @@ export default class Exchange {
             return value;
         }
         return defaultValue;
+    }
+
+    isDictionary (value: any): boolean {
+        return (value !== null) && (typeof value === 'object') && !Array.isArray (value);
     }
 
     safeList2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue: any[] = undefined): any[] | undefined {
@@ -7267,7 +7271,7 @@ export default class Exchange {
     }
 
     handleWithdrawTagAndParams (tag, params): any {
-        if ((tag !== undefined) && (typeof tag === 'object')) {
+        if (this.isDictionary (tag)) {
             params = this.extend (tag, params);
             tag = undefined;
         }
