@@ -468,6 +468,58 @@ export default class gate extends gateRest {
         this.orderbooks[symbol] = this.orderBook ({}, limit);
     }
 
+    handleNewSpotOrderBook (client: Client, message) {
+        //
+        //   {
+        //      "channel":"spot.obu",
+        //      "result":{
+        //         "t":1777275365213,
+        //         "full":true,
+        //         "s":"ob.XRP_USDT.50",
+        //         "u":9649549324,
+        //         "b":[
+        //            [
+        //               "1.414",
+        //               "1397.899"
+        //            ]
+        //         ],
+        //         "a":[
+        //            [
+        //               "1.415",
+        //               "17344.926"
+        //            ]
+        //         ]
+        //      },
+        //      "time_ms":1777275365214,
+        //      "event":"update"
+        //   }
+        const result = this.safeDict (message, 'result', {});
+        const full = this.safeBool (result, 'full', false);
+        const marketIdWithPrefix = this.safeString (result, 's');
+        const marketIdParts = marketIdWithPrefix.split ('.');
+        const marketId = this.safeString (marketIdParts, 1);
+        const symbol = this.safeSymbol (marketId, undefined, '_', 'spot');
+        const messageHash = 'orderbook:' + symbol;
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
+            this.orderbooks[symbol] = this.orderBook ({}, 1000);
+        }
+        const storedOrderBook = this.orderbooks[symbol];
+        if (full) {
+            const parsedSnapshot = this.parseOrderBook (result, symbol, undefined, 'b', 'a');
+            parsedSnapshot['nonce'] = this.safeInteger (result, 'u');
+            parsedSnapshot['timestamp'] = this.safeInteger (result, 't');
+            storedOrderBook.reset (parsedSnapshot);
+        } else {
+            const nonce = this.safeInteger (storedOrderBook, 'nonce');
+            const deltaStart = this.safeInteger (result, 'u');
+            if (nonce === undefined || nonce >= deltaStart) {
+                return;
+            }
+            this.handleDelta (storedOrderBook, result);
+        }
+        client.resolve (storedOrderBook, messageHash);
+    }
+
     handleOrderBook (client: Client, message) {
         //
         // spot
@@ -523,6 +575,9 @@ export default class gate extends gateRest {
         //     }
         //
         const channel = this.safeString (message, 'channel');
+        if (channel === 'spot.obu') {
+            return this.handleNewSpotOrderBook (client, message);
+        }
         const channelParts = channel.split ('.');
         const rawMarketType = this.safeString (channelParts, 0);
         const isSpot = rawMarketType === 'spot';
