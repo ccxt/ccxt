@@ -580,7 +580,8 @@ export default class gate extends gateRest {
         //
         const channel = this.safeString (message, 'channel');
         if (channel === 'spot.obu') {
-            return this.handleNewSpotOrderBook (client, message);
+            this.handleNewSpotOrderBook (client, message);
+            return;
         }
         const channelParts = channel.split ('.');
         const rawMarketType = this.safeString (channelParts, 0);
