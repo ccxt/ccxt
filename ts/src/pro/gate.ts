@@ -409,7 +409,7 @@ export default class gate extends gateRest {
         const messageHash = 'orderbook' + ':' + symbol;
         const url = this.getUrlByMarket (market);
         if (limit === undefined) {
-            limit = (market['spot']) ? 400 : 100; // max 100 atm
+            limit = (market['spot']) ? 50 : 100; // max 100 atm
             if (messageType === 'options') {
                 limit = 50; // max 50 for options
             }
@@ -418,7 +418,11 @@ export default class gate extends gateRest {
         let channel = '';
         if (market['spot']) {
             channel = 'spot.obu';
-            payload = [ 'ob.' + market['id'] + '.' + interval ];
+            let finalInterval = interval;
+            if (limit === 400) {
+                finalInterval = '400';
+            }
+            payload = [ 'ob.' + market['id'] + '.' + finalInterval ];
         } else {
             channel = messageType + '.order_book_update';
             payload = [ marketId, interval ];
