@@ -22,4 +22,6 @@ export * from './functions/misc.js';
 
 export * from './functions/io.js';
 
+export * from './functions/symbol.js';
+
 /*  ------------------------------------------------------------------------ */

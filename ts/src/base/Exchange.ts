@@ -38,6 +38,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook
 // ----------------------------------------------------------------------------
 //
 import { axolotl } from './functions/crypto.js';
+import type { SymbolFormat, SymbolFormatConfig, ParseSymbolResult } from './functions/symbol.js';
 // import types
 import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL } from './types.js';
 // ----------------------------------------------------------------------------
@@ -9207,6 +9208,129 @@ export default class Exchange {
 
     async isUTAEnabled (params = {}) {
         return false; // stub
+    }
+
+    symbolToStandard (symbol: string, options: {
+        quoteCurrencies?: string[];
+        baseCurrencies?: string[];
+        defaultQuote?: string;
+    } = {}): string | undefined {
+        if (this.markets !== undefined && symbol in this.markets) {
+            return symbol;
+        }
+        if (this.markets_by_id !== undefined) {
+            if (symbol in this.markets_by_id) {
+                const markets = this.markets_by_id[symbol];
+                if (markets.length === 1) {
+                    return markets[0]['symbol'];
+                }
+            }
+        }
+        const quoteCurrencies = options.quoteCurrencies || this.codes;
+        return functions.symbolToStandard(symbol, {
+            quoteCurrencies,
+            baseCurrencies: options.baseCurrencies,
+            defaultQuote: options.defaultQuote,
+        });
+    }
+
+    symbolFromStandard (symbol: string, format: string | SymbolFormatConfig): string | undefined {
+        return functions.symbolFromStandard(symbol, format);
+    }
+
+    convertSymbol (symbol: string, targetFormat: string | SymbolFormatConfig, options: {
+        quoteCurrencies?: string[];
+        baseCurrencies?: string[];
+        defaultQuote?: string;
+    } = {}): string | undefined {
+        const quoteCurrencies = options.quoteCurrencies || this.codes;
+        return functions.convertSymbol(symbol, targetFormat, {
+            quoteCurrencies,
+            baseCurrencies: options.baseCurrencies,
+            defaultQuote: options.defaultQuote,
+        });
+    }
+
+    parseSymbol (symbol: string, options: {
+        quoteCurrencies?: string[];
+        baseCurrencies?: string[];
+        defaultQuote?: string;
+    } = {}): ParseSymbolResult | undefined {
+        const quoteCurrencies = options.quoteCurrencies || this.codes;
+        return functions.parseSymbol(symbol, {
+            quoteCurrencies,
+            baseCurrencies: options.baseCurrencies,
+            defaultQuote: options.defaultQuote,
+        });
+    }
+
+    detectSymbolFormat (symbol: string): SymbolFormat | undefined {
+        return functions.detectSymbolFormat(symbol);
+    }
+
+    getExchangeFormatConfig (exchangeId?: string): SymbolFormatConfig | undefined {
+        const id = exchangeId || this.id;
+        return functions.getExchangeFormatConfig(id);
+    }
+
+    reverseSymbol (symbol: string, options: {
+        quoteCurrencies?: string[];
+        baseCurrencies?: string[];
+    } = {}): string | undefined {
+        const quoteCurrencies = options.quoteCurrencies || this.codes;
+        return functions.reverseSymbol(symbol, {
+            quoteCurrencies,
+            baseCurrencies: options.baseCurrencies,
+        });
+    }
+
+    isValidSymbol (symbol: string, options: {
+        quoteCurrencies?: string[];
+        baseCurrencies?: string[];
+    } = {}): boolean {
+        if (this.markets !== undefined && symbol in this.markets) {
+            return true;
+        }
+        const quoteCurrencies = options.quoteCurrencies || this.codes;
+        return functions.isValidSymbol(symbol, {
+            quoteCurrencies,
+            baseCurrencies: options.baseCurrencies,
+        });
+    }
+
+    symbolToExchange (symbol: string, exchangeId?: string): string | undefined {
+        const formatConfig = this.getExchangeFormatConfig(exchangeId);
+        if (!formatConfig) {
+            return undefined;
+        }
+        let base: string;
+        let quote: string;
+
+        if (symbol.includes('/')) {
+            const parts = symbol.split('/');
+            base = parts[0].toUpperCase();
+            quote = parts[1].toUpperCase();
+        } else {
+            const parsed = this.parseSymbol(symbol);
+            if (!parsed) {
+                return undefined;
+            }
+            base = parsed.base;
+            quote = parsed.quote;
+        }
+
+        return this.symbolFromStandard(`${base}/${quote}`, formatConfig);
+    }
+
+    marketIdToSymbol (marketId: string, market?: Market, delimiter?: string, marketType?: string): string {
+        return this.safeSymbol(marketId, market, delimiter, marketType);
+    }
+
+    symbolToMarketId (symbol: string): string | undefined {
+        if (this.markets !== undefined && symbol in this.markets) {
+            return this.markets[symbol]['id'];
+        }
+        return undefined;
     }
 }
 
