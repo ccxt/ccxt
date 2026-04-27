@@ -642,9 +642,8 @@ export default class grvt extends grvtRest {
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        await this.signIn ();
-        const subAccountId = this.getSubAccountId (params);
         await this.authenticate ();
+        const subAccountId = this.getSubAccountId (params);
         const messageHashes = [];
         const rawHashes = [];
         if (symbol !== undefined) {
@@ -731,7 +730,6 @@ export default class grvt extends grvtRest {
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.authenticate ();
         await this.loadMarkets ();
-        await this.signIn ();
         const subAccountId = this.getSubAccountId (params);
         symbols = this.marketSymbols (symbols);
         const rawHashes = [];
@@ -818,7 +816,6 @@ export default class grvt extends grvtRest {
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        await this.signIn ();
         await this.authenticate ();
         const subAccountId = this.getSubAccountId (params);
         const messageHashes = [];
