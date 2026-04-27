@@ -76,7 +76,7 @@ type OrderMessage struct {
 	Type     string             `mapstructure:"type" msgpack:"type"`
 	Orders   []OrderHyperliquid `mapstructure:"orders" msgpack:"orders"`
 	Grouping string             `mapstructure:"grouping" msgpack:"grouping"`
-	Builder  Builder            `mapstructure:"builder" msgpack:"builder,omitempty"`
+	Builder  *Builder           `mapstructure:"builder" msgpack:"builder,omitempty"`
 }
 
 type Builder struct {
