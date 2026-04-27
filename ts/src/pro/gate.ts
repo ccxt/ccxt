@@ -507,21 +507,21 @@ export default class gate extends gateRest {
         if (this.safeValue (this.orderbooks, symbol) === undefined) {
             this.orderbooks[symbol] = this.orderBook ({}, 1000);
         }
-        const storedOrderBook = this.orderbooks[symbol];
+        const orderbook = this.orderbooks[symbol];
         if (full) {
             const snapshopt = this.parseOrderBook (result, symbol, undefined, 'b', 'a');
             snapshopt['nonce'] = this.safeInteger (result, 'u');
             snapshopt['timestamp'] = this.safeInteger (result, 't');
-            storedOrderBook.reset (snapshopt);
+            orderbook.reset (snapshopt);
         } else {
-            const nonce = this.safeInteger (storedOrderBook, 'nonce');
+            const nonce = this.safeInteger (orderbook, 'nonce');
             const deltaStart = this.safeInteger (result, 'u');
             if (nonce === undefined || nonce >= deltaStart) {
                 return;
             }
-            this.handleDelta (storedOrderBook, result);
+            this.handleDelta (orderbook, result);
         }
-        client.resolve (storedOrderBook, messageHash);
+        client.resolve (orderbook, messageHash);
     }
 
     handleOrderBook (client: Client, message) {
