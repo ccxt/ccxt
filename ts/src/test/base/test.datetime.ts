@@ -147,10 +147,10 @@ function testDatetime () {
     testIso8601 ();
     testParse8601 ();
     testParseDate ();
-    // @SKIP_END_START
+    // @SKIP_START_GO
     testYmd ();
     testYmdhms ();
-    // @SKIP_END_END
+    // @SKIP_END_GO
     testMicroseconds ();
     testMilliseconds ();
     testSeconds ();
