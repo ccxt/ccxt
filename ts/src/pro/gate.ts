@@ -509,10 +509,10 @@ export default class gate extends gateRest {
         }
         const storedOrderBook = this.orderbooks[symbol];
         if (full) {
-            const parsedSnapshot = this.parseOrderBook (result, symbol, undefined, 'b', 'a');
-            parsedSnapshot['nonce'] = this.safeInteger (result, 'u');
-            parsedSnapshot['timestamp'] = this.safeInteger (result, 't');
-            storedOrderBook.reset (parsedSnapshot);
+            const snapshopt = this.parseOrderBook (result, symbol, undefined, 'b', 'a');
+            snapshopt['nonce'] = this.safeInteger (result, 'u');
+            snapshopt['timestamp'] = this.safeInteger (result, 't');
+            storedOrderBook.reset (snapshopt);
         } else {
             const nonce = this.safeInteger (storedOrderBook, 'nonce');
             const deltaStart = this.safeInteger (result, 'u');
