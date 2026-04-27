@@ -8614,5 +8614,11 @@ public partial class Exchange
         }
         return "";
     }
+
+    public async virtual Task<object> isUTAEnabled(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return false;  // stub
+    }
 }
 

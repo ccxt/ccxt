@@ -2063,6 +2063,7 @@ public partial class testMainClass
         assert(isEqual(futureKey, "1b327198-f30c-4f14-a0ac-918871282f15"), add(add("kucoinfutures - key: ", futureKey), " not in options."));
         try
         {
+            ((IDictionary<string,object>)exchange.options)["uta"] = false;
             await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
@@ -2071,9 +2072,8 @@ public partial class testMainClass
         assert(isEqual(getValue(reqHeaders, "KC-API-PARTNER"), id), add(add("kucoinfutures - id: ", id), " not in headers."));
         try
         {
-            await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000, new Dictionary<string, object>() {
-                { "uta", true },
-            });
+            ((IDictionary<string,object>)exchange.options)["uta"] = true;
+            await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             reqHeaders = exchange.last_request_headers;
