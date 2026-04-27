@@ -2383,6 +2383,34 @@ func (this *Kucoin) FetchBorrowRateHistory(code string, options ...FetchBorrowRa
 
 /**
  * @method
+ * @name kucoin#fetchCrossBorrowRate
+ * @description fetch the rate of interest to borrow a currency for margin trading
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-borrowing-rates-and-limits
+ * @param {string} code unified currency code
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+ */
+func (this *Kucoin) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
+
+	opts := FetchCrossBorrowRateOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchCrossBorrowRate(code, params)
+	if IsError(res) {
+		return CrossBorrowRate{}, CreateReturnError(res)
+	}
+	return NewCrossBorrowRate(res), nil
+}
+
+/**
+ * @method
  * @name kucoin#fetchDepositWithdrawFees
  * @description fetch deposit and withdraw fees - *IMPORTANT* use fetchDepositWithdrawFee to get more in-depth info
  * @see https://docs.kucoin.com/#get-currencies
@@ -2446,13 +2474,16 @@ func (this *Kucoin) FetchLeverage(symbol string, options ...FetchLeverageOptions
  * @method
  * @name kucoin#setLeverage
  * @description set the level of leverage for a market
- * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/modify-leverage
- * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage
- * @see https://www.kucoin.com/docs-new/rest/ua/modify-leverage-uta
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/modify-leverage // margin
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage // contract
+ * @see https://www.kucoin.com/docs-new/rest/ua/modify-cross-margin-leverage-uta // margin uta
+ * @see https://www.kucoin.com/docs-new/rest/ua/modify-leverage-uta // contract uta
  * @param {int } [leverage] New leverage multiplier. Must be greater than 1 and up to two decimal places, and cannot be less than the user's current debt leverage or greater than the system's maximum leverage
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [params.uta] *contract markets only* set to true for the unified trading account (uta)
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta)
+ * @param {string} [params.marginMode] *spot non-uta only* 'cross' or 'isolated' default is 'cross'
+ * @param {string} [params.code] *uta margin only* the unified currency code for the margin to set the leverage for
  * @returns {object} response from the exchange
  */
 func (this *Kucoin) SetLeverage(leverage int64, options ...SetLeverageOptions) (map[string]interface{}, error) {
@@ -2483,6 +2514,7 @@ func (this *Kucoin) SetLeverage(leverage int64, options ...SetLeverageOptions) (
  * @method
  * @name kucoin#fetchFundingInterval
  * @description fetch the current funding rate interval
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-current-funding-rate
  * @see https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-current-funding-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2594,6 +2626,7 @@ func (this *Kucoin) FetchFundingRateHistory(options ...FetchFundingRateHistoryOp
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *Kucoin) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
@@ -2760,7 +2793,7 @@ func (this *Kucoin) FetchPositionsHistory(options ...FetchPositionsHistoryOption
  * @param {string[]} [params.clientOrderIds] client order ids
  * @param {boolean} [params.uta] set to true to use the unified trading account (uta) endpoint, defaults to false for the contract orders
  * @param {string} [params.accountMode] *for uta endpoint only* 'unified' or 'classic' (default is 'unified')
- * @param {string} [params.marginMode] *for margin orders only* 'cross' or 'isolated'
+ * @param {string} [params.marginMode] *for margin orders only* 'cross' or 'isolated' (unified accountMode supports cross margin only)
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Kucoin) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
@@ -3238,9 +3271,6 @@ func (this *Kucoin) FetchConvertTrade(id string, options ...FetchConvertTradeOpt
 }
 func (this *Kucoin) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOptions) ([]Conversion, error) {
 	return this.exchangeTyped.FetchConvertTradeHistory(options...)
-}
-func (this *Kucoin) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
-	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
 }
 func (this *Kucoin) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error) {
 	return this.exchangeTyped.FetchCrossBorrowRates(params...)

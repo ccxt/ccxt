@@ -882,7 +882,7 @@ func (this *Exchange) lighterSignCreateGroupedOrders(signer *client.TxClient, re
 	}
 
 	nonce := int64(SafeInt(request["nonce"]))
-	l2TxAttr := this.lighterL2TxAttr(int64(SafeInt(request["integrator_account_index"])), uint32(SafeInt(request["integrator_taker_fee"])), uint32(SafeInt(request["integrator_maker_fee"])), uint8(0))
+	l2TxAttr := this.lighterL2TxAttr(int64(SafeInt(request["integrator_account_index"])), uint32(SafeInt(request["integrator_taker_fee"])), uint32(SafeInt(request["integrator_maker_fee"])), uint8(1))
 	ops := &types.TransactOpts{
 		Nonce:        &nonce,
 		TxAttributes: &l2TxAttr,
@@ -928,7 +928,7 @@ func (this *Exchange) lighterSignCreateOrder(signer *client.TxClient, request ma
 		OrderExpiry:      orderExpiry,
 	}
 	nonce := int64(SafeInt(request["nonce"]))
-	l2TxAttr := this.lighterL2TxAttr(int64(SafeInt(request["integrator_account_index"])), uint32(SafeInt(request["integrator_taker_fee"])), uint32(SafeInt(request["integrator_maker_fee"])), uint8(0))
+	l2TxAttr := this.lighterL2TxAttr(int64(SafeInt(request["integrator_account_index"])), uint32(SafeInt(request["integrator_taker_fee"])), uint32(SafeInt(request["integrator_maker_fee"])), uint8(1))
 	ops := &types.TransactOpts{
 		Nonce:        &nonce,
 		TxAttributes: &l2TxAttr,
@@ -961,7 +961,7 @@ func (this *Exchange) lighterSignCancelOrder(signer *client.TxClient, request ma
 		Index:       int64(SafeInt(request["order_index"])),
 	}
 	nonce := int64(SafeInt(request["nonce"]))
-	l2TxAttr := this.lighterL2TxAttr(0, uint32(0), uint32(0), uint8(0))
+	l2TxAttr := this.lighterL2TxAttr(0, uint32(0), uint32(0), uint8(1))
 	ops := &types.TransactOpts{
 		Nonce:        &nonce,
 		TxAttributes: &l2TxAttr,
@@ -993,7 +993,7 @@ func (this *Exchange) lighterSignWithdraw(signer *client.TxClient, request map[s
 		Amount:     uint64(SafeInt(request["amount"])),
 	}
 	nonce := int64(SafeInt(request["nonce"]))
-	l2TxAttr := this.lighterL2TxAttr(0, uint32(0), uint32(0), uint8(0))
+	l2TxAttr := this.lighterL2TxAttr(0, uint32(0), uint32(0), uint8(1))
 	ops := &types.TransactOpts{
 		Nonce:        &nonce,
 		TxAttributes: &l2TxAttr,
@@ -1020,7 +1020,7 @@ func (this *Exchange) LighterSignCreateSubAccount(signer interface{}, request in
 
 func (this *Exchange) lighterSignCreateSubAccount(signer *client.TxClient, request map[string]interface{}) interface{} {
 	nonce := int64(SafeInt(request["nonce"]))
-	l2TxAttr := this.lighterL2TxAttr(0, uint32(0), uint32(0), uint8(0))
+	l2TxAttr := this.lighterL2TxAttr(0, uint32(0), uint32(0), uint8(1))
 	ops := &types.TransactOpts{
 		Nonce:        &nonce,
 		TxAttributes: &l2TxAttr,
@@ -1051,7 +1051,7 @@ func (this *Exchange) lighterSignCancelAllOrders(signer *client.TxClient, reques
 		Time:        int64(SafeInt(request["time"])),
 	}
 	nonce := int64(SafeInt(request["nonce"]))
-	l2TxAttr := this.lighterL2TxAttr(0, uint32(0), uint32(0), uint8(0))
+	l2TxAttr := this.lighterL2TxAttr(0, uint32(0), uint32(0), uint8(1))
 	ops := &types.TransactOpts{
 		Nonce:        &nonce,
 		TxAttributes: &l2TxAttr,
@@ -1085,7 +1085,7 @@ func (this *Exchange) lighterSignModifyOrder(signer *client.TxClient, request ma
 		TriggerPrice: uint32(SafeInt(request["trigger_price"])),
 	}
 	nonce := int64(SafeInt(request["nonce"]))
-	l2TxAttr := this.lighterL2TxAttr(0, uint32(0), uint32(0), uint8(0))
+	l2TxAttr := this.lighterL2TxAttr(0, uint32(0), uint32(0), uint8(1))
 	ops := &types.TransactOpts{
 		Nonce:        &nonce,
 		TxAttributes: &l2TxAttr,
@@ -1129,7 +1129,7 @@ func (this *Exchange) lighterSignTransfer(signer *client.TxClient, request map[s
 		Memo:           memoArr,
 	}
 	nonce := int64(SafeInt(request["nonce"]))
-	l2TxAttr := this.lighterL2TxAttr(0, uint32(0), uint32(0), uint8(0))
+	l2TxAttr := this.lighterL2TxAttr(0, uint32(0), uint32(0), uint8(1))
 	ops := &types.TransactOpts{
 		Nonce:        &nonce,
 		TxAttributes: &l2TxAttr,
@@ -1161,7 +1161,7 @@ func (this *Exchange) lighterSignUpdateLeverage(signer *client.TxClient, request
 		MarginMode:            uint8(SafeInt(request["margin_mode"])),
 	}
 	nonce := int64(SafeInt(request["nonce"]))
-	l2TxAttr := this.lighterL2TxAttr(0, uint32(0), uint32(0), uint8(0))
+	l2TxAttr := this.lighterL2TxAttr(0, uint32(0), uint32(0), uint8(1))
 	ops := &types.TransactOpts{
 		Nonce:        &nonce,
 		TxAttributes: &l2TxAttr,
@@ -1208,7 +1208,7 @@ func (this *Exchange) lighterSignUpdateMargin(signer *client.TxClient, request m
 		Direction:   uint8(SafeInt(request["direction"])),
 	}
 	nonce := int64(SafeInt(request["nonce"]))
-	l2TxAttr := this.lighterL2TxAttr(0, uint32(0), uint32(0), uint8(0))
+	l2TxAttr := this.lighterL2TxAttr(0, uint32(0), uint32(0), uint8(1))
 	ops := &types.TransactOpts{
 		Nonce:        &nonce,
 		TxAttributes: &l2TxAttr,
@@ -1243,7 +1243,7 @@ func (this *Exchange) lighterSignApproveIntegrator(signer *client.TxClient, requ
 		ApprovalExpiry:         int64(SafeInt(request["approval_expiry"])),
 	}
 	nonce := int64(SafeInt(request["nonce"]))
-	l2TxAttr := this.lighterL2TxAttr(0, uint32(0), uint32(0), uint8(0))
+	l2TxAttr := this.lighterL2TxAttr(0, uint32(0), uint32(0), uint8(1))
 	ops := &types.TransactOpts{
 		Nonce:        &nonce,
 		TxAttributes: &l2TxAttr,
@@ -1288,7 +1288,7 @@ func (this *Exchange) lighterSignChangePubkey(signer *client.TxClient, request m
 		PubKey: pubkeyBytes,
 	}
 	nonce := int64(SafeInt(request["nonce"]))
-	l2TxAttr := this.lighterL2TxAttr(0, uint32(0), uint32(0), uint8(0))
+	l2TxAttr := this.lighterL2TxAttr(0, uint32(0), uint32(0), uint8(1))
 	ops := &types.TransactOpts{
 		Nonce:        &nonce,
 		TxAttributes: &l2TxAttr,

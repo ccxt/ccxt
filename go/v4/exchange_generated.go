@@ -10668,3 +10668,17 @@ func (this *Exchange) TimeframeFromMilliseconds(ms interface{}) interface{} {
 	}
 	return ""
 }
+func (this *Exchange) IsUTAEnabled(optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		_ = params
+
+		ch <- false // stub
+		return nil
+
+	}()
+	return ch
+}

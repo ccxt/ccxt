@@ -5994,7 +5994,7 @@ func (this *BinanceCore) ParseOrderStatus(status interface{}) interface{} {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *BinanceCore) ParseOrderType(typeVar interface{}, marketType interface{}) interface{} {
+func (this *BinanceCore) ParseOrderTypeByMarket(typeVar interface{}, marketType interface{}) interface{} {
 	var types interface{} = map[string]interface{}{}
 	if IsTrue(IsTrue((!IsEqual(marketType, nil))) && IsTrue(IsEqual(marketType, "spot"))) {
 		types = map[string]interface{}{
@@ -6605,7 +6605,7 @@ func (this *BinanceCore) ParseOrder(order interface{}, optionalArgs ...interface
 		"lastTradeTimestamp":  lastTradeTimestamp,
 		"lastUpdateTimestamp": lastUpdateTimestamp,
 		"symbol":              symbol,
-		"type":                this.ParseOrderType(typeVar, marketType),
+		"type":                this.ParseOrderTypeByMarket(typeVar, marketType),
 		"timeInForce":         timeInForce,
 		"postOnly":            postOnly,
 		"reduceOnly":          this.SafeBool(order, "reduceOnly"),

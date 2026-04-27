@@ -34,7 +34,6 @@ export default class kucoinfutures extends kucoin {
                 },
                 'defaultType': 'swap',
                 'defaultAccountType': 'contract',
-                'uta': false,
             },
         });
     }
