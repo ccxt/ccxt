@@ -80,6 +80,7 @@ function testAggregate () {
     const result10 = exchange.aggregate ([ [ 100.2, 1.04 ], [ 100.2, 0 ], [ 100.2, 2.04 ] ]);
     testSharedMethods.assertDeepEqual (exchange, undefined, 'testAggregate', result10, [ [ 100.2, 3.08 ] ]);
     // @SKIP_END_GO
+    exchange.uuid (); // placeholder for astt
 }
 
 export default testAggregate;
