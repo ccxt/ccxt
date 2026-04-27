@@ -1,5 +1,5 @@
 import Exchange from './abstract/kucoin.js';
-import type { ADL, Account, Balances, BorrowInterest, Currency, Currencies, DepositAddress, Dict, FundingHistory, FundingRate, Int, int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, OpenInterest, OpenInterests, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry } from './base/types.js';
+import type { ADL, Account, Balances, BorrowInterest, CrossBorrowRate, Currency, Currencies, DepositAddress, Dict, FundingHistory, FundingRate, Int, int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, OpenInterest, OpenInterests, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry } from './base/types.js';
 /**
  * @class kucoin
  * @augments Exchange
@@ -601,7 +601,7 @@ export default class kucoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountMode] 'unified' or 'classic' (default is 'unified')
      * @param {string} [params.clientOrderId] client order id, required if id is not provided
-     * @param {string} [params.marginMode] 'cross' or 'isolated', required if fetching a margin order
+     * @param {string} [params.marginMode] 'cross' or 'isolated', required if fetching a margin order (unified accountMode supports only cross margin)
      * @returns Response from the exchange
      */
     cancelUtaOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -752,6 +752,7 @@ export default class kucoin extends Exchange {
      * @param {int} [params.until] End time in ms
      * @param {string} [params.side] *closed orders only* 'BUY' or 'SELL'
      * @param {string} [params.accountMode] 'unified' or 'classic' (default is unified)
+     * @param {string} [params.marginMode] 'cross' or 'isolated', only for margin orders (unified accountMode supports only cross margin)
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -877,11 +878,11 @@ export default class kucoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountMode] 'unified' or 'classic' (default is 'unified')
      * @param {string} [params.clientOrderId] client order id, required if id is not provided
-     * @param {string} [params.marginMode] 'cross' or 'isolated', required if fetching a margin order
+     * @param {string} [params.marginMode] 'cross' or 'isolated', required if fetching a margin order (unified accountMode supports only cross margin)
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchUtaOrder(id: Str, symbol?: Str, params?: {}): Promise<Order>;
-    handleTradeType(isContractMarket?: boolean, marginMode?: any, params?: {}): string;
+    handleTradeType(isContractMarket?: boolean, marginMode?: any, isUnified?: boolean, params?: {}): string;
     parseOrder(order: Dict, market?: Market): Order;
     parseContractOrder(order: Dict, market?: Market): Order;
     parseSpotOrder(order: Dict, market?: Market): Order;
@@ -965,7 +966,7 @@ export default class kucoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {string} [params.accountMode] 'unified' or 'classic', defaults to 'unified'
-     * @param {string} [params.marginMode] 'cross' or 'isolated', only for margin trades
+     * @param {string} [params.marginMode] 'cross' or 'isolated', only for margin trades (unified accountMode support only cross margin)
      * @param {string} [params.side] 'BUY' or 'SELL' (both if not provided)
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
@@ -1110,7 +1111,7 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-uta
      * @see https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-classic
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'spot', 'unified', 'funding', 'cross', 'isolated' or 'swap' (default is 'spot')
+     * @param {string} [params.type] 'unified', 'spot', 'funding', 'cross', 'isolated' or 'swap' (default is 'unified')
      * @param {string} [params.marginMode] 'cross' or 'isolated', margin type for fetching margin balance, only applicable if type is margin (default is cross)
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -1247,6 +1248,16 @@ export default class kucoin extends Exchange {
     parseBorrowRateHistories(response: any, codes: any, since: any, limit: any): Dict;
     /**
      * @method
+     * @name kucoin#fetchCrossBorrowRate
+     * @description fetch the rate of interest to borrow a currency for margin trading
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-borrowing-rates-and-limits
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+     */
+    fetchCrossBorrowRate(code: string, params?: {}): Promise<CrossBorrowRate>;
+    /**
+     * @method
      * @name kucoin#borrowCrossMargin
      * @description create a loan to borrow margin
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/borrow
@@ -1358,13 +1369,16 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#setLeverage
      * @description set the level of leverage for a market
-     * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/modify-leverage
-     * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage
-     * @see https://www.kucoin.com/docs-new/rest/ua/modify-leverage-uta
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/modify-leverage // margin
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage // contract
+     * @see https://www.kucoin.com/docs-new/rest/ua/modify-cross-margin-leverage-uta // margin uta
+     * @see https://www.kucoin.com/docs-new/rest/ua/modify-leverage-uta // contract uta
      * @param {int } [leverage] New leverage multiplier. Must be greater than 1 and up to two decimal places, and cannot be less than the user's current debt leverage or greater than the system's maximum leverage
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.uta] *contract markets only* set to true for the unified trading account (uta)
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta)
+     * @param {string} [params.marginMode] *spot non-uta only* 'cross' or 'isolated' default is 'cross'
+     * @param {string} [params.code] *uta margin only* the unified currency code for the margin to set the leverage for
      * @returns {object} response from the exchange
      */
     setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
@@ -1385,6 +1399,7 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchFundingInterval
      * @description fetch the current funding rate interval
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-current-funding-rate
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-current-funding-rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1436,6 +1451,7 @@ export default class kucoin extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
@@ -1496,7 +1512,7 @@ export default class kucoin extends Exchange {
      * @param {string[]} [params.clientOrderIds] client order ids
      * @param {boolean} [params.uta] set to true to use the unified trading account (uta) endpoint, defaults to false for the contract orders
      * @param {string} [params.accountMode] *for uta endpoint only* 'unified' or 'classic' (default is 'unified')
-     * @param {string} [params.marginMode] *for margin orders only* 'cross' or 'isolated'
+     * @param {string} [params.marginMode] *for margin orders only* 'cross' or 'isolated' (unified accountMode supports cross margin only)
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;

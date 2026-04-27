@@ -1881,13 +1881,15 @@ class testMainClass {
         assert (futureId === id, 'kucoinfutures - id: ' + futureId + ' not in options.');
         assert (futureKey === '1b327198-f30c-4f14-a0ac-918871282f15', 'kucoinfutures - key: ' + futureKey + ' not in options.');
         try {
+            exchange.options['uta'] = false;
             await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
             reqHeaders = exchange.last_request_headers;
         }
         assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoinfutures - id: ' + id + ' not in headers.');
         try {
-            await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, { 'uta': true });
+            exchange.options['uta'] = true;
+            await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
             reqHeaders = exchange.last_request_headers;
         }

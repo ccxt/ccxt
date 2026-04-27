@@ -13,6 +13,17 @@
         "uta": false
     },
     "methods": {
+        "fetchCrossBorrowRate": [
+            {
+                "description": "fetch cross borrow rate",
+                "method": "fetchCrossBorrowRate",
+                "url": "https://api.kucoin.com/api/ua/v1/account/interest-limits?currency=ETH",
+                "input": [
+                    "ETH"
+                ],
+                "output": null
+            }
+        ],
         "fetchPositionHistory": [
             {
                 "description": "fetch position history",
@@ -316,6 +327,20 @@
             }
         ],
         "fetchFundingHistory": [
+            {
+                "description": "fetch funding history with uta",
+                "method": "fetchFundingHistory",
+                "url": "https://api.kucoin.com/api/ua/v1/position/funding-history?symbol=DOGEUSDTM&startAt=1775030400000&pageSize=1",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    1775030400000,
+                    1,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "fetch funding history for a linear swap symbol with a limit argument",
                 "method": "fetchFundingHistory",
@@ -1513,8 +1538,7 @@
                 "url": "https://api.kucoin.com/api/ua/v1/unified/account/balance",
                 "input": [
                     {
-                        "uta": true,
-                        "type": "uta"
+                        "uta": true
                     }
                 ],
                 "output": null
@@ -1525,7 +1549,8 @@
                 "url": "https://api.kucoin.com/api/ua/v1/account/balance?accountType=SPOT",
                 "input": [
                     {
-                        "uta": true
+                        "uta": true,
+                        "type": "spot"
                     }
                 ],
                 "output": null

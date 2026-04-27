@@ -36,7 +36,6 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 },
                 'defaultType': 'swap',
                 'defaultAccountType': 'contract',
-                'uta': False,
             },
         })
 

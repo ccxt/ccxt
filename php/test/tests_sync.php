@@ -1706,15 +1706,15 @@ class testMainClass {
         assert($future_id === $id, 'kucoinfutures - id: ' . $future_id . ' not in options.');
         assert($future_key === '1b327198-f30c-4f14-a0ac-918871282f15', 'kucoinfutures - key: ' . $future_key . ' not in options.');
         try {
+            $exchange->options['uta'] = false;
             $exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         } catch(\Throwable $e) {
             $req_headers = $exchange->last_request_headers;
         }
         assert($req_headers['KC-API-PARTNER'] === $id, 'kucoinfutures - id: ' . $id . ' not in headers.');
         try {
-            $exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, array(
-                'uta' => true,
-            ));
+            $exchange->options['uta'] = true;
+            $exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         } catch(\Throwable $e) {
             $req_headers = $exchange->last_request_headers;
         }

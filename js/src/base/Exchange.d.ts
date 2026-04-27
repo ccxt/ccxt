@@ -1030,5 +1030,6 @@ export default class Exchange {
     cleanUnsubscription(client: any, subHash: string, unsubHash: string, subHashIsPrefix?: boolean): void;
     cleanCache(subscription: Dict): void;
     timeframeFromMilliseconds(ms: number): string;
+    isUTAEnabled(params?: {}): Promise<boolean>;
 }
 export { Exchange, };

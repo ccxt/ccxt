@@ -53,7 +53,7 @@ public partial class kucoin : Exchange
                 { "fetchBorrowRateHistories", true },
                 { "fetchBorrowRateHistory", true },
                 { "fetchClosedOrders", true },
-                { "fetchCrossBorrowRate", false },
+                { "fetchCrossBorrowRate", true },
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
@@ -505,6 +505,7 @@ public partial class kucoin : Exchange
                         { "market/position-tiers", 40 },
                         { "market/open-interest", 20 },
                         { "server/status", 6 },
+                        { "market/borrowable-currency", 30 },
                     } },
                 } },
                 { "utaPrivate", new Dictionary<string, object>() {
@@ -530,6 +531,9 @@ public partial class kucoin : Exchange
                         { "sub-account/balance", 10 },
                         { "user/fee-rate", 6 },
                         { "dcp/query", 4 },
+                        { "unified/account/leverage", 20 },
+                        { "position/funding-history", 30 },
+                        { "account/interest-limits", 20 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "account/transfer", 8 },
@@ -542,6 +546,7 @@ public partial class kucoin : Exchange
                         { "{accountMode}/order/cancel-all", 40 },
                         { "sub-account/canTransferOut", 10 },
                         { "dcp/set", 4 },
+                        { "{accountMode}/account/modify-leverage-margin-cross", 40 },
                     } },
                 } },
             } },
@@ -774,6 +779,9 @@ public partial class kucoin : Exchange
                     { "fillResponseFromRequest", true },
                 } },
                 { "fetchBalance", new Dictionary<string, object>() {
+                    { "code", "USDT" },
+                } },
+                { "setLeverage", new Dictionary<string, object>() {
                     { "code", "USDT" },
                 } },
                 { "timeInForce", new Dictionary<string, object>() {
@@ -1141,7 +1149,7 @@ public partial class kucoin : Exchange
                         { "symbolRequired", true },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
-                        { "marginMode", false },
+                        { "marginMode", true },
                         { "trigger", true },
                         { "trailing", false },
                         { "symbolRequired", true },
@@ -3524,11 +3532,15 @@ public partial class kucoin : Exchange
         parameters = ((IList<object>)typeparametersVariable)[1];
         if (isTrue(uta))
         {
-            if (isTrue(isEqual(limit, null)))
+            object limitString = "20";
+            if (isTrue(isTrue((isEqual(limit, null))) || isTrue((isGreaterThanOrEqual(limit, 100)))))
             {
-                throw new ArgumentsRequired ((string)add(this.id, " fetchOrderBook() requires a limit argument for uta, either 20, 50, 100 or FULL")) ;
+                limitString = "FULL";
+            } else if (isTrue(isGreaterThan(limit, 20)))
+            {
+                limitString = "100";
             }
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = limitString;
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             if (isTrue(isTrue((isEqual(type, "spot"))) || isTrue((isEqual(type, "margin")))))
             {
@@ -4227,12 +4239,7 @@ public partial class kucoin : Exchange
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         object marginModeDefined = (!isEqual(marginMode, null));
-        object isSpotMargin = (isTrue(isSpot) && isTrue(marginModeDefined));
-        if (isTrue(isTrue(isSpotMargin) && isTrue(isUnified)))
-        {
-            throw new NotSupported ((string)add(this.id, " createOrder() does not support spot margin orders with unified accountMode")) ;
-        }
-        object tradeType = this.handleTradeType(isContract, marginMode, parameters);
+        object tradeType = this.handleTradeType(isContract, marginMode, isUnified, parameters);
         object clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId", this.uuid());
         parameters = this.omit(parameters, new List<object>() {"clientOid", "clientOrderId"});
         object request = new Dictionary<string, object>() {
@@ -4973,7 +4980,7 @@ public partial class kucoin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountMode] 'unified' or 'classic' (default is 'unified')
      * @param {string} [params.clientOrderId] client order id, required if id is not provided
-     * @param {string} [params.marginMode] 'cross' or 'isolated', required if fetching a margin order
+     * @param {string} [params.marginMode] 'cross' or 'isolated', required if fetching a margin order (unified accountMode supports only cross margin)
      * @returns Response from the exchange
      */
     public async virtual Task<object> cancelUtaOrder(object id, object symbol = null, object parameters = null)
@@ -5010,7 +5017,8 @@ public partial class kucoin : Exchange
         var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrder", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        object tradeType = this.handleTradeType(getValue(market, "contract"), marginMode, parameters);
+        object isUnified = (isEqual(accountMode, "unified"));
+        object tradeType = this.handleTradeType(getValue(market, "contract"), marginMode, isUnified, parameters);
         ((IDictionary<string,object>)request)["tradeType"] = tradeType;
         object response = await this.utaPrivatePostAccountModeOrderCancel(this.extend(request, parameters));
         //
@@ -5590,6 +5598,7 @@ public partial class kucoin : Exchange
      * @param {int} [params.until] End time in ms
      * @param {string} [params.side] *closed orders only* 'BUY' or 'SELL'
      * @param {string} [params.accountMode] 'unified' or 'classic' (default is unified)
+     * @param {string} [params.marginMode] 'cross' or 'isolated', only for margin orders (unified accountMode supports only cross margin)
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -5634,7 +5643,8 @@ public partial class kucoin : Exchange
         var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrdersByStatus", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        object tradeType = this.handleTradeType(isContract, marginMode, parameters);
+        object isUnified = (isEqual(accountMode, "unified"));
+        object tradeType = this.handleTradeType(isContract, marginMode, isUnified, parameters);
         ((IDictionary<string,object>)parameters)["tradeType"] = tradeType;
         if (isTrue(!isEqual(since, null)))
         {
@@ -6062,7 +6072,7 @@ public partial class kucoin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountMode] 'unified' or 'classic' (default is 'unified')
      * @param {string} [params.clientOrderId] client order id, required if id is not provided
-     * @param {string} [params.marginMode] 'cross' or 'isolated', required if fetching a margin order
+     * @param {string} [params.marginMode] 'cross' or 'isolated', required if fetching a margin order (unified accountMode supports only cross margin)
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<object> fetchUtaOrder(object id, object symbol = null, object parameters = null)
@@ -6098,7 +6108,8 @@ public partial class kucoin : Exchange
         var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrder", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        object tradeType = this.handleTradeType(getValue(market, "contract"), marginMode, parameters);
+        object isUnified = (isEqual(accountMode, "unified"));
+        object tradeType = this.handleTradeType(getValue(market, "contract"), marginMode, isUnified, parameters);
         ((IDictionary<string,object>)request)["tradeType"] = tradeType;
         object response = await this.utaPrivateGetAccountModeOrderDetail(this.extend(request, parameters));
         //
@@ -6146,9 +6157,10 @@ public partial class kucoin : Exchange
         return this.parseOrder(data, market);
     }
 
-    public virtual object handleTradeType(object isContractMarket = null, object marginMode = null, object parameters = null)
+    public virtual object handleTradeType(object isContractMarket = null, object marginMode = null, object isUnified = null, object parameters = null)
     {
         isContractMarket ??= false;
+        isUnified ??= false;
         parameters ??= new Dictionary<string, object>();
         object tradeType = this.safeString(parameters, "tradeType");
         if (isTrue(isEqual(tradeType, null)))
@@ -6159,6 +6171,16 @@ public partial class kucoin : Exchange
             } else if (isTrue(!isEqual(marginMode, null)))
             {
                 tradeType = ((string)marginMode).ToUpper();
+                if (isTrue(isUnified))
+                {
+                    if (isTrue(isEqual(tradeType, "ISOLATED")))
+                    {
+                        throw new NotSupported ((string)add(this.id, " spot isolated margin is not supported for unified accountMode")) ;
+                    } else
+                    {
+                        tradeType = "MARGIN";
+                    }
+                }
             } else
             {
                 tradeType = "SPOT";
@@ -6967,7 +6989,7 @@ public partial class kucoin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {string} [params.accountMode] 'unified' or 'classic', defaults to 'unified'
-     * @param {string} [params.marginMode] 'cross' or 'isolated', only for margin trades
+     * @param {string} [params.marginMode] 'cross' or 'isolated', only for margin trades (unified accountMode support only cross margin)
      * @param {string} [params.side] 'BUY' or 'SELL' (both if not provided)
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
@@ -7004,17 +7026,18 @@ public partial class kucoin : Exchange
         {
             isContract = true;
         }
-        object marginMode = null;
-        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchMyTrades", parameters);
-        marginMode = ((IList<object>)marginModeparametersVariable)[0];
-        parameters = ((IList<object>)marginModeparametersVariable)[1];
-        object tradeType = this.handleTradeType(isContract, marginMode, parameters);
-        ((IDictionary<string,object>)request)["tradeType"] = tradeType;
         object accountMode = "unified";
         var accountModeparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "accountMode", accountMode);
         accountMode = ((IList<object>)accountModeparametersVariable)[0];
         parameters = ((IList<object>)accountModeparametersVariable)[1];
         ((IDictionary<string,object>)request)["accountMode"] = accountMode;
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchMyTrades", parameters);
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        object isUnified = (isEqual(accountMode, "unified"));
+        object tradeType = this.handleTradeType(isContract, marginMode, isUnified, parameters);
+        ((IDictionary<string,object>)request)["tradeType"] = tradeType;
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["startAt"] = since;
@@ -8463,7 +8486,7 @@ public partial class kucoin : Exchange
      * @see https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-uta
      * @see https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-classic
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'spot', 'unified', 'funding', 'cross', 'isolated' or 'swap' (default is 'spot')
+     * @param {string} [params.type] 'unified', 'spot', 'funding', 'cross', 'isolated' or 'swap' (default is 'unified')
      * @param {string} [params.marginMode] 'cross' or 'isolated', margin type for fetching margin balance, only applicable if type is margin (default is cross)
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -8471,8 +8494,8 @@ public partial class kucoin : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object requestedType = null;
-        var requestedTypeparametersVariable = this.handleMarketTypeAndParams("fetchUtaBalance", null, parameters);
+        object requestedType = "unified";
+        var requestedTypeparametersVariable = this.handleMarketTypeAndParams("fetchUtaBalance", null, parameters, requestedType);
         requestedType = ((IList<object>)requestedTypeparametersVariable)[0];
         parameters = ((IList<object>)requestedTypeparametersVariable)[1];
         if (isTrue(isEqual(requestedType, "margin")))
@@ -8486,7 +8509,7 @@ public partial class kucoin : Exchange
         }
         object utaAccountsByType = this.safeDict(this.options, "utaAccountsByType", new Dictionary<string, object>() {});
         object type = null;
-        type = this.safeString(utaAccountsByType, requestedType, type);
+        type = this.safeString(utaAccountsByType, requestedType, requestedType);
         object isIsolated = (isEqual(type, "ISOLATED"));
         object request = new Dictionary<string, object>() {};
         object response = null;
@@ -9194,7 +9217,11 @@ public partial class kucoin : Exchange
         hf = ((IList<object>)hfparametersVariable)[0];
         parameters = ((IList<object>)hfparametersVariable)[1];
         object requestedType = null;
-        var requestedTypeparametersVariable = this.handleMarketTypeAndParams("fetchLedger", null, parameters);
+        if (isTrue(uta))
+        {
+            requestedType = "UNIFIED";
+        }
+        var requestedTypeparametersVariable = this.handleMarketTypeAndParams("fetchLedger", null, parameters, requestedType);
         requestedType = ((IList<object>)requestedTypeparametersVariable)[0];
         parameters = ((IList<object>)requestedTypeparametersVariable)[1];
         object marginMode = null;
@@ -9395,12 +9422,26 @@ public partial class kucoin : Exchange
         //         "dayRatio": "0.001"
         //     }
         //
+        // fetchCrossBorrowRate
+        //     {
+        //         "currentRateHourly": "0.00000353",
+        //         "currentRateDaily": "0.00008466",
+        //         "borrowLimitTotal": "600.00000000000000000000",
+        //         "borrowLimitTotalHold": "0.00000000000000000000",
+        //         "borrowLimitHold": "0.00000000000000000000",
+        //         "interestFreeBorrowLimit": "0.60000000000000000000"
+        //     }
+        //
         object timestampId = this.safeString2(info, "createdAt", "timestamp");
-        object timestamp = this.parseToInt(slice(timestampId, 0, 13));
+        object timestamp = this.milliseconds();
+        if (isTrue(!isEqual(timestampId, null)))
+        {
+            timestamp = this.parseToInt(slice(timestampId, 0, 13));
+        }
         object currencyId = this.safeString(info, "currency");
         return new Dictionary<string, object>() {
             { "currency", this.safeCurrencyCode(currencyId, currency) },
-            { "rate", this.safeNumber2(info, "dailyIntRate", "dayRatio") },
+            { "rate", this.safeNumberN(info, new List<object>() {"dailyIntRate", "dayRatio", "currentRateDaily"}) },
             { "period", 86400000 },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -9770,6 +9811,41 @@ public partial class kucoin : Exchange
 
     /**
      * @method
+     * @name kucoin#fetchCrossBorrowRate
+     * @description fetch the rate of interest to borrow a currency for margin trading
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-borrowing-rates-and-limits
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+     */
+    public async override Task<object> fetchCrossBorrowRate(object code, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "currency", getValue(currency, "id") },
+        };
+        object response = await ((Task<object>)callDynamically(this, "utaPrivateGetAccountInterestLimits", new object[] { this.extend(request, parameters) }));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "currentRateHourly": "0.00000353",
+        //             "currentRateDaily": "0.00008466",
+        //             "borrowLimitTotal": "600.00000000000000000000",
+        //             "borrowLimitTotalHold": "0.00000000000000000000",
+        //             "borrowLimitHold": "0.00000000000000000000",
+        //             "interestFreeBorrowLimit": "0.60000000000000000000"
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseBorrowRate(data, currency);
+    }
+
+    /**
+     * @method
      * @name kucoin#borrowCrossMargin
      * @description create a loan to borrow margin
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/borrow
@@ -10031,13 +10107,16 @@ public partial class kucoin : Exchange
      * @method
      * @name kucoin#setLeverage
      * @description set the level of leverage for a market
-     * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/modify-leverage
-     * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage
-     * @see https://www.kucoin.com/docs-new/rest/ua/modify-leverage-uta
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/modify-leverage // margin
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage // contract
+     * @see https://www.kucoin.com/docs-new/rest/ua/modify-cross-margin-leverage-uta // margin uta
+     * @see https://www.kucoin.com/docs-new/rest/ua/modify-leverage-uta // contract uta
      * @param {int } [leverage] New leverage multiplier. Must be greater than 1 and up to two decimal places, and cannot be less than the user's current debt leverage or greater than the system's maximum leverage
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.uta] *contract markets only* set to true for the unified trading account (uta)
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta)
+     * @param {string} [params.marginMode] *spot non-uta only* 'cross' or 'isolated' default is 'cross'
+     * @param {string} [params.code] *uta margin only* the unified currency code for the margin to set the leverage for
      * @returns {object} response from the exchange
      */
     public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
@@ -10061,34 +10140,53 @@ public partial class kucoin : Exchange
                 return await this.setContractLeverage(leverage, symbol, parameters);
             }
         }
-        object uta = await this.isUTAEnabled();
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "setLeverage", "uta", uta);
-        uta = ((IList<object>)utaparametersVariable)[0];
-        parameters = ((IList<object>)utaparametersVariable)[1];
-        if (isTrue(uta))
-        {
-            throw new NotSupported ((string)add(this.id, " setLeverage with params[\"uta\"] is supported for contract markets only")) ;
-        }
+        object request = new Dictionary<string, object>() {
+            { "leverage", this.numberToString(leverage) },
+        };
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        if (isTrue(isEqual(marginMode, null)))
+        object uta = await this.isUTAEnabled();
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "setLeverage", "uta", uta);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        object response = null;
+        if (isTrue(uta))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " setLeverage requires a marginMode parameter")) ;
-        }
-        object request = new Dictionary<string, object>() {};
-        if (isTrue(isTrue(isEqual(marginMode, "isolated")) && isTrue(isEqual(symbol, null))))
+            if (isTrue(isEqual(marginMode, "isolated")))
+            {
+                throw new NotSupported ((string)add(this.id, " unified trading account does not support isolated margin")) ;
+            }
+            ((IDictionary<string,object>)request)["accountMode"] = "unified";
+            object code = null;
+            var codeparametersVariable = this.handleOptionAndParams2(parameters, "setLeverage", "currency", "code");
+            code = ((IList<object>)codeparametersVariable)[0];
+            parameters = ((IList<object>)codeparametersVariable)[1];
+            if (isTrue(isEqual(code, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " setLeverage requires a currency code in the params[\"code\"] for unified trading account")) ;
+            }
+            ((IDictionary<string,object>)request)["currency"] = this.currencyId(code);
+            response = await ((Task<object>)callDynamically(this, "utaPrivatePostAccountModeAccountModifyLeverageMarginCross", new object[] { this.extend(request, parameters) }));
+        } else
         {
-            throw new ArgumentsRequired ((string)add(this.id, " setLeverage requires a symbol parameter for isolated margin")) ;
+            if (isTrue(isEqual(marginMode, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " setLeverage requires a marginMode parameter")) ;
+            }
+            if (isTrue(isTrue(isEqual(marginMode, "isolated")) && isTrue(isEqual(symbol, null))))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " setLeverage requires a symbol parameter for isolated margin")) ;
+            }
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            }
+            ((IDictionary<string,object>)request)["isIsolated"] = (isEqual(marginMode, "isolated"));
+            response = await this.privatePostPositionUpdateUserLeverage(this.extend(request, parameters));
         }
-        if (isTrue(!isEqual(symbol, null)))
-        {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
-        }
-        ((IDictionary<string,object>)request)["leverage"] = ((object)leverage).ToString();
-        ((IDictionary<string,object>)request)["isIsolated"] = (isEqual(marginMode, "isolated"));
-        return await this.privatePostPositionUpdateUserLeverage(this.extend(request, parameters));
+        return response;
     }
 
     /**
@@ -10154,6 +10252,7 @@ public partial class kucoin : Exchange
      * @method
      * @name kucoin#fetchFundingInterval
      * @description fetch the current funding rate interval
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-current-funding-rate
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-current-funding-rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -10162,9 +10261,7 @@ public partial class kucoin : Exchange
     public async override Task<object> fetchFundingInterval(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.fetchFundingRate(symbol, this.extend(parameters, new Dictionary<string, object>() {
-            { "uta", false },
-        }));
+        return await this.fetchFundingRate(symbol, parameters);
     }
 
     /**
@@ -10197,11 +10294,14 @@ public partial class kucoin : Exchange
             //     {
             //         "code": "200000",
             //         "data": {
-            //             "symbol": ".XBTUSDTMFPI8H",
-            //             "nextFundingRate": 7.4E-5,
-            //             "fundingTime": 1762444800000,
-            //             "fundingRateCap": 0.003,
-            //             "fundingRateFloor": -0.003
+            //             "symbol": ".ETHUSDTMFPI8H",
+            //             "nextFundingRate": -3.4E-5,
+            //             "fundingTime": 1776700800000,
+            //             "fundingRateCap": 0.00375,
+            //             "fundingRateFloor": -0.00375,
+            //             "currentGranularity": 28800000,
+            //             "newGranularity": 28800000,
+            //             "newGranularityStartTime": 1750147200000
             //         }
             //     }
             //
@@ -10214,13 +10314,13 @@ public partial class kucoin : Exchange
             //         "data": {
             //             "symbol": ".ETHUSDTMFPI8H",
             //             "granularity": 28800000,
-            //             "timePoint": 1771747200000,
-            //             "value": 3.0E-6,
+            //             "timePoint": 1776672000000,
+            //             "value": -3.2E-5,
             //             "dailyInterestRate": 3.0E-4,
             //             "fundingRateCap": 0.00375,
             //             "fundingRateFloor": -0.00375,
             //             "period": 1,
-            //             "fundingTime": 1771776000000
+            //             "fundingTime": 1776700800000
             //         }
             //     }
             //
@@ -10234,29 +10334,34 @@ public partial class kucoin : Exchange
     {
         // uta
         //     {
-        //         "symbol": ".XBTUSDTMFPI8H",
-        //         "nextFundingRate": 7.4E-5,
-        //         "fundingTime": 1762444800000,
-        //         "fundingRateCap": 0.003,
-        //         "fundingRateFloor": -0.003
+        //         "symbol": ".ETHUSDTMFPI8H",
+        //         "nextFundingRate": -3.4E-5,
+        //         "fundingTime": 1776700800000,
+        //         "fundingRateCap": 0.00375,
+        //         "fundingRateFloor": -0.00375,
+        //         "currentGranularity": 28800000,
+        //         "newGranularity": 28800000,
+        //         "newGranularityStartTime": 1750147200000
         //     }
         //
         // futures
         //     {
         //         "symbol": ".ETHUSDTMFPI8H",
         //         "granularity": 28800000,
-        //         "timePoint": 1771747200000,
-        //         "value": 3.0E-6,
+        //         "timePoint": 1776672000000,
+        //         "value": -3.2E-5,
         //         "dailyInterestRate": 3.0E-4,
         //         "fundingRateCap": 0.00375,
         //         "fundingRateFloor": -0.00375,
         //         "period": 1,
-        //         "fundingTime": 1771776000000
+        //         "fundingTime": 1776700800000
         //     }
         //
         object fundingTimestamp = this.safeInteger(data, "fundingTime");
         object previousFundingTimestamp = this.safeInteger(data, "timePoint");
+        object nextFundingTimestamp = this.safeInteger(data, "newGranularityStartTime");
         object marketId = this.safeString(data, "symbol");
+        object granularity = this.safeString2(data, "granularity", "currentGranularity");
         return new Dictionary<string, object>() {
             { "info", data },
             { "symbol", this.safeSymbol(marketId, market, null, "contract") },
@@ -10269,13 +10374,13 @@ public partial class kucoin : Exchange
             { "fundingRate", this.safeNumber2(data, "nextFundingRate", "value") },
             { "fundingTimestamp", fundingTimestamp },
             { "fundingDatetime", this.iso8601(fundingTimestamp) },
-            { "nextFundingRate", this.safeNumber(data, "predictedValue") },
-            { "nextFundingTimestamp", null },
-            { "nextFundingDatetime", null },
+            { "nextFundingRate", null },
+            { "nextFundingTimestamp", nextFundingTimestamp },
+            { "nextFundingDatetime", this.iso8601(nextFundingTimestamp) },
             { "previousFundingRate", null },
             { "previousFundingTimestamp", previousFundingTimestamp },
             { "previousFundingDatetime", this.iso8601(previousFundingTimestamp) },
-            { "interval", this.parseFundingInterval(this.safeString(data, "granularity")) },
+            { "interval", this.parseFundingInterval(granularity) },
         };
     }
 
@@ -10414,71 +10519,115 @@ public partial class kucoin : Exchange
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
+        await this.loadMarkets();
+        object uta = await this.isUTAEnabled();
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingHistory", "uta", uta);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        object request = new Dictionary<string, object>() {};
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+        } else if (!isTrue(uta))
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
-        };
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["startAt"] = since;
         }
-        if (isTrue(!isEqual(limit, null)))
+        object dataList = new List<object>() {};
+        if (isTrue(uta))
         {
-            // * Since is ignored if limit is defined
-            ((IDictionary<string,object>)request)["maxCount"] = limit;
+            if (isTrue(!isEqual(limit, null)))
+            {
+                ((IDictionary<string,object>)request)["pageSize"] = limit;
+            }
+            var requestparametersVariable = this.handleUntilOption("endAt", request, parameters);
+            request = ((IList<object>)requestparametersVariable)[0];
+            parameters = ((IList<object>)requestparametersVariable)[1];
+            object response = await ((Task<object>)callDynamically(this, "utaPrivateGetPositionFundingHistory", new object[] { this.extend(request, parameters) }));
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": {
+            //             "lastId": 2125247170385112,
+            //             "items": [
+            //                 {
+            //                     "symbol": "DOGEUSDTM",
+            //                     "marginMode": "CROSS",
+            //                     "fundingRate": "0.000172",
+            //                     "markPrice": "0.09326",
+            //                     "size": "-1",
+            //                     "positionValue": "-9.326",
+            //                     "fundingFee": "0.00160407",
+            //                     "settleCurrency": "USDT",
+            //                     "settlementTime": 1775030400000
+            //                 }
+            //             ]
+            //         }
+            //     }
+            object data = this.safeDict(response, "data");
+            dataList = this.safeList(data, "items", new List<object>() {});
+        } else
+        {
+            if (isTrue(!isEqual(limit, null)))
+            {
+                // * Since is ignored if limit is defined
+                ((IDictionary<string,object>)request)["maxCount"] = limit;
+            }
+            object response = await this.futuresPrivateGetFundingHistory(this.extend(request, parameters));
+            //
+            //    {
+            //        "code": "200000",
+            //        "data": {
+            //            "dataList": [
+            //                {
+            //                    "id": 239471298749817,
+            //                    "symbol": "ETHUSDTM",
+            //                    "timePoint": 1638532800000,
+            //                    "fundingRate": 0.000100,
+            //                    "markPrice": 4612.8300000000,
+            //                    "positionQty": 12,
+            //                    "positionCost": 553.5396000000,
+            //                    "funding": -0.0553539600,
+            //                    "settleCurrency": "USDT"
+            //                },
+            //                ...
+            //            ],
+            //            "hasMore": true
+            //        }
+            //    }
+            //
+            object data = this.safeValue(response, "data");
+            dataList = this.safeList(data, "dataList", new List<object>() {});
         }
-        object response = await this.futuresPrivateGetFundingHistory(this.extend(request, parameters));
-        //
-        //    {
-        //        "code": "200000",
-        //        "data": {
-        //            "dataList": [
-        //                {
-        //                    "id": 239471298749817,
-        //                    "symbol": "ETHUSDTM",
-        //                    "timePoint": 1638532800000,
-        //                    "fundingRate": 0.000100,
-        //                    "markPrice": 4612.8300000000,
-        //                    "positionQty": 12,
-        //                    "positionCost": 553.5396000000,
-        //                    "funding": -0.0553539600,
-        //                    "settleCurrency": "USDT"
-        //                },
-        //                ...
-        //            ],
-        //            "hasMore": true
-        //        }
-        //    }
-        //
-        object data = this.safeValue(response, "data");
-        object dataList = this.safeList(data, "dataList", new List<object>() {});
         object fees = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(dataList)); postFixIncrement(ref i))
         {
             object listItem = getValue(dataList, i);
-            object timestamp = this.safeInteger(listItem, "timePoint");
+            object timestamp = this.safeInteger2(listItem, "timePoint", "settlementTime");
+            object marketId = this.safeString(listItem, "symbol");
             ((IList<object>)fees).Add(new Dictionary<string, object>() {
                 { "info", listItem },
-                { "symbol", symbol },
+                { "symbol", this.safeSymbol(marketId, market) },
                 { "code", this.safeCurrencyCode(this.safeString(listItem, "settleCurrency")) },
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
                 { "id", this.safeNumber(listItem, "id") },
-                { "amount", this.safeNumber(listItem, "funding") },
+                { "amount", this.safeNumber2(listItem, "funding", "fundingFee") },
                 { "fundingRate", this.safeNumber(listItem, "fundingRate") },
                 { "markPrice", this.safeNumber(listItem, "markPrice") },
-                { "positionQty", this.safeNumber(listItem, "positionQty") },
-                { "positionCost", this.safeNumber(listItem, "positionCost") },
+                { "positionQty", this.safeNumber2(listItem, "positionQty", "size") },
+                { "positionCost", this.safeNumber2(listItem, "positionCost", "positionValue") },
             });
         }
         return fees;
@@ -10966,7 +11115,7 @@ public partial class kucoin : Exchange
      * @param {string[]} [params.clientOrderIds] client order ids
      * @param {boolean} [params.uta] set to true to use the unified trading account (uta) endpoint, defaults to false for the contract orders
      * @param {string} [params.accountMode] *for uta endpoint only* 'unified' or 'classic' (default is 'unified')
-     * @param {string} [params.marginMode] *for margin orders only* 'cross' or 'isolated'
+     * @param {string} [params.marginMode] *for margin orders only* 'cross' or 'isolated' (unified accountMode supports cross margin only)
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
@@ -11035,7 +11184,8 @@ public partial class kucoin : Exchange
             var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrder", parameters);
             marginMode = ((IList<object>)marginModeparametersVariable)[0];
             parameters = ((IList<object>)marginModeparametersVariable)[1];
-            object tradeType = this.handleTradeType(isContractMarket, marginMode, parameters);
+            object isUnified = (isEqual(accountMode, "unified"));
+            object tradeType = this.handleTradeType(isContractMarket, marginMode, isUnified, parameters);
             ((IDictionary<string,object>)request)["tradeType"] = tradeType;
             ((IDictionary<string,object>)request)["cancelOrderList"] = ordersRequests;
             response = await this.utaPrivatePostAccountModeOrderCancelBatch(this.extend(request, parameters));
@@ -11720,7 +11870,7 @@ public partial class kucoin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true if unified account is enabled, false otherwise
      */
-    public async virtual Task<object> isUTAEnabled(object parameters = null)
+    public async override Task<object> isUTAEnabled(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object uta = this.safeBool(this.options, "uta");
@@ -11781,7 +11931,7 @@ public partial class kucoin : Exchange
                 endpoint = add(endpoint, add("?", this.rawencode(query)));
             } else
             {
-                if (isTrue(isEqual(endpoint, "/api/ua/v1/classic/order/place")))
+                if (isTrue(isTrue(isTrue(isTrue((isEqual(endpoint, "/api/ua/v1/classic/order/place"))) || isTrue((isEqual(endpoint, "/api/ua/v1/classic/order/place/batch")))) || isTrue((isEqual(endpoint, "/api/ua/v1/classic/order/cancel")))) || isTrue((isEqual(endpoint, "/api/ua/v1/classic/order/cancel/batch")))))
                 {
                     endpoint = add(endpoint, add("?tradeType=", tradeType));
                 }

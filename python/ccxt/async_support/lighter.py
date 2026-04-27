@@ -614,7 +614,7 @@ class lighter(Exchange, ImplicitAPI):
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
         signer = await self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
-        nonce = await self.fetch_nonce(accountIndex, apiKeyIndex, params)
+        nonce = await self.fetch_nonce(accountIndex, apiKeyIndex, self.extend(params, {'skipNonce': False}))
         expiry = self.milliseconds() + 365 * 864000
         signRaw = {
             'integrator_account_index': builder,
@@ -643,7 +643,7 @@ class lighter(Exchange, ImplicitAPI):
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
         signerNotLoad = self.options['auths'][strAccountIndex][strApiKeyIndex]['signer']
         privateKey, publicKey = self.lighter_generate_api_key(signerNotLoad)
-        nonce = await self.fetch_nonce(accountIndex, apiKeyIndex, params)
+        nonce = await self.fetch_nonce(accountIndex, apiKeyIndex, self.extend(params, {'skipNonce': False}))
         signRaw = {
             'pubkey': self.encode(publicKey),
             'nonce': nonce,
@@ -817,6 +817,11 @@ class lighter(Exchange, ImplicitAPI):
         nonceInOptions = self.safe_integer(self.options, 'nonce')
         if nonceInOptions is not None:
             return nonceInOptions
+        # avoid skipNonce for l1 operations
+        skipNonce = True
+        skipNonce, params = self.handle_option_and_params(params, 'fetchNonce', 'skipNonce', True)
+        if skipNonce:
+            return self.milliseconds()
         response = await self.publicGetNextNonce({'account_index': accountIndex, 'api_key_index': apiKeyIndex})
         return self.safe_integer(response, 'nonce')
 

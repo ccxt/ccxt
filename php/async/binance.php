@@ -5717,7 +5717,7 @@ class binance extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type(?string $type, ?string $marketType) {
+    public function parse_order_type_by_market(?string $type, ?string $marketType) {
         $types = array();
         if (($marketType !== null) && $marketType === 'spot') {
             $types = array(
@@ -6324,7 +6324,7 @@ class binance extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'lastUpdateTimestamp' => $lastUpdateTimestamp,
             'symbol' => $symbol,
-            'type' => $this->parse_order_type($type, $marketType),
+            'type' => $this->parse_order_type_by_market($type, $marketType),
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
             'reduceOnly' => $this->safe_bool($order, 'reduceOnly'),

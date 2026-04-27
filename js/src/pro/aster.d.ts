@@ -3,7 +3,7 @@ import type { Balances, Str, Strings, Tickers, Ticker, Int, Trade, Order, OrderB
 import Client from '../base/ws/Client.js';
 export default class aster extends asterRest {
     describe(): any;
-    getAccountTypeFromSubscriptions(subscriptions: string[]): string;
+    getAccountTypeFromUrl(url: string): string;
     /**
      * @method
      * @name aster#watchTicker
