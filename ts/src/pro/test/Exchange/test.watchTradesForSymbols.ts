@@ -30,7 +30,7 @@ async function testWatchTradesForSymbols (exchange: Exchange, skippedProperties:
                 symbol = trade['symbol'];
                 testTrade (exchange, skippedProperties, method, trade, symbol, now);
                 testSharedMethods.assertInArray (exchange, skippedProperties, method, trade, 'symbol', symbols);
-                if (!returnedSymbols.includes (symbol)) {
+                if (!exchange.inArray (symbol, returnedSymbols)) {
                     returnedSymbols.push (symbol);
                 }
             }

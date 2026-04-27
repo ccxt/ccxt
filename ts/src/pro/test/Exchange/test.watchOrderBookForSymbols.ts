@@ -31,7 +31,7 @@ async function testWatchOrderBookForSymbols (exchange: Exchange, skippedProperti
             testSharedMethods.assertInArray (exchange, skippedProperties, method, response, 'symbol', symbols);
             testOrderBook (exchange, skippedProperties, method, response, undefined);
             const symbol = response['symbol'];
-            if (!returnedSymbols.includes (symbol)) {
+            if (!exchange.inArray (symbol, returnedSymbols)) {
                 returnedSymbols.push (symbol);
             }
         }
