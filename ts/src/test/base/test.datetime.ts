@@ -147,15 +147,15 @@ function testDatetime () {
     testIso8601 ();
     testParse8601 ();
     testParseDate ();
+    // @SKIP_END_START
+    testYmd ();
+    testYmdhms ();
+    // @SKIP_END_END
     testMicroseconds ();
     testMilliseconds ();
     testSeconds ();
     testYymmdd ();
     testYyyymmdd ();
-    // @SKIP_END_START
-    testYmd ();
-    testYmdhms ();
-    // @SKIP_END_END
 }
 
 export default testDatetime;
