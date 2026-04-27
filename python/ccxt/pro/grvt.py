@@ -13,7 +13,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 
 
-class grvt(ccxt.async_support.grvt):
+class grvt(ccxt.async_support.grvt):h
 
     def describe(self) -> Any:
         return self.deep_extend(super(grvt, self).describe(), {
@@ -778,7 +778,7 @@ class grvt(ccxt.async_support.grvt):
             rawHashes.append(subAccountId)
         else:
             market = self.market(symbol)
-            messageHashes.append('order::' + market['symbol'])
+            messageHashes.append('orders::' + market['symbol'])  # Fix: match handle_order resolver prefix
             rawHashes.append(subAccountId + '-' + market['id'])
         request = {
             'stream': 'v1.order',
@@ -862,7 +862,7 @@ class grvt(ccxt.async_support.grvt):
         self.orders.append(order)
         client.resolve(self.orders, 'orders')
         ordersForSymbol = self.filter_by_symbol_since_limit(self.orders, order['symbol'], None, None, True)
-        client.resolve(ordersForSymbol, 'orders::' + order['symbol'])
+        client.resolve(self.orders, 'orders::' + order['symbol'])
 
     def parse_ws_order(self, order, market=None) -> Order:
         # same api
