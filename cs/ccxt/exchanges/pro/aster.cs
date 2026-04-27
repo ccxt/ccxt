@@ -81,19 +81,13 @@ public partial class aster : ccxt.aster
         });
     }
 
-    public virtual object getAccountTypeFromSubscriptions(object subscriptions)
+    public virtual object getAccountTypeFromUrl(object url)
     {
-        object accountType = "";
-        for (object i = 0; isLessThan(i, getArrayLength(subscriptions)); postFixIncrement(ref i))
+        if (isTrue(isGreaterThan(getIndexOf(url, "fstream"), -1)))
         {
-            object subscription = getValue(subscriptions, i);
-            if (isTrue(isTrue((isEqual(subscription, "spot"))) || isTrue((isEqual(subscription, "swap")))))
-            {
-                accountType = subscription;
-                break;
-            }
+            return "swap";
         }
-        return accountType;
+        return "spot";
     }
 
     /**
@@ -174,7 +168,7 @@ public partial class aster : ccxt.aster
             ((IList<object>)subscriptionArgs).Add(add(this.safeStringLower(market, "id"), "@ticker"));
             ((IList<object>)messageHashes).Add(add("ticker:", getValue(market, "symbol")));
         }
-        object newTicker = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), new List<object>() {type});
+        object newTicker = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
         if (isTrue(this.newUpdates))
         {
             object result = new Dictionary<string, object>() {};
@@ -225,7 +219,7 @@ public partial class aster : ccxt.aster
             ((IList<object>)subscriptionArgs).Add(add(this.safeStringLower(market, "id"), "@ticker"));
             ((IList<object>)messageHashes).Add(add("unsubscribe:ticker:", getValue(market, "symbol")));
         }
-        return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), new List<object>() {type});
+        return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
 
     /**
@@ -308,7 +302,7 @@ public partial class aster : ccxt.aster
             ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@markPrice"), suffix));
             ((IList<object>)messageHashes).Add(add("ticker:", getValue(market, "symbol")));
         }
-        object newTicker = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), new List<object>() {type});
+        object newTicker = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
         if (isTrue(this.newUpdates))
         {
             object result = new Dictionary<string, object>() {};
@@ -361,7 +355,7 @@ public partial class aster : ccxt.aster
             ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@markPrice"), suffix));
             ((IList<object>)messageHashes).Add(add("unsubscribe:ticker:", getValue(market, "symbol")));
         }
-        return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), new List<object>() {type});
+        return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
 
     public virtual void handleTicker(WebSocketClient client, object message)
@@ -404,9 +398,7 @@ public partial class aster : ccxt.aster
         //         }
         //     }
         //
-        object subscriptions = ((WebSocketClient)client).subscriptions;
-        object subscriptionsKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
-        object marketType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
+        object marketType = this.getAccountTypeFromUrl(client.url);
         object ticker = this.safeDict(message, "data");
         object parsed = this.parseWsTicker(ticker, marketType);
         object symbol = getValue(parsed, "symbol");
@@ -495,7 +487,7 @@ public partial class aster : ccxt.aster
             ((IList<object>)subscriptionArgs).Add(add(this.safeStringLower(market, "id"), "@bookTicker"));
             ((IList<object>)messageHashes).Add(add("bidask:", getValue(market, "symbol")));
         }
-        object newTicker = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), new List<object>() {type});
+        object newTicker = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
         if (isTrue(this.newUpdates))
         {
             object result = new Dictionary<string, object>() {};
@@ -541,7 +533,7 @@ public partial class aster : ccxt.aster
             ((IList<object>)subscriptionArgs).Add(add(this.safeStringLower(market, "id"), "@bookTicker"));
             ((IList<object>)messageHashes).Add(add("unsubscribe:bidask:", getValue(market, "symbol")));
         }
-        return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), new List<object>() {type});
+        return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
 
     public virtual void handleBidAsk(WebSocketClient client, object message)
@@ -562,9 +554,7 @@ public partial class aster : ccxt.aster
         //         }
         //     }
         //
-        object subscriptions = ((WebSocketClient)client).subscriptions;
-        object subscriptionsKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
-        object marketType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
+        object marketType = this.getAccountTypeFromUrl(client.url);
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object marketId = this.safeString(data, "s");
         object market = this.safeMarket(marketId, null, null, marketType);
@@ -669,7 +659,7 @@ public partial class aster : ccxt.aster
             ((IList<object>)subscriptionArgs).Add(add(this.safeStringLower(market, "id"), "@aggTrade"));
             ((IList<object>)messageHashes).Add(add("trade:", getValue(market, "symbol")));
         }
-        object trades = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), new List<object>() {type});
+        object trades = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
         if (isTrue(this.newUpdates))
         {
             object first = this.safeValue(trades, 0);
@@ -720,7 +710,7 @@ public partial class aster : ccxt.aster
             ((IList<object>)subscriptionArgs).Add(add(this.safeStringLower(market, "id"), "@aggTrade"));
             ((IList<object>)messageHashes).Add(add("unsubscribe:trade:", getValue(market, "symbol")));
         }
-        return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), new List<object>() {type});
+        return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
 
     public virtual void handleTrade(WebSocketClient client, object message)
@@ -742,9 +732,7 @@ public partial class aster : ccxt.aster
         //         }
         //     }
         //
-        object subscriptions = ((WebSocketClient)client).subscriptions;
-        object subscriptionsKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
-        object marketType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
+        object marketType = this.getAccountTypeFromUrl(client.url);
         object trade = this.safeDict(message, "data");
         object marketId = this.safeString(trade, "s");
         object market = this.safeMarket(marketId, null, null, marketType);
@@ -1015,7 +1003,7 @@ public partial class aster : ccxt.aster
             ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@depth"), ((object)limit).ToString()));
             ((IList<object>)messageHashes).Add(add("orderbook:", getValue(market, "symbol")));
         }
-        object orderbook = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), new List<object>() {type});
+        object orderbook = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
         return (orderbook as IOrderBook).limit();
     }
 
@@ -1067,7 +1055,7 @@ public partial class aster : ccxt.aster
             ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@depth"), limit));
             ((IList<object>)messageHashes).Add(add("unsubscribe:orderbook:", getValue(market, "symbol")));
         }
-        return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), new List<object>() {type});
+        return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
 
     public virtual void handleOrderBook(WebSocketClient client, object message)
@@ -1098,9 +1086,7 @@ public partial class aster : ccxt.aster
         //         }
         //     }
         //
-        object subscriptions = ((WebSocketClient)client).subscriptions;
-        object subscriptionsKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
-        object marketType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
+        object marketType = this.getAccountTypeFromUrl(client.url);
         object data = this.safeDict(message, "data");
         object marketId = this.safeString(data, "s");
         object timestamp = this.safeInteger(data, "T");
@@ -1209,7 +1195,7 @@ public partial class aster : ccxt.aster
             ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@kline_"), timeframeId));
             ((IList<object>)messageHashes).Add(add(add(add("ohlcv:", getValue(market, "symbol")), ":"), unfiedTimeframe));
         }
-        var symboltimeframestoredVariable = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), new List<object>() {type});
+        var symboltimeframestoredVariable = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
         var symbol = ((IList<object>) symboltimeframestoredVariable)[0];
         var timeframe = ((IList<object>) symboltimeframestoredVariable)[1];
         var stored = ((IList<object>) symboltimeframestoredVariable)[2];
@@ -1267,7 +1253,7 @@ public partial class aster : ccxt.aster
             ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@kline_"), timeframeId));
             ((IList<object>)messageHashes).Add(add(add(add("unsubscribe:ohlcv:", getValue(market, "symbol")), ":"), unfiedTimeframe));
         }
-        return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), new List<object>() {type});
+        return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message)
@@ -1301,9 +1287,7 @@ public partial class aster : ccxt.aster
         //         }
         //     }
         //
-        object subscriptions = ((WebSocketClient)client).subscriptions;
-        object subscriptionsKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
-        object marketType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
+        object marketType = this.getAccountTypeFromUrl(client.url);
         object data = this.safeDict(message, "data");
         object marketId = this.safeString(data, "s");
         object market = this.safeMarket(marketId, null, null, marketType);
@@ -1531,9 +1515,7 @@ public partial class aster : ccxt.aster
         //         }
         //     }
         //
-        object subscriptions = ((WebSocketClient)client).subscriptions;
-        object subscriptionsKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
-        object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
+        object accountType = this.getAccountTypeFromUrl(client.url);
         object messageHash = add(accountType, ":balance");
         if (isTrue(isEqual(getValue(this.balance, accountType), null)))
         {
@@ -2136,9 +2118,7 @@ public partial class aster : ccxt.aster
     public virtual object getMarketFromOrder(WebSocketClient client, object order)
     {
         object marketId = this.safeString(order, "s");
-        object subscriptions = ((WebSocketClient)client).subscriptions;
-        object subscriptionsKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
-        object marketType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
+        object marketType = this.getAccountTypeFromUrl(client.url);
         return this.safeMarket(marketId, null, null, marketType);
     }
 

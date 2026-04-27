@@ -697,7 +697,9 @@ public partial class lighter : Exchange
         object strAccountIndex = this.numberToString(accountIndex);
         object strApiKeyIndex = this.numberToString(apiKeyIndex);
         object signer = await this.loadAccount(getValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
-        object nonce = await this.fetchNonce(accountIndex, apiKeyIndex, parameters);
+        object nonce = await this.fetchNonce(accountIndex, apiKeyIndex, this.extend(parameters, new Dictionary<string, object>() {
+            { "skipNonce", false },
+        }));
         object expiry = add(this.milliseconds(), multiply(365, 864000));
         object signRaw = new Dictionary<string, object>() {
             { "integrator_account_index", builder },
@@ -738,7 +740,9 @@ public partial class lighter : Exchange
         var privateKeypublicKeyVariable = this.lighterGenerateApiKey(signerNotLoad);
         var privateKey = ((IList<object>) privateKeypublicKeyVariable)[0];
         var publicKey = ((IList<object>) privateKeypublicKeyVariable)[1];
-        object nonce = await this.fetchNonce(accountIndex, apiKeyIndex, parameters);
+        object nonce = await this.fetchNonce(accountIndex, apiKeyIndex, this.extend(parameters, new Dictionary<string, object>() {
+            { "skipNonce", false },
+        }));
         object signRaw = new Dictionary<string, object>() {
             { "pubkey", this.encode(publicKey) },
             { "nonce", nonce },
@@ -979,6 +983,15 @@ public partial class lighter : Exchange
         if (isTrue(!isEqual(nonceInOptions, null)))
         {
             return nonceInOptions;
+        }
+        // avoid skipNonce for l1 operations
+        object skipNonce = true;
+        var skipNonceparametersVariable = this.handleOptionAndParams(parameters, "fetchNonce", "skipNonce", true);
+        skipNonce = ((IList<object>)skipNonceparametersVariable)[0];
+        parameters = ((IList<object>)skipNonceparametersVariable)[1];
+        if (isTrue(skipNonce))
+        {
+            return this.milliseconds();
         }
         object response = await this.publicGetNextNonce(new Dictionary<string, object>() {
             { "account_index", accountIndex },

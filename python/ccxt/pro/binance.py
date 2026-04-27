@@ -3658,7 +3658,7 @@ class binance(ccxt.async_support.binance):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': lastUpdateTimestamp,
-            'type': self.parseOrderType(self.safe_string_lower(order, 'o'), marketType),
+            'type': self.parseOrderTypeByMarket(self.safe_string_lower(order, 'o'), marketType),
             'timeInForce': timeInForce,
             'postOnly': None,
             'reduceOnly': self.safe_bool(order, 'R'),

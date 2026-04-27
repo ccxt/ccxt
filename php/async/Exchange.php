@@ -7420,4 +7420,8 @@ class Exchange extends \ccxt\Exchange {
         }
         return '';
     }
+
+    public function is_uta_enabled($params = array ()) {
+        return false; // stub
+    }
 }

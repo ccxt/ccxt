@@ -37,7 +37,6 @@ class kucoinfutures extends \ccxt\pro\kucoin {
                 ),
                 'defaultType' => 'swap',
                 'defaultAccountType' => 'contract',
-                'uta' => false,
             ),
         ));
     }
