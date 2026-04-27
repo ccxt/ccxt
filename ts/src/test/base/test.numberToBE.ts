@@ -8,8 +8,6 @@ function testNumberToBE () {
         'id': 'sampleexchange',
     });
 
-    assert (exchange.parseNumber (undefined) === undefined, 'GO skip trick');
-
     // @SKIP_START_GO
     // 1234567890 (decimal) = 0x499602D2 (hex)
     // BE: 00 00 00 00 49 96 02 D2
@@ -81,6 +79,8 @@ function testNumberToBE () {
     assert (exchange.binaryToBase64 (result9) === exchange.binaryToBase64 (expectedBinary9), '0x01020304 4-byte failed');
 
     // @SKIP_END_GO
+
+    exchange.describe (); // avoid unused var
 }
 
 export default testNumberToBE;
