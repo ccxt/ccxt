@@ -2704,7 +2704,7 @@ export default class Exchange {
     }
 
     isDictionary (value: any): boolean {
-        return (value !== null) && (typeof value === 'object') && !Array.isArray (value);
+        return (value !== undefined) && (typeof value === 'object') && !Array.isArray (value);
     }
 
     safeList2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue: any[] = undefined): any[] | undefined {
