@@ -1453,10 +1453,15 @@ public class Exchange {
             if (currencies != null) {
                 this.options.put("cachedCurrencies", currencies);
             }
-            return this.fetchMarkets();
-        }).thenApply(markets -> {
-            this.options.remove("cachedCurrencies");
-            return this.setMarkets(markets);
+            return this.fetchMarkets().thenApply(markets -> {
+                this.options.remove("cachedCurrencies");
+                // Pass currencies through so setMarkets() can merge fetched currencies
+                // (including ones not appearing as a base/quote/settle in any market —
+                // e.g. AGLD/WBTC for bigone/apex, USDC for aftermath). The previous
+                // form dropped this argument, forcing setMarkets to reconstruct the
+                // currencies dict from market base/quote only and silently lose entries.
+                return this.setMarkets(markets, currencies);
+            });
         });
 
     }

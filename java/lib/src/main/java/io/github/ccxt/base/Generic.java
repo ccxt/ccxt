@@ -34,9 +34,9 @@ public class Generic {
         if (value1 instanceof String key) {
             sorted = new ArrayList<>(lst);
             sorted.sort(Comparator.comparing(
-                x -> {
+                (Object x) -> {
                     Object v = ((Map<String, Object>) x).get(key);
-                    return v == null ? null : v.toString();
+                    return toComparable(v, defaultValue);
                 },
                 Comparator.nullsFirst(Comparator.naturalOrder())
             ));
@@ -44,18 +44,40 @@ public class Generic {
             int index = ((Number) value1).intValue();
             sorted = new ArrayList<>(lst);
             sorted.sort(Comparator.comparing(
-                x -> {
+                (Object x) -> {
                     if (x instanceof List<?> li) {
                         Object v = (index >= 0 && index < li.size()) ? li.get(index) : null;
-                        return (v == null) ? defaultValue.toString() : v.toString();
+                        return toComparable(v, defaultValue);
                     }
-                    return defaultValue.toString();
+                    return toComparable(null, defaultValue);
                 },
                 Comparator.nullsFirst(Comparator.naturalOrder())
             ));
         }
         if (desc) Collections.reverse(sorted);
         return sorted;
+    }
+
+    /**
+     * Coerce a sort key to a Comparable that mirrors TS ordering semantics.
+     * TS uses numeric `<`/`>` for numbers (and number-like strings) and
+     * lexicographic for non-numeric strings. Java's plain `.toString()` +
+     * `naturalOrder()` was lex-sorting numeric strings, so order books
+     * (e.g. ["53.0", "52910.0"]) came out shuffled — "53.0" lex-sorts
+     * before "52910.0" because '3' &gt; '2' at index 1, breaking
+     * `sortBy(bids, 0, true)` / `sortBy(asks, 0)` in parseOrderBook.
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static Comparable toComparable(Object v, Object defaultValue) {
+        Object raw = (v != null) ? v : defaultValue;
+        if (raw == null || "".equals(raw)) return null;
+        if (raw instanceof Number n) return Double.valueOf(n.doubleValue());
+        String s = raw.toString();
+        try {
+            return Double.valueOf(Double.parseDouble(s));
+        } catch (NumberFormatException ignored) {
+            return s;
+        }
     }
 
     public static List<Object> sortBy2(Object array, Object key1, Object key2, Object desc2) {
