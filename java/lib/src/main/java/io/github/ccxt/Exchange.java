@@ -1829,6 +1829,13 @@ public class Exchange {
 
     private void initHttpClient() {
         var builder = HttpClient.newBuilder();
+        // Java's HttpClient defaults to Redirect.NEVER, but TS/Node fetch and
+        // browsers transparently follow 3xx. Without this, requests against
+        // endpoints that redirect (e.g. gemini's exchange.gemini.com → 303 to
+        // a signed-in URL) come back with an empty body, leaving downstream
+        // parsers (fetchCurrenciesFromWeb populating options['tradingPairs'])
+        // empty-handed and silently degrading market metadata.
+        builder.followRedirects(HttpClient.Redirect.NORMAL);
 
         boolean httpsProxySet = this.httpsProxy != null && !this.httpsProxy.toString().isEmpty();
         boolean httpProxySet = this.httpProxy != null && !this.httpProxy.toString().isEmpty();
