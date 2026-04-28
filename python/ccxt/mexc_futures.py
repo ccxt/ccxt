@@ -48,6 +48,16 @@ class mexc_futures(mexc_abs):
             result.append(market)
         return result
 
+    def quantity_to_precision(self, symbol, quantity):
+        return super().amount_to_precision(symbol, quantity)
+
+    def amount_to_precision(self, symbol, amount):
+        market = self.safe_value(self.markets, symbol, {})
+        contract_size = market['contractSize']
+        base_amount = float(Precise.string_mul(str(amount), str(contract_size)))
+        precise_amount = float(super().amount_to_precision(symbol, base_amount))
+        return str(float(Precise.string_div(str(precise_amount), str(contract_size))))
+
     def create_swap_order(self, market, type, side, amount, price=None, marginMode=None, params={}):
         hedged = self.safe_bool(params, 'hedged', False)
         reduceOnly = self.safe_bool(params, 'reduceOnly', False)
@@ -116,6 +126,7 @@ class mexc_futures(mexc_abs):
         return self.safe_balance(result)
 
     def parse_order(self, order: dict, market: Market = None):
+        order = self.safe_value(order, 0)
         parsed = super().parse_order(order, market)
         symbol = parsed.get('symbol')
         if symbol:
