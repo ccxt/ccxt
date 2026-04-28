@@ -110,6 +110,22 @@ class mexc_futures(mexc_abs):
             raise OrderNotFound(self.id + ' cancelOrder() plan order could not be cancelled, status: ' + str(fetched.get('status')))
         return fetched
 
+    def parse_leverage(self, leverage: dict, market: Market = None):
+        parsed = super().parse_leverage(leverage, market)
+        longMarginMode = None
+        shortMarginMode = None
+        for entry in leverage:
+            openType = self.safe_integer(entry, 'openType')
+            positionType = self.safe_integer(entry, 'positionType')
+            margin_mode = 'isolated' if (openType == 1) else 'cross'
+            if positionType == 1:
+                longMarginMode = margin_mode
+            elif positionType == 2:
+                shortMarginMode = margin_mode
+        parsed['longMarginMode'] = longMarginMode
+        parsed['shortMarginMode'] = shortMarginMode
+        return parsed
+
     def custom_parse_balance(self, response, marketType):
         wallet = self.safe_value(response, 'data', [])
         linear_quotes = {self.safe_string(m, 'quote') for m in self.markets.values() if m.get('linear')}
