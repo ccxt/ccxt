@@ -126,7 +126,7 @@ class mexc_futures(mexc_abs):
         return self.safe_balance(result)
 
     def parse_order(self, order: dict, market: Market = None):
-        order = self.safe_value(order, 0)
+        order = self.safe_value(order, 0) if isinstance(order, list) else order
         parsed = super().parse_order(order, market)
         symbol = parsed.get('symbol')
         if symbol:
