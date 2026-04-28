@@ -33,50 +33,58 @@ public class Generic {
         List<Object> sorted;
         if (value1 instanceof String key) {
             sorted = new ArrayList<>(lst);
-            sorted.sort(Comparator.comparing(
-                (Object x) -> {
-                    Object v = ((Map<String, Object>) x).get(key);
-                    return toComparable(v, defaultValue);
-                },
-                Comparator.nullsFirst(Comparator.naturalOrder())
-            ));
+            sorted.sort((a, b1) -> compareJsLike(
+                ((Map<String, Object>) a).get(key),
+                ((Map<String, Object>) b1).get(key),
+                defaultValue));
         } else {
             int index = ((Number) value1).intValue();
             sorted = new ArrayList<>(lst);
-            sorted.sort(Comparator.comparing(
-                (Object x) -> {
-                    if (x instanceof List<?> li) {
-                        Object v = (index >= 0 && index < li.size()) ? li.get(index) : null;
-                        return toComparable(v, defaultValue);
-                    }
-                    return toComparable(null, defaultValue);
-                },
-                Comparator.nullsFirst(Comparator.naturalOrder())
-            ));
+            sorted.sort((a, b1) -> {
+                Object va = (a instanceof List<?> la && index >= 0 && index < la.size()) ? la.get(index) : null;
+                Object vb = (b1 instanceof List<?> lb && index >= 0 && index < lb.size()) ? lb.get(index) : null;
+                return compareJsLike(va, vb, defaultValue);
+            });
         }
         if (desc) Collections.reverse(sorted);
         return sorted;
     }
 
     /**
-     * Coerce a sort key to a Comparable that mirrors TS ordering semantics.
-     * TS uses numeric `<`/`>` for numbers (and number-like strings) and
-     * lexicographic for non-numeric strings. Java's plain `.toString()` +
-     * `naturalOrder()` was lex-sorting numeric strings, so order books
-     * (e.g. ["53.0", "52910.0"]) came out shuffled — "53.0" lex-sorts
-     * before "52910.0" because '3' &gt; '2' at index 1, breaking
-     * `sortBy(bids, 0, true)` / `sortBy(asks, 0)` in parseOrderBook.
+     * JS-like comparison for sortBy. Mirrors TS `<`/`>` semantics:
+     *  - both numeric (Number, or Strings that parse as numbers): numeric compare
+     *  - both non-numeric strings: lexicographic
+     *  - mixed: fall back to lex compare on toString() (matches JS coercion rules
+     *    closely enough for ccxt's sort use-cases)
+     *  - null/empty: handled via nullsFirst-equivalent (null < any value)
+     *
+     * Plain String#compareTo (as previously used here via naturalOrder()) was
+     * sorting numeric strings lexicographically, breaking parseOrderBook (bids
+     * ["53.0", "78301.0"] came out misordered because '3' > '2' at index 1).
+     * Returning a single-typed Comparable from a Comparator.comparing() helper
+     * was crashing with `ClassCastException String→Double` once setMarkets's
+     * currency-merge path started feeding mixed-type values into the same sort.
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private static Comparable toComparable(Object v, Object defaultValue) {
-        Object raw = (v != null) ? v : defaultValue;
-        if (raw == null || "".equals(raw)) return null;
-        if (raw instanceof Number n) return Double.valueOf(n.doubleValue());
-        String s = raw.toString();
+    private static int compareJsLike(Object a, Object b, Object defaultValue) {
+        if (a == null) a = defaultValue;
+        if (b == null) b = defaultValue;
+        boolean aEmpty = (a == null) || "".equals(a);
+        boolean bEmpty = (b == null) || "".equals(b);
+        if (aEmpty && bEmpty) return 0;
+        if (aEmpty) return -1;
+        if (bEmpty) return 1;
+        Double da = toDoubleOrNull(a);
+        Double db = toDoubleOrNull(b);
+        if (da != null && db != null) return Double.compare(da, db);
+        return String.valueOf(a).compareTo(String.valueOf(b));
+    }
+
+    private static Double toDoubleOrNull(Object o) {
+        if (o instanceof Number n) return n.doubleValue();
         try {
-            return Double.valueOf(Double.parseDouble(s));
+            return Double.parseDouble(String.valueOf(o));
         } catch (NumberFormatException ignored) {
-            return s;
+            return null;
         }
     }
 

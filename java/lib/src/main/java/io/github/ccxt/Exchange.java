@@ -1440,7 +1440,13 @@ public class Exchange {
 
         // Chain: fetchCurrencies (if supported) → fetchMarkets → setMarkets
         // No thread blocked at any point
-        boolean hasFetchCurrencies = this.has != null && this.has.containsKey("fetchCurrencies") && (Boolean) this.has.get("fetchCurrencies");
+        // The base describe() sets has['fetchCurrencies'] to "emulated" (a String) for
+        // exchanges that don't override it (e.g., bit2c, bitbns, coincheck). A direct
+        // (Boolean) cast on that String throws ClassCastException. Mirror the TS form
+        // `this.has['fetchCurrencies'] === true`: only treat as true when the value is
+        // an actual Boolean true.
+        Object fetchCurrenciesFlag = (this.has != null) ? this.has.get("fetchCurrencies") : null;
+        boolean hasFetchCurrencies = (fetchCurrenciesFlag instanceof Boolean) && (Boolean) fetchCurrenciesFlag;
 
         java.util.concurrent.CompletableFuture<Object> currenciesFuture;
         if (hasFetchCurrencies) {
