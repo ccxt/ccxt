@@ -38,7 +38,6 @@ func (this *KucoinfuturesCore) Describe() interface{} {
 			},
 			"defaultType":        "swap",
 			"defaultAccountType": "contract",
-			"uta":                false,
 		},
 	})
 }
@@ -64,9 +63,9 @@ func (this *KucoinfuturesCore) FetchBidsAsks(optionalArgs ...interface{}) <-chan
 			"method": "futuresPublicGetAllTickers",
 		}
 
-		retRes5215 := (<-this.FetchTickers(symbols, this.Extend(request, params)))
-		PanicOnError(retRes5215)
-		ch <- retRes5215
+		retRes5115 := (<-this.FetchTickers(symbols, this.Extend(request, params)))
+		PanicOnError(retRes5115)
+		ch <- retRes5115
 		return nil
 
 	}()
@@ -92,8 +91,8 @@ func (this *KucoinfuturesCore) Transfer(code interface{}, amount interface{}, fr
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes678 := (<-this.LoadMarkets())
-		PanicOnError(retRes678)
+		retRes668 := (<-this.LoadMarkets())
+		PanicOnError(retRes668)
 		var currency interface{} = this.Currency(code)
 		var amountToPrecision interface{} = this.CurrencyToPrecision(code, amount)
 		var request interface{} = map[string]interface{}{

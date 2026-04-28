@@ -952,7 +952,7 @@ export default class Exchange {
         if (userAgent && isNode) {
             if (typeof userAgent === 'string') {
                 headers = this.extend ({ 'User-Agent': userAgent }, headers);
-            } else if ((typeof userAgent === 'object') && ('User-Agent' in userAgent)) {
+            } else if (this.isDictionary (userAgent) && ('User-Agent' in userAgent)) {
                 headers = this.extend (userAgent, headers);
             }
         }
@@ -2016,7 +2016,7 @@ export default class Exchange {
             request['grouping_type'],
             ordersArr,
             orders.length,
-            0, // skip nonce
+            1, // skip nonce
             request['nonce'],
             request['api_key_index'],
             request['account_index']
@@ -2041,7 +2041,7 @@ export default class Exchange {
             request['integrator_account_index'],
             request['integrator_taker_fee'],
             request['integrator_maker_fee'],
-            0, // skip nonce
+            1, // skip nonce
             request['nonce'],
             request['api_key_index'],
             request['account_index']
@@ -2060,7 +2060,7 @@ export default class Exchange {
         const res = (globalThis.SignCancelOrder (
             request['market_index'],
             request['order_index'],
-            0, // skip nonce
+            1, // skip nonce
             request['nonce'],
             request['api_key_index'],
             request['account_index']
@@ -2074,7 +2074,7 @@ export default class Exchange {
             request['asset_index'],
             request['route_type'],
             request['amount'],
-            0, // skip nonce
+            1, // skip nonce
             request['nonce'],
             request['api_key_index'],
             request['account_index']
@@ -2086,7 +2086,7 @@ export default class Exchange {
     // eslint-disable-next-line no-unused-vars
     lighterSignCreateSubAccount (signer, request): any[] {
         const res = (globalThis.SignCreateSubAccount (
-            0, // skip nonce
+            1, // skip nonce
             request['nonce'],
             request['api_key_index'],
             request['account_index']
@@ -2099,7 +2099,7 @@ export default class Exchange {
         const res = (globalThis.SignCancelAllOrders (
             request['time_in_force'],
             request['time'],
-            0, // skip nonce
+            1, // skip nonce
             request['nonce'],
             request['api_key_index'],
             request['account_index']
@@ -2118,7 +2118,7 @@ export default class Exchange {
             request['integrator_account_index'],
             request['integrator_taker_fee'],
             request['integrator_maker_fee'],
-            0, // skip nonce
+            1, // skip nonce
             request['nonce'],
             request['api_key_index'],
             request['account_index']
@@ -2136,7 +2136,7 @@ export default class Exchange {
             request['amount'],
             request['usdc_fee'],
             request['memo'],
-            0, // skip nonce
+            1, // skip nonce
             request['nonce'],
             request['api_key_index'],
             request['account_index']
@@ -2150,7 +2150,7 @@ export default class Exchange {
             request['market_index'],
             request['initial_margin_fraction'],
             request['margin_mode'],
-            0, // skip nonce
+            1, // skip nonce
             request['nonce'],
             request['api_key_index'],
             request['account_index']
@@ -2174,7 +2174,7 @@ export default class Exchange {
             request['market_index'],
             request['usdc_amount'],
             request['direction'],
-            0, // skip nonce
+            1, // skip nonce
             request['nonce'],
             request['api_key_index'],
             request['account_index']
@@ -2192,7 +2192,7 @@ export default class Exchange {
             request['integrator_taker_fee'],
             request['integrator_maker_fee'],
             request['approval_expiry'],
-            0, // skip nonce
+            1, // skip nonce
             request['nonce'],
             request['api_key_index'],
             request['account_index']
@@ -2212,7 +2212,7 @@ export default class Exchange {
     lighterSignChangePubkey (signer, request): any[] {
         const res = globalThis.SignChangePubKey (
             Buffer.from (request['pubkey']).toString (),
-            0, // skip nonce
+            1, // skip nonce
             request['nonce'],
             request['api_key_index'],
             request['account_index']
@@ -2653,7 +2653,7 @@ export default class Exchange {
         if (value === undefined) {
             return defaultValue;
         }
-        if ((typeof value === 'object') && !Array.isArray (value)) {
+        if (this.isDictionary (value)) {
             return value;
         }
         return defaultValue;
@@ -2670,7 +2670,7 @@ export default class Exchange {
         if (value === undefined) {
             return defaultValue;
         }
-        if ((typeof value === 'object') && !Array.isArray (value)) {
+        if (this.isDictionary (value)) {
             return value;
         }
         return defaultValue;
@@ -2701,6 +2701,10 @@ export default class Exchange {
             return value;
         }
         return defaultValue;
+    }
+
+    isDictionary (value: any): boolean {
+        return (value !== undefined) && (typeof value === 'object') && !Array.isArray (value);
     }
 
     safeList2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue: any[] = undefined): any[] | undefined {
@@ -7267,7 +7271,7 @@ export default class Exchange {
     }
 
     handleWithdrawTagAndParams (tag, params): any {
-        if ((tag !== undefined) && (typeof tag === 'object')) {
+        if (this.isDictionary (tag)) {
             params = this.extend (tag, params);
             tag = undefined;
         }
@@ -9203,6 +9207,10 @@ export default class Exchange {
             return (ms / second) + 's';
         }
         return '';
+    }
+
+    async isUTAEnabled (params = {}) {
+        return false; // stub
     }
 }
 

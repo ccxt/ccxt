@@ -12,11 +12,18 @@ public partial class kucoin
     /// <remarks>
     /// See <see href="https://www.kucoin.com/docs-new/3470063w0"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/3470081w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470222w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), default is false
     /// </description>
     /// </item>
     /// </list>
@@ -34,6 +41,7 @@ public partial class kucoin
     /// See <see href="https://www.kucoin.com/docs-new/3470063w0"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/3470064w0"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/3470081w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470222w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -47,12 +55,23 @@ public partial class kucoin
     /// string : *spot markets only* either '/market/snapshot' or '/market/ticker' default is '/market/ticker'
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), default is false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchTickers(symbols, parameters);
+        return new Tickers(res);
+    }
+    public async Task<Tickers> WatchUtaTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchUtaTickers(symbols, parameters);
         return new Tickers(res);
     }
     /// <summary>
@@ -87,6 +106,7 @@ public partial class kucoin
     /// <remarks>
     /// See <see href="https://www.kucoin.com/docs-new/3470071w0"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/3470086w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470223w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -106,6 +126,12 @@ public partial class kucoin
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), default is false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
@@ -122,6 +148,7 @@ public partial class kucoin
     /// <remarks>
     /// See <see href="https://www.kucoin.com/docs-new/3470072w0"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/3470084w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470224w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -139,6 +166,12 @@ public partial class kucoin
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), default is false
     /// </description>
     /// </item>
     /// </list>
@@ -190,10 +223,13 @@ public partial class kucoin
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470069w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470070w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470068w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470083w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470097w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470082w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470221w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -205,6 +241,12 @@ public partial class kucoin
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), default is false
     /// </description>
     /// </item>
     /// <item>
@@ -232,6 +274,7 @@ public partial class kucoin
     /// See <see href="https://www.kucoin.com/docs-new/3470083w0"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/3470097w0"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/3470082w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470221w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -262,6 +305,7 @@ public partial class kucoin
     /// See <see href="https://www.kucoin.com/docs-new/3470139w0"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/3470090w0"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/3470091w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470228w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -279,6 +323,12 @@ public partial class kucoin
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta)
     /// </description>
     /// </item>
     /// <item>
@@ -309,6 +359,7 @@ public partial class kucoin
     /// <remarks>
     /// See <see href="https://www.kucoin.com/docs-new/3470074w0"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/3470090w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470264w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -329,9 +380,15 @@ public partial class kucoin
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta)
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.method</term>
     /// <description>
-    /// string : '/spotMarket/tradeOrders' or '/spot/tradeFills' or '/contractMarket/tradeOrders', default is '/spotMarket/tradeOrders'
+    /// string : *classic (non-uta) account only* '/spotMarket/tradeOrders' or '/spot/tradeFills' or '/contractMarket/tradeOrders', default is '/spotMarket/tradeOrders'
     /// </description>
     /// </item>
     /// </list>
@@ -350,6 +407,7 @@ public partial class kucoin
     /// <remarks>
     /// See <see href="https://www.kucoin.com/docs-new/3470075w0"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/3470092w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470231w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -358,9 +416,15 @@ public partial class kucoin
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta)
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.type</term>
     /// <description>
-    /// string : 'spot' or 'swap' (default is 'spot')
+    /// string : *classic (non-uta) account only* 'spot' or 'swap' (default is 'spot')
     /// </description>
     /// </item>
     /// </list>
@@ -384,5 +448,39 @@ public partial class kucoin
     {
         var res = await this.watchPosition(symbol, parameters);
         return new Position(res);
+    }
+    /// <summary>
+    /// watch all open positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/3470233w0"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch positions for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of positions to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}.</returns>
+    public async Task<List<Position>> WatchPositions(List<String> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchPositions(symbols, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
 }

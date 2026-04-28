@@ -5,6 +5,111 @@
         "uta": false
     },
     "methods": {
+        "fetchFundingRate": [
+            {
+                "description": "fetch funding rate from uta",
+                "method": "fetchFundingRate",
+                "input": [
+                    "ETH/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "symbol": ".ETHUSDTMFPI8H",
+                        "nextFundingRate": -0.000029,
+                        "fundingTime": 1776700800000,
+                        "fundingRateCap": 0.00375,
+                        "fundingRateFloor": -0.00375,
+                        "currentGranularity": 28800000,
+                        "newGranularity": 28800000,
+                        "newGranularityStartTime": 1750147200000
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": ".ETHUSDTMFPI8H",
+                        "nextFundingRate": -0.000029,
+                        "fundingTime": 1776700800000,
+                        "fundingRateCap": 0.00375,
+                        "fundingRateFloor": -0.00375,
+                        "currentGranularity": 28800000,
+                        "newGranularity": 28800000,
+                        "newGranularityStartTime": 1750147200000
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": -0.000029,
+                    "fundingTimestamp": 1776700800000,
+                    "fundingDatetime": "2026-04-20T16:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": 1750147200000,
+                    "nextFundingDatetime": "2025-06-17T08:00:00.000Z",
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "8h"
+                }
+            },
+            {
+                "description": "fetch funding rate from futures",
+                "method": "fetchFundingRate",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "symbol": ".ETHUSDTMFPI8H",
+                        "granularity": 28800000,
+                        "timePoint": 1776672000000,
+                        "value": -0.000029,
+                        "dailyInterestRate": 0.0003,
+                        "fundingRateCap": 0.00375,
+                        "fundingRateFloor": -0.00375,
+                        "period": 1,
+                        "fundingTime": 1776700800000
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": ".ETHUSDTMFPI8H",
+                        "granularity": 28800000,
+                        "timePoint": 1776672000000,
+                        "value": -0.000029,
+                        "dailyInterestRate": 0.0003,
+                        "fundingRateCap": 0.00375,
+                        "fundingRateFloor": -0.00375,
+                        "period": 1,
+                        "fundingTime": 1776700800000
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": 0.0003,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": -0.000029,
+                    "fundingTimestamp": 1776700800000,
+                    "fundingDatetime": "2026-04-20T16:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": 1776672000000,
+                    "previousFundingDatetime": "2026-04-20T08:00:00.000Z",
+                    "interval": "8h"
+                }
+            }
+        ],
         "fetchPositionsHistory": [
             {
                 "description": "fetch uta positions history",
@@ -596,105 +701,6 @@
                         "takeProfitPrice": null
                     }
                 ]
-            }
-        ],
-        "fetchFundingRate": [
-            {
-                "description": "fetch funding rate from futures",
-                "method": "fetchFundingRate",
-                "input": [
-                    "ETH/USDT:USDT"
-                ],
-                "httpResponse": {
-                    "code": "200000",
-                    "data": {
-                        "symbol": ".ETHUSDTMFPI8H",
-                        "granularity": 28800000,
-                        "timePoint": 1773273600000,
-                        "value": -0.000029,
-                        "dailyInterestRate": 0.0003,
-                        "fundingRateCap": 0.00375,
-                        "fundingRateFloor": -0.00375,
-                        "period": 1,
-                        "fundingTime": 1773302400000
-                    }
-                },
-                "parsedResponse": {
-                    "info": {
-                        "symbol": ".ETHUSDTMFPI8H",
-                        "granularity": 28800000,
-                        "timePoint": 1773273600000,
-                        "value": -0.000029,
-                        "dailyInterestRate": 0.0003,
-                        "fundingRateCap": 0.00375,
-                        "fundingRateFloor": -0.00375,
-                        "period": 1,
-                        "fundingTime": 1773302400000
-                    },
-                    "symbol": "ETH/USDT:USDT",
-                    "markPrice": null,
-                    "indexPrice": null,
-                    "interestRate": 0.0003,
-                    "estimatedSettlePrice": null,
-                    "timestamp": null,
-                    "datetime": null,
-                    "fundingRate": -0.000029,
-                    "fundingTimestamp": 1773302400000,
-                    "fundingDatetime": "2026-03-12T08:00:00.000Z",
-                    "nextFundingRate": null,
-                    "nextFundingTimestamp": null,
-                    "nextFundingDatetime": null,
-                    "previousFundingRate": null,
-                    "previousFundingTimestamp": 1773273600000,
-                    "previousFundingDatetime": "2026-03-12T00:00:00.000Z",
-                    "interval": "8h"
-                }
-            },
-            {
-                "description": "fetch funding rate from uta",
-                "method": "fetchFundingRate",
-                "input": [
-                    "ETH/USDT:USDT",
-                    {
-                        "uta": true
-                    }
-                ],
-                "httpResponse": {
-                    "code": "200000",
-                    "data": {
-                        "symbol": ".ETHUSDTMFPI8H",
-                        "nextFundingRate": 0.000004,
-                        "fundingTime": 1771776000000,
-                        "fundingRateCap": 0.00375,
-                        "fundingRateFloor": -0.00375
-                    }
-                },
-                "parsedResponse": {
-                    "info": {
-                        "symbol": ".ETHUSDTMFPI8H",
-                        "nextFundingRate": 0.000004,
-                        "fundingTime": 1771776000000,
-                        "fundingRateCap": 0.00375,
-                        "fundingRateFloor": -0.00375
-                    },
-                    "symbol": "ETH/USDT:USDT",
-                    "markPrice": null,
-                    "indexPrice": null,
-                    "interestRate": null,
-                    "estimatedSettlePrice": null,
-                    "timestamp": null,
-                    "datetime": null,
-                    "fundingRate": 0.000004,
-                    "fundingTimestamp": 1771776000000,
-                    "fundingDatetime": "2026-02-22T16:00:00.000Z",
-                    "nextFundingRate": null,
-                    "nextFundingTimestamp": null,
-                    "nextFundingDatetime": null,
-                    "previousFundingRate": null,
-                    "previousFundingTimestamp": null,
-                    "previousFundingDatetime": null,
-                    "interval": null
-                }
             }
         ],
         "fetchTradingFee": [

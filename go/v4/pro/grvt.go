@@ -828,13 +828,13 @@ func  (this *GrvtCore) WatchMyTrades(optionalArgs ...interface{}) <- chan interf
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
-            var subAccountId interface{} = this.GetSubAccountId(params)
         
-            retRes6448 := (<-this.LoadMarkets())
+            retRes6438 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6438)
+        
+            retRes6448 := (<-this.Authenticate())
             ccxt.PanicOnError(retRes6448)
-        
-            retRes6458 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes6458)
+            var subAccountId interface{} = this.GetSubAccountId(params)
             var messageHashes interface{} = []interface{}{}
             var rawHashes interface{} = []interface{}{}
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -937,13 +937,13 @@ func  (this *GrvtCore) WatchPositions(optionalArgs ...interface{}) <- chan inter
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
-            var subAccountId interface{} = this.GetSubAccountId(params)
         
-            retRes7318 := (<-this.Authenticate())
+            retRes7308 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes7308)
+        
+            retRes7318 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes7318)
-        
-            retRes7328 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7328)
+            var subAccountId interface{} = this.GetSubAccountId(params)
             symbols = this.MarketSymbols(symbols)
             var rawHashes interface{} = []interface{}{}
             var messageHashes interface{} = []interface{}{}
@@ -1048,13 +1048,13 @@ func  (this *GrvtCore) WatchOrders(optionalArgs ...interface{}) <- chan interfac
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
-            var subAccountId interface{} = this.GetSubAccountId(params)
         
-            retRes8188 := (<-this.LoadMarkets())
+            retRes8178 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes8178)
+        
+            retRes8188 := (<-this.Authenticate())
             ccxt.PanicOnError(retRes8188)
-        
-            retRes8198 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes8198)
+            var subAccountId interface{} = this.GetSubAccountId(params)
             var messageHashes interface{} = []interface{}{}
             var rawHashes interface{} = []interface{}{}
             if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
@@ -1155,8 +1155,7 @@ func  (this *GrvtCore) HandleOrder(client interface{}, message interface{})  {
     var order interface{} = this.ParseWsOrder(data)
     this.Orders.(ccxt.Appender).Append(order)
     client.(ccxt.ClientInterface).Resolve(this.Orders, "orders")
-    var ordersForSymbol interface{} = this.FilterBySymbolSinceLimit(this.Orders, ccxt.GetValue(order, "symbol"), nil, nil, true)
-    client.(ccxt.ClientInterface).Resolve(ordersForSymbol, ccxt.Add("orders::", ccxt.GetValue(order, "symbol")))
+    client.(ccxt.ClientInterface).Resolve(this.Orders, ccxt.Add("order::", ccxt.GetValue(order, "symbol")))
 }
 func  (this *GrvtCore) ParseWsOrder(order interface{}, optionalArgs ...interface{}) interface{}  {
     // same as REST api

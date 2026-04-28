@@ -1576,6 +1576,11 @@ public partial class kucoin : Exchange
         return await this.callAsync ("utaGetServerStatus",parameters);
     }
 
+    public async Task<object> utaGetMarketBorrowableCurrency (object parameters = null)
+    {
+        return await this.callAsync ("utaGetMarketBorrowableCurrency",parameters);
+    }
+
     public async Task<object> utaPrivateGetMarketOrderbook (object parameters = null)
     {
         return await this.callAsync ("utaPrivateGetMarketOrderbook",parameters);
@@ -1681,6 +1686,21 @@ public partial class kucoin : Exchange
         return await this.callAsync ("utaPrivateGetDcpQuery",parameters);
     }
 
+    public async Task<object> utaPrivateGetUnifiedAccountLeverage (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivateGetUnifiedAccountLeverage",parameters);
+    }
+
+    public async Task<object> utaPrivateGetPositionFundingHistory (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivateGetPositionFundingHistory",parameters);
+    }
+
+    public async Task<object> utaPrivateGetAccountInterestLimits (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivateGetAccountInterestLimits",parameters);
+    }
+
     public async Task<object> utaPrivatePostAccountTransfer (object parameters = null)
     {
         return await this.callAsync ("utaPrivatePostAccountTransfer",parameters);
@@ -1729,6 +1749,11 @@ public partial class kucoin : Exchange
     public async Task<object> utaPrivatePostDcpSet (object parameters = null)
     {
         return await this.callAsync ("utaPrivatePostDcpSet",parameters);
+    }
+
+    public async Task<object> utaPrivatePostAccountModeAccountModifyLeverageMarginCross (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivatePostAccountModeAccountModifyLeverageMarginCross",parameters);
     }
 
 }

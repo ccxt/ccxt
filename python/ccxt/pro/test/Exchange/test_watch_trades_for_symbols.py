@@ -19,7 +19,8 @@ async def test_watch_trades_for_symbols(exchange, skipped_properties, symbols):
     method = 'watchTradesForSymbols'
     now = exchange.milliseconds()
     ends = now + 15000
-    while now < ends:
+    returned_symbols = []
+    while now < ends or len(returned_symbols) < len(symbols):
         response = None
         success = True
         try:
@@ -37,6 +38,8 @@ async def test_watch_trades_for_symbols(exchange, skipped_properties, symbols):
                 symbol = trade['symbol']
                 test_trade(exchange, skipped_properties, method, trade, symbol, now)
                 test_shared_methods.assert_in_array(exchange, skipped_properties, method, trade, 'symbol', symbols)
+                if not exchange.in_array(symbol, returned_symbols):
+                    returned_symbols.append(symbol)
             if not ('timestampSort' in skipped_properties):
                 test_shared_methods.assert_timestamp_order(exchange, method, symbol, response)
     return True

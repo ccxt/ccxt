@@ -668,7 +668,7 @@ class lighter extends Exchange {
             $strAccountIndex = $this->number_to_string($accountIndex);
             $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
             $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
-            $nonce = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex, $params));
+            $nonce = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex, $this->extend($params, array( 'skipNonce' => false ))));
             $expiry = $this->milliseconds() + 365 * 864000;
             $signRaw = array(
                 'integrator_account_index' => $builder,
@@ -700,7 +700,7 @@ class lighter extends Exchange {
             $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
             $signerNotLoad = $this->options['auths'][$strAccountIndex][$strApiKeyIndex]['signer'];
             list($privateKey, $publicKey) = $this->lighter_generate_api_key($signerNotLoad);
-            $nonce = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex, $params));
+            $nonce = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex, $this->extend($params, array( 'skipNonce' => false ))));
             $signRaw = array(
                 'pubkey' => $this->encode($publicKey),
                 'nonce' => $nonce,
@@ -897,6 +897,12 @@ class lighter extends Exchange {
             $nonceInOptions = $this->safe_integer($this->options, 'nonce');
             if ($nonceInOptions !== null) {
                 return $nonceInOptions;
+            }
+            // avoid $skipNonce for l1 operations
+            $skipNonce = true;
+            list($skipNonce, $params) = $this->handle_option_and_params($params, 'fetchNonce', 'skipNonce', true);
+            if ($skipNonce) {
+                return $this->milliseconds();
             }
             $response = Async\await($this->publicGetNextNonce (array( 'account_index' => $accountIndex, 'api_key_index' => $apiKeyIndex )));
             return $this->safe_integer($response, 'nonce');

@@ -3579,9 +3579,11 @@ class bitget extends Exchange {
         $uta = null;
         list($uta, $params) = $this->handle_option_and_params($params, 'fetchTickers', 'uta', false);
         if ($uta) {
-            $symbolsLength = count($symbols);
-            if (($symbols !== null) && ($symbolsLength === 1)) {
-                $request['symbol'] = $market['id'];
+            if ($symbols !== null) {
+                $symbolsLength = count($symbols);
+                if ($symbolsLength === 1) {
+                    $request['symbol'] = $market['id'];
+                }
             }
             $request['category'] = $productType;
             $response = $this->publicUtaGetV3MarketTickers ($this->extend($request, $params));

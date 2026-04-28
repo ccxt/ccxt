@@ -3523,9 +3523,10 @@ class bitget(Exchange, ImplicitAPI):
         uta = None
         uta, params = self.handle_option_and_params(params, 'fetchTickers', 'uta', False)
         if uta:
-            symbolsLength = len(symbols)
-            if (symbols is not None) and (symbolsLength == 1):
-                request['symbol'] = market['id']
+            if symbols is not None:
+                symbolsLength = len(symbols)
+                if symbolsLength == 1:
+                    request['symbol'] = market['id']
             request['category'] = productType
             response = self.publicUtaGetV3MarketTickers(self.extend(request, params))
         elif type == 'spot' and passedSubType is None:

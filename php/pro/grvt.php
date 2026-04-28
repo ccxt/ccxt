@@ -666,9 +666,9 @@ class grvt extends \ccxt\async\grvt {
              * @param {boolean} [$params->unifiedMargin] use unified margin account
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            $subAccountId = $this->getSubAccountId ($params);
             Async\await($this->load_markets());
             Async\await($this->authenticate());
+            $subAccountId = $this->getSubAccountId ($params);
             $messageHashes = array();
             $rawHashes = array();
             if ($symbol !== null) {
@@ -755,9 +755,9 @@ class grvt extends \ccxt\async\grvt {
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
-            $subAccountId = $this->getSubAccountId ($params);
             Async\await($this->authenticate());
             Async\await($this->load_markets());
+            $subAccountId = $this->getSubAccountId ($params);
             $symbols = $this->market_symbols($symbols);
             $rawHashes = array();
             $messageHashes = array();
@@ -844,9 +844,9 @@ class grvt extends \ccxt\async\grvt {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            $subAccountId = $this->getSubAccountId ($params);
             Async\await($this->load_markets());
             Async\await($this->authenticate());
+            $subAccountId = $this->getSubAccountId ($params);
             $messageHashes = array();
             $rawHashes = array();
             if ($symbol === null) {
@@ -942,8 +942,7 @@ class grvt extends \ccxt\async\grvt {
         $order = $this->parse_ws_order($data);
         $this->orders.append ($order);
         $client->resolve ($this->orders, 'orders');
-        $ordersForSymbol = $this->filter_by_symbol_since_limit($this->orders, $order['symbol'], null, null, true);
-        $client->resolve ($ordersForSymbol, 'orders::' . $order['symbol']);
+        $client->resolve ($this->orders, 'order::' . $order['symbol']);
     }
 
     public function parse_ws_order($order, $market = null): array {
