@@ -699,7 +699,7 @@ class Exchange {
             if (typeof userAgent === 'string') {
                 headers = this.extend({ 'User-Agent': userAgent }, headers);
             }
-            else if ((typeof userAgent === 'object') && ('User-Agent' in userAgent)) {
+            else if (this.isDictionary(userAgent) && ('User-Agent' in userAgent)) {
                 headers = this.extend(userAgent, headers);
             }
         }
@@ -2176,7 +2176,7 @@ class Exchange {
         if (value === undefined) {
             return defaultValue;
         }
-        if ((typeof value === 'object') && !Array.isArray(value)) {
+        if (this.isDictionary(value)) {
             return value;
         }
         return defaultValue;
@@ -2192,7 +2192,7 @@ class Exchange {
         if (value === undefined) {
             return defaultValue;
         }
-        if ((typeof value === 'object') && !Array.isArray(value)) {
+        if (this.isDictionary(value)) {
             return value;
         }
         return defaultValue;
@@ -2221,6 +2221,9 @@ class Exchange {
             return value;
         }
         return defaultValue;
+    }
+    isDictionary(value) {
+        return (value !== undefined) && (typeof value === 'object') && !Array.isArray(value);
     }
     safeList2(dictionaryOrList, key1, key2, defaultValue = undefined) {
         /**
@@ -6514,7 +6517,7 @@ class Exchange {
         return false;
     }
     handleWithdrawTagAndParams(tag, params) {
-        if ((tag !== undefined) && (typeof tag === 'object')) {
+        if (this.isDictionary(tag)) {
             params = this.extend(tag, params);
             tag = undefined;
         }

@@ -2923,7 +2923,7 @@ class Exchange(object):
         value = self.safe_value_n(dictionaryOrList, keys, defaultValue)
         if value is None:
             return defaultValue
-        if isinstance(value, dict):
+        if self.is_dictionary(value):
             return value
         return defaultValue
 
@@ -2936,7 +2936,7 @@ class Exchange(object):
         value = self.safe_value(dictionary, key, defaultValue)
         if value is None:
             return defaultValue
-        if isinstance(value, dict):
+        if self.is_dictionary(value):
             return value
         return defaultValue
 
@@ -2960,6 +2960,9 @@ class Exchange(object):
         if isinstance(value, list):
             return value
         return defaultValue
+
+    def is_dictionary(self, value: Any):
+        return(value is not None) and isinstance(value, dict)
 
     def safe_list_2(self, dictionaryOrList, key1: IndexType, key2: str, defaultValue: List[Any] = None):
         """
@@ -6610,7 +6613,7 @@ class Exchange(object):
         return False
 
     def handle_withdraw_tag_and_params(self, tag, params):
-        if (tag is not None) and (isinstance(tag, dict)):
+        if self.is_dictionary(tag):
             params = self.extend(tag, params)
             tag = None
         if tag is None:

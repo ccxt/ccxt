@@ -426,16 +426,17 @@ class testMainClass {
         return true;
     }
 
-    public function run_public_tests($exchange, $symbol) {
+    public function run_public_tests($exchange, $symbols) {
+        $primary_symbol = $symbols[0];
         $tests = array(
             'features' => [],
             'fetchCurrencies' => [],
-            'fetchTicker' => [$symbol],
-            'fetchTickers' => [$symbol],
-            'fetchLastPrices' => [$symbol],
-            'fetchOHLCV' => [$symbol],
-            'fetchTrades' => [$symbol],
-            'fetchOrderBook' => [$symbol],
+            'fetchTicker' => [$primary_symbol],
+            'fetchTickers' => [$primary_symbol],
+            'fetchLastPrices' => [$primary_symbol],
+            'fetchOHLCV' => [$primary_symbol],
+            'fetchTrades' => [$primary_symbol],
+            'fetchOrderBook' => [$primary_symbol],
             'fetchOrderBooks' => [],
             'fetchBidsAsks' => [],
             'fetchStatus' => [],
@@ -443,29 +444,29 @@ class testMainClass {
         );
         if ($this->ws_tests) {
             $tests = array(
-                'watchOHLCV' => [$symbol],
-                'watchOHLCVForSymbols' => [$symbol],
-                'watchTicker' => [$symbol],
-                'watchTickers' => [$symbol],
-                'watchBidsAsks' => [$symbol],
-                'watchOrderBook' => [$symbol],
-                'watchOrderBookForSymbols' => [[$symbol]],
-                'watchTrades' => [$symbol],
-                'watchTradesForSymbols' => [[$symbol]],
+                'watchOHLCV' => [$primary_symbol],
+                'watchOHLCVForSymbols' => [$primary_symbol],
+                'watchTicker' => [$primary_symbol],
+                'watchTickers' => [$primary_symbol],
+                'watchBidsAsks' => [$primary_symbol],
+                'watchOrderBook' => [$primary_symbol],
+                'watchOrderBookForSymbols' => [$symbols],
+                'watchTrades' => [$primary_symbol],
+                'watchTradesForSymbols' => [$symbols],
             );
         }
-        $market = $exchange->market($symbol);
+        $market = $exchange->market($primary_symbol);
         $is_spot = $market['spot'];
         if (!$this->ws_tests) {
             if ($is_spot) {
                 $tests['fetchCurrencies'] = [];
             } else {
-                $tests['fetchFundingRates'] = [$symbol];
-                $tests['fetchFundingRate'] = [$symbol];
-                $tests['fetchFundingRateHistory'] = [$symbol];
-                $tests['fetchIndexOHLCV'] = [$symbol];
-                $tests['fetchMarkOHLCV'] = [$symbol];
-                $tests['fetchPremiumIndexOHLCV'] = [$symbol];
+                $tests['fetchFundingRates'] = [$primary_symbol];
+                $tests['fetchFundingRate'] = [$primary_symbol];
+                $tests['fetchFundingRateHistory'] = [$primary_symbol];
+                $tests['fetchIndexOHLCV'] = [$primary_symbol];
+                $tests['fetchMarkOHLCV'] = [$primary_symbol];
+                $tests['fetchPremiumIndexOHLCV'] = [$primary_symbol];
             }
         }
         $this->public_tests = $tests;
@@ -610,54 +611,58 @@ class testMainClass {
     }
 
     public function test_exchange($exchange, $provided_symbol = null) {
-        $spot_symbol = null;
-        $swap_symbol = null;
+        $spot_symbols = null;
+        $swap_symbols = null;
         if ($provided_symbol !== null) {
             $market = $exchange->market($provided_symbol);
             if ($market['spot']) {
-                $spot_symbol = $provided_symbol;
+                $spot_symbols = [$provided_symbol];
             } else {
-                $swap_symbol = $provided_symbol;
+                $swap_symbols = [$provided_symbol];
             }
         } else {
             if ($exchange->has['spot']) {
-                $spot_symbol = $this->get_valid_symbol($exchange, true);
+                $primary_symbol = $this->get_valid_symbol($exchange, true);
+                $secondary_symbol = str_replace('BTC', 'ETH', $primary_symbol); // this should work any exchange
+                $spot_symbols = [$primary_symbol, $secondary_symbol];
             }
             if ($exchange->has['swap']) {
-                $swap_symbol = $this->get_valid_symbol($exchange, false);
+                $primary_symbol = $this->get_valid_symbol($exchange, false);
+                $secondary_symbol = str_replace('BTC', 'ETH', $primary_symbol); // this should work any exchange
+                $swap_symbols = [$primary_symbol, $secondary_symbol];
             }
         }
-        if ($spot_symbol !== null) {
-            dump('[INFO:MAIN] Selected SPOT SYMBOL:', $spot_symbol);
+        if ($spot_symbols !== null) {
+            dump('[INFO:MAIN] Selected SPOT SYMBOL:', $exchange->json($spot_symbols));
         }
-        if ($swap_symbol !== null) {
-            dump('[INFO:MAIN] Selected SWAP SYMBOL:', $swap_symbol);
+        if ($swap_symbols !== null) {
+            dump('[INFO:MAIN] Selected SWAP SYMBOL:', $exchange->json($swap_symbols));
         }
         if (!$this->private_test_only) {
             // note, spot & swap tests should run sequentially, because of conflicting `exchange.options['defaultType']` setting
-            if ($exchange->has['spot'] && $spot_symbol !== null) {
+            if ($exchange->has['spot'] && $spot_symbols !== null) {
                 if ($this->info) {
                     dump('[INFO] ### SPOT TESTS ###');
                 }
                 $exchange->options['defaultType'] = 'spot';
-                $this->run_public_tests($exchange, $spot_symbol);
+                $this->run_public_tests($exchange, $spot_symbols);
             }
-            if ($exchange->has['swap'] && $swap_symbol !== null) {
+            if ($exchange->has['swap'] && $swap_symbols !== null) {
                 if ($this->info) {
                     dump('[INFO] ### SWAP TESTS ###');
                 }
                 $exchange->options['defaultType'] = 'swap';
-                $this->run_public_tests($exchange, $swap_symbol);
+                $this->run_public_tests($exchange, $swap_symbols);
             }
         }
         if ($this->private_test || $this->private_test_only) {
-            if ($exchange->has['spot'] && $spot_symbol !== null) {
+            if ($exchange->has['spot'] && $spot_symbols !== null) {
                 $exchange->options['defaultType'] = 'spot';
-                $this->run_private_tests($exchange, $spot_symbol);
+                $this->run_private_tests($exchange, $spot_symbols);
             }
-            if ($exchange->has['swap'] && $swap_symbol !== null) {
+            if ($exchange->has['swap'] && $swap_symbols !== null) {
                 $exchange->options['defaultType'] = 'swap';
-                $this->run_private_tests($exchange, $swap_symbol);
+                $this->run_private_tests($exchange, $swap_symbols);
             }
         }
         return true;
@@ -794,7 +799,7 @@ class testMainClass {
         return true;
     }
 
-    public function start_test($exchange, $symbol) {
+    public function start_test($exchange, $symbol_argv) {
         // we do not need to test aliases
         if ($exchange->alias) {
             return true;
@@ -816,7 +821,7 @@ class testMainClass {
             //     // we test proxies functionality just for one random exchange on each build, because proxy functionality is not exchange-specific, instead it's all done from base methods, so just one working sample would mean it works for all ccxt exchanges
             //     // await this.testProxies (exchange);
             // }
-            $this->test_exchange($exchange, $symbol);
+            $this->test_exchange($exchange, $symbol_argv);
             if (!is_sync()) {
                 close($exchange);
             }
