@@ -1217,11 +1217,17 @@ export default class bitfinex extends Exchange {
         let isFundingCurrency = false;
         if (isFetchTicker) {
             minusIndex = 1;
-            isFundingCurrency = (length === 16);
+            // singular fetchTicker funding shape has 16 fields per the docs;
+            // bitfinex has been observed adding a trailing timestamp (17).
+            isFundingCurrency = (length === 16) || (length === 17);
         } else {
             const marketId = this.safeString (ticker, 0);
             market = this.safeMarket (marketId, market);
-            isFundingCurrency = (length === 17);
+            // multi-ticker funding shape: SYMBOL + 16 fields = 17, but
+            // bitfinex now appends a millisecond timestamp making it 18.
+            // Without this, fUSD parses as a trading pair and indices land
+            // on negative-volume / wrong-sign fields, breaking fetchTickers.
+            isFundingCurrency = (length === 17) || (length === 18);
         }
         symbol = this.safeSymbol (undefined, market);
         let last: Str = undefined;

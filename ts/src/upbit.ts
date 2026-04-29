@@ -781,18 +781,35 @@ export default class upbit extends Exchange {
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        let ids = undefined;
+        let allIds = undefined;
         if (symbols === undefined) {
-            const allIds = this.ids;
-            ids = allIds.join (',');
+            allIds = this.ids;
         } else {
-            ids = this.marketIds (symbols);
-            ids = ids.join (',');
+            allIds = this.marketIds (symbols);
         }
-        const request: Dict = {
-            'markets': ids,
-        };
-        const response = await this.publicGetTicker (this.extend (request, params));
+        // upbit accepts a comma-separated `markets` param but its frontend
+        // (Tomcat) rejects URLs >~ 4KB with HTTP 400 — and the full id list
+        // is now ~7KB across BTC/KRW/USDT quotes. Chunk and merge.
+        const promises = [];
+        const total = allIds.length;
+        let start = 0;
+        while (start < total) {
+            const end = Math.min (start + 100, total);
+            // arraySlice (vs Array.prototype.slice) so the Java transpile
+            // doesn't dispatch to Helpers.slice (which is the String slice
+            // and ClassCastExceptions on List input).
+            const chunk = this.arraySlice (allIds, start, end);
+            const request: Dict = {
+                'markets': chunk.join (','),
+            };
+            promises.push (this.publicGetTicker (this.extend (request, params)));
+            start = end;
+        }
+        const responses = await Promise.all (promises);
+        let response = [];
+        for (let i = 0; i < responses.length; i++) {
+            response = this.arrayConcat (response, responses[i]);
+        }
         //
         //     [ {                market: "BTC-ETH",
         //                    "trade_date": "20181122",
