@@ -651,6 +651,9 @@ export default class kraken extends Exchange {
         const result = [];
         for (let i = 0; i < keys.length; i++) {
             const id = keys[i];
+            if (id.indexOf (':BTNL') >= 0) {
+                continue; // skip syntetic markets
+            }
             const market = markets[id];
             const baseIdRaw = this.safeString (market, 'base');
             const quoteIdRaw = this.safeString (market, 'quote');
