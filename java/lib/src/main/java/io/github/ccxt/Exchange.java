@@ -236,6 +236,7 @@ public class Exchange {
         System.setProperty("java.net.preferIPv4Stack", "true");
         this.initializeProperties(defaultConfig);
         this.initHttpClient();
+        this.httpClientProxyFingerprint = currentProxyFingerprint();
         this.afterConstruct();
         this.transformApiNew(this.api, new ArrayList<>());
     }
@@ -1827,6 +1828,29 @@ public class Exchange {
         return new io.github.ccxt.ws.WsOrderBook.CountedOrderBook(snapshot, depth);
     }
 
+    private String httpClientProxyFingerprint = "__init__";
+
+    private String currentProxyFingerprint() {
+        String h = (this.httpProxy == null) ? "" : this.httpProxy.toString();
+        String hs = (this.httpsProxy == null) ? "" : this.httpsProxy.toString();
+        String s = (this.socksProxy == null) ? "" : this.socksProxy.toString();
+        return h + "|" + hs + "|" + s;
+    }
+
+    private void ensureHttpClientUpToDate() {
+        // Tests (and library users) set httpProxy/httpsProxy/socksProxy AFTER
+        // exchange construction. The builder we configured in initHttpClient
+        // captured proxy state at construct time, so a later change had no
+        // effect — bullish, paradex, and other proxy-required exchanges then
+        // hit upstream APIs directly and got 403/geo-blocked. Rebuild the
+        // HttpClient if the proxy fingerprint has changed since last build.
+        String fp = currentProxyFingerprint();
+        if (!fp.equals(this.httpClientProxyFingerprint)) {
+            initHttpClient();
+            this.httpClientProxyFingerprint = fp;
+        }
+    }
+
     private void initHttpClient() {
         var builder = HttpClient.newBuilder();
         // Java's HttpClient defaults to Redirect.NEVER, but TS/Node fetch and
@@ -1878,6 +1902,7 @@ public class Exchange {
         if (this.fetchResponse != null) {
             return CompletableFuture.completedFuture(this.fetchResponse);
         }
+        ensureHttpClientUpToDate();
 
         String url = (String) url2;
         String method = (String) method2;
