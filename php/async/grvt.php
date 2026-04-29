@@ -2029,6 +2029,9 @@ class grvt extends Exchange {
                 throw new InvalidOrder($this->id . ' createOrder() => order $side must be either "buy" or "sell"');
             }
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
+            if ($clientOrderId === null) {
+                $clientOrderId = (string) $this->nonce() . '000' . (string) $this->request_id();
+            }
             $params = $this->omit($params, array( 'clientOrderId' ));
             $isMarketOrder = ($type === 'market');
             $orderRequest = array(
@@ -2037,7 +2040,7 @@ class grvt extends Exchange {
                 'legs' => array( $orderLeg ),
                 'signature' => $this->default_signature(),
                 'metadata' => array(
-                    'client_order_id' => $clientOrderId !== null ? $clientOrderId : (string) $this->nonce() . '000' . (string) $this->request_id(),
+                    'client_order_id' => $clientOrderId,
                 ),
                 'is_market' => $isMarketOrder,
                 'post_only' => false,
