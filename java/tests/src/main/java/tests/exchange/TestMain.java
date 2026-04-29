@@ -533,20 +533,21 @@ public class TestMain extends BaseTest
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> runPublicTests(Exchange exchange, Object symbol)
+    public java.util.concurrent.CompletableFuture<Object> runPublicTests(Exchange exchange, Object symbols)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
+            Object primarySymbol = Helpers.GetValue(symbols, 0);
             Object tests = new java.util.HashMap<String, Object>() {{
                 put( "features", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
                 put( "fetchCurrencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
-                put( "fetchTicker", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)) );
-                put( "fetchTickers", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)) );
-                put( "fetchLastPrices", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)) );
-                put( "fetchOHLCV", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)) );
-                put( "fetchTrades", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)) );
-                put( "fetchOrderBook", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)) );
+                put( "fetchTicker", new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol)) );
+                put( "fetchTickers", new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol)) );
+                put( "fetchLastPrices", new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol)) );
+                put( "fetchOHLCV", new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol)) );
+                put( "fetchTrades", new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol)) );
+                put( "fetchOrderBook", new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol)) );
                 put( "fetchOrderBooks", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
                 put( "fetchBidsAsks", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
                 put( "fetchStatus", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
@@ -555,18 +556,18 @@ public class TestMain extends BaseTest
             if (Helpers.isTrue(this.wsTests))
             {
                 tests = new java.util.HashMap<String, Object>() {{
-                    put( "watchOHLCV", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)) );
-                    put( "watchOHLCVForSymbols", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)) );
-                    put( "watchTicker", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)) );
-                    put( "watchTickers", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)) );
-                    put( "watchBidsAsks", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)) );
-                    put( "watchOrderBook", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)) );
-                    put( "watchOrderBookForSymbols", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)))) );
-                    put( "watchTrades", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)) );
-                    put( "watchTradesForSymbols", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)))) );
+                    put( "watchOHLCV", new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol)) );
+                    put( "watchOHLCVForSymbols", new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol)) );
+                    put( "watchTicker", new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol)) );
+                    put( "watchTickers", new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol)) );
+                    put( "watchBidsAsks", new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol)) );
+                    put( "watchOrderBook", new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol)) );
+                    put( "watchOrderBookForSymbols", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbols)) );
+                    put( "watchTrades", new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol)) );
+                    put( "watchTradesForSymbols", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbols)) );
                 }};
             }
-            Object market = exchange.market(symbol);
+            Object market = exchange.market(primarySymbol);
             Object isSpot = Helpers.GetValue(market, "spot");
             if (!Helpers.isTrue(this.wsTests))
             {
@@ -575,12 +576,12 @@ public class TestMain extends BaseTest
                     Helpers.addElementToObject(tests, "fetchCurrencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 } else
                 {
-                    Helpers.addElementToObject(tests, "fetchFundingRates", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)));
-                    Helpers.addElementToObject(tests, "fetchFundingRate", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)));
-                    Helpers.addElementToObject(tests, "fetchFundingRateHistory", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)));
-                    Helpers.addElementToObject(tests, "fetchIndexOHLCV", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)));
-                    Helpers.addElementToObject(tests, "fetchMarkOHLCV", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)));
-                    Helpers.addElementToObject(tests, "fetchPremiumIndexOHLCV", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)));
+                    Helpers.addElementToObject(tests, "fetchFundingRates", new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol)));
+                    Helpers.addElementToObject(tests, "fetchFundingRate", new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol)));
+                    Helpers.addElementToObject(tests, "fetchFundingRateHistory", new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol)));
+                    Helpers.addElementToObject(tests, "fetchIndexOHLCV", new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol)));
+                    Helpers.addElementToObject(tests, "fetchMarkOHLCV", new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol)));
+                    Helpers.addElementToObject(tests, "fetchPremiumIndexOHLCV", new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol)));
                 }
             }
             this.publicTests = tests;
@@ -776,70 +777,85 @@ public class TestMain extends BaseTest
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object providedSymbol = Helpers.getArg(optionalArgs, 0, null);
-            Object spotSymbol = null;
-            Object swapSymbol = null;
+            Object spotSymbols = null;
+            Object swapSymbols = null;
             if (Helpers.isTrue(!Helpers.isEqual(providedSymbol, null)))
             {
                 Object market = exchange.market(providedSymbol);
                 if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
                 {
-                    spotSymbol = providedSymbol;
+                    spotSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList(providedSymbol));
                 } else
                 {
-                    swapSymbol = providedSymbol;
+                    swapSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList(providedSymbol));
                 }
             } else
             {
                 if (Helpers.isTrue(Helpers.GetValue(exchange.has, "spot")))
                 {
-                    spotSymbol = this.getValidSymbol(exchange, true);
+                    Object primarySymbol = this.getValidSymbol(exchange, true);
+                    if (Helpers.isTrue(!Helpers.isEqual(primarySymbol, null)))
+                    {
+                        Object secondarySymbol = Helpers.replace((String)primarySymbol, (String)"BTC", (String)"ETH"); // this should work any exchange
+                        spotSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol, secondarySymbol));
+                    }
                 }
                 if (Helpers.isTrue(Helpers.GetValue(exchange.has, "swap")))
                 {
-                    swapSymbol = this.getValidSymbol(exchange, false);
+                    Object primarySymbol = this.getValidSymbol(exchange, false);
+                    // some exchanges advertise has['swap']=true via describe() but
+                    // the live market list contains no swap entries (e.g. bequant
+                    // inherits hitbtc swap support but exposes only spot pairs).
+                    // getValidSymbol returns undefined in that case — skip swap
+                    // tests rather than crashing on `undefined.replace(...)`.
+                    if (Helpers.isTrue(!Helpers.isEqual(primarySymbol, null)))
+                    {
+                        Object secondarySymbol = Helpers.replace((String)primarySymbol, (String)"BTC", (String)"ETH"); // this should work any exchange
+                        swapSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol, secondarySymbol));
+                    }
                 }
             }
-            if (Helpers.isTrue(!Helpers.isEqual(spotSymbol, null)))
+            if (Helpers.isTrue(!Helpers.isEqual(spotSymbols, null)))
             {
-                dump("[INFO:MAIN] Selected SPOT SYMBOL:", spotSymbol);
+                dump("[INFO:MAIN] Selected SPOT SYMBOL:", exchange.json(spotSymbols));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(swapSymbol, null)))
+            if (Helpers.isTrue(!Helpers.isEqual(swapSymbols, null)))
             {
-                dump("[INFO:MAIN] Selected SWAP SYMBOL:", swapSymbol);
+                dump("[INFO:MAIN] Selected SWAP SYMBOL:", exchange.json(swapSymbols));
             }
             if (!Helpers.isTrue(this.privateTestOnly))
             {
                 // note, spot & swap tests should run sequentially, because of conflicting `exchange.options['defaultType']` setting
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(exchange.has, "spot")) && Helpers.isTrue(!Helpers.isEqual(spotSymbol, null))))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(exchange.has, "spot")) && Helpers.isTrue(!Helpers.isEqual(spotSymbols, null))))
                 {
                     if (Helpers.isTrue(this.info))
                     {
                         dump("[INFO] ### SPOT TESTS ###");
                     }
                     Helpers.addElementToObject(exchange.options, "defaultType", "spot");
-                    (this.runPublicTests(exchange, spotSymbol)).join();
+                    (this.runPublicTests(exchange, spotSymbols)).join();
                 }
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(exchange.has, "swap")) && Helpers.isTrue(!Helpers.isEqual(swapSymbol, null))))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(exchange.has, "swap")) && Helpers.isTrue(!Helpers.isEqual(swapSymbols, null))))
                 {
                     if (Helpers.isTrue(this.info))
                     {
                         dump("[INFO] ### SWAP TESTS ###");
                     }
                     Helpers.addElementToObject(exchange.options, "defaultType", "swap");
-                    (this.runPublicTests(exchange, swapSymbol)).join();
+                    (this.runPublicTests(exchange, swapSymbols)).join();
                 }
             }
             if (Helpers.isTrue(Helpers.isTrue(this.privateTest) || Helpers.isTrue(this.privateTestOnly)))
             {
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(exchange.has, "spot")) && Helpers.isTrue(!Helpers.isEqual(spotSymbol, null))))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(exchange.has, "spot")) && Helpers.isTrue(!Helpers.isEqual(spotSymbols, null))))
                 {
                     Helpers.addElementToObject(exchange.options, "defaultType", "spot");
-                    (this.runPrivateTests(exchange, spotSymbol)).join();
+                    (this.runPrivateTests(exchange, spotSymbols)).join();
                 }
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(exchange.has, "swap")) && Helpers.isTrue(!Helpers.isEqual(swapSymbol, null))))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(exchange.has, "swap")) && Helpers.isTrue(!Helpers.isEqual(swapSymbols, null))))
                 {
                     Helpers.addElementToObject(exchange.options, "defaultType", "swap");
-                    (this.runPrivateTests(exchange, swapSymbol)).join();
+                    (this.runPrivateTests(exchange, swapSymbols)).join();
                 }
             }
             return true;
@@ -1012,7 +1028,7 @@ public class TestMain extends BaseTest
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> startTest(Exchange exchange, Object symbol)
+    public java.util.concurrent.CompletableFuture<Object> startTest(Exchange exchange, Object symbolArgv)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1043,7 +1059,7 @@ public class TestMain extends BaseTest
                 //     // we test proxies functionality just for one random exchange on each build, because proxy functionality is not exchange-specific, instead it's all done from base methods, so just one working sample would mean it works for all ccxt exchanges
                 //     // await this.testProxies (exchange);
                 // }
-                (this.testExchange(exchange, symbol)).join();
+                (this.testExchange(exchange, symbolArgv)).join();
                 if (!Helpers.isTrue(isSync()))
                 {
                     (close(exchange)).join();
@@ -2234,6 +2250,7 @@ public class TestMain extends BaseTest
             Assert(Helpers.isEqual(futureKey, "1b327198-f30c-4f14-a0ac-918871282f15"), Helpers.add(Helpers.add("kucoinfutures - key: ", futureKey), " not in options."));
             try
             {
+                Helpers.addElementToObject(exchange.options, "uta", false);
                 (exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000)).join();
             } catch(Exception e)
             {
@@ -2242,9 +2259,8 @@ public class TestMain extends BaseTest
             Assert(Helpers.isEqual(Helpers.GetValue(reqHeaders, "KC-API-PARTNER"), id), Helpers.add(Helpers.add("kucoinfutures - id: ", id), " not in headers."));
             try
             {
-                (exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000, new java.util.HashMap<String, Object>() {{
-                    put( "uta", true );
-                }})).join();
+                Helpers.addElementToObject(exchange.options, "uta", true);
+                (exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000)).join();
             } catch(Exception e)
             {
                 reqHeaders = exchange.last_request_headers;

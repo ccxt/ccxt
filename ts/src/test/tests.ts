@@ -724,13 +724,22 @@ class testMainClass {
         } else {
             if (exchange.has['spot']) {
                 const primarySymbol = this.getValidSymbol (exchange, true);
-                const secondarySymbol = primarySymbol.replace ('BTC', 'ETH'); // this should work any exchange
-                spotSymbols = [ primarySymbol, secondarySymbol ];
+                if (primarySymbol !== undefined) {
+                    const secondarySymbol = primarySymbol.replace ('BTC', 'ETH'); // this should work any exchange
+                    spotSymbols = [ primarySymbol, secondarySymbol ];
+                }
             }
             if (exchange.has['swap']) {
                 const primarySymbol = this.getValidSymbol (exchange, false);
-                const secondarySymbol = primarySymbol.replace ('BTC', 'ETH'); // this should work any exchange
-                swapSymbols = [ primarySymbol, secondarySymbol ];
+                // some exchanges advertise has['swap']=true via describe() but
+                // the live market list contains no swap entries (e.g. bequant
+                // inherits hitbtc swap support but exposes only spot pairs).
+                // getValidSymbol returns undefined in that case — skip swap
+                // tests rather than crashing on `undefined.replace(...)`.
+                if (primarySymbol !== undefined) {
+                    const secondarySymbol = primarySymbol.replace ('BTC', 'ETH'); // this should work any exchange
+                    swapSymbols = [ primarySymbol, secondarySymbol ];
+                }
             }
         }
         if (spotSymbols !== undefined) {
