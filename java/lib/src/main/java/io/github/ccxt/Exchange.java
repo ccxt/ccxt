@@ -1908,7 +1908,13 @@ public class Exchange {
         String contentType = "";
 
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-        requestBuilder.uri(URI.create(url));
+        // Java's URI.create is strict (RFC 3986) and rejects characters like
+        // ", |, {, }, ^, `, <, > in the query, even though Node fetch / axios
+        // accept them. Some exchanges (e.g. coinsph parseArrayParam) emit
+        // partially-encoded queries — `?symbols=%5B"BTCUSDT"%5D` — that round-
+        // trip through TS but throw URISyntaxException here. Percent-encode
+        // any remaining illegal chars before parsing.
+        requestBuilder.uri(URI.create(escapeIllegalUriChars(url)));
 
         // Apply HTTP timeout
         if (this.timeout != null) {
@@ -2046,6 +2052,35 @@ public class Exchange {
         }
 
         return responseBody;
+    }
+
+    /**
+     * Percent-encode the small set of characters that are legal in browser/Node
+     * URLs but rejected by java.net.URI's strict RFC 3986 parser. Already-
+     * encoded sequences (%XX) are left alone — we only touch raw illegal
+     * chars. Scheme/authority/path/query are not parsed; this is a byte-level
+     * pass over the URL string.
+     */
+    private static String escapeIllegalUriChars(String url) {
+        if (url == null) return null;
+        StringBuilder out = null;
+        for (int i = 0; i < url.length(); i++) {
+            char c = url.charAt(i);
+            boolean illegal = (c == '"' || c == '<' || c == '>' || c == '\\'
+                    || c == '^' || c == '`' || c == '{' || c == '|' || c == '}'
+                    || c == ' ');
+            if (!illegal) {
+                if (out != null) out.append(c);
+                continue;
+            }
+            if (out == null) {
+                out = new StringBuilder(url.length() + 16);
+                out.append(url, 0, i);
+            }
+            out.append('%');
+            out.append(String.format("%02X", (int) c));
+        }
+        return (out == null) ? url : out.toString();
     }
 
     private RuntimeException mapNetworkException(Throwable e, String method, String url) {
@@ -3012,7 +3047,7 @@ public Object describe()
         {
             return defaultValue;
         }
-        if (Helpers.isTrue(Helpers.isTrue(((value instanceof java.util.Map))) && !Helpers.isTrue(((value instanceof java.util.List) || (value.getClass().isArray())))))
+        if (Helpers.isTrue(this.isDictionary(value)))
         {
             return value;
         }
@@ -3033,7 +3068,7 @@ public Object describe()
         {
             return defaultValue;
         }
-        if (Helpers.isTrue(Helpers.isTrue(((value instanceof java.util.Map))) && !Helpers.isTrue(((value instanceof java.util.List) || (value.getClass().isArray())))))
+        if (Helpers.isTrue(this.isDictionary(value)))
         {
             return value;
         }
@@ -3071,6 +3106,11 @@ public Object describe()
             return value;
         }
         return defaultValue;
+    }
+
+    public Object isDictionary(Object value)
+    {
+        return Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value, null))) && Helpers.isTrue(((value instanceof java.util.Map)))) && !Helpers.isTrue(((value instanceof java.util.List) || (value.getClass().isArray())));
     }
 
     public Object safeList2(Object dictionaryOrList, Object key1, Object key2, Object... optionalArgs)
@@ -10299,7 +10339,7 @@ public Object describe()
 
     public Object handleWithdrawTagAndParams(Object tag, Object parameters)
     {
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(tag, null))) && Helpers.isTrue(((tag instanceof java.util.Map)))))
+        if (Helpers.isTrue(this.isDictionary(tag)))
         {
             parameters = this.extend(tag, parameters);
             tag = null;
@@ -13084,5 +13124,16 @@ public Object describe()
             return Helpers.add((Helpers.divide(ms, second)), "s");
         }
         return "";
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> isUTAEnabled(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            return false;  // stub
+        });
+
     }
 }
