@@ -327,7 +327,7 @@ export default class binance extends Exchange {
      */
     editOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     parseOrderStatus(status: Str): string;
-    parseOrderType(type: Str, marketType: Str): string;
+    parseOrderTypeByMarket(type: Str, marketType: Str): string;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method

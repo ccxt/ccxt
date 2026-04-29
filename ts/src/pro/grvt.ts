@@ -641,9 +641,9 @@ export default class grvt extends grvtRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        const subAccountId = this.getSubAccountId (params);
         await this.loadMarkets ();
         await this.authenticate ();
+        const subAccountId = this.getSubAccountId (params);
         const messageHashes = [];
         const rawHashes = [];
         if (symbol !== undefined) {
@@ -728,9 +728,9 @@ export default class grvt extends grvtRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        const subAccountId = this.getSubAccountId (params);
         await this.authenticate ();
         await this.loadMarkets ();
+        const subAccountId = this.getSubAccountId (params);
         symbols = this.marketSymbols (symbols);
         const rawHashes = [];
         const messageHashes = [];
@@ -815,9 +815,9 @@ export default class grvt extends grvtRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        const subAccountId = this.getSubAccountId (params);
         await this.loadMarkets ();
         await this.authenticate ();
+        const subAccountId = this.getSubAccountId (params);
         const messageHashes = [];
         const rawHashes = [];
         if (symbol === undefined) {
@@ -912,8 +912,7 @@ export default class grvt extends grvtRest {
         const order = this.parseWsOrder (data);
         this.orders.append (order);
         client.resolve (this.orders, 'orders');
-        const ordersForSymbol = this.filterBySymbolSinceLimit (this.orders, order['symbol'], undefined, undefined, true);
-        client.resolve (ordersForSymbol, 'orders::' + order['symbol']);
+        client.resolve (this.orders, 'order::' + order['symbol']);
     }
 
     parseWsOrder (order, market = undefined): Order {

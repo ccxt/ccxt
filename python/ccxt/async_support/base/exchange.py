@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.50'
+__version__ = '4.5.51'
 
 # -----------------------------------------------------------------------------
 
@@ -2413,3 +2413,6 @@ class Exchange(BaseExchange):
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         raise NotSupported(self.id + ' unWatchBidsAsks() is not supported yet')
+
+    async def is_uta_enabled(self, params={}):
+        return False  # stub

@@ -671,7 +671,7 @@ helper method for cancelling uta orders
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.accountMode | <code>string</code> | No | 'unified' or 'classic' (default is 'unified') |
 | params.clientOrderId | <code>string</code> | No | client order id, required if id is not provided |
-| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', required if fetching a margin order |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', required if fetching a margin order (unified accountMode supports only cross margin) |
 
 ##### Supported exchanges
 * [kucoin](/exchanges/kucoin.md#cancelutaorder)
@@ -2586,6 +2586,7 @@ fetch the rate of interest to borrow a currency for margin trading
 * [bitget](/exchanges/bitget.md#fetchcrossborrowrate)
 * [bybit](/exchanges/bybit.md#fetchcrossborrowrate)
 * [digifinex](/exchanges/digifinex.md#fetchcrossborrowrate)
+* [kucoin](/exchanges/kucoin.md#fetchcrossborrowrate)
 * [okx](/exchanges/okx.md#fetchcrossborrowrate)
 * [whitebit](/exchanges/whitebit.md#fetchcrossborrowrate)
 
@@ -4351,7 +4352,7 @@ fetch all trades made by the user
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
 | params.accountMode | <code>string</code> | No | 'unified' or 'classic', defaults to 'unified' |
-| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', only for margin trades |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', only for margin trades (unified accountMode support only cross margin) |
 | params.side | <code>string</code> | No | 'BUY' or 'SELL' (both if not provided) |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
@@ -6649,7 +6650,7 @@ helper method for fetching balance with unified trading account (uta) endpoint
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.type | <code>string</code> | No | 'spot', 'unified', 'funding', 'cross', 'isolated' or 'swap' (default is 'spot') |
+| params.type | <code>string</code> | No | 'unified', 'spot', 'funding', 'cross', 'isolated' or 'swap' (default is 'unified') |
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated', margin type for fetching margin balance, only applicable if type is margin (default is cross) |
 
 ##### Supported exchanges
@@ -6673,7 +6674,7 @@ fetch uta order
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.accountMode | <code>string</code> | No | 'unified' or 'classic' (default is 'unified') |
 | params.clientOrderId | <code>string</code> | No | client order id, required if id is not provided |
-| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', required if fetching a margin order |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', required if fetching a margin order (unified accountMode supports only cross margin) |
 
 ##### Supported exchanges
 * [kucoin](/exchanges/kucoin.md#fetchutaorder)
@@ -6699,6 +6700,7 @@ helper method for fetching orders by status with uta endpoint
 | params.until | <code>int</code> | No | End time in ms |
 | params.side | <code>string</code> | No | *closed orders only* 'BUY' or 'SELL' |
 | params.accountMode | <code>string</code> | No | 'unified' or 'classic' (default is unified) |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', only for margin orders (unified accountMode supports only cross margin) |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 ##### Supported exchanges
@@ -8757,6 +8759,7 @@ watch all open positions
 * [hashkey](/exchanges/hashkey.md#watchpositions)
 * [htx](/exchanges/htx.md#watchpositions)
 * [hyperliquid](/exchanges/hyperliquid.md#watchpositions)
+* [kucoin](/exchanges/kucoin.md#watchpositions)
 * [modetrade](/exchanges/modetrade.md#watchpositions)
 * [okx](/exchanges/okx.md#watchpositions)
 * [oxfun](/exchanges/oxfun.md#watchpositions)

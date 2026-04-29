@@ -13,7 +13,8 @@ func TestWatchTradesForSymbols(exchange ccxt.ICoreExchange, skippedProperties in
 		var method interface{} = "watchTradesForSymbols"
 		var now interface{} = exchange.Milliseconds()
 		var ends interface{} = Add(now, 15000)
-		for IsLessThan(now, ends) {
+		var returnedSymbols interface{} = []interface{}{}
+		for IsTrue(IsLessThan(now, ends)) || IsTrue(IsLessThan(GetArrayLength(returnedSymbols), GetArrayLength(symbols))) {
 			var response interface{} = nil
 			var success interface{} = true
 
@@ -51,6 +52,9 @@ func TestWatchTradesForSymbols(exchange ccxt.ICoreExchange, skippedProperties in
 					symbol = GetValue(trade, "symbol")
 					TestTrade(exchange, skippedProperties, method, trade, symbol, now)
 					AssertInArray(exchange, skippedProperties, method, trade, "symbol", symbols)
+					if !IsTrue(exchange.InArray(symbol, returnedSymbols)) {
+						AppendToArray(&returnedSymbols, symbol)
+					}
 				}
 				if !IsTrue((InOp(skippedProperties, "timestampSort"))) {
 					AssertTimestampOrder(exchange, method, symbol, response)

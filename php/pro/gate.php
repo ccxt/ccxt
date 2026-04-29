@@ -113,7 +113,6 @@ class gate extends \ccxt\async\gate {
                     'name' => 'tickers', // or book_ticker
                 ),
                 'watchOrderBook' => array(
-                    'interval' => '100ms',
                     'snapshotDelay' => 10, // how many deltas to cache before fetching a snapshot
                     'snapshotMaxRetries' => 3,
                     'checksum' => true,
@@ -428,19 +427,29 @@ class gate extends \ccxt\async\gate {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $marketId = $market['id'];
-            list($interval, $query) = $this->handle_option_and_params($params, 'watchOrderBook', 'interval', '100ms');
+            $intervalDefault = ($market['spot']) ? '50' : '100ms';
+            list($interval, $query) = $this->handle_option_and_params($params, 'watchOrderBook', 'interval', $intervalDefault);
             $messageType = $this->get_type_by_market($market);
-            $channel = $messageType . '.order_book_update';
             $messageHash = 'orderbook' . ':' . $symbol;
             $url = $this->get_url_by_market($market);
-            $payload = array( $marketId, $interval );
             if ($limit === null) {
-                $limit = 100; // max 100 atm
+                $limit = ($market['spot']) ? 50 : 100; // max 100 atm
                 if ($messageType === 'options') {
                     $limit = 50; // max 50 for options
                 }
             }
-            if ($market['contract']) {
+            $payload = array();
+            $channel = '';
+            if ($market['spot']) {
+                $channel = 'spot.obu';
+                $finalInterval = $interval;
+                if ($limit === 400) {
+                    $finalInterval = '400';
+                }
+                $payload = [ 'ob.' . $market['id'] . '.' . $finalInterval ];
+            } else {
+                $channel = $messageType . '.order_book_update';
+                $payload = array( $marketId, $interval );
                 $stringLimit = (string) $limit;
                 $payload[] = $stringLimit;
             }
@@ -486,6 +495,58 @@ class gate extends \ccxt\async\gate {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
         $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+    }
+
+    public function handle_new_spot_order_book(Client $client, $message) {
+        //
+        //   {
+        //      "channel":"spot.obu",
+        //      "result":array(
+        //         "t":1777275365213,
+        //         "full":true,
+        //         "s":"ob.XRP_USDT.50",
+        //         "u":9649549324,
+        //         "b":array(
+        //            array(
+        //               "1.414",
+        //               "1397.899"
+        //            )
+        //         ),
+        //         "a":array(
+        //            array(
+        //               "1.415",
+        //               "17344.926"
+        //            )
+        //         )
+        //      ),
+        //      "time_ms":1777275365214,
+        //      "event":"update"
+        //   }
+        $result = $this->safe_dict($message, 'result', array());
+        $full = $this->safe_bool($result, 'full', false);
+        $marketIdWithPrefix = $this->safe_string($result, 's');
+        $marketIdParts = explode('.', $marketIdWithPrefix);
+        $marketId = $this->safe_string($marketIdParts, 1);
+        $symbol = $this->safe_symbol($marketId, null, '_', 'spot');
+        $messageHash = 'orderbook:' . $symbol;
+        if ($this->safe_value($this->orderbooks, $symbol) === null) {
+            $this->orderbooks[$symbol] = $this->order_book(array(), 1000);
+        }
+        $orderbook = $this->orderbooks[$symbol];
+        if ($full) {
+            $snapshopt = $this->parse_order_book($result, $symbol, null, 'b', 'a');
+            $snapshopt['nonce'] = $this->safe_integer($result, 'u');
+            $snapshopt['timestamp'] = $this->safe_integer($result, 't');
+            $orderbook->reset ($snapshopt);
+        } else {
+            $nonce = $this->safe_integer($orderbook, 'nonce');
+            $deltaStart = $this->safe_integer($result, 'u');
+            if ($nonce === null || $nonce >= $deltaStart) {
+                return;
+            }
+            $this->handle_delta($orderbook, $result);
+        }
+        $client->resolve ($orderbook, $messageHash);
     }
 
     public function handle_order_book(Client $client, $message) {
@@ -543,6 +604,10 @@ class gate extends \ccxt\async\gate {
         //     }
         //
         $channel = $this->safe_string($message, 'channel');
+        if ($channel === 'spot.obu') {
+            $this->handle_new_spot_order_book($client, $message);
+            return;
+        }
         $channelParts = explode('.', $channel);
         $rawMarketType = $this->safe_string($channelParts, 0);
         $isSpot = $rawMarketType === 'spot';
@@ -2000,6 +2065,11 @@ class gate extends \ccxt\async\gate {
             return;
         }
         $channel = $this->safe_string($message, 'channel', '');
+        // after supporting more $method we can create a mapping for this
+        if ($channel === 'spot.obu') {
+            $this->handle_order_book($client, $message);
+            return;
+        }
         $channelParts = explode('.', $channel);
         $channelType = $this->safe_value($channelParts, 1);
         $v4Methods = array(

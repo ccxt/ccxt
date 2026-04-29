@@ -2693,6 +2693,18 @@
                         "uta": true
                     }
                 ]
+            },
+            {
+                "description": "uta tickers without symbols (regression test for #28456)",
+                "method": "fetchTickers",
+                "url": "https://api.bitget.com/api/v3/market/tickers?category=USDT-FUTURES",
+                "input": [
+                    null,
+                    {
+                        "uta": true,
+                        "subType": "linear"
+                    }
+                ]
             }
         ],
         "fetchFundingRateHistory": [

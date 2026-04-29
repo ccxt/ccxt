@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.50'
+__version__ = '4.5.51'
 
 # -----------------------------------------------------------------------------
 
@@ -2314,7 +2314,7 @@ class Exchange(object):
             request['integrator_account_index'],
             request['integrator_taker_fee'],
             request['integrator_maker_fee'],
-            False,
+            True,
             request['nonce'],
             request['api_key_index'],
             request['account_index']
@@ -2336,7 +2336,7 @@ class Exchange(object):
             request['integrator_account_index'],
             request['integrator_taker_fee'],
             request['integrator_maker_fee'],
-            False,
+            True,
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
@@ -2349,7 +2349,7 @@ class Exchange(object):
         tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignCancelOrder(
             request['market_index'],
             request['order_index'],
-            False,
+            True,
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
@@ -2363,7 +2363,7 @@ class Exchange(object):
             request['asset_index'],
             request['route_type'],
             request['amount'],
-            False,
+            True,
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
@@ -2374,7 +2374,7 @@ class Exchange(object):
 
     def lighter_sign_create_sub_account(self, signer, request):
         tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignCreateSubAccount(
-            False,
+            True,
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
@@ -2387,7 +2387,7 @@ class Exchange(object):
         tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignCancelAllOrders(
             request['time_in_force'],
             request['time'],
-            False,
+            True,
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
@@ -2406,7 +2406,7 @@ class Exchange(object):
             request['integrator_account_index'],
             request['integrator_taker_fee'],
             request['integrator_maker_fee'],
-            False,
+            True,
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
@@ -2424,7 +2424,7 @@ class Exchange(object):
             request['amount'],
             request['usdc_fee'],
             request['memo'],
-            False,
+            True,
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
@@ -2438,7 +2438,7 @@ class Exchange(object):
             request['market_index'],
             request['initial_margin_fraction'],
             request['margin_mode'],
-            False,
+            True,
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
@@ -2462,7 +2462,7 @@ class Exchange(object):
             request['market_index'],
             request['usdc_amount'],
             request['direction'],
-            False,
+            True,
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
@@ -2479,7 +2479,7 @@ class Exchange(object):
             int(request['integrator_taker_fee']),
             int(request['integrator_maker_fee']),
             request['approval_expiry'],
-            False,
+            True,
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
@@ -2497,7 +2497,7 @@ class Exchange(object):
     def lighter_sign_change_pubkey(self, signer, request):
         tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignChangePubKey(
             request['pubkey'],
-            False,
+            True,
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
@@ -2923,7 +2923,7 @@ class Exchange(object):
         value = self.safe_value_n(dictionaryOrList, keys, defaultValue)
         if value is None:
             return defaultValue
-        if isinstance(value, dict):
+        if self.is_dictionary(value):
             return value
         return defaultValue
 
@@ -2936,7 +2936,7 @@ class Exchange(object):
         value = self.safe_value(dictionary, key, defaultValue)
         if value is None:
             return defaultValue
-        if isinstance(value, dict):
+        if self.is_dictionary(value):
             return value
         return defaultValue
 
@@ -2960,6 +2960,9 @@ class Exchange(object):
         if isinstance(value, list):
             return value
         return defaultValue
+
+    def is_dictionary(self, value: Any):
+        return(value is not None) and isinstance(value, dict)
 
     def safe_list_2(self, dictionaryOrList, key1: IndexType, key2: str, defaultValue: List[Any] = None):
         """
@@ -6610,7 +6613,7 @@ class Exchange(object):
         return False
 
     def handle_withdraw_tag_and_params(self, tag, params):
-        if (tag is not None) and (isinstance(tag, dict)):
+        if self.is_dictionary(tag):
             params = self.extend(tag, params)
             tag = None
         if tag is None:
@@ -8157,3 +8160,6 @@ class Exchange(object):
         if ms % second == 0:
             return(ms / second) + 's'
         return ''
+
+    def is_uta_enabled(self, params={}):
+        return False  # stub

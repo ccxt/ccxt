@@ -504,17 +504,18 @@ public partial class testMainClass
         return true;
     }
 
-    public async virtual Task<object> runPublicTests(Exchange exchange, object symbol)
+    public async virtual Task<object> runPublicTests(Exchange exchange, object symbols)
     {
+        object primarySymbol = getValue(symbols, 0);
         object tests = new Dictionary<string, object>() {
             { "features", new List<object>() {} },
             { "fetchCurrencies", new List<object>() {} },
-            { "fetchTicker", new List<object>() {symbol} },
-            { "fetchTickers", new List<object>() {symbol} },
-            { "fetchLastPrices", new List<object>() {symbol} },
-            { "fetchOHLCV", new List<object>() {symbol} },
-            { "fetchTrades", new List<object>() {symbol} },
-            { "fetchOrderBook", new List<object>() {symbol} },
+            { "fetchTicker", new List<object>() {primarySymbol} },
+            { "fetchTickers", new List<object>() {primarySymbol} },
+            { "fetchLastPrices", new List<object>() {primarySymbol} },
+            { "fetchOHLCV", new List<object>() {primarySymbol} },
+            { "fetchTrades", new List<object>() {primarySymbol} },
+            { "fetchOrderBook", new List<object>() {primarySymbol} },
             { "fetchOrderBooks", new List<object>() {} },
             { "fetchBidsAsks", new List<object>() {} },
             { "fetchStatus", new List<object>() {} },
@@ -523,18 +524,18 @@ public partial class testMainClass
         if (isTrue(this.wsTests))
         {
             tests = new Dictionary<string, object>() {
-                { "watchOHLCV", new List<object>() {symbol} },
-                { "watchOHLCVForSymbols", new List<object>() {symbol} },
-                { "watchTicker", new List<object>() {symbol} },
-                { "watchTickers", new List<object>() {symbol} },
-                { "watchBidsAsks", new List<object>() {symbol} },
-                { "watchOrderBook", new List<object>() {symbol} },
-                { "watchOrderBookForSymbols", new List<object>() {new List<object>() {symbol}} },
-                { "watchTrades", new List<object>() {symbol} },
-                { "watchTradesForSymbols", new List<object>() {new List<object>() {symbol}} },
+                { "watchOHLCV", new List<object>() {primarySymbol} },
+                { "watchOHLCVForSymbols", new List<object>() {primarySymbol} },
+                { "watchTicker", new List<object>() {primarySymbol} },
+                { "watchTickers", new List<object>() {primarySymbol} },
+                { "watchBidsAsks", new List<object>() {primarySymbol} },
+                { "watchOrderBook", new List<object>() {primarySymbol} },
+                { "watchOrderBookForSymbols", new List<object>() {symbols} },
+                { "watchTrades", new List<object>() {primarySymbol} },
+                { "watchTradesForSymbols", new List<object>() {symbols} },
             };
         }
-        object market = exchange.market(symbol);
+        object market = exchange.market(primarySymbol);
         object isSpot = getValue(market, "spot");
         if (!isTrue(this.wsTests))
         {
@@ -543,12 +544,12 @@ public partial class testMainClass
                 ((IDictionary<string,object>)tests)["fetchCurrencies"] = new List<object>() {};
             } else
             {
-                ((IDictionary<string,object>)tests)["fetchFundingRates"] = new List<object>() {symbol};
-                ((IDictionary<string,object>)tests)["fetchFundingRate"] = new List<object>() {symbol};
-                ((IDictionary<string,object>)tests)["fetchFundingRateHistory"] = new List<object>() {symbol};
-                ((IDictionary<string,object>)tests)["fetchIndexOHLCV"] = new List<object>() {symbol};
-                ((IDictionary<string,object>)tests)["fetchMarkOHLCV"] = new List<object>() {symbol};
-                ((IDictionary<string,object>)tests)["fetchPremiumIndexOHLCV"] = new List<object>() {symbol};
+                ((IDictionary<string,object>)tests)["fetchFundingRates"] = new List<object>() {primarySymbol};
+                ((IDictionary<string,object>)tests)["fetchFundingRate"] = new List<object>() {primarySymbol};
+                ((IDictionary<string,object>)tests)["fetchFundingRateHistory"] = new List<object>() {primarySymbol};
+                ((IDictionary<string,object>)tests)["fetchIndexOHLCV"] = new List<object>() {primarySymbol};
+                ((IDictionary<string,object>)tests)["fetchMarkOHLCV"] = new List<object>() {primarySymbol};
+                ((IDictionary<string,object>)tests)["fetchPremiumIndexOHLCV"] = new List<object>() {primarySymbol};
             }
         }
         this.publicTests = tests;
@@ -727,70 +728,74 @@ public partial class testMainClass
 
     public async virtual Task<object> testExchange(Exchange exchange, object providedSymbol = null)
     {
-        object spotSymbol = null;
-        object swapSymbol = null;
+        object spotSymbols = null;
+        object swapSymbols = null;
         if (isTrue(!isEqual(providedSymbol, null)))
         {
             object market = exchange.market(providedSymbol);
             if (isTrue(getValue(market, "spot")))
             {
-                spotSymbol = providedSymbol;
+                spotSymbols = new List<object>() {providedSymbol};
             } else
             {
-                swapSymbol = providedSymbol;
+                swapSymbols = new List<object>() {providedSymbol};
             }
         } else
         {
             if (isTrue(getValue(exchange.has, "spot")))
             {
-                spotSymbol = this.getValidSymbol(exchange, true);
+                object primarySymbol = this.getValidSymbol(exchange, true);
+                object secondarySymbol = ((string)primarySymbol).Replace((string)"BTC", (string)"ETH"); // this should work any exchange
+                spotSymbols = new List<object>() {primarySymbol, secondarySymbol};
             }
             if (isTrue(getValue(exchange.has, "swap")))
             {
-                swapSymbol = this.getValidSymbol(exchange, false);
+                object primarySymbol = this.getValidSymbol(exchange, false);
+                object secondarySymbol = ((string)primarySymbol).Replace((string)"BTC", (string)"ETH"); // this should work any exchange
+                swapSymbols = new List<object>() {primarySymbol, secondarySymbol};
             }
         }
-        if (isTrue(!isEqual(spotSymbol, null)))
+        if (isTrue(!isEqual(spotSymbols, null)))
         {
-            dump("[INFO:MAIN] Selected SPOT SYMBOL:", spotSymbol);
+            dump("[INFO:MAIN] Selected SPOT SYMBOL:", exchange.json(spotSymbols));
         }
-        if (isTrue(!isEqual(swapSymbol, null)))
+        if (isTrue(!isEqual(swapSymbols, null)))
         {
-            dump("[INFO:MAIN] Selected SWAP SYMBOL:", swapSymbol);
+            dump("[INFO:MAIN] Selected SWAP SYMBOL:", exchange.json(swapSymbols));
         }
         if (!isTrue(this.privateTestOnly))
         {
             // note, spot & swap tests should run sequentially, because of conflicting `exchange.options['defaultType']` setting
-            if (isTrue(isTrue(getValue(exchange.has, "spot")) && isTrue(!isEqual(spotSymbol, null))))
+            if (isTrue(isTrue(getValue(exchange.has, "spot")) && isTrue(!isEqual(spotSymbols, null))))
             {
                 if (isTrue(this.info))
                 {
                     dump("[INFO] ### SPOT TESTS ###");
                 }
                 ((IDictionary<string,object>)exchange.options)["defaultType"] = "spot";
-                await this.runPublicTests(exchange, spotSymbol);
+                await this.runPublicTests(exchange, spotSymbols);
             }
-            if (isTrue(isTrue(getValue(exchange.has, "swap")) && isTrue(!isEqual(swapSymbol, null))))
+            if (isTrue(isTrue(getValue(exchange.has, "swap")) && isTrue(!isEqual(swapSymbols, null))))
             {
                 if (isTrue(this.info))
                 {
                     dump("[INFO] ### SWAP TESTS ###");
                 }
                 ((IDictionary<string,object>)exchange.options)["defaultType"] = "swap";
-                await this.runPublicTests(exchange, swapSymbol);
+                await this.runPublicTests(exchange, swapSymbols);
             }
         }
         if (isTrue(isTrue(this.privateTest) || isTrue(this.privateTestOnly)))
         {
-            if (isTrue(isTrue(getValue(exchange.has, "spot")) && isTrue(!isEqual(spotSymbol, null))))
+            if (isTrue(isTrue(getValue(exchange.has, "spot")) && isTrue(!isEqual(spotSymbols, null))))
             {
                 ((IDictionary<string,object>)exchange.options)["defaultType"] = "spot";
-                await this.runPrivateTests(exchange, spotSymbol);
+                await this.runPrivateTests(exchange, spotSymbols);
             }
-            if (isTrue(isTrue(getValue(exchange.has, "swap")) && isTrue(!isEqual(swapSymbol, null))))
+            if (isTrue(isTrue(getValue(exchange.has, "swap")) && isTrue(!isEqual(swapSymbols, null))))
             {
                 ((IDictionary<string,object>)exchange.options)["defaultType"] = "swap";
-                await this.runPrivateTests(exchange, swapSymbol);
+                await this.runPrivateTests(exchange, swapSymbols);
             }
         }
         return true;
@@ -946,7 +951,7 @@ public partial class testMainClass
         return true;
     }
 
-    public async virtual Task<object> startTest(Exchange exchange, object symbol)
+    public async virtual Task<object> startTest(Exchange exchange, object symbolArgv)
     {
         // we do not need to test aliases
         if (isTrue(exchange.alias))
@@ -974,7 +979,7 @@ public partial class testMainClass
             //     // we test proxies functionality just for one random exchange on each build, because proxy functionality is not exchange-specific, instead it's all done from base methods, so just one working sample would mean it works for all ccxt exchanges
             //     // await this.testProxies (exchange);
             // }
-            await this.testExchange(exchange, symbol);
+            await this.testExchange(exchange, symbolArgv);
             if (!isTrue(isSync()))
             {
                 await close(exchange);
@@ -2063,6 +2068,7 @@ public partial class testMainClass
         assert(isEqual(futureKey, "1b327198-f30c-4f14-a0ac-918871282f15"), add(add("kucoinfutures - key: ", futureKey), " not in options."));
         try
         {
+            ((IDictionary<string,object>)exchange.options)["uta"] = false;
             await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
@@ -2071,9 +2077,8 @@ public partial class testMainClass
         assert(isEqual(getValue(reqHeaders, "KC-API-PARTNER"), id), add(add("kucoinfutures - id: ", id), " not in headers."));
         try
         {
-            await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000, new Dictionary<string, object>() {
-                { "uta", true },
-            });
+            ((IDictionary<string,object>)exchange.options)["uta"] = true;
+            await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             reqHeaders = exchange.last_request_headers;

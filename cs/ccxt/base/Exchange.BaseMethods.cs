@@ -415,7 +415,7 @@ public partial class Exchange
         {
             return defaultValue;
         }
-        if (isTrue(isTrue(((value is IDictionary<string, object>))) && !isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        if (isTrue(this.isDictionary(value)))
         {
             return value;
         }
@@ -435,7 +435,7 @@ public partial class Exchange
         {
             return defaultValue;
         }
-        if (isTrue(isTrue(((value is IDictionary<string, object>))) && !isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        if (isTrue(this.isDictionary(value)))
         {
             return value;
         }
@@ -471,6 +471,11 @@ public partial class Exchange
             return value;
         }
         return defaultValue;
+    }
+
+    public virtual object isDictionary(object value)
+    {
+        return isTrue(isTrue((!isEqual(value, null))) && isTrue(((value is IDictionary<string, object>)))) && !isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))));
     }
 
     public virtual object safeList2(object dictionaryOrList, object key1, object key2, object defaultValue = null)
@@ -6245,7 +6250,7 @@ public partial class Exchange
 
     public virtual object handleWithdrawTagAndParams(object tag, object parameters)
     {
-        if (isTrue(isTrue((!isEqual(tag, null))) && isTrue(((tag is IDictionary<string, object>)))))
+        if (isTrue(this.isDictionary(tag)))
         {
             parameters = this.extend(tag, parameters);
             tag = null;
@@ -8613,6 +8618,12 @@ public partial class Exchange
             return add((divide(ms, second)), "s");
         }
         return "";
+    }
+
+    public async virtual Task<object> isUTAEnabled(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return false;  // stub
     }
 }
 

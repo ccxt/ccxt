@@ -5507,7 +5507,7 @@ class binance(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, type: Str, marketType: Str):
+    def parse_order_type_by_market(self, type: Str, marketType: Str):
         types = {}
         if (marketType is not None) and marketType == 'spot':
             types = {
@@ -6105,7 +6105,7 @@ class binance(Exchange, ImplicitAPI):
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': lastUpdateTimestamp,
             'symbol': symbol,
-            'type': self.parse_order_type(type, marketType),
+            'type': self.parse_order_type_by_market(type, marketType),
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'reduceOnly': self.safe_bool(order, 'reduceOnly'),

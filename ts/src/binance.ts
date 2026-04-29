@@ -5676,7 +5676,7 @@ export default class binance extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (type: Str, marketType: Str) {
+    parseOrderTypeByMarket (type: Str, marketType: Str) {
         let types = {};
         if ((marketType !== undefined) && marketType === 'spot') {
             types = {
@@ -6283,7 +6283,7 @@ export default class binance extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': lastUpdateTimestamp,
             'symbol': symbol,
-            'type': this.parseOrderType (type, marketType),
+            'type': this.parseOrderTypeByMarket (type, marketType),
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'reduceOnly': this.safeBool (order, 'reduceOnly'),
