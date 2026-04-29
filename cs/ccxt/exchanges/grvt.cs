@@ -2204,6 +2204,12 @@ public partial class grvt : Exchange
         {
             throw new InvalidOrder ((string)add(this.id, " createOrder(): order side must be either \"buy\" or \"sell\"")) ;
         }
+        object clientOrderId = this.safeString(parameters, "clientOrderId");
+        if (isTrue(isEqual(clientOrderId, null)))
+        {
+            clientOrderId = add(add(((object)this.nonce()).ToString(), "000"), ((object)this.requestId()).ToString());
+        }
+        parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
         object isMarketOrder = (isEqual(type, "market"));
         object orderRequest = new Dictionary<string, object>() {
             { "sub_account_id", this.getSubAccountId(parameters) },
@@ -2211,33 +2217,31 @@ public partial class grvt : Exchange
             { "legs", new List<object>() {orderLeg} },
             { "signature", this.defaultSignature() },
             { "metadata", new Dictionary<string, object>() {
-                { "client_order_id", add(add(((object)this.nonce()).ToString(), "000"), ((object)this.requestId()).ToString()) },
+                { "client_order_id", clientOrderId },
             } },
             { "is_market", isMarketOrder },
             { "post_only", false },
             { "reduce_only", this.safeBool(parameters, "reduceOnly", false) },
         };
-        object timeInForce = this.safeStringUpper(parameters, "timeInForce");
+        object timeInForce = this.safeStringUpper(parameters, "timeInForce", "GOOD_TILL_TIME");
         object postOnly = this.isPostOnly(isMarketOrder, null, parameters);
         if (isTrue(postOnly))
         {
             ((IDictionary<string,object>)orderRequest)["post_only"] = true;
+        }
+        if (isTrue(isEqual(timeInForce, null)))
+        {
+            timeInForce = "GOOD_TILL_TIME";
         } else
         {
-            if (isTrue(isEqual(timeInForce, null)))
-            {
-                timeInForce = "GOOD_TILL_TIME";
-            } else
-            {
-                object tifMap = new Dictionary<string, object>() {
-                    { "GTC", "GOOD_TILL_TIME" },
-                    { "FOK", "FILL_OR_KILL" },
-                    { "IOC", "IMMEDIATE_OR_CANCEL" },
-                };
-                timeInForce = this.safeString(tifMap, timeInForce, timeInForce);
-            }
-            ((IDictionary<string,object>)orderRequest)["time_in_force"] = timeInForce;
+            object tifMap = new Dictionary<string, object>() {
+                { "GTC", "GOOD_TILL_TIME" },
+                { "FOK", "FILL_OR_KILL" },
+                { "IOC", "IMMEDIATE_OR_CANCEL" },
+            };
+            timeInForce = this.safeString(tifMap, timeInForce, timeInForce);
         }
+        ((IDictionary<string,object>)orderRequest)["time_in_force"] = timeInForce;
         if (!isTrue(isMarketOrder))
         {
             if (isTrue(postOnly))

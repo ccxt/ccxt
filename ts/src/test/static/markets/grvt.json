@@ -247,5 +247,88 @@
         },
         "tierBased": null,
         "percentage": null
+    },
+    "SUI/USDT:USDT": {
+        "id": "SUI_USDT_Perp",
+        "lowercaseId": null,
+        "symbol": "SUI/USDT:USDT",
+        "base": "SUI",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "SUI",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": null,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": null,
+        "maker": null,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.1,
+            "price": 0.0001,
+            "base": 0.000001,
+            "quote": 0.000001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.1,
+                "max": 901207
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 5,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1776828124068,
+        "info": {
+            "instrument": "SUI_USDT_Perp",
+            "instrument_hash": "0x031501",
+            "base": "SUI",
+            "quote": "USDT",
+            "kind": "PERPETUAL",
+            "venues": [
+                "ORDERBOOK",
+                "RFQ"
+            ],
+            "settlement_period": "PERPETUAL",
+            "base_decimals": 6,
+            "quote_decimals": 6,
+            "tick_size": "0.0001",
+            "min_size": "0.1",
+            "create_time": "1776828124068069005",
+            "max_position_size": "901207.0",
+            "funding_interval_hours": 8,
+            "adjusted_funding_rate_cap": "0.75",
+            "adjusted_funding_rate_floor": "-0.75",
+            "min_notional": "5.0"
+        },
+        "tierBased": null,
+        "percentage": null
     }
 }

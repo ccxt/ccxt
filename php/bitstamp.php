@@ -1141,6 +1141,19 @@ class bitstamp extends Exchange {
         $priceString = $this->safe_string($trade, $priceId, $priceString);
         $amountString = $this->safe_string($trade, $market['baseId'], $amountString);
         $costString = $this->safe_string($trade, $market['quoteId'], $costString);
+        // this endpoint is not aligned with "markets" endpoint
+        $baseIdLower = strtolower($market['baseId']);
+        $quoteIdLower = strtolower($market['quoteId']);
+        $dashedIdLower = $baseIdLower . '_' . $quoteIdLower;
+        if ($priceString === null) {
+            $priceString = $this->safe_string($trade, $dashedIdLower);
+        }
+        if ($amountString === null) {
+            $amountString = $this->safe_string($trade, $baseIdLower);
+        }
+        if ($costString === null) {
+            $costString = $this->safe_string($trade, $quoteIdLower);
+        }
         $symbol = $market['symbol'];
         $datetimeString = $this->safe_string_2($trade, 'date', 'datetime');
         $timestamp = null;

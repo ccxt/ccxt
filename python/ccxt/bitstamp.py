@@ -1127,6 +1127,16 @@ class bitstamp(Exchange, ImplicitAPI):
         priceString = self.safe_string(trade, priceId, priceString)
         amountString = self.safe_string(trade, market['baseId'], amountString)
         costString = self.safe_string(trade, market['quoteId'], costString)
+        # self endpoint is not aligned with "markets" endpoint
+        baseIdLower = market['baseId'].lower()
+        quoteIdLower = market['quoteId'].lower()
+        dashedIdLower = baseIdLower + '_' + quoteIdLower
+        if priceString is None:
+            priceString = self.safe_string(trade, dashedIdLower)
+        if amountString is None:
+            amountString = self.safe_string(trade, baseIdLower)
+        if costString is None:
+            costString = self.safe_string(trade, quoteIdLower)
         symbol = market['symbol']
         datetimeString = self.safe_string_2(trade, 'date', 'datetime')
         timestamp = None

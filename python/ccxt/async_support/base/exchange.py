@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.46'
+__version__ = '4.5.51'
 
 # -----------------------------------------------------------------------------
 
@@ -88,8 +88,8 @@ class Exchange(BaseExchange):
         self.markets_loading = None
         self.reloading_markets = False
 
-    async def load_lighter_library(self, path, chainId, privateKey, apiKeyIndex, accountIndex):
-        return self.load_lighter_library_helper(path, chainId, privateKey, apiKeyIndex, accountIndex)
+    async def load_lighter_library(self, path, chainId, privateKey, apiKeyIndex, accountIndex, createClient):
+        return self.load_lighter_library_helper(path, chainId, privateKey, apiKeyIndex, accountIndex, createClient)
 
     def get_event_loop(self):
         return self.asyncio_loop
@@ -486,8 +486,13 @@ class Exchange(BaseExchange):
                     missing_subscriptions.append(subscribe_hash)
                     client.subscriptions[subscribe_hash] = subscription or True
 
+        selected_session = self.session
+        # http/s proxy is being set in other places
+        httpProxy, httpsProxy, socksProxy = self.check_ws_proxy_settings()
+        if (socksProxy):
+            selected_session = self.get_socks_proxy_session(socksProxy)
         connected = client.connected if client.connected.done() \
-            else asyncio.ensure_future(client.connect(self.session, backoff_delay))
+            else asyncio.ensure_future(client.connect(selected_session, backoff_delay))
 
         def after(fut):
             # todo: decouple signing from subscriptions
@@ -2408,3 +2413,6 @@ class Exchange(BaseExchange):
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         raise NotSupported(self.id + ' unWatchBidsAsks() is not supported yet')
+
+    async def is_uta_enabled(self, params={}):
+        return False  # stub

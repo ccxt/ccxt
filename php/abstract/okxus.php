@@ -40,6 +40,9 @@ abstract class okxus extends \ccxt\okx {
     public function public_get_market_call_auction_detail($params = array()) {
         return $this->request('market/call-auction-detail', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_get_market_call_auction_details($params = array()) {
+        return $this->request('market/call-auction-details', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function public_get_market_books_sbe($params = array()) {
         return $this->request('market/books-sbe', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -157,6 +160,15 @@ abstract class okxus extends \ccxt\okx {
     public function public_get_public_market_data_history($params = array()) {
         return $this->request('public/market-data-history', 'public', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function public_get_public_event_contract_events($params = array()) {
+        return $this->request('public/event-contract/events', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_public_event_contract_markets($params = array()) {
+        return $this->request('public/event-contract/markets', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_public_event_contract_series($params = array()) {
+        return $this->request('public/event-contract/series', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function public_get_public_vip_interest_rate_loan_quota($params = array()) {
         return $this->request('public/vip-interest-rate-loan-quota', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -177,6 +189,9 @@ abstract class okxus extends \ccxt\okx {
     }
     public function public_get_rubik_stat_contracts_long_short_account_ratio_contract_top_trader($params = array()) {
         return $this->request('rubik/stat/contracts/long-short-account-ratio-contract-top-trader', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function public_get_rubik_stat_contracts_long_short_position_ratio_contract_top_trader($params = array()) {
+        return $this->request('rubik/stat/contracts/long-short-position-ratio-contract-top-trader', 'public', 'GET', $params, null, null, array("cost" => 4));
     }
     public function public_get_rubik_stat_contracts_long_short_account_ratio_contract($params = array()) {
         return $this->request('rubik/stat/contracts/long-short-account-ratio-contract', 'public', 'GET', $params, null, null, array("cost" => 4));
@@ -288,6 +303,9 @@ abstract class okxus extends \ccxt\okx {
     }
     public function public_get_support_announcements_types($params = array()) {
         return $this->request('support/announcements-types', 'public', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function public_get_support_announcement_types($params = array()) {
+        return $this->request('support/announcement-types', 'public', 'GET', $params, null, null, array("cost" => 20));
     }
     public function public_post_tradingbot_grid_min_investment($params = array()) {
         return $this->request('tradingBot/grid/min-investment', 'public', 'POST', $params, null, null, array("cost" => 1));
@@ -453,6 +471,9 @@ abstract class okxus extends \ccxt\okx {
     }
     public function private_get_account_config($params = array()) {
         return $this->request('account/config', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_get_account_subtypes($params = array()) {
+        return $this->request('account/subtypes', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function private_get_account_max_size($params = array()) {
         return $this->request('account/max-size', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -625,6 +646,21 @@ abstract class okxus extends \ccxt\okx {
     public function private_get_tradingbot_recurring_sub_orders($params = array()) {
         return $this->request('tradingBot/recurring/sub-orders', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_tradingbot_dca_ongoing_list($params = array()) {
+        return $this->request('tradingBot/dca/ongoing-list', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_tradingbot_dca_history_list($params = array()) {
+        return $this->request('tradingBot/dca/history-list', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_tradingbot_dca_orders($params = array()) {
+        return $this->request('tradingBot/dca/orders', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_tradingbot_dca_position_details($params = array()) {
+        return $this->request('tradingBot/dca/position-details', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_tradingbot_dca_cycle_list($params = array()) {
+        return $this->request('tradingBot/dca/cycle-list', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_finance_savings_balance($params = array()) {
         return $this->request('finance/savings/balance', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
@@ -759,6 +795,15 @@ abstract class okxus extends \ccxt\okx {
     }
     public function private_get_finance_sfp_dcd_orders($params = array()) {
         return $this->request('finance/sfp/dcd/orders', 'private', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_get_finance_sfp_dcd_currency_pair($params = array()) {
+        return $this->request('finance/sfp/dcd/currency-pair', 'private', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_get_finance_sfp_dcd_order_status($params = array()) {
+        return $this->request('finance/sfp/dcd/order-status', 'private', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_get_finance_sfp_dcd_order_history($params = array()) {
+        return $this->request('finance/sfp/dcd/order-history', 'private', 'GET', $params, null, null, array("cost" => 2));
     }
     public function private_get_affiliate_invitee_detail($params = array()) {
         return $this->request('affiliate/invitee/detail', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -946,6 +991,9 @@ abstract class okxus extends \ccxt\okx {
     public function private_post_account_set_riskoffset_type($params = array()) {
         return $this->request('account/set-riskOffset-type', 'private', 'POST', $params, null, null, array("cost" => 2));
     }
+    public function private_post_account_set_riskoffset_amt($params = array()) {
+        return $this->request('account/set-riskOffset-amt', 'private', 'POST', $params, null, null, array("cost" => 2));
+    }
     public function private_post_account_activate_option($params = array()) {
         return $this->request('account/activate-option', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
@@ -1018,6 +1066,9 @@ abstract class okxus extends \ccxt\okx {
     public function private_post_tradingbot_grid_order_algo($params = array()) {
         return $this->request('tradingBot/grid/order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_tradingbot_grid_copy_order_algo($params = array()) {
+        return $this->request('tradingBot/grid/copy-order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function private_post_tradingbot_grid_amend_algo_basic_param($params = array()) {
         return $this->request('tradingBot/grid/amend-algo-basic-param', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1086,6 +1137,48 @@ abstract class okxus extends \ccxt\okx {
     }
     public function private_post_tradingbot_recurring_stop_order_algo($params = array()) {
         return $this->request('tradingBot/recurring/stop-order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_dca_create($params = array()) {
+        return $this->request('tradingBot/dca/create', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_dca_amend_order_algo($params = array()) {
+        return $this->request('tradingBot/dca/amend-order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_dca_stop($params = array()) {
+        return $this->request('tradingBot/dca/stop', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_dca_orders_manual_buy($params = array()) {
+        return $this->request('tradingBot/dca/orders/manual-buy', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_dca_settings_reinvestment($params = array()) {
+        return $this->request('tradingBot/dca/settings/reinvestment', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_dca_settings_take_profit($params = array()) {
+        return $this->request('tradingBot/dca/settings/take-profit', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_dca_margin_add($params = array()) {
+        return $this->request('tradingBot/dca/margin/add', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_dca_margin_reduce($params = array()) {
+        return $this->request('tradingBot/dca/margin/reduce', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_recurring_add_investment($params = array()) {
+        return $this->request('tradingBot/recurring/add-investment', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_recurring_amend_price_range($params = array()) {
+        return $this->request('tradingBot/recurring/amend-price-range', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_recurring_amend_recurring_amount($params = array()) {
+        return $this->request('tradingBot/recurring/amend-recurring-amount', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_recurring_amend_recurring_time($params = array()) {
+        return $this->request('tradingBot/recurring/amend-recurring-time', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_recurring_pause($params = array()) {
+        return $this->request('tradingBot/recurring/pause', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_recurring_restart($params = array()) {
+        return $this->request('tradingBot/recurring/restart', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_finance_savings_purchase_redempt($params = array()) {
         return $this->request('finance/savings/purchase-redempt', 'private', 'POST', $params, null, null, array("cost" => 1.6666666666666667));
@@ -1189,6 +1282,15 @@ abstract class okxus extends \ccxt\okx {
     public function private_post_finance_sfp_dcd_order($params = array()) {
         return $this->request('finance/sfp/dcd/order', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
+    public function private_post_finance_sfp_dcd_trade($params = array()) {
+        return $this->request('finance/sfp/dcd/trade', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    public function private_post_finance_sfp_dcd_redeem_quote($params = array()) {
+        return $this->request('finance/sfp/dcd/redeem-quote', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    public function private_post_finance_sfp_dcd_redeem($params = array()) {
+        return $this->request('finance/sfp/dcd/redeem', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
     public function private_post_broker_nd_report_subaccount_ip($params = array()) {
         return $this->request('broker/nd/report-subaccount-ip', 'private', 'POST', $params, null, null, array("cost" => 0.25));
     }
@@ -1233,6 +1335,9 @@ abstract class okxus extends \ccxt\okx {
     }
     public function publicGetMarketCallAuctionDetail($params = array()) {
         return $this->request('market/call-auction-detail', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetMarketCallAuctionDetails($params = array()) {
+        return $this->request('market/call-auction-details', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetMarketBooksSbe($params = array()) {
         return $this->request('market/books-sbe', 'public', 'GET', $params, null, null, array("cost" => 10));
@@ -1351,6 +1456,15 @@ abstract class okxus extends \ccxt\okx {
     public function publicGetPublicMarketDataHistory($params = array()) {
         return $this->request('public/market-data-history', 'public', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function publicGetPublicEventContractEvents($params = array()) {
+        return $this->request('public/event-contract/events', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetPublicEventContractMarkets($params = array()) {
+        return $this->request('public/event-contract/markets', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetPublicEventContractSeries($params = array()) {
+        return $this->request('public/event-contract/series', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function publicGetPublicVipInterestRateLoanQuota($params = array()) {
         return $this->request('public/vip-interest-rate-loan-quota', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -1371,6 +1485,9 @@ abstract class okxus extends \ccxt\okx {
     }
     public function publicGetRubikStatContractsLongShortAccountRatioContractTopTrader($params = array()) {
         return $this->request('rubik/stat/contracts/long-short-account-ratio-contract-top-trader', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function publicGetRubikStatContractsLongShortPositionRatioContractTopTrader($params = array()) {
+        return $this->request('rubik/stat/contracts/long-short-position-ratio-contract-top-trader', 'public', 'GET', $params, null, null, array("cost" => 4));
     }
     public function publicGetRubikStatContractsLongShortAccountRatioContract($params = array()) {
         return $this->request('rubik/stat/contracts/long-short-account-ratio-contract', 'public', 'GET', $params, null, null, array("cost" => 4));
@@ -1482,6 +1599,9 @@ abstract class okxus extends \ccxt\okx {
     }
     public function publicGetSupportAnnouncementsTypes($params = array()) {
         return $this->request('support/announcements-types', 'public', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function publicGetSupportAnnouncementTypes($params = array()) {
+        return $this->request('support/announcement-types', 'public', 'GET', $params, null, null, array("cost" => 20));
     }
     public function publicPostTradingBotGridMinInvestment($params = array()) {
         return $this->request('tradingBot/grid/min-investment', 'public', 'POST', $params, null, null, array("cost" => 1));
@@ -1647,6 +1767,9 @@ abstract class okxus extends \ccxt\okx {
     }
     public function privateGetAccountConfig($params = array()) {
         return $this->request('account/config', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateGetAccountSubtypes($params = array()) {
+        return $this->request('account/subtypes', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function privateGetAccountMaxSize($params = array()) {
         return $this->request('account/max-size', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -1819,6 +1942,21 @@ abstract class okxus extends \ccxt\okx {
     public function privateGetTradingBotRecurringSubOrders($params = array()) {
         return $this->request('tradingBot/recurring/sub-orders', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateGetTradingBotDcaOngoingList($params = array()) {
+        return $this->request('tradingBot/dca/ongoing-list', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetTradingBotDcaHistoryList($params = array()) {
+        return $this->request('tradingBot/dca/history-list', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetTradingBotDcaOrders($params = array()) {
+        return $this->request('tradingBot/dca/orders', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetTradingBotDcaPositionDetails($params = array()) {
+        return $this->request('tradingBot/dca/position-details', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetTradingBotDcaCycleList($params = array()) {
+        return $this->request('tradingBot/dca/cycle-list', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateGetFinanceSavingsBalance($params = array()) {
         return $this->request('finance/savings/balance', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
@@ -1953,6 +2091,15 @@ abstract class okxus extends \ccxt\okx {
     }
     public function privateGetFinanceSfpDcdOrders($params = array()) {
         return $this->request('finance/sfp/dcd/orders', 'private', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateGetFinanceSfpDcdCurrencyPair($params = array()) {
+        return $this->request('finance/sfp/dcd/currency-pair', 'private', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateGetFinanceSfpDcdOrderStatus($params = array()) {
+        return $this->request('finance/sfp/dcd/order-status', 'private', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateGetFinanceSfpDcdOrderHistory($params = array()) {
+        return $this->request('finance/sfp/dcd/order-history', 'private', 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateGetAffiliateInviteeDetail($params = array()) {
         return $this->request('affiliate/invitee/detail', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -2140,6 +2287,9 @@ abstract class okxus extends \ccxt\okx {
     public function privatePostAccountSetRiskOffsetType($params = array()) {
         return $this->request('account/set-riskOffset-type', 'private', 'POST', $params, null, null, array("cost" => 2));
     }
+    public function privatePostAccountSetRiskOffsetAmt($params = array()) {
+        return $this->request('account/set-riskOffset-amt', 'private', 'POST', $params, null, null, array("cost" => 2));
+    }
     public function privatePostAccountActivateOption($params = array()) {
         return $this->request('account/activate-option', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
@@ -2212,6 +2362,9 @@ abstract class okxus extends \ccxt\okx {
     public function privatePostTradingBotGridOrderAlgo($params = array()) {
         return $this->request('tradingBot/grid/order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function privatePostTradingBotGridCopyOrderAlgo($params = array()) {
+        return $this->request('tradingBot/grid/copy-order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function privatePostTradingBotGridAmendAlgoBasicParam($params = array()) {
         return $this->request('tradingBot/grid/amend-algo-basic-param', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -2280,6 +2433,48 @@ abstract class okxus extends \ccxt\okx {
     }
     public function privatePostTradingBotRecurringStopOrderAlgo($params = array()) {
         return $this->request('tradingBot/recurring/stop-order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotDcaCreate($params = array()) {
+        return $this->request('tradingBot/dca/create', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotDcaAmendOrderAlgo($params = array()) {
+        return $this->request('tradingBot/dca/amend-order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotDcaStop($params = array()) {
+        return $this->request('tradingBot/dca/stop', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotDcaOrdersManualBuy($params = array()) {
+        return $this->request('tradingBot/dca/orders/manual-buy', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotDcaSettingsReinvestment($params = array()) {
+        return $this->request('tradingBot/dca/settings/reinvestment', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotDcaSettingsTakeProfit($params = array()) {
+        return $this->request('tradingBot/dca/settings/take-profit', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotDcaMarginAdd($params = array()) {
+        return $this->request('tradingBot/dca/margin/add', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotDcaMarginReduce($params = array()) {
+        return $this->request('tradingBot/dca/margin/reduce', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotRecurringAddInvestment($params = array()) {
+        return $this->request('tradingBot/recurring/add-investment', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotRecurringAmendPriceRange($params = array()) {
+        return $this->request('tradingBot/recurring/amend-price-range', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotRecurringAmendRecurringAmount($params = array()) {
+        return $this->request('tradingBot/recurring/amend-recurring-amount', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotRecurringAmendRecurringTime($params = array()) {
+        return $this->request('tradingBot/recurring/amend-recurring-time', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotRecurringPause($params = array()) {
+        return $this->request('tradingBot/recurring/pause', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotRecurringRestart($params = array()) {
+        return $this->request('tradingBot/recurring/restart', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostFinanceSavingsPurchaseRedempt($params = array()) {
         return $this->request('finance/savings/purchase-redempt', 'private', 'POST', $params, null, null, array("cost" => 1.6666666666666667));
@@ -2382,6 +2577,15 @@ abstract class okxus extends \ccxt\okx {
     }
     public function privatePostFinanceSfpDcdOrder($params = array()) {
         return $this->request('finance/sfp/dcd/order', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    public function privatePostFinanceSfpDcdTrade($params = array()) {
+        return $this->request('finance/sfp/dcd/trade', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    public function privatePostFinanceSfpDcdRedeemQuote($params = array()) {
+        return $this->request('finance/sfp/dcd/redeem-quote', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    public function privatePostFinanceSfpDcdRedeem($params = array()) {
+        return $this->request('finance/sfp/dcd/redeem', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
     public function privatePostBrokerNdReportSubaccountIp($params = array()) {
         return $this->request('broker/nd/report-subaccount-ip', 'private', 'POST', $params, null, null, array("cost" => 0.25));

@@ -1269,6 +1269,7 @@ public partial class binance : Exchange
                         { "asset-collection", 6 },
                         { "margin/repay-debt", 3000 },
                         { "um/feeBurn", 1 },
+                        { "um/stock/contract", 1 },
                     } },
                     { "put", new Dictionary<string, object>() {
                         { "listenKey", 0.2 },
@@ -2778,11 +2779,6 @@ public partial class binance : Exchange
             return this.createExpiredOptionMarket(marketId);
         }
         return base.safeMarket(marketId, market, delimiter, marketType);
-    }
-
-    public override object costToPrecision(object symbol, object cost)
-    {
-        return this.decimalToPrecision(cost, TRUNCATE, getValue(getValue(getValue(this.markets, symbol), "precision"), "quote"), this.precisionMode, this.paddingMode);
     }
 
     public override object nonce()
@@ -5882,16 +5878,29 @@ public partial class binance : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual object parseOrderType(object type)
+    public virtual object parseOrderTypeByMarket(object type, object marketType)
     {
-        object types = new Dictionary<string, object>() {
-            { "limit_maker", "limit" },
-            { "stop", "limit" },
-            { "stop_market", "market" },
-            { "take_profit", "limit" },
-            { "take_profit_market", "market" },
-            { "trailing_stop_market", "market" },
-        };
+        object types = new Dictionary<string, object>() {};
+        if (isTrue(isTrue((!isEqual(marketType, null))) && isTrue(isEqual(marketType, "spot"))))
+        {
+            types = new Dictionary<string, object>() {
+                { "limit_maker", "limit" },
+                { "stop_loss_limit", "limit" },
+                { "stop_loss", "market" },
+                { "take_profit_limit", "limit" },
+                { "take_profit", "market" },
+            };
+        } else
+        {
+            types = new Dictionary<string, object>() {
+                { "limit_maker", "limit" },
+                { "stop", "limit" },
+                { "stop_market", "market" },
+                { "take_profit", "limit" },
+                { "take_profit_market", "market" },
+                { "trailing_stop_market", "market" },
+            };
+        }
         return this.safeString(types, type, type);
     }
 
@@ -6491,7 +6500,7 @@ public partial class binance : Exchange
             { "lastTradeTimestamp", lastTradeTimestamp },
             { "lastUpdateTimestamp", lastUpdateTimestamp },
             { "symbol", symbol },
-            { "type", this.parseOrderType(type) },
+            { "type", this.parseOrderTypeByMarket(type, marketType) },
             { "timeInForce", timeInForce },
             { "postOnly", postOnly },
             { "reduceOnly", this.safeBool(order, "reduceOnly") },

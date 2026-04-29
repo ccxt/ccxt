@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.46'
+__version__ = '4.5.51'
 
 # -----------------------------------------------------------------------------
 
@@ -102,7 +102,8 @@ except ImportError:
 
 # lighter
 import os
-from ccxt.static_dependencies.lighter_client.signer import load_lighter_library, decode_tx_info, decode_auth, CreateOrderTxReq
+from ccxt.static_dependencies.lighter_client.signer import load_lighter_library, decode_tx_info, decode_auth, decode_api_key, CreateOrderTxReq
+# import ctypes
 
 # -----------------------------------------------------------------------------
 
@@ -648,7 +649,6 @@ class Exchange(object):
         if files is not None:
             # requests would handle it for multipart/form-data
             del request_headers[content_type_key]
-            print(request_headers)
         if body:
             body = body.encode()
 
@@ -1405,6 +1405,14 @@ class Exchange(object):
         elif digest == 'base64':
             return Exchange.binary_to_base64(binary)
         return binary
+
+    @staticmethod
+    def string_to_binary(buff: str) -> bytes:
+        return buff.encode('utf-8')
+
+    @staticmethod
+    def binary_to_string(buff: bytes) -> str:
+        return buff.decode('utf-8')
 
     @staticmethod
     def binary_concat(*args):
@@ -2254,17 +2262,21 @@ class Exchange(object):
     def is_lighter_library_path_required(self):
         return True
 
-    def load_lighter_library(self, path, chainId, privateKey, apiKeyIndex, accountIndex):
-        return self.load_lighter_library_helper(path, chainId, privateKey, apiKeyIndex, accountIndex)
+    def load_lighter_library(self, path, chainId, privateKey, apiKeyIndex, accountIndex, createClient):
+        return self.load_lighter_library_helper(path, chainId, privateKey, apiKeyIndex, accountIndex, createClient)
 
-    def load_lighter_library_helper(self, path, chainId, privateKey, apiKeyIndex, accountIndex):
+    def load_lighter_library_helper(self, path, chainId, privateKey, apiKeyIndex, accountIndex, createClient):
         if path is None:
             raise NotSupported(self.id + ' load_lighter_library() requires a path to the lighter library. You can find it here https://github.com/elliottech/lighter-python/tree/main/lighter/signers. Please download the appropriate library for your system and provide the path to it.\nExample: exchange.options["libraryPath"] = "path/to/lighter-signer-linux-arm64.so"')
         if not os.path.isfile(path):
             raise NotSupported(self.id + ' the library path does not exist')
 
         lighterSigner = load_lighter_library(path)
+        if createClient:
+            self.lighter_create_client(lighterSigner, chainId, privateKey, apiKeyIndex, accountIndex)
+        return lighterSigner
 
+    def lighter_create_client(self, lighterSigner, chainId, privateKey, apiKeyIndex, accountIndex):
         url = self.implode_hostname(self.urls['api']['public'])
         res = lighterSigner.CreateClient(
             url.encode("utf-8"),
@@ -2274,7 +2286,7 @@ class Exchange(object):
             accountIndex,
         )
         if res is not None and str(res).find('error'):
-            raise Exception('load_lighter_library(): Failed to create lighter signer: ' + str(res))
+            raise Exception('lighter_create_client(): Failed to create lighter client: ' + str(res))
         return lighterSigner
 
     def lighter_sign_create_grouped_orders(self, signer, request):
@@ -2295,13 +2307,22 @@ class Exchange(object):
                 OrderExpiry=order['order_expiry'],
             ))
         orders_carr = arr_type(*orders_arr)
-        tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignCreateGroupedOrders(
-            request['grouping_type'], orders_carr, len(orders), request['nonce'], request['api_key_index'], request['account_index']
+        tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignCreateGroupedOrders(
+            request['grouping_type'],
+            orders_carr,
+            len(orders),
+            request['integrator_account_index'],
+            request['integrator_taker_fee'],
+            request['integrator_maker_fee'],
+            True,
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index']
         ))
         return [tx_type, tx_info]
 
     def lighter_sign_create_order(self, signer, request):
-        tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignCreateOrder(
+        tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignCreateOrder(
             int(request['market_index']),
             request['client_order_index'],
             request['base_amount'],
@@ -2312,6 +2333,10 @@ class Exchange(object):
             request['reduce_only'],
             request['trigger_price'],
             request['order_expiry'],
+            request['integrator_account_index'],
+            request['integrator_taker_fee'],
+            request['integrator_maker_fee'],
+            True,
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
@@ -2321,9 +2346,10 @@ class Exchange(object):
         return [tx_type, tx_info]
 
     def lighter_sign_cancel_order(self, signer, request):
-        tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignCancelOrder(
+        tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignCancelOrder(
             request['market_index'],
             request['order_index'],
+            True,
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
@@ -2333,10 +2359,11 @@ class Exchange(object):
         return [tx_type, tx_info]
 
     def lighter_sign_withdraw(self, signer, request):
-        tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignWithdraw(
+        tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignWithdraw(
             request['asset_index'],
             request['route_type'],
             request['amount'],
+            True,
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
@@ -2346,7 +2373,8 @@ class Exchange(object):
         return [tx_type, tx_info]
 
     def lighter_sign_create_sub_account(self, signer, request):
-        tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignCreateSubAccount(
+        tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignCreateSubAccount(
+            True,
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
@@ -2356,9 +2384,10 @@ class Exchange(object):
         return [tx_type, tx_info]
 
     def lighter_sign_cancel_all_orders(self, signer, request):
-        tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignCancelAllOrders(
+        tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignCancelAllOrders(
             request['time_in_force'],
             request['time'],
+            True,
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
@@ -2368,12 +2397,16 @@ class Exchange(object):
         return [tx_type, tx_info]
 
     def lighter_sign_modify_order(self, signer, request):
-        tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignModifyOrder(
+        tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignModifyOrder(
             request['market_index'],
             request['index'],
             request['base_amount'],
             request['price'],
             request['trigger_price'],
+            request['integrator_account_index'],
+            request['integrator_taker_fee'],
+            request['integrator_maker_fee'],
+            True,
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
@@ -2383,7 +2416,7 @@ class Exchange(object):
         return [tx_type, tx_info]
 
     def lighter_sign_transfer(self, signer, request):
-        tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignTransfer(
+        tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignTransfer(
             request['to_account_index'],
             request['asset_index'],
             request['from_route_type'],
@@ -2391,6 +2424,7 @@ class Exchange(object):
             request['amount'],
             request['usdc_fee'],
             request['memo'],
+            True,
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
@@ -2400,10 +2434,11 @@ class Exchange(object):
         return [tx_type, tx_info]
 
     def lighter_sign_update_leverage(self, signer, request):
-        tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignUpdateLeverage(
+        tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignUpdateLeverage(
             request['market_index'],
             request['initial_margin_fraction'],
             request['margin_mode'],
+            True,
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
@@ -2423,10 +2458,11 @@ class Exchange(object):
         return auth
 
     def lighter_sign_update_margin(self, signer, request):
-        tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignUpdateMargin(
+        tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignUpdateMargin(
             request['market_index'],
             request['usdc_amount'],
             request['direction'],
+            True,
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
@@ -2434,6 +2470,41 @@ class Exchange(object):
         if error:
             raise Exception('lighter_sign_update_margin() failed with error: ' + str(error))
         return [tx_type, tx_info]
+
+    def lighter_sign_approve_integrator(self, signer, request):
+        tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignApproveIntegrator(
+            int(request['integrator_account_index']),
+            int(request['integrator_taker_fee']),
+            int(request['integrator_maker_fee']),
+            int(request['integrator_taker_fee']),
+            int(request['integrator_maker_fee']),
+            request['approval_expiry'],
+            True,
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        if error:
+            raise Exception('lighter_sign_approve_integrator() failed with error: ' + str(error))
+        return [tx_type, tx_info, message_to_sign]
+
+    def lighter_generate_api_key(self, signer):
+        privateKey, publicKey, error = decode_api_key(signer.GenerateAPIKey())
+        if error:
+            raise Exception('lighter_generate_api_key() failed with error: ' + str(error))
+        return [privateKey, publicKey]
+
+    def lighter_sign_change_pubkey(self, signer, request):
+        tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignChangePubKey(
+            request['pubkey'],
+            True,
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        if error:
+            raise Exception('lighter_sign_change_pubkey() failed with error: ' + str(error))
+        return [tx_type, tx_info, message_to_sign]
 
     # ########################################################################
     # ########################################################################
@@ -2852,7 +2923,7 @@ class Exchange(object):
         value = self.safe_value_n(dictionaryOrList, keys, defaultValue)
         if value is None:
             return defaultValue
-        if isinstance(value, dict):
+        if self.is_dictionary(value):
             return value
         return defaultValue
 
@@ -2865,7 +2936,7 @@ class Exchange(object):
         value = self.safe_value(dictionary, key, defaultValue)
         if value is None:
             return defaultValue
-        if isinstance(value, dict):
+        if self.is_dictionary(value):
             return value
         return defaultValue
 
@@ -2889,6 +2960,9 @@ class Exchange(object):
         if isinstance(value, list):
             return value
         return defaultValue
+
+    def is_dictionary(self, value: Any):
+        return(value is not None) and isinstance(value, dict)
 
     def safe_list_2(self, dictionaryOrList, key1: IndexType, key2: str, defaultValue: List[Any] = None):
         """
@@ -6539,7 +6613,7 @@ class Exchange(object):
         return False
 
     def handle_withdraw_tag_and_params(self, tag, params):
-        if (tag is not None) and (isinstance(tag, dict)):
+        if self.is_dictionary(tag):
             params = self.extend(tag, params)
             tag = None
         if tag is None:
@@ -8086,3 +8160,6 @@ class Exchange(object):
         if ms % second == 0:
             return(ms / second) + 's'
         return ''
+
+    def is_uta_enabled(self, params={}):
+        return False  # stub

@@ -13,12 +13,12 @@ func HelperTestInitThrottler() {
 		"rateLimit": 10.8,
 	}, map[string]interface{}{}, exchange)
 	// todo: assert (exchange.MAX_VALUE !== undefined);
-	var tokenBucket interface{} = exchange.GetProperty(exchange, "tokenBucket") // trick for uncamelcase transpilation
-	if ccxt.IsTrue(ccxt.IsEqual(tokenBucket, nil)) {
-		tokenBucket = exchange.GetProperty(exchange, "TokenBucket")
-	}
+	var tokenBucket interface{} = ExchangeProp(exchange, "tokenBucket") // trick for uncamelcase transpilation
 	Assert(!ccxt.IsEqual(tokenBucket, nil))
-
+	var rateLimit interface{} = ExchangeProp(exchange, "rateLimit")
+	Assert(ccxt.IsEqual(rateLimit, 10.8))
+	Assert(ccxt.IsEqual(ccxt.GetValue(tokenBucket, "delay"), 0.001))
+	Assert(ccxt.IsEqual(ccxt.GetValue(tokenBucket, "refillRate"), ccxt.Divide(1, rateLimit)))
 	// fix decimal/integer issues across langs
 	Assert(exchange.InArray(ccxt.GetValue(tokenBucket, "capacity"), []interface{}{1, 1}))
 	var cost interface{} = exchange.ParseToNumeric(exchange.SafeString2(tokenBucket, "cost", "defaultCost")) // python sync, todo fix
@@ -30,7 +30,16 @@ func HelperTestSandboxState(exchange *ccxt.Exchange, optionalArgs ...interface{}
 	_ = shouldBeEnabled
 	Assert(!ccxt.IsEqual(exchange.Urls, nil))
 	Assert(ccxt.InOp(exchange.Urls, "test"))
-
+	var isSandboxModeEnabled interface{} = ExchangeProp(exchange, "isSandboxModeEnabled")
+	if ccxt.IsTrue(shouldBeEnabled) {
+		Assert(isSandboxModeEnabled)
+		Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(exchange.Urls, "api"), "public"), "https://example.org"))
+		Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(exchange.Urls, "apiBackup"), "public"), "https://example.com"))
+	} else {
+		Assert(!ccxt.IsTrue(isSandboxModeEnabled))
+		Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(exchange.Urls, "api"), "public"), "https://example.com"))
+		Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(exchange.Urls, "test"), "public"), "https://example.org"))
+	}
 }
 func HelperTestInitSandbox() {
 	// todo: sandbox for real exchanges

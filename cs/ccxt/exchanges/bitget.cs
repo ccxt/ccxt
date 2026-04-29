@@ -1353,6 +1353,7 @@ public partial class bitget : Exchange
                     { "43115", typeof(OnMaintenance) },
                     { "45110", typeof(InvalidOrder) },
                     { "40774", typeof(InvalidOrder) },
+                    { "40917", typeof(InvalidOrder) },
                     { "45122", typeof(InvalidOrder) },
                     { "invalid sign", typeof(AuthenticationError) },
                     { "invalid currency", typeof(BadSymbol) },
@@ -3688,10 +3689,13 @@ public partial class bitget : Exchange
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
         {
-            object symbolsLength = getArrayLength(symbols);
-            if (isTrue(isTrue((!isEqual(symbols, null))) && isTrue((isEqual(symbolsLength, 1)))))
+            if (isTrue(!isEqual(symbols, null)))
             {
-                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+                object symbolsLength = getArrayLength(symbols);
+                if (isTrue(isEqual(symbolsLength, 1)))
+                {
+                    ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+                }
             }
             ((IDictionary<string,object>)request)["category"] = productType;
             response = await this.publicUtaGetV3MarketTickers(this.extend(request, parameters));

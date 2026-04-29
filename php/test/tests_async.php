@@ -367,6 +367,7 @@ class testMainClass {
                     $is_auth_error = ($e instanceof AuthenticationError);
                     $is_not_supported = ($e instanceof NotSupported);
                     $is_operation_failed = ($e instanceof OperationFailed); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
+                    $last_url_msg = $this->ws_tests ? '' : ' (Last url: ' . $exchange->last_request_url . ' )';
                     if ($is_operation_failed) {
                         // if last retry was gone with same `tempFailure` error, then let's eventually return false
                         if ($i === $max_retries - 1) {
@@ -397,7 +398,7 @@ class testMainClass {
                             }
                             // output the message
                             $fail_type = $should_fail ? '[TEST_FAILURE]' : '[TEST_WARNING]';
-                            dump($fail_type, 'Method could not be tested due to a repeated Network/Availability issues', ' | ', $exchange->id, $method_name, $args_stringified, exception_message($e));
+                            dump($fail_type, $exchange->id, $method_name, $args_stringified, $last_url_msg, 'Method could not be tested due to a repeated Network/Availability issues', ' | ', exception_message($e));
                             return $ret_success;
                         } else {
                             // wait and retry again
@@ -407,14 +408,14 @@ class testMainClass {
                     } else {
                         // if it's loadMarkets, then fail test, because it's mandatory for tests
                         if ($is_load_markets) {
-                            dump('[TEST_FAILURE]', 'Exchange can not load markets', exception_message($e), $exchange->id, $method_name, $args_stringified);
+                            dump('[TEST_FAILURE]', $exchange->id, $method_name, $args_stringified, $last_url_msg, 'Exchange can not load markets', exception_message($e));
                             return false;
                         }
                         // if the specific arguments to the test method throws "NotSupported" exception
                         // then let's don't fail the test
                         if ($is_not_supported) {
                             if ($this->info) {
-                                dump('[INFO] NOT_SUPPORTED', exception_message($e), $exchange->id, $method_name, $args_stringified);
+                                dump('[INFO] NOT_SUPPORTED', $exchange->id, $method_name, $args_stringified, $last_url_msg, exception_message($e));
                             }
                             return true;
                         }
@@ -422,11 +423,11 @@ class testMainClass {
                         if ($is_public && $is_auth_error) {
                             if ($this->info) {
                                 // todo - turn into warning
-                                dump('[INFO]', 'Authentication problem for public method', exception_message($e), $exchange->id, $method_name, $args_stringified);
+                                dump('[INFO]', $exchange->id, $method_name, $args_stringified, $last_url_msg, 'Authentication problem for public method', exception_message($e));
                             }
                             return true;
                         } else {
-                            dump('[TEST_FAILURE]', exception_message($e), $exchange->id, $method_name, $args_stringified);
+                            dump('[TEST_FAILURE]', $exchange->id, $method_name, $args_stringified, $last_url_msg, exception_message($e));
                             return false;
                         }
                     }
@@ -436,17 +437,18 @@ class testMainClass {
         }) ();
     }
 
-    public function run_public_tests($exchange, $symbol) {
-        return Async\async(function () use ($exchange, $symbol) {
+    public function run_public_tests($exchange, $symbols) {
+        return Async\async(function () use ($exchange, $symbols) {
+            $primary_symbol = $symbols[0];
             $tests = array(
                 'features' => [],
                 'fetchCurrencies' => [],
-                'fetchTicker' => [$symbol],
-                'fetchTickers' => [$symbol],
-                'fetchLastPrices' => [$symbol],
-                'fetchOHLCV' => [$symbol],
-                'fetchTrades' => [$symbol],
-                'fetchOrderBook' => [$symbol],
+                'fetchTicker' => [$primary_symbol],
+                'fetchTickers' => [$primary_symbol],
+                'fetchLastPrices' => [$primary_symbol],
+                'fetchOHLCV' => [$primary_symbol],
+                'fetchTrades' => [$primary_symbol],
+                'fetchOrderBook' => [$primary_symbol],
                 'fetchOrderBooks' => [],
                 'fetchBidsAsks' => [],
                 'fetchStatus' => [],
@@ -454,29 +456,29 @@ class testMainClass {
             );
             if ($this->ws_tests) {
                 $tests = array(
-                    'watchOHLCV' => [$symbol],
-                    'watchOHLCVForSymbols' => [$symbol],
-                    'watchTicker' => [$symbol],
-                    'watchTickers' => [$symbol],
-                    'watchBidsAsks' => [$symbol],
-                    'watchOrderBook' => [$symbol],
-                    'watchOrderBookForSymbols' => [[$symbol]],
-                    'watchTrades' => [$symbol],
-                    'watchTradesForSymbols' => [[$symbol]],
+                    'watchOHLCV' => [$primary_symbol],
+                    'watchOHLCVForSymbols' => [$primary_symbol],
+                    'watchTicker' => [$primary_symbol],
+                    'watchTickers' => [$primary_symbol],
+                    'watchBidsAsks' => [$primary_symbol],
+                    'watchOrderBook' => [$primary_symbol],
+                    'watchOrderBookForSymbols' => [$symbols],
+                    'watchTrades' => [$primary_symbol],
+                    'watchTradesForSymbols' => [$symbols],
                 );
             }
-            $market = $exchange->market($symbol);
+            $market = $exchange->market($primary_symbol);
             $is_spot = $market['spot'];
             if (!$this->ws_tests) {
                 if ($is_spot) {
                     $tests['fetchCurrencies'] = [];
                 } else {
-                    $tests['fetchFundingRates'] = [$symbol];
-                    $tests['fetchFundingRate'] = [$symbol];
-                    $tests['fetchFundingRateHistory'] = [$symbol];
-                    $tests['fetchIndexOHLCV'] = [$symbol];
-                    $tests['fetchMarkOHLCV'] = [$symbol];
-                    $tests['fetchPremiumIndexOHLCV'] = [$symbol];
+                    $tests['fetchFundingRates'] = [$primary_symbol];
+                    $tests['fetchFundingRate'] = [$primary_symbol];
+                    $tests['fetchFundingRateHistory'] = [$primary_symbol];
+                    $tests['fetchIndexOHLCV'] = [$primary_symbol];
+                    $tests['fetchMarkOHLCV'] = [$primary_symbol];
+                    $tests['fetchPremiumIndexOHLCV'] = [$primary_symbol];
                 }
             }
             $this->public_tests = $tests;
@@ -627,54 +629,58 @@ class testMainClass {
 
     public function test_exchange($exchange, $provided_symbol = null) {
         return Async\async(function () use ($exchange, $provided_symbol) {
-            $spot_symbol = null;
-            $swap_symbol = null;
+            $spot_symbols = null;
+            $swap_symbols = null;
             if ($provided_symbol !== null) {
                 $market = $exchange->market($provided_symbol);
                 if ($market['spot']) {
-                    $spot_symbol = $provided_symbol;
+                    $spot_symbols = [$provided_symbol];
                 } else {
-                    $swap_symbol = $provided_symbol;
+                    $swap_symbols = [$provided_symbol];
                 }
             } else {
                 if ($exchange->has['spot']) {
-                    $spot_symbol = $this->get_valid_symbol($exchange, true);
+                    $primary_symbol = $this->get_valid_symbol($exchange, true);
+                    $secondary_symbol = str_replace('BTC', 'ETH', $primary_symbol); // this should work any exchange
+                    $spot_symbols = [$primary_symbol, $secondary_symbol];
                 }
                 if ($exchange->has['swap']) {
-                    $swap_symbol = $this->get_valid_symbol($exchange, false);
+                    $primary_symbol = $this->get_valid_symbol($exchange, false);
+                    $secondary_symbol = str_replace('BTC', 'ETH', $primary_symbol); // this should work any exchange
+                    $swap_symbols = [$primary_symbol, $secondary_symbol];
                 }
             }
-            if ($spot_symbol !== null) {
-                dump('[INFO:MAIN] Selected SPOT SYMBOL:', $spot_symbol);
+            if ($spot_symbols !== null) {
+                dump('[INFO:MAIN] Selected SPOT SYMBOL:', $exchange->json($spot_symbols));
             }
-            if ($swap_symbol !== null) {
-                dump('[INFO:MAIN] Selected SWAP SYMBOL:', $swap_symbol);
+            if ($swap_symbols !== null) {
+                dump('[INFO:MAIN] Selected SWAP SYMBOL:', $exchange->json($swap_symbols));
             }
             if (!$this->private_test_only) {
                 // note, spot & swap tests should run sequentially, because of conflicting `exchange.options['defaultType']` setting
-                if ($exchange->has['spot'] && $spot_symbol !== null) {
+                if ($exchange->has['spot'] && $spot_symbols !== null) {
                     if ($this->info) {
                         dump('[INFO] ### SPOT TESTS ###');
                     }
                     $exchange->options['defaultType'] = 'spot';
-                    Async\await($this->run_public_tests($exchange, $spot_symbol));
+                    Async\await($this->run_public_tests($exchange, $spot_symbols));
                 }
-                if ($exchange->has['swap'] && $swap_symbol !== null) {
+                if ($exchange->has['swap'] && $swap_symbols !== null) {
                     if ($this->info) {
                         dump('[INFO] ### SWAP TESTS ###');
                     }
                     $exchange->options['defaultType'] = 'swap';
-                    Async\await($this->run_public_tests($exchange, $swap_symbol));
+                    Async\await($this->run_public_tests($exchange, $swap_symbols));
                 }
             }
             if ($this->private_test || $this->private_test_only) {
-                if ($exchange->has['spot'] && $spot_symbol !== null) {
+                if ($exchange->has['spot'] && $spot_symbols !== null) {
                     $exchange->options['defaultType'] = 'spot';
-                    Async\await($this->run_private_tests($exchange, $spot_symbol));
+                    Async\await($this->run_private_tests($exchange, $spot_symbols));
                 }
-                if ($exchange->has['swap'] && $swap_symbol !== null) {
+                if ($exchange->has['swap'] && $swap_symbols !== null) {
                     $exchange->options['defaultType'] = 'swap';
-                    Async\await($this->run_private_tests($exchange, $swap_symbol));
+                    Async\await($this->run_private_tests($exchange, $swap_symbols));
                 }
             }
             return true;
@@ -818,9 +824,9 @@ class testMainClass {
         }) ();
     }
 
-    public function start_test($exchange, $symbol) {
+    public function start_test($exchange, $symbol_argv) {
         // we do not need to test aliases
-        return Async\async(function () use ($exchange, $symbol) {
+        return Async\async(function () use ($exchange, $symbol_argv) {
             if ($exchange->alias) {
                 return true;
             }
@@ -841,7 +847,7 @@ class testMainClass {
                 //     // we test proxies functionality just for one random exchange on each build, because proxy functionality is not exchange-specific, instead it's all done from base methods, so just one working sample would mean it works for all ccxt exchanges
                 //     // await this.testProxies (exchange);
                 // }
-                Async\await($this->test_exchange($exchange, $symbol));
+                Async\await($this->test_exchange($exchange, $symbol_argv));
                 if (!is_sync()) {
                     Async\await(close($exchange));
                 }
@@ -1229,8 +1235,11 @@ class testMainClass {
                         $library_path = $base_path . 'lighter-signer-linux-arm64.so';
                     }
                 } else {
-                    // assume macos arm64
-                    $library_path = $base_path . 'lighter-signer-darwin-arm64.dylib';
+                    if (is_amd64()) {
+                        $library_path = $base_path . 'lighter-signer-darwin-x86.dylib';
+                    } else {
+                        $library_path = $base_path . 'lighter-signer-darwin-arm64.dylib';
+                    }
                 }
             }
         }
@@ -1534,7 +1543,7 @@ class testMainClass {
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
         return Async\async(function () {
-            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_coincatch(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit()];
+            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit(), $this->test_weex()];
             Async\await(Promise\all($promises));
             $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
             dump('[INFO]' . $success_message);
@@ -1756,15 +1765,15 @@ class testMainClass {
             assert($future_id === $id, 'kucoinfutures - id: ' . $future_id . ' not in options.');
             assert($future_key === '1b327198-f30c-4f14-a0ac-918871282f15', 'kucoinfutures - key: ' . $future_key . ' not in options.');
             try {
+                $exchange->options['uta'] = false;
                 Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
                 $req_headers = $exchange->last_request_headers;
             }
             assert($req_headers['KC-API-PARTNER'] === $id, 'kucoinfutures - id: ' . $id . ' not in headers.');
             try {
-                Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, array(
-                    'uta' => true,
-                )));
+                $exchange->options['uta'] = true;
+                Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
                 $req_headers = $exchange->last_request_headers;
             }
@@ -2177,25 +2186,6 @@ class testMainClass {
         }) ();
     }
 
-    public function test_coincatch() {
-        return Async\async(function () {
-            $exchange = $this->init_offline_exchange('coincatch');
-            $req_headers = null;
-            $id = '47cfy';
-            try {
-                Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
-            } catch(\Throwable $e) {
-                // we expect an error here, we're only interested in the headers
-                $req_headers = $exchange->last_request_headers;
-            }
-            assert($req_headers['X-CHANNEL-API-CODE'] === $id, 'coincatch - id: ' . $id . ' not in headers.');
-            if (!is_sync()) {
-                Async\await(close($exchange));
-            }
-            return true;
-        }) ();
-    }
-
     public function test_cryptomus() {
         return Async\async(function () {
             $exchange = $this->init_offline_exchange('cryptomus');
@@ -2298,6 +2288,29 @@ class testMainClass {
                 Async\await(close($exchange));
             }
             return true;
+        }) ();
+    }
+
+    public function test_weex() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('weex');
+            $id = 'b-WEEX111125';
+            assert($exchange->options['partner'] === $id, 'weex - id: ' . $id . ' not in options');
+            $request = null;
+            try {
+                Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            $client_order_id = $request['newClientOrderId'];
+            assert(str_starts_with($client_order_id, $id), 'weex - newClientOrderId: ' . $client_order_id . ' for spot order does not start with id: ' . $id);
+            try {
+                Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            $client_order_id = $request['newClientOrderId'];
+            assert(str_starts_with($client_order_id, $id), 'weex - newClientOrderId: ' . $client_order_id . ' for swap order does not start with id: ' . $id);
         }) ();
     }
 }

@@ -750,7 +750,7 @@ class coinbase extends \ccxt\async\coinbase {
             $currentEvent = $events[$i];
             $currentTrades = $this->safe_list($currentEvent, 'trades');
             for ($j = 0; $j < count($currentTrades); $j++) {
-                $item = $currentTrades[$i];
+                $item = $currentTrades[$j];
                 $tradesArray->append ($this->parse_trade($item));
             }
         }

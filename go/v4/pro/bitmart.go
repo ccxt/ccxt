@@ -711,17 +711,17 @@ func  (this *BitmartCore) WatchBidsAsks(optionalArgs ...interface{}) <- chan int
             marketType = ccxt.GetValue(marketTypeparamsVariable,0)
             params = ccxt.GetValue(marketTypeparamsVariable,1)
             var url interface{} = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), marketType), "public"))
-            var channelType interface{} = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(marketType, "spot"))), "spot", "futures")
+            var channelType interface{} = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(marketType, "spot"))), "spot/bookTicker", "futures/ticker")
             var actionType interface{} = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(marketType, "spot"))), "op", "action")
             var rawSubscriptions interface{} = []interface{}{}
             var messageHashes interface{} = []interface{}{}
             for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
                 var market interface{} = this.Market(ccxt.GetValue(symbols, i))
-                ccxt.AppendToArray(&rawSubscriptions, ccxt.Add(ccxt.Add(channelType, "/ticker:"), ccxt.GetValue(market, "id")))
+                ccxt.AppendToArray(&rawSubscriptions, ccxt.Add(ccxt.Add(channelType, ":"), ccxt.GetValue(market, "id")))
                 ccxt.AppendToArray(&messageHashes, ccxt.Add("bidask:", ccxt.GetValue(symbols, i)))
             }
             if ccxt.IsTrue(!ccxt.IsEqual(marketType, "spot")) {
-                rawSubscriptions = []interface{}{ccxt.Add(channelType, "/ticker")}
+                rawSubscriptions = []interface{}{channelType}
             }
             var request interface{} = map[string]interface{} {
                 "args": rawSubscriptions,
@@ -2587,6 +2587,7 @@ func  (this *BitmartCore) HandleMessage(client interface{}, message interface{})
         var channel interface{} = this.SafeString2(message, "table", "group")
         var methods interface{} = map[string]interface{} {
             "depth": this.HandleOrderBook,
+            "bookTicker": this.HandleBidAsk,
             "ticker": this.HandleTicker,
             "trade": this.HandleTrade,
             "kline": this.HandleOHLCV,

@@ -1520,7 +1520,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         if limit is not None:
             request['count'] = limit
         if since is not None:
-            request['from'] = since
+            request['since'] = since
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         response = None
         if isTrigger:
@@ -1534,12 +1534,19 @@ class krakenfutures(Exchange, ImplicitAPI):
             order = allOrders[i]
             event = self.safe_dict(order, 'event', {})
             orderPlaced = self.safe_dict_2(event, 'OrderPlaced', 'OrderTriggerActivated')
+            orderUpdated = self.safe_dict(event, 'OrderUpdated')
             if orderPlaced is not None:
                 innerOrder = self.safe_dict(orderPlaced, 'order', {})
                 filled = self.safe_string(innerOrder, 'filled')
                 if filled != '0':
                     innerOrder['status'] = 'closed'  # status not available in the response
                     closedOrders.append(innerOrder)
+            elif orderUpdated is not None:
+                reason = self.safe_string(orderUpdated, 'reason')
+                if reason == 'full_fill':
+                    newOrder = self.safe_dict(orderUpdated, 'newOrder', {})
+                    newOrder['status'] = 'closed'
+                    closedOrders.append(newOrder)
         return self.parse_orders(closedOrders, market, since, limit)
 
     def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:

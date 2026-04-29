@@ -51,7 +51,6 @@ var coinbase = require('./src/coinbase.js');
 var coinbaseadvanced = require('./src/coinbaseadvanced.js');
 var coinbaseexchange = require('./src/coinbaseexchange.js');
 var coinbaseinternational = require('./src/coinbaseinternational.js');
-var coincatch = require('./src/coincatch.js');
 var coincheck = require('./src/coincheck.js');
 var coinex = require('./src/coinex.js');
 var coinmate = require('./src/coinmate.js');
@@ -102,6 +101,7 @@ var okxus = require('./src/okxus.js');
 var onetrading = require('./src/onetrading.js');
 var oxfun = require('./src/oxfun.js');
 var p2b = require('./src/p2b.js');
+var pacifica = require('./src/pacifica.js');
 var paradex = require('./src/paradex.js');
 var paymium = require('./src/paymium.js');
 var phemex = require('./src/phemex.js');
@@ -110,6 +110,7 @@ var tokocrypto = require('./src/tokocrypto.js');
 var toobit = require('./src/toobit.js');
 var upbit = require('./src/upbit.js');
 var wavesexchange = require('./src/wavesexchange.js');
+var weex = require('./src/weex.js');
 var whitebit = require('./src/whitebit.js');
 var woo = require('./src/woo.js');
 var woofipro = require('./src/woofipro.js');
@@ -151,7 +152,6 @@ var coinbase$1 = require('./src/pro/coinbase.js');
 var coinbaseadvanced$1 = require('./src/pro/coinbaseadvanced.js');
 var coinbaseexchange$1 = require('./src/pro/coinbaseexchange.js');
 var coinbaseinternational$1 = require('./src/pro/coinbaseinternational.js');
-var coincatch$1 = require('./src/pro/coincatch.js');
 var coincheck$1 = require('./src/pro/coincheck.js');
 var coinex$1 = require('./src/pro/coinex.js');
 var coinone$1 = require('./src/pro/coinone.js');
@@ -188,11 +188,13 @@ var okxus$1 = require('./src/pro/okxus.js');
 var onetrading$1 = require('./src/pro/onetrading.js');
 var oxfun$1 = require('./src/pro/oxfun.js');
 var p2b$1 = require('./src/pro/p2b.js');
+var pacifica$1 = require('./src/pro/pacifica.js');
 var paradex$1 = require('./src/pro/paradex.js');
 var phemex$1 = require('./src/pro/phemex.js');
 var poloniex$1 = require('./src/pro/poloniex.js');
 var toobit$1 = require('./src/pro/toobit.js');
 var upbit$1 = require('./src/pro/upbit.js');
+var weex$1 = require('./src/pro/weex.js');
 var whitebit$1 = require('./src/pro/whitebit.js');
 var woo$1 = require('./src/pro/woo.js');
 var woofipro$1 = require('./src/pro/woofipro.js');
@@ -200,7 +202,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.46';
+const version = '4.5.51';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'aftermath': aftermath["default"],
@@ -246,7 +248,6 @@ const exchanges = {
     'coinbaseadvanced': coinbaseadvanced["default"],
     'coinbaseexchange': coinbaseexchange["default"],
     'coinbaseinternational': coinbaseinternational["default"],
-    'coincatch': coincatch["default"],
     'coincheck': coincheck["default"],
     'coinex': coinex["default"],
     'coinmate': coinmate["default"],
@@ -297,6 +298,7 @@ const exchanges = {
     'onetrading': onetrading["default"],
     'oxfun': oxfun["default"],
     'p2b': p2b["default"],
+    'pacifica': pacifica["default"],
     'paradex': paradex["default"],
     'paymium': paymium["default"],
     'phemex': phemex["default"],
@@ -305,6 +307,7 @@ const exchanges = {
     'toobit': toobit["default"],
     'upbit': upbit["default"],
     'wavesexchange': wavesexchange["default"],
+    'weex': weex["default"],
     'whitebit': whitebit["default"],
     'woo': woo["default"],
     'woofipro': woofipro["default"],
@@ -348,7 +351,6 @@ const pro = {
     'coinbaseadvanced': coinbaseadvanced$1["default"],
     'coinbaseexchange': coinbaseexchange$1["default"],
     'coinbaseinternational': coinbaseinternational$1["default"],
-    'coincatch': coincatch$1["default"],
     'coincheck': coincheck$1["default"],
     'coinex': coinex$1["default"],
     'coinone': coinone$1["default"],
@@ -385,11 +387,13 @@ const pro = {
     'onetrading': onetrading$1["default"],
     'oxfun': oxfun$1["default"],
     'p2b': p2b$1["default"],
+    'pacifica': pacifica$1["default"],
     'paradex': paradex$1["default"],
     'phemex': phemex$1["default"],
     'poloniex': poloniex$1["default"],
     'toobit': toobit$1["default"],
     'upbit': upbit$1["default"],
+    'weex': weex$1["default"],
     'whitebit': whitebit$1["default"],
     'woo': woo$1["default"],
     'woofipro': woofipro$1["default"],
@@ -489,7 +493,6 @@ exports.coinbase = coinbase["default"];
 exports.coinbaseadvanced = coinbaseadvanced["default"];
 exports.coinbaseexchange = coinbaseexchange["default"];
 exports.coinbaseinternational = coinbaseinternational["default"];
-exports.coincatch = coincatch["default"];
 exports.coincheck = coincheck["default"];
 exports.coinex = coinex["default"];
 exports.coinmate = coinmate["default"];
@@ -540,6 +543,7 @@ exports.okxus = okxus["default"];
 exports.onetrading = onetrading["default"];
 exports.oxfun = oxfun["default"];
 exports.p2b = p2b["default"];
+exports.pacifica = pacifica["default"];
 exports.paradex = paradex["default"];
 exports.paymium = paymium["default"];
 exports.phemex = phemex["default"];
@@ -548,6 +552,7 @@ exports.tokocrypto = tokocrypto["default"];
 exports.toobit = toobit["default"];
 exports.upbit = upbit["default"];
 exports.wavesexchange = wavesexchange["default"];
+exports.weex = weex["default"];
 exports.whitebit = whitebit["default"];
 exports.woo = woo["default"];
 exports.woofipro = woofipro["default"];

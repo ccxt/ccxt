@@ -1966,6 +1966,11 @@ class grvt extends grvt$1["default"] {
         else {
             throw new errors.InvalidOrder(this.id + ' createOrder(): order side must be either "buy" or "sell"');
         }
+        let clientOrderId = this.safeString(params, 'clientOrderId');
+        if (clientOrderId === undefined) {
+            clientOrderId = this.nonce().toString() + '000' + this.requestId().toString();
+        }
+        params = this.omit(params, ['clientOrderId']);
         const isMarketOrder = (type === 'market');
         const orderRequest = {
             'sub_account_id': this.getSubAccountId(params),
@@ -1973,7 +1978,7 @@ class grvt extends grvt$1["default"] {
             'legs': [orderLeg],
             'signature': this.defaultSignature(),
             'metadata': {
-                'client_order_id': this.nonce().toString() + '000' + this.requestId().toString(),
+                'client_order_id': clientOrderId,
             },
             'is_market': isMarketOrder,
             'post_only': false,
@@ -1981,25 +1986,23 @@ class grvt extends grvt$1["default"] {
             // 'order_id': null,
             // 'state': null,
         };
-        let timeInForce = this.safeStringUpper(params, 'timeInForce');
+        let timeInForce = this.safeStringUpper(params, 'timeInForce', 'GOOD_TILL_TIME');
         const postOnly = this.isPostOnly(isMarketOrder, undefined, params);
         if (postOnly) {
             orderRequest['post_only'] = true;
         }
-        else {
-            if (timeInForce === undefined) {
-                timeInForce = 'GOOD_TILL_TIME';
-            }
-            else {
-                const tifMap = {
-                    'GTC': 'GOOD_TILL_TIME',
-                    'FOK': 'FILL_OR_KILL',
-                    'IOC': 'IMMEDIATE_OR_CANCEL',
-                };
-                timeInForce = this.safeString(tifMap, timeInForce, timeInForce);
-            }
-            orderRequest['time_in_force'] = timeInForce;
+        if (timeInForce === undefined) {
+            timeInForce = 'GOOD_TILL_TIME';
         }
+        else {
+            const tifMap = {
+                'GTC': 'GOOD_TILL_TIME',
+                'FOK': 'FILL_OR_KILL',
+                'IOC': 'IMMEDIATE_OR_CANCEL',
+            };
+            timeInForce = this.safeString(tifMap, timeInForce, timeInForce);
+        }
+        orderRequest['time_in_force'] = timeInForce;
         if (!isMarketOrder) {
             if (postOnly) {
                 timeInForce = 'POST_ONLY';

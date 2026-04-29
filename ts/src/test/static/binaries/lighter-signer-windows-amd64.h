@@ -43,7 +43,7 @@ typedef struct {
 } ApiKeyResponse;
 
 typedef struct {
-    uint8_t MarketIndex;
+    int16_t MarketIndex;
     int64_t ClientOrderIndex;
     int64_t BaseAmount;
     uint32_t Price;
@@ -114,22 +114,26 @@ extern "C" {
 extern __declspec(dllexport) ApiKeyResponse GenerateAPIKey();
 extern __declspec(dllexport) char* CreateClient(char* cUrl, char* cPrivateKey, int cChainId, int cApiKeyIndex, long long int cAccountIndex);
 extern __declspec(dllexport) char* CheckClient(int cApiKeyIndex, long long int cAccountIndex);
-extern __declspec(dllexport) SignedTxResponse SignChangePubKey(char* cPubKey, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
-extern __declspec(dllexport) SignedTxResponse SignCreateOrder(int cMarketIndex, long long int cClientOrderIndex, long long int cBaseAmount, int cPrice, int cIsAsk, int cOrderType, int cTimeInForce, int cReduceOnly, int cTriggerPrice, long long int cOrderExpiry, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
-extern __declspec(dllexport) SignedTxResponse SignCreateGroupedOrders(uint8_t cGroupingType, CreateOrderTxReq* cOrders, int cLen, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
-extern __declspec(dllexport) SignedTxResponse SignCancelOrder(int cMarketIndex, long long int cOrderIndex, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
-extern __declspec(dllexport) SignedTxResponse SignWithdraw(int cAssetIndex, int cRouteType, long long unsigned int cAmount, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
-extern __declspec(dllexport) SignedTxResponse SignCreateSubAccount(long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
-extern __declspec(dllexport) SignedTxResponse SignCancelAllOrders(int cTimeInForce, long long int cTime, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
-extern __declspec(dllexport) SignedTxResponse SignModifyOrder(int cMarketIndex, long long int cIndex, long long int cBaseAmount, long long int cPrice, long long int cTriggerPrice, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
-extern __declspec(dllexport) SignedTxResponse SignTransfer(long long int cToAccountIndex, int16_t cAssetIndex, uint8_t cFromRouteType, uint8_t cToRouteType, long long int cAmount, long long int cUsdcFee, char* cMemo, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
-extern __declspec(dllexport) SignedTxResponse SignCreatePublicPool(long long int cOperatorFee, int cInitialTotalShares, long long int cMinOperatorShareRate, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
-extern __declspec(dllexport) SignedTxResponse SignUpdatePublicPool(long long int cPublicPoolIndex, int cStatus, long long int cOperatorFee, int cMinOperatorShareRate, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
-extern __declspec(dllexport) SignedTxResponse SignMintShares(long long int cPublicPoolIndex, long long int cShareAmount, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
-extern __declspec(dllexport) SignedTxResponse SignBurnShares(long long int cPublicPoolIndex, long long int cShareAmount, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
-extern __declspec(dllexport) SignedTxResponse SignUpdateLeverage(int cMarketIndex, int cInitialMarginFraction, int cMarginMode, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
+extern __declspec(dllexport) SignedTxResponse SignChangePubKey(char* cPubKey, uint8_t cSkipNonce, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
+extern __declspec(dllexport) SignedTxResponse SignCreateOrder(int cMarketIndex, long long int cClientOrderIndex, long long int cBaseAmount, int cPrice, int cIsAsk, int cOrderType, int cTimeInForce, int cReduceOnly, int cTriggerPrice, long long int cOrderExpiry, long long int cIntegratorAccountIndex, int cIntegratorTakerFee, int cIntegratorMakerFee, uint8_t cSkipNonce, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
+extern __declspec(dllexport) SignedTxResponse SignCreateGroupedOrders(uint8_t cGroupingType, CreateOrderTxReq* cOrders, int cLen, long long int cIntegratorAccountIndex, int cIntegratorTakerFee, int cIntegratorMakerFee, uint8_t cSkipNonce, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
+extern __declspec(dllexport) SignedTxResponse SignCancelOrder(int cMarketIndex, long long int cOrderIndex, uint8_t cSkipNonce, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
+extern __declspec(dllexport) SignedTxResponse SignWithdraw(int cAssetIndex, int cRouteType, long long unsigned int cAmount, uint8_t cSkipNonce, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
+extern __declspec(dllexport) SignedTxResponse SignCreateSubAccount(uint8_t cSkipNonce, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
+extern __declspec(dllexport) SignedTxResponse SignCancelAllOrders(int cTimeInForce, long long int cTime, uint8_t cSkipNonce, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
+extern __declspec(dllexport) SignedTxResponse SignModifyOrder(int cMarketIndex, long long int cIndex, long long int cBaseAmount, long long int cPrice, long long int cTriggerPrice, long long int cIntegratorAccountIndex, int cIntegratorTakerFee, int cIntegratorMakerFee, uint8_t cSkipNonce, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
+extern __declspec(dllexport) SignedTxResponse SignTransfer(long long int cToAccountIndex, int16_t cAssetIndex, uint8_t cFromRouteType, uint8_t cToRouteType, long long int cAmount, long long int cUsdcFee, char* cMemo, uint8_t cSkipNonce, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
+extern __declspec(dllexport) SignedTxResponse SignCreatePublicPool(long long int cOperatorFee, int cInitialTotalShares, long long int cMinOperatorShareRate, uint8_t cSkipNonce, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
+extern __declspec(dllexport) SignedTxResponse SignUpdatePublicPool(long long int cPublicPoolIndex, int cStatus, long long int cOperatorFee, int cMinOperatorShareRate, uint8_t cSkipNonce, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
+extern __declspec(dllexport) SignedTxResponse SignMintShares(long long int cPublicPoolIndex, long long int cShareAmount, uint8_t cSkipNonce, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
+extern __declspec(dllexport) SignedTxResponse SignBurnShares(long long int cPublicPoolIndex, long long int cShareAmount, uint8_t cSkipNonce, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
+extern __declspec(dllexport) SignedTxResponse SignUpdateLeverage(int cMarketIndex, int cInitialMarginFraction, int cMarginMode, uint8_t cSkipNonce, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
 extern __declspec(dllexport) StrOrErr CreateAuthToken(long long int cDeadline, int cApiKeyIndex, long long int cAccountIndex);
-extern __declspec(dllexport) SignedTxResponse SignUpdateMargin(int cMarketIndex, long long int cUSDCAmount, int cDirection, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
+extern __declspec(dllexport) SignedTxResponse SignUpdateMargin(int cMarketIndex, long long int cUSDCAmount, int cDirection, uint8_t cSkipNonce, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
+extern __declspec(dllexport) SignedTxResponse SignStakeAssets(long long int cStakingPoolIndex, long long int cShareAmount, uint8_t cSkipNonce, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
+extern __declspec(dllexport) SignedTxResponse SignUnstakeAssets(long long int cStakingPoolIndex, long long int cShareAmount, uint8_t cSkipNonce, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
+extern __declspec(dllexport) SignedTxResponse SignApproveIntegrator(long long int cIntegratorIndex, uint32_t cMaxPerpsTakerFee, uint32_t cMaxPerpsMakerFee, uint32_t cMaxSpotTakerFee, uint32_t cMaxSpotMakerFee, long long int cApprovalExpiry, uint8_t cSkipNonce, long long int cNonce, int cApiKeyIndex, long long int cAccountIndex);
+extern __declspec(dllexport) void Free(void* ptr);
 
 #ifdef __cplusplus
 }

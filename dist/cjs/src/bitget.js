@@ -1393,6 +1393,7 @@ class bitget extends bitget$1["default"] {
                     '43115': errors.OnMaintenance,
                     '45110': errors.InvalidOrder,
                     '40774': errors.InvalidOrder,
+                    '40917': errors.InvalidOrder,
                     '45122': errors.InvalidOrder,
                     // spot
                     'invalid sign': errors.AuthenticationError,
@@ -3595,9 +3596,11 @@ class bitget extends bitget$1["default"] {
         let uta = undefined;
         [uta, params] = this.handleOptionAndParams(params, 'fetchTickers', 'uta', false);
         if (uta) {
-            const symbolsLength = symbols.length;
-            if ((symbols !== undefined) && (symbolsLength === 1)) {
-                request['symbol'] = market['id'];
+            if (symbols !== undefined) {
+                const symbolsLength = symbols.length;
+                if (symbolsLength === 1) {
+                    request['symbol'] = market['id'];
+                }
             }
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketTickers(this.extend(request, params));

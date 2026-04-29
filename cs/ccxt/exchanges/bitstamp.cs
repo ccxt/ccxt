@@ -1140,6 +1140,22 @@ public partial class bitstamp : Exchange
         priceString = this.safeString(trade, priceId, priceString);
         amountString = this.safeString(trade, getValue(market, "baseId"), amountString);
         costString = this.safeString(trade, getValue(market, "quoteId"), costString);
+        // this endpoint is not aligned with "markets" endpoint
+        object baseIdLower = ((string)getValue(market, "baseId")).ToLower();
+        object quoteIdLower = ((string)getValue(market, "quoteId")).ToLower();
+        object dashedIdLower = add(add(baseIdLower, "_"), quoteIdLower);
+        if (isTrue(isEqual(priceString, null)))
+        {
+            priceString = this.safeString(trade, dashedIdLower);
+        }
+        if (isTrue(isEqual(amountString, null)))
+        {
+            amountString = this.safeString(trade, baseIdLower);
+        }
+        if (isTrue(isEqual(costString, null)))
+        {
+            costString = this.safeString(trade, quoteIdLower);
+        }
         symbol = getValue(market, "symbol");
         object datetimeString = this.safeString2(trade, "date", "datetime");
         object timestamp = null;

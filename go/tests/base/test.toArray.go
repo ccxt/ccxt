@@ -23,8 +23,8 @@ func TestToArray() {
 	var result1 interface{} = exchange.ToArray(obj1)
 	var result2 interface{} = exchange.ToArray(obj2)
 	// we can't guarantee order of values in GO lang
-	// testSharedMethods.assertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj1), [ 1, 3, 2 ]);
-	// testSharedMethods.assertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj2), [ 'x', 2 ]);
+	// assertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj1), [ 1, 3, 2 ]);
+	// assertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj2), [ 'x', 2 ]);
 	//
 	assert(ccxt.IsEqual(ccxt.GetArrayLength(result1), 3), "testToArray: length of result1 should be 3")
 	assert(ccxt.IsEqual(ccxt.GetArrayLength(result2), 2), "testToArray: length of result2 should be 2")
