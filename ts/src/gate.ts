@@ -1735,6 +1735,13 @@ export default class gate extends Exchange {
                 const maxMultiplier = Precise.stringAdd ('1', priceDeviate);
                 const minPrice = Precise.stringMul (minMultiplier, markPrice);
                 const maxPrice = Precise.stringMul (maxMultiplier, markPrice);
+                // gate occasionally returns create_time = "0" for option contracts,
+                // which would surface as `created: 0` and trip the >2009 timestamp
+                // assertion in market validation. Treat zero as missing.
+                let created = this.safeTimestamp (market, 'create_time');
+                if (created === 0) {
+                    created = undefined;
+                }
                 result.push ({
                     'id': id,
                     'symbol': symbol,
@@ -1783,7 +1790,7 @@ export default class gate extends Exchange {
                             'max': undefined,
                         },
                     },
-                    'created': this.safeTimestamp (market, 'create_time'),
+                    'created': created,
                     'info': market,
                 });
             }
