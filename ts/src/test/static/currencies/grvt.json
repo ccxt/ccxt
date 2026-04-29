@@ -134,5 +134,39 @@
                 "max": null
             }
         }
+    },
+    "SUI": {
+        "info": {
+            "id": 21,
+            "symbol": "SUI",
+            "balance_decimals": 6,
+            "quantity_multiplier": "1000000"
+        },
+        "id": "SUI",
+        "numericId": 21,
+        "code": "SUI",
+        "precision": 0.000001,
+        "type": "crypto",
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": null,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        }
     }
 }

@@ -14,6 +14,26 @@
     "skipKeys": [ "r", "s", "v", "nonce", "expiration", "client_order_id" ],
     "methods": {
         "createOrder": [
+            {   
+                "description": "order with cloid",
+                "method": "createOrder",
+                "url": "https://trades.grvt.io/full/v1/create_order",
+                "options": {
+                    "builderFee": false
+                },
+                "input": [
+                    "SUI/USDT:USDT",
+                    "limit",
+                    "buy",
+                    6,
+                    0.93,
+                    {
+                        "postOnly": true,
+                        "clientOrderId": "5523234344"
+                    }
+                ],
+                "output": "{\"order\":{\"sub_account_id\":\"2147050003876484\",\"time_in_force\":\"GOOD_TILL_TIME\",\"legs\":[{\"instrument\":\"SUI_USDT_Perp\",\"size\":\"6\",\"limit_price\":\"0.93\",\"is_buying_asset\":true}],\"signature\":{\"signer\":\"0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf\",\"r\":\"0x87bb8fff6a460147a6d10e75c2ce71a518d3df95197dbcf030059749a9b202fc\",\"s\":\"0x2c6766eb3d13696999f2e871396665c70d514d4606d786238a1470daa9d49935\",\"v\":28,\"expiration\":\"1777444777688000000\",\"nonce\":1777444747,\"chain_id\":\"325\"},\"metadata\":{\"client_order_id\":\"5523234344\"},\"is_market\":false,\"post_only\":true,\"reduce_only\":false}}"
+            },
             {
                 "description": "swap limit buy with triggerPrice ascending tif  - builder",
                 "method": "createOrder",

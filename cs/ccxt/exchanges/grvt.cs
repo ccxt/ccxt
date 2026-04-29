@@ -2205,6 +2205,10 @@ public partial class grvt : Exchange
             throw new InvalidOrder ((string)add(this.id, " createOrder(): order side must be either \"buy\" or \"sell\"")) ;
         }
         object clientOrderId = this.safeString(parameters, "clientOrderId");
+        if (isTrue(isEqual(clientOrderId, null)))
+        {
+            clientOrderId = add(add(((object)this.nonce()).ToString(), "000"), ((object)this.requestId()).ToString());
+        }
         parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
         object isMarketOrder = (isEqual(type, "market"));
         object orderRequest = new Dictionary<string, object>() {
@@ -2213,7 +2217,7 @@ public partial class grvt : Exchange
             { "legs", new List<object>() {orderLeg} },
             { "signature", this.defaultSignature() },
             { "metadata", new Dictionary<string, object>() {
-                { "client_order_id", ((bool) isTrue(!isEqual(clientOrderId, null))) ? clientOrderId : add(add(((object)this.nonce()).ToString(), "000"), ((object)this.requestId()).ToString()) },
+                { "client_order_id", clientOrderId },
             } },
             { "is_market", isMarketOrder },
             { "post_only", false },

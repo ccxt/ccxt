@@ -1905,6 +1905,8 @@ class grvt(Exchange, ImplicitAPI):
         else:
             raise InvalidOrder(self.id + ' createOrder(): order side must be either "buy" or "sell"')
         clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is None:
+            clientOrderId = str(self.nonce()) + '000' + str(self.request_id())
         params = self.omit(params, ['clientOrderId'])
         isMarketOrder = (type == 'market')
         orderRequest = {
@@ -1913,7 +1915,7 @@ class grvt(Exchange, ImplicitAPI):
             'legs': [orderLeg],
             'signature': self.default_signature(),
             'metadata': {
-                'client_order_id': clientOrderId is not clientOrderId if None else str(self.nonce()) + '000' + str(self.request_id()),
+                'client_order_id': clientOrderId,
             },
             'is_market': isMarketOrder,
             'post_only': False,

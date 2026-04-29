@@ -1966,7 +1966,10 @@ class grvt extends grvt$1["default"] {
         else {
             throw new errors.InvalidOrder(this.id + ' createOrder(): order side must be either "buy" or "sell"');
         }
-        const clientOrderId = this.safeString(params, 'clientOrderId');
+        let clientOrderId = this.safeString(params, 'clientOrderId');
+        if (clientOrderId === undefined) {
+            clientOrderId = this.nonce().toString() + '000' + this.requestId().toString();
+        }
         params = this.omit(params, ['clientOrderId']);
         const isMarketOrder = (type === 'market');
         const orderRequest = {
@@ -1975,7 +1978,7 @@ class grvt extends grvt$1["default"] {
             'legs': [orderLeg],
             'signature': this.defaultSignature(),
             'metadata': {
-                'client_order_id': clientOrderId !== undefined ? clientOrderId : this.nonce().toString() + '000' + this.requestId().toString(),
+                'client_order_id': clientOrderId,
             },
             'is_market': isMarketOrder,
             'post_only': false,
