@@ -14,10 +14,13 @@
     "skipKeys": [ "r", "s", "v", "nonce", "expiration", "client_order_id" ],
     "methods": {
         "createOrder": [
-            {
+            {   
                 "description": "order with cloid",
                 "method": "createOrder",
                 "url": "https://trades.grvt.io/full/v1/create_order",
+                "options": {
+                    "builderFee": false
+                },
                 "input": [
                     "SUI/USDT:USDT",
                     "limit",
