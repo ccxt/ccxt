@@ -1233,7 +1233,7 @@ public class TestMain extends BaseTest
                 Object newValue = Helpers.GetValue(newOutput, key);
                 this.AssertNewAndStoredOutput(exchange, skipKeys, newValue, storedValue, strictTypeCheck, key);
             }
-        } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(storedOutput, null))) && Helpers.isTrue(((storedOutput instanceof java.util.List) || (storedOutput.getClass().isArray())))) && Helpers.isTrue((((newOutput instanceof java.util.List) || (newOutput.getClass().isArray()))))))
+        } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(storedOutput, null))) && Helpers.isTrue((Helpers.isArrayJs(storedOutput)))) && Helpers.isTrue(((Helpers.isArrayJs(newOutput))))))
         {
             Object storedArrayLength = Helpers.getArrayLength(storedOutput);
             Object newArrayLength = Helpers.getArrayLength(newOutput);

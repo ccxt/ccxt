@@ -50,7 +50,7 @@ public class TestSharedMethods extends BaseTest {
         Object same_string = Helpers.isTrue(((entryKeyVal instanceof String))) && Helpers.isTrue(((formatKeyVal instanceof String)));
         Object same_numeric = Helpers.isTrue(((entryKeyVal instanceof Long || entryKeyVal instanceof Integer || entryKeyVal instanceof Float || entryKeyVal instanceof Double))) && Helpers.isTrue(((formatKeyVal instanceof Long || formatKeyVal instanceof Integer || formatKeyVal instanceof Float || formatKeyVal instanceof Double)));
         Object same_boolean = Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(entryKeyVal, true))) || Helpers.isTrue((Helpers.isEqual(entryKeyVal, false))))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(formatKeyVal, true))) || Helpers.isTrue((Helpers.isEqual(formatKeyVal, false)))));
-        Object same_array = Helpers.isTrue(((entryKeyVal instanceof java.util.List) || (entryKeyVal.getClass().isArray()))) && Helpers.isTrue(((formatKeyVal instanceof java.util.List) || (formatKeyVal.getClass().isArray())));
+        Object same_array = Helpers.isTrue((Helpers.isArrayJs(entryKeyVal))) && Helpers.isTrue((Helpers.isArrayJs(formatKeyVal)));
         Object same_object = Helpers.isTrue(((entryKeyVal instanceof java.util.Map))) && Helpers.isTrue(((formatKeyVal instanceof java.util.Map)));
         Object result = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(entryKeyVal, null))) || Helpers.isTrue(same_string)) || Helpers.isTrue(same_numeric)) || Helpers.isTrue(same_boolean)) || Helpers.isTrue(same_array)) || Helpers.isTrue(same_object);
         return result;
@@ -67,9 +67,9 @@ public class TestSharedMethods extends BaseTest {
         {
             emptyAllowedFor = concat(emptyAllowedFor, allowEmptySkips);
         }
-        if (Helpers.isTrue(((format instanceof java.util.List) || (format.getClass().isArray()))))
+        if (Helpers.isTrue((Helpers.isArrayJs(format))))
         {
-            Assert(((entry instanceof java.util.List) || (entry.getClass().isArray())), Helpers.add("entry is not an array", logText));
+            Assert((Helpers.isArrayJs(entry)), Helpers.add("entry is not an array", logText));
             Object realLength = Helpers.getArrayLength(entry);
             Object expectedLength = Helpers.getArrayLength(format);
             Assert(Helpers.isEqual(realLength, expectedLength), Helpers.add(Helpers.add("entry length is not equal to expected length of ", String.valueOf(expectedLength)), logText));
@@ -394,7 +394,7 @@ public class TestSharedMethods extends BaseTest {
         Object keyString = stringValue(key);
         if (Helpers.isTrue(((key instanceof Integer) || (key instanceof Long))))
         {
-            Assert(((entry instanceof java.util.List) || (entry.getClass().isArray())), Helpers.add("fee container is expected to be an array", logText));
+            Assert((Helpers.isArrayJs(entry)), Helpers.add("fee container is expected to be an array", logText));
             Assert(Helpers.isLessThan(key, Helpers.getArrayLength(entry)), Helpers.add(Helpers.add(Helpers.add("fee key ", keyString), " was expected to be present in entry"), logText));
         } else
         {
@@ -725,7 +725,7 @@ public class TestSharedMethods extends BaseTest {
         {
             logText = Helpers.add(Helpers.add(logText, " "), hint);
         }
-        Assert(((entry instanceof java.util.List) || (entry.getClass().isArray())), Helpers.add("response is expected to be an array", logText));
+        Assert((Helpers.isArrayJs(entry)), Helpers.add("response is expected to be an array", logText));
         if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "emptyResponse"))))
         {
             return;

@@ -807,6 +807,8 @@ class NewTranspiler {
         ]);
         // cast callDynamically to CompletableFuture when .join() is called on the result
         baseClass = baseClass.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
+        // Null-safe Array.isArray (see Helpers.isArrayJs comment).
+        baseClass = baseClass.replace(/\(\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)\)/g, 'Helpers.isArrayJs($1)');
 
         // Remove unreachable "return null;" after throw/return statements (ast-transpiler 0.0.80)
         // Pattern 1: throw directly followed by return null (same block)
@@ -1059,6 +1061,11 @@ class NewTranspiler {
         content = content.replace(/(\s+public Object describe\(\))/g, `${constructor}$1`)
         // cast callDynamically to CompletableFuture when .join() is called on the result
         content = content.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
+        // Null-safe Array.isArray rewrite. ast-transpiler emits the bare
+        // `(X instanceof java.util.List) || (X.getClass().isArray())` form,
+        // which NPEs when X is null (JS Array.isArray(null) is false). Route
+        // all such checks through Helpers.isArrayJs which guards null first.
+        content = content.replace(/\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)/g, 'Helpers.isArrayJs($1)');
 
         // Remove unreachable "return null;" after throw/return statements (ast-transpiler 0.0.80)
         content = content.replace(/throw ([^;]+) ;\n\s*return null;/g, 'throw $1 ;');
@@ -2632,6 +2639,8 @@ class NewTranspiler {
             ]).trim()
             // cast callDynamically to CompletableFuture when .join() is called on the result
             content = content.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
+            // Null-safe Array.isArray (see Helpers.isArrayJs comment).
+            content = content.replace(/\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)/g, 'Helpers.isArrayJs($1)');
 
             if (correctedTestName === 'TestInit') {
                 content = this.regexAll(content, [
@@ -2703,6 +2712,8 @@ class NewTranspiler {
             [/throw e/gm, 'throw new RuntimeException(e)'],
 
         ])
+        // Null-safe Array.isArray (see Helpers.isArrayJs).
+        contentIndentend = contentIndentend.replace(/\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)/g, 'Helpers.isArrayJs($1)');
 
         const file = [
             'package tests.exchange;',
@@ -2821,6 +2832,8 @@ class NewTranspiler {
             contentIndentend = this.regexAll(contentIndentend, regexes)
             // cast callDynamically to CompletableFuture when .join() is called on the result
             contentIndentend = contentIndentend.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
+            // Null-safe Array.isArray (see Helpers.isArrayJs).
+            contentIndentend = contentIndentend.replace(/\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)/g, 'Helpers.isArrayJs($1)');
             // const namespace = isWs ? 'using ccxt;\nusing ccxt.pro;' : 'using ccxt;';
             let parsedName = 'Test' + this.capitalize(filename.replace('test.', '').replace('tests.', ''));
             if (parsedName === 'TestOhlcv') parsedName = 'TestOHLCV'; // special case

@@ -153,6 +153,20 @@ public class Helpers {
         }
     }
 
+    /**
+     * Null-safe Array.isArray equivalent. ast-transpiler emits
+     * `(X instanceof List) || (X.getClass().isArray())` for `Array.isArray(X)`,
+     * which NPEs when X is null (e.g. test.sharedMethods entryKeyVal coming
+     * from safeValue() that returned undefined). JS Array.isArray(null) is
+     * false; mirror that here. Used as a post-transpile regex target so all
+     * 150+ call sites become null-safe in one place.
+     */
+    public static boolean isArrayJs(Object a) {
+        if (a == null) return false;
+        if (a instanceof List<?>) return true;
+        return a.getClass().isArray();
+    }
+
     public static boolean isEqual(Object a, Object b) {
         try {
             if (a == null && b == null) return true;

@@ -3101,7 +3101,7 @@ public Object describe()
         {
             return defaultValue;
         }
-        if (Helpers.isTrue(((value instanceof java.util.List) || (value.getClass().isArray()))))
+        if (Helpers.isTrue(Helpers.isArrayJs(value)))
         {
             return value;
         }
@@ -3110,7 +3110,7 @@ public Object describe()
 
     public Object isDictionary(Object value)
     {
-        return Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value, null))) && Helpers.isTrue(((value instanceof java.util.Map)))) && !Helpers.isTrue(((value instanceof java.util.List) || (value.getClass().isArray())));
+        return Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value, null))) && Helpers.isTrue(((value instanceof java.util.Map)))) && !Helpers.isTrue(Helpers.isArrayJs(value));
     }
 
     public Object safeList2(Object dictionaryOrList, Object key1, Object key2, Object... optionalArgs)
@@ -3139,7 +3139,7 @@ public Object describe()
         {
             return defaultValue;
         }
-        if (Helpers.isTrue(((value instanceof java.util.List) || (value.getClass().isArray()))))
+        if (Helpers.isTrue(Helpers.isArrayJs(value)))
         {
             return value;
         }
@@ -5421,7 +5421,7 @@ public Object describe()
             }
             // this.number = oldNumber; why parse trades as strings if you read the value using `safeString` ?
             Object tradesLength = 0;
-            Object isArray = ((trades instanceof java.util.List) || (trades.getClass().isArray()));
+            Object isArray = Helpers.isArrayJs(trades);
             if (Helpers.isTrue(isArray))
             {
                 tradesLength = Helpers.getArrayLength(trades);
@@ -5744,7 +5744,7 @@ public Object describe()
         Object limit = Helpers.getArg(optionalArgs, 2, null);
         Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
         Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        if (Helpers.isTrue(((orders instanceof java.util.List) || (orders.getClass().isArray()))))
+        if (Helpers.isTrue(Helpers.isArrayJs(orders)))
         {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
@@ -6716,7 +6716,7 @@ public Object describe()
     public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        if (Helpers.isTrue(((ohlcv instanceof java.util.List) || (ohlcv.getClass().isArray()))))
+        if (Helpers.isTrue(Helpers.isArrayJs(ohlcv)))
         {
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)));
         }
@@ -6969,7 +6969,7 @@ public Object describe()
             symbolsLength = Helpers.getArrayLength(symbols);
         }
         Object noSymbols = Helpers.isTrue((Helpers.isEqual(symbols, null))) || Helpers.isTrue((Helpers.isEqual(symbolsLength, 0)));
-        if (Helpers.isTrue(((response instanceof java.util.List) || (response.getClass().isArray()))))
+        if (Helpers.isTrue(Helpers.isArrayJs(response)))
         {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
             {
@@ -7199,7 +7199,7 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(arrayData)); i++)
         {
             Object itemOrItems = this.parseLedgerEntry(Helpers.GetValue(arrayData, i), currency);
-            if (Helpers.isTrue(((itemOrItems instanceof java.util.List) || (itemOrItems.getClass().isArray()))))
+            if (Helpers.isTrue(Helpers.isArrayJs(itemOrItems)))
             {
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(itemOrItems)); j++)
                 {
@@ -7355,7 +7355,7 @@ public Object describe()
     public Object getListFromObjectValues(Object objects, Object key)
     {
         Object newArray = objects;
-        if (!Helpers.isTrue(((objects instanceof java.util.List) || (objects.getClass().isArray()))))
+        if (!Helpers.isTrue(Helpers.isArrayJs(objects)))
         {
             newArray = this.toArray(objects);
         }
@@ -10975,7 +10975,7 @@ public Object describe()
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        if (Helpers.isTrue(((pricesData instanceof java.util.List) || (pricesData.getClass().isArray()))))
+        if (Helpers.isTrue(Helpers.isArrayJs(pricesData)))
         {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(pricesData)); i++)
             {
@@ -11024,7 +11024,7 @@ public Object describe()
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        if (Helpers.isTrue(((tickers instanceof java.util.List) || (tickers.getClass().isArray()))))
+        if (Helpers.isTrue(Helpers.isArrayJs(tickers)))
         {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
@@ -11706,7 +11706,7 @@ public Object describe()
         Object codes = Helpers.getArg(optionalArgs, 0, null);
         Object currencyIdKey = Helpers.getArg(optionalArgs, 1, null);
         Object depositWithdrawFees = new java.util.HashMap<String, Object>() {{}};
-        Object isArray = ((response instanceof java.util.List) || (response.getClass().isArray()));
+        Object isArray = Helpers.isArrayJs(response);
         Object responseKeys = response;
         if (!Helpers.isTrue(isArray))
         {
@@ -12502,7 +12502,7 @@ public Object describe()
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        if (Helpers.isTrue(((greeks instanceof java.util.List) || (greeks.getClass().isArray()))))
+        if (Helpers.isTrue(Helpers.isArrayJs(greeks)))
         {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(greeks)); i++)
             {

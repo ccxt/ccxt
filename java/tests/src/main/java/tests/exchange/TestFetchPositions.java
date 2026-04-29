@@ -27,7 +27,7 @@ public class TestFetchPositions extends BaseTest {
         // TestSharedMethods.AssertTimestampOrder (exchange, method, undefined, positions); // currently order of positions does not make sense
         // with symbol
         Object positionsForSymbol = (exchange.fetchPositions(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)))).join();
-        Assert(((positionsForSymbol instanceof java.util.List) || (positionsForSymbol.getClass().isArray())), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must return an array, returned "), exchange.json(positionsForSymbol)));
+        Assert((Helpers.isArrayJs(positionsForSymbol)), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must return an array, returned "), exchange.json(positionsForSymbol)));
         Object positionsForSymbolLength = Helpers.getArrayLength(positionsForSymbol);
         Assert(Helpers.isLessThanOrEqual(positionsForSymbolLength, 4), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " positions length for particular symbol should be less than 4, returned "), exchange.json(positionsForSymbol)));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positionsForSymbol)); i++)
