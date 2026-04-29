@@ -4149,9 +4149,8 @@ export default class aster extends Exchange {
                 'user': this.walletAddress,
                 'signer': signerAddress,
             }, params);
-            let pk = this.privateKey;
-            let paramString = this.encodeValuesWithJson (finalParams);
-            let paramsToEncode: Dict = { 'msg': paramString };
+            let paramString: Str = undefined;
+            let paramsToEncode: Dict = undefined;
             const isApproveBuilder = (path.indexOf ('/approveBuilder') >= 0);
             if (isApproveBuilder) {
                 // domain['name'] = 'Aster';
@@ -4160,20 +4159,20 @@ export default class aster extends Exchange {
                         { 'name': 'Builder', 'type': 'string' },
                         { 'name': 'MaxFeeRate', 'type': 'string' },
                         { 'name': 'BuilderName', 'type': 'string' },
-                        { "name": "AsterChain", "type": "string" },
+                        { 'name': 'AsterChain', 'type': 'string' },
                         { 'name': 'User', 'type': 'string' },
                         { 'name': 'Nonce', 'type': 'uint256' },
                     ],
                 };
-                pk = this.options['privateKey']; // required L1 private key, need to find an alternative way to set the value
-                finalParams['signatureChainId'] = v3ChainId;
-                finalParams['asterChain'] = 'Mainnet';
                 delete finalParams['signer']; // signer is not needed for approveBuilder endpoint
-                paramString = this.encodeValuesWithJson (finalParams) + '&signatureChainId=' + v3ChainId;
+                paramString = this.encodeValuesWithJson (finalParams);
                 paramsToEncode = this.capitalizeKeys (finalParams);
+            } else {
+                paramString = this.encodeValuesWithJson (finalParams);
+                paramsToEncode = { 'msg': paramString };
             }
             const encodedMessage = this.ethEncodeStructuredData (domain, messageTypes, paramsToEncode);
-            const signature = this.signMessage (encodedMessage, pk);
+            const signature = this.signMessage (encodedMessage, this.privateKey);
             const queryString = paramString + '&' + 'signature=' + signature;
             if (method === 'GET') {
                 url += '?' + queryString;
@@ -4264,6 +4263,7 @@ export default class aster extends Exchange {
                     'builder': this.safeString (this.options, 'builder'),
                     'builderName': this.safeString (this.options, 'builderName', 'ccxt'),
                     'maxFeeRate': this.safeString (this.options, 'builderRate'),
+                    'signatureChainId': this.safeInteger (this.options, 'v3ChainId', 1666),
                     'asterChain': 'Mainnet',
                 };
                 const authResponse = await this.fapiPrivatePostV3ApproveBuilder (this.extend (request, params));
