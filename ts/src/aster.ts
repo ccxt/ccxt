@@ -4149,6 +4149,7 @@ export default class aster extends Exchange {
                 'user': this.walletAddress,
                 'signer': signerAddress,
             }, params);
+            let pk = this.privateKey;
             let paramString = this.encodeValuesWithJson (finalParams);
             let paramsToEncode: Dict = { 'msg': paramString };
             const isApproveBuilder = (path.indexOf ('/approveBuilder') >= 0);
@@ -4156,19 +4157,23 @@ export default class aster extends Exchange {
                 // domain['name'] = 'Aster';
                 messageTypes = {
                     'ApproveBuilder': [
-                        { 'name': 'Builder', 'type': 'address' },
+                        { 'name': 'Builder', 'type': 'string' },
                         { 'name': 'MaxFeeRate', 'type': 'string' },
                         { 'name': 'BuilderName', 'type': 'string' },
-                        { 'name': 'User', 'type': 'address' },
+                        { "name": "AsterChain", "type": "string" },
+                        { 'name': 'User', 'type': 'string' },
                         { 'name': 'Nonce', 'type': 'uint256' },
                     ],
                 };
+                pk = this.options['privateKey']; // required L1 private key, need to find an alternative way to set the value
+                finalParams['signatureChainId'] = v3ChainId;
+                finalParams['asterChain'] = 'Mainnet';
                 delete finalParams['signer']; // signer is not needed for approveBuilder endpoint
                 paramString = this.encodeValuesWithJson (finalParams) + '&signatureChainId=' + v3ChainId;
                 paramsToEncode = this.capitalizeKeys (finalParams);
             }
             const encodedMessage = this.ethEncodeStructuredData (domain, messageTypes, paramsToEncode);
-            const signature = this.signMessage (encodedMessage, this.privateKey);
+            const signature = this.signMessage (encodedMessage, pk);
             const queryString = paramString + '&' + 'signature=' + signature;
             if (method === 'GET') {
                 url += '?' + queryString;
