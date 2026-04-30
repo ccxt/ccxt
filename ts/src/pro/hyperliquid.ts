@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import hyperliquidRest from '../hyperliquid.js';
-import { NotSupported } from '../base/errors.js';
+import { NotSupported, ArgumentsRequired } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
 import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest, Bool, Balances, Position } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
@@ -35,6 +35,7 @@ export default class hyperliquid extends hyperliquidRest {
                 'unWatchTickers': true,
                 'unWatchTrades': true,
                 'unWatchOHLCV': true,
+                'unWatchOHLCVForSymbols': true,
                 'unWatchMyTrades': true,
                 'unWatchOrders': true,
             },
@@ -1699,3 +1700,22 @@ export default class hyperliquid extends hyperliquidRest {
         };
     }
 }
+
+    /**
+     * @method
+     * @name hyperliquid#unWatchOHLCVForSymbols
+     * @description unsubscribe from historical candlestick data for multiple markets
+     */
+    async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
+        const symbolsLength = symbolsAndTimeframes.length;
+        if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
+            throw new ArgumentsRequired (this.id + " unWatchOHLCVForSymbols() requires an array of [symbol, timeframe] pairs");
+        }
+        await this.loadMarkets ();
+        const promises = [];
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const [symbol, timeframe] = symbolsAndTimeframes[i];
+            promises.push (this.unWatchOHLCV (symbol, timeframe, params));
+        }
+        return await Promise.all (promises);
+    }
