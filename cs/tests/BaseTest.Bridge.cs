@@ -205,7 +205,6 @@ public partial class BaseTest
         MultithreadTest().Wait(); // temporary disable here
         
         // Run throttler performance test
-        var baseTest = new BaseTest();
-        await baseTest.testThrottlerPerformance();
+        await testThrottlerPerformance();
     }
 }
