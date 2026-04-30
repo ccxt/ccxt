@@ -10,7 +10,6 @@ namespace ccxt;
 use React\Async;
 use React\Promise;
 include_once PATH_TO_CCXT . '/test/exchange/base/test_currency.php';
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function test_fetch_currencies($exchange, $skipped_properties) {
     return Async\async(function () use ($exchange, $skipped_properties) {
@@ -48,7 +47,7 @@ function test_fetch_currencies($exchange, $skipped_properties) {
                 $withdraw = $exchange->safe_bool($currency, 'withdraw');
                 $deposit = $exchange->safe_bool($currency, 'deposit');
                 if ($exchange->in_array($code, $required_active_currencies)) {
-                    assert($skip_major_currency_check || ($withdraw && $deposit), 'Major currency ' . $code . ' should have withdraw and deposit flags enabled');
+                    assert($skip_major_currency_check || ($withdraw && $deposit), 'Major currency ' . $code . ' should have withdraw and deposit flags enabled ::: ' . $exchange->json($currency));
                 }
             }
             // check at least X% of currencies are active

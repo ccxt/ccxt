@@ -59,7 +59,7 @@ blockchaincom.fetchMarkets ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://api.blockchain.com/v3/#getl3orderbook  
 
@@ -81,7 +81,7 @@ blockchaincom.fetchOrderBook (symbol[, limit, params])
 fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://api.blockchain.com/v3/#getl3orderbook  
 
@@ -103,7 +103,7 @@ blockchaincom.fetchL3OrderBook (symbol[, limit, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://api.blockchain.com/v3/#gettickerbysymbol  
 
@@ -124,7 +124,7 @@ blockchaincom.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://api.blockchain.com/v3/#gettickers  
 
@@ -145,7 +145,7 @@ blockchaincom.fetchTickers (symbols[, params])
 create a trade order
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api.blockchain.com/v3/#createorder  
 
@@ -170,7 +170,7 @@ blockchaincom.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api.blockchain.com/v3/#deleteorder  
 
@@ -192,7 +192,7 @@ blockchaincom.cancelOrder (id, symbol[, params])
 cancel all open orders
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api.blockchain.com/v3/#deleteallorders  
 
@@ -213,7 +213,7 @@ blockchaincom.cancelAllOrders (symbol[, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**: https://api.blockchain.com/v3/#getfees  
 
@@ -233,7 +233,7 @@ blockchaincom.fetchTradingFees ([params])
 fetches information on multiple canceled orders made by the user
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api.blockchain.com/v3/#getorders  
 
@@ -256,7 +256,7 @@ blockchaincom.fetchCanceledOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api.blockchain.com/v3/#getorders  
 
@@ -279,7 +279,7 @@ blockchaincom.fetchClosedOrders (symbol[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api.blockchain.com/v3/#getorders  
 
@@ -302,7 +302,7 @@ blockchaincom.fetchOpenOrders (symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://api.blockchain.com/v3/#getfills  
 
@@ -325,7 +325,7 @@ blockchaincom.fetchMyTrades (symbol[, since, limit, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://api.blockchain.com/v3/#getdepositaddress  
 
@@ -346,7 +346,7 @@ blockchaincom.fetchDepositAddress (code[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://api.blockchain.com/v3/#createwithdrawal  
 
@@ -370,7 +370,7 @@ blockchaincom.withdraw (code, amount, address, tag[, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://api.blockchain.com/v3/#getwithdrawals  
 
@@ -393,7 +393,7 @@ blockchaincom.fetchWithdrawals (code[, since, limit, params])
 fetch data on a currency withdrawal via the withdrawal id
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://api.blockchain.com/v3/#getwithdrawalbyid  
 
@@ -415,7 +415,7 @@ blockchaincom.fetchWithdrawal (id, code[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://api.blockchain.com/v3/#getdeposits  
 
@@ -438,7 +438,7 @@ blockchaincom.fetchDeposits (code[, since, limit, params])
 fetch information on a deposit
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://api.blockchain.com/v3/#getdepositbyid  
 
@@ -460,7 +460,7 @@ blockchaincom.fetchDeposit (id, code[, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://api.blockchain.com/v3/#getaccounts  
 
@@ -480,7 +480,7 @@ blockchaincom.fetchBalance ([params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api.blockchain.com/v3/#getorderbyid  
 
@@ -502,7 +502,7 @@ blockchaincom.fetchOrder (id, symbol[, params])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://exchange.blockchain.com/api/#balances  
 
@@ -546,7 +546,7 @@ blockchaincom.watchOHLCV (symbol, timeframe[, since, limit, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://exchange.blockchain.com/api/#ticker  
 
@@ -567,7 +567,7 @@ blockchaincom.watchTicker (symbol[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://exchange.blockchain.com/api/#trades  
 
@@ -590,7 +590,7 @@ blockchaincom.watchTrades (symbol[, since, limit, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://exchange.blockchain.com/api/#mass-order-status-request-ordermassstatusrequest  
 
@@ -613,7 +613,7 @@ blockchaincom.fetchOrders (symbol[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://exchange.blockchain.com/api/#l2-order-book  
 

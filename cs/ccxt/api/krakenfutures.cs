@@ -101,6 +101,11 @@ public partial class krakenfutures : Exchange
         return await this.callAsync ("privateGetAssignmentprogramHistory",parameters);
     }
 
+    public async Task<object> privateGetOrdersStatus (object parameters = null)
+    {
+        return await this.callAsync ("privateGetOrdersStatus",parameters);
+    }
+
     public async Task<object> privatePostSendorder (object parameters = null)
     {
         return await this.callAsync ("privatePostSendorder",parameters);

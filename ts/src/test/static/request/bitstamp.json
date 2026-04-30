@@ -3,6 +3,40 @@
     "skipKeys": [],
     "outputType": "urlencoded",
     "methods": {
+        "fetchMyTrades": [
+            {
+                "description": "default",
+                "method": "fetchMyTrades",
+                "url": "https://www.bitstamp.net/api/v2/user_transactions/linkusd/",
+                "input": [
+                    "LINK/USD"
+                ],
+                "output": "foo=bar"
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "+limit +since",
+                "method": "fetchFundingRateHistory",
+                "url": "https://www.bitstamp.net/api/v2/funding_rate_history/ethusd-perp/?since_timestamp=1770000000&limit=2",
+                "input": [
+                    "ETH/USD:USD",
+                    1770000000000,
+                    2],
+                "output": null
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "default",
+                "method": "fetchFundingRate",
+                "url": "https://www.bitstamp.net/api/v2/funding_rate/ethusd-perp/",
+                "input": [
+                    "ETH/USD:USD"
+                ],
+                "output": null
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "Fetch main balance",

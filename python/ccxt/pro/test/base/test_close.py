@@ -37,13 +37,13 @@ async def test_ws_close():
     # exchange.verbose = True
     # --------------------------------------------
     print('---- Testing exchange.close(): No future awaiting, should close with no errors')
-    await exchange.watch_ticker('BTC/USD')
+    await exchange.watch_ticker('BTC/USDT')
     print('ticker received')
     await exchange.close()
     print('PASSED - exchange closed with no errors')
     # --------------------------------------------
     print('---- Testing exchange.close(): Open watch multiple, resolve, should close with no errors')
-    await exchange.watch_trades_for_symbols(['BTC/USD', 'ETH/USD', 'LTC/USD'])
+    await exchange.watch_trades_for_symbols(['BTC/USDT', 'ETH/USDT', 'LTC/USDT'])
     print('ticker received')
     await exchange.close()
     print('PASSED - exchange closed with no errors')
@@ -73,6 +73,8 @@ async def test_ws_close():
     await test_cancelled_task_no_invalid_state(exchange)
     # --------------------------------------------
     await test_unwatch_tickers_after_cancellation(exchange)
+    # --------------------------------------------
+    await test_no_memory_leak()
 
 async def test_cancelled_task_no_invalid_state(exchange):
     """
@@ -180,5 +182,102 @@ async def test_unwatch_tickers_after_cancellation(exchange):
     task_btc.cancel()
     await exchange.close()
     print("PASSED - un_watch_tickers() after cancellation test completed successfully")
+
+async def test_no_memory_leak():
+    """
+    Test that Future.race() does not cause memory leaks when watching multiple symbols.
+
+    This test verifies the fix for the memory leak where the old implementation
+    created unbounded asyncio tasks (601,706 tasks/hour) that were never cleaned up.
+
+    The new implementation should maintain a stable task count.
+    """
+    print('---- Testing no memory leak in watch operations')
+
+    exchange = ccxt.pro.binance()
+
+    # Get baseline task count
+    initial_tasks = len(asyncio.all_tasks())
+    print(f"Initial asyncio tasks: {initial_tasks}")
+
+    # Run multiple concurrent watch operations to better simulate production load
+    # where many symbols are watched simultaneously
+    duration_seconds = 30
+    symbols = ['BTC/USDT', 'ETH/USDT', 'LTC/USDT', 'XRP/USDT', 'ADA/USDT',
+               'DOGE/USDT', 'SOL/USDT', 'DOT/USDT', 'MATIC/USDT', 'AVAX/USDT']
+
+    print(f"Running concurrent watch operations for {duration_seconds} seconds across {len(symbols)} symbols...")
+
+    start_time = asyncio.get_event_loop().time()
+    max_tasks_seen = initial_tasks
+    iterations = 0
+
+    async def watch_continuously(symbol):
+        """Continuously watch a symbol to create sustained load"""
+        nonlocal iterations
+        while asyncio.get_event_loop().time() - start_time < duration_seconds:
+            try:
+                await exchange.watch_ticker(symbol)
+                iterations += 1
+            except Exception as e:
+                # Connection errors are ok, we're testing memory leak not connectivity
+                if 'NetworkError' not in str(type(e).__name__):
+                    pass  # Ignore errors during test
+
+    # Create concurrent watch tasks for all symbols (simulates production)
+    watch_tasks = [asyncio.create_task(watch_continuously(symbol)) for symbol in symbols]
+
+    # Monitor task count while running
+    async def monitor_tasks():
+        nonlocal max_tasks_seen
+        while asyncio.get_event_loop().time() - start_time < duration_seconds:
+            await asyncio.sleep(5)
+            current_tasks = len(asyncio.all_tasks())
+            max_tasks_seen = max(max_tasks_seen, current_tasks)
+            elapsed = asyncio.get_event_loop().time() - start_time
+            task_growth = current_tasks - initial_tasks
+            print(f"  [{elapsed:.1f}s] Tasks: {current_tasks} (growth: {task_growth}), Iterations: {iterations}")
+
+    monitor_task = asyncio.create_task(monitor_tasks())
+
+    # Wait for test to complete
+    await asyncio.sleep(duration_seconds)
+
+    # Cancel all watch tasks
+    for task in watch_tasks:
+        task.cancel()
+    monitor_task.cancel()
+
+    # Wait for cancellation
+    await asyncio.gather(*watch_tasks, monitor_task, return_exceptions=True)
+
+    # Give event loop time to clean up
+    await asyncio.sleep(0.5)
+
+    # Check task count after operations
+    final_tasks = len(asyncio.all_tasks())
+    task_growth = final_tasks - initial_tasks
+    max_growth = max_tasks_seen - initial_tasks
+
+    print(f"Final asyncio tasks: {final_tasks}")
+    print(f"Task growth: {task_growth}")
+    print(f"Max tasks seen during test: {max_tasks_seen} (growth: {max_growth})")
+    print(f"Total iterations: {iterations}")
+
+    # Clean up
+    await exchange.close()
+
+    # The old implementation would accumulate tasks equal to the number of concurrent operations
+    # With 10 symbols being watched continuously, we'd expect significant growth
+    max_acceptable_growth = 40
+
+    if max_growth > max_acceptable_growth:
+        raise AssertionError(
+            f"Memory leak detected! Max task growth was {max_growth} "
+            f"(expected < {max_acceptable_growth}). "
+            f"The old implementation creates tasks that accumulate under concurrent load."
+        )
+
+    print(f"PASSED - No memory leak detected (max growth: {max_growth} < {max_acceptable_growth})")
 
 asyncio.run(test_ws_close())

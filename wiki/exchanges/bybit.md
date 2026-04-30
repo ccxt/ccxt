@@ -85,6 +85,8 @@
 * [fetchConvertTrade](#fetchconverttrade)
 * [fetchConvertTradeHistory](#fetchconverttradehistory)
 * [fetchLongShortRatioHistory](#fetchlongshortratiohistory)
+* [fetchPositionsADLRank](#fetchpositionsadlrank)
+* [fetchMarginMode](#fetchmarginmode)
 * [createOrderWs](#createorderws)
 * [editOrderWs](#editorderws)
 * [cancelOrderWs](#cancelorderws)
@@ -243,7 +245,7 @@ bybit.fetchMarkets ([params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/market/tickers  
 
@@ -264,7 +266,7 @@ bybit.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - an array of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - an array of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/market/tickers  
 
@@ -287,7 +289,7 @@ bybit.fetchTickers (symbols[, params])
 fetches the bid and ask price and volume for multiple markets
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/market/tickers  
 
@@ -342,7 +344,7 @@ bybit.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetches funding rates for multiple markets
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/market/tickers  
 
@@ -363,7 +365,7 @@ bybit.fetchFundingRates (symbols[, params])
 fetches historical funding rate prices
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/market/history-fund-rate  
 
@@ -371,7 +373,7 @@ fetches historical funding rate prices
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
 | since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
-| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure) to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest funding rate |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
@@ -388,7 +390,7 @@ bybit.fetchFundingRateHistory (symbol[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://bybit-exchange.github.io/docs/v5/market/recent-trade  
 
@@ -413,7 +415,7 @@ bybit.fetchTrades (symbol[, since, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://bybit-exchange.github.io/docs/v5/market/orderbook  
 
@@ -435,7 +437,7 @@ bybit.fetchOrderBook (symbol[, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -461,7 +463,7 @@ bybit.fetchBalance ([params])
 create a market buy order by providing the symbol and cost
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/order/create-order  
 
@@ -483,7 +485,7 @@ bybit.createMarketBuyOrderWithCost (symbol, cost[, params])
 create a market sell order by providing the symbol and cost
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/order/create-order  
 
@@ -505,7 +507,7 @@ bybit.createMarkeSellOrderWithCost (symbol, cost[, params])
 create a trade order
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -532,13 +534,16 @@ create a trade order
 | params.triggerDirection | <code>string</code> | No | *contract only* the direction for trigger orders, 'ascending' or 'descending' |
 | params.triggerPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
 | params.stopLossPrice | <code>float</code> | No | The price at which a stop loss order is triggered at |
+| params.stopLossLimitPrice | <code>float</code> | No | The limit price for a stoploss order (only when used in OCO with takeProfitPrice) |
 | params.takeProfitPrice | <code>float</code> | No | The price at which a take profit order is triggered at |
+| params.takeProfitLimitPrice | <code>float</code> | No | The limit price for a takeprofit order (only when used in OCO combination with stopLossPrice) |
 | params.takeProfit | <code>object</code> | No | *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered |
 | params.takeProfit.triggerPrice | <code>float</code> | No | take profit trigger price |
 | params.stopLoss | <code>object</code> | No | *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered |
 | params.stopLoss.triggerPrice | <code>float</code> | No | stop loss trigger price |
 | params.trailingAmount | <code>string</code> | No | the quote amount to trail away from the current market price |
 | params.trailingTriggerPrice | <code>string</code> | No | the price to trigger a trailing order, default uses the price argument |
+| params.tradingStopEndpoint | <code>boolean</code> | No | whether to enforce using the tradingStop (https://bybit-exchange.github.io/docs/v5/position/trading-stop) endpoint, makes difference when submitting single tp/sl order |
 
 
 ```javascript
@@ -552,7 +557,7 @@ bybit.createOrder (symbol, type, side, amount[, price, params])
 create a list of trade orders
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/order/batch-place  
 
@@ -573,7 +578,7 @@ bybit.createOrders (orders[, params])
 edit a trade order
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -615,7 +620,7 @@ bybit.editOrder (id, symbol, type, side, amount, price[, params])
 edit a list of trade orders
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/order/batch-amend  
 
@@ -636,7 +641,7 @@ bybit.editOrders (orders[, params])
 cancels an open order
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/order/cancel-order  
 
@@ -661,7 +666,7 @@ bybit.cancelOrder (id, symbol[, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/order/batch-cancel  
 
@@ -706,7 +711,7 @@ bybit.cancelAllOrdersAfter (timeout[, params])
 cancel multiple orders for multiple symbols
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/order/batch-cancel  
 
@@ -727,7 +732,7 @@ bybit.cancelOrdersForSymbols (orders[, params])
 cancel all open orders
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/order/cancel-all  
 
@@ -754,7 +759,7 @@ bybit.cancelAllOrders (symbol[, params])
 fetches information on an order made by the user *classic accounts only*
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/order/order-list  
 
@@ -776,7 +781,7 @@ bybit.fetchOrderClassic (id, symbol[, params])
 *classic accounts only/ spot not supported*  fetches information on an order made by the user *classic accounts only*
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/order/order-list  
 
@@ -799,7 +804,7 @@ bybit.fetchOrder (id, symbol[, params])
 *classic accounts only/ spot not supported* fetches information on multiple orders made by the user *classic accounts only/ spot not supported*
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/order/order-list  
 
@@ -829,7 +834,7 @@ bybit.fetchOrders (symbol[, since, limit, params])
 fetches information on multiple orders made by the user *classic accounts only*
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/order/order-list  
 
@@ -859,7 +864,7 @@ bybit.fetchOrdersClassic (symbol[, since, limit, params])
 fetches information on a closed order made by the user
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/order/order-list  
 
@@ -886,7 +891,7 @@ bybit.fetchClosedOrder (id[, symbol, params])
 fetches information on an open order made by the user
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/order/open-order  
 
@@ -915,7 +920,7 @@ bybit.fetchOpenOrder (id[, symbol, params])
 fetches information on multiple canceled and closed orders made by the user
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/order/order-list  
 
@@ -945,7 +950,7 @@ bybit.fetchCanceledAndClosedOrders ([symbol, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/order/order-list  
 
@@ -975,7 +980,7 @@ bybit.fetchClosedOrders ([symbol, since, limit, params])
 fetches information on multiple canceled orders made by the user
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/order/order-list  
 
@@ -1005,7 +1010,7 @@ bybit.fetchCanceledOrders ([symbol, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/order/open-order  
 
@@ -1036,7 +1041,7 @@ bybit.fetchOpenOrders (symbol[, since, limit, params])
 fetch all the trades made from a single order
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/position/execution  
 
@@ -1060,7 +1065,7 @@ bybit.fetchOrderTrades (id, symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution  
 
@@ -1086,7 +1091,7 @@ bybit.fetchMyTrades (symbol[, since, limit, params])
 fetch a dictionary of addresses for a currency, indexed by network
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a dictionary of [address structures](https://docs.ccxt.com/#/?id=address-structure) indexed by the network
+**Returns**: <code>object</code> - a dictionary of [address structures](https://docs.ccxt.com/?id=address-structure) indexed by the network
 
 **See**: https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr  
 
@@ -1107,7 +1112,7 @@ bybit.fetchDepositAddressesByNetwork (code[, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr  
 
@@ -1128,7 +1133,7 @@ bybit.fetchDepositAddress (code[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/asset/deposit-record  
 
@@ -1154,7 +1159,7 @@ bybit.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/asset/withdraw-record  
 
@@ -1179,7 +1184,7 @@ bybit.fetchWithdrawals (code[, since, limit, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**
 
@@ -1208,7 +1213,7 @@ bybit.fetchLedger ([code, since, limit, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/asset/withdraw  
 
@@ -1233,7 +1238,7 @@ bybit.withdraw (code, amount, address, tag[, params])
 fetch data on a single open contract trade position
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/position  
 
@@ -1254,7 +1259,7 @@ bybit.fetchPosition (symbol[, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/position  
 
@@ -1280,7 +1285,7 @@ bybit.fetchPositions (symbols[, params])
 fetch the set leverage for a market
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/position  
 
@@ -1374,7 +1379,7 @@ bybit.setPositionMode (hedged, symbol[, params])
 Retrieves the open interest of a derivative trading pair
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/#/?id=open-interest-structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/?id=open-interest-structure](https://docs.ccxt.com/?id=open-interest-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/market/open-interest  
 
@@ -1422,7 +1427,7 @@ bybit.fetchOpenInterestHistory (symbol, timeframe[, since, limit, params])
 fetch the rate of interest to borrow a currency for margin trading
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a [borrow rate structure](https://docs.ccxt.com/#/?id=borrow-rate-structure)
+**Returns**: <code>object</code> - a [borrow rate structure](https://docs.ccxt.com/?id=borrow-rate-structure)
 
 **See**: https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/interest-quota  
 
@@ -1443,7 +1448,7 @@ bybit.fetchCrossBorrowRate (code[, params])
 fetch the interest owed by the user for borrowing currency for margin trading
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [borrow interest structures](https://docs.ccxt.com/#/?id=borrow-interest-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [borrow interest structures](https://docs.ccxt.com/?id=borrow-interest-structure)
 
 **See**: https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/account-info  
 
@@ -1467,7 +1472,7 @@ bybit.fetchBorrowInterest (code, symbol[, since, limit, params])
 retrieves a history of a currencies borrow interest rate at specific time slots
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;object&gt;</code> - an array of [borrow rate structures](https://docs.ccxt.com/#/?id=borrow-rate-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [borrow rate structures](https://docs.ccxt.com/?id=borrow-rate-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/spot-margin-uta/historical-interest  
 
@@ -1475,7 +1480,7 @@ retrieves a history of a currencies borrow interest rate at specific time slots
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code |
 | since | <code>int</code> | No | timestamp for the earliest borrow rate |
-| limit | <code>int</code> | No | the maximum number of [borrow rate structures](https://docs.ccxt.com/#/?id=borrow-rate-structure) to retrieve |
+| limit | <code>int</code> | No | the maximum number of [borrow rate structures](https://docs.ccxt.com/?id=borrow-rate-structure) to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
 
@@ -1491,7 +1496,7 @@ bybit.fetchBorrowRateHistory (code[, since, limit, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/asset/create-inter-transfer  
 
@@ -1516,7 +1521,7 @@ bybit.transfer (code, amount, fromAccount, toAccount[, params])
 fetch a history of internal transfers made on an account
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/asset/inter-transfer-list  
 
@@ -1541,7 +1546,7 @@ bybit.fetchTransfers (code[, since, limit, params])
 create a loan to borrow margin
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/account/borrow  
 
@@ -1563,7 +1568,7 @@ bybit.borrowCrossMargin (code, amount[, params])
 repay borrowed margin and interest
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/account/no-convert-repay  
 
@@ -1585,7 +1590,7 @@ bybit.repayCrossMargin (code, amount[, params])
 retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a [leverage tiers structure](https://docs.ccxt.com/#/?id=leverage-tiers-structure)
+**Returns**: <code>object</code> - a [leverage tiers structure](https://docs.ccxt.com/?id=leverage-tiers-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/market/risk-limit  
 
@@ -1606,7 +1611,7 @@ bybit.fetchMarketLeverageTiers (symbol[, params])
 fetch the trading fees for a market
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/account/fee-rate  
 
@@ -1627,7 +1632,7 @@ bybit.fetchTradingFee (symbol[, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**: https://bybit-exchange.github.io/docs/v5/account/fee-rate  
 
@@ -1648,7 +1653,7 @@ bybit.fetchTradingFees ([params])
 fetch deposit and withdraw fees
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/asset/coin-info  
 
@@ -1719,7 +1724,7 @@ bybit.fetchMySettlementHistory (symbol[, since, limit, params])
 fetch the historical volatility of an option market based on an underlying asset
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [volatility history objects](https://docs.ccxt.com/#/?id=volatility-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [volatility history objects](https://docs.ccxt.com/?id=volatility-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/market/iv  
 
@@ -1741,7 +1746,7 @@ bybit.fetchVolatilityHistory (code[, params])
 fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/#/?id=greeks-structure)
+**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/?id=greeks-structure)
 
 **See**: https://bybit-exchange.github.io/docs/api-explorer/v5/market/tickers  
 
@@ -1762,7 +1767,7 @@ bybit.fetchGreeks (symbol[, params])
 fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/#/?id=greeks-structure)
+**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/?id=greeks-structure)
 
 **See**: https://bybit-exchange.github.io/docs/api-explorer/v5/market/tickers  
 
@@ -1784,7 +1789,7 @@ bybit.fetchAllGreeks ([symbols, params])
 retrieves the users liquidated positions
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/#/?id=liquidation-structure)
+**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/?id=liquidation-structure)
 
 **See**: https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution  
 
@@ -1810,7 +1815,7 @@ bybit.fetchMyLiquidations ([symbol, since, limit, params])
 retrieve information on the maximum leverage, for different trade sizes
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/#/?id=leverage-tiers-structure), indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/?id=leverage-tiers-structure), indexed by market symbols
 
 **See**: https://bybit-exchange.github.io/docs/v5/market/risk-limit  
 
@@ -1833,7 +1838,7 @@ bybit.fetchLeverageTiers ([symbols, params])
 fetch the history of funding payments paid and received on this account
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/#/?id=funding-history-structure)
+**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/?id=funding-history-structure)
 
 **See**: https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution  
 
@@ -1857,7 +1862,7 @@ bybit.fetchFundingHistory ([symbol, since, limit, params])
 fetches option data that is commonly found in an option chain
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - an [option chain structure](https://docs.ccxt.com/#/?id=option-chain-structure)
+**Returns**: <code>object</code> - an [option chain structure](https://docs.ccxt.com/?id=option-chain-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/market/tickers  
 
@@ -1878,7 +1883,7 @@ bybit.fetchOption (symbol[, params])
 fetches data for an underlying asset that is commonly found in an option chain
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a list of [option chain structures](https://docs.ccxt.com/#/?id=option-chain-structure)
+**Returns**: <code>object</code> - a list of [option chain structures](https://docs.ccxt.com/?id=option-chain-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/market/tickers  
 
@@ -1899,7 +1904,7 @@ bybit.fetchOptionChain (code[, params])
 fetches historical positions
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/position/close-pnl  
 
@@ -1945,7 +1950,7 @@ bybit.fetchConvertCurrencies ([params])
 fetch a quote for converting from one currency to another
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/?id=conversion-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/asset/convert/apply-quote  
 
@@ -1969,7 +1974,7 @@ bybit.fetchConvertQuote (fromCode, toCode[, amount, params])
 convert from one currency to another
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/?id=conversion-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/asset/convert/confirm-quote  
 
@@ -1993,7 +1998,7 @@ bybit.createConvertTrade (id, fromCode, toCode, amount[, params])
 fetch the data for a conversion trade
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/?id=conversion-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/asset/convert/get-convert-result  
 
@@ -2016,7 +2021,7 @@ bybit.fetchConvertTrade (id[, code, params])
 fetch the users history of conversion trades
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [conversion structures](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [conversion structures](https://docs.ccxt.com/?id=conversion-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/asset/convert/get-convert-history  
 
@@ -2040,7 +2045,7 @@ bybit.fetchConvertTradeHistory ([code, since, limit, params])
 fetches the long short ratio history for a unified market symbol
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;object&gt;</code> - an array of [long short ratio structures](https://docs.ccxt.com/#/?id=long-short-ratio-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [long short ratio structures](https://docs.ccxt.com/?id=long-short-ratio-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/market/long-short-ratio  
 
@@ -2058,13 +2063,55 @@ bybit.fetchLongShortRatioHistory (symbol[, timeframe, since, limit, params])
 ```
 
 
+<a name="fetchPositionsADLRank" id="fetchpositionsadlrank"></a>
+
+### fetchPositionsADLRank{docsify-ignore}
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [auto de leverage structures](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+**See**: https://bybit-exchange.github.io/docs/v5/position#response-parameters  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bybit.fetchPositionsADLRank ([symbols, params])
+```
+
+
+<a name="fetchMarginMode" id="fetchmarginmode"></a>
+
+### fetchMarginMode{docsify-ignore}
+fetches the margin mode of the trading pair
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/?id=margin-mode-structure)
+
+**See**: https://bybit-exchange.github.io/docs/v5/account/account-info  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified symbol of the market to fetch the margin mode for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bybit.fetchMarginMode ([symbol, params])
+```
+
+
 <a name="createOrderWs" id="createorderws"></a>
 
 ### createOrderWs{docsify-ignore}
 create a trade order
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -2110,7 +2157,7 @@ bybit.createOrderWs (symbol, type, side, amount[, price, params])
 edit a trade order
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -2150,7 +2197,7 @@ bybit.editOrderWs (id, symbol, type, side, amount, price[, params])
 cancels an open order
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -2178,7 +2225,7 @@ bybit.cancelOrderWs (id, symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -2203,7 +2250,7 @@ bybit.watchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -2228,7 +2275,7 @@ bybit.watchTickers (symbols[, params])
 unWatches a price ticker
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -2253,7 +2300,7 @@ bybit.unWatchTickers (symbols[, params])
 unWatches a price ticker
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -2278,7 +2325,7 @@ bybit.unWatchTicker (symbol[, params])
 watches best bid & ask for symbols
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook  
 
@@ -2405,7 +2452,7 @@ bybit.unWatchOHLCV (symbol, timeframe[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook  
 
@@ -2427,7 +2474,7 @@ bybit.watchOrderBook (symbol[, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook  
 
@@ -2449,7 +2496,7 @@ bybit.watchOrderBookForSymbols (symbols[, limit, params])
 unsubscribe from the orderbook channel
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook  
 
@@ -2471,7 +2518,7 @@ bybit.unWatchOrderBookForSymbols (symbols[, params])
 unsubscribe from the orderbook channel
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook  
 
@@ -2493,7 +2540,7 @@ bybit.unWatchOrderBook (symbol[, params])
 watches information on multiple trades made in a market
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/websocket/public/trade  
 
@@ -2516,7 +2563,7 @@ bybit.watchTrades (symbol[, since, limit, params])
 get the list of most recent trades for a list of symbols
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://bybit-exchange.github.io/docs/v5/websocket/public/trade  
 
@@ -2581,7 +2628,7 @@ bybit.unWatchTrades (symbol[, params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -2610,7 +2657,7 @@ bybit.watchMyTrades (symbol[, since, limit, params])
 unWatches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -2683,7 +2730,7 @@ watch the public liquidations of a trading pair
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
 **Returns**: <code>object</code> - an array of [liquidation structures](https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure)
 
-**See**: https://bybit-exchange.github.io/docs/v5/websocket/public/liquidation  
+**See**: https://bybit-exchange.github.io/docs/v5/websocket/public/all-liquidation  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -2705,7 +2752,7 @@ bybit.watchLiquidations (symbol[, since, limit, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/websocket/private/order  
 
@@ -2728,7 +2775,7 @@ bybit.watchOrders (symbol[, since, limit, params])
 unWatches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/websocket/private/order  
 
@@ -2750,7 +2797,7 @@ bybit.unWatchOrders (symbol[, params])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/websocket/private/wallet  
 

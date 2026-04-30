@@ -119,7 +119,7 @@ poloniex.fetchTime ([params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -164,7 +164,7 @@ poloniex.fetchCurrencies ([params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -189,7 +189,7 @@ poloniex.fetchTicker (symbol[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -216,7 +216,7 @@ poloniex.fetchTrades (symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
@@ -245,7 +245,7 @@ poloniex.fetchMyTrades (symbol[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -274,7 +274,7 @@ poloniex.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-docs.poloniex.com/v3/futures/api/trade/get-order-history  
 
@@ -298,7 +298,7 @@ poloniex.fetchClosedOrders (symbol[, since, limit, params])
 create a trade order
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -329,7 +329,7 @@ poloniex.createOrder (symbol, type, side, amount[, price, params])
 edit a trade order
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -360,7 +360,7 @@ poloniex.editOrder (id, symbol, type, side[, amount, price, params])
 cancel all open orders
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -387,7 +387,7 @@ poloniex.cancelAllOrders (symbol[, params])
 fetch an order by it's id
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -414,7 +414,7 @@ poloniex.fetchOrder (id, symbol[, params])
 fetch all the trades made from a single order
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://api-docs.poloniex.com/spot/api/private/trade#trades-by-order-id  
 
@@ -438,7 +438,7 @@ poloniex.fetchOrderTrades (id, symbol[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -462,7 +462,7 @@ poloniex.fetchBalance ([params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**: https://api-docs.poloniex.com/spot/api/private/account#fee-info  
 
@@ -482,7 +482,7 @@ poloniex.fetchTradingFees ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -508,7 +508,7 @@ poloniex.fetchOrderBook (symbol[, limit, params])
 create a currency deposit address
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses  
 
@@ -529,7 +529,7 @@ poloniex.createDepositAddress (code[, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses  
 
@@ -550,7 +550,7 @@ poloniex.fetchDepositAddress (code[, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer  
 
@@ -574,7 +574,7 @@ poloniex.transfer (code, amount, fromAccount, toAccount[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://api-docs.poloniex.com/spot/api/private/wallet#withdraw-currency  
 
@@ -598,7 +598,7 @@ poloniex.withdraw (code, amount, address, tag[, params])
 fetch history of deposits and withdrawals
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://api-docs.poloniex.com/spot/api/private/wallet#wallets-activity-records  
 
@@ -621,7 +621,7 @@ poloniex.fetchDepositsWithdrawals ([code, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://api-docs.poloniex.com/spot/api/private/wallet#wallets-activity-records  
 
@@ -644,7 +644,7 @@ poloniex.fetchWithdrawals (code[, since, limit, params])
 fetch deposit and withdraw fees
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [fees structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [fees structures](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://api-docs.poloniex.com/spot/api/public/reference-data#currency-information  
 
@@ -665,7 +665,7 @@ poloniex.fetchDepositWithdrawFees (codes[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://api-docs.poloniex.com/spot/api/private/wallet#wallets-activity-records  
 
@@ -711,7 +711,7 @@ poloniex.setLeverage (leverage, symbol[, params])
 fetch the set leverage for a market
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
 
 **See**: https://api-docs.poloniex.com/v3/futures/api/positions/get-leverages  
 
@@ -775,7 +775,7 @@ poloniex.setPositionMode (hedged, symbol[, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://api-docs.poloniex.com/v3/futures/api/positions/get-current-position  
 
@@ -797,7 +797,7 @@ poloniex.fetchPositions (symbols[, params])
 remove margin from a position
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 
 | Param | Type | Required | Description |
@@ -818,7 +818,7 @@ poloniex.reduceMargin (symbol, amount[, params])
 add margin
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 
 | Param | Type | Required | Description |

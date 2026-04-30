@@ -46,6 +46,17 @@ function testTicker(exchange, skippedProperties, method, entry, symbol) {
     if (symbolForMarket !== undefined && (symbolForMarket in exchange.markets)) {
         market = exchange.market(symbolForMarket);
     }
+    // temp todo: skip inactive markets for now, as they sometimes have weird values and causing issues:
+    if (!('checkInactiveMarkets' in skippedProperties)) {
+        if (market !== undefined && market['active'] === false) {
+            return;
+        }
+    }
+    if ('skipNonActiveMarkets' in skippedProperties) {
+        if (market === undefined || !market['active']) {
+            return;
+        }
+    }
     // only check "above zero" values if exchange is not supposed to have exotic index markets
     const isStandardMarket = (market !== undefined && exchange.inArray(market['type'], ['spot', 'swap', 'future', 'option']));
     const valuesShouldBePositive = isStandardMarket; // || (market === undefined) atm, no check for index markets

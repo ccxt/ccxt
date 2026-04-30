@@ -78,7 +78,7 @@ deepcoin.fetchMarkets ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://www.deepcoin.com/docs/DeepCoinMarket/marketBooks  
 
@@ -132,7 +132,7 @@ deepcoin.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.deepcoin.com/docs/DeepCoinMarket/getMarketTickers  
 
@@ -153,7 +153,7 @@ deepcoin.fetchTickers ([symbols, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://www.deepcoin.com/docs/DeepCoinMarket/getTrades  
 
@@ -176,7 +176,7 @@ deepcoin.fetchTrades (symbol[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://www.deepcoin.com/docs/DeepCoinAccount/getAccountBalance  
 
@@ -197,7 +197,7 @@ deepcoin.fetchBalance ([params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://www.deepcoin.com/docs/assets/deposit  
 
@@ -222,7 +222,7 @@ deepcoin.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://www.deepcoin.com/docs/assets/withdraw  
 
@@ -247,7 +247,7 @@ deepcoin.fetchWithdrawals (code[, since, limit, params])
 fetch deposit addresses for multiple currencies and chain types
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>object</code> - a list of [address structures](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - a list of [address structures](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://www.deepcoin.com/docs/assets/chainlist  
 
@@ -268,7 +268,7 @@ deepcoin.fetchDepositAddresses (codes[, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://www.deepcoin.com/docs/assets/chainlist  
 
@@ -290,7 +290,7 @@ deepcoin.fetchDepositAddress (code[, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [ledger structures](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [ledger structures](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://www.deepcoin.com/docs/DeepCoinAccount/getAccountBills  
 
@@ -315,7 +315,7 @@ deepcoin.fetchLedger ([code, since, limit, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://www.deepcoin.com/docs/assets/transfer  
 
@@ -340,7 +340,7 @@ deepcoin.transfer (code, amount, fromAccount, toAccount[, params])
 create a trade order
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -379,7 +379,7 @@ deepcoin.createOrder (symbol, type, side, amount[, price, params])
 create a market order by providing the symbol, side and cost
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -401,7 +401,7 @@ deepcoin.createMarketOrderWithCost (symbol, side, cost[, params])
 create a market buy order by providing the symbol and cost
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -422,7 +422,7 @@ deepcoin.createMarketBuyOrderWithCost (symbol, cost[, params])
 create a market sell order by providing the symbol and cost
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -443,7 +443,7 @@ deepcoin.createMarketSellOrderWithCost (symbol, cost[, params])
 fetches information on a closed order made by the user
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.deepcoin.com/docs/DeepCoinTrade/finishOrderByID  
 
@@ -465,7 +465,7 @@ deepcoin.fetchClosedOrder (id, symbol[, params])
 fetch an open order by it's id
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.deepcoin.com/docs/DeepCoinTrade/orderByID  
 
@@ -487,7 +487,7 @@ deepcoin.fetchOpenOrder (id, symbol[, params])
 fetches information on multiple canceled and closed orders made by the user
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -519,7 +519,7 @@ deepcoin.fetchCanceledAndClosedOrders ([symbol, since, limit, params])
 fetches information on multiple canceled orders made by the user
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.deepcoin.com/docs/DeepCoinTrade/ordersHistory  
 
@@ -543,7 +543,7 @@ deepcoin.fetchCanceledOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.deepcoin.com/docs/DeepCoinTrade/ordersHistory  
 
@@ -567,7 +567,7 @@ deepcoin.fetchClosedOrders (symbol[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -597,7 +597,7 @@ deepcoin.fetchOpenOrders (symbol[, since, limit, params])
 cancels an open order
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.deepcoin.com/docs/DeepCoinTrade/cancelOrder  
 
@@ -620,7 +620,7 @@ deepcoin.cancelOrder (id, symbol[, params])
 cancel all open orders in a market
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.deepcoin.com/docs/DeepCoinTrade/cancelAllOrder  
 
@@ -643,7 +643,7 @@ deepcoin.cancelAllOrders (symbol[, params])
 edit a trade order
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -675,7 +675,7 @@ deepcoin.editOrder (id[, symbol, type, side, amount, price, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -696,7 +696,7 @@ deepcoin.cancelOrders (ids[, symbol, params])
 fetch all open positions for specific symbol
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://www.deepcoin.com/docs/DeepCoinAccount/accountPositions  
 
@@ -717,7 +717,7 @@ deepcoin.fetchPositionsForSymbol (symbol[, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://www.deepcoin.com/docs/DeepCoinAccount/accountPositions  
 
@@ -762,7 +762,7 @@ deepcoin.setLeverage (leverage, symbol[, params])
 fetch the funding rate for multiple markets
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rates-structure), indexed by market symbols
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rates-structure), indexed by market symbols
 
 **See**: https://www.deepcoin.com/docs/DeepCoinTrade/currentFundRate  
 
@@ -784,7 +784,7 @@ deepcoin.fetchFundingRates (symbols[, params])
 fetch the current funding rate
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://www.deepcoin.com/docs/DeepCoinTrade/currentFundRate  
 
@@ -805,7 +805,7 @@ deepcoin.fetchFundingRate (symbol[, params])
 fetches historical funding rate prices
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**: https://www.deepcoin.com/docs/DeepCoinTrade/fundingRateHistory  
 
@@ -813,7 +813,7 @@ fetches historical funding rate prices
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
 | since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
-| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure) to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.page | <code>int</code> | No | pagination page number |
 
@@ -829,7 +829,7 @@ deepcoin.fetchFundingRateHistory (symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://www.deepcoin.com/docs/DeepCoinTrade/tradeFills  
 
@@ -855,7 +855,7 @@ deepcoin.fetchMyTrades (symbol[, since, limit, params])
 fetch all the trades made from a single order
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://www.deepcoin.com/docs/DeepCoinTrade/tradeFills  
 
@@ -880,7 +880,7 @@ deepcoin.fetchOrderTrades (id, symbol[, since, limit, params])
 closes open positions for a market
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -908,7 +908,7 @@ deepcoin.closePosition (symbol[, side, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.deepcoin.com/docs/publicWS/latestMarketData  
 
@@ -929,7 +929,7 @@ deepcoin.watchTicker (symbol[, params])
 unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.deepcoin.com/docs/publicWS/latestMarketData  
 
@@ -950,7 +950,7 @@ deepcoin.unWatchTicker (symbol[, params])
 watches information on multiple trades made in a market
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://www.deepcoin.com/docs/publicWS/lastTransactions  
 
@@ -973,7 +973,7 @@ deepcoin.watchTrades (symbol[, since, limit, params])
 unWatches the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://www.deepcoin.com/docs/publicWS/lastTransactions  
 
@@ -1040,7 +1040,7 @@ deepcoin.unWatchOHLCV (symbol[, timeframe, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://www.deepcoin.com/docs/publicWS/25LevelIncrementalMarketData  
 
@@ -1062,7 +1062,7 @@ deepcoin.watchOrderBook (symbol[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://www.deepcoin.com/docs/publicWS/25LevelIncrementalMarketData  
 
@@ -1083,7 +1083,7 @@ deepcoin.unWatchOrderBook (symbol[, params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.deepcoin.com/docs/privateWS/Trade  
 
@@ -1106,7 +1106,7 @@ deepcoin.watchMyTrades (symbol[, since, limit, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.deepcoin.com/docs/privateWS/order  
 

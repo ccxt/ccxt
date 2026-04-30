@@ -1,0 +1,255 @@
+{
+    "exchange": "aftermath",
+    "outputType": "json",
+    "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "http://testnet.aftermath.finance/api/ccxt/currencies",
+                "input": []
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "url": "http://testnet.aftermath.finance/api/ccxt/markets",
+                "input": []
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "url": "http://testnet.aftermath.finance/api/ccxt/ticker",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "output": "{\"chId\":\"0x49bd40cc7880bd358465116157f0271c25d23361b94eace9a25dc2019b449bfc\"}"
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "url": "http://testnet.aftermath.finance/api/ccxt/orderbook",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "output": "{\"chId\":\"0x49bd40cc7880bd358465116157f0271c25d23361b94eace9a25dc2019b449bfc\"}"
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "url": "http://testnet.aftermath.finance/api/ccxt/trades",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "output": "{\"chId\":\"0x49bd40cc7880bd358465116157f0271c25d23361b94eace9a25dc2019b449bfc\"}"
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "http://testnet.aftermath.finance/api/ccxt/OHLCV",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "output": "{\"chId\":\"0x49bd40cc7880bd358465116157f0271c25d23361b94eace9a25dc2019b449bfc\",\"timeframe\":\"1m\"}"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "url": "http://testnet.aftermath.finance/api/ccxt/balance",
+                "input": [
+                    {
+                        "account": "0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824"
+                    }
+                ],
+                "output": "{\"account\":\"0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824\"}"
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetchAccounts",
+                "method": "fetchAccounts",
+                "url": "http://testnet.aftermath.finance/api/ccxt/accounts",
+                "input": [],
+                "output": "{\"address\":\"wallet\"}"
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "http://testnet.aftermath.finance/api/ccxt/myPendingOrders",
+                "input": [
+                    "BTC/USD:USDC",
+                    null,
+                    null,
+                    {
+                        "accountNumber": 12345
+                    }
+                ],
+                "output": "{\"chId\":\"0x49bd40cc7880bd358465116157f0271c25d23361b94eace9a25dc2019b449bfc\",\"accountNumber\":12345}"
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetchPosition",
+                "method": "fetchPosition",
+                "url": "http://testnet.aftermath.finance/api/ccxt/positions",
+                "input": [
+                    "BTC/USD:USDC",
+                    {
+                        "accountNumber": 12345
+                    }
+                ],
+                "output": "{\"accountNumber\":12345}"
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "createOrder",
+                "method": "createOrder",
+                "url": "http://testnet.aftermath.finance/api/ccxt/build/createOrders",
+                "input": [
+                    "BTC/USD:USDC",
+                    "limit",
+                    "buy",
+                    0.00001,
+                    86666,
+                    {
+                        "account": "0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824"
+                    }
+                ],
+                "output": "{\"accountId\":\"0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824\",\"metadata\":{\"sender\":\"wallet\"},\"orders\":[{\"type\":\"limit\",\"side\":\"buy\",\"amount\":0.00001,\"price\":86666,\"chId\":\"0x49bd40cc7880bd358465116157f0271c25d23361b94eace9a25dc2019b449bfc\"}],\"deallocateFreeCollateral\":false}"
+            },
+            {
+                "description": "createOrder - reduce only",
+                "method": "createOrder",
+                "url": "http://testnet.aftermath.finance/api/ccxt/build/createOrders",
+                "input": [
+                    "BTC/USD:USDC",
+                    "limit",
+                    "buy",
+                    0.00001,
+                    86666,
+                    {
+                        "account": "0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824",
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"accountId\":\"0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824\",\"metadata\":{\"sender\":\"wallet\"},\"orders\":[{\"type\":\"limit\",\"side\":\"buy\",\"amount\":0.00001,\"price\":86666,\"reduceOnly\":true,\"chId\":\"0x49bd40cc7880bd358465116157f0271c25d23361b94eace9a25dc2019b449bfc\"}],\"deallocateFreeCollateral\":false}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder",
+                "method": "cancelOrder",
+                "url": "http://testnet.aftermath.finance/api/ccxt/build/cancelOrders",
+                "input": [
+                    "340280780519394868497198438974058844308",
+                    "BTC/USD:USDC",
+                    {
+                        "account": "0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824"
+                    }
+                ],
+                "output": "{\"accountId\":\"0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824\",\"metadata\":{\"sender\":\"wallet\"},\"chId\":\"0x49bd40cc7880bd358465116157f0271c25d23361b94eace9a25dc2019b449bfc\",\"orderIds\":[\"340280780519394868497198438974058844308\"]}"
+            }
+        ],
+        "addMargin": [
+            {
+                "description": "addMargin",
+                "method": "addMargin",
+                "url": "http://testnet.aftermath.finance/api/ccxt/build/allocate",
+                "input": [
+                    "BTC/USD:USDC",
+                    1,
+                    {
+                        "account": "0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824"
+                    }
+                ],
+                "output": "{\"accountId\":\"0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824\",\"chId\":\"0x49bd40cc7880bd358465116157f0271c25d23361b94eace9a25dc2019b449bfc\",\"amount\":1,\"metadata\":{\"sender\":\"wallet\"}}"
+            }
+        ],
+        "reduceMargin": [
+            {
+                "description": "reduceMargin",
+                "method": "reduceMargin",
+                "url": "http://testnet.aftermath.finance/api/ccxt/build/deallocate",
+                "input": [
+                    "BTC/USD:USDC",
+                    1,
+                    {
+                        "account": "0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824"
+                    }
+                ],
+                "output": "{\"accountId\":\"0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824\",\"chId\":\"0x49bd40cc7880bd358465116157f0271c25d23361b94eace9a25dc2019b449bfc\",\"amount\":1,\"metadata\":{\"sender\":\"wallet\"}}"
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer",
+                "method": "transfer",
+                "url": "http://testnet.aftermath.finance/api/ccxt/build/deposit",
+                "input": [
+                    "USDC",
+                    1,
+                    "",
+                    "0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824"
+                ],
+                "output": "{\"metadata\":{\"sender\":\"wallet\"},\"accountId\":\"0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824\",\"amount\":1}"
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw",
+                "method": "withdraw",
+                "url": "http://testnet.aftermath.finance/api/ccxt/build/withdraw",
+                "input": [
+                    "USDC",
+                    1,
+                    "",
+                    "",
+                    {
+                        "account": "0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824"
+                    }
+                ],
+                "output": "{\"accountId\":\"0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824\",\"metadata\":{\"sender\":\"wallet\"},\"amount\":1}"
+            }
+        ],
+        "createAccount": [
+            {
+                "description": "createAccount",
+                "method": "createAccount",
+                "url": "http://testnet.aftermath.finance/api/ccxt/build/createAccount",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "output": "{\"metadata\":{\"sender\":\"wallet\"},\"settleId\":\"0x457049371f5b5dc2bda857bb804ca6e93c5a3cae1636d0cd17bb6b6070d19458::usdc::USDC\"}"
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "setLeverage",
+                "method": "setLeverage",
+                "url": "http://testnet.aftermath.finance/api/ccxt/build/setLeverage",
+                "input": [
+                    1,
+                    "BTC/USD:USDC",
+                    {
+                        "account": "0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824"
+                    }
+                ],
+                "output": "{\"accountId\":\"0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824\",\"chId\":\"0x49bd40cc7880bd358465116157f0271c25d23361b94eace9a25dc2019b449bfc\",\"leverage\":1,\"metadata\":{\"sender\":\"wallet\"}}"
+            }
+        ]
+    }
+}

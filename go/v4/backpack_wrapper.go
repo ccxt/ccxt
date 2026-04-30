@@ -65,7 +65,7 @@ func (this *Backpack) FetchMarkets(params ...interface{}) ([]MarketInterface, er
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Backpack) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -98,7 +98,7 @@ func (this *Backpack) FetchTickers(options ...FetchTickersOptions) (Tickers, err
  * @see https://docs.backpack.exchange/#tag/Markets/operation/get_ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Backpack) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -206,7 +206,7 @@ func (this *Backpack) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([
  * @see https://docs.backpack.exchange/#tag/Markets/operation/get_mark_prices
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Backpack) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
 
@@ -234,7 +234,7 @@ func (this *Backpack) FetchFundingRate(symbol string, options ...FetchFundingRat
  * @see https://docs.backpack.exchange/#tag/Markets/operation/get_open_interest
  * @param {string} symbol Unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
- * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=interest-history-structure}
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=interest-history-structure}
  */
 func (this *Backpack) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
 
@@ -264,7 +264,7 @@ func (this *Backpack) FetchOpenInterest(symbol string, options ...FetchOpenInter
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of funding rate structures
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *Backpack) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
 
@@ -311,7 +311,7 @@ func (this *Backpack) FetchFundingRateHistory(options ...FetchFundingRateHistory
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.offset] the number of trades to skip, default is 0
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Backpack) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -353,7 +353,7 @@ func (this *Backpack) FetchTrades(symbol string, options ...FetchTradesOptions) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch trades for
  * @param {string} [params.fillType] 'User' (default) 'BookLiquidation' or 'Adl' or 'Backstop' or 'Liquidation' or 'AllLiquidation' or 'CollateralConversion' or 'CollateralConversionAndSpotLiquidation'
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Backpack) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -395,7 +395,7 @@ func (this *Backpack) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, e
  * @description the latest known information on the availability of the exchange API
  * @see https://docs.backpack.exchange/#tag/System/operation/get_status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *Backpack) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
 	res := <-this.Core.FetchStatus(params...)
@@ -427,7 +427,7 @@ func (this *Backpack) FetchTime(params ...interface{}) (int64, error) {
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://docs.backpack.exchange/#tag/Capital/operation/get_balances
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Backpack) FetchBalance(params ...interface{}) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
@@ -447,7 +447,7 @@ func (this *Backpack) FetchBalance(params ...interface{}) (Balances, error) {
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch entries for
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Backpack) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -493,7 +493,7 @@ func (this *Backpack) FetchDeposits(options ...FetchDepositsOptions) ([]Transact
  * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Backpack) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
@@ -540,7 +540,7 @@ func (this *Backpack) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tr
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} params.network the network to withdraw on (mandatory)
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Backpack) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 
@@ -574,7 +574,7 @@ func (this *Backpack) Withdraw(code string, amount float64, address string, opti
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.networkCode] the network to fetch the deposit address (mandatory)
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Backpack) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 
@@ -623,7 +623,7 @@ func (this *Backpack) FetchDepositAddress(code string, options ...FetchDepositAd
  * @param {object} [params.stopLoss] *swap markets only - stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
  * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
  * @param {float} [params.stopLoss.price] stop loss order price (if not provided the order will be a market order)
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Backpack) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -656,7 +656,7 @@ func (this *Backpack) CreateOrder(symbol string, typeVar string, side string, am
  * @see https://docs.backpack.exchange/#tag/Order/operation/execute_order_batch
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Backpack) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
 
@@ -686,7 +686,7 @@ func (this *Backpack) CreateOrders(orders []OrderRequest, options ...CreateOrder
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Backpack) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -730,7 +730,7 @@ func (this *Backpack) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Orde
  * @param {string} id order id
  * @param {string} symbol not used by hollaex fetchOpenOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Backpack) FetchOpenOrder(id string, options ...FetchOpenOrderOptions) (Order, error) {
 
@@ -764,7 +764,7 @@ func (this *Backpack) FetchOpenOrder(id string, options ...FetchOpenOrderOptions
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Backpack) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -797,7 +797,7 @@ func (this *Backpack) CancelOrder(id string, options ...CancelOrderOptions) (Ord
  * @see https://docs.backpack.exchange/#tag/Order/operation/cancel_open_orders
  * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Backpack) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 
@@ -875,7 +875,7 @@ func (this *Backpack) FetchOrders(options ...FetchOrdersOptions) ([]Order, error
  * @see https://docs.backpack.exchange/#tag/Futures/operation/get_positions
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Backpack) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 
@@ -911,7 +911,7 @@ func (this *Backpack) FetchPositions(options ...FetchPositionsOptions) ([]Positi
  * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest trade to fetch (default now)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Backpack) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
 

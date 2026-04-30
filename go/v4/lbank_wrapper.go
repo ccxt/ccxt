@@ -96,7 +96,7 @@ func (this *Lbank) FetchSwapMarkets(params ...interface{}) ([]map[string]interfa
  * @see https://www.lbank.com/en-US/docs/index.html#query-current-market-data-new
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Lbank) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -125,7 +125,7 @@ func (this *Lbank) FetchTicker(symbol string, options ...FetchTickerOptions) (Ti
  * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Lbank) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -160,7 +160,7 @@ func (this *Lbank) FetchTickers(options ...FetchTickersOptions) (Tickers, error)
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Lbank) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -196,7 +196,7 @@ func (this *Lbank) FetchOrderBook(symbol string, options ...FetchOrderBookOption
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Lbank) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -280,7 +280,7 @@ func (this *Lbank) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OH
  * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Lbank) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
 
@@ -308,7 +308,7 @@ func (this *Lbank) FetchFundingRate(symbol string, options ...FetchFundingRateOp
  * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+ * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
  */
 func (this *Lbank) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
 
@@ -342,7 +342,7 @@ func (this *Lbank) FetchFundingRates(options ...FetchFundingRatesOptions) (Fundi
  * @see https://www.lbank.com/en-US/docs/index.html#account-information
  * @see https://www.lbank.com/en-US/docs/index.html#get-all-coins-information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Lbank) FetchBalance(params ...interface{}) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
@@ -359,7 +359,7 @@ func (this *Lbank) FetchBalance(params ...interface{}) (Balances, error) {
  * @see https://www.lbank.com/en-US/docs/index.html#transaction-fee-rate-query
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Lbank) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 
@@ -386,7 +386,7 @@ func (this *Lbank) FetchTradingFee(symbol string, options ...FetchTradingFeeOpti
  * @description fetch the trading fees for multiple markets
  * @see https://www.lbank.com/en-US/docs/index.html#transaction-fee-rate-query
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *Lbank) FetchTradingFees(params ...interface{}) (TradingFees, error) {
 	res := <-this.Core.FetchTradingFees(params...)
@@ -405,7 +405,7 @@ func (this *Lbank) FetchTradingFees(params ...interface{}) (TradingFees, error) 
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Lbank) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
 
@@ -438,7 +438,7 @@ func (this *Lbank) CreateMarketBuyOrderWithCost(symbol string, cost float64, opt
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Lbank) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -473,7 +473,7 @@ func (this *Lbank) CreateOrder(symbol string, typeVar string, side string, amoun
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Lbank) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -554,7 +554,7 @@ func (this *Lbank) FetchOrderDefault(id string, options ...FetchOrderDefaultOpti
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trade structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Lbank) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -599,7 +599,7 @@ func (this *Lbank) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, erro
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Lbank) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 
@@ -644,7 +644,7 @@ func (this *Lbank) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of open order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Lbank) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -688,7 +688,7 @@ func (this *Lbank) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, 
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Lbank) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -721,7 +721,7 @@ func (this *Lbank) CancelOrder(id string, options ...CancelOrderOptions) (Order,
  * @see https://www.lbank.com/en-US/docs/index.html#cancel-all-pending-orders-for-a-single-trading-pair
  * @param {string} symbol unified market symbol of the market to cancel orders in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Lbank) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 
@@ -755,7 +755,7 @@ func (this *Lbank) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, 
  * @see https://www.lbank.com/en-US/docs/index.html#the-user-obtains-the-deposit-address
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Lbank) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 
@@ -822,7 +822,7 @@ func (this *Lbank) FetchDepositAddressSupplement(code string, options ...FetchDe
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Lbank) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 
@@ -857,7 +857,7 @@ func (this *Lbank) Withdraw(code string, amount float64, address string, options
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Lbank) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -902,7 +902,7 @@ func (this *Lbank) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Lbank) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
@@ -945,7 +945,7 @@ func (this *Lbank) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Trans
  * @description please use fetchDepositWithdrawFees instead
  * @param {string[]|undefined} codes not used by lbank fetchTransactionFees ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Lbank) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]interface{}, error) {
 
@@ -993,7 +993,7 @@ func (this *Lbank) FetchPublicTransactionFees(params ...interface{}) (map[string
  * @see https://www.lbank.com/en-US/docs/index.html#withdrawal-configurations
  * @param {string[]} [codes] array of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Lbank) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
 

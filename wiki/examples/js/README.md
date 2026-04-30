@@ -121,6 +121,8 @@ node path/to/example.js # substitute for actual filename here
 
 - [Exchange Capabilities](./examples/js/exchange-capabilities.md)
 
+- [Exchange Rate Limiter Rollingwindow](./examples/js/exchange-rate-limiter-rollingWindow.md)
+
 - [Exchanges By Volume](./examples/js/exchanges-by-volume.md)
 
 - [Exchanges](./examples/js/exchanges.md)
@@ -188,6 +190,8 @@ node path/to/example.js # substitute for actual filename here
 - [Hybridcjsexample](./examples/js/hybridCJSExample.md)
 
 - [Hybridesmexample](./examples/js/hybridESMExample.md)
+
+- [Hyperliquid Load Hip3 Dexes](./examples/js/hyperliquid-load-hip3-dexes.md)
 
 - [Idex Fetch Balance](./examples/js/idex-fetch-balance.md)
 
@@ -276,10 +280,6 @@ node path/to/example.js # substitute for actual filename here
 - [Watch Trades For Symbols](./examples/js/watch-Trades-For-Symbols.md)
 
 - [Watch Tickers](./examples/js/watch-tickers.md)
-
-- [Watchohlcvforsymbols](./examples/js/watchOHLCVForSymbols.md)
-
-- [Watchorderbookforsymbols](./examples/js/watchOrderBookForSymbols.md)
 
 - [Watchpositions Many Exchanges Continuosly.d](./examples/js/watchPositions-many-exchanges-continuosly.d.md)
 
