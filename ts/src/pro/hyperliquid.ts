@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import hyperliquidRest from '../hyperliquid.js';
-import { NotSupported } from '../base/errors.js';
+import { NotSupported, ArgumentsRequired } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
 import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest, Bool, Balances, Position } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
@@ -35,6 +35,7 @@ export default class hyperliquid extends hyperliquidRest {
                 'unWatchTickers': true,
                 'unWatchTrades': true,
                 'unWatchOHLCV': true,
+                'unWatchOHLCVForSymbols': true,
                 'unWatchMyTrades': true,
                 'unWatchOrders': true,
             },
@@ -887,6 +888,28 @@ export default class hyperliquid extends hyperliquidRest {
         const messagehash = 'unsubscribe:' + subMessageHash;
         const message = this.extend (request, params);
         return await this.watch (url, messagehash, message, messagehash);
+    }
+
+    /**
+     * @name hyperliquid#unWatchOHLCVForSymbols
+     * @description unsubscribes from multiple OHLCV streams
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string[][]} symbolsAndTimeframes array of [symbol, timeframe] pairs
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Promise<any>} result of the unsubscription
+     */
+    async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
+        const symbolsLength = symbolsAndTimeframes.length;
+        if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
+            throw new ArgumentsRequired (this.id + " unWatchOHLCVForSymbols() requires an array of symbols and timeframes");
+        }
+        await this.loadMarkets ();
+        const promises = [];
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const [symbol, timeframe] = symbolsAndTimeframes[i];
+            promises.push (this.unWatchOHLCV (symbol, timeframe, params));
+        }
+        return await Promise.all (promises);
     }
 
     handleOHLCV (client: Client, message) {
