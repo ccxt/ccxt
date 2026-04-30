@@ -123,8 +123,11 @@ class ArrayCacheByTimestamp(BaseCache):
             self.hashmap[item[0]] = item
             if len(self._deque) == self._deque.maxlen:
                 delete_reference = self._deque.popleft()
-                del self.hashmap[delete_reference[0]]
+                try:
+                    del self.hashmap[delete_reference[0]]
             self._deque.append(item)
+                except KeyError:
+                    logger.warning(f"KeyError deleting item from cache: {delete_reference[0]}")
         if self._clear_updates:
             self._clear_updates = False
             self._size_tracker.clear()
