@@ -37,6 +37,9 @@ class bingx_futures(bingx_abs):
                 if market_info['status'] == 25 and not market_info['offTime']:
                     temporary_offline = True
             symbol = re.sub(r'\s*\(.*?\)\s*', '', symbol)
+            if '724' in market_obj['id']:
+                asset, pair = symbol.split('/')
+                symbol = f'{asset}(7*24)/{pair}'
             market_obj['symbol'] = symbol
             market_obj['temporary_offline'] = temporary_offline
 
