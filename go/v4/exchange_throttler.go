@@ -164,6 +164,40 @@ func (t *Throttler) rollingWindowLoop() {
 	}
 }
 
+func (t *Throttler) SyncUsedWeight(actualUsed float64, windowSize ...float64) {
+	t.Mutex.Lock()
+	defer t.Mutex.Unlock()
+	if t.Config["algorithm"] == "leakyBucket" {
+		return
+	}
+	windowMs := ToFloat64(t.Config["windowSize"])
+	if len(windowSize) > 0 {
+		windowMs = windowSize[0]
+	}
+	nowTime := Milliseconds()
+	t.Timestamps = filterTimestamps(t.Timestamps, nowTime, windowMs)
+	trackedTotal := sumCosts(t.Timestamps)
+	delta := actualUsed - trackedTotal
+	if delta > -1 && delta < 1 {
+		return
+	}
+	if delta > 0 {
+		t.Timestamps = append(t.Timestamps, TimestampedCost{Timestamp: nowTime, Cost: delta})
+	} else {
+		excess := -delta
+		for excess > 0 && len(t.Timestamps) > 0 {
+			oldest := t.Timestamps[0]
+			if oldest.Cost <= excess {
+				excess -= oldest.Cost
+				t.Timestamps = t.Timestamps[1:]
+			} else {
+				t.Timestamps[0] = TimestampedCost{Timestamp: oldest.Timestamp, Cost: oldest.Cost - excess}
+				break
+			}
+		}
+	}
+}
+
 func filterTimestamps(timestamps []TimestampedCost, now int64, windowSize float64) []TimestampedCost {
 	result := []TimestampedCost{}
 	for _, t := range timestamps {

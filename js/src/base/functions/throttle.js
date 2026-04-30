@@ -90,6 +90,37 @@ class Throttler {
             }
         }
     }
+    syncUsedWeight(actualUsed, windowSize) {
+        if (this.config['algorithm'] === 'leakyBucket') {
+            return;
+        }
+        const windowMs = (windowSize !== undefined) ? windowSize : this.config['windowSize'];
+        const nowTime = now();
+        const cutOffTime = nowTime - windowMs;
+        this.timestamps = this.timestamps.filter((t) => t.timestamp > cutOffTime);
+        const trackedTotal = this.timestamps.reduce((sum, t) => sum + t.cost, 0);
+        const delta = actualUsed - trackedTotal;
+        if (Math.abs(delta) < 1) {
+            return;
+        }
+        if (delta > 0) {
+            this.timestamps.push({ timestamp: nowTime, cost: delta });
+        }
+        else {
+            let excess = -delta;
+            while (excess > 0 && this.timestamps.length > 0) {
+                const oldest = this.timestamps[0];
+                if (oldest.cost <= excess) {
+                    excess -= oldest.cost;
+                    this.timestamps.shift();
+                }
+                else {
+                    oldest.cost -= excess;
+                    break;
+                }
+            }
+        }
+    }
     async loop() {
         if (this.config['algorithm'] === 'leakyBucket') {
             await this.leakyBucketLoop();

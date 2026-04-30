@@ -105,6 +105,38 @@ class Throttler {
         }
     }
 
+    public function syncUsedWeight($actualUsed, $windowSize = null) {
+        if ($this->config['algorithm'] === 'leakyBucket') {
+            return;
+        }
+        $windowMs = ($windowSize !== null) ? $windowSize : $this->config['windowSize'];
+        $nowTime = microtime(true) * 1000.0;
+        $cutoffTime = $nowTime - $windowMs;
+        $this->timestamps = array_values(array_filter($this->timestamps, function ($t) use ($cutoffTime) {
+            return $t['timestamp'] > $cutoffTime;
+        }));
+        $trackedTotal = array_sum(array_column($this->timestamps, 'cost'));
+        $delta = $actualUsed - $trackedTotal;
+        if (abs($delta) < 1) {
+            return;
+        }
+        if ($delta > 0) {
+            $this->timestamps[] = ['timestamp' => $nowTime, 'cost' => $delta];
+        } else {
+            $excess = -$delta;
+            while ($excess > 0 && count($this->timestamps) > 0) {
+                $oldest = &$this->timestamps[0];
+                if ($oldest['cost'] <= $excess) {
+                    $excess -= $oldest['cost'];
+                    array_shift($this->timestamps);
+                } else {
+                    $oldest['cost'] -= $excess;
+                    break;
+                }
+            }
+        }
+    }
+
     public function __invoke($cost = null) {
         $future = new Deferred();
         $this->queue->enqueue(array($future, $cost));

@@ -1276,8 +1276,26 @@ public partial class bybit : Exchange
                     { "deposit", new Dictionary<string, object>() {} },
                 } },
             } },
-            { "rollingWindowSize", 5000 },
+            { "rateLimiterAlgorithm", "rollingWindow" },
+            { "rollingWindowSize", 1000 },
         });
+    }
+
+    public override void updateRateLimiterState(object statusCode, object statusText, object url, object method, object responseHeaders)
+    {
+        // Bybit returns per-endpoint remaining/limit headers on private endpoints
+        // X-Bapi-Limit-Status: remaining requests for this endpoint
+        // X-Bapi-Limit: max requests for this endpoint
+        object remaining = this.safeInteger2(responseHeaders, "X-Bapi-Limit-Status", "x-bapi-limit-status");
+        object limit = this.safeInteger2(responseHeaders, "X-Bapi-Limit", "x-bapi-limit");
+        if (isTrue(isTrue(isTrue(!isEqual(remaining, null)) && isTrue(!isEqual(limit, null))) && isTrue(isGreaterThan(limit, 0))))
+        {
+            // Scale per-endpoint usage to the global throttler's maxWeight
+            // e.g., endpoint limit=10, used=8 → 80% utilized → sync to 80% of maxWeight
+            object used = subtract(limit, remaining);
+            var scaledUsed = Math.Round(Convert.ToDouble(used) / Convert.ToDouble(limit) * this.throttler.config.MaxWeight);
+            this.throttler.syncUsedWeight(scaledUsed, 1000);
+        }
     }
 
     /**

@@ -82,6 +82,72 @@ async def test_throttler():
     print('│ Leaky Bucket (rollingWindowSize === 0)    │ ' + rolling_window_0_time_string.rjust(11) + '  │ ~950            │')
     print('└───────────────────────────────────────────┴──────────────┴─────────────────┘')
 
+    # --- syncUsedWeight tests ---
+    print('--- syncUsedWeight tests ---')
+    exchange4 = ccxt.binance({'enableRateLimit': True, 'rateLimiterAlgorithm': 'rollingWindow'})
+    throttler = exchange4.throttler
+    now_ms = exchange4.milliseconds()
+
+    # Test 1: Under-tracked
+    throttler.timestamps = [{'timestamp': now_ms - 10000, 'cost': 50}, {'timestamp': now_ms - 5000, 'cost': 30}, {'timestamp': now_ms - 1000, 'cost': 20}]
+    throttler.sync_used_weight(150)
+    total = sum(t['cost'] for t in throttler.timestamps)
+    assert abs(total - 150) < 1, 'under-tracked correction failed, got ' + str(total)
+    print('  1. under-tracked correction: passed')
+
+    # Test 2: Over-tracked
+    throttler.timestamps = [{'timestamp': now_ms - 10000, 'cost': 50}, {'timestamp': now_ms - 5000, 'cost': 30}, {'timestamp': now_ms - 1000, 'cost': 20}]
+    throttler.sync_used_weight(60)
+    total = sum(t['cost'] for t in throttler.timestamps)
+    assert abs(total - 60) < 1, 'over-tracked correction failed, got ' + str(total)
+    print('  2. over-tracked correction: passed')
+
+    # Test 3: Zero reset
+    throttler.timestamps = [{'timestamp': now_ms - 1000, 'cost': 50}]
+    throttler.sync_used_weight(0)
+    total = sum(t['cost'] for t in throttler.timestamps)
+    assert total == 0, 'zero reset failed, got ' + str(total)
+    print('  3. zero reset: passed')
+
+    # Test 4: Within tolerance
+    throttler.timestamps = [{'timestamp': now_ms - 1000, 'cost': 50}]
+    length_before = len(throttler.timestamps)
+    throttler.sync_used_weight(50)
+    assert len(throttler.timestamps) == length_before, 'tolerance no-op failed'
+    print('  4. within tolerance (no-op): passed')
+
+    # Test 5: Leaky bucket no-op
+    exchange5 = ccxt.binance({'enableRateLimit': True, 'rateLimiterAlgorithm': 'leakyBucket'})
+    exchange5.throttler.timestamps = [{'timestamp': now_ms, 'cost': 100}]
+    exchange5.throttler.sync_used_weight(200)
+    assert exchange5.throttler.timestamps[0]['cost'] == 100, 'leaky bucket should not modify'
+    print('  5. leaky bucket no-op: passed')
+
+    # Test 6: Expired entries pruned
+    throttler.timestamps = [{'timestamp': now_ms - 120000, 'cost': 999}, {'timestamp': now_ms - 1000, 'cost': 20}]
+    throttler.sync_used_weight(20)
+    total = sum(t['cost'] for t in throttler.timestamps)
+    assert abs(total - 20) < 1, 'expired entry pruning failed'
+    print('  6. expired entry pruning: passed')
+
+    # Test 7: Rate limit hit
+    throttler.timestamps = [{'timestamp': now_ms - 1000, 'cost': 100}]
+    throttler.sync_used_weight(1200)
+    total = sum(t['cost'] for t in throttler.timestamps)
+    assert abs(total - 1200) < 1, 'rate limit hit failed, got ' + str(total)
+    print('  7. rate limit hit (maxWeight): passed')
+
+    # Test 8: Custom windowSize
+    throttler.timestamps = [{'timestamp': now_ms - 5000, 'cost': 50}]
+    throttler.sync_used_weight(10, 1000)
+    total = sum(t['cost'] for t in throttler.timestamps)
+    assert abs(total - 10) < 1, 'custom windowSize failed'
+    print('  8. custom windowSize: passed')
+
+    print('--- all syncUsedWeight tests passed ---')
+    await exchange4.close()
+    await exchange5.close()
+
 def test_throttler_performance():
     try:
         # Check if there's already a running event loop

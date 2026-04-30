@@ -105,4 +105,68 @@ function test_throttler_performance() {
     );
     
     $loop->run();
+
+    // --- syncUsedWeight tests (synchronous, no event loop needed) ---
+    echo "--- syncUsedWeight tests ---\n";
+    $exchange4 = new \ccxt\async\binance(['enableRateLimit' => true, 'rateLimiterAlgorithm' => 'rollingWindow']);
+    $throttler = $exchange4->throttler;
+    $now_ms = (int)(microtime(true) * 1000);
+
+    // Test 1: Under-tracked
+    $throttler->timestamps = [['timestamp' => $now_ms - 10000, 'cost' => 50], ['timestamp' => $now_ms - 5000, 'cost' => 30], ['timestamp' => $now_ms - 1000, 'cost' => 20]];
+    $throttler->syncUsedWeight(150);
+    $total = array_sum(array_column($throttler->timestamps, 'cost'));
+    assert(abs($total - 150) < 1, 'under-tracked correction failed');
+    echo "  1. under-tracked correction: passed\n";
+
+    // Test 2: Over-tracked
+    $throttler->timestamps = [['timestamp' => $now_ms - 10000, 'cost' => 50], ['timestamp' => $now_ms - 5000, 'cost' => 30], ['timestamp' => $now_ms - 1000, 'cost' => 20]];
+    $throttler->syncUsedWeight(60);
+    $total = array_sum(array_column($throttler->timestamps, 'cost'));
+    assert(abs($total - 60) < 1, 'over-tracked correction failed');
+    echo "  2. over-tracked correction: passed\n";
+
+    // Test 3: Zero reset
+    $throttler->timestamps = [['timestamp' => $now_ms - 1000, 'cost' => 50]];
+    $throttler->syncUsedWeight(0);
+    $total = array_sum(array_column($throttler->timestamps, 'cost'));
+    assert($total == 0, 'zero reset failed');
+    echo "  3. zero reset: passed\n";
+
+    // Test 4: Within tolerance
+    $throttler->timestamps = [['timestamp' => $now_ms - 1000, 'cost' => 50]];
+    $length_before = count($throttler->timestamps);
+    $throttler->syncUsedWeight(50);
+    assert(count($throttler->timestamps) === $length_before, 'tolerance no-op failed');
+    echo "  4. within tolerance (no-op): passed\n";
+
+    // Test 5: Leaky bucket no-op
+    $exchange5 = new \ccxt\async\binance(['enableRateLimit' => true, 'rateLimiterAlgorithm' => 'leakyBucket']);
+    $exchange5->throttler->timestamps = [['timestamp' => $now_ms, 'cost' => 100]];
+    $exchange5->throttler->syncUsedWeight(200);
+    assert($exchange5->throttler->timestamps[0]['cost'] === 100, 'leaky bucket should not modify');
+    echo "  5. leaky bucket no-op: passed\n";
+
+    // Test 6: Expired entries pruned
+    $throttler->timestamps = [['timestamp' => $now_ms - 120000, 'cost' => 999], ['timestamp' => $now_ms - 1000, 'cost' => 20]];
+    $throttler->syncUsedWeight(20);
+    $total = array_sum(array_column($throttler->timestamps, 'cost'));
+    assert(abs($total - 20) < 1, 'expired entry pruning failed');
+    echo "  6. expired entry pruning: passed\n";
+
+    // Test 7: Rate limit hit
+    $throttler->timestamps = [['timestamp' => $now_ms - 1000, 'cost' => 100]];
+    $throttler->syncUsedWeight(1200);
+    $total = array_sum(array_column($throttler->timestamps, 'cost'));
+    assert(abs($total - 1200) < 1, 'rate limit hit failed');
+    echo "  7. rate limit hit (maxWeight): passed\n";
+
+    // Test 8: Custom windowSize
+    $throttler->timestamps = [['timestamp' => $now_ms - 5000, 'cost' => 50]];
+    $throttler->syncUsedWeight(10, 1000);
+    $total = array_sum(array_column($throttler->timestamps, 'cost'));
+    assert(abs($total - 10) < 1, 'custom windowSize failed');
+    echo "  8. custom windowSize: passed\n";
+
+    echo "--- all syncUsedWeight tests passed ---\n";
 }

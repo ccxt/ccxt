@@ -47,4 +47,83 @@ export default async function testThrottlerPerformance() {
     console.log('│ Leaky Bucket                              │          ' + leakyBucketTimeString + ' │ ~950            │');
     console.log('│ Leaky Bucket (rollingWindowSize === 0)    │          ' + rollingWindow0TimeString + ' │ ~950            │');
     console.log('└───────────────────────────────────────────┴──────────────┴─────────────────┘');
+    // --- syncUsedWeight tests ---
+    console.log('--- syncUsedWeight tests ---');
+    const exchange4 = new ccxt.binance({
+        'enableRateLimit': true,
+        'rateLimiterAlgorithm': 'rollingWindow',
+    });
+    const throttler = exchange4.throttler;
+    const nowMs = exchange4.milliseconds();
+    // Test 1: Under-tracked — server reports more usage than tracked
+    throttler.timestamps = [
+        { 'timestamp': nowMs - 10000, 'cost': 50 },
+        { 'timestamp': nowMs - 5000, 'cost': 30 },
+        { 'timestamp': nowMs - 1000, 'cost': 20 },
+    ];
+    throttler.syncUsedWeight(150);
+    let total = throttler.timestamps.reduce((sum, t) => sum + t.cost, 0);
+    assert(Math.abs(total - 150) < 1, 'syncUsedWeight under-tracked correction failed, got ' + total.toString());
+    console.log('  1. under-tracked correction: passed');
+    // Test 2: Over-tracked — server reports less usage
+    throttler.timestamps = [
+        { 'timestamp': nowMs - 10000, 'cost': 50 },
+        { 'timestamp': nowMs - 5000, 'cost': 30 },
+        { 'timestamp': nowMs - 1000, 'cost': 20 },
+    ];
+    throttler.syncUsedWeight(60);
+    total = throttler.timestamps.reduce((sum, t) => sum + t.cost, 0);
+    assert(Math.abs(total - 60) < 1, 'syncUsedWeight over-tracked correction failed, got ' + total.toString());
+    console.log('  2. over-tracked correction: passed');
+    // Test 3: Zero — server says window is fresh
+    throttler.timestamps = [
+        { 'timestamp': nowMs - 1000, 'cost': 50 },
+    ];
+    throttler.syncUsedWeight(0);
+    total = throttler.timestamps.reduce((sum, t) => sum + t.cost, 0);
+    assert(total === 0, 'syncUsedWeight zero reset failed, got ' + total.toString());
+    console.log('  3. zero reset: passed');
+    // Test 4: Within tolerance — no modification
+    throttler.timestamps = [
+        { 'timestamp': nowMs - 1000, 'cost': 50 },
+    ];
+    const lengthBefore = throttler.timestamps.length;
+    throttler.syncUsedWeight(50);
+    assert(throttler.timestamps.length === lengthBefore, 'syncUsedWeight tolerance no-op failed');
+    console.log('  4. within tolerance (no-op): passed');
+    // Test 5: Leaky bucket — should be a no-op
+    const exchange5 = new ccxt.binance({
+        'enableRateLimit': true,
+        'rateLimiterAlgorithm': 'leakyBucket',
+    });
+    exchange5.throttler.timestamps = [{ 'timestamp': nowMs, 'cost': 100 }];
+    exchange5.throttler.syncUsedWeight(200);
+    assert(exchange5.throttler.timestamps[0].cost === 100, 'syncUsedWeight leaky bucket should not modify timestamps');
+    console.log('  5. leaky bucket no-op: passed');
+    // Test 6: Expired entries are pruned
+    throttler.timestamps = [
+        { 'timestamp': nowMs - 120000, 'cost': 999 },
+        { 'timestamp': nowMs - 1000, 'cost': 20 },
+    ];
+    throttler.syncUsedWeight(20);
+    total = throttler.timestamps.reduce((sum, t) => sum + t.cost, 0);
+    assert(Math.abs(total - 20) < 1, 'syncUsedWeight expired entry pruning failed');
+    console.log('  6. expired entry pruning: passed');
+    // Test 7: Rate limit hit — sync to maxWeight
+    throttler.timestamps = [
+        { 'timestamp': nowMs - 1000, 'cost': 100 },
+    ];
+    throttler.syncUsedWeight(1200);
+    total = throttler.timestamps.reduce((sum, t) => sum + t.cost, 0);
+    assert(Math.abs(total - 1200) < 1, 'syncUsedWeight rate limit hit failed, got ' + total.toString());
+    console.log('  7. rate limit hit (maxWeight): passed');
+    // Test 8: Custom windowSize parameter
+    throttler.timestamps = [
+        { 'timestamp': nowMs - 5000, 'cost': 50 },
+    ];
+    throttler.syncUsedWeight(10, 1000);
+    total = throttler.timestamps.reduce((sum, t) => sum + t.cost, 0);
+    assert(Math.abs(total - 10) < 1, 'syncUsedWeight custom windowSize failed');
+    console.log('  8. custom windowSize: passed');
+    console.log('--- all syncUsedWeight tests passed ---');
 }

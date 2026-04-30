@@ -1,5 +1,7 @@
 /* eslint-disable */
+import assert from 'assert';
 import { Throttler } from '../../../base/functions/throttle.js'
+import { now } from '../../../base/functions/time.js';
 
 function testThrottle () {
 
@@ -95,6 +97,94 @@ function testThrottle () {
     for (const test of testCases) {
         runner (test)
     }
+
+    testSyncUsedWeight ();
+}
+
+function testSyncUsedWeight () {
+    console.log ('--- syncUsedWeight tests ---');
+
+    function trackedTotal (throttler: Throttler): number {
+        return throttler.timestamps.reduce ((sum, t) => sum + t.cost, 0);
+    }
+
+    // Test 1: Under-tracked
+    {
+        const t = new Throttler ({ 'algorithm': 'rollingWindow', 'rateLimit': 50, 'windowSize': 60000 });
+        const n = now ();
+        t.timestamps = [{ timestamp: n - 10000, cost: 50 }, { timestamp: n - 5000, cost: 30 }, { timestamp: n - 1000, cost: 20 }];
+        t.syncUsedWeight (150);
+        assert (Math.abs (trackedTotal (t) - 150) < 1, 'under-tracked correction failed');
+        console.log ('  1. under-tracked correction: passed');
+    }
+
+    // Test 2: Over-tracked
+    {
+        const t = new Throttler ({ 'algorithm': 'rollingWindow', 'rateLimit': 50, 'windowSize': 60000 });
+        const n = now ();
+        t.timestamps = [{ timestamp: n - 10000, cost: 50 }, { timestamp: n - 5000, cost: 30 }, { timestamp: n - 1000, cost: 20 }];
+        t.syncUsedWeight (60);
+        assert (Math.abs (trackedTotal (t) - 60) < 1, 'over-tracked correction failed');
+        console.log ('  2. over-tracked correction: passed');
+    }
+
+    // Test 3: Zero reset
+    {
+        const t = new Throttler ({ 'algorithm': 'rollingWindow', 'rateLimit': 50, 'windowSize': 60000 });
+        t.timestamps = [{ timestamp: now () - 1000, cost: 50 }];
+        t.syncUsedWeight (0);
+        assert.strictEqual (trackedTotal (t), 0, 'zero reset failed');
+        console.log ('  3. zero reset: passed');
+    }
+
+    // Test 4: Within tolerance
+    {
+        const t = new Throttler ({ 'algorithm': 'rollingWindow', 'rateLimit': 50, 'windowSize': 60000 });
+        t.timestamps = [{ timestamp: now () - 1000, cost: 50 }];
+        const before = t.timestamps.length;
+        t.syncUsedWeight (50);
+        assert.strictEqual (t.timestamps.length, before, 'tolerance no-op failed');
+        console.log ('  4. within tolerance (no-op): passed');
+    }
+
+    // Test 5: Leaky bucket no-op
+    {
+        const t = new Throttler ({ 'algorithm': 'leakyBucket', 'refillRate': 0.02 });
+        t.timestamps = [{ timestamp: now (), cost: 100 }];
+        t.syncUsedWeight (200);
+        assert.strictEqual (t.timestamps[0].cost, 100, 'leaky bucket should not modify');
+        console.log ('  5. leaky bucket no-op: passed');
+    }
+
+    // Test 6: Expired entries pruned
+    {
+        const t = new Throttler ({ 'algorithm': 'rollingWindow', 'rateLimit': 50, 'windowSize': 60000 });
+        const n = now ();
+        t.timestamps = [{ timestamp: n - 120000, cost: 999 }, { timestamp: n - 1000, cost: 20 }];
+        t.syncUsedWeight (20);
+        assert (Math.abs (trackedTotal (t) - 20) < 1, 'pruning failed');
+        console.log ('  6. expired entry pruning: passed');
+    }
+
+    // Test 7: Rate limit hit
+    {
+        const t = new Throttler ({ 'algorithm': 'rollingWindow', 'rateLimit': 50, 'windowSize': 60000 });
+        t.timestamps = [{ timestamp: now () - 1000, cost: 100 }];
+        t.syncUsedWeight (1200);
+        assert (trackedTotal (t) + 1 > t.config.maxWeight, 'should block at maxWeight');
+        console.log ('  7. rate limit hit (maxWeight): passed');
+    }
+
+    // Test 8: Custom windowSize
+    {
+        const t = new Throttler ({ 'algorithm': 'rollingWindow', 'rateLimit': 50, 'windowSize': 60000 });
+        t.timestamps = [{ timestamp: now () - 5000, cost: 50 }];
+        t.syncUsedWeight (10, 1000);
+        assert (Math.abs (trackedTotal (t) - 10) < 1, 'custom windowSize failed');
+        console.log ('  8. custom windowSize: passed');
+    }
+
+    console.log ('--- all syncUsedWeight tests passed ---');
 }
 
 export default testThrottle;

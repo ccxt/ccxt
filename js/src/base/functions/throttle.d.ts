@@ -22,6 +22,7 @@ declare class Throttler {
     constructor(config: any);
     leakyBucketLoop(): Promise<void>;
     rollingWindowLoop(): Promise<void>;
+    syncUsedWeight(actualUsed: number, windowSize?: number): void;
     loop(): Promise<void>;
     throttle(cost?: any): Promise<unknown>;
 }

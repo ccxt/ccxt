@@ -7,6 +7,7 @@ import "strings"
 
 type IExchange interface {
 	IBaseExchange
+	GetThrottler() *Throttler
 	FetchCurrencies(params ...interface{}) (Currencies, error)
 	FetchMarkets(params ...interface{}) ([]MarketInterface, error)
 	FetchAccounts(params ...interface{}) ([]Account, error)

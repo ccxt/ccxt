@@ -70,4 +70,89 @@ func TestThrottlerPerformance() {
 	fmt.Println(Add(Add("│ Leaky Bucket    │          ", leakyBucketTimeString), " │ ~950            │"))
 	fmt.Println(Add(Add("│ Leaky Bucket (rollingWindowSize === 0)    │          ", rollingWindow0TimeString), " │ ~950            │"))
 	fmt.Println("└─────────────────┴──────────────┴─────────────────┘")
+
+	// --- syncUsedWeight tests ---
+	fmt.Println("--- syncUsedWeight tests ---")
+	exchange4 := ccxt.CreateExchange("binance", map[string]interface{}{
+		"enableRateLimit":      true,
+		"rateLimiterAlgorithm": "rollingWindow",
+	})
+	throttler := exchange4.GetThrottler()
+	nowMs := time.Now().UnixMilli()
+
+	// Test 1: Under-tracked
+	throttler.Timestamps = []ccxt.TimestampedCost{{Timestamp: nowMs - 10000, Cost: 50}, {Timestamp: nowMs - 5000, Cost: 30}, {Timestamp: nowMs - 1000, Cost: 20}}
+	throttler.SyncUsedWeight(150)
+	total := sumTimestampCosts(throttler.Timestamps)
+	Assert(abs(total-150) < 1, Add("under-tracked correction failed, got ", ToString(total)))
+	fmt.Println("  1. under-tracked correction: passed")
+
+	// Test 2: Over-tracked
+	throttler.Timestamps = []ccxt.TimestampedCost{{Timestamp: nowMs - 10000, Cost: 50}, {Timestamp: nowMs - 5000, Cost: 30}, {Timestamp: nowMs - 1000, Cost: 20}}
+	throttler.SyncUsedWeight(60)
+	total = sumTimestampCosts(throttler.Timestamps)
+	Assert(abs(total-60) < 1, Add("over-tracked correction failed, got ", ToString(total)))
+	fmt.Println("  2. over-tracked correction: passed")
+
+	// Test 3: Zero reset
+	throttler.Timestamps = []ccxt.TimestampedCost{{Timestamp: nowMs - 1000, Cost: 50}}
+	throttler.SyncUsedWeight(0)
+	total = sumTimestampCosts(throttler.Timestamps)
+	Assert(total == 0, Add("zero reset failed, got ", ToString(total)))
+	fmt.Println("  3. zero reset: passed")
+
+	// Test 4: Within tolerance
+	throttler.Timestamps = []ccxt.TimestampedCost{{Timestamp: nowMs - 1000, Cost: 50}}
+	lengthBefore := len(throttler.Timestamps)
+	throttler.SyncUsedWeight(50)
+	Assert(len(throttler.Timestamps) == lengthBefore, "tolerance no-op failed")
+	fmt.Println("  4. within tolerance (no-op): passed")
+
+	// Test 5: Leaky bucket no-op
+	exchange5 := ccxt.CreateExchange("binance", map[string]interface{}{
+		"enableRateLimit":      true,
+		"rateLimiterAlgorithm": "leakyBucket",
+	})
+	exchange5.GetThrottler().Timestamps = []ccxt.TimestampedCost{{Timestamp: nowMs, Cost: 100}}
+	exchange5.GetThrottler().SyncUsedWeight(200)
+	Assert(exchange5.GetThrottler().Timestamps[0].Cost == 100, "leaky bucket should not modify")
+	fmt.Println("  5. leaky bucket no-op: passed")
+
+	// Test 6: Expired entries pruned
+	throttler.Timestamps = []ccxt.TimestampedCost{{Timestamp: nowMs - 120000, Cost: 999}, {Timestamp: nowMs - 1000, Cost: 20}}
+	throttler.SyncUsedWeight(20)
+	total = sumTimestampCosts(throttler.Timestamps)
+	Assert(abs(total-20) < 1, "expired entry pruning failed")
+	fmt.Println("  6. expired entry pruning: passed")
+
+	// Test 7: Rate limit hit
+	throttler.Timestamps = []ccxt.TimestampedCost{{Timestamp: nowMs - 1000, Cost: 100}}
+	throttler.SyncUsedWeight(1200)
+	total = sumTimestampCosts(throttler.Timestamps)
+	Assert(abs(total-1200) < 1, Add("rate limit hit failed, got ", ToString(total)))
+	fmt.Println("  7. rate limit hit (maxWeight): passed")
+
+	// Test 8: Custom windowSize
+	throttler.Timestamps = []ccxt.TimestampedCost{{Timestamp: nowMs - 5000, Cost: 50}}
+	throttler.SyncUsedWeight(10, 1000)
+	total = sumTimestampCosts(throttler.Timestamps)
+	Assert(abs(total-10) < 1, "custom windowSize failed")
+	fmt.Println("  8. custom windowSize: passed")
+
+	fmt.Println("--- all syncUsedWeight tests passed ---")
+}
+
+func sumTimestampCosts(timestamps []ccxt.TimestampedCost) float64 {
+	sum := 0.0
+	for _, t := range timestamps {
+		sum += t.Cost
+	}
+	return sum
+}
+
+func abs(x float64) float64 {
+	if x < 0 {
+		return -x
+	}
+	return x
 }

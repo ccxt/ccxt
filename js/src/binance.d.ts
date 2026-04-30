@@ -6,6 +6,7 @@ import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, 
  */
 export default class binance extends Exchange {
     describe(): any;
+    updateRateLimiterState(statusCode: number, statusText: string, url: string, method: string, responseHeaders: object): void;
     isInverse(type: string, subType?: Str): boolean;
     isLinear(type: string, subType?: Str): boolean;
     setSandboxMode(enable: boolean): void;

@@ -42,4 +42,5 @@ bin/
 obj/
 __debug*
 *.o
-.custom_gitignore
+.custom_gitignoretest_drift_comparison.py
+test_rate_limit_stress.py

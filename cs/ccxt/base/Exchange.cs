@@ -356,6 +356,11 @@ public partial class Exchange
             responseBody = result; // if parsing fails, return the original result
         }
 
+        if (this.enableRateLimit && this.enableRateLimitFeedback)
+        {
+            this.updateRateLimiterState(httpStatusCode, httpStatusText, url, method, responseHeaders);
+        }
+
         var res = handleErrors(httpStatusCode, httpStatusText, url, method, responseHeaders, result, responseBody, headers, body);
         if (res == null)
             handleHttpStatusCode(httpStatusCode, httpStatusText, url, method, result);

@@ -4992,6 +4992,11 @@ public partial class Exchange
         return null;
     }
 
+    public virtual void updateRateLimiterState(object statusCode, object statusText, object url, object method, object responseHeaders)
+    {
+        // override in subclasses to feed server-reported usage back into the throttler
+    }
+
     public virtual object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();

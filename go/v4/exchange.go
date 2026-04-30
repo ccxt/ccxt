@@ -67,7 +67,8 @@ type Exchange struct {
 	Alias                  bool
 	Verbose                bool
 	UserAgent              string
-	EnableRateLimit        bool
+	EnableRateLimit         bool
+	EnableRateLimitFeedback bool
 	Url                    string
 	Hostname               string
 	BaseCurrencies         *sync.Map

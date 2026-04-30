@@ -2699,8 +2699,16 @@ class binance extends Exchange {
                     'PERCENT_PRICE_BY_SIDE' => '\\ccxt\\InvalidOrder', // array("code":-1013,"msg":"Filter failure => PERCENT_PRICE_BY_SIDE")
                 ),
             ),
+            'rateLimiterAlgorithm' => 'rollingWindow',
             'rollingWindowSize' => 60000.0,
         ));
+    }
+
+    public function update_rate_limiter_state(float $statusCode, string $statusText, string $url, string $method, array $responseHeaders): void {
+        $usedWeight1m = $this->safe_integer_2($responseHeaders, 'X-Mbx-Used-Weight-1m', 'x-mbx-used-weight-1m');
+        if ($usedWeight1m !== null && isset($this->throttler)) {
+            $this->throttler->syncUsedWeight ($usedWeight1m, 60000);
+        }
     }
 
     public function is_inverse(string $type, ?string $subType = null): bool {

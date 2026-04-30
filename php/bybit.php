@@ -1349,8 +1349,19 @@ class bybit extends Exchange {
                     'deposit' => array(),
                 ),
             ),
-            'rollingWindowSize' => 5000.0, // According to the docs (https://bybit-exchange.github.io/docs/v5/rate-limit), tested with 90000.0 with no errors
+            'rateLimiterAlgorithm' => 'rollingWindow',
+            'rollingWindowSize' => 1000.0, // Bybit rate limits are per-second per-endpoint
         ));
+    }
+
+    public function update_rate_limiter_state($statusCode, $statusText, $url, $method, $responseHeaders) {
+        $remaining = $this->safe_integer_2($responseHeaders, 'X-Bapi-Limit-Status', 'x-bapi-limit-status');
+        $limit = $this->safe_integer_2($responseHeaders, 'X-Bapi-Limit', 'x-bapi-limit');
+        if ($remaining !== null && $limit !== null && $limit > 0 && isset($this->throttler)) {
+            $used = $limit - $remaining;
+            $scaledUsed = (int) round(($used / $limit) * $this->throttler->config['maxWeight']);
+            $this->throttler->syncUsedWeight($scaledUsed, 1000);
+        }
     }
 
     public function enable_demo_trading(bool $enable) {

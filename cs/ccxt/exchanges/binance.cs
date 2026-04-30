@@ -2595,8 +2595,18 @@ public partial class binance : Exchange
                     { "PERCENT_PRICE_BY_SIDE", typeof(InvalidOrder) },
                 } },
             } },
+            { "rateLimiterAlgorithm", "rollingWindow" },
             { "rollingWindowSize", 60000 },
         });
+    }
+
+    public override void updateRateLimiterState(object statusCode, object statusText, object url, object method, object responseHeaders)
+    {
+        object usedWeight1m = this.safeInteger2(responseHeaders, "X-Mbx-Used-Weight-1m", "x-mbx-used-weight-1m");
+        if (isTrue(!isEqual(usedWeight1m, null)))
+        {
+            this.throttler.syncUsedWeight(Convert.ToDouble(usedWeight1m), 60000);
+        }
     }
 
     public virtual object isInverse(object type, object subType = null)

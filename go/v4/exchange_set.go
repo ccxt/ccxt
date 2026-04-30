@@ -54,6 +54,10 @@ func (this *Exchange) GetLastResponseHeaders() map[string]interface{} {
 	return this.Last_response_headers.(map[string]interface{})
 }
 
+func (this *Exchange) GetThrottler() *Throttler {
+	return this.Throttler
+}
+
 func (this *Exchange) GetId() string {
 	return this.Id
 }

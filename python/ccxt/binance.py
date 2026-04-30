@@ -2728,8 +2728,14 @@ class binance(Exchange, ImplicitAPI):
                     'PERCENT_PRICE_BY_SIDE': InvalidOrder,  # {"code":-1013,"msg":"Filter failure: PERCENT_PRICE_BY_SIDE"}
                 },
             },
+            'rateLimiterAlgorithm': 'rollingWindow',
             'rollingWindowSize': 60000.0,
         })
+
+    def update_rate_limiter_state(self, statusCode, statusText, url, method, responseHeaders):
+        usedWeight1m = self.safe_integer_2(responseHeaders, 'X-Mbx-Used-Weight-1m', 'x-mbx-used-weight-1m')
+        if usedWeight1m is not None and self.throttler is not None:
+            self.throttler.sync_used_weight(usedWeight1m, 60000)
 
     def is_inverse(self, type: str, subType: Str = None) -> bool:
         if subType is None:

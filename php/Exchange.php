@@ -302,6 +302,7 @@ class Exchange {
     public $restRequestQueue = null;
     public $restPollerLoopIsRunning = false;
     public $enableRateLimit = true;
+    public $enableRateLimitFeedback = true;
     // rate limiter properties
     public $rateLimiterAlgorithm = 'leakyBucket';  // rollingWindow or leakyBucket
     public $rollingWindowSize = 60000;
@@ -1769,6 +1770,9 @@ class Exchange {
         return is_string($response_body) ? trim($response_body) : $response_body;
     }
 
+    public function update_rate_limiter_state($code, $reason, $url, $method, $response_headers) {
+    }
+
     public function on_json_response($response_body) {
         return (is_string($response_body) && $this->quoteJsonNumbers) ? preg_replace('/":([+.0-9eE-]+)([,}])/', '":"$1"$2', $response_body) : $response_body;
     }
@@ -1958,6 +1962,10 @@ class Exchange {
 
         if ($this->enableLastResponseHeaders) {
             $this->last_response_headers = $response_headers;
+        }
+
+        if ($this->enableRateLimit && $this->enableRateLimitFeedback) {
+            $this->update_rate_limiter_state($http_status_code, $http_status_text, $url, $method, $response_headers);
         }
 
         $json_response = null;

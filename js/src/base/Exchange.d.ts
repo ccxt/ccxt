@@ -145,6 +145,7 @@ export default class Exchange {
     tokenBucket: Dictionary<number>;
     throttler: any;
     enableRateLimit: boolean;
+    enableRateLimitFeedback: boolean;
     rollingWindowSize: number;
     rateLimiterAlgorithm: string;
     httpExceptions: Dictionary<any>;
@@ -248,7 +249,7 @@ export default class Exchange {
         outputLen: number;
         blockLen: number;
         create(): import("../static_dependencies/noble-hashes/utils.js").Hash<import("../static_dependencies/noble-hashes/utils.js").Hash<any>>;
-    }, digest?: "binary" | "hex" | "base64") => any;
+    }, digest?: "hex" | "base64" | "binary") => any;
     arrayConcat: (a: any[], b: any[]) => any[];
     encode: (str: string) => Uint8Array;
     urlencode: (object: object, sort?: boolean) => string;
@@ -257,7 +258,7 @@ export default class Exchange {
         outputLen: number;
         blockLen: number;
         create(): import("../static_dependencies/noble-hashes/utils.js").Hash<import("../static_dependencies/noble-hashes/utils.js").Hash<any>>;
-    }, digest?: "binary" | "hex" | "base64") => any;
+    }, digest?: "hex" | "base64" | "binary") => any;
     numberToString: typeof functions.numberToString;
     parseTimeframe: (timeframe: string) => number;
     safeInteger2: (o: any, k1: IndexType, k2: IndexType, $default?: number) => number;
@@ -335,6 +336,7 @@ export default class Exchange {
     getResponseHeaders(response: any): {};
     handleRestResponse(response: any, url: any, method?: string, requestHeaders?: any, requestBody?: any): any;
     onRestResponse(statusCode: any, statusText: any, url: any, method: any, responseHeaders: any, responseBody: any, requestHeaders: any, requestBody: any): any;
+    updateRateLimiterState(statusCode: number, statusText: string, url: string, method: string, responseHeaders: object): void;
     onJsonResponse(responseBody: any): any;
     loadMarketsHelper(reload?: boolean, params?: {}): Promise<Dictionary<any>>;
     /**

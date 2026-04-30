@@ -1372,8 +1372,20 @@ class bybit(Exchange, ImplicitAPI):
                     'deposit': {},
                 },
             },
-            'rollingWindowSize': 5000.0,  # According to the docs(https://bybit-exchange.github.io/docs/v5/rate-limit), tested with 90000.0 with no errors
+            'rateLimiterAlgorithm': 'rollingWindow',
+            'rollingWindowSize': 1000.0,  # Bybit rate limits are per-second per-endpoint
         })
+
+    def update_rate_limiter_state(self, statusCode, statusText, url, method, responseHeaders):
+        # Bybit returns per-endpoint remaining/limit headers on private endpoints
+        # X-Bapi-Limit-Status: remaining requests for this endpoint
+        # X-Bapi-Limit: max requests for this endpoint
+        remaining = self.safe_integer_2(responseHeaders, 'X-Bapi-Limit-Status', 'x-bapi-limit-status')
+        limit = self.safe_integer_2(responseHeaders, 'X-Bapi-Limit', 'x-bapi-limit')
+        if remaining is not None and limit is not None and limit > 0 and self.throttler is not None:
+            used = limit - remaining
+            scaled_used = round((used / limit) * self.throttler.config['maxWeight'])
+            self.throttler.sync_used_weight(scaled_used, 1000)
 
     def enable_demo_trading(self, enable: bool):
         """

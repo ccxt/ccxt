@@ -6,6 +6,7 @@ import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory
  */
 export default class bybit extends Exchange {
     describe(): any;
+    updateRateLimiterState(statusCode: number, statusText: string, url: string, method: string, responseHeaders: object): void;
     /**
      * @method
      * @name bybit#enableDemoTrading

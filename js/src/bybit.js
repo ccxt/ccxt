@@ -1356,8 +1356,23 @@ export default class bybit extends Exchange {
                     'deposit': {},
                 },
             },
-            'rollingWindowSize': 5000.0, // According to the docs (https://bybit-exchange.github.io/docs/v5/rate-limit), tested with 90000.0 with no errors
+            'rateLimiterAlgorithm': 'rollingWindow',
+            'rollingWindowSize': 1000.0, // Bybit rate limits are per-second per-endpoint
         });
+    }
+    updateRateLimiterState(statusCode, statusText, url, method, responseHeaders) {
+        // Bybit returns per-endpoint remaining/limit headers on private endpoints
+        // X-Bapi-Limit-Status: remaining requests for this endpoint
+        // X-Bapi-Limit: max requests for this endpoint
+        const remaining = this.safeInteger2(responseHeaders, 'X-Bapi-Limit-Status', 'x-bapi-limit-status');
+        const limit = this.safeInteger2(responseHeaders, 'X-Bapi-Limit', 'x-bapi-limit');
+        if (remaining !== undefined && limit !== undefined && limit > 0) {
+            // Scale per-endpoint usage to the global throttler's maxWeight
+            // e.g., endpoint limit=10, used=8 → 80% utilized → sync to 80% of maxWeight
+            const used = limit - remaining;
+            const scaledUsed = Math.round((used / limit) * this.throttler.config.maxWeight);
+            this.throttler.syncUsedWeight(scaledUsed, 1000);
+        }
     }
     /**
      * @method

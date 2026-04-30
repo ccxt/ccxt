@@ -120,6 +120,7 @@ export default class Exchange {
         this.tokenBucket = undefined;
         this.throttler = undefined;
         this.enableRateLimit = undefined;
+        this.enableRateLimitFeedback = true;
         this.rollingWindowSize = 0.0; // set to 0.0 to use leaky bucket rate limiter
         this.rateLimiterAlgorithm = 'leakyBucket';
         this.httpExceptions = undefined;
@@ -839,6 +840,9 @@ export default class Exchange {
             if (this.enableLastJsonResponse) {
                 this.last_json_response = parsedBody;
             }
+            if (this.enableRateLimit && this.enableRateLimitFeedback) {
+                this.updateRateLimiterState(response.status, response.statusText, url, method, responseHeaders);
+            }
             if (this.verbose) {
                 this.log('handleRestResponse:\n', this.id, method, url, response.status, response.statusText, '\nResponseHeaders:\n', responseHeaders, '\nResponseBody:\n', responseBody, '\n');
             }
@@ -854,6 +858,9 @@ export default class Exchange {
     }
     onRestResponse(statusCode, statusText, url, method, responseHeaders, responseBody, requestHeaders, requestBody) {
         return responseBody.trim();
+    }
+    updateRateLimiterState(statusCode, statusText, url, method, responseHeaders) {
+        // override in subclasses to feed server-reported usage back into the throttler
     }
     onJsonResponse(responseBody) {
         return this.quoteJsonNumbers ? responseBody.replace(/":([+.0-9eE-]+)([,}])/g, '":"$1"$2') : responseBody;

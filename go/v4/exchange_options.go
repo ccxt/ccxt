@@ -382,6 +382,7 @@ func (this *Exchange) initializeProperties(extendedProperties map[string]interfa
 		this.Currencies = this.MapToSafeMap(propCurrencies)
 	}
 	this.EnableRateLimit = SafeValue(extendedProperties, "enableRateLimit", true).(bool)
+	this.EnableRateLimitFeedback = SafeValue(extendedProperties, "enableRateLimitFeedback", true).(bool)
 	this.RateLimit = SafeFloat(extendedProperties, "rateLimit", -1).(float64)
 	this.RollingWindowSize = SafeFloat(extendedProperties, "rollingWindowSize", 0.0).(float64)
 	this.RateLimiterAlgorithm = SafeString(extendedProperties, "rateLimiterAlgorithm", "leakyBucket").(string)

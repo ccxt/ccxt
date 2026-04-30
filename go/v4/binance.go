@@ -2602,8 +2602,17 @@ func (this *BinanceCore) Describe() interface{} {
 				"PERCENT_PRICE_BY_SIDE":      InvalidOrder,
 			},
 		},
-		"rollingWindowSize": 60000,
+		"rateLimiterAlgorithm": "rollingWindow",
+		"rollingWindowSize":    60000,
 	})
+}
+func (this *BinanceCore) UpdateRateLimiterState(statusCode interface{}, statusText interface{}, url interface{}, method interface{}, responseHeaders interface{}) {
+	var usedWeight1m interface{} = this.SafeInteger2(responseHeaders, "X-Mbx-Used-Weight-1m", "x-mbx-used-weight-1m")
+	if IsTrue(!IsEqual(usedWeight1m, nil)) {
+		if this.Throttler != nil {
+			this.Throttler.SyncUsedWeight(ToFloat64(usedWeight1m), 60000)
+		}
+	}
 }
 func (this *BinanceCore) IsInverse(typeVar interface{}, optionalArgs ...interface{}) interface{} {
 	subType := GetArg(optionalArgs, 0, nil)

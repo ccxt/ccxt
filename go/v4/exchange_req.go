@@ -220,6 +220,15 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 			fmt.Printf("Response: %s\n", respBody)
 		}
 
+		if this.EnableRateLimit && this.EnableRateLimitFeedback {
+			type rateLimiterUpdater interface {
+				UpdateRateLimiterState(statusCode interface{}, statusText interface{}, url interface{}, method interface{}, responseHeaders interface{})
+			}
+			if updater, ok := this.DerivedExchange.(rateLimiterUpdater); ok {
+				updater.UpdateRateLimiterState(resp.StatusCode, http.StatusText(resp.StatusCode), urlStr, methodStr, responseHeaders)
+			}
+		}
+
 		statusText := http.StatusText(resp.StatusCode)
 		// handleErrorResult := <-this.callInternal("handleErrors", resp.StatusCode, statusText, urlStr, methodStr, headers, string(respBody), result, headersStrMap, body)
 		handleErrorResult := this.DerivedExchange.HandleErrors(resp.StatusCode, statusText, urlStr, methodStr, responseHeaders, string(respBody), result, headersStrMap, body)

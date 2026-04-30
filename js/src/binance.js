@@ -2708,8 +2708,15 @@ export default class binance extends Exchange {
                     'PERCENT_PRICE_BY_SIDE': InvalidOrder, // {"code":-1013,"msg":"Filter failure: PERCENT_PRICE_BY_SIDE"}
                 },
             },
+            'rateLimiterAlgorithm': 'rollingWindow',
             'rollingWindowSize': 60000.0,
         });
+    }
+    updateRateLimiterState(statusCode, statusText, url, method, responseHeaders) {
+        const usedWeight1m = this.safeInteger2(responseHeaders, 'X-Mbx-Used-Weight-1m', 'x-mbx-used-weight-1m');
+        if (usedWeight1m !== undefined) {
+            this.throttler.syncUsedWeight(usedWeight1m, 60000);
+        }
     }
     isInverse(type, subType = undefined) {
         if (subType === undefined) {

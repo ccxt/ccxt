@@ -230,6 +230,10 @@ class Exchange extends \ccxt\Exchange {
                 $this->last_response_headers = $response_headers;
             }
 
+            if ($this->enableRateLimit && $this->enableRateLimitFeedback) {
+                $this->update_rate_limiter_state($http_status_code, $http_status_text, $url, $method, $response_headers);
+            }
+
             if ($this->verbose) {
                 print_r(array('fetch Response:', $this->id, $method, $url, $http_status_code, 'ResponseHeaders:', $response_headers, 'ResponseBody:', $response_body));
             }

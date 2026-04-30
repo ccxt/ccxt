@@ -79,6 +79,30 @@ class Throttler:
         else:
             await self.rolling_window_loop()
 
+    def sync_used_weight(self, actual_used, window_size=None):
+        if self.config['algorithm'] == 'leakyBucket':
+            return
+        window_ms = window_size if window_size is not None else self.config['windowSize']
+        now_time = time() * 1000
+        cutoff_time = now_time - window_ms
+        self.timestamps = [t for t in self.timestamps if t['timestamp'] > cutoff_time]
+        tracked_total = sum(t['cost'] for t in self.timestamps)
+        delta = actual_used - tracked_total
+        if abs(delta) < 1:
+            return
+        if delta > 0:
+            self.timestamps.append({'timestamp': now_time, 'cost': delta})
+        else:
+            excess = -delta
+            while excess > 0 and len(self.timestamps) > 0:
+                oldest = self.timestamps[0]
+                if oldest['cost'] <= excess:
+                    excess -= oldest['cost']
+                    self.timestamps.pop(0)
+                else:
+                    oldest['cost'] -= excess
+                    break
+
     def __call__(self, cost=None):
         future = asyncio.Future()
         self.queue.append((future, cost))
