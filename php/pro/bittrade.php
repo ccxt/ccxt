@@ -59,7 +59,7 @@ class bittrade extends \ccxt\async\bittrade {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -125,7 +125,7 @@ class bittrade extends \ccxt\async\bittrade {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -279,7 +279,7 @@ class bittrade extends \ccxt\async\bittrade {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             if (($limit !== null) && ($limit !== 150)) {
                 throw new ExchangeError($this->id . ' watchOrderBook accepts $limit = 150 only');
@@ -316,6 +316,7 @@ class bittrade extends \ccxt\async\bittrade {
         //     {
         //         "id" => 1583473663565,
         //         "rep" => "market.btcusdt.mbp.150",
+        //         "ts" => 1774979531056,
         //         "status" => "ok",
         //         "data" => {
         //             "seqNum" => 104999417756,
@@ -334,10 +335,13 @@ class bittrade extends \ccxt\async\bittrade {
         //
         $symbol = $this->safe_string($subscription, 'symbol');
         $messageHash = $this->safe_string($subscription, 'messageHash');
+        $timestamp = $this->safe_integer($message, 'ts');
         $orderbook = $this->orderbooks[$symbol];
         $data = $this->safe_value($message, 'data');
         $snapshot = $this->parse_order_book($data, $symbol);
         $snapshot['nonce'] = $this->safe_integer($data, 'seqNum');
+        $snapshot['timestamp'] = $timestamp;
+        $snapshot['datetime'] = $this->iso8601($timestamp);
         $orderbook->reset ($snapshot);
         // unroll the accumulated deltas
         $messages = $orderbook->cache;

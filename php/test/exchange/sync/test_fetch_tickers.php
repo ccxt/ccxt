@@ -12,7 +12,7 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_ticker.php';
 function test_fetch_tickers($exchange, $skipped_properties, $symbol) {
     $without_symbol = test_fetch_tickers_helper($exchange, $skipped_properties, null);
     $with_symbol = test_fetch_tickers_helper($exchange, $skipped_properties, [$symbol]);
-    $results = Promise\all([$without_symbol, $with_symbol]);
+    $results = [$without_symbol, $with_symbol];
     test_fetch_tickers_amounts($exchange, $skipped_properties, $results[0]);
     return $results;
 }

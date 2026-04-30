@@ -13,7 +13,8 @@ public partial class testMainClass : BaseTest
         object method = "watchTradesForSymbols";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
-        while (isLessThan(now, ends))
+        object returnedSymbols = new List<object>() {};
+        while (isTrue(isLessThan(now, ends)) || isTrue(isLessThan(getArrayLength(returnedSymbols), getArrayLength(symbols))))
         {
             object response = null;
             object success = true;
@@ -39,8 +40,12 @@ public partial class testMainClass : BaseTest
                     symbol = getValue(trade, "symbol");
                     testTrade(exchange, skippedProperties, method, trade, symbol, now);
                     testSharedMethods.assertInArray(exchange, skippedProperties, method, trade, "symbol", symbols);
+                    if (!isTrue(exchange.inArray(symbol, returnedSymbols)))
+                    {
+                        ((IList<object>)returnedSymbols).Add(symbol);
+                    }
                 }
-                if (!isTrue((inOp(skippedProperties, "timestamp"))))
+                if (!isTrue((inOp(skippedProperties, "timestampSort"))))
                 {
                     testSharedMethods.assertTimestampOrder(exchange, method, symbol, response);
                 }

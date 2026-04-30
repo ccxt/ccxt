@@ -1315,6 +1315,62 @@ func (this *HuobiCore) ContractPrivateGetLinearSwapApiV3LinearSwapOverviewAccoun
 	return this.callEndpointAsync("contractPrivateGetLinearSwapApiV3LinearSwapOverviewAccountInfo", args...)
 }
 
+func (this *HuobiCore) ContractPrivateGetV5AccountBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetV5AccountBalance", args...)
+}
+
+func (this *HuobiCore) ContractPrivateGetV5AccountAssetMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetV5AccountAssetMode", args...)
+}
+
+func (this *HuobiCore) ContractPrivateGetV5TradePositionOpens(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetV5TradePositionOpens", args...)
+}
+
+func (this *HuobiCore) ContractPrivateGetV5TradeOrderOpens(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetV5TradeOrderOpens", args...)
+}
+
+func (this *HuobiCore) ContractPrivateGetV5TradeOrderDetails(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetV5TradeOrderDetails", args...)
+}
+
+func (this *HuobiCore) ContractPrivateGetV5TradeOrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetV5TradeOrderHistory", args...)
+}
+
+func (this *HuobiCore) ContractPrivateGetV5TradeOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetV5TradeOrder", args...)
+}
+
+func (this *HuobiCore) ContractPrivateGetV5PositionLever(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetV5PositionLever", args...)
+}
+
+func (this *HuobiCore) ContractPrivateGetV5PositionMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetV5PositionMode", args...)
+}
+
+func (this *HuobiCore) ContractPrivateGetV5PositionRiskLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetV5PositionRiskLimit", args...)
+}
+
+func (this *HuobiCore) ContractPrivateGetV5PositionRiskLimitTier(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetV5PositionRiskLimitTier", args...)
+}
+
+func (this *HuobiCore) ContractPrivateGetV5MarketRiskLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetV5MarketRiskLimit", args...)
+}
+
+func (this *HuobiCore) ContractPrivateGetV5MarketAssetsDeductionCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetV5MarketAssetsDeductionCurrency", args...)
+}
+
+func (this *HuobiCore) ContractPrivateGetV5MarketMultiAssetsMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetV5MarketMultiAssetsMargin", args...)
+}
+
 func (this *HuobiCore) ContractPrivatePostApiV1ContractBalanceValuation(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractBalanceValuation", args...)
 }
@@ -2181,4 +2237,48 @@ func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTrackHisorders(args
 
 func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTrackHisorders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTrackHisorders", args...)
+}
+
+func (this *HuobiCore) ContractPrivatePostV5AccountAssetMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostV5AccountAssetMode", args...)
+}
+
+func (this *HuobiCore) ContractPrivatePostV5TradeOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostV5TradeOrder", args...)
+}
+
+func (this *HuobiCore) ContractPrivatePostV5TradeBatchOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostV5TradeBatchOrders", args...)
+}
+
+func (this *HuobiCore) ContractPrivatePostV5TradeCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostV5TradeCancelOrder", args...)
+}
+
+func (this *HuobiCore) ContractPrivatePostV5TradeCancelBatchOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostV5TradeCancelBatchOrders", args...)
+}
+
+func (this *HuobiCore) ContractPrivatePostV5TradeCancelAllOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostV5TradeCancelAllOrders", args...)
+}
+
+func (this *HuobiCore) ContractPrivatePostV5TradePosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostV5TradePosition", args...)
+}
+
+func (this *HuobiCore) ContractPrivatePostV5TradePositionAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostV5TradePositionAll", args...)
+}
+
+func (this *HuobiCore) ContractPrivatePostV5PositionLever(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostV5PositionLever", args...)
+}
+
+func (this *HuobiCore) ContractPrivatePostV5PositionMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostV5PositionMode", args...)
+}
+
+func (this *HuobiCore) ContractPrivatePostV5AccountFeeDeductionCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostV5AccountFeeDeductionCurrency", args...)
 }

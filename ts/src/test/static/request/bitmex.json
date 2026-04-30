@@ -122,7 +122,7 @@
                         "timeInForce": "GTC"
                     }
                 ],
-                "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000,\"ordType\":\"Limit\",\"text\":\"CCXT\",\"price\":36000,\"postOnly\":true,\"timeInForce\":\"GTC\"}"
+                "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000,\"ordType\":\"Limit\",\"text\":\"CCXT\",\"price\":36000,\"timeInForce\":\"GTC\",\"execInst\":\"ParticipateDoNotInitiate\"}"
             },
             {
                 "description": "spot market buy with triggerPrice and triggerDirection below",
@@ -188,7 +188,7 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Sell\",\"orderQty\":1000,\"ordType\":\"Market\",\"text\":\"CCXT\",\"reduceOnly\":true}"
+                "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Sell\",\"orderQty\":1000,\"ordType\":\"Market\",\"text\":\"CCXT\",\"execInst\":\"ReduceOnly\"}"
             },
             {
                 "description": "Swap market trailing order",
@@ -661,6 +661,67 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            }
+        ],
+        "fetchPositionADLRank": [
+            {
+                "description": "linear swap fetchPositionADLRank",
+                "method": "fetchPositionADLRank",
+                "url": "https://testnet.bitmex.com/api/v1/position",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "fetchOpenInterests with symbol",
+                "method": "fetchOpenInterests",
+                "url": "https://www.bitmex.com/api/v1/stats",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "fetchOpenInterests no symbol",
+                "method": "fetchOpenInterests",
+                "url": "https://www.bitmex.com/api/v1/stats",
+                "input": []
+            }
+        ],
+        "fetchSettlementHistory": [
+            {
+                "description": "Fetch Settlement History",
+                "method": "fetchSettlementHistory",
+                "url": "https://www.bitmex.com/api/v1/settlement",
+                "input": []
+            },
+            {
+                "description": "Fetch Settlement History with since, limit and until",
+                "method": "fetchSettlementHistory",
+                "url": "https://www.bitmex.com/api/v1/settlement?startTime=2015-05-01T12%3A00%3A00.000Z&count=2&endTime=2015-05-01T12%3A00%3A00.000Z",
+                "input": [
+                    null,
+                    1430481600000,
+                    2,
+                    {
+                       "until": 1430568000000
+                    }
+                ]
+            }
+        ],
+        "closePosition": [
+            {
+                "description": "linear swap sell close position",
+                "method": "closePosition",
+                "url": "https://testnet.bitmex.com/api/v1/order",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "sell"
+                ],
+                "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Sell\",\"execInst\":\"Close\"}"
             }
         ]
     }

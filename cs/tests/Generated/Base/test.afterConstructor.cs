@@ -14,18 +14,12 @@ public partial class BaseTest
                 { "rateLimit", 10.8 },
             });
             // todo: Assert (exchange.MAX_VALUE !== undefined);
-            object tokenBucket = exchange.getProperty(exchange, "tokenBucket"); // trick for uncamelcase transpilation
-            if (isTrue(isEqual(tokenBucket, null)))
-            {
-                tokenBucket = exchange.getProperty(exchange, "TokenBucket");
-            }
+            object tokenBucket = exchangeProp(exchange, "tokenBucket"); // trick for uncamelcase transpilation
             Assert(!isEqual(tokenBucket, null));
-            Assert("GO_SKIP_START");
-            object rateLimit = exchange.getProperty(exchange, "rateLimit");
+            object rateLimit = exchangeProp(exchange, "rateLimit");
             Assert(isEqual(rateLimit, 10.8));
             Assert(isEqual(getValue(tokenBucket, "delay"), 0.001));
             Assert(isEqual(getValue(tokenBucket, "refillRate"), divide(1, rateLimit)));
-            Assert("GO_SKIP_END");
             // fix decimal/integer issues across langs
             Assert(exchange.inArray(getValue(tokenBucket, "capacity"), new List<object>() {1, 1}));
             object cost = exchange.parseToNumeric(exchange.safeString2(tokenBucket, "cost", "defaultCost")); // python sync, todo fix
@@ -37,8 +31,7 @@ public partial class BaseTest
             shouldBeEnabled ??= true;
             Assert(!isEqual(exchange.urls, null));
             Assert(inOp(exchange.urls, "test"));
-            Assert("GO_SKIP_START");
-            object isSandboxModeEnabled = exchange.getProperty(exchange, "isSandboxModeEnabled");
+            object isSandboxModeEnabled = exchangeProp(exchange, "isSandboxModeEnabled");
             if (isTrue(shouldBeEnabled))
             {
                 Assert(isSandboxModeEnabled);
@@ -50,7 +43,6 @@ public partial class BaseTest
                 Assert(isEqual(getValue(getValue(exchange.urls, "api"), "public"), "https://example.com"));
                 Assert(isEqual(getValue(getValue(exchange.urls, "test"), "public"), "https://example.org"));
             }
-            Assert("GO_SKIP_END");
         }
         public void helperTestInitSandbox()
         {

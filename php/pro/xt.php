@@ -578,7 +578,7 @@ class xt extends \ccxt\async\xt {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the kucoin api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $name = 'trade';
@@ -603,7 +603,7 @@ class xt extends \ccxt\async\xt {
              * @see https://doc.xt.com/#futures_user_websocket_v2balance
              *
              * @param {array} $params extra parameters specific to the xt api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=balance-structure balance structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=balance-structure balance structures~
              */
             Async\await($this->load_markets());
             $name = 'balance';
@@ -671,9 +671,11 @@ class xt extends \ccxt\async\xt {
                 }
             }
             // don't remove the $future from the .futures $cache
-            $future = $client->futures[$messageHash];
-            $future->resolve ($cache);
-            $client->resolve ($cache, 'position::contract');
+            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
+                $future = $client->futures[$messageHash];
+                $future->resolve ($cache);
+                $client->resolve ($cache, 'position::contract');
+            }
         }) ();
     }
 

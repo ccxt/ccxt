@@ -234,14 +234,6 @@ func (this *BithumbCore) Describe() interface{} {
 						},
 					},
 				},
-				"USDT": map[string]interface{}{
-					"limits": map[string]interface{}{
-						"cost": map[string]interface{}{
-							"min": nil,
-							"max": nil,
-						},
-					},
-				},
 			},
 		},
 		"commonCurrencies": map[string]interface{}{
@@ -400,7 +392,7 @@ func (this *BithumbCore) ParseBalance(response interface{}) interface{} {
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B3%B4%EC%9C%A0%EC%9E%90%EC%82%B0-%EC%A1%B0%ED%9A%8C
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *BithumbCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -410,8 +402,8 @@ func (this *BithumbCore) FetchBalance(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes4538 := (<-this.LoadMarkets())
-		PanicOnError(retRes4538)
+		retRes4458 := (<-this.LoadMarkets())
+		PanicOnError(retRes4458)
 		var request interface{} = map[string]interface{}{
 			"currency": "ALL",
 		}
@@ -434,7 +426,7 @@ func (this *BithumbCore) FetchBalance(optionalArgs ...interface{}) <-chan interf
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *BithumbCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -446,8 +438,8 @@ func (this *BithumbCore) FetchOrderBook(symbol interface{}, optionalArgs ...inte
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes4728 := (<-this.LoadMarkets())
-		PanicOnError(retRes4728)
+		retRes4648 := (<-this.LoadMarkets())
+		PanicOnError(retRes4648)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"baseId":  GetValue(market, "baseId"),
@@ -546,7 +538,7 @@ func (this *BithumbCore) ParseTicker(ticker interface{}, optionalArgs ...interfa
  * @see https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BithumbCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -558,8 +550,8 @@ func (this *BithumbCore) FetchTickers(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes5668 := (<-this.LoadMarkets())
-		PanicOnError(retRes5668)
+		retRes5588 := (<-this.LoadMarkets())
+		PanicOnError(retRes5588)
 		var result interface{} = map[string]interface{}{}
 		var quoteCurrencies interface{} = this.SafeDict(this.Options, "quoteCurrencies", map[string]interface{}{})
 		var quotes interface{} = ObjectKeys(quoteCurrencies)
@@ -626,7 +618,7 @@ func (this *BithumbCore) FetchTickers(optionalArgs ...interface{}) <-chan interf
  * @see https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BithumbCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -636,8 +628,8 @@ func (this *BithumbCore) FetchTicker(symbol interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes6298 := (<-this.LoadMarkets())
-		PanicOnError(retRes6298)
+		retRes6218 := (<-this.LoadMarkets())
+		PanicOnError(retRes6218)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"baseId":  GetValue(market, "baseId"),
@@ -715,8 +707,8 @@ func (this *BithumbCore) FetchOHLCV(symbol interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes6938 := (<-this.LoadMarkets())
-		PanicOnError(retRes6938)
+		retRes6858 := (<-this.LoadMarkets())
+		PanicOnError(retRes6858)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"baseId":   GetValue(market, "baseId"),
@@ -846,7 +838,7 @@ func (this *BithumbCore) ParseTrade(trade interface{}, optionalArgs ...interface
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BithumbCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -860,8 +852,8 @@ func (this *BithumbCore) FetchTrades(symbol interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes8188 := (<-this.LoadMarkets())
-		PanicOnError(retRes8188)
+		retRes8108 := (<-this.LoadMarkets())
+		PanicOnError(retRes8108)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"baseId":  GetValue(market, "baseId"),
@@ -909,7 +901,7 @@ func (this *BithumbCore) FetchTrades(symbol interface{}, optionalArgs ...interfa
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BithumbCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -921,8 +913,8 @@ func (this *BithumbCore) CreateOrder(symbol interface{}, typeVar interface{}, si
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes8628 := (<-this.LoadMarkets())
-		PanicOnError(retRes8628)
+		retRes8548 := (<-this.LoadMarkets())
+		PanicOnError(retRes8548)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"order_currency":   GetValue(market, "id"),
@@ -965,7 +957,7 @@ func (this *BithumbCore) CreateOrder(symbol interface{}, typeVar interface{}, si
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BithumbCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -980,8 +972,8 @@ func (this *BithumbCore) FetchOrder(id interface{}, optionalArgs ...interface{})
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
 		}
 
-		retRes9048 := (<-this.LoadMarkets())
-		PanicOnError(retRes9048)
+		retRes8968 := (<-this.LoadMarkets())
+		PanicOnError(retRes8968)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"order_id":         id,
@@ -1146,7 +1138,7 @@ func (this *BithumbCore) ParseOrder(order interface{}, optionalArgs ...interface
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of open order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BithumbCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1165,8 +1157,8 @@ func (this *BithumbCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan int
 			panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrders() requires a symbol argument")))
 		}
 
-		retRes10668 := (<-this.LoadMarkets())
-		PanicOnError(retRes10668)
+		retRes10588 := (<-this.LoadMarkets())
+		PanicOnError(retRes10588)
 		var market interface{} = this.Market(symbol)
 		if IsTrue(IsEqual(limit, nil)) {
 			limit = 100
@@ -1216,7 +1208,7 @@ func (this *BithumbCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan int
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BithumbCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1272,9 +1264,9 @@ func (this *BithumbCore) CancelUnifiedOrder(order interface{}, optionalArgs ...i
 			"side": GetValue(order, "side"),
 		}
 
-		retRes114415 := (<-this.CancelOrder(GetValue(order, "id"), GetValue(order, "symbol"), this.Extend(request, params)))
-		PanicOnError(retRes114415)
-		ch <- retRes114415
+		retRes113615 := (<-this.CancelOrder(GetValue(order, "id"), GetValue(order, "symbol"), this.Extend(request, params)))
+		PanicOnError(retRes113615)
+		ch <- retRes113615
 		return nil
 
 	}()
@@ -1291,7 +1283,7 @@ func (this *BithumbCore) CancelUnifiedOrder(order interface{}, optionalArgs ...i
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BithumbCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1307,8 +1299,8 @@ func (this *BithumbCore) Withdraw(code interface{}, amount interface{}, address 
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
 
-		retRes11628 := (<-this.LoadMarkets())
-		PanicOnError(retRes11628)
+		retRes11548 := (<-this.LoadMarkets())
+		PanicOnError(retRes11548)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"units":    amount,

@@ -44,6 +44,17 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties interface{}, meth
 	if IsTrue(IsTrue(!IsEqual(symbolForMarket, nil)) && IsTrue((InOp(exchange.GetMarkets(), symbolForMarket)))) {
 		market = exchange.Market(symbolForMarket)
 	}
+	// temp todo: skip inactive markets for now, as they sometimes have weird values and causing issues:
+	if !IsTrue((InOp(skippedProperties, "checkInactiveMarkets"))) {
+		if IsTrue(IsTrue(!IsEqual(market, nil)) && IsTrue(IsEqual(GetValue(market, "active"), false))) {
+			return
+		}
+	}
+	if IsTrue(InOp(skippedProperties, "skipNonActiveMarkets")) {
+		if IsTrue(IsTrue(IsEqual(market, nil)) || !IsTrue(GetValue(market, "active"))) {
+			return
+		}
+	}
 	// only check "above zero" values if exchange is not supposed to have exotic index markets
 	var isStandardMarket interface{} = (IsTrue(!IsEqual(market, nil)) && IsTrue(exchange.InArray(GetValue(market, "type"), []interface{}{"spot", "swap", "future", "option"})))
 	var valuesShouldBePositive interface{} = isStandardMarket // || (market === undefined) atm, no check for index markets

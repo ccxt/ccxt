@@ -49,6 +49,21 @@
         ],
         "fetchOHLCV": [
             {
+                "description": "mark ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.prod.paradex.trade/v1/markets/klines?resolution=60&symbol=BTC-USD-PERP&price_kind=mark&end_at=1764326287714&start_at=1763962687715",
+                "input": [
+                    "BTC/USD:USDC",
+                    "1h",
+                    null,
+                    null,
+                    {
+                        "price": "mark"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "fetchOHLCV",
                 "method": "fetchOHLCV",
                 "url": "https://api.testnet.paradex.trade/v1/markets/klines?resolution=1&symbol=BTC-USD-PERP&end_at=1719993576989&start_at=1719993276989",

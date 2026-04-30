@@ -70,7 +70,7 @@ upbit.fetchMarkets ([params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -94,7 +94,7 @@ upbit.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>object</code> - a dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbol
+**Returns**: <code>object</code> - a dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbol
 
 **See**
 
@@ -120,7 +120,7 @@ upbit.fetchOrderBooks (symbols[, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -146,7 +146,7 @@ upbit.fetchOrderBook (symbol[, limit, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -171,7 +171,7 @@ upbit.fetchTickers (symbols[, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -196,7 +196,7 @@ upbit.fetchTicker (symbol[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -223,7 +223,7 @@ upbit.fetchTrades (symbol[, since, limit, params])
 fetch the trading fees for a market
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 **See**
 
@@ -248,7 +248,7 @@ upbit.fetchTradingFee (symbol[, params])
 fetch the trading fees for markets
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>object</code> - a [trading fee structure](https://docs.ccxt.com/#/?id=trading-fee-structure)
+**Returns**: <code>object</code> - a [trading fee structure](https://docs.ccxt.com/?id=trading-fee-structure)
 
 
 | Param | Type | Required | Description |
@@ -295,7 +295,7 @@ upbit.fetchOHLCV (symbol, timeframe[, since, limit, params])
 create a trade order
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -331,7 +331,7 @@ upbit.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -357,7 +357,7 @@ upbit.cancelOrder (id, symbol[, params])
 canceled existing order and create new order. It's only generated same side and symbol as the canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -393,7 +393,7 @@ upbit.editOrder (id, symbol, type, side, amount, price[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**
 
@@ -420,7 +420,7 @@ upbit.fetchDeposits (code[, since, limit, params])
 fetch information on a deposit
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**
 
@@ -447,7 +447,7 @@ upbit.fetchDeposit (id[, code, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**
 
@@ -474,7 +474,7 @@ upbit.fetchWithdrawals (code[, since, limit, params])
 fetch data on a currency withdrawal via the withdrawal id
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**
 
@@ -501,7 +501,7 @@ upbit.fetchWithdrawal (id[, code, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -529,7 +529,7 @@ upbit.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -557,7 +557,7 @@ upbit.fetchClosedOrders (symbol[, since, limit, params])
 fetches information on multiple canceled orders made by the user
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -585,7 +585,7 @@ upbit.fetchCanceledOrders (symbol[, since, limit, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -611,7 +611,7 @@ upbit.fetchOrder (id, symbol[, params])
 fetch deposit addresses for multiple currencies and chain types
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>object</code> - a list of [address structures](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - a list of [address structures](https://docs.ccxt.com/?id=address-structure)
 
 **See**
 
@@ -636,7 +636,7 @@ upbit.fetchDepositAddresses (codes[, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**
 
@@ -662,7 +662,7 @@ upbit.fetchDepositAddress (code[, params])
 create a currency deposit address
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**
 
@@ -687,7 +687,7 @@ upbit.createDepositAddress (code[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**
 
@@ -715,7 +715,7 @@ upbit.withdraw (code, amount, address, tag[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://global-docs.upbit.com/reference/websocket-ticker  
 
@@ -736,7 +736,7 @@ upbit.watchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://global-docs.upbit.com/reference/websocket-ticker  
 
@@ -757,7 +757,7 @@ upbit.watchTickers (symbols[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://global-docs.upbit.com/reference/websocket-trade  
 
@@ -780,7 +780,7 @@ upbit.watchTrades (symbol[, since, limit, params])
 get the list of most recent trades for a list of symbols
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://global-docs.upbit.com/reference/websocket-trade  
 
@@ -803,7 +803,7 @@ upbit.watchTradesForSymbols (symbols[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://global-docs.upbit.com/reference/websocket-orderbook  
 
@@ -825,7 +825,7 @@ upbit.watchOrderBook (symbol[, limit, params])
 watches information an OHLCV with timestamp, openingPrice, highPrice, lowPrice, tradePrice, baseVolume in 1s.
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>Array&lt;OHLCV&gt;</code> - a list of [OHLCV structures](https://docs.ccxt.com/#/?id=ohlcv-structure)
+**Returns**: <code>Array&lt;OHLCV&gt;</code> - a list of [OHLCV structures](https://docs.ccxt.com/?id=ohlcv-structure)
 
 **See**
 
@@ -853,7 +853,7 @@ upbit.watchOHLCV (symbol, timeframe[, since, limit, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://global-docs.upbit.com/reference/websocket-myorder  
 
@@ -876,7 +876,7 @@ upbit.watchOrders (symbol[, since, limit, params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://global-docs.upbit.com/reference/websocket-myorder  
 
@@ -899,7 +899,7 @@ upbit.watchMyTrades (symbol[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://global-docs.upbit.com/reference/websocket-myasset  
 

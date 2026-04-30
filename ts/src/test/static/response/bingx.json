@@ -3,6 +3,722 @@
     "skipKeys": [ "tranId", "timestamp", "id" ],
     "options": {},
     "methods": {
+        "fetchFundingHistory": [
+            {
+                "description": "funding",
+                "method": "fetchFundingHistory",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": [
+                        {
+                            "symbol": "LTC-USDT",
+                            "incomeType": "FUNDING_FEE",
+                            "income": "-0.00056154",
+                            "asset": "USDT",
+                            "info": "Funding Fee",
+                            "time": "1769241660000",
+                            "tranId": "1769048666279853387_310_1941328",
+                            "tradeId": "1769048666279853387_310_1941312"
+                        },
+                        {
+                            "symbol": "LTC-USDT",
+                            "incomeType": "FUNDING_FEE",
+                            "income": "-0.00009521",
+                            "asset": "USDT",
+                            "info": "Funding Fee",
+                            "time": "1769212846000",
+                            "tranId": "1769048666279853387_310_1723487",
+                            "tradeId": "1769048666279853387_310_1723468"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "LTC-USDT",
+                            "incomeType": "FUNDING_FEE",
+                            "income": "-0.00009521",
+                            "asset": "USDT",
+                            "info": "Funding Fee",
+                            "time": "1769212846000",
+                            "tranId": "1769048666279853387_310_1723487",
+                            "tradeId": "1769048666279853387_310_1723468"
+                        },
+                        "symbol": "LTC/USDT:USDT",
+                        "code": "USDT",
+                        "timestamp": 1769212846000,
+                        "datetime": "2026-01-24T00:00:46.000Z",
+                        "id": "1769048666279853387_310_1723487",
+                        "amount": -0.00009521,
+                        "type": "funding"
+                    },
+                    {
+                        "info": {
+                            "symbol": "LTC-USDT",
+                            "incomeType": "FUNDING_FEE",
+                            "income": "-0.00056154",
+                            "asset": "USDT",
+                            "info": "Funding Fee",
+                            "time": "1769241660000",
+                            "tranId": "1769048666279853387_310_1941328",
+                            "tradeId": "1769048666279853387_310_1941312"
+                        },
+                        "symbol": "LTC/USDT:USDT",
+                        "code": "USDT",
+                        "timestamp": 1769241660000,
+                        "datetime": "2026-01-24T08:01:00.000Z",
+                        "id": "1769048666279853387_310_1941328",
+                        "amount": -0.00056154,
+                        "type": "funding"
+                    }
+                ]
+            }
+        ],
+        "fetchMarketLeverageTiers": [
+            {
+                "description": "fetch leverage tiers for ETH/USDT:USDT market",
+                "method": "fetchMarketLeverageTiers",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "timestamp": "1767791526274",
+                    "data": [
+                        {
+                            "tier": "Tier 1",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "0",
+                            "maxPositionVal": "900000",
+                            "maintMarginRatio": "0.003300",
+                            "maintAmount": "0.000000"
+                        },
+                        {
+                            "tier": "Tier 2",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "900000",
+                            "maxPositionVal": "1200000",
+                            "maintMarginRatio": "0.005600",
+                            "maintAmount": "2070.000000"
+                        },
+                        {
+                            "tier": "Tier 3",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "1200000",
+                            "maxPositionVal": "1500000",
+                            "maintMarginRatio": "0.006300",
+                            "maintAmount": "2910.000000"
+                        },
+                        {
+                            "tier": "Tier 4",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "1500000",
+                            "maxPositionVal": "1800000",
+                            "maintMarginRatio": "0.006700",
+                            "maintAmount": "3510.000000"
+                        },
+                        {
+                            "tier": "Tier 5",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "1800000",
+                            "maxPositionVal": "2400000",
+                            "maintMarginRatio": "0.007100",
+                            "maintAmount": "4230.000000"
+                        },
+                        {
+                            "tier": "Tier 6",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "2400000",
+                            "maxPositionVal": "3200000",
+                            "maintMarginRatio": "0.007700",
+                            "maintAmount": "5670.000000"
+                        },
+                        {
+                            "tier": "Tier 7",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "3200000",
+                            "maxPositionVal": "4000000",
+                            "maintMarginRatio": "0.009100",
+                            "maintAmount": "10150.000000"
+                        },
+                        {
+                            "tier": "Tier 8",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "4000000",
+                            "maxPositionVal": "5000000",
+                            "maintMarginRatio": "0.010000",
+                            "maintAmount": "13750.000000"
+                        },
+                        {
+                            "tier": "Tier 9",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "5000000",
+                            "maxPositionVal": "8000000",
+                            "maintMarginRatio": "0.012000",
+                            "maintAmount": "23750.000000"
+                        },
+                        {
+                            "tier": "Tier 10",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "8000000",
+                            "maxPositionVal": "12000000",
+                            "maintMarginRatio": "0.013000",
+                            "maintAmount": "31750.000000"
+                        },
+                        {
+                            "tier": "Tier 11",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "12000000",
+                            "maxPositionVal": "16000000",
+                            "maintMarginRatio": "0.014000",
+                            "maintAmount": "43750.000000"
+                        },
+                        {
+                            "tier": "Tier 12",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "16000000",
+                            "maxPositionVal": "22000000",
+                            "maintMarginRatio": "0.015000",
+                            "maintAmount": "59750.000000"
+                        },
+                        {
+                            "tier": "Tier 13",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "22000000",
+                            "maxPositionVal": "28000000",
+                            "maintMarginRatio": "0.020000",
+                            "maintAmount": "169750.000000"
+                        },
+                        {
+                            "tier": "Tier 14",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "28000000",
+                            "maxPositionVal": "32000000",
+                            "maintMarginRatio": "0.025000",
+                            "maintAmount": "309750.000000"
+                        },
+                        {
+                            "tier": "Tier 15",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "32000000",
+                            "maxPositionVal": "34000000",
+                            "maintMarginRatio": "0.030000",
+                            "maintAmount": "469750.000000"
+                        },
+                        {
+                            "tier": "Tier 16",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "34000000",
+                            "maxPositionVal": "36000000",
+                            "maintMarginRatio": "0.033000",
+                            "maintAmount": "571750.000000"
+                        },
+                        {
+                            "tier": "Tier 17",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "36000000",
+                            "maxPositionVal": "38000000",
+                            "maintMarginRatio": "0.035000",
+                            "maintAmount": "643750.000000"
+                        },
+                        {
+                            "tier": "Tier 18",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "38000000",
+                            "maxPositionVal": "40000000",
+                            "maintMarginRatio": "0.038000",
+                            "maintAmount": "757750.000000"
+                        },
+                        {
+                            "tier": "Tier 19",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "40000000",
+                            "maxPositionVal": "42000000",
+                            "maintMarginRatio": "0.039000",
+                            "maintAmount": "797750.000000"
+                        },
+                        {
+                            "tier": "Tier 20",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "42000000",
+                            "maxPositionVal": "44000000",
+                            "maintMarginRatio": "0.042000",
+                            "maintAmount": "923750.000000"
+                        },
+                        {
+                            "tier": "Tier 21",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "44000000",
+                            "maxPositionVal": "46000000",
+                            "maintMarginRatio": "0.045000",
+                            "maintAmount": "1055750.000000"
+                        },
+                        {
+                            "tier": "Tier 22",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "46000000",
+                            "maxPositionVal": "150000000",
+                            "maintMarginRatio": "0.050000",
+                            "maintAmount": "1285750.000000"
+                        },
+                        {
+                            "tier": "Tier 23",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "150000000",
+                            "maxPositionVal": "400000000",
+                            "maintMarginRatio": "0.125000",
+                            "maintAmount": "12535750.000000"
+                        },
+                        {
+                            "tier": "Tier 24",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "400000000",
+                            "maxPositionVal": "800000000",
+                            "maintMarginRatio": "0.250000",
+                            "maintAmount": "62535750.000000"
+                        },
+                        {
+                            "tier": "Tier 25",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "800000000",
+                            "maxPositionVal": "1200000000",
+                            "maintMarginRatio": "0.500000",
+                            "maintAmount": "262535750.000000"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "tier": 1,
+                        "symbol": "ETH/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 0,
+                        "maxNotional": 900000,
+                        "maintenanceMarginRate": 0.0033,
+                        "maxLeverage": null,
+                        "info": {
+                            "tier": "Tier 1",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "0",
+                            "maxPositionVal": "900000",
+                            "maintMarginRatio": "0.003300",
+                            "maintAmount": "0.000000"
+                        }
+                    },
+                    {
+                        "tier": 2,
+                        "symbol": "ETH/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 900000,
+                        "maxNotional": 1200000,
+                        "maintenanceMarginRate": 0.0056,
+                        "maxLeverage": null,
+                        "info": {
+                            "tier": "Tier 2",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "900000",
+                            "maxPositionVal": "1200000",
+                            "maintMarginRatio": "0.005600",
+                            "maintAmount": "2070.000000"
+                        }
+                    },
+                    {
+                        "tier": 3,
+                        "symbol": "ETH/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 1200000,
+                        "maxNotional": 1500000,
+                        "maintenanceMarginRate": 0.0063,
+                        "maxLeverage": null,
+                        "info": {
+                            "tier": "Tier 3",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "1200000",
+                            "maxPositionVal": "1500000",
+                            "maintMarginRatio": "0.006300",
+                            "maintAmount": "2910.000000"
+                        }
+                    },
+                    {
+                        "tier": 4,
+                        "symbol": "ETH/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 1500000,
+                        "maxNotional": 1800000,
+                        "maintenanceMarginRate": 0.0067,
+                        "maxLeverage": null,
+                        "info": {
+                            "tier": "Tier 4",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "1500000",
+                            "maxPositionVal": "1800000",
+                            "maintMarginRatio": "0.006700",
+                            "maintAmount": "3510.000000"
+                        }
+                    },
+                    {
+                        "tier": 5,
+                        "symbol": "ETH/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 1800000,
+                        "maxNotional": 2400000,
+                        "maintenanceMarginRate": 0.0071,
+                        "maxLeverage": null,
+                        "info": {
+                            "tier": "Tier 5",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "1800000",
+                            "maxPositionVal": "2400000",
+                            "maintMarginRatio": "0.007100",
+                            "maintAmount": "4230.000000"
+                        }
+                    },
+                    {
+                        "tier": 6,
+                        "symbol": "ETH/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 2400000,
+                        "maxNotional": 3200000,
+                        "maintenanceMarginRate": 0.0077,
+                        "maxLeverage": null,
+                        "info": {
+                            "tier": "Tier 6",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "2400000",
+                            "maxPositionVal": "3200000",
+                            "maintMarginRatio": "0.007700",
+                            "maintAmount": "5670.000000"
+                        }
+                    },
+                    {
+                        "tier": 7,
+                        "symbol": "ETH/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 3200000,
+                        "maxNotional": 4000000,
+                        "maintenanceMarginRate": 0.0091,
+                        "maxLeverage": null,
+                        "info": {
+                            "tier": "Tier 7",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "3200000",
+                            "maxPositionVal": "4000000",
+                            "maintMarginRatio": "0.009100",
+                            "maintAmount": "10150.000000"
+                        }
+                    },
+                    {
+                        "tier": 8,
+                        "symbol": "ETH/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 4000000,
+                        "maxNotional": 5000000,
+                        "maintenanceMarginRate": 0.01,
+                        "maxLeverage": null,
+                        "info": {
+                            "tier": "Tier 8",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "4000000",
+                            "maxPositionVal": "5000000",
+                            "maintMarginRatio": "0.010000",
+                            "maintAmount": "13750.000000"
+                        }
+                    },
+                    {
+                        "tier": 9,
+                        "symbol": "ETH/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 5000000,
+                        "maxNotional": 8000000,
+                        "maintenanceMarginRate": 0.012,
+                        "maxLeverage": null,
+                        "info": {
+                            "tier": "Tier 9",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "5000000",
+                            "maxPositionVal": "8000000",
+                            "maintMarginRatio": "0.012000",
+                            "maintAmount": "23750.000000"
+                        }
+                    },
+                    {
+                        "tier": 10,
+                        "symbol": "ETH/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 8000000,
+                        "maxNotional": 12000000,
+                        "maintenanceMarginRate": 0.013,
+                        "maxLeverage": null,
+                        "info": {
+                            "tier": "Tier 10",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "8000000",
+                            "maxPositionVal": "12000000",
+                            "maintMarginRatio": "0.013000",
+                            "maintAmount": "31750.000000"
+                        }
+                    },
+                    {
+                        "tier": 11,
+                        "symbol": "ETH/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 12000000,
+                        "maxNotional": 16000000,
+                        "maintenanceMarginRate": 0.014,
+                        "maxLeverage": null,
+                        "info": {
+                            "tier": "Tier 11",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "12000000",
+                            "maxPositionVal": "16000000",
+                            "maintMarginRatio": "0.014000",
+                            "maintAmount": "43750.000000"
+                        }
+                    },
+                    {
+                        "tier": 12,
+                        "symbol": "ETH/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 16000000,
+                        "maxNotional": 22000000,
+                        "maintenanceMarginRate": 0.015,
+                        "maxLeverage": null,
+                        "info": {
+                            "tier": "Tier 12",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "16000000",
+                            "maxPositionVal": "22000000",
+                            "maintMarginRatio": "0.015000",
+                            "maintAmount": "59750.000000"
+                        }
+                    },
+                    {
+                        "tier": 13,
+                        "symbol": "ETH/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 22000000,
+                        "maxNotional": 28000000,
+                        "maintenanceMarginRate": 0.02,
+                        "maxLeverage": null,
+                        "info": {
+                            "tier": "Tier 13",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "22000000",
+                            "maxPositionVal": "28000000",
+                            "maintMarginRatio": "0.020000",
+                            "maintAmount": "169750.000000"
+                        }
+                    },
+                    {
+                        "tier": 14,
+                        "symbol": "ETH/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 28000000,
+                        "maxNotional": 32000000,
+                        "maintenanceMarginRate": 0.025,
+                        "maxLeverage": null,
+                        "info": {
+                            "tier": "Tier 14",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "28000000",
+                            "maxPositionVal": "32000000",
+                            "maintMarginRatio": "0.025000",
+                            "maintAmount": "309750.000000"
+                        }
+                    },
+                    {
+                        "tier": 15,
+                        "symbol": "ETH/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 32000000,
+                        "maxNotional": 34000000,
+                        "maintenanceMarginRate": 0.03,
+                        "maxLeverage": null,
+                        "info": {
+                            "tier": "Tier 15",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "32000000",
+                            "maxPositionVal": "34000000",
+                            "maintMarginRatio": "0.030000",
+                            "maintAmount": "469750.000000"
+                        }
+                    },
+                    {
+                        "tier": 16,
+                        "symbol": "ETH/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 34000000,
+                        "maxNotional": 36000000,
+                        "maintenanceMarginRate": 0.033,
+                        "maxLeverage": null,
+                        "info": {
+                            "tier": "Tier 16",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "34000000",
+                            "maxPositionVal": "36000000",
+                            "maintMarginRatio": "0.033000",
+                            "maintAmount": "571750.000000"
+                        }
+                    },
+                    {
+                        "tier": 17,
+                        "symbol": "ETH/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 36000000,
+                        "maxNotional": 38000000,
+                        "maintenanceMarginRate": 0.035,
+                        "maxLeverage": null,
+                        "info": {
+                            "tier": "Tier 17",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "36000000",
+                            "maxPositionVal": "38000000",
+                            "maintMarginRatio": "0.035000",
+                            "maintAmount": "643750.000000"
+                        }
+                    },
+                    {
+                        "tier": 18,
+                        "symbol": "ETH/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 38000000,
+                        "maxNotional": 40000000,
+                        "maintenanceMarginRate": 0.038,
+                        "maxLeverage": null,
+                        "info": {
+                            "tier": "Tier 18",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "38000000",
+                            "maxPositionVal": "40000000",
+                            "maintMarginRatio": "0.038000",
+                            "maintAmount": "757750.000000"
+                        }
+                    },
+                    {
+                        "tier": 19,
+                        "symbol": "ETH/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 40000000,
+                        "maxNotional": 42000000,
+                        "maintenanceMarginRate": 0.039,
+                        "maxLeverage": null,
+                        "info": {
+                            "tier": "Tier 19",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "40000000",
+                            "maxPositionVal": "42000000",
+                            "maintMarginRatio": "0.039000",
+                            "maintAmount": "797750.000000"
+                        }
+                    },
+                    {
+                        "tier": 20,
+                        "symbol": "ETH/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 42000000,
+                        "maxNotional": 44000000,
+                        "maintenanceMarginRate": 0.042,
+                        "maxLeverage": null,
+                        "info": {
+                            "tier": "Tier 20",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "42000000",
+                            "maxPositionVal": "44000000",
+                            "maintMarginRatio": "0.042000",
+                            "maintAmount": "923750.000000"
+                        }
+                    },
+                    {
+                        "tier": 21,
+                        "symbol": "ETH/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 44000000,
+                        "maxNotional": 46000000,
+                        "maintenanceMarginRate": 0.045,
+                        "maxLeverage": null,
+                        "info": {
+                            "tier": "Tier 21",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "44000000",
+                            "maxPositionVal": "46000000",
+                            "maintMarginRatio": "0.045000",
+                            "maintAmount": "1055750.000000"
+                        }
+                    },
+                    {
+                        "tier": 22,
+                        "symbol": "ETH/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 46000000,
+                        "maxNotional": 150000000,
+                        "maintenanceMarginRate": 0.05,
+                        "maxLeverage": null,
+                        "info": {
+                            "tier": "Tier 22",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "46000000",
+                            "maxPositionVal": "150000000",
+                            "maintMarginRatio": "0.050000",
+                            "maintAmount": "1285750.000000"
+                        }
+                    },
+                    {
+                        "tier": 23,
+                        "symbol": "ETH/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 150000000,
+                        "maxNotional": 400000000,
+                        "maintenanceMarginRate": 0.125,
+                        "maxLeverage": null,
+                        "info": {
+                            "tier": "Tier 23",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "150000000",
+                            "maxPositionVal": "400000000",
+                            "maintMarginRatio": "0.125000",
+                            "maintAmount": "12535750.000000"
+                        }
+                    },
+                    {
+                        "tier": 24,
+                        "symbol": "ETH/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 400000000,
+                        "maxNotional": 800000000,
+                        "maintenanceMarginRate": 0.25,
+                        "maxLeverage": null,
+                        "info": {
+                            "tier": "Tier 24",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "400000000",
+                            "maxPositionVal": "800000000",
+                            "maintMarginRatio": "0.250000",
+                            "maintAmount": "62535750.000000"
+                        }
+                    },
+                    {
+                        "tier": 25,
+                        "symbol": "ETH/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 800000000,
+                        "maxNotional": 1200000000,
+                        "maintenanceMarginRate": 0.5,
+                        "maxLeverage": null,
+                        "info": {
+                            "tier": "Tier 25",
+                            "symbol": "ETH-USDT",
+                            "minPositionVal": "800000000",
+                            "maxPositionVal": "1200000000",
+                            "maintMarginRatio": "0.500000",
+                            "maintAmount": "262535750.000000"
+                        }
+                    }
+                ]
+            }
+        ],
         "fetchFundingRate": [
             {
                 "description": "fetch funding rate linear",

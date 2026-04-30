@@ -42,13 +42,15 @@ use React;
 use React\Async;
 use React\EventLoop\Loop;
 
+use Lighter\Signer;
+
 use Exception;
 
-$version = '4.5.22';
+$version = '4.5.51';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.22';
+    const VERSION = '4.5.51';
 
     public $browser;
     public $marketsLoading = null;
@@ -151,6 +153,26 @@ class Exchange extends \ccxt\Exchange {
                     $headers = array_merge(['User-Agent' => $userAgent], $headers);
                 } elseif ((gettype($userAgent) === 'array') && array_key_exists('User-Agent', $userAgent)) {
                     $headers = array_merge($userAgent, $headers);
+                }
+            }
+            // multipart/form-data
+            if (is_array($headers)) {
+                $tmp = $headers;
+                foreach ($tmp as $key => $value) {
+                    if (strtolower($key) == 'content-type') {
+                        if ($value == 'multipart/form-data') {
+                            $boundary = '--------------------------' . $this->random_bytes(12);
+                            $eol = "\r\n";
+                            $newBody = '';
+                            foreach ($body as $fKey => $fValue) {
+                                $newBody .= '--' . $boundary . $eol . 'Content-Disposition: form-data; name="' . $fKey . '"' . $eol . $eol . $fValue . $eol;
+                            }
+                            $newBody .= '--' . $boundary . '--' . $eol;
+                            $value .= '; boundary=' . $boundary;
+                            $headers[$key] = $value;
+                            $body = $newBody;
+                        }
+                    }
                 }
             }
             // set final headers
@@ -343,6 +365,12 @@ class Exchange extends \ccxt\Exchange {
         return $dict;
     }
 
+    public function load_lighter_library($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex, $createClient = false) {
+        return Async\async(function () use ($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex, $createClient) {
+            return $this->load_lighter_library_helper($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex, $createClient);
+        }) ();
+    }
+
     // ########################################################################
     // ########################################################################
     // ########################################################################
@@ -468,6 +496,7 @@ class Exchange extends \ccxt\Exchange {
                 'editOrders' => null,
                 'editOrderWs' => null,
                 'fetchAccounts' => null,
+                'fetchADLRank' => null,
                 'fetchBalance' => true,
                 'fetchBalanceWs' => null,
                 'fetchBidsAsks' => null,
@@ -553,6 +582,8 @@ class Exchange extends \ccxt\Exchange {
                 'fetchOrderTrades' => null,
                 'fetchOrderWs' => null,
                 'fetchPosition' => null,
+                'fetchPositionADLRank' => null,
+                'fetchPositionsADLRank' => null,
                 'fetchPositionHistory' => null,
                 'fetchPositionsHistory' => null,
                 'fetchPositionWs' => null,
@@ -715,6 +746,7 @@ class Exchange extends \ccxt\Exchange {
                 'price' => array( 'min' => null, 'max' => null ),
                 'cost' => array( 'min' => null, 'max' => null ),
             ),
+            'rollingWindowSize' => 60000, // default 60 seconds, requires rateLimiterAlgorithm to be set as 'rollingWindow'
         );
     }
 
@@ -743,10 +775,14 @@ class Exchange extends \ccxt\Exchange {
     public function safe_bool($dictionary, int|string $key, ?bool $defaultValue = null) {
         /**
          * @ignore
-         * safely extract boolean value from $dictionary or list
+         * safely extract boolean $value from $dictionary or list
          * @return array(bool | null)
          */
-        return $this->safe_bool_n($dictionary, array( $key ), $defaultValue);
+        $value = $this->safe_value($dictionary, $key, $defaultValue);
+        if (is_bool($value)) {
+            return $value;
+        }
+        return $defaultValue;
     }
 
     public function safe_dict_n($dictionaryOrList, array $keys, ?array $defaultValue = null) {
@@ -759,10 +795,8 @@ class Exchange extends \ccxt\Exchange {
         if ($value === null) {
             return $defaultValue;
         }
-        if ((gettype($value) === 'array')) {
-            if ((gettype($value) !== 'array' || array_keys($value) !== array_keys(array_keys($value)))) {
-                return $value;
-            }
+        if ($this->is_dictionary($value)) {
+            return $value;
         }
         return $defaultValue;
     }
@@ -773,7 +807,14 @@ class Exchange extends \ccxt\Exchange {
          * safely extract a $dictionary from $dictionary or list
          * @return array(object | null)
          */
-        return $this->safe_dict_n($dictionary, array( $key ), $defaultValue);
+        $value = $this->safe_value($dictionary, $key, $defaultValue);
+        if ($value === null) {
+            return $defaultValue;
+        }
+        if ($this->is_dictionary($value)) {
+            return $value;
+        }
+        return $defaultValue;
     }
 
     public function safe_dict_2($dictionary, int|string $key1, string $key2, ?array $defaultValue = null) {
@@ -801,6 +842,10 @@ class Exchange extends \ccxt\Exchange {
         return $defaultValue;
     }
 
+    public function is_dictionary(mixed $value) {
+        return ($value !== null) && (gettype($value) === 'array') && (gettype($value) !== 'array' || array_keys($value) !== array_keys(array_keys($value)));
+    }
+
     public function safe_list_2($dictionaryOrList, int|string $key1, string $key2, ?array $defaultValue = null) {
         /**
          * @ignore
@@ -816,7 +861,14 @@ class Exchange extends \ccxt\Exchange {
          * safely extract an Array from dictionary or list
          * @return array(Array | null)
          */
-        return $this->safe_list_n($dictionaryOrList, array( $key ), $defaultValue);
+        $value = $this->safe_value($dictionaryOrList, $key, $defaultValue);
+        if ($value === null) {
+            return $defaultValue;
+        }
+        if ((gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value)))) {
+            return $value;
+        }
+        return $defaultValue;
     }
 
     public function handle_deltas($orderbook, $deltas) {
@@ -1439,8 +1491,12 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchFundingRate() is not supported yet');
     }
 
-    public function watch_funding_rates(array $symbols, $params = array ()) {
+    public function watch_funding_rates(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchFundingRates() is not supported yet');
+    }
+
+    public function un_watch_funding_rates(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' unWatchFundingRates() is not supported yet');
     }
 
     public function watch_funding_rates_for_symbols(array $symbols, $params = array ()) {
@@ -1512,7 +1568,7 @@ class Exchange extends \ccxt\Exchange {
          * @param {int} [$since] timestamp in ms of the earliest change to fetch
          * @param {int} [$limit] the maximum amount of changes to fetch
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=margin-loan-structure margin structures~
          */
         throw new NotSupported($this->id . ' fetchMarginAdjustmentHistory() is not supported yet');
     }
@@ -1530,7 +1586,14 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function fetch_open_interest(string $symbol, $params = array ()) {
-        throw new NotSupported($this->id . ' fetchOpenInterest() is not supported yet');
+        return Async\async(function () use ($symbol, $params) {
+            if ($this->has['fetchOpenInterests']) {
+                $openInterests = Async\await($this->fetch_open_interests(array( $symbol ), $params));
+                return $this->safe_dict($openInterests, $symbol);
+            } else {
+                throw new NotSupported($this->id . ' fetchOpenInterest() is not supported yet');
+            }
+        }) ();
     }
 
     public function fetch_open_interests(?array $symbols = null, $params = array ()) {
@@ -1572,6 +1635,10 @@ class Exchange extends \ccxt\Exchange {
         return $res === 0;
     }
 
+    public function is_empty_string($value) {
+        return !$this->value_is_defined($value) || $value === '';
+    }
+
     public function safe_number_omit_zero(array $obj, int|string $key, ?float $defaultValue = null) {
         $value = $this->safe_string($obj, $key);
         $final = $this->parse_number($this->omit_zero($value));
@@ -1611,12 +1678,16 @@ class Exchange extends \ccxt\Exchange {
         if ($this->rateLimit > 0) {
             $refillRate = 1 / $this->rateLimit;
         }
+        $useLeaky = ($this->rollingWindowSize === 0.0) || ($this->rateLimiterAlgorithm === 'leakyBucket');
+        $algorithm = $useLeaky ? 'leakyBucket' : 'rollingWindow';
         $defaultBucket = array(
             'delay' => 0.001,
             'capacity' => 1,
             'cost' => 1,
-            'maxCapacity' => $this->safe_integer($this->options, 'maxRequestsQueue', 1000),
             'refillRate' => $refillRate,
+            'algorithm' => $algorithm,
+            'windowSize' => $this->rollingWindowSize,
+            'rateLimit' => $this->rateLimit,
         );
         $existingBucket = ($this->tokenBucket === null) ? array() : $this->tokenBucket;
         $this->tokenBucket = $this->extend($defaultBucket, $existingBucket);
@@ -2764,6 +2835,10 @@ class Exchange extends \ccxt\Exchange {
         return $reversed;
     }
 
+    public function string_to_base16($str) {
+        return '0x' . bin2hex(base64_decode(base64_encode($str)));
+    }
+
     public function reduce_fees_by_currency($fees) {
         //
         // this function takes a list of $fee structures having the following format
@@ -2976,6 +3051,14 @@ class Exchange extends \ccxt\Exchange {
             $message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file';
         }
         throw new NotSupported($this->id . ' fetchOHLCV() is not supported yet' . $message);
+    }
+
+    public function fetch_spot_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchSpotOHLCV() is not supported yet');
+    }
+
+    public function fetch_contract_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchContractOHLCV() is not supported yet');
     }
 
     public function fetch_ohlcv_ws(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -3494,6 +3577,21 @@ class Exchange extends \ccxt\Exchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
+    public function parse_adl_rank(array $info, ?array $market = null) {
+        throw new NotSupported($this->id . ' parseADLRank() is not supported yet');
+    }
+
+    public function parse_adl_ranks(array $ranks, ?array $symbols = null, $params = array ()) {
+        $symbols = $this->market_symbols($symbols);
+        $ranks = $this->to_array($ranks);
+        $result = array();
+        for ($i = 0; $i < count($ranks); $i++) {
+            $rank = $this->extend($this->parse_adl_rank($ranks[$i], null), $params);
+            $result[] = $rank;
+        }
+        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
+    }
+
     public function parse_accounts(array $accounts, $params = array ()) {
         $accounts = $this->to_array($accounts);
         $result = array();
@@ -3734,6 +3832,30 @@ class Exchange extends \ccxt\Exchange {
         return $results;
     }
 
+    public function filter_out_by_array($objects, int|string $key, $values = null, $indexed = true) {
+        $objects = $this->to_array($objects);
+        // return all of them if no $values were passed
+        if ($values === null || !$values) {
+            // return $indexed ? $this->index_by($objects, $key) : $objects;
+            if ($indexed) {
+                return $this->index_by($objects, $key);
+            } else {
+                return $objects;
+            }
+        }
+        $results = array();
+        for ($i = 0; $i < count($objects); $i++) {
+            if (!$this->in_array($objects[$i][$key], $values)) {
+                $results[] = $objects[$i];
+            }
+        }
+        // return $indexed ? $this->index_by($results, $key) : $results;
+        if ($indexed) {
+            return $this->index_by($results, $key);
+        }
+        return $results;
+    }
+
     public function fetch2($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null, $config = array ()) {
         return Async\async(function () use ($path, $api, $method, $params, $headers, $body, $config) {
             if ($this->enableRateLimit) {
@@ -3884,7 +4006,8 @@ class Exchange extends \ccxt\Exchange {
 
     public function edit_order_with_client_order_id(string $clientOrderId, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($clientOrderId, $symbol, $type, $side, $amount, $price, $params) {
-            return Async\await($this->edit_order('', $symbol, $type, $side, $amount, $price, $this->extend(array( 'clientOrderId' => $clientOrderId ), $params)));
+            $extendedParams = $this->extend($params, array( 'clientOrderId' => $clientOrderId ));
+            return Async\await($this->edit_order('', $symbol, $type, $side, $amount, $price, $extendedParams));
         }) ();
     }
 
@@ -3922,7 +4045,7 @@ class Exchange extends \ccxt\Exchange {
          * fetches all open positions for specific $symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
          * @param {string} $symbol unified market $symbol
          * @param {array} $params extra parameters specific to the endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~ with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~ with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
          */
         throw new NotSupported($this->id . ' fetchPositionsForSymbol() is not supported yet');
     }
@@ -3932,7 +4055,7 @@ class Exchange extends \ccxt\Exchange {
          * fetches all open positions for specific $symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
          * @param {string} $symbol unified market $symbol
          * @param {array} $params extra parameters specific to the endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~ with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~ with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
          */
         throw new NotSupported($this->id . ' fetchPositionsForSymbol() is not supported yet');
     }
@@ -3966,8 +4089,8 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function parse_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
-        $price = $this->safe_number($bidask, $priceKey);
-        $amount = $this->safe_number($bidask, $amountKey);
+        $price = $this->safe_float($bidask, $priceKey);
+        $amount = $this->safe_float($bidask, $amountKey);
         $countOrId = $this->safe_integer($bidask, $countOrIdKey);
         $bidAsk = array( $price, $amount );
         if ($countOrId !== null) {
@@ -4039,7 +4162,7 @@ class Exchange extends \ccxt\Exchange {
         return $this->safe_market_structure(array( 'symbol' => $marketId, 'marketId' => $marketId ));
     }
 
-    public function market_or_null(string $symbol) {
+    public function market_or_null(?string $symbol = null) {
         if ($symbol === null) {
             return null;
         }
@@ -4409,12 +4532,20 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
     }
 
+    public function fetch_spot_tickers(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchSpotTickers() is not supported yet');
+    }
+
+    public function fetch_contract_tickers(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchContractTickers() is not supported yet');
+    }
+
     public function fetch_mark_prices(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchMarkPrices() is not supported yet');
     }
 
     public function fetch_tickers_ws(?array $symbols = null, $params = array ()) {
-        throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
+        throw new NotSupported($this->id . ' fetchTickersWs() is not supported yet');
     }
 
     public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()) {
@@ -4433,6 +4564,10 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' unWatchTickers() is not supported yet');
     }
 
+    public function un_watch_funding_rate(string $symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' unWatchFundingRate() is not supported yet');
+    }
+
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOrder() is not supported yet');
     }
@@ -4444,7 +4579,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {string} $clientOrderId client order Id
              * @param {string} $symbol unified $symbol of the market to create an order in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             $extendedParams = $this->extend($params, array( 'clientOrderId' => $clientOrderId ));
             return Async\await($this->fetch_order('', $symbol, $extendedParams));
@@ -4474,6 +4609,10 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' createOrder() is not supported yet');
     }
 
+    public function create_twap_order(string $symbol, string $side, float $amount, float $duration, $params = array ()) {
+        throw new NotSupported($this->id . ' createTwapOrder() is not supported yet');
+    }
+
     public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array ()) {
         throw new NotSupported($this->id . ' createConvertTrade() is not supported yet');
     }
@@ -4490,6 +4629,33 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchPositionMode() is not supported yet');
     }
 
+    public function fetch_adl_rank(string $symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchADLRank() is not supported yet');
+    }
+
+    public function fetch_positions_adl_rank(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchPositionsADLRank() is not supported yet');
+    }
+
+    public function fetch_position_adl_rank(string $symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            if ($this->has['fetchPositionsADLRank']) {
+                Async\await($this->load_markets());
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
+                $ranks = Async\await($this->fetch_positions_adl_rank(array( $symbol ), $params));
+                $rank = $this->safe_dict($ranks, 0);
+                if ($rank === null) {
+                    throw new NullResponse($this->id . ' fetchPositionsADLRank() could not find a $rank for ' . $symbol);
+                } else {
+                    return $rank;
+                }
+            } else {
+                throw new NotSupported($this->id . ' fetchPositionsADLRank() is not supported yet');
+            }
+        }) ();
+    }
+
     public function create_trailing_amount_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $trailingAmount = null, ?float $trailingTriggerPrice = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $trailingAmount, $trailingTriggerPrice, $params) {
             /**
@@ -4502,7 +4668,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {float} $trailingAmount the quote $amount to trail away from the current market $price
              * @param {float} [$trailingTriggerPrice] the $price to activate a trailing order, default uses the $price argument
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             if ($trailingAmount === null) {
                 throw new ArgumentsRequired($this->id . ' createTrailingAmountOrder() requires a $trailingAmount argument');
@@ -4530,7 +4696,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {float} $trailingAmount the quote $amount to trail away from the current market $price
              * @param {float} [$trailingTriggerPrice] the $price to activate a trailing order, default uses the $price argument
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             if ($trailingAmount === null) {
                 throw new ArgumentsRequired($this->id . ' createTrailingAmountOrderWs() requires a $trailingAmount argument');
@@ -4558,7 +4724,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {float} $trailingPercent the percent to trail away from the current market $price
              * @param {float} [$trailingTriggerPrice] the $price to activate a trailing order, default uses the $price argument
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             if ($trailingPercent === null) {
                 throw new ArgumentsRequired($this->id . ' createTrailingPercentOrder() requires a $trailingPercent argument');
@@ -4586,7 +4752,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {float} $trailingPercent the percent to trail away from the current market $price
              * @param {float} [$trailingTriggerPrice] the $price to activate a trailing order, default uses the $price argument
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             if ($trailingPercent === null) {
                 throw new ArgumentsRequired($this->id . ' createTrailingPercentOrderWs() requires a $trailingPercent argument');
@@ -4610,7 +4776,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $cost how much you want to trade in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             if ($this->has['createMarketOrderWithCost'] || ($this->has['createMarketBuyOrderWithCost'] && $this->has['createMarketSellOrderWithCost'])) {
                 return Async\await($this->create_order($symbol, 'market', $side, $cost, 1, $params));
@@ -4626,7 +4792,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {string} $symbol unified $symbol of the market to create an order in
              * @param {float} $cost how much you want to trade in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             if ($this->options['createMarketBuyOrderRequiresPrice'] || $this->has['createMarketBuyOrderWithCost']) {
                 return Async\await($this->create_order($symbol, 'market', 'buy', $cost, 1, $params));
@@ -4642,7 +4808,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {string} $symbol unified $symbol of the market to create an order in
              * @param {float} $cost how much you want to trade in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             if ($this->options['createMarketSellOrderRequiresPrice'] || $this->has['createMarketSellOrderWithCost']) {
                 return Async\await($this->create_order($symbol, 'market', 'sell', $cost, 1, $params));
@@ -4659,7 +4825,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $cost how much you want to trade in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             if ($this->has['createMarketOrderWithCostWs'] || ($this->has['createMarketBuyOrderWithCostWs'] && $this->has['createMarketSellOrderWithCostWs'])) {
                 return Async\await($this->create_order_ws($symbol, 'market', $side, $cost, 1, $params));
@@ -4679,7 +4845,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in market orders
              * @param {float} $triggerPrice the $price to trigger the stop order, in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             if ($triggerPrice === null) {
                 throw new ArgumentsRequired($this->id . ' createTriggerOrder() requires a $triggerPrice argument');
@@ -4703,7 +4869,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in market orders
              * @param {float} $triggerPrice the $price to trigger the stop order, in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             if ($triggerPrice === null) {
                 throw new ArgumentsRequired($this->id . ' createTriggerOrderWs() requires a $triggerPrice argument');
@@ -4727,7 +4893,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in market orders
              * @param {float} $stopLossPrice the $price to trigger the stop loss order, in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             if ($stopLossPrice === null) {
                 throw new ArgumentsRequired($this->id . ' createStopLossOrder() requires a $stopLossPrice argument');
@@ -4751,7 +4917,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in market orders
              * @param {float} $stopLossPrice the $price to trigger the stop loss order, in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             if ($stopLossPrice === null) {
                 throw new ArgumentsRequired($this->id . ' createStopLossOrderWs() requires a $stopLossPrice argument');
@@ -4775,7 +4941,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in market orders
              * @param {float} $takeProfitPrice the $price to trigger the take profit order, in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             if ($takeProfitPrice === null) {
                 throw new ArgumentsRequired($this->id . ' createTakeProfitOrder() requires a $takeProfitPrice argument');
@@ -4799,7 +4965,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in market orders
              * @param {float} $takeProfitPrice the $price to trigger the take profit order, in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             if ($takeProfitPrice === null) {
                 throw new ArgumentsRequired($this->id . ' createTakeProfitOrderWs() requires a $takeProfitPrice argument');
@@ -4832,7 +4998,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {float} [$params->stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
              * @param {float} [$params->takeProfitAmount] *not available on all exchanges* the $amount for a take profit
              * @param {float} [$params->stopLossAmount] *not available on all exchanges* the $amount for a stop loss
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             $params = $this->set_take_profit_and_stop_loss_params($symbol, $type, $side, $amount, $price, $takeProfit, $stopLoss, $params);
             if ($this->has['createOrderWithTakeProfitAndStopLoss']) {
@@ -4912,7 +5078,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {float} [$params->stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
              * @param {float} [$params->takeProfitAmount] *not available on all exchanges* the $amount for a take profit
              * @param {float} [$params->stopLossAmount] *not available on all exchanges* the $amount for a stop loss
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             $params = $this->set_take_profit_and_stop_loss_params($symbol, $type, $side, $amount, $price, $takeProfit, $stopLoss, $params);
             if ($this->has['createOrderWithTakeProfitAndStopLossWs']) {
@@ -4924,6 +5090,14 @@ class Exchange extends \ccxt\Exchange {
 
     public function create_orders(array $orders, $params = array ()) {
         throw new NotSupported($this->id . ' createOrders() is not supported yet');
+    }
+
+    public function create_spot_orders(array $orders, $params = array ()) {
+        throw new NotSupported($this->id . ' createSpotOrders() is not supported yet');
+    }
+
+    public function create_contract_orders(array $orders, $params = array ()) {
+        throw new NotSupported($this->id . ' createContractOrders() is not supported yet');
     }
 
     public function edit_orders(array $orders, $params = array ()) {
@@ -4938,6 +5112,14 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' cancelOrder() is not supported yet');
     }
 
+    public function cancel_spot_order(string $id, ?string $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelSpotOrder() is not supported yet');
+    }
+
+    public function cancel_contract_order(string $id, ?string $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelContractOrder() is not supported yet');
+    }
+
     public function cancel_order_with_client_order_id(string $clientOrderId, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($clientOrderId, $symbol, $params) {
             /**
@@ -4945,7 +5127,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {string} $clientOrderId client order Id
              * @param {string} $symbol unified $symbol of the market to create an order in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             $extendedParams = $this->extend($params, array( 'clientOrderId' => $clientOrderId ));
             return Async\await($this->cancel_order('', $symbol, $extendedParams));
@@ -4967,7 +5149,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {string[]} $clientOrderIds client order Ids
              * @param {string} $symbol unified $symbol of the market to create an order in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             $extendedParams = $this->extend($params, array( 'clientOrderIds' => $clientOrderIds ));
             return Async\await($this->cancel_orders(array(), $symbol, $extendedParams));
@@ -4980,6 +5162,14 @@ class Exchange extends \ccxt\Exchange {
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' cancelAllOrders() is not supported yet');
+    }
+
+    public function cancel_all_spot_orders(?string $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelAllSpotOrders() is not supported yet');
+    }
+
+    public function cancel_all_contract_orders(?string $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelAllContractOrders() is not supported yet');
     }
 
     public function cancel_all_orders_after(?int $timeout, $params = array ()) {
@@ -5047,6 +5237,10 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchCanceledOrders() is not supported yet');
+    }
+
     public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchCanceledAndClosedOrders() is not supported yet');
     }
@@ -5108,7 +5302,7 @@ class Exchange extends \ccxt\Exchange {
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
          * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         throw new NotSupported($this->id . ' fetchDepositsWithdrawals() is not supported yet');
     }
@@ -5178,6 +5372,10 @@ class Exchange extends \ccxt\Exchange {
                 throw new NotSupported($this->id . ' fetchDepositAddress() is not supported yet');
             }
         }) ();
+    }
+
+    public function fetch_contract_deposit_address(string $code, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchContractDepositAddress() is not supported yet');
     }
 
     public function account(): array {
@@ -5261,7 +5459,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function handle_withdraw_tag_and_params($tag, $params) {
-        if (($tag !== null) && (gettype($tag) === 'array')) {
+        if ($this->is_dictionary($tag)) {
             $params = $this->extend($tag, $params);
             $tag = null;
         }
@@ -5614,6 +5812,10 @@ class Exchange extends \ccxt\Exchange {
             $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
             return Async\await($this->create_order_ws($symbol, 'market', $side, $amount, null, $query));
         }) ();
+    }
+
+    public function create_sub_account(string $name, $params = array ()) {
+        throw new NotSupported($this->id . ' createSubAccount() is not supported yet');
     }
 
     public function safe_currency_code(?string $currencyId, ?array $currency = null) {
@@ -6254,7 +6456,7 @@ class Exchange extends \ccxt\Exchange {
          * @param {array} $market ccxt $market
          * @param {int} [$since] when defined, the response items are filtered to only include items after this timestamp
          * @param {int} [$limit] limits the number of items in the response
-         * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structures~
+         * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~
          */
         $result = array();
         for ($i = 0; $i < count($incomes); $i++) {
@@ -6293,7 +6495,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
              * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
             if ($this->has['fetchDepositsWithdrawals']) {
                 return Async\await($this->fetch_deposits_withdrawals($code, $since, $limit, $params));
@@ -6315,6 +6517,14 @@ class Exchange extends \ccxt\Exchange {
         /**
          * @ignore
          * Typed wrapper for filterByArray that returns a dictionary of tickers
+         */
+        return $this->filter_by_array($objects, $key, $values, $indexed);
+    }
+
+    public function filter_by_array_adl_ranks($objects, int|string $key, $values = null, $indexed = true) {
+        /**
+         * @ignore
+         * Typed wrapper for filterByArray that returns a list of ADL Ranks
          */
         return $this->filter_by_array($objects, $key, $values, $indexed);
     }
@@ -6422,7 +6632,8 @@ class Exchange extends \ccxt\Exchange {
                 $uniqueResults = $this->remove_repeated_elements_from_array($result);
             }
             $key = ($method === 'fetchOHLCV') ? 0 : 'timestamp';
-            return $this->filter_by_since_limit($uniqueResults, $since, $limit, $key);
+            $sortedRes = $this->sort_by($uniqueResults, $key);
+            return $this->filter_by_since_limit($sortedRes, $since, $limit, $key);
         }) ();
     }
 
@@ -6713,7 +6924,7 @@ class Exchange extends \ccxt\Exchange {
          * @param {array} $market ccxt $market
          * @param {int} [$since] when defined, the response items are filtered to only include items after this timestamp
          * @param {int} [$limit] limits the number of items in the response
-         * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=liquidation-structure liquidation structures~
+         * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=liquidation-structure liquidation structures~
          */
         $result = array();
         for ($i = 0; $i < count($liquidations); $i++) {
@@ -6929,7 +7140,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {int} [$since] timestamp in ms of the position
              * @param {int} [$limit] the maximum amount of candles to fetch, default=1000
              * @param {array} $params extra parameters specific to the exchange api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
              */
             if ($this->has['fetchPositionsHistory']) {
                 $positions = Async\await($this->fetch_positions_history(array( $symbol ), $since, $limit, $params));
@@ -6940,6 +7151,12 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
+    public function load_markets_and_sign_in() {
+        return Async\async(function ()  {
+            Async\await(Promise\all(array( $this->load_markets(), $this->sign_in() )));
+        }) ();
+    }
+
     public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches the history of margin added or reduced from contract isolated positions
@@ -6947,7 +7164,7 @@ class Exchange extends \ccxt\Exchange {
          * @param {int} [$since] timestamp in ms of the position
          * @param {int} [$limit] the maximum amount of candles to fetch, default=1000
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
          */
         throw new NotSupported($this->id . ' fetchPositionsHistory () is not supported yet');
     }
@@ -6975,7 +7192,7 @@ class Exchange extends \ccxt\Exchange {
          * @param {string} $id transfer $id
          * @param {[string]} $code unified currency $code
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transfer-structure transfer structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?$id=transfer-structure transfer structure~
          */
         throw new NotSupported($this->id . ' fetchTransfer () is not supported yet');
     }
@@ -6987,7 +7204,7 @@ class Exchange extends \ccxt\Exchange {
          * @param {int} [$since] timestamp in ms of the earliest transfer to fetch
          * @param {int} [$limit] the maximum amount of transfers to fetch
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
         throw new NotSupported($this->id . ' fetchTransfers () is not supported yet');
     }
@@ -7008,7 +7225,7 @@ class Exchange extends \ccxt\Exchange {
          * watches a mark price for a specific market
          * @param {string} $symbol unified $symbol of the market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         throw new NotSupported($this->id . ' watchMarkPrice () is not supported yet');
     }
@@ -7018,7 +7235,7 @@ class Exchange extends \ccxt\Exchange {
          * watches the mark price for all markets
          * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         throw new NotSupported($this->id . ' watchMarkPrices () is not supported yet');
     }
@@ -7031,7 +7248,7 @@ class Exchange extends \ccxt\Exchange {
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         throw new NotSupported($this->id . ' withdrawWs () is not supported yet');
     }
@@ -7041,7 +7258,7 @@ class Exchange extends \ccxt\Exchange {
          * unWatches information on multiple trades made by the user
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         throw new NotSupported($this->id . ' unWatchMyTrades () is not supported yet');
     }
@@ -7051,7 +7268,7 @@ class Exchange extends \ccxt\Exchange {
          * create a list of trade $orders
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and $params
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         throw new NotSupported($this->id . ' createOrdersWs () is not supported yet');
     }
@@ -7062,7 +7279,7 @@ class Exchange extends \ccxt\Exchange {
          * @param {string} $symbol unified $symbol of the market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market symbols
          */
         throw new NotSupported($this->id . ' fetchOrdersByStatusWs () is not supported yet');
     }
@@ -7072,7 +7289,7 @@ class Exchange extends \ccxt\Exchange {
          * unWatches best bid & ask for $symbols
          * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         throw new NotSupported($this->id . ' unWatchBidsAsks () is not supported yet');
     }
@@ -7179,5 +7396,36 @@ class Exchange extends \ccxt\Exchange {
                 }
             }
         }
+    }
+
+    public function timeframe_from_milliseconds(float $ms) {
+        if ($ms <= 0) {
+            return '';
+        }
+        $second = 1000;
+        $minute = 60 * $second;
+        $hour = 60 * $minute;
+        $day = 24 * $hour;
+        $week = 7 * $day;
+        if (fmod($ms, $week) === 0) {
+            return ($ms / $week) . 'w';
+        }
+        if (fmod($ms, $day) === 0) {
+            return ($ms / $day) . 'd';
+        }
+        if (fmod($ms, $hour) === 0) {
+            return ($ms / $hour) . 'h';
+        }
+        if (fmod($ms, $minute) === 0) {
+            return ($ms / $minute) . 'm';
+        }
+        if (fmod($ms, $second) === 0) {
+            return ($ms / $second) . 's';
+        }
+        return '';
+    }
+
+    public function is_uta_enabled($params = array ()) {
+        return false; // stub
     }
 }

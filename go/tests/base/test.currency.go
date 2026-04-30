@@ -55,8 +55,35 @@ func TestCurrency(exchange ccxt.ICoreExchange, skippedProperties interface{}, me
 	if IsTrue(IsTrue(IsEqual(networkKeysLength, 0)) && IsTrue((InOp(skippedProperties, "skipCurrenciesWithoutNetworks")))) {
 		return
 	}
-	//
-	AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
+
+	{
+		func() (ret_ interface{}) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func() interface{} {
+						// catch block:
+						var message interface{} = exchange.ExceptionMessage(e)
+						// check structure if key is numeric, not string
+						if IsTrue(IsGreaterThanOrEqual(GetIndexOf(message, "\"id\" key"), 0)) {
+							// @ts-ignore
+							AddElementToObject(format, "id", 123)
+							AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
+						} else {
+							Assert(IsEqual(message, ""), message)
+						}
+						return nil
+					}()
+				}
+			}()
+			// try block:
+			AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
+			return nil
+		}()
+
+	}
 	//
 	CheckPrecisionAccuracy(exchange, skippedProperties, method, entry, "precision")
 	AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "fee", "0")

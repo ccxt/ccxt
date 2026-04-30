@@ -102,3 +102,183 @@ func (this *CoinspotCore) PrivatePostRoMyAffiliatepayments(args ...interface{}) 
 func (this *CoinspotCore) PrivatePostRoMyReferralpayments(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostRoMyReferralpayments", args...)
 }
+
+func (this *CoinspotCore) V2PublicGetLatest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetLatest", args...)
+}
+
+func (this *CoinspotCore) V2PublicGetLatestCointype(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetLatestCointype", args...)
+}
+
+func (this *CoinspotCore) V2PublicGetLatestCointypeMarkettype(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetLatestCointypeMarkettype", args...)
+}
+
+func (this *CoinspotCore) V2PublicGetBuypriceCointype(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetBuypriceCointype", args...)
+}
+
+func (this *CoinspotCore) V2PublicGetBuypriceCointypeMarkettype(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetBuypriceCointypeMarkettype", args...)
+}
+
+func (this *CoinspotCore) V2PublicGetSellpriceCointype(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetSellpriceCointype", args...)
+}
+
+func (this *CoinspotCore) V2PublicGetSellpriceCointypeMarkettype(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetSellpriceCointypeMarkettype", args...)
+}
+
+func (this *CoinspotCore) V2PublicGetOrdersOpenCointype(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetOrdersOpenCointype", args...)
+}
+
+func (this *CoinspotCore) V2PublicGetOrdersOpenCointypeMarkettype(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetOrdersOpenCointypeMarkettype", args...)
+}
+
+func (this *CoinspotCore) V2PublicGetOrdersCompletedCointype(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetOrdersCompletedCointype", args...)
+}
+
+func (this *CoinspotCore) V2PublicGetOrdersCompletedCointypeMarkettype(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetOrdersCompletedCointypeMarkettype", args...)
+}
+
+func (this *CoinspotCore) V2PublicGetOrdersSummaryCompletedCointype(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetOrdersSummaryCompletedCointype", args...)
+}
+
+func (this *CoinspotCore) V2PublicGetOrdersSummaryCompletedCointypeMarkettype(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetOrdersSummaryCompletedCointypeMarkettype", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostStatus", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostMyCoinDeposit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostMyCoinDeposit", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostQuoteBuyNow(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostQuoteBuyNow", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostQuoteSellNow(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostQuoteSellNow", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostQuoteSwapNow(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostQuoteSwapNow", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostMyBuy(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostMyBuy", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostMyBuyEdit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostMyBuyEdit", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostMySell(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostMySell", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostMySellEdit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostMySellEdit", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostMyBuyNow(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostMyBuyNow", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostMySellNow(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostMySellNow", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostMySwapNow(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostMySwapNow", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostMyBuyCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostMyBuyCancel", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostMyBuyCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostMyBuyCancelAll", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostMySellCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostMySellCancel", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostMySellCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostMySellCancelAll", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostMyCoinWithdrawSenddetails(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostMyCoinWithdrawSenddetails", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostMyCoinWithdrawSend(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostMyCoinWithdrawSend", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostRoStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostRoStatus", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostRoOrdersMarketOpen(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostRoOrdersMarketOpen", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostRoOrdersMarketCompleted(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostRoOrdersMarketCompleted", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostRoMyBalances(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostRoMyBalances", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostRoMyBalanceCointype(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostRoMyBalanceCointype", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostRoMyOrdersMarketOpen(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostRoMyOrdersMarketOpen", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostRoMyOrdersLimitOpen(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostRoMyOrdersLimitOpen", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostRoMyOrdersCompleted(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostRoMyOrdersCompleted", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostRoMyOrdersMarketCompleted(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostRoMyOrdersMarketCompleted", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostRoMySendreceive(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostRoMySendreceive", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostRoMyDeposits(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostRoMyDeposits", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostRoMyWithdrawals(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostRoMyWithdrawals", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostRoMyAffiliatepayments(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostRoMyAffiliatepayments", args...)
+}
+
+func (this *CoinspotCore) V2PrivatePostRoMyReferralpayments(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostRoMyReferralpayments", args...)
+}

@@ -156,7 +156,7 @@ public partial class Exchange
         Int64? parsedValue = null;
         try
         {
-            parsedValue = Convert.ToInt64((Convert.ToDouble(result) * Convert.ToDouble(multiplier)));
+            parsedValue = (Int64)(Convert.ToDouble(result) * Convert.ToDouble(multiplier));
         }
         catch (Exception e)
         {
