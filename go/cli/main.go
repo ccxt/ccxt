@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"math/rand/v2"
 	"os"
@@ -315,7 +314,7 @@ func IoFileRead(path interface{}, decode ...interface{}) interface{} {
 
 	switch p := path.(type) {
 	case string:
-		content, err := ioutil.ReadFile(p)
+		content, err := os.ReadFile(p)
 		if err != nil {
 			log.Fatal(err)
 		}
