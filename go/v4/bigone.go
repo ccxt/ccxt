@@ -66,6 +66,9 @@ func (this *BigoneCore) Describe() interface{} {
 			"fetchMarkets":                   true,
 			"fetchMyTrades":                  true,
 			"fetchOHLCV":                     true,
+			"fetchOpenInterest":              false,
+			"fetchOpenInterestHistory":       false,
+			"fetchOpenInterests":             false,
 			"fetchOpenOrders":                true,
 			"fetchOption":                    false,
 			"fetchOptionChain":               false,
@@ -801,7 +804,7 @@ func (this *BigoneCore) ParseTicker(ticker interface{}, optionalArgs ...interfac
 		"close":         close,
 		"last":          close,
 		"previousClose": nil,
-		"change":        this.SafeString2(ticker, "daily_change", "last24hPriceChange"),
+		"change":        this.SafeString(ticker, "daily_change"),
 		"percentage":    nil,
 		"average":       nil,
 		"baseVolume":    this.SafeString2(ticker, "volume", "volume24h"),
@@ -819,7 +822,7 @@ func (this *BigoneCore) ParseTicker(ticker interface{}, optionalArgs ...interfac
  * @see https://open.big.one/docs/spot_tickers.html
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BigoneCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -829,8 +832,8 @@ func (this *BigoneCore) FetchTicker(symbol interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes8808 := (<-this.LoadMarkets())
-		PanicOnError(retRes8808)
+		retRes8838 := (<-this.LoadMarkets())
+		PanicOnError(retRes8838)
 		var market interface{} = this.Market(symbol)
 		var typeVar interface{} = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTicker", market, params)
@@ -883,7 +886,7 @@ func (this *BigoneCore) FetchTicker(symbol interface{}, optionalArgs ...interfac
  * @see https://open.big.one/docs/spot_tickers.html
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BigoneCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -895,8 +898,8 @@ func (this *BigoneCore) FetchTickers(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes9238 := (<-this.LoadMarkets())
-		PanicOnError(retRes9238)
+		retRes9268 := (<-this.LoadMarkets())
+		PanicOnError(retRes9268)
 		var market interface{} = nil
 		var symbol interface{} = this.SafeString(symbols, 0)
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1003,7 +1006,7 @@ func (this *BigoneCore) FetchTime(optionalArgs ...interface{}) <-chan interface{
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *BigoneCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1015,8 +1018,8 @@ func (this *BigoneCore) FetchOrderBook(symbol interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes10348 := (<-this.LoadMarkets())
-		PanicOnError(retRes10348)
+		retRes10378 := (<-this.LoadMarkets())
+		PanicOnError(retRes10378)
 		var market interface{} = this.Market(symbol)
 		var response interface{} = nil
 		if IsTrue(GetValue(market, "contract")) {
@@ -1270,7 +1273,7 @@ func (this *BigoneCore) ParseTrade(trade interface{}, optionalArgs ...interface{
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BigoneCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1284,8 +1287,8 @@ func (this *BigoneCore) FetchTrades(symbol interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes12708 := (<-this.LoadMarkets())
-		PanicOnError(retRes12708)
+		retRes12738 := (<-this.LoadMarkets())
+		PanicOnError(retRes12738)
 		var market interface{} = this.Market(symbol)
 		if IsTrue(GetValue(market, "contract")) {
 			panic(NotSupported(Add(this.Id, " fetchTrades () can only fetch trades for spot markets")))
@@ -1368,8 +1371,8 @@ func (this *BigoneCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes13398 := (<-this.LoadMarkets())
-		PanicOnError(retRes13398)
+		retRes13428 := (<-this.LoadMarkets())
+		PanicOnError(retRes13428)
 		var market interface{} = this.Market(symbol)
 		if IsTrue(GetValue(market, "contract")) {
 			panic(NotSupported(Add(this.Id, " fetchOHLCV () can only fetch ohlcvs for spot markets")))
@@ -1458,7 +1461,7 @@ func (this *BigoneCore) ParseBalance(response interface{}) interface{} {
  * @see https://open.big.one/docs/fund_accounts.html
  * @see https://open.big.one/docs/spot_accounts.html
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *BigoneCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1468,8 +1471,8 @@ func (this *BigoneCore) FetchBalance(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes14258 := (<-this.LoadMarkets())
-		PanicOnError(retRes14258)
+		retRes14288 := (<-this.LoadMarkets())
+		PanicOnError(retRes14288)
 		var typeVar interface{} = this.SafeString(params, "type", "")
 		params = this.Omit(params, "type")
 		var response interface{} = nil
@@ -1511,7 +1514,7 @@ func (this *BigoneCore) ParseType(typeVar interface{}) interface{} {
 func (this *BigoneCore) ParseOrder(order interface{}, optionalArgs ...interface{}) interface{} {
 	//
 	//    {
-	//        "id": "42154072251",
+	//        "id": "42154072252",
 	//        "asset_pair_name": "SOL-USDT",
 	//        "price": "20",
 	//        "amount": "0.5",
@@ -1593,7 +1596,7 @@ func (this *BigoneCore) ParseOrder(order interface{}, optionalArgs ...interface{
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BigoneCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1603,17 +1606,17 @@ func (this *BigoneCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost in
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes15438 := (<-this.LoadMarkets())
-		PanicOnError(retRes15438)
+		retRes15468 := (<-this.LoadMarkets())
+		PanicOnError(retRes15468)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot orders only")))
 		}
 		AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
 
-		retRes154915 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
-		PanicOnError(retRes154915)
-		ch <- retRes154915
+		retRes155215 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
+		PanicOnError(retRes155215)
+		ch <- retRes155215
 		return nil
 
 	}()
@@ -1639,7 +1642,7 @@ func (this *BigoneCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost in
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {string} [params.operator] *stop order only* GTE or LTE (default)
  * @param {string} [params.client_order_id] must match ^[a-zA-Z0-9-_]{1,36}$ this regex. client_order_id is unique in 24 hours, If created 24 hours later and the order closed, it will be released and can be reused
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BigoneCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1651,8 +1654,8 @@ func (this *BigoneCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes15748 := (<-this.LoadMarkets())
-		PanicOnError(retRes15748)
+		retRes15778 := (<-this.LoadMarkets())
+		PanicOnError(retRes15778)
 		var market interface{} = this.Market(symbol)
 		var isBuy interface{} = (IsEqual(side, "buy"))
 		var requestSide interface{} = Ternary(IsTrue(isBuy), "BID", "ASK")
@@ -1755,7 +1758,7 @@ func (this *BigoneCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
  * @param {string} id order id
  * @param {string} symbol Not used by bigone cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BigoneCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1767,8 +1770,8 @@ func (this *BigoneCore) CancelOrder(id interface{}, optionalArgs ...interface{})
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes16738 := (<-this.LoadMarkets())
-		PanicOnError(retRes16738)
+		retRes16768 := (<-this.LoadMarkets())
+		PanicOnError(retRes16768)
 		var request interface{} = map[string]interface{}{
 			"id": id,
 		}
@@ -1803,7 +1806,7 @@ func (this *BigoneCore) CancelOrder(id interface{}, optionalArgs ...interface{})
  * @see https://open.big.one/docs/spot_orders.html#cancel-all-orders
  * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BigoneCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1815,8 +1818,8 @@ func (this *BigoneCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes17028 := (<-this.LoadMarkets())
-		PanicOnError(retRes17028)
+		retRes17058 := (<-this.LoadMarkets())
+		PanicOnError(retRes17058)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"asset_pair_name": GetValue(market, "id"),
@@ -1872,7 +1875,7 @@ func (this *BigoneCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inte
  * @param {string} id the order id
  * @param {string} symbol not used by bigone fetchOrder
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BigoneCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1884,8 +1887,8 @@ func (this *BigoneCore) FetchOrder(id interface{}, optionalArgs ...interface{}) 
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes17548 := (<-this.LoadMarkets())
-		PanicOnError(retRes17548)
+		retRes17578 := (<-this.LoadMarkets())
+		PanicOnError(retRes17578)
 		var request interface{} = map[string]interface{}{
 			"id": id,
 		}
@@ -1910,7 +1913,7 @@ func (this *BigoneCore) FetchOrder(id interface{}, optionalArgs ...interface{}) 
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BigoneCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1929,8 +1932,8 @@ func (this *BigoneCore) FetchOrders(optionalArgs ...interface{}) <-chan interfac
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrders() requires a symbol argument")))
 		}
 
-		retRes17768 := (<-this.LoadMarkets())
-		PanicOnError(retRes17768)
+		retRes17798 := (<-this.LoadMarkets())
+		PanicOnError(retRes17798)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"asset_pair_name": GetValue(market, "id"),
@@ -1979,7 +1982,7 @@ func (this *BigoneCore) FetchOrders(optionalArgs ...interface{}) <-chan interfac
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *BigoneCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1998,8 +2001,8 @@ func (this *BigoneCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interf
 			panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
 		}
 
-		retRes18288 := (<-this.LoadMarkets())
-		PanicOnError(retRes18288)
+		retRes18318 := (<-this.LoadMarkets())
+		PanicOnError(retRes18318)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"asset_pair_name": GetValue(market, "id"),
@@ -2070,7 +2073,7 @@ func (this *BigoneCore) ParseOrderStatus(status interface{}) interface{} {
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BigoneCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2089,9 +2092,9 @@ func (this *BigoneCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inte
 			"state": "PENDING",
 		}
 
-		retRes190015 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes190015)
-		ch <- retRes190015
+		retRes190315 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes190315)
+		ch <- retRes190315
 		return nil
 
 	}()
@@ -2107,7 +2110,7 @@ func (this *BigoneCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inte
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BigoneCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2126,9 +2129,9 @@ func (this *BigoneCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan in
 			"state": "FILLED",
 		}
 
-		retRes191815 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes191815)
-		ch <- retRes191815
+		retRes192115 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes192115)
+		ch <- retRes192115
 		return nil
 
 	}()
@@ -2192,7 +2195,7 @@ func (this *BigoneCore) Sign(path interface{}, optionalArgs ...interface{}) inte
  * @see https://open.big.one/docs/spot_deposit.html#get-deposite-address-of-one-asset-of-user
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *BigoneCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2202,8 +2205,8 @@ func (this *BigoneCore) FetchDepositAddress(code interface{}, optionalArgs ...in
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes19698 := (<-this.LoadMarkets())
-		PanicOnError(retRes19698)
+		retRes19728 := (<-this.LoadMarkets())
+		PanicOnError(retRes19728)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"asset_symbol": GetValue(currency, "id"),
@@ -2364,7 +2367,7 @@ func (this *BigoneCore) ParseTransaction(transaction interface{}, optionalArgs .
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BigoneCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2380,8 +2383,8 @@ func (this *BigoneCore) FetchDeposits(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes21258 := (<-this.LoadMarkets())
-		PanicOnError(retRes21258)
+		retRes21288 := (<-this.LoadMarkets())
+		PanicOnError(retRes21288)
 		var request interface{} = map[string]interface{}{}
 		var currency interface{} = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -2433,7 +2436,7 @@ func (this *BigoneCore) FetchDeposits(optionalArgs ...interface{}) <-chan interf
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BigoneCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2449,8 +2452,8 @@ func (this *BigoneCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes21788 := (<-this.LoadMarkets())
-		PanicOnError(retRes21788)
+		retRes21818 := (<-this.LoadMarkets())
+		PanicOnError(retRes21818)
 		var request interface{} = map[string]interface{}{}
 		var currency interface{} = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -2503,7 +2506,7 @@ func (this *BigoneCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan int
  * @param {string} fromAccount 'SPOT', 'FUND', or 'CONTRACT'
  * @param {string} toAccount 'SPOT', 'FUND', or 'CONTRACT'
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *BigoneCore) Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2513,8 +2516,8 @@ func (this *BigoneCore) Transfer(code interface{}, amount interface{}, fromAccou
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes22328 := (<-this.LoadMarkets())
-		PanicOnError(retRes22328)
+		retRes22358 := (<-this.LoadMarkets())
+		PanicOnError(retRes22358)
 		var currency interface{} = this.Currency(code)
 		var accountsByType interface{} = this.SafeDict(this.Options, "accountsByType", map[string]interface{}{})
 		var fromId interface{} = this.SafeString(accountsByType, fromAccount, fromAccount)
@@ -2591,7 +2594,7 @@ func (this *BigoneCore) ParseTransferStatus(status interface{}) interface{} {
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BigoneCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2606,8 +2609,8 @@ func (this *BigoneCore) Withdraw(code interface{}, amount interface{}, address i
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
 
-		retRes23088 := (<-this.LoadMarkets())
-		PanicOnError(retRes23088)
+		retRes23118 := (<-this.LoadMarkets())
+		PanicOnError(retRes23118)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"symbol":         GetValue(currency, "id"),

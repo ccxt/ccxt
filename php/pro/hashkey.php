@@ -190,7 +190,7 @@ class hashkey extends \ccxt\async\hashkey {
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->binary] true or false - default false
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -250,7 +250,7 @@ class hashkey extends \ccxt\async\hashkey {
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->binary] true or false - default false
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -321,7 +321,7 @@ class hashkey extends \ccxt\async\hashkey {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return.
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -391,7 +391,7 @@ class hashkey extends \ccxt\async\hashkey {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $messageHash = 'orders';
@@ -515,7 +515,7 @@ class hashkey extends \ccxt\async\hashkey {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $messageHash = 'myTrades';
@@ -733,7 +733,7 @@ class hashkey extends \ccxt\async\hashkey {
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] 'spot' or 'swap' - the $type of the market to watch balance for (default 'spot')
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             $listenKey = Async\await($this->authenticate());
             Async\await($this->load_markets());
@@ -776,9 +776,11 @@ class hashkey extends \ccxt\async\hashkey {
             $response = Async\await($this->fetch_balance(array( 'type' => $type )));
             $this->balance[$type] = $this->extend($response, $this->safe_value($this->balance, $type, array()));
             // don't remove the $future from the .futures cache
-            $future = $client->futures[$messageHash];
-            $future->resolve ();
-            $client->resolve ($this->balance[$type], 'balance:' . $type);
+            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
+                $future = $client->futures[$messageHash];
+                $future->resolve ();
+                $client->resolve ($this->balance[$type], 'balance:' . $type);
+            }
         }) ();
     }
 

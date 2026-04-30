@@ -322,7 +322,7 @@ func  (this *PhemexCore) HandleTicker(client interface{}, message interface{})  
  * @description watch balance and get the amount of funds available for trading or funds locked in orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.settle] set to USDT to use hedged perpetual api
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func  (this *PhemexCore) WatchBalance(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -534,7 +534,7 @@ func  (this *PhemexCore) HandleOHLCV(client interface{}, message interface{})  {
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *PhemexCore) WatchTicker(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -583,7 +583,7 @@ func  (this *PhemexCore) WatchTicker(symbol interface{}, optionalArgs ...interfa
  * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *PhemexCore) WatchTickers(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -647,7 +647,7 @@ func  (this *PhemexCore) WatchTickers(optionalArgs ...interface{}) <- chan inter
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *PhemexCore) WatchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -702,7 +702,7 @@ func  (this *PhemexCore) WatchTrades(symbol interface{}, optionalArgs ...interfa
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *PhemexCore) WatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -896,7 +896,7 @@ func  (this *PhemexCore) HandleOrderBook(client interface{}, message interface{}
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trade structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func  (this *PhemexCore) WatchMyTrades(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1082,7 +1082,7 @@ func  (this *PhemexCore) HandleMyTrades(client interface{}, message interface{})
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *PhemexCore) WatchOrders(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})

@@ -255,7 +255,7 @@ func (this *BitsoCore) Describe() interface{} {
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *BitsoCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -606,7 +606,7 @@ func (this *BitsoCore) ParseBalance(response interface{}) interface{} {
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://docs.bitso.com/bitso-api/docs/get-account-balance
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *BitsoCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -662,7 +662,7 @@ func (this *BitsoCore) FetchBalance(optionalArgs ...interface{}) <-chan interfac
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *BitsoCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -746,7 +746,7 @@ func (this *BitsoCore) ParseTicker(ticker interface{}, optionalArgs ...interface
  * @see https://docs.bitso.com/bitso-api/docs/ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BitsoCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1000,7 +1000,7 @@ func (this *BitsoCore) ParseTrade(trade interface{}, optionalArgs ...interface{}
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BitsoCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1037,7 +1037,7 @@ func (this *BitsoCore) FetchTrades(symbol interface{}, optionalArgs ...interface
  * @description fetch the trading fees for multiple markets
  * @see https://docs.bitso.com/bitso-api/docs/list-fees
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *BitsoCore) FetchTradingFees(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1128,7 +1128,7 @@ func (this *BitsoCore) FetchTradingFees(optionalArgs ...interface{}) <-chan inte
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *BitsoCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1188,7 +1188,7 @@ func (this *BitsoCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interfa
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitsoCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1235,7 +1235,7 @@ func (this *BitsoCore) CreateOrder(symbol interface{}, typeVar interface{}, side
  * @param {string} id order id
  * @param {string} symbol not used by bitso cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitsoCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1282,7 +1282,7 @@ func (this *BitsoCore) CancelOrder(id interface{}, optionalArgs ...interface{}) 
  * @param {string[]} ids order ids
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitsoCore) CancelOrders(ids interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1334,7 +1334,7 @@ func (this *BitsoCore) CancelOrders(ids interface{}, optionalArgs ...interface{}
  * @see https://docs.bitso.com/bitso-api/docs/cancel-an-order
  * @param {undefined} symbol bitso does not support canceling orders for only a specific market
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitsoCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1437,7 +1437,7 @@ func (this *BitsoCore) ParseOrder(order interface{}, optionalArgs ...interface{}
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitsoCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1495,7 +1495,7 @@ func (this *BitsoCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inter
  * @param {string} id the order id
  * @param {string} symbol not used by bitso fetchOrder
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitsoCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1539,7 +1539,7 @@ func (this *BitsoCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *BitsoCore) FetchOrderTrades(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1580,7 +1580,7 @@ func (this *BitsoCore) FetchOrderTrades(id interface{}, optionalArgs ...interfac
  * @param {string} id deposit id
  * @param {string} code bitso does not support filtering by currency code and will ignore this argument
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BitsoCore) FetchDeposit(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1642,7 +1642,7 @@ func (this *BitsoCore) FetchDeposit(id interface{}, optionalArgs ...interface{})
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BitsoCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1705,7 +1705,7 @@ func (this *BitsoCore) FetchDeposits(optionalArgs ...interface{}) <-chan interfa
  * @description fetch the deposit address for a currency associated with this account
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *BitsoCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1754,7 +1754,7 @@ func (this *BitsoCore) FetchDepositAddress(code interface{}, optionalArgs ...int
  * @see https://docs.bitso.com/bitso-api/docs/list-fees
  * @param {string[]|undefined} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *BitsoCore) FetchTransactionFees(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1865,7 +1865,7 @@ func (this *BitsoCore) FetchTransactionFees(optionalArgs ...interface{}) <-chan 
  * @see https://docs.bitso.com/bitso-api/docs/list-fees
  * @param {string[]|undefined} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *BitsoCore) FetchDepositWithdrawFees(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2026,7 +2026,7 @@ func (this *BitsoCore) ParseDepositWithdrawFees(response interface{}, optionalAr
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BitsoCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})

@@ -281,6 +281,7 @@ public partial class bitget : Exchange
                             { "v3/market/tickers", 1 },
                             { "v3/market/orderbook", 1 },
                             { "v3/market/fills", 1 },
+                            { "v3/market/proof-of-reserves", 1 },
                             { "v3/market/open-interest", 1 },
                             { "v3/market/candles", 1 },
                             { "v3/market/history-candles", 1 },
@@ -291,6 +292,7 @@ public partial class bitget : Exchange
                             { "v3/market/margin-loans", 1 },
                             { "v3/market/position-tier", 1 },
                             { "v3/market/oi-limit", 2 },
+                            { "v3/market/index-components", 2 },
                         } },
                     } },
                 } },
@@ -328,6 +330,7 @@ public partial class bitget : Exchange
                             { "v2/spot/wallet/deposit-address", 2 },
                             { "v2/spot/wallet/deposit-records", 2 },
                             { "v2/spot/wallet/withdrawal-records", 2 },
+                            { "v2/spot/account/upgrade-status", 20 },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "spot/v1/wallet/transfer", 4 },
@@ -397,6 +400,7 @@ public partial class bitget : Exchange
                             { "v2/spot/wallet/withdrawal", 2 },
                             { "v2/spot/wallet/cancel-withdrawal", 2 },
                             { "v2/spot/wallet/modify-deposit-account", 2 },
+                            { "v2/spot/account/upgrade", 20 },
                         } },
                     } },
                     { "mix", new Dictionary<string, object>() {
@@ -805,14 +809,29 @@ public partial class bitget : Exchange
                     { "uta", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
                             { "v3/account/assets", 1 },
+                            { "v3/account/funding-assets", 1 },
                             { "v3/account/settings", 1 },
-                            { "v3/account/deposit-records", 2 },
                             { "v3/account/financial-records", 1 },
                             { "v3/account/repayable-coins", 2 },
                             { "v3/account/payment-coins", 2 },
                             { "v3/account/convert-records", 1 },
+                            { "v3/account/deduct-info", 20 },
+                            { "v3/account/fee-rate", 6.6667 },
+                            { "v3/account/switch-status", 4 },
+                            { "v3/account/max-transferable", 6.6667 },
+                            { "v3/account/open-interest-limit", 4 },
+                            { "v3/account/sub-unified-assets", 20 },
                             { "v3/account/transferable-coins", 2 },
                             { "v3/account/sub-transfer-record", 4 },
+                            { "v3/account/deposit-address", 2 },
+                            { "v3/account/sub-deposit-address", 2 },
+                            { "v3/account/deposit-records", 2 },
+                            { "v3/account/sub-deposit-records", 2 },
+                            { "v3/account/withdrawal-records", 2 },
+                            { "v3/broker/sub-list", 1 },
+                            { "v3/broker/all-sub-deposit-withdrawal", 1 },
+                            { "v3/broker/commission", 1 },
+                            { "v3/broker/query-sub-apikey", 1 },
                             { "v3/ins-loan/transfered", 6.6667 },
                             { "v3/ins-loan/symbols", 6.6667 },
                             { "v3/ins-loan/risk-unit", 6.6667 },
@@ -821,8 +840,18 @@ public partial class bitget : Exchange
                             { "v3/ins-loan/loan-order", 6.6667 },
                             { "v3/ins-loan/ltv-convert", 6.6667 },
                             { "v3/ins-loan/ensure-coins-convert", 6.6667 },
+                            { "v3/loan/coins", 2 },
+                            { "v3/loan/interest", 2 },
+                            { "v3/loan/borrow-ongoing", 2 },
+                            { "v3/loan/borrow-history", 2 },
+                            { "v3/loan/repay-history", 2 },
+                            { "v3/loan/pledge-rate-history", 2 },
+                            { "v3/loan/debts", 2 },
+                            { "v3/loan/reduces", 2 },
                             { "v3/position/current-position", 1 },
                             { "v3/position/history-position", 1 },
+                            { "v3/position/adlRank", 20 },
+                            { "v3/tax/records", 20 },
                             { "v3/trade/order-info", 1 },
                             { "v3/trade/unfilled-orders", 1 },
                             { "v3/trade/unfilled-strategy-orders", 1 },
@@ -836,10 +865,26 @@ public partial class bitget : Exchange
                             { "v3/account/set-leverage", 2 },
                             { "v3/account/set-hold-mode", 2 },
                             { "v3/account/repay", 4 },
+                            { "v3/account/switch-deduct", 20 },
+                            { "v3/account/deposit-account", 20 },
+                            { "v3/account/switch", 20 },
+                            { "v3/account/adjust-account-mode", 20 },
                             { "v3/account/transfer", 4 },
                             { "v3/account/sub-transfer", 4 },
+                            { "v3/account/sub-master-transfer", 4 },
                             { "v3/account/max-open-available", 4 },
+                            { "v3/account/withdrawal", 20 },
+                            { "v3/broker/create-sub", 1 },
+                            { "v3/broker/modify-sub", 1 },
+                            { "v3/broker/sub-withdrawal", 1 },
+                            { "v3/broker/sub-deposit-address", 1 },
+                            { "v3/broker/create-sub-apikey", 1 },
+                            { "v3/broker/modify-sub-apikey", 1 },
+                            { "v3/broker/delete-sub-apikey", 1 },
                             { "v3/ins-loan/bind-uid", 6.6667 },
+                            { "v3/loan/borrow", 2 },
+                            { "v3/loan/repay", 2 },
+                            { "v3/loan/revise-pledge", 2 },
                             { "v3/trade/place-order", 2 },
                             { "v3/trade/place-strategy-order", 2 },
                             { "v3/trade/modify-order", 2 },
@@ -851,6 +896,7 @@ public partial class bitget : Exchange
                             { "v3/trade/cancel-batch", 4 },
                             { "v3/trade/cancel-symbol-order", 4 },
                             { "v3/trade/close-positions", 4 },
+                            { "v3/trade/countdown-cancel-all", 20 },
                             { "v3/user/create-sub", 2 },
                             { "v3/user/freeze-sub", 2 },
                             { "v3/user/create-sub-api", 2 },
@@ -1307,6 +1353,7 @@ public partial class bitget : Exchange
                     { "43115", typeof(OnMaintenance) },
                     { "45110", typeof(InvalidOrder) },
                     { "40774", typeof(InvalidOrder) },
+                    { "40917", typeof(InvalidOrder) },
                     { "45122", typeof(InvalidOrder) },
                     { "invalid sign", typeof(AuthenticationError) },
                     { "invalid currency", typeof(BadSymbol) },
@@ -1369,7 +1416,10 @@ public partial class bitget : Exchange
                     { "invalid end time", typeof(BadRequest) },
                     { "20003", typeof(ExchangeError) },
                     { "01001", typeof(ExchangeError) },
+                    { "40024", typeof(RestrictedLocation) },
+                    { "41117", typeof(InvalidOrder) },
                     { "43111", typeof(PermissionDenied) },
+                    { "45113", typeof(InvalidOrder) },
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "invalid size, valid range", typeof(ExchangeError) },
@@ -1606,6 +1656,7 @@ public partial class bitget : Exchange
                 { "defaultTimeInForce", "GTC" },
                 { "fiatCurrencies", new List<object>() {"EUR", "VND", "PLN", "CZK", "HUF", "DKK", "AUD", "CAD", "NOK", "SEK", "CHF", "MXN", "COP", "ARS", "GBP", "BRL", "UAH", "ZAR"} },
             } },
+            { "rollingWindowSize", 1000 },
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
                     { "sandbox", true },
@@ -2404,7 +2455,7 @@ public partial class bitget : Exchange
                         { "max", null },
                     } },
                     { "cost", new Dictionary<string, object>() {
-                        { "min", null },
+                        { "min", this.safeNumber(market, "minOrderAmount") },
                         { "max", null },
                     } },
                 } },
@@ -2557,7 +2608,7 @@ public partial class bitget : Exchange
      * @param {string} [params.code] required for cross spot margin
      * @param {string} [params.productType] *contract and uta only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+     * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
     public async override Task<object> fetchMarketLeverageTiers(object symbol, object parameters = null)
     {
@@ -2781,7 +2832,7 @@ public partial class bitget : Exchange
      * @param {int} [params.until] end time in milliseconds
      * @param {string} [params.idLessThan] return records with id less than the provided value
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2855,7 +2906,7 @@ public partial class bitget : Exchange
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.chain] the blockchain network the withdrawal is taking place on
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
@@ -2924,7 +2975,7 @@ public partial class bitget : Exchange
      * @param {int} [params.until] end time in milliseconds
      * @param {string} [params.idLessThan] return records with id less than the provided value
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3098,7 +3149,7 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/spot/account/Get-Deposit-Address
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
@@ -3174,7 +3225,7 @@ public partial class bitget : Exchange
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -3349,7 +3400,6 @@ public partial class bitget : Exchange
         object marketId = this.safeString(ticker, "symbol");
         object close = this.safeString2(ticker, "lastPr", "lastPrice");
         object timestamp = this.safeIntegerOmitZero(ticker, "ts"); // exchange bitget provided 0
-        object change = this.safeString(ticker, "change24h");
         object category = this.safeString(ticker, "category");
         object markPrice = this.safeString(ticker, "markPrice");
         object marketType = null;
@@ -3363,7 +3413,8 @@ public partial class bitget : Exchange
         object percentage = this.safeString(ticker, "price24hPcnt");
         if (isTrue(isEqual(percentage, null)))
         {
-            percentage = Precise.stringMul(change, "100");
+            object change24h = this.safeString(ticker, "change24h");
+            percentage = Precise.stringMul(change24h, "100");
         }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", this.safeSymbol(marketId, market, null, marketType) },
@@ -3380,7 +3431,7 @@ public partial class bitget : Exchange
             { "close", close },
             { "last", close },
             { "previousClose", null },
-            { "change", change },
+            { "change", null },
             { "percentage", percentage },
             { "average", null },
             { "baseVolume", this.safeString2(ticker, "baseVolume", "volume24h") },
@@ -3401,7 +3452,7 @@ public partial class bitget : Exchange
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
@@ -3566,7 +3617,7 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Price
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchMarkPrice(object symbol, object parameters = null)
     {
@@ -3605,7 +3656,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.subType] *contract only* 'linear', 'inverse'
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
@@ -3638,10 +3689,13 @@ public partial class bitget : Exchange
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
         {
-            object symbolsLength = getArrayLength(symbols);
-            if (isTrue(isTrue((!isEqual(symbols, null))) && isTrue((isEqual(symbolsLength, 1)))))
+            if (isTrue(!isEqual(symbols, null)))
             {
-                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+                object symbolsLength = getArrayLength(symbols);
+                if (isTrue(isEqual(symbolsLength, 1)))
+                {
+                    ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+                }
             }
             ((IDictionary<string,object>)request)["category"] = productType;
             response = await this.publicUtaGetV3MarketTickers(this.extend(request, parameters));
@@ -3947,7 +4001,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {int} [params.until] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* the latest time in ms to fetch trades for
      * @param {boolean} [params.paginate] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* default false, when true will automatically paginate by calling this endpoint multiple times
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -4111,7 +4165,7 @@ public partial class bitget : Exchange
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'isolated' or 'cross', for finding the fee rate of spot margin trading pairs
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
@@ -4164,7 +4218,7 @@ public partial class bitget : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {boolean} [params.margin] set to true for spot margin
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
@@ -4563,7 +4617,7 @@ public partial class bitget : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {string} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
@@ -5200,7 +5254,7 @@ public partial class bitget : Exchange
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
@@ -5234,7 +5288,7 @@ public partial class bitget : Exchange
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much you want to trade in units of the base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders, and used as the execution price for contract stop-loss / take-profit orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.cost] *spot only* how much you want to trade in units of the quote currency, for market buy orders only
      * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
@@ -5260,7 +5314,7 @@ public partial class bitget : Exchange
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.posSide] *uta only* hedged two-way position side, long or short
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -5375,8 +5429,8 @@ public partial class bitget : Exchange
         object takeProfitTriggerPrice = this.safeNumber(parameters, "takeProfitPrice");
         object stopLoss = this.safeValue(parameters, "stopLoss");
         object takeProfit = this.safeValue(parameters, "takeProfit");
-        object isStopLoss = !isEqual(stopLoss, null);
-        object isTakeProfit = !isEqual(takeProfit, null);
+        object hasStopLoss = !isEqual(stopLoss, null);
+        object hasTakeProfit = !isEqual(takeProfit, null);
         object isStopLossTrigger = !isEqual(stopLossTriggerPrice, null);
         object isTakeProfitTrigger = !isEqual(takeProfitTriggerPrice, null);
         object isStopLossOrTakeProfitTrigger = isTrue(isStopLossTrigger) || isTrue(isTakeProfitTrigger);
@@ -5412,7 +5466,7 @@ public partial class bitget : Exchange
             parameters = this.omit(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice"});
         } else
         {
-            if (isTrue(isStopLoss))
+            if (isTrue(hasStopLoss))
             {
                 object slTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
                 object slLimitPrice = this.safeNumber(stopLoss, "price");
@@ -5426,7 +5480,7 @@ public partial class bitget : Exchange
                     ((IDictionary<string,object>)request)["slOrderType"] = this.safeString(parameters, "slOrderType", "market");
                 }
             }
-            if (isTrue(isTakeProfit))
+            if (isTrue(hasTakeProfit))
             {
                 object tpTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
                 object tpLimitPrice = this.safeNumber(takeProfit, "price");
@@ -5532,10 +5586,10 @@ public partial class bitget : Exchange
         object isTriggerOrder = !isEqual(triggerPrice, null);
         object isStopLossTriggerOrder = !isEqual(stopLossTriggerPrice, null);
         object isTakeProfitTriggerOrder = !isEqual(takeProfitTriggerPrice, null);
-        object isStopLoss = !isEqual(stopLoss, null);
-        object isTakeProfit = !isEqual(takeProfit, null);
+        object hasStopLoss = !isEqual(stopLoss, null);
+        object hasTakeProfit = !isEqual(takeProfit, null);
         object isStopLossOrTakeProfitTrigger = isTrue(isStopLossTriggerOrder) || isTrue(isTakeProfitTriggerOrder);
-        object isStopLossOrTakeProfit = isTrue(isStopLoss) || isTrue(isTakeProfit);
+        object isStopLossOrTakeProfit = isTrue(hasStopLoss) || isTrue(hasTakeProfit);
         object trailingTriggerPrice = this.safeString(parameters, "trailingTriggerPrice", this.numberToString(price));
         object trailingPercent = this.safeString2(parameters, "trailingPercent", "callbackRatio");
         object isTrailingPercentOrder = !isEqual(trailingPercent, null);
@@ -5609,7 +5663,7 @@ public partial class bitget : Exchange
                 {
                     ((IDictionary<string,object>)request)["executePrice"] = this.priceToPrecision(symbol, price);
                 }
-                if (isTrue(isStopLoss))
+                if (isTrue(hasStopLoss))
                 {
                     object slTriggerPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice");
                     ((IDictionary<string,object>)request)["stopLossTriggerPrice"] = this.priceToPrecision(symbol, slTriggerPrice);
@@ -5618,7 +5672,7 @@ public partial class bitget : Exchange
                     object slType = this.safeString(stopLoss, "type", "mark_price");
                     ((IDictionary<string,object>)request)["stopLossTriggerType"] = slType;
                 }
-                if (isTrue(isTakeProfit))
+                if (isTrue(hasTakeProfit))
                 {
                     object tpTriggerPrice = this.safeString2(takeProfit, "triggerPrice", "stopPrice");
                     ((IDictionary<string,object>)request)["stopSurplusTriggerPrice"] = this.priceToPrecision(symbol, tpTriggerPrice);
@@ -5629,9 +5683,13 @@ public partial class bitget : Exchange
                 }
             } else if (isTrue(isStopLossOrTakeProfitTrigger))
             {
-                if (!isTrue(isMarketOrder))
+                if (isTrue(!isEqual(price, null)))
                 {
-                    throw new ExchangeError ((string)add(this.id, " createOrder() bitget stopLoss or takeProfit orders must be market orders")) ;
+                    ((IDictionary<string,object>)request)["executePrice"] = this.priceToPrecision(symbol, price);
+                    if (isTrue(inOp(request, "price")))
+                    {
+                        ((IDictionary<string,object>)request).Remove((string)"price");
+                    }
                 }
                 if (isTrue(hedged))
                 {
@@ -5651,12 +5709,12 @@ public partial class bitget : Exchange
                 }
             } else
             {
-                if (isTrue(isStopLoss))
+                if (isTrue(hasStopLoss))
                 {
                     object slTriggerPrice = this.safeValue2(stopLoss, "triggerPrice", "stopPrice");
                     ((IDictionary<string,object>)request)["presetStopLossPrice"] = this.priceToPrecision(symbol, slTriggerPrice);
                 }
-                if (isTrue(isTakeProfit))
+                if (isTrue(hasTakeProfit))
                 {
                     object tpTriggerPrice = this.safeValue2(takeProfit, "triggerPrice", "stopPrice");
                     ((IDictionary<string,object>)request)["presetStopSurplusPrice"] = this.priceToPrecision(symbol, tpTriggerPrice);
@@ -5846,7 +5904,7 @@ public partial class bitget : Exchange
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the api endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
@@ -5994,7 +6052,7 @@ public partial class bitget : Exchange
      * @param {string} [params.trailingTriggerPrice] *swap and future only* the price to trigger a trailing stop order, default uses the price argument
      * @param {string} [params.newTriggerType] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
@@ -6020,8 +6078,8 @@ public partial class bitget : Exchange
         object isTakeProfitOrder = !isEqual(takeProfitPrice, null);
         object stopLoss = this.safeValue(parameters, "stopLoss");
         object takeProfit = this.safeValue(parameters, "takeProfit");
-        object isStopLoss = !isEqual(stopLoss, null);
-        object isTakeProfit = !isEqual(takeProfit, null);
+        object hasStopLoss = !isEqual(stopLoss, null);
+        object hasTakeProfit = !isEqual(takeProfit, null);
         object trailingTriggerPrice = this.safeString(parameters, "trailingTriggerPrice", this.numberToString(price));
         object trailingPercent = this.safeString2(parameters, "trailingPercent", "newCallbackRatio");
         object isTrailingPercentOrder = !isEqual(trailingPercent, null);
@@ -6132,7 +6190,10 @@ public partial class bitget : Exchange
             ((IDictionary<string,object>)request)["productType"] = productType;
             if (isTrue(!isTrue(isTakeProfitOrder) && !isTrue(isStopLossOrder)))
             {
-                ((IDictionary<string,object>)request)["newSize"] = this.amountToPrecision(symbol, amount);
+                if (isTrue(!isEqual(amount, null)))
+                {
+                    ((IDictionary<string,object>)request)["newSize"] = this.amountToPrecision(symbol, amount);
+                }
                 if (isTrue(isTrue((!isEqual(price, null))) && !isTrue(isTrailingPercentOrder)))
                 {
                     ((IDictionary<string,object>)request)["newPrice"] = this.priceToPrecision(symbol, price);
@@ -6169,7 +6230,7 @@ public partial class bitget : Exchange
             } else if (isTrue(isTriggerOrder))
             {
                 ((IDictionary<string,object>)request)["newTriggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
-                if (isTrue(isStopLoss))
+                if (isTrue(hasStopLoss))
                 {
                     object slTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
                     ((IDictionary<string,object>)request)["newStopLossTriggerPrice"] = this.priceToPrecision(symbol, slTriggerPrice);
@@ -6178,7 +6239,7 @@ public partial class bitget : Exchange
                     object slType = this.safeString(stopLoss, "type", "mark_price");
                     ((IDictionary<string,object>)request)["newStopLossTriggerType"] = slType;
                 }
-                if (isTrue(isTakeProfit))
+                if (isTrue(hasTakeProfit))
                 {
                     object tpTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
                     ((IDictionary<string,object>)request)["newSurplusTriggerPrice"] = this.priceToPrecision(symbol, tpTriggerPrice);
@@ -6194,12 +6255,12 @@ public partial class bitget : Exchange
                 object newClientOrderId = this.safeString2(parameters, "newClientOid", "newClientOrderId", defaultNewClientOrderId);
                 parameters = this.omit(parameters, "newClientOrderId");
                 ((IDictionary<string,object>)request)["newClientOid"] = newClientOrderId;
-                if (isTrue(isStopLoss))
+                if (isTrue(hasStopLoss))
                 {
                     object slTriggerPrice = this.safeValue2(stopLoss, "triggerPrice", "stopPrice");
                     ((IDictionary<string,object>)request)["newPresetStopLossPrice"] = this.priceToPrecision(symbol, slTriggerPrice);
                 }
-                if (isTrue(isTakeProfit))
+                if (isTrue(hasTakeProfit))
                 {
                     object tpTriggerPrice = this.safeValue2(takeProfit, "triggerPrice", "stopPrice");
                     ((IDictionary<string,object>)request)["newPresetStopSurplusPrice"] = this.priceToPrecision(symbol, tpTriggerPrice);
@@ -6243,7 +6304,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
@@ -6480,7 +6541,7 @@ public partial class bitget : Exchange
      * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
      * @param {boolean} [params.trigger] *contract only* set to true for canceling trigger orders
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
@@ -6590,7 +6651,7 @@ public partial class bitget : Exchange
      * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
      * @param {boolean} [params.trigger] *contract only* set to true for canceling trigger orders
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
@@ -6704,7 +6765,7 @@ public partial class bitget : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
@@ -6904,7 +6965,7 @@ public partial class bitget : Exchange
      * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -7350,7 +7411,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -7381,9 +7442,9 @@ public partial class bitget : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
-     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -7414,7 +7475,7 @@ public partial class bitget : Exchange
      * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchCanceledAndClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -7903,7 +7964,7 @@ public partial class bitget : Exchange
      * @param {string} [params.symbol] *contract only* unified market symbol
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -8148,7 +8209,7 @@ public partial class bitget : Exchange
      * @param {int} [params.until] the latest time in ms to fetch trades for
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -8398,7 +8459,7 @@ public partial class bitget : Exchange
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
     {
@@ -8518,7 +8579,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.useHistoryEndpoint] default false, when true  will use the historic endpoint to fetch positions
      * @param {string} [params.method] either (default) 'privateMixGetV2MixPositionAllPosition', 'privateMixGetV2MixPositionHistoryPosition', or 'privateUtaGetV3PositionCurrentPosition'
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
@@ -8972,7 +9033,7 @@ public partial class bitget : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -9084,7 +9145,7 @@ public partial class bitget : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketCurrentFundRate' or 'publicMixGetV2MixMarketFundingTime'
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
@@ -9139,7 +9200,7 @@ public partial class bitget : Exchange
      * @param {string} [params.subType] *contract only* 'linear', 'inverse'
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
-     * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+     * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
@@ -9231,7 +9292,7 @@ public partial class bitget : Exchange
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.productType] 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     public async override Task<object> fetchFundingIntervals(object symbols = null, object parameters = null)
     {
@@ -9346,7 +9407,7 @@ public partial class bitget : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch funding history for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -9356,12 +9417,20 @@ public partial class bitget : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
         }
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingHistory", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
+            if (isTrue(uta))
+            {
+                return await this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, parameters, "cursor", "cursor");
+            }
             return await this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, parameters, "endId", "idLessThan");
         }
         object market = this.market(symbol);
@@ -9373,12 +9442,7 @@ public partial class bitget : Exchange
         var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
         productType = ((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
-            { "marginCoin", getValue(market, "settleId") },
-            { "businessType", "contract_settle_fee" },
-            { "productType", productType },
-        };
+        object request = new Dictionary<string, object>() {};
         var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
@@ -9390,32 +9454,27 @@ public partial class bitget : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await this.privateMixGetV2MixAccountBill(this.extend(request, parameters));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700795977890,
-        //         "data": {
-        //             "bills": [
-        //                 {
-        //                     "billId": "1111499428100472833",
-        //                     "symbol": "BTCUSDT",
-        //                     "amount": "-0.004992",
-        //                     "fee": "0",
-        //                     "feeByCoupon": "",
-        //                     "businessType": "contract_settle_fee",
-        //                     "coin": "USDT",
-        //                     "cTime": "1700728034996"
-        //                 },
-        //             ],
-        //             "endId": "1098396773329305606"
-        //         }
-        //     }
-        //
+        object response = null;
+        if (isTrue(uta))
+        {
+            ((IDictionary<string,object>)request)["coin"] = getValue(market, "settleId");
+            ((IDictionary<string,object>)request)["category"] = productType;
+            response = await this.privateUtaGetV3AccountFinancialRecords(this.extend(request, parameters));
+        } else
+        {
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["marginCoin"] = getValue(market, "settleId");
+            ((IDictionary<string,object>)request)["businessType"] = "contract_settle_fee";
+            ((IDictionary<string,object>)request)["productType"] = productType;
+            response = await this.privateMixGetV2MixAccountBill(this.extend(request, parameters));
+        }
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object result = this.safeValue(data, "bills", new List<object>() {});
-        return this.parseFundingHistories(result, market, since, limit);
+        object bills = this.safeList2(data, "bills", "list", new List<object>() {});
+        if (isTrue(uta))
+        {
+            bills = this.filterByArray(bills, "type", new List<object>() {"CONTRACT_MAIN_SETTLE_FEE_USER_IN", "CONTRACT_MAIN_SETTLE_FEE_USER_OUT"}, false);
+        }
+        return this.parseFundingHistories(bills, market, since, limit);
     }
 
     public virtual object parseFundingHistory(object contract, object market = null)
@@ -9432,9 +9491,21 @@ public partial class bitget : Exchange
         //         "cTime": "1700728034996"
         //     }
         //
+        //     {
+        //         "category": "Margin",
+        //         "id": "13111111111111111",
+        //         "symbol": "BTCUSDT",
+        //         "coin": "BTC",
+        //         "type": "ORDER_DEALT_IN",
+        //         "amount": "0.00531168",
+        //         "fee": "-0.00000531",
+        //         "balance": "55.10017801",
+        //         "ts": "1745853486185"
+        //     }
+        //
         object marketId = this.safeString(contract, "symbol");
         object currencyId = this.safeString(contract, "coin");
-        object timestamp = this.safeInteger(contract, "cTime");
+        object timestamp = this.safeInteger2(contract, "cTime", "ts");
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", this.safeSymbol(marketId, market, null, "swap") },
@@ -9442,7 +9513,7 @@ public partial class bitget : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "code", this.safeCurrencyCode(currencyId) },
             { "amount", this.safeNumber(contract, "amount") },
-            { "id", this.safeString(contract, "billId") },
+            { "id", this.safeString2(contract, "billId", "id") },
         };
     }
 
@@ -9452,11 +9523,11 @@ public partial class bitget : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(contracts)); postFixIncrement(ref i))
         {
             object contract = getValue(contracts, i);
-            object business = this.safeString(contract, "businessType");
-            if (isTrue(!isEqual(business, "contract_settle_fee")))
-            {
-                continue;
-            }
+            // for non-uta, we've set bussinessType in request payload. Not sure why this existed.
+            // const business = this.safeString (contract, 'businessType');
+            // if (business !== 'contract_settle_fee') {
+            //     continue;
+            // }
             ((IList<object>)result).Add(this.parseFundingHistory(contract, market));
         }
         object sorted = this.sortBy(result, "timestamp");
@@ -9537,7 +9608,7 @@ public partial class bitget : Exchange
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
@@ -9562,7 +9633,7 @@ public partial class bitget : Exchange
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
@@ -9582,7 +9653,7 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/contract/account/Get-Single-Account
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
@@ -9817,7 +9888,7 @@ public partial class bitget : Exchange
      * @param {string} symbol unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
     {
@@ -9903,7 +9974,7 @@ public partial class bitget : Exchange
      * @param {int} [limit] the maximum number of transfers structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -9975,7 +10046,7 @@ public partial class bitget : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.symbol] unified CCXT market symbol, required when transferring to or from an account type that is a leveraged position-by-position account
      * @param {string} [params.clientOid] custom id
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
@@ -10141,7 +10212,7 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/spot/market/Get-Coin-List
      * @param {string[]|undefined} codes list of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
@@ -10189,7 +10260,7 @@ public partial class bitget : Exchange
      * @param {string} code unified currency code of the currency to borrow
      * @param {string} amount the amount to borrow
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     public async override Task<object> borrowCrossMargin(object code, object amount, object parameters = null)
     {
@@ -10226,7 +10297,7 @@ public partial class bitget : Exchange
      * @param {string} code unified currency code of the currency to borrow
      * @param {string} amount the amount to borrow
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     public async override Task<object> borrowIsolatedMargin(object symbol, object code, object amount, object parameters = null)
     {
@@ -10266,7 +10337,7 @@ public partial class bitget : Exchange
      * @param {string} code unified currency code of the currency to repay
      * @param {string} amount the amount to repay
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     public async override Task<object> repayIsolatedMargin(object symbol, object code, object amount, object parameters = null)
     {
@@ -10306,7 +10377,7 @@ public partial class bitget : Exchange
      * @param {string} code unified currency code of the currency to repay
      * @param {string} amount the amount to repay
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     public async override Task<object> repayCrossMargin(object code, object amount, object parameters = null)
     {
@@ -10405,7 +10476,7 @@ public partial class bitget : Exchange
      * @param {int} [params.until] timestamp in ms of the latest liquidation
      * @param {string} [params.marginMode] 'cross' or 'isolated' default value is 'cross'
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
     public async override Task<object> fetchMyLiquidations(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -10578,7 +10649,7 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Margin-Interest-Rate-And-Max-Borrowable-Amount
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}
+     * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
      */
     public async override Task<object> fetchIsolatedBorrowRate(object symbol, object parameters = null)
     {
@@ -10824,7 +10895,7 @@ public partial class bitget : Exchange
      * @param {int} [limit] the maximum number of structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
     public async override Task<object> fetchBorrowInterest(object code = null, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -10991,7 +11062,7 @@ public partial class bitget : Exchange
      * @param {string} [side] one-way mode: 'buy' or 'sell', hedge-mode: 'long' or 'short'
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> closePosition(object symbol, object side = null, object parameters = null)
     {
@@ -11041,7 +11112,7 @@ public partial class bitget : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.productType] 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> closeAllPositions(object parameters = null)
     {
@@ -11078,7 +11149,7 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/contract/account/Get-Single-Account
      * @param {string} symbol unified symbol of the market to fetch the margin mode for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     public async override Task<object> fetchMarginMode(object symbol, object parameters = null)
     {
@@ -11151,7 +11222,7 @@ public partial class bitget : Exchange
      * @param {int} [params.until] timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
      * @param {string} [params.productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositionsHistory(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
@@ -11211,7 +11282,7 @@ public partial class bitget : Exchange
      * @param {string} toCode the currency that you want to buy and convert into
      * @param {float} [amount] how much you want to trade in units of the from currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     public async override Task<object> fetchConvertQuote(object fromCode, object toCode, object amount = null, object parameters = null)
     {
@@ -11259,7 +11330,7 @@ public partial class bitget : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} params.price the price of the conversion, obtained from fetchConvertQuote()
      * @param {string} params.toAmount the amount you want to trade in units of the toCurrency, obtained from fetchConvertQuote()
-     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     public async override Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
     {
@@ -11313,7 +11384,7 @@ public partial class bitget : Exchange
      * @param {int} [since] the earliest time in ms to fetch conversions for
      * @param {int} [limit] the maximum number of conversion structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     public async override Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -11502,7 +11573,7 @@ public partial class bitget : Exchange
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     public async override Task<object> fetchFundingInterval(object symbol, object parameters = null)
     {
@@ -11545,7 +11616,7 @@ public partial class bitget : Exchange
      * @param {int} [since] the earliest time in ms to fetch ratios for
      * @param {int} [limit] the maximum number of long short ratio structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/#/?id=long-short-ratio-structure}
+     * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
      */
     public async override Task<object> fetchLongShortRatioHistory(object symbol = null, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {

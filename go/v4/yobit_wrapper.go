@@ -32,7 +32,7 @@ func NewYobitFromCore(core *YobitCore) *Yobit {
  * @see https://yobit.net/en/api
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Yobit) FetchBalance(params ...interface{}) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
@@ -66,7 +66,7 @@ func (this *Yobit) FetchMarkets(params ...interface{}) ([]MarketInterface, error
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Yobit) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -100,7 +100,7 @@ func (this *Yobit) FetchOrderBook(symbol string, options ...FetchOrderBookOption
  * @param {string[]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
  * @param {int} [limit] max number of entries per orderbook to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
+ * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
  */
 func (this *Yobit) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 
@@ -157,7 +157,7 @@ func (this *Yobit) FetchTickersHelper(idsString string, options ...FetchTickersH
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {object} [params.all] you can set to `true` for convenience to fetch all tickers from this exchange by sending multiple requests
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Yobit) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -190,7 +190,7 @@ func (this *Yobit) FetchTickers(options ...FetchTickersOptions) (Tickers, error)
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Yobit) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -220,7 +220,7 @@ func (this *Yobit) FetchTicker(symbol string, options ...FetchTickerOptions) (Ti
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Yobit) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -257,7 +257,7 @@ func (this *Yobit) FetchTrades(symbol string, options ...FetchTradesOptions) ([]
  * @see https://yobit.net/en/api
  * @description fetch the trading fees for multiple markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *Yobit) FetchTradingFees(params ...interface{}) (TradingFees, error) {
 	res := <-this.Core.FetchTradingFees(params...)
@@ -278,7 +278,7 @@ func (this *Yobit) FetchTradingFees(params ...interface{}) (TradingFees, error) 
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Yobit) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -312,7 +312,7 @@ func (this *Yobit) CreateOrder(symbol string, typeVar string, side string, amoun
  * @param {string} id order id
  * @param {string} symbol not used by yobit cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Yobit) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -346,7 +346,7 @@ func (this *Yobit) CancelOrder(id string, options ...CancelOrderOptions) (Order,
  * @param {string} id order id
  * @param {string} symbol not used by yobit fetchOrder
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Yobit) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -381,7 +381,7 @@ func (this *Yobit) FetchOrder(id string, options ...FetchOrderOptions) (Order, e
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of open order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Yobit) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -426,7 +426,7 @@ func (this *Yobit) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, 
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Yobit) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -469,7 +469,7 @@ func (this *Yobit) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, erro
  * @description create a currency deposit address
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Yobit) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
 
@@ -497,7 +497,7 @@ func (this *Yobit) CreateDepositAddress(code string, options ...CreateDepositAdd
  * @see https://yobit.net/en/api
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Yobit) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 
@@ -528,7 +528,7 @@ func (this *Yobit) FetchDepositAddress(code string, options ...FetchDepositAddre
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Yobit) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 

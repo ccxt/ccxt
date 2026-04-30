@@ -80,7 +80,7 @@ func (this *Cex) FetchTime(params ...interface{}) (int64, error) {
  * @see https://trade.cex.io/docs/#rest-public-api-calls-ticker
  * @param {string} symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Cex) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -108,7 +108,7 @@ func (this *Cex) FetchTicker(symbol string, options ...FetchTickerOptions) (Tick
  * @see https://trade.cex.io/docs/#rest-public-api-calls-ticker
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Cex) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -144,7 +144,7 @@ func (this *Cex) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest entry
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Cex) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -183,7 +183,7 @@ func (this *Cex) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Tr
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Cex) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -262,7 +262,7 @@ func (this *Cex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLC
  * @description fetch the trading fees for multiple markets
  * @see https://trade.cex.io/docs/#rest-public-api-calls-candles
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *Cex) FetchTradingFees(params ...interface{}) (TradingFees, error) {
 	res := <-this.Core.FetchTradingFees(params...)
@@ -287,7 +287,7 @@ func (this *Cex) FetchAccounts(params ...interface{}) ([]Account, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {object} [params.method] 'privatePostGetMyWalletBalance' or 'privatePostGetMyAccountStatusV3'
  * @param {object} [params.account]  in case 'privatePostGetMyAccountStatusV3' is chosen, this can specify the account name (default is empty string)
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Cex) FetchBalance(params ...interface{}) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
@@ -339,7 +339,7 @@ func (this *Cex) FetchOrdersByStatus(status string, options ...FetchOrdersByStat
  * @param {int} [since] timestamp in ms of the earliest order, default is undefined
  * @param {int} [limit] max number of orders to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Cex) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 
@@ -384,7 +384,7 @@ func (this *Cex) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order
  * @param {int} [since] timestamp in ms of the earliest order, default is undefined
  * @param {int} [limit] max number of orders to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Cex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -428,7 +428,7 @@ func (this *Cex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, er
  * @param {string} id order id
  * @param {string} [symbol] unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Cex) FetchOpenOrder(id string, options ...FetchOpenOrderOptions) (Order, error) {
 
@@ -462,7 +462,7 @@ func (this *Cex) FetchOpenOrder(id string, options ...FetchOpenOrderOptions) (Or
  * @param {string} id order id
  * @param {string} [symbol] unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Cex) FetchClosedOrder(id string, options ...FetchClosedOrderOptions) (Order, error) {
 
@@ -501,7 +501,7 @@ func (this *Cex) FetchClosedOrder(id string, options ...FetchClosedOrderOptions)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.accountId] account-id to use (default is empty string)
  * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Cex) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -535,7 +535,7 @@ func (this *Cex) CreateOrder(symbol string, typeVar string, side string, amount 
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Cex) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -568,7 +568,7 @@ func (this *Cex) CancelOrder(id string, options ...CancelOrderOptions) (Order, e
  * @see https://trade.cex.io/docs/#rest-private-api-calls-cancel-all-orders
  * @param {string} symbol alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Cex) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 
@@ -604,7 +604,7 @@ func (this *Cex) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, er
  * @param {int} [limit] max number of ledger entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest ledger entry
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *Cex) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 
@@ -649,7 +649,7 @@ func (this *Cex) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, erro
  * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
  * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Cex) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 
@@ -695,7 +695,7 @@ func (this *Cex) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOpt
  * @param {string} fromAccount 'SPOT', 'FUND', or 'CONTRACT'
  * @param {string} toAccount 'SPOT', 'FUND', or 'CONTRACT'
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Cex) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 
@@ -760,7 +760,7 @@ func (this *Cex) TransferBetweenSubAccounts(code string, amount float64, fromAcc
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.accountId] account-id (default to empty string) to refer to (at this moment, only sub-accounts allowed by exchange)
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Cex) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 

@@ -172,7 +172,7 @@ func  (this *ToobitCore) HandleIncomingPong(client interface{}, pongTimestamp in
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trade structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func  (this *ToobitCore) WatchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -204,7 +204,7 @@ func  (this *ToobitCore) WatchTrades(symbol interface{}, optionalArgs ...interfa
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *ToobitCore) WatchTradesForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -475,7 +475,7 @@ func  (this *ToobitCore) ParseWsOHLCV(ohlcv interface{}, optionalArgs ...interfa
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *ToobitCore) WatchTicker(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -505,7 +505,7 @@ func  (this *ToobitCore) WatchTicker(symbol interface{}, optionalArgs ...interfa
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *ToobitCore) WatchTickers(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -615,7 +615,7 @@ func  (this *ToobitCore) ParseWsTicker(ticker interface{}, optionalArgs ...inter
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *ToobitCore) WatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -643,7 +643,7 @@ func  (this *ToobitCore) WatchOrderBook(symbol interface{}, optionalArgs ...inte
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *ToobitCore) WatchOrderBookForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -794,7 +794,7 @@ func  (this *ToobitCore) SetOrderBookSnapshot(client interface{}, message interf
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-account-update
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func  (this *ToobitCore) WatchBalance(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -919,10 +919,12 @@ func  (this *ToobitCore) LoadBalanceSnapshot(client interface{}, messageHash int
             var typeVar interface{} = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(marketType, "spot"))), "spot", "contract")
             ccxt.AddElementToObject(this.Balance, typeVar, this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]interface{} {})))
             // don't remove the future from the .futures cache
-            var future interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
-            future.(*ccxt.Future).Resolve()
-            client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), ccxt.Add(typeVar, ":fetchBalanceSnapshot"))
-            client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), ccxt.Add(typeVar, ":balance")) // we should also resolve right away after snapshot, so user doesn't double-fetch balance
+            if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+                var future interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+                future.(*ccxt.Future).Resolve()
+                client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), ccxt.Add(typeVar, ":fetchBalanceSnapshot"))
+                client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), ccxt.Add(typeVar, ":balance")) // we should also resolve right away after snapshot, so user doesn't double-fetch balance
+            }
                 return nil
             }()
             return ch
@@ -936,7 +938,7 @@ func  (this *ToobitCore) LoadBalanceSnapshot(client interface{}, messageHash int
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *ToobitCore) WatchOrders(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -952,11 +954,11 @@ func  (this *ToobitCore) WatchOrders(optionalArgs ...interface{}) <- chan interf
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes7778 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7778)
+            retRes7798 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes7798)
         
-            retRes7788 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes7788)
+            retRes7808 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes7808)
             var market interface{} = this.MarketOrNull(symbol)
             symbol = this.SafeString(market, "symbol", symbol)
             var messageHash interface{} = "orders"
@@ -1078,7 +1080,7 @@ func  (this *ToobitCore) ParseWsOrder(order interface{}, optionalArgs ...interfa
  * @param {int} [limit] the maximum number of trade structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.unifiedMargin] use unified margin account
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func  (this *ToobitCore) WatchMyTrades(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1094,11 +1096,11 @@ func  (this *ToobitCore) WatchMyTrades(optionalArgs ...interface{}) <- chan inte
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes8978 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes8978)
+            retRes8998 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes8998)
         
-            retRes8988 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes8988)
+            retRes9008 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes9008)
             var market interface{} = this.MarketOrNull(symbol)
             symbol = this.SafeString(market, "symbol", symbol)
             var messageHash interface{} = "myTrades"
@@ -1194,11 +1196,11 @@ func  (this *ToobitCore) WatchPositions(optionalArgs ...interface{}) <- chan int
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes9758 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes9758)
+            retRes9778 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes9778)
         
-            retRes9768 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes9768)
+            retRes9788 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes9788)
             var messageHash interface{} = ""
             if !ccxt.IsTrue(this.IsEmpty(symbols)) {
                 symbols = this.MarketSymbols(symbols)
@@ -1207,8 +1209,8 @@ func  (this *ToobitCore) WatchPositions(optionalArgs ...interface{}) <- chan int
             var url interface{} = this.GetUserStreamUrl()
             var client interface{} = this.Client(url)
         
-            retRes9848 := (<-this.Authenticate(url))
-            ccxt.PanicOnError(retRes9848)
+            retRes9868 := (<-this.Authenticate(url))
+            ccxt.PanicOnError(retRes9868)
             this.SetPositionsCache(client, symbols)
             var cache interface{} = this.Positions
             if ccxt.IsTrue(ccxt.IsEqual(cache, nil)) {
@@ -1274,9 +1276,11 @@ func  (this *ToobitCore) LoadPositionsSnapshot(client interface{}, messageHash i
                 cache.(ccxt.Appender).Append(position)
             }
             // don't remove the future from the .futures cache
-            var future interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
-            future.(*ccxt.Future).Resolve(cache)
-            client.(ccxt.ClientInterface).Resolve(cache, ccxt.Add(typeVar, ":positions"))
+            if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+                var future interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+                future.(*ccxt.Future).Resolve(cache)
+                client.(ccxt.ClientInterface).Resolve(cache, ccxt.Add(typeVar, ":positions"))
+            }
                 return nil
             }()
             return ch
@@ -1397,7 +1401,7 @@ func  (this *ToobitCore) Authenticate(optionalArgs ...interface{}) <- chan inter
                                         }
                                         ret_ = func(this *ToobitCore) interface{} {
                                             // catch block:
-                                                            err := ccxt.AuthenticationError(ccxt.Add(ccxt.Add(this.Id, " "), this.Json(e)))
+                                                            err := ccxt.AuthenticationError(ccxt.Add(ccxt.Add(this.Id, " "), this.ExceptionMessage(e)))
                                     client.(ccxt.ClientInterface).Reject(err, messageHash)
                                     if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
                                         ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
@@ -1422,9 +1426,9 @@ func  (this *ToobitCore) Authenticate(optionalArgs ...interface{}) <- chan inter
                 }
             }
         
-                retRes115015 := <- future.(*ccxt.Future).Await()
-                ccxt.PanicOnError(retRes115015)
-                ch <- retRes115015
+                retRes115415 := <- future.(*ccxt.Future).Await()
+                ccxt.PanicOnError(retRes115415)
+                ch <- retRes115415
                 return nil
         
             }()
@@ -1479,7 +1483,7 @@ func  (this *ToobitCore) KeepAliveListenKey(optionalArgs ...interface{}) <- chan
                 
                     }
             // whether or not to schedule another listenKey keepAlive request
-            var listenKeyRefreshRate interface{} = this.SafeInteger(this.Options, "listenKeyRefreshRate", 1200000)
+            var listenKeyRefreshRate interface{} = this.SafeInteger(ccxt.GetValue(this.Options, "ws"), "listenKeyRefreshRate", 1200000)
             this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, params)
                 return nil
             }()

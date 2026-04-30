@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Reflection;
+using System.Threading.Tasks;
 
 using ccxt;
 namespace Tests; // Note: actual namespace depends on the project name.
@@ -42,7 +43,7 @@ public class Tests
 
     public static string[] args;
 
-    public static BaseTest tests = new BaseTest();
+    public static BaseTest baseTestInstance = new BaseTest();
 
     static void InitOptions(string[] args)
     {
@@ -99,11 +100,41 @@ public class Tests
 
     static void Main(string[] args)
     {
+        MainAsync(args).GetAwaiter().GetResult();
+    }
 
+    static async Task MainAsync(string[] args)
+    {
         Console.WriteLine("C# version: " + Environment.Version.ToString());
-        Tests.args = args;
-        ReadConfig();
-        InitOptions(args);
+        try
+        {
+            Tests.args = args;
+            ReadConfig();
+            InitOptions(args);
+
+            await RunBaseTests();
+
+            if (raceCondition)
+            {
+                RaceConditionTests();
+                return;
+            }
+
+            if (isExchangeTests || isReqResTests || isAllTest)
+            {
+                var testClass = new testMainClass();
+                await testClass.init(exchangeId, symbol, methodName);
+            }
+        }
+        catch (Exception ex)
+        {
+            testMainClass.dump("[TEST_FAILURE] " + ex.ToString()); // tell the wrapper this is failure
+            testMainClass.exitScript(1);
+        }
+    }
+
+    static async Task<Task> RunBaseTests()
+    {
 
         if (isBaseTests)
         {
@@ -113,34 +144,26 @@ public class Tests
                 WsOrderBookTests();
                 Helper.Green("[C#] base WS tests passed");
             }
-            else 
+            else
             {
-                RestBaseTests();
+                await RestBaseTests();
                 Helper.Green("[C#] base REST tests passed");
             }
         }
-
-        if (raceCondition)
-        {
-            RaceConditionTests();
-            return;
-        }
-
-        if (isExchangeTests || isReqResTests || isAllTest) {
-            var testClass = new testMainClass();
-            testClass.init(exchangeId, symbol, methodName).Wait();
-        }
+        return Task.CompletedTask;
     }
 
-    static void RestBaseTests()
+    static async Task RestBaseTests()
     {
-        tests.testCryptography();
+        baseTestInstance.testCryptography();
         Helper.Green(" [C#] Crypto tests passed");
+
         // run auto-transpiled tests (all of them start by 'testFunction')
-        RunAutoTranspiledBaseTests (tests);
+        await RunAutoTranspiledBaseTests (baseTestInstance);
     }
 
-    static void RunAutoTranspiledBaseTests(object testsInstance) {
+    static async Task RunAutoTranspiledBaseTests(object testsInstance)
+    {
         MethodInfo[] methods = testsInstance.GetType()
                         .GetMethods(BindingFlags.Instance | BindingFlags.Public)
                         .Where(m => m.Name.StartsWith("test") && m.ReturnType == typeof(void))
@@ -148,26 +171,30 @@ public class Tests
         // 2. Invoke Each Method
         foreach (MethodInfo method in methods)
         {
-            method.Invoke(testsInstance, null); 
+            var res = method.Invoke(testsInstance, null);
+            if (res is Task)
+            {
+                await (Task)res;
+            }
             Helper.Green(" [C#] " + method.ToString() + " tests passed");
         }
     }
 
     static void WsCacheTests()
     {
-        tests.testWsCache();
+        baseTestInstance.testWsCache();
         Helper.Green(" [C#] ArrayCache tests passed");
     }
 
     static void WsOrderBookTests()
     {
-        tests.testWsOrderBook();
+        baseTestInstance.testWsOrderBook();
         Helper.Green(" [C#] OrderBook tests passed");
     }
 
     static void RaceConditionTests()
     {
-        var res = tests.RaceTest();
+        var res = baseTestInstance.RaceTest();
         res.Wait();
         Helper.Green(" [C#] RaceCondition tests passed");
     }

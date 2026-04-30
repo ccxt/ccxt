@@ -103,7 +103,7 @@ func  (this *UpbitCore) WatchPublicMultiple(symbols interface{}, channel interfa
  * @see https://global-docs.upbit.com/reference/websocket-ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *UpbitCore) WatchTicker(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -128,7 +128,7 @@ func  (this *UpbitCore) WatchTicker(symbol interface{}, optionalArgs ...interfac
  * @see https://global-docs.upbit.com/reference/websocket-ticker
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *UpbitCore) WatchTickers(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -165,7 +165,7 @@ func  (this *UpbitCore) WatchTickers(optionalArgs ...interface{}) <- chan interf
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *UpbitCore) WatchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -196,7 +196,7 @@ func  (this *UpbitCore) WatchTrades(symbol interface{}, optionalArgs ...interfac
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *UpbitCore) WatchTradesForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -232,7 +232,7 @@ func  (this *UpbitCore) WatchTradesForSymbols(symbols interface{}, optionalArgs 
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *UpbitCore) WatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -264,7 +264,7 @@ func  (this *UpbitCore) WatchOrderBook(symbol interface{}, optionalArgs ...inter
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {ccxt.OHLCV[]} a list of [ccxt.OHLCV structures]{@link https://docs.ccxt.com/#/?id=ohlcv-structure}
+ * @returns {ccxt.OHLCV[]} a list of [ccxt.OHLCV structures]{@link https://docs.ccxt.com/?id=ohlcv-structure}
  */
 func  (this *UpbitCore) WatchOHLCV(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -544,7 +544,7 @@ func  (this *UpbitCore) WatchPrivate(symbol interface{}, channel interface{}, me
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *UpbitCore) WatchOrders(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -586,7 +586,7 @@ func  (this *UpbitCore) WatchOrders(optionalArgs ...interface{}) <- chan interfa
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func  (this *UpbitCore) WatchMyTrades(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -795,7 +795,7 @@ func  (this *UpbitCore) HandleOrder(client interface{}, message interface{})  {
  * @see https://global-docs.upbit.com/reference/websocket-myasset
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func  (this *UpbitCore) WatchBalance(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})

@@ -417,7 +417,7 @@ func (this *BtcturkCore) ParseBalance(response interface{}) interface{} {
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://docs.btcturk.com/private-endpoints/account-balance
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *BtcturkCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -464,7 +464,7 @@ func (this *BtcturkCore) FetchBalance(optionalArgs ...interface{}) <-chan interf
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *BtcturkCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -564,7 +564,7 @@ func (this *BtcturkCore) ParseTicker(ticker interface{}, optionalArgs ...interfa
  * @see https://docs.btcturk.com/public-endpoints/ticker
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BtcturkCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -597,7 +597,7 @@ func (this *BtcturkCore) FetchTickers(optionalArgs ...interface{}) <-chan interf
  * @see https://docs.btcturk.com/public-endpoints/ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BtcturkCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -693,7 +693,7 @@ func (this *BtcturkCore) ParseTrade(trade interface{}, optionalArgs ...interface
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BtcturkCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -905,7 +905,7 @@ func (this *BtcturkCore) ParseOHLCVs(ohlcvs interface{}, optionalArgs ...interfa
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BtcturkCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -954,7 +954,7 @@ func (this *BtcturkCore) CreateOrder(symbol interface{}, typeVar interface{}, si
  * @param {string} id order id
  * @param {string} symbol not used by btcturk cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BtcturkCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -997,7 +997,7 @@ func (this *BtcturkCore) CancelOrder(id interface{}, optionalArgs ...interface{}
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BtcturkCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1044,7 +1044,7 @@ func (this *BtcturkCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan int
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BtcturkCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1191,7 +1191,7 @@ func (this *BtcturkCore) ParseOrder(order interface{}, optionalArgs ...interface
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *BtcturkCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})

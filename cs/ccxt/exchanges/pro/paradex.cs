@@ -12,10 +12,12 @@ public partial class paradex : ccxt.paradex
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
+                { "watchFundingRate", true },
+                { "watchFundingRates", true },
                 { "watchTicker", true },
                 { "watchTickers", true },
                 { "watchOrderBook", true },
-                { "watchOrders", false },
+                { "watchOrders", true },
                 { "watchTrades", true },
                 { "watchTradesForSymbols", false },
                 { "watchBalance", false },
@@ -39,16 +41,68 @@ public partial class paradex : ccxt.paradex
         });
     }
 
+    public virtual object requestId()
+    {
+        object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
+        ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        return requestId;
+    }
+
+    public async virtual Task<object> authenticate(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object url = getValue(getValue(this.urls, "api"), "ws");
+        var client = this.client(url);
+        object messageHash = "authenticated";
+        var future = client.reusableFuture("authenticated");
+        object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
+        if (isTrue(isEqual(authenticated, null)))
+        {
+            object token = await this.authenticateRest();
+            object request = new Dictionary<string, object>() {
+                { "jsonrpc", "2.0" },
+                { "id", this.requestId() },
+                { "method", "auth" },
+                { "params", new Dictionary<string, object>() {
+                    { "bearer", token },
+                } },
+            };
+            this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
+        }
+        return await (future as Exchange.Future);
+    }
+
+    public virtual void handleAuthenticationMessage(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 1,
+        //         "result": { "node_id": "73cf456f7cb78d59" }
+        //     }
+        //
+        object result = this.safeDict(message, "result");
+        if (isTrue(!isEqual(result, null)))
+        {
+            // client.resolve (true, messageHash);
+            var future = this.safeValue((client as WebSocketClient).futures, "authenticated");
+            if (isTrue(!isEqual(future, null)))
+            {
+                (future as Future).resolve(true);
+            }
+        }
+    }
+
     /**
      * @method
      * @name paradex#watchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.api.testnet.paradex.trade/#sub-trades-market_symbol-operation
+     * @see https://docs.paradex.trade/ws/web-socket-channels/trades/trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -119,11 +173,11 @@ public partial class paradex : ccxt.paradex
      * @method
      * @name paradex#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.api.testnet.paradex.trade/#sub-order_book-market_symbol-snapshot-15-refresh_rate-operation
+     * @see https://docs.paradex.trade/ws/web-socket-channels/order-book/order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -205,7 +259,7 @@ public partial class paradex : ccxt.paradex
         }
         object orderbook = getValue(this.orderbooks, symbol);
         object snapshot = this.parseOrderBook(orderbookData, symbol, timestamp, "bids", "asks");
-        ((IDictionary<string,object>)snapshot)["nonce"] = this.safeNumber(data, "seq_no");
+        ((IDictionary<string,object>)snapshot)["nonce"] = this.safeInteger(data, "seq_no");
         (orderbook as IOrderBook).reset(snapshot);
         object messageHash = this.safeString(parameters, "channel");
         callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
@@ -215,10 +269,10 @@ public partial class paradex : ccxt.paradex
      * @method
      * @name paradex#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.api.testnet.paradex.trade/#sub-markets_summary-operation
+     * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
@@ -242,10 +296,10 @@ public partial class paradex : ccxt.paradex
      * @method
      * @name paradex#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @see https://docs.api.testnet.paradex.trade/#sub-markets_summary-operation
+     * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
@@ -262,7 +316,7 @@ public partial class paradex : ccxt.paradex
             } },
         };
         object messageHashes = new List<object>() {};
-        if (isTrue(((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if (isTrue(isTrue(!isEqual(symbols, null)) && isTrue(((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
         {
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
@@ -273,14 +327,106 @@ public partial class paradex : ccxt.paradex
         {
             ((IList<object>)messageHashes).Add(channel);
         }
-        object newTickers = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
+        object newTicker = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
         if (isTrue(this.newUpdates))
         {
             object result = new Dictionary<string, object>() {};
-            ((IDictionary<string,object>)result)[(string)getValue(newTickers, "symbol")] = newTickers;
+            ((IDictionary<string,object>)result)[(string)getValue(newTicker, "symbol")] = newTicker;
             return result;
         }
         return this.filterByArray(this.tickers, "symbol", symbols);
+    }
+
+    /**
+     * @method
+     * @name paradex#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://docs.paradex.trade/ws/web-socket-channels/orders/orders
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        await this.authenticate();
+        object messageHash = "orders";
+        object channel = "orders.";
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            object market = this.market(symbol);
+            symbol = getValue(market, "symbol");
+            channel = add(channel, getValue(market, "id"));
+            messageHash = add(messageHash, add(":", symbol));
+        } else
+        {
+            channel = add(channel, "ALL");
+        }
+        object url = getValue(getValue(this.urls, "api"), "ws");
+        object request = new Dictionary<string, object>() {
+            { "jsonrpc", "2.0" },
+            { "method", "subscribe" },
+            { "params", new Dictionary<string, object>() {
+                { "channel", channel },
+            } },
+        };
+        object orders = await this.watch(url, messageHash, this.deepExtend(request, parameters), channel);
+        if (isTrue(this.newUpdates))
+        {
+            limit = callDynamically(orders, "getLimit", new object[] {symbol, limit});
+        }
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+    }
+
+    public virtual void handleOrder(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "orders.ALL",
+        //             "data": {
+        //                 "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512x",
+        //                 "avg_fill_price": "26000",
+        //                 "client_id": "x1234",
+        //                 "cancel_reason": "",
+        //                 "created_at": 1681493746016,
+        //                 "flags": ["REDUCE_ONLY"],
+        //                 "id": "123456",
+        //                 "instruction": "GTC",
+        //                 "last_updated_at": 1681493746016,
+        //                 "market": "BTC-USD-PERP",
+        //                 "price": "26000",
+        //                 "remaining_size": "0",
+        //                 "side": "BUY",
+        //                 "size": "0.05",
+        //                 "status": "NEW",
+        //                 "type": "LIMIT"
+        //             }
+        //         }
+        //     }
+        //
+        object parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
+        object data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
+        object parsed = this.parseOrder(data);
+        object symbol = this.safeString(parsed, "symbol");
+        if (isTrue(isEqual(this.orders, null)))
+        {
+            object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            this.orders = new ArrayCacheBySymbolById(limit);
+        }
+        callDynamically(this.orders, "append", new object[] {parsed});
+        object messageHash = "orders";
+        callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, messageHash});
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            object symbolMessageHash = add(add(messageHash, ":"), symbol);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, symbolMessageHash});
+        }
     }
 
     public virtual object handleTicker(WebSocketClient client, object message)
@@ -321,6 +467,154 @@ public partial class paradex : ccxt.paradex
         callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, channel});
         callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
         return message;
+    }
+
+    /**
+     * @method
+     * @name paradex#watchFundingRate
+     * @description watch the current funding rate for a symbol
+     * @see https://docs.paradex.trade/ws/web-socket-channels/funding-data-market-symbol/funding-data-market-symbol
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    public async override Task<object> watchFundingRate(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbol = this.symbol(symbol);
+        object channel = "funding_data";
+        object url = getValue(getValue(this.urls, "api"), "ws");
+        object request = new Dictionary<string, object>() {
+            { "jsonrpc", "2.0" },
+            { "method", "subscribe" },
+            { "params", new Dictionary<string, object>() {
+                { "channel", channel },
+            } },
+        };
+        object messageHash = add(add(channel, "."), symbol);
+        return await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
+    }
+
+    /**
+     * @method
+     * @name paradex#watchFundingRates
+     * @description watch the funding rate for multiple markets
+     * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    public async override Task<object> watchFundingRates(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object channel = "funding_data";
+        object url = getValue(getValue(this.urls, "api"), "ws");
+        object request = new Dictionary<string, object>() {
+            { "jsonrpc", "2.0" },
+            { "method", "subscribe" },
+            { "params", new Dictionary<string, object>() {
+                { "channel", channel },
+            } },
+        };
+        object messageHashes = new List<object>() {};
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object symbolsLength = getArrayLength(symbols);
+            if (isTrue(isGreaterThan(symbolsLength, 0)))
+            {
+                for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+                {
+                    object messageHash = add(add(channel, "."), getValue(symbols, i));
+                    ((IList<object>)messageHashes).Add(messageHash);
+                }
+            } else
+            {
+                ((IList<object>)messageHashes).Add(channel); // if an empty array is passed, subscribe to all funding rates
+            }
+        } else
+        {
+            ((IList<object>)messageHashes).Add(channel);
+        }
+        object newFundingRates = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
+        if (isTrue(this.newUpdates))
+        {
+            object result = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)result)[(string)getValue(newFundingRates, "symbol")] = newFundingRates;
+            return result;
+        }
+        return this.filterByArray(this.fundingRates, "symbol", symbols);
+    }
+
+    public virtual void handleFundingRate(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "funding_data",
+        //             "data": {
+        //                 "market": "TRUMP-USD-PERP",
+        //                 "funding_index": "-0.551694014226244835",
+        //                 "funding_premium": "-0.000509914923994872836",
+        //                 "funding_rate": "-0.00014969570582",
+        //                 "funding_rate_8h": "-0.00014969",
+        //                 "funding_period_hours": 8,
+        //                 "created_at": 1771506636154
+        //             }
+        //         }
+        //     }
+        //
+        object parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
+        object data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
+        object fundingRate = this.parseFundingRateWs(data);
+        object symbol = getValue(fundingRate, "symbol");
+        ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
+        object channel = this.safeString(parameters, "channel");
+        object messageHash = add(add(channel, "."), symbol);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {fundingRate, messageHash});
+    }
+
+    public virtual object parseFundingRateWs(object contract, object market = null)
+    {
+        //
+        //     {
+        //         "market": "TRUMP-USD-PERP",
+        //         "funding_index": "-0.551694014226244835",
+        //         "funding_premium": "-0.000509914923994872836",
+        //         "funding_rate": "-0.00014969570582",
+        //         "funding_rate_8h": "-0.00014969",
+        //         "funding_period_hours": 8,
+        //         "created_at": 1771506636154
+        //     }
+        //
+        object marketId = this.safeString(contract, "market");
+        object symbol = this.safeSymbol(marketId, market);
+        object timestamp = this.safeInteger(contract, "created_at");
+        object fundingPeriod = this.safeString(contract, "funding_period_hours");
+        return new Dictionary<string, object>() {
+            { "info", contract },
+            { "symbol", symbol },
+            { "markPrice", null },
+            { "indexPrice", null },
+            { "interestRate", this.parseNumber("0") },
+            { "estimatedSettlePrice", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "fundingRate", this.safeNumber(contract, "funding_rate") },
+            { "fundingTimestamp", null },
+            { "fundingDatetime", null },
+            { "nextFundingRate", null },
+            { "nextFundingTimestamp", null },
+            { "nextFundingDatetime", null },
+            { "previousFundingRate", null },
+            { "previousFundingTimestamp", null },
+            { "previousFundingDatetime", null },
+            { "interval", add(fundingPeriod, "h") },
+        };
     }
 
     public virtual object handleErrorMessage(WebSocketClient client, object message)
@@ -367,6 +661,16 @@ public partial class paradex : ccxt.paradex
             return;
         }
         //
+        // auth response
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 1,
+        //         "result": { "node_id": "73cf456f7cb78d59" }
+        //     }
+        //
+        // subscription message
+        //
         //     {
         //         "jsonrpc": "2.0",
         //         "method": "subscription",
@@ -384,6 +688,12 @@ public partial class paradex : ccxt.paradex
         //         }
         //     }
         //
+        object result = this.safeValue(message, "result");
+        if (isTrue(!isEqual(result, null)))
+        {
+            this.handleAuthenticationMessage(client as WebSocketClient, message);
+            return;
+        }
         object data = this.safeDict(message, "params");
         if (isTrue(!isEqual(data, null)))
         {
@@ -394,6 +704,8 @@ public partial class paradex : ccxt.paradex
                 { "trades", this.handleTrade },
                 { "order_book", this.handleOrderBook },
                 { "markets_summary", this.handleTicker },
+                { "orders", this.handleOrder },
+                { "funding_data", this.handleFundingRate },
             };
             object method = this.safeValue(methods, name);
             if (isTrue(!isEqual(method, null)))

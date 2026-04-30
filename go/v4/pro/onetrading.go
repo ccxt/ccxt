@@ -88,7 +88,7 @@ func  (this *OnetradingCore) Describe() interface{}  {
  * @see https://developers.bitpanda.com/exchange/#account-history-channel
  * @description watch balance and get the amount of funds available for trading or funds locked in orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func  (this *OnetradingCore) WatchBalance(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -161,7 +161,7 @@ func  (this *OnetradingCore) HandleBalanceSnapshot(client interface{}, message i
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *OnetradingCore) WatchTicker(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -200,7 +200,7 @@ func  (this *OnetradingCore) WatchTicker(symbol interface{}, optionalArgs ...int
  * @description watches price tickers, a statistical calculation with the information for all markets or those specified.
  * @param {string} symbols unified symbols of the markets to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an array of [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} an array of [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *OnetradingCore) WatchTickers(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -315,7 +315,7 @@ func  (this *OnetradingCore) ParseWSTicker(ticker interface{}, optionalArgs ...i
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *OnetradingCore) WatchMyTrades(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -383,7 +383,7 @@ func  (this *OnetradingCore) WatchMyTrades(optionalArgs ...interface{}) <- chan 
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *OnetradingCore) WatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -513,7 +513,7 @@ func  (this *OnetradingCore) HandleDeltas(orderbook interface{}, deltas interfac
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.channel] can listen to orders using ACCOUNT_HISTORY or TRADING
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *OnetradingCore) WatchOrders(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})

@@ -67,7 +67,7 @@ func (this *Dydx) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions)
  * @see https://docs.dydx.xyz/indexer-client/websockets#trades
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Dydx) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (interface{}, error) {
 
@@ -95,7 +95,7 @@ func (this *Dydx) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOpti
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Dydx) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOptions) (ccxt.OrderBook, error) {
 
@@ -127,7 +127,7 @@ func (this *Dydx) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOp
  * @see https://docs.dydx.xyz/indexer-client/websockets#orders
  * @param {string} symbol unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Dydx) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBookOptions) (interface{}, error) {
 

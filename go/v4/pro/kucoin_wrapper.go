@@ -25,10 +25,13 @@ func NewKucoin(userConfig map[string]interface{}) *Kucoin {
  * @method
  * @name kucoin#watchTicker
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/market-snapshot
+ * @see https://www.kucoin.com/docs-new/3470063w0
+ * @see https://www.kucoin.com/docs-new/3470081w0
+ * @see https://www.kucoin.com/docs-new/3470222w0
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Kucoin) WatchTicker(symbol string, options ...ccxt.WatchTickerOptions) (ccxt.Ticker, error) {
 
@@ -52,10 +55,13 @@ func (this *Kucoin) WatchTicker(symbol string, options ...ccxt.WatchTickerOption
  * @method
  * @name kucoin#unWatchTicker
  * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/market-snapshot
+ * @see https://www.kucoin.com/docs-new/3470063w0
+ * @see https://www.kucoin.com/docs-new/3470081w0
+ * @see https://www.kucoin.com/docs-new/3470222w0
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Kucoin) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOptions) (interface{}, error) {
 
@@ -78,12 +84,16 @@ func (this *Kucoin) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOp
 /**
  * @method
  * @name kucoin#watchTickers
- * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/ticker
+ * @see https://www.kucoin.com/docs-new/3470063w0
+ * @see https://www.kucoin.com/docs-new/3470064w0
+ * @see https://www.kucoin.com/docs-new/3470081w0
+ * @see https://www.kucoin.com/docs-new/3470222w0
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.method] either '/market/snapshot' or '/market/ticker' default is '/market/ticker'
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @param {string} [params.method] *spot markets only* either '/market/snapshot' or '/market/ticker' default is '/market/ticker'
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Kucoin) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tickers, error) {
 
@@ -111,11 +121,12 @@ func (this *Kucoin) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tick
 /**
  * @method
  * @name kucoin#watchBidsAsks
- * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+ * @see https://www.kucoin.com/docs-new/3470067w0
+ * @see https://www.kucoin.com/docs-new/3470080w0
  * @description watches best bid & ask for symbols
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Kucoin) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.Tickers, error) {
 
@@ -144,12 +155,15 @@ func (this *Kucoin) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.Ti
  * @method
  * @name kucoin#watchOHLCV
  * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/klines
+ * @see https://www.kucoin.com/docs-new/3470071w0
+ * @see https://www.kucoin.com/docs-new/3470086w0
+ * @see https://www.kucoin.com/docs-new/3470223w0
  * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *Kucoin) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions) ([]ccxt.OHLCV, error) {
@@ -189,10 +203,13 @@ func (this *Kucoin) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions)
  * @method
  * @name kucoin#unWatchOHLCV
  * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/klines
+ * @see https://www.kucoin.com/docs-new/3470071w0
+ * @see https://www.kucoin.com/docs-new/3470086w0
+ * @see https://www.kucoin.com/docs-new/3470223w0
  * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *Kucoin) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions) (interface{}, error) {
@@ -222,12 +239,15 @@ func (this *Kucoin) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOpti
  * @method
  * @name kucoin#watchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
+ * @see https://www.kucoin.com/docs-new/3470072w0
+ * @see https://www.kucoin.com/docs-new/3470084w0
+ * @see https://www.kucoin.com/docs-new/3470224w0
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Kucoin) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions) ([]ccxt.Trade, error) {
 
@@ -261,12 +281,13 @@ func (this *Kucoin) WatchTrades(symbol string, options ...ccxt.WatchTradesOption
  * @method
  * @name kucoin#watchTradesForSymbols
  * @description get the list of most recent trades for a particular symbol
- * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
+ * @see https://www.kucoin.com/docs-new/3470072w0
+ * @see https://www.kucoin.com/docs-new/3470084w0
  * @param {string[]} symbols
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Kucoin) WatchTradesForSymbols(symbols []string, options ...ccxt.WatchTradesForSymbolsOptions) ([]ccxt.Trade, error) {
 
@@ -300,10 +321,11 @@ func (this *Kucoin) WatchTradesForSymbols(symbols []string, options ...ccxt.Watc
  * @method
  * @name kucoin#unWatchTradesForSymbols
  * @description unWatches trades stream
- * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
+ * @see https://www.kucoin.com/docs-new/3470072w0
+ * @see https://www.kucoin.com/docs-new/3470084w0
  * @param {string} symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Kucoin) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWatchTradesForSymbolsOptions) (interface{}, error) {
 
@@ -327,10 +349,13 @@ func (this *Kucoin) UnWatchTradesForSymbols(symbols []string, options ...ccxt.Un
  * @method
  * @name kucoin#unWatchTrades
  * @description unWatches trades stream
- * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
+ * @see https://www.kucoin.com/docs-new/3470072w0
+ * @see https://www.kucoin.com/docs-new/3470084w0
+ * @see https://www.kucoin.com/docs-new/3470224w0
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Kucoin) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (interface{}, error) {
 
@@ -353,16 +378,20 @@ func (this *Kucoin) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOp
 /**
  * @method
  * @name kucoin#watchOrderBook
- * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
- * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
- * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
- * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+ * @see https://www.kucoin.com/docs-new/3470069w0 // spot level 5
+ * @see https://www.kucoin.com/docs-new/3470070w0 // spot level 50
+ * @see https://www.kucoin.com/docs-new/3470068w0 // spot incremental
+ * @see https://www.kucoin.com/docs-new/3470083w0 // futures level 5
+ * @see https://www.kucoin.com/docs-new/3470097w0 // futures level 50
+ * @see https://www.kucoin.com/docs-new/3470082w0 // futures incremental
+ * @see https://www.kucoin.com/docs-new/3470221w0 // uta
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
  * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Kucoin) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOptions) (ccxt.OrderBook, error) {
 
@@ -397,8 +426,9 @@ func (this *Kucoin) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBook
  * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
  * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Kucoin) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBookOptions) (interface{}, error) {
 
@@ -421,16 +451,18 @@ func (this *Kucoin) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrder
 /**
  * @method
  * @name kucoin#watchOrderBookForSymbols
- * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
- * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
- * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
- * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+ * @see https://www.kucoin.com/docs-new/3470069w0 // spot level 5
+ * @see https://www.kucoin.com/docs-new/3470070w0 // spot level 50
+ * @see https://www.kucoin.com/docs-new/3470068w0 // spot incremental
+ * @see https://www.kucoin.com/docs-new/3470083w0 // futures level 5
+ * @see https://www.kucoin.com/docs-new/3470097w0 // futures level 50
+ * @see https://www.kucoin.com/docs-new/3470082w0 // futures incremental
+ * @see https://www.kucoin.com/docs-new/3470221w0 // uta
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Kucoin) WatchOrderBookForSymbols(symbols []string, options ...ccxt.WatchOrderBookForSymbolsOptions) (ccxt.OrderBook, error) {
 
@@ -458,15 +490,17 @@ func (this *Kucoin) WatchOrderBookForSymbols(symbols []string, options ...ccxt.W
 /**
  * @method
  * @name kucoin#unWatchOrderBookForSymbols
- * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
- * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
- * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
- * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+ * @see https://www.kucoin.com/docs-new/3470069w0 // spot level 5
+ * @see https://www.kucoin.com/docs-new/3470070w0 // spot level 50
+ * @see https://www.kucoin.com/docs-new/3470068w0 // spot incremental
+ * @see https://www.kucoin.com/docs-new/3470083w0 // futures level 5
+ * @see https://www.kucoin.com/docs-new/3470097w0 // futures level 50
+ * @see https://www.kucoin.com/docs-new/3470082w0 // futures incremental
  * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string[]} symbols unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' or '/contractMarket/level2' or '/contractMarket/level2Depth5' or '/contractMarket/level2Depth50' default is '/market/level2' for spot and '/contractMarket/level2' for futures
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Kucoin) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
 
@@ -490,14 +524,19 @@ func (this *Kucoin) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt
  * @method
  * @name kucoin#watchOrders
  * @description watches information on multiple orders made by the user
- * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change
- * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/stop-order-event
+ * @see https://www.kucoin.com/docs-new/3470074w0 // spot regular orders
+ * @see https://www.kucoin.com/docs-new/3470139w0 // spot trigger orders
+ * @see https://www.kucoin.com/docs-new/3470090w0 // contract regular orders
+ * @see https://www.kucoin.com/docs-new/3470091w0 // contract trigger orders
+ * @see https://www.kucoin.com/docs-new/3470228w0 // uta orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta)
  * @param {boolean} [params.trigger] trigger orders are watched if true
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @param {string} [params.type] 'spot' or 'swap' (default is 'spot' if symbol is not provided)
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Kucoin) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order, error) {
 
@@ -535,14 +574,17 @@ func (this *Kucoin) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Orde
 /**
  * @method
  * @name kucoin#watchMyTrades
- * @description watches information on multiple trades made by the user
- * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change
+ * @description watches information on multiple trades made by the user on spot
+ * @see https://www.kucoin.com/docs-new/3470074w0
+ * @see https://www.kucoin.com/docs-new/3470090w0
+ * @see https://www.kucoin.com/docs-new/3470264w0
  * @param {string} symbol unified market symbol of the market trades were made in
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trade structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.method] '/spotMarket/tradeOrders' or '/spot/tradeFills' default is '/spotMarket/tradeOrders'
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta)
+ * @param {string} [params.method] *classic (non-uta) account only* '/spotMarket/tradeOrders' or '/spot/tradeFills' or '/contractMarket/tradeOrders', default is '/spotMarket/tradeOrders'
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Kucoin) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.Trade, error) {
 
@@ -581,9 +623,13 @@ func (this *Kucoin) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.
  * @method
  * @name kucoin#watchBalance
  * @description watch balance and get the amount of funds available for trading or funds locked in orders
- * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/account-balance-change
+ * @see https://www.kucoin.com/docs-new/3470075w0 // spot balance
+ * @see https://www.kucoin.com/docs-new/3470092w0 // contract balance
+ * @see https://www.kucoin.com/docs-new/3470231w0 // uta balance
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta)
+ * @param {string} [params.type] *classic (non-uta) account only* 'spot' or 'swap' (default is 'spot')
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Kucoin) WatchBalance(params ...interface{}) (ccxt.Balances, error) {
     res := <- this.Core.WatchBalance(params...)
@@ -591,6 +637,83 @@ func (this *Kucoin) WatchBalance(params ...interface{}) (ccxt.Balances, error) {
         return ccxt.Balances{}, ccxt.CreateReturnError(res)
     }
     return ccxt.NewBalances(res), nil
+}
+/**
+ * @method
+ * @name kucoin#watchPosition
+ * @description watch open positions for a specific symbol
+ * @see https://www.kucoin.com/docs-new/3470093w0
+ * @param {string|undefined} symbol unified market symbol
+ * @param {object} params extra parameters specific to the exchange API endpoint
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+ */
+func (this *Kucoin) WatchPosition(options ...ccxt.WatchPositionOptions) (ccxt.Position, error) {
+
+    opts := ccxt.WatchPositionOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbol interface{} = nil
+    if opts.Symbol != nil {
+        symbol = *opts.Symbol
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.WatchPosition(symbol, params)
+    if ccxt.IsError(res) {
+        return ccxt.Position{}, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewPosition(res), nil
+}
+/**
+ * @method
+ * @name kucoin#watchPositions
+ * @see https://www.kucoin.com/docs-new/3470233w0
+ * @description watch all open positions
+ * @param {string[]} [symbols] list of unified market symbols
+ * @param {int} [since] the earliest time in ms to fetch positions for
+ * @param {int} [limit] the maximum number of positions to retrieve
+ * @param {object} params extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta)
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+ */
+func (this *Kucoin) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt.Position, error) {
+
+    opts := ccxt.WatchPositionsOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbols interface{} = nil
+    if opts.Symbols != nil {
+        symbols = *opts.Symbols
+    }
+
+    var since interface{} = nil
+    if opts.Since != nil {
+        since = *opts.Since
+    }
+
+    var limit interface{} = nil
+    if opts.Limit != nil {
+        limit = *opts.Limit
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.WatchPositions(symbols, since, limit, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewPositionArray(res), nil
 }
 // missing typed methods from base
 //nolint
@@ -780,6 +903,4 @@ func (this *Kucoin) WatchMyLiquidations(symbol string, options ...ccxt.WatchMyLi
 func (this *Kucoin) WatchMyLiquidationsForSymbols(symbols []string, options ...ccxt.WatchMyLiquidationsForSymbolsOptions) ([]ccxt.Liquidation, error) {return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)}
 func (this *Kucoin) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...ccxt.WatchOHLCVForSymbolsOptions) (map[string]map[string][]ccxt.OHLCV, error) {return this.exchangeTyped.WatchOHLCVForSymbols(symbolsAndTimeframes, options...)}
 func (this *Kucoin) WatchOrdersForSymbols(symbols []string, options ...ccxt.WatchOrdersForSymbolsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)}
-func (this *Kucoin) WatchPosition(options ...ccxt.WatchPositionOptions) (ccxt.Position, error) {return this.exchangeTyped.WatchPosition(options...)}
-func (this *Kucoin) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt.Position, error) {return this.exchangeTyped.WatchPositions(options...)}
 func (this *Kucoin) WithdrawWs(code string, amount float64, address string, options ...ccxt.WithdrawWsOptions) (ccxt.Transaction, error) {return this.exchangeTyped.WithdrawWs(code, amount, address, options...)}

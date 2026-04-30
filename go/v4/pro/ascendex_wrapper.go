@@ -75,7 +75,7 @@ func (this *Ascendex) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOption
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Ascendex) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions) ([]ccxt.Trade, error) {
 
@@ -115,7 +115,7 @@ func (this *Ascendex) WatchTrades(symbol string, options ...ccxt.WatchTradesOpti
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Ascendex) WatchTradesForSymbols(symbols []string, options ...ccxt.WatchTradesForSymbolsOptions) ([]ccxt.Trade, error) {
 
@@ -153,7 +153,7 @@ func (this *Ascendex) WatchTradesForSymbols(symbols []string, options ...ccxt.Wa
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Ascendex) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOptions) (ccxt.OrderBook, error) {
 
@@ -184,7 +184,7 @@ func (this *Ascendex) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBo
  * @description watch balance and get the amount of funds available for trading or funds locked in orders
  * @see https://ascendex.github.io/ascendex-pro-api/#channel-order-and-balance
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Ascendex) WatchBalance(params ...interface{}) (ccxt.Balances, error) {
     res := <- this.Core.WatchBalance(params...)
@@ -202,7 +202,7 @@ func (this *Ascendex) WatchBalance(params ...interface{}) (ccxt.Balances, error)
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Ascendex) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order, error) {
 

@@ -38,6 +38,7 @@ interface Exchange {
     spotV1PrivatePostOcoCancel (params?: {}): Promise<implicitReturnType>;
     spotV2PublicGetMarketDepth (params?: {}): Promise<implicitReturnType>;
     spotV2PublicGetMarketKline (params?: {}): Promise<implicitReturnType>;
+    spotV2PublicGetTickerPrice (params?: {}): Promise<implicitReturnType>;
     spotV3PrivateGetGetAssetTransfer (params?: {}): Promise<implicitReturnType>;
     spotV3PrivateGetAssetTransfer (params?: {}): Promise<implicitReturnType>;
     spotV3PrivateGetCapitalDepositHisrec (params?: {}): Promise<implicitReturnType>;
@@ -96,6 +97,7 @@ interface Exchange {
     swapV2PrivateGetUserIncomeExport (params?: {}): Promise<implicitReturnType>;
     swapV2PrivateGetUserCommissionRate (params?: {}): Promise<implicitReturnType>;
     swapV2PrivateGetQuoteBookTicker (params?: {}): Promise<implicitReturnType>;
+    swapV2PrivatePostTradeGetVst (params?: {}): Promise<implicitReturnType>;
     swapV2PrivatePostTradeOrder (params?: {}): Promise<implicitReturnType>;
     swapV2PrivatePostTradeBatchOrders (params?: {}): Promise<implicitReturnType>;
     swapV2PrivatePostTradeCloseAllPositions (params?: {}): Promise<implicitReturnType>;

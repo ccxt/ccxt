@@ -411,7 +411,7 @@ func (this *BlockchaincomCore) FetchMarkets(optionalArgs ...interface{}) <-chan 
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *BlockchaincomCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -440,7 +440,7 @@ func (this *BlockchaincomCore) FetchOrderBook(symbol interface{}, optionalArgs .
  * @param {string} symbol unified market symbol
  * @param {int} [limit] max number of orders to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BlockchaincomCore) FetchL3OrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -547,7 +547,7 @@ func (this *BlockchaincomCore) ParseTicker(ticker interface{}, optionalArgs ...i
  * @see https://api.blockchain.com/v3/#gettickerbysymbol
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BlockchaincomCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -581,7 +581,7 @@ func (this *BlockchaincomCore) FetchTicker(symbol interface{}, optionalArgs ...i
  * @see https://api.blockchain.com/v3/#gettickers
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BlockchaincomCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -686,7 +686,7 @@ func (this *BlockchaincomCore) ParseOrder(order interface{}, optionalArgs ...int
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BlockchaincomCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -759,7 +759,7 @@ func (this *BlockchaincomCore) CreateOrder(symbol interface{}, typeVar interface
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BlockchaincomCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -794,7 +794,7 @@ func (this *BlockchaincomCore) CancelOrder(id interface{}, optionalArgs ...inter
  * @see https://api.blockchain.com/v3/#deleteallorders
  * @param {string} symbol unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BlockchaincomCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -837,7 +837,7 @@ func (this *BlockchaincomCore) CancelAllOrders(optionalArgs ...interface{}) <-ch
  * @description fetch the trading fees for multiple markets
  * @see https://api.blockchain.com/v3/#getfees
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *BlockchaincomCore) FetchTradingFees(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -888,7 +888,7 @@ func (this *BlockchaincomCore) FetchTradingFees(optionalArgs ...interface{}) <-c
  * @param {int} [since] timestamp in ms of the earliest order, default is undefined
  * @param {int} [limit] max number of orders to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BlockchaincomCore) FetchCanceledOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -923,7 +923,7 @@ func (this *BlockchaincomCore) FetchCanceledOrders(optionalArgs ...interface{}) 
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BlockchaincomCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -958,7 +958,7 @@ func (this *BlockchaincomCore) FetchClosedOrders(optionalArgs ...interface{}) <-
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BlockchaincomCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1079,7 +1079,7 @@ func (this *BlockchaincomCore) ParseTrade(trade interface{}, optionalArgs ...int
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *BlockchaincomCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1124,7 +1124,7 @@ func (this *BlockchaincomCore) FetchMyTrades(optionalArgs ...interface{}) <-chan
  * @see https://api.blockchain.com/v3/#getdepositaddress
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *BlockchaincomCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1261,7 +1261,7 @@ func (this *BlockchaincomCore) ParseTransaction(transaction interface{}, optiona
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BlockchaincomCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1313,7 +1313,7 @@ func (this *BlockchaincomCore) Withdraw(code interface{}, amount interface{}, ad
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BlockchaincomCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1358,7 +1358,7 @@ func (this *BlockchaincomCore) FetchWithdrawals(optionalArgs ...interface{}) <-c
  * @param {string} id withdrawal id
  * @param {string} code not used by blockchaincom.fetchWithdrawal
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BlockchaincomCore) FetchWithdrawal(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1395,7 +1395,7 @@ func (this *BlockchaincomCore) FetchWithdrawal(id interface{}, optionalArgs ...i
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BlockchaincomCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1440,7 +1440,7 @@ func (this *BlockchaincomCore) FetchDeposits(optionalArgs ...interface{}) <-chan
  * @param {string} id deposit id
  * @param {string} code not used by blockchaincom fetchDeposit ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BlockchaincomCore) FetchDeposit(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1475,7 +1475,7 @@ func (this *BlockchaincomCore) FetchDeposit(id interface{}, optionalArgs ...inte
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://api.blockchain.com/v3/#getaccounts
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *BlockchaincomCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1542,7 +1542,7 @@ func (this *BlockchaincomCore) FetchBalance(optionalArgs ...interface{}) <-chan 
  * @param {string} id the order id
  * @param {string} symbol not used by blockchaincom fetchOrder
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BlockchaincomCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})

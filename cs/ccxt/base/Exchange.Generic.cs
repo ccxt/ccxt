@@ -12,7 +12,7 @@ public partial class Exchange
         desc2 ??= false;
         var defaultValue = defaultValue2 ?? "";
         var desc = (bool)desc2;
-        var list = (List<object>)array;
+        var list = (IList<object>)array;
 
         if (value1.GetType() == typeof(string))
         {
@@ -45,7 +45,7 @@ public partial class Exchange
         // todo :: check this later
         desc2 ??= false;
         var desc = (bool)desc2;
-        var list = (List<object>)array;
+        var list = (IList<object>)array;
 
         if (key1.GetType() == typeof(string))
         {
@@ -174,14 +174,7 @@ public partial class Exchange
                     }
                     else
                     {
-                        if (arg2 != null)
-                        {
-                            ((dict)outObj)[k] = arg2;
-                        }
-                        else
-                        {
-                            ((dict)outObj)[k] = arg1;
-                        }
+                        ((dict)outObj)[k] = arg2;
                     }
                 }
             }

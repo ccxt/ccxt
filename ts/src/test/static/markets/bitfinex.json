@@ -6,8 +6,8 @@
         "base": "BTC",
         "quote": "USD",
         "settle": null,
-        "baseId": "fBTC",
-        "quoteId": "fUSD",
+        "baseId": "BTC",
+        "quoteId": "USD",
         "settleId": null,
         "type": "spot",
         "spot": true,
@@ -165,7 +165,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "BTC/EUR": {
         "id": "tBTCEUR",
@@ -174,8 +175,8 @@
         "base": "BTC",
         "quote": "EUR",
         "settle": null,
-        "baseId": "fBTC",
-        "quoteId": "fEUR",
+        "baseId": "BTC",
+        "quoteId": "EUR",
         "settleId": null,
         "type": "spot",
         "spot": true,
@@ -333,7 +334,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "LTC/USD": {
         "id": "tLTCUSD",
@@ -342,8 +344,8 @@
         "base": "LTC",
         "quote": "USD",
         "settle": null,
-        "baseId": "fLTC",
-        "quoteId": "fUSD",
+        "baseId": "LTC",
+        "quoteId": "USD",
         "settleId": null,
         "type": "spot",
         "spot": true,
@@ -501,7 +503,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "ETH/USD": {
         "id": "tETHUSD",
@@ -510,8 +513,8 @@
         "base": "ETH",
         "quote": "USD",
         "settle": null,
-        "baseId": "fETH",
-        "quoteId": "fUSD",
+        "baseId": "ETH",
+        "quoteId": "USD",
         "settleId": null,
         "type": "spot",
         "spot": true,
@@ -669,7 +672,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "BTC/USDT": {
         "id": "tBTCUST",
@@ -678,8 +682,8 @@
         "base": "BTC",
         "quote": "USDT",
         "settle": null,
-        "baseId": "fBTC",
-        "quoteId": "fUST",
+        "baseId": "BTC",
+        "quoteId": "UST",
         "settleId": null,
         "type": "spot",
         "spot": true,
@@ -837,7 +841,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "LTC/USDT": {
         "id": "tLTCUST",
@@ -846,8 +851,8 @@
         "base": "LTC",
         "quote": "USDT",
         "settle": null,
-        "baseId": "fLTC",
-        "quoteId": "fUST",
+        "baseId": "LTC",
+        "quoteId": "UST",
         "settleId": null,
         "type": "spot",
         "spot": true,
@@ -1005,7 +1010,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "ADA/USDT": {
         "id": "tADAUST",
@@ -1014,8 +1020,8 @@
         "base": "ADA",
         "quote": "USDT",
         "settle": null,
-        "baseId": "fADA",
-        "quoteId": "fUST",
+        "baseId": "ADA",
+        "quoteId": "UST",
         "settleId": null,
         "type": "spot",
         "spot": true,
@@ -1173,7 +1179,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "XRP/USDT": {
         "id": "tXRPUST",
@@ -1182,8 +1189,8 @@
         "base": "XRP",
         "quote": "USDT",
         "settle": null,
-        "baseId": "fXRP",
-        "quoteId": "fUST",
+        "baseId": "XRP",
+        "quoteId": "UST",
         "settleId": null,
         "type": "spot",
         "spot": true,
@@ -1341,7 +1348,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "SOL/USDT": {
         "id": "tSOLUST",
@@ -1350,8 +1358,8 @@
         "base": "SOL",
         "quote": "USDT",
         "settle": null,
-        "baseId": "fSOL",
-        "quoteId": "fUST",
+        "baseId": "SOL",
+        "quoteId": "UST",
         "settleId": null,
         "type": "spot",
         "spot": true,
@@ -1509,7 +1517,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "TRX/USDT": {
         "id": "tTRXUST",
@@ -1518,8 +1527,8 @@
         "base": "TRX",
         "quote": "USDT",
         "settle": null,
-        "baseId": "fTRX",
-        "quoteId": "fUST",
+        "baseId": "TRX",
+        "quoteId": "UST",
         "settleId": null,
         "type": "spot",
         "spot": true,
@@ -1677,7 +1686,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "LTC/USDT:USDT": {
         "id": "tLTCF0:USTF0",
@@ -1686,8 +1696,8 @@
         "base": "LTC",
         "quote": "USDT",
         "settle": "USDT",
-        "baseId": "fLTCF0",
-        "quoteId": "fUSTF0",
+        "baseId": "LTCF0",
+        "quoteId": "USTF0",
         "settleId": "USDT",
         "type": "swap",
         "spot": false,
@@ -1843,7 +1853,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "BTC/USDT:USDT": {
         "id": "tBTCF0:USTF0",
@@ -1852,8 +1863,8 @@
         "base": "BTC",
         "quote": "USDT",
         "settle": "USDT",
-        "baseId": "fBTCF0",
-        "quoteId": "fUSTF0",
+        "baseId": "BTCF0",
+        "quoteId": "USTF0",
         "settleId": "USDT",
         "type": "swap",
         "spot": false,
@@ -2009,7 +2020,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "ADA/USDT:USDT": {
         "id": "tADAF0:USTF0",
@@ -2018,8 +2030,8 @@
         "base": "ADA",
         "quote": "USDT",
         "settle": "USDT",
-        "baseId": "fADAF0",
-        "quoteId": "fUSTF0",
+        "baseId": "ADAF0",
+        "quoteId": "USTF0",
         "settleId": "USDT",
         "type": "swap",
         "spot": false,
@@ -2175,7 +2187,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "XRP/USDT:USDT": {
         "id": "tXRPF0:USTF0",
@@ -2184,8 +2197,8 @@
         "base": "XRP",
         "quote": "USDT",
         "settle": "USDT",
-        "baseId": "fXRPF0",
-        "quoteId": "fUSTF0",
+        "baseId": "XRPF0",
+        "quoteId": "USTF0",
         "settleId": "USDT",
         "type": "swap",
         "spot": false,
@@ -2341,7 +2354,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "TRX/USDT:USDT": {
         "id": "tTRXF0:USTF0",
@@ -2350,8 +2364,8 @@
         "base": "TRX",
         "quote": "USDT",
         "settle": "USDT",
-        "baseId": "fTRXF0",
-        "quoteId": "fUSTF0",
+        "baseId": "TRXF0",
+        "quoteId": "USTF0",
         "settleId": "USDT",
         "type": "swap",
         "spot": false,
@@ -2507,7 +2521,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "ETH/USDT": {
         "id": "tETHUST",
@@ -2516,8 +2531,8 @@
         "base": "ETH",
         "quote": "USDT",
         "settle": null,
-        "baseId": "fETH",
-        "quoteId": "fUST",
+        "baseId": "ETH",
+        "quoteId": "UST",
         "settleId": null,
         "type": "spot",
         "spot": true,
@@ -2675,7 +2690,8 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     },
     "ETH/USDT:USDT": {
         "id": "tETHF0:USTF0",
@@ -2684,8 +2700,8 @@
         "base": "ETH",
         "quote": "USDT",
         "settle": "USDT",
-        "baseId": "fETHF0",
-        "quoteId": "fUSTF0",
+        "baseId": "ETHF0",
+        "quoteId": "USTF0",
         "settleId": "USDT",
         "type": "swap",
         "spot": false,
@@ -2841,6 +2857,7 @@
                     0
                 ]
             ]
-        }
+        },
+        "tradfi": false
     }
 }

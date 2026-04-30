@@ -91,6 +91,13 @@ interface Exchange {
     privatePostSpotV4CancelOrders(params?: {}): Promise<implicitReturnType>;
     privatePostSpotV4CancelAll(params?: {}): Promise<implicitReturnType>;
     privatePostSpotV4BatchOrders(params?: {}): Promise<implicitReturnType>;
+    privatePostSpotV4AlgoSubmitOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostSpotV4AlgoCancelOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostSpotV4AlgoCancelAll(params?: {}): Promise<implicitReturnType>;
+    privatePostSpotV4QueryAlgoOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostSpotV4QueryAlgoClientOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostSpotV4QueryAlgoOpenOrders(params?: {}): Promise<implicitReturnType>;
+    privatePostSpotV4QueryAlgoHistoryOrders(params?: {}): Promise<implicitReturnType>;
     privatePostSpotV3CancelOrder(params?: {}): Promise<implicitReturnType>;
     privatePostSpotV2BatchOrders(params?: {}): Promise<implicitReturnType>;
     privatePostSpotV2SubmitOrder(params?: {}): Promise<implicitReturnType>;

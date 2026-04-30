@@ -7,7 +7,7 @@
 
 ## How To Submit An Issue
 
-Read the notes when opening a [new issue on github](https://github.com/ccxt/ccxt/issues/new/choose) and provide the requested details, so we can assist you better. You can aso read [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section.
+Read the notes when opening a [new issue on github](https://github.com/ccxt/ccxt/issues/new/choose) and provide the requested details, so we can assist you better. You can also read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section.
 
 
 ### Reporting Vulnerabilities And Critical Issues
@@ -225,7 +225,7 @@ Generated versions and docs are transpiled from the source `ts/src` folder by th
 ### Transpiled (generated) files
 
 - All derived exchange classes are transpiled by `tsc` from TypeScript to JavaScript and by our custom transpiler from TypeScript to PHP and Python. The source files are language-agnostic, easily mapped line-to-line to any other language and written in a cross-language-compatible way. Any coder can read it (by design).
-- All base classes are **not** transpiled, those are language-specific.
+- Base classes are **not** entirely transpiled and are only transpiled partially, as they are language-specific.
 
 #### JavaScript
 

@@ -191,6 +191,40 @@ Alternatively, you can use the functions `createMarketBuyOrderWithCost`/ `create
   print(market['contractSize'])
   ```
 
+  ## Why am I getting an error that says "must be greater than minimum amount precision of 1"?
+  This is a common error that happens when creating orders for contract markets. This error happens when the exchange is expecting a natural number of contracts (1,2,3, etc) in the amount argument of createOrder.
+  
+  Each contract is worth a certain amount of the base asset, determined by the contractSize. You can retrieve the contractSize from a symbols market structure like this:
+  ```Python
+  await exchange.loadMarkets()
+  symbol = 'SOL/USDT:USDT'
+  market = exchange.market(symbol)
+  print(market['contractSize'])
+  ```
+
+  If you create an order with `amount = 1`, the amount of the base asset that is used for the order will vary depending on the symbols `contractSize`.
+
+  Below is a formula and example to find the number of `contracts` that you should use for the amount argument if you want to use 0.5 of the base asset:
+  ```Python
+  await exchange.loadMarkets()
+  symbol = 'SOL/USDT:USDT'
+  market = exchange.market(symbol)
+  # Converting a 0.5 base amount to the number of contracts:
+  # Formula: contracts = (base amount / contract size)
+  contracts = round(0.5 / market['contractSize'])
+  ```
+
+  Here is an example of finding the base amount that will be used with an amount argument of 1 contract:
+  ```Python
+  await exchange.loadMarkets()
+  symbol = 'SOL/USDT:USDT'
+  market = exchange.market(symbol)
+  # Finding the base amount that will be used with 1 contract:
+  # Formula: base amount = (contracts * contract size)
+  contracts = 1
+  base_amount = (contracts * market['contractSize'])
+  ```
+
   ## How to place a reduceOnly order?
   A reduceOnly order is a type of order that can only reduce a position, not increase it. To place a reduceOnly order, you typically use the createOrder method with a reduceOnly parameter set to true. This ensures that the order will only execute if it decreases the size of an open position, and it will either partially fill or not fill at all if executing it would increase the position size.
 
@@ -231,3 +265,138 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
   3. `nextFundingRate` is only supported on a few exchanges and is the predicted funding rate after the upcoming rate. This value is two funding rates from now.
 
   As an example, say it is 12:30. The `previousFundingRate` happened at 12:00 and we're looking to see what the upcoming funding rate will be by checking the `fundingRate` value. In this example, given 4-hour intervals, the `fundingRate` will happen in the future at 4:00 and the `nextFundingRate` is the predicted rate that will happen at 8:00.
+
+## How to use the Lighter Exchange in CCXT?
+
+Lighter is available as part of CCXT and it works similarly to any other CCXT exchange, but it has some particularities that might be confusing for some users but we will explain it in detail below. We just need to set some basic credentials and dependencies.
+
+
+After the latest upgrade CCXT has simplified the authentication process and now using the L1 private key is enough.
+
+## Credentials requirements
+
+Lighter requires the following :
+- `privateKey`: the L1 private key **mandatory**
+- `accountIndex` (an integer) in `exchange.options`: — **optional** CCXT will fetch it if not available, set it if using a subAccount
+- `apiKeyIndex` (an integer) in `exchange.options`: **optional**  CCXT will use a default value (254)
+
+Example
+
+```Python
+lighter = ccxt.lighter({
+	'privateKey': 'XXXXXXX', # l1 private key
+})
+```
+
+### Dependencies requirements
+
+Since the signing algorithms and structs are not supported natively in all languages CCXT is using the officially distributed binaries and interacting with them in order to do the signing process (via FFI/WASM), so depending on the language you need to provide a path for that binary.
+
+### Python/C#/PHP users:
+
+- The binaries can be downloaded here: https://github.com/elliottech/lighter-python/tree/main/lighter/signers
+- The path to the binary needs to be provided as `libraryPath`
+- You need to choose the binary according to your OS/architecture
+
+```Python
+lighter = ccxt.lighter({
+	'options': {
+		'libraryPath': 'path/to/lighter-signer-linux-arm64.so',
+	}
+})
+```
+
+### Javascript/Typescript users
+
+- CCXT is using the WASM binary built from the official package and it can be downloaded here https://github.com/ccxt/lighter-wasm or built from the source
+- You also need to provide the path to `exec_wasm.js`, you can either download it from the same repo or check the path to your local file (assuming Go is installed)
+
+```Javacript
+lighter = ccxt.lighter({
+	'options': {
+		'libraryPath': '/user/cjg/Git/lighter-wasm/lighter.wasm',
+		'wasmExecPath': '/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js'
+	}
+})
+```
+
+### GO users
+
+- Nothing is required, CCXT is consuming the official GO package you just need to provide the credentials
+
+
+## How to use the DyDx Exchange in CCXT?
+
+DyDx is available as part of CCXT and it works similarly to any other CCXT exchange, but it has some particularities that might be confusing for some users but we will explain it in detail below. We just need to set some basic credentials and dependencies.
+
+Due to current signing-related dependency requirements, the exchange is available only in Python and JavaScript. Support for additional languages will be introduced once the necessary dependencies have been ported.
+
+
+## Credentials requirements
+
+DyDx requires one of the following :
+- `privateKey`: the l1 private key (hex) used on dydx, or you can set l2 mnemonic in options
+- `mnemonic` in `exchange.options`: the 24 words to retrieve your l2 private key, you can find it on the web UI
+
+Example
+
+```Python
+dydx = ccxt.dydx({
+	'privateKey': 'XXXXXXX',
+})
+
+# or
+dydx = ccxt.dydx({
+	'options': {
+		'mnemonic': 'test test ...',
+	}
+})
+```
+
+### Dependencies requirements
+
+DyDx requires another dependency for python users. Before use it, you need to install pycryptodom locally.
+
+```BASH
+$ pip3 install pycryptodom
+```
+
+
+Additionally, protobuf is also required, but it is not a direct dependency of CCXT. You will need to install it manually:
+
+```
+npm install protobufjs // javascript/typescript
+pip install "protobuf==5.29.5" // python
+```
+
+### Usage
+
+Usage is largely consistent with other exchanges, though certain behaviors differ.
+
+For example, while orders can be placed normally, cancelling an order on dYdX does not use the traditional orderId. Instead, dYdX requires additional fields such as:
+
+- clientOrderId, not the orderId
+- orderFlags (0 for market and non-limit GTT orders, 64 for limit GTT orders, and 32 for conditional orders), ccxt assumes 64 as default
+- goodTillBlockTimeInSeconds (required for long-term and conditional orders; CCXT assumes a default of 30 days)
+- subAccountId, ccxt assumes 0 as default
+
+CCXT provides sensible defaults for the most common use cases; however, you may need to override these values (using params or options) depending on your specific requirements.
+
+### How to use the GRVT Exchange in CCXT?
+
+GRVT works similarly to any other CCXT DEX and only requires the l1 private key of the wallet.
+
+An example on how to instantiate the GRVT exchange:
+
+```
+exchange = ccxt.grvt({
+	'privateKey': 'XXXXXXX', // the l1 private key (hex)
+})
+```
+
+CCXT is also a builder on GRVT meaning that by default users will pay 1bps (0.01%) extra for using it through CCXT, however this fee is totally optional and can be disabled by providing the option `builderFee: False` in options. Your contribution is much appreciated.
+
+```
+exchange.options['builderFee'] = False
+```
+

@@ -827,7 +827,7 @@ class bitteam extends Exchange {
         $response = $this->publicGetTradeApiCmcOrderbookPair ($this->extend($request, $params));
         //
         //     {
-        //         "timestamp" => 1701166703285,
+        //         "timestamp" => 1701166703284,
         //         "bids" => array(
         //             array(
         //                 2019.334988,

@@ -696,7 +696,7 @@ func (this *DeriveCore) ParseMarket(market interface{}) interface{} {
  * @see https://docs.derive.xyz/reference/post_public-get-ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *DeriveCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -882,7 +882,7 @@ func (this *DeriveCore) ParseTicker(ticker interface{}, optionalArgs ...interfac
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch trades for
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *DeriveCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1022,7 +1022,7 @@ func (this *DeriveCore) ParseTrade(trade interface{}, optionalArgs ...interface{
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of funding rate structures to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *DeriveCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1098,7 +1098,7 @@ func (this *DeriveCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-c
  * @see https://docs.derive.xyz/reference/post_public-get-funding-rate-history
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *DeriveCore) FetchFundingRate(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1213,7 +1213,7 @@ func (this *DeriveCore) ParseUnits(num interface{}, optionalArgs ...interface{})
  * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
  * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
  * @param {float} [params.max_fee] *required* the maximum fee you are willing to pay for the order
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DeriveCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1412,7 +1412,7 @@ func (this *DeriveCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subaccount_id] *required* the subaccount id
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DeriveCore) EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1581,7 +1581,7 @@ func (this *DeriveCore) EditOrder(id interface{}, symbol interface{}, typeVar in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a trigger/algo order
  * @param {string} [params.subaccount_id] *required* the subaccount id
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DeriveCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1698,7 +1698,7 @@ func (this *DeriveCore) CancelOrder(id interface{}, optionalArgs ...interface{})
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subaccount_id] *required* the subaccount id
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DeriveCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1769,7 +1769,7 @@ func (this *DeriveCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inte
  * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
  * @param {boolean} [params.trigger] whether the order is a trigger/algo order
  * @param {string} [params.subaccount_id] *required* the subaccount id
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DeriveCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1898,7 +1898,7 @@ func (this *DeriveCore) FetchOrders(optionalArgs ...interface{}) <-chan interfac
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DeriveCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1939,7 +1939,7 @@ func (this *DeriveCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inte
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DeriveCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1980,7 +1980,7 @@ func (this *DeriveCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan in
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DeriveCore) FetchCanceledOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2170,7 +2170,7 @@ func (this *DeriveCore) ParseOrder(rawOrder interface{}, optionalArgs ...interfa
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subaccount_id] *required* the subaccount id
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *DeriveCore) FetchOrderTrades(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2267,7 +2267,7 @@ func (this *DeriveCore) FetchOrderTrades(id interface{}, optionalArgs ...interfa
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] set to true if you want to fetch trades with pagination
  * @param {string} [params.subaccount_id] *required* the subaccount id
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *DeriveCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2381,7 +2381,7 @@ func (this *DeriveCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interf
  * @param {string[]} [symbols] not used by kraken fetchPositions ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subaccount_id] *required* the subaccount id
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *DeriveCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2542,7 +2542,7 @@ func (this *DeriveCore) ParsePosition(position interface{}, optionalArgs ...inte
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *DeriveCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2676,7 +2676,7 @@ func (this *DeriveCore) ParseIncome(income interface{}, optionalArgs ...interfac
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://docs.derive.xyz/reference/post_private-get-all-portfolios
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *DeriveCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2788,7 +2788,7 @@ func (this *DeriveCore) ParseBalance(response interface{}) interface{} {
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subaccount_id] *required* the subaccount id
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *DeriveCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2858,7 +2858,7 @@ func (this *DeriveCore) FetchDeposits(optionalArgs ...interface{}) <-chan interf
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subaccount_id] *required* the subaccount id
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *DeriveCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})

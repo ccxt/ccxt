@@ -107,6 +107,10 @@ func (this *WhitebitCore) V4PublicGetFee(args ...interface{}) <-chan interface{}
 	return this.callEndpointAsync("v4PublicGetFee", args...)
 }
 
+func (this *WhitebitCore) V4PublicGetFundingHistoryMarket(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v4PublicGetFundingHistoryMarket", args...)
+}
+
 func (this *WhitebitCore) V4PublicGetOrderbookDepthMarket(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v4PublicGetOrderbookDepthMarket", args...)
 }
