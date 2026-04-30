@@ -42,6 +42,45 @@
         ],
         "createOrder": [
             {
+                "description": "nested urlencoded",
+                "method": "createOrder",
+                "url": "https://api.kraken.com/0/private/AddOrder",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    1000,
+                    {
+                        "close": {
+                            "price": 1111,
+                            "price2": 1234,
+                            "something": "+&"
+                        }
+                    }
+                ],
+                "output": "nonce=1774283736172&pair=ETHUSDT&type=buy&ordertype=limit&volume=0.001&price=1000&close[price]=1111&close[price2]=1234&close[something]=%2B%26"
+            },
+            {
+                "description": "conditional close",
+                "method": "createOrder",
+                "url": "https://api.kraken.com/0/private/AddOrder",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    1000,
+                    {
+                        "close": {
+                            "price": 1111,
+                            "price2": 1234
+                        }
+                    }
+                ],
+                "output": "nonce=1774282574918&pair=ETHUSDT&type=buy&ordertype=limit&volume=0.001&price=1000&close[price]=1111&close[price2]=1234"
+            },
+            {
                 "description": "createOrder long precisions2",
                 "method": "createOrder",
                 "url": "https://api.kraken.com/0/private/AddOrder",

@@ -4,7 +4,7 @@
 import blofinRest from '../blofin.js';
 import { NotSupported, ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV, Balances, Str, Order, Position } from '../base/types.js';
+import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV, Balances, Str, Order, Position, FundingRate } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
 
@@ -15,6 +15,8 @@ export default class blofin extends blofinRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
+                'watchFundingRate': true,
+                'watchFundingRates': false,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
                 'watchOrderBook': true,
@@ -634,6 +636,55 @@ export default class blofin extends blofinRest {
         return this.parsePosition (position, market);
     }
 
+    /**
+     * @method
+     * @name blofin#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://docs.blofin.com/index.html#ws-funding-rate-channel
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchFundingRate', market, params);
+        const messageHash = 'fundingRate:' + market['symbol'];
+        const requestParams = {
+            'channel': 'funding-rate',
+            'instId': market['id'],
+        };
+        const request = this.getSubscriptionRequest ([ requestParams ]);
+        const url = this.implodeHostname (this.urls['api']['ws'][marketType]['public']);
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+    }
+
+    handleFundingRate (client: Client, message) {
+        //
+        //     {
+        //         "arg": {
+        //             "channel": "funding-rate",
+        //             "instId": "BTC-USDT"
+        //         },
+        //         "data": [
+        //             {
+        //                 "instId": "BTC-USDT",
+        //                 "fundingRate": "0.00007873240488719234",
+        //                 "fundingTime": "1771430400000"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (message, 'data', []);
+        const first = this.safeDict (data, 0, {});
+        const fundingRate = this.parseFundingRate (first);
+        const symbol = fundingRate['symbol'];
+        this.fundingRates[symbol] = fundingRate;
+        const messageHash = 'fundingRate:' + symbol;
+        client.resolve (fundingRate, messageHash);
+    }
+
     async watchMultipleWrapper (isPublic: boolean, channelName: string, callerMethodName: string, symbolsArray: any[] = undefined, params = {}) {
         // underlier method for all watch-multiple symbols
         await this.loadMarkets ();
@@ -726,6 +777,7 @@ export default class blofin extends blofinRest {
             'orders': this.handleOrders,
             'orders-algo': this.handleOrders,
             'positions': this.handlePositions,
+            'funding-rate': this.handleFundingRate,
         };
         let method = undefined;
         if (message === 'pong') {

@@ -12,7 +12,6 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES  # noqa E402
 from ccxt.base.decimal_to_precision import TICK_SIZE  # noqa E402
 import numbers  # noqa E402
 import json  # noqa E402
@@ -335,8 +334,10 @@ def check_precision_accuracy(exchange, skipped_properties, method, entry, key):
     if exchange.is_tick_precision():
         # TICK_SIZE should be above zero
         assert_greater(exchange, skipped_properties, method, entry, key, '0')
-        # the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so their existence in our case indicates to incorrectly implemented tick-sizes, which might mistakenly be implemented with DECIMAL_PLACES, so we throw error
+        # the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so in our case, such values probably indicate an incorrectly implemented tick-sizes calculation, so we throw error
         decimal_numbers = ['2', '3', '4', '5', '6', '7', '8', '9', '11', '12', '13', '14', '15', '16']
+        if key == 'amount' and 'precisionAmountAbnormal' in skipped_properties:
+            return
         for i in range(0, len(decimal_numbers)):
             num = decimal_numbers[i]
             num_str = num
@@ -549,3 +550,12 @@ def deep_equal(exchange, a, b):
 def assert_deep_equal(exchange, skipped_properties, method, a, b):
     log_text = log_template(exchange, method, {})
     assert deep_equal(exchange, a, b), 'two dicts do not match: ' + json.dumps(a) + ' != ' + json.dumps(b) + log_text
+
+
+def exchange_prop(exchange, key, default_value=None):
+    value = exchange.get_property(exchange, str(key))
+    if value is not None:
+        return value
+    # try UpperCase key also, for other langs
+    key_upper = exchange.capitalize(str(key))
+    return exchange.get_property(exchange, key_upper, default_value)

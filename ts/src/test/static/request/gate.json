@@ -6,6 +6,26 @@
         "unifiedAccount": false
     },
     "methods": {
+        "fetchMySettlementHistory": [
+            {
+                "description": "fetch my settlement history for future",
+                "method": "fetchMySettlementHistory",
+                "url": "https://api.gateio.ws/api/v4/delivery/usdt/settlements?contract=BTC_USDT_20260626",
+                "input": [
+                    "BTC/USDT:USDT-260626"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch my settlement history for option",
+                "method": "fetchMySettlementHistory",
+                "url": "https://api.gateio.ws/api/v4/options/my_settlements?contract=XTI_USDT-20260327-70-P&underlying=XTI_USDT",
+                "input": [
+                    "XTI/USDT:USDT-260327-70-P"
+                ],
+                "output": null
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",
@@ -68,6 +88,23 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "trigger order with custom clientOrderId",
+                "method": "createOrder",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/price_orders",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "sell",
+                    1,
+                    51,
+                    {
+                        "stopLossPrice": 50,
+                        "clientOrderId": "myCustomId"
+                    }
+                ],
+                "output": "{\"initial\":{\"contract\":\"LTC_USDT\",\"size\":-1,\"price\":\"51\",\"text\":\"myCustomId\"},\"trigger\":{\"price_type\":0,\"price\":\"50\",\"rule\":2}}"
+            },
             {
                 "description": "order with non ascii symbol",
                 "method": "createOrder",
@@ -1846,6 +1883,15 @@
             }
         ],
         "fetchMarketLeverageTiers": [
+            {
+                "description": "fetch market leverage tiers for future",
+                "method": "fetchMarketLeverageTiers",
+                "url": "https://api.gateio.ws/api/v4/delivery/usdt/risk_limit_tiers?contract=BTC_USDT_20260626",
+                "input": [
+                    "BTC/USDT:USDT-260626"
+                ],
+                "output": null
+            },
             {
                 "description": "fetchMarketLeverageTiers",
                 "method": "fetchMarketLeverageTiers",

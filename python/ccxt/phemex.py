@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.phemex import ImplicitAPI
 import hashlib
 import numbers
-from ccxt.base.types import Any, Balances, Conversion, Currencies, Currency, DepositAddress, Int, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, TransferEntry
+from ccxt.base.types import Any, ADL, Balances, Conversion, Currencies, Currency, DepositAddress, Int, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -102,7 +102,9 @@ class phemex(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPositionADLRank': True,
                 'fetchPositions': True,
+                'fetchPositionsADLRank': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -5022,6 +5024,339 @@ class phemex(Exchange, ImplicitAPI):
             'toAmount': self.parse_number(toAmount),
             'price': self.safe_number(quoteArgs, 'price'),
             'fee': None,
+        }
+
+    def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> List[ADL]:
+        """
+        fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+        https://phemex-docs.github.io/#query-account-positions
+        https://phemex-docs.github.io/#query-trading-account-and-positions
+        https://phemex-docs.github.io/#query-account-positions-with-unrealized-pnl
+
+        :param str[] [symbols]: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.code]: the currency code to fetch ranks for, USD, BTC or USDT, USDT is the default
+        :param str [params.method]: *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
+        :returns dict: an array of `auto de leverage structures <https://docs.ccxt.com/?id=auto-de-leverage-structure>`
+        """
+        self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True, True)
+        subType = None
+        code = self.safe_string_2(params, 'currency', 'code', 'USDT')
+        params = self.omit(params, ['currency', 'code'])
+        settle = None
+        market = None
+        firstSymbol = self.safe_string(symbols, 0)
+        if firstSymbol is not None:
+            market = self.market(firstSymbol)
+            settle = market['settle']
+            code = market['settle']
+        else:
+            settle, params = self.handle_option_and_params(params, 'fetchPositionsADLRank', 'settle', code)
+        subType, params = self.handle_sub_type_and_params('fetchPositionsADLRank', market, params)
+        isUSDTSettled = settle == 'USDT'
+        if isUSDTSettled:
+            code = 'USDT'
+        elif settle == 'BTC':
+            code = 'BTC'
+        elif code is None:
+            code = 'USD' if (subType == 'linear') else 'BTC'
+        currency = self.currency(code)
+        request: dict = {
+            'currency': currency['id'],
+        }
+        response = None
+        if isUSDTSettled:
+            method = None
+            method, params = self.handle_option_and_params(params, 'fetchPositionsADLRank', 'method', 'privateGetGAccountsAccountPositions')
+            if method == 'privateGetGAccountsAccountPositions':
+                response = self.privateGetGAccountsAccountPositions(self.extend(request, params))
+            else:
+                response = self.privateGetGAccountsPositions(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "data": {
+            #             "account": {
+            #                 "userID": 940666,
+            #                 "accountId": 9406660003,
+            #                 "currency": "USDT",
+            #                 "accountBalanceRv": "439.96184445932",
+            #                 "totalUsedBalanceRv": "89.22502732",
+            #                 "bonusBalanceRv": "0",
+            #                 "status": 0,
+            #                 "userMode": 1
+            #             },
+            #             "positions": [
+            #                 {
+            #                     "userID": 940666,
+            #                     "accountID": 9406660003,
+            #                     "symbol": "BTCUSDT",
+            #                     "currency": "USDT",
+            #                     "side": "Buy",
+            #                     "positionStatus": "Normal",
+            #                     "crossMargin": True,
+            #                     "leverageRr": "-10",
+            #                     "initMarginReqRr": "0.1",
+            #                     "maintMarginReqRr": "0.005",
+            #                     "riskLimitRv": "20000000",
+            #                     "size": "0.01",
+            #                     "valueRv": "887.531",
+            #                     "avgEntryPriceRp": "88753.1",
+            #                     "avgEntryPrice": "88753.1",
+            #                     "posCostRv": "89.22502732",
+            #                     "assignedPosBalanceRv": "89.29802732",
+            #                     "bankruptCommRv": "0.529812426",
+            #                     "bankruptPriceRp": "44783.79",
+            #                     "positionMarginRv": "88.695214894",
+            #                     "liquidationPriceRp": "45009",
+            #                     "deleveragePercentileRr": "0",
+            #                     "buyValueToCostRr": "0.10114",
+            #                     "sellValueToCostRr": "0.10126",
+            #                     "markPriceRp": "88747.2",
+            #                     "estimatedOrdLossRv": "0",
+            #                     "usedBalanceRv": "89.22502732",
+            #                     "cumClosedPnlRv": "425.97796",
+            #                     "cumFundingFeeRv": "54.892930099379",
+            #                     "cumTransactFeeRv": "1.288782144",
+            #                     "transactTimeNs": 1767176685241254818,
+            #                     "takerFeeRateRr": "-1",
+            #                     "makerFeeRateRr": "-1",
+            #                     "term": 6,
+            #                     "lastTermEndTimeNs": 1759835547751667598,
+            #                     "lastFundingTimeNs": 1759824000000000000,
+            #                     "curTermRealisedPnlRv": "-0.5325186",
+            #                     "execSeq": 47732822790,
+            #                     "posSide": "Long",
+            #                     "posMode": "Hedged",
+            #                     "buyLeavesValueRv": "0",
+            #                     "buyLeavesQtyRq": "0",
+            #                     "sellLeavesValueRv": "0",
+            #                     "sellLeavesQtyRq": "0"
+            #                 },
+            #             ]
+            #         }
+            #     }
+            #
+        else:
+            response = self.privateGetAccountsAccountPositions(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "data": {
+            #             "account": {
+            #                 "userID": 940666,
+            #                 "accountId": 9406660001,
+            #                 "currency": "BTC",
+            #                 "accountBalanceEv": 50050270,
+            #                 "totalUsedBalanceEv": 58,
+            #                 "bonusBalanceEv": 0
+            #             },
+            #             "positions": [
+            #                 {
+            #                     "userID": 940666,
+            #                     "accountID": 9406660001,
+            #                     "symbol": "BTCUSD",
+            #                     "currency": "BTC",
+            #                     "side": "Buy",
+            #                     "positionStatus": "Normal",
+            #                     "crossMargin": False,
+            #                     "leverageEr": -2000000000,
+            #                     "leverage": -20.00000000,
+            #                     "initMarginReqEr": 5000000,
+            #                     "initMarginReq": 0.05000000,
+            #                     "maintMarginReqEr": 500000,
+            #                     "maintMarginReq": 0.00500000,
+            #                     "riskLimitEv": 150000000000,
+            #                     "riskLimit": 1500.00000000,
+            #                     "size": 1,
+            #                     "value": 0.00001128,
+            #                     "valueEv": 1128,
+            #                     "avgEntryPriceEp": 886524823,
+            #                     "avgEntryPrice": 88652.48230000,
+            #                     "posCostEv": 58,
+            #                     "posCost": 5.8E-7,
+            #                     "assignedPosBalanceEv": 58,
+            #                     "assignedPosBalance": 5.8E-7,
+            #                     "bankruptCommEv": 1,
+            #                     "bankruptComm": 1E-8,
+            #                     "bankruptPriceEp": 100000,
+            #                     "bankruptPrice": 10.00000000,
+            #                     "positionMarginEv": 57,
+            #                     "positionMargin": 5.7E-7,
+            #                     "liquidationPriceEp": 100000,
+            #                     "liquidationPrice": 10.00000000,
+            #                     "deleveragePercentileEr": 0,
+            #                     "deleveragePercentile": 0E-8,
+            #                     "buyValueToCostEr": 5123000,
+            #                     "buyValueToCost": 0.05123000,
+            #                     "sellValueToCostEr": 5117000,
+            #                     "sellValueToCost": 0.05117000,
+            #                     "markPriceEp": 886028000,
+            #                     "markPrice": 88602.80000000,
+            #                     "estimatedOrdLossEv": 0,
+            #                     "estimatedOrdLoss": 0E-8,
+            #                     "usedBalanceEv": 58,
+            #                     "usedBalance": 5.8E-7,
+            #                     "cumClosedPnlEv": 127,
+            #                     "cumFundingFeeEv": -146,
+            #                     "cumTransactFeeEv": 3,
+            #                     "transactTimeNs": 1767177964554892106,
+            #                     "takerFeeRateEr": 60000,
+            #                     "makerFeeRateEr": 10000,
+            #                     "term": 2,
+            #                     "lastTermEndTimeNs": 1716225275381802994,
+            #                     "lastFundingTimeNs": 1767168000000000000,
+            #                     "curTermRealisedPnlEv": -1,
+            #                     "execSeq": 1104909332,
+            #                     "freeQty": -1,
+            #                     "freeCostEv": 0,
+            #                     "buyLeavesValueEv": 0,
+            #                     "sellLeavesValueEv": 0,
+            #                     "buyLeavesQty": 0,
+            #                     "sellLeavesQty": 0
+            #                 }
+            #             ]
+            #         }
+            #     }
+            #
+        data = self.safe_value(response, 'data', {})
+        ranks = self.safe_value(data, 'positions', [])
+        result = []
+        for i in range(0, len(ranks)):
+            rank = ranks[i]
+            result.append(self.parse_adl_rank(rank))
+        return self.filter_by_array_adl_ranks(result, 'symbol', symbols, False)
+
+    def parse_adl_rank(self, info: dict, market: Market = None) -> ADL:
+        #
+        # fetchPositionADLRank: linear
+        #
+        #     {
+        #         "userID": 940666,
+        #         "accountID": 9406660003,
+        #         "symbol": "BTCUSDT",
+        #         "currency": "USDT",
+        #         "side": "Buy",
+        #         "positionStatus": "Normal",
+        #         "crossMargin": True,
+        #         "leverageRr": "-10",
+        #         "initMarginReqRr": "0.1",
+        #         "maintMarginReqRr": "0.005",
+        #         "riskLimitRv": "20000000",
+        #         "size": "0.01",
+        #         "valueRv": "887.531",
+        #         "avgEntryPriceRp": "88753.1",
+        #         "avgEntryPrice": "88753.1",
+        #         "posCostRv": "89.22502732",
+        #         "assignedPosBalanceRv": "89.29802732",
+        #         "bankruptCommRv": "0.529812426",
+        #         "bankruptPriceRp": "44783.79",
+        #         "positionMarginRv": "88.695214894",
+        #         "liquidationPriceRp": "45009",
+        #         "deleveragePercentileRr": "0",
+        #         "buyValueToCostRr": "0.10114",
+        #         "sellValueToCostRr": "0.10126",
+        #         "markPriceRp": "88747.2",
+        #         "estimatedOrdLossRv": "0",
+        #         "usedBalanceRv": "89.22502732",
+        #         "cumClosedPnlRv": "425.97796",
+        #         "cumFundingFeeRv": "54.892930099379",
+        #         "cumTransactFeeRv": "1.288782144",
+        #         "transactTimeNs": 1767176685241254818,
+        #         "takerFeeRateRr": "-1",
+        #         "makerFeeRateRr": "-1",
+        #         "term": 6,
+        #         "lastTermEndTimeNs": 1759835547751667598,
+        #         "lastFundingTimeNs": 1759824000000000000,
+        #         "curTermRealisedPnlRv": "-0.5325186",
+        #         "execSeq": 47732822790,
+        #         "posSide": "Long",
+        #         "posMode": "Hedged",
+        #         "buyLeavesValueRv": "0",
+        #         "buyLeavesQtyRq": "0",
+        #         "sellLeavesValueRv": "0",
+        #         "sellLeavesQtyRq": "0"
+        #     }
+        #
+        # fetchPositionADLRank: inverse
+        #
+        #     {
+        #         "userID": 940666,
+        #         "accountID": 9406660001,
+        #         "symbol": "BTCUSD",
+        #         "currency": "BTC",
+        #         "side": "Buy",
+        #         "positionStatus": "Normal",
+        #         "crossMargin": False,
+        #         "leverageEr": -2000000000,
+        #         "leverage": -20.00000000,
+        #         "initMarginReqEr": 5000000,
+        #         "initMarginReq": 0.05000000,
+        #         "maintMarginReqEr": 500000,
+        #         "maintMarginReq": 0.00500000,
+        #         "riskLimitEv": 150000000000,
+        #         "riskLimit": 1500.00000000,
+        #         "size": 1,
+        #         "value": 0.00001128,
+        #         "valueEv": 1128,
+        #         "avgEntryPriceEp": 886524823,
+        #         "avgEntryPrice": 88652.48230000,
+        #         "posCostEv": 58,
+        #         "posCost": 5.8E-7,
+        #         "assignedPosBalanceEv": 58,
+        #         "assignedPosBalance": 5.8E-7,
+        #         "bankruptCommEv": 1,
+        #         "bankruptComm": 1E-8,
+        #         "bankruptPriceEp": 100000,
+        #         "bankruptPrice": 10.00000000,
+        #         "positionMarginEv": 57,
+        #         "positionMargin": 5.7E-7,
+        #         "liquidationPriceEp": 100000,
+        #         "liquidationPrice": 10.00000000,
+        #         "deleveragePercentileEr": 0,
+        #         "deleveragePercentile": 0E-8,
+        #         "buyValueToCostEr": 5123000,
+        #         "buyValueToCost": 0.05123000,
+        #         "sellValueToCostEr": 5117000,
+        #         "sellValueToCost": 0.05117000,
+        #         "markPriceEp": 886028000,
+        #         "markPrice": 88602.80000000,
+        #         "estimatedOrdLossEv": 0,
+        #         "estimatedOrdLoss": 0E-8,
+        #         "usedBalanceEv": 58,
+        #         "usedBalance": 5.8E-7,
+        #         "cumClosedPnlEv": 127,
+        #         "cumFundingFeeEv": -146,
+        #         "cumTransactFeeEv": 3,
+        #         "transactTimeNs": 1767177964554892106,
+        #         "takerFeeRateEr": 60000,
+        #         "makerFeeRateEr": 10000,
+        #         "term": 2,
+        #         "lastTermEndTimeNs": 1716225275381802994,
+        #         "lastFundingTimeNs": 1767168000000000000,
+        #         "curTermRealisedPnlEv": -1,
+        #         "execSeq": 1104909332,
+        #         "freeQty": -1,
+        #         "freeCostEv": 0,
+        #         "buyLeavesValueEv": 0,
+        #         "sellLeavesValueEv": 0,
+        #         "buyLeavesQty": 0,
+        #         "sellLeavesQty": 0
+        #     }
+        #
+        marketId = self.safe_string(info, 'symbol')
+        return {
+            'info': info,
+            'symbol': self.safe_symbol(marketId, market, None, 'contract'),
+            'rank': None,
+            'rating': None,
+            'percentage': self.safe_number_2(info, 'deleveragePercentileRr', 'deleveragePercentileEr'),
+            'timestamp': None,
+            'datetime': None,
         }
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):

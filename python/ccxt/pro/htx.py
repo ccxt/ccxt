@@ -43,10 +43,10 @@ class htx(ccxt.async_support.htx):
                 'watchMyTrades': True,
                 'watchBalance': True,
                 'watchOHLCV': True,
-                'unwatchTicker': True,
-                'unwatchOHLCV': True,
-                'unwatchTrades': True,
-                'unwatchOrderBook': True,
+                'unWatchTicker': True,
+                'unWatchOHLCV': True,
+                'unWatchTrades': True,
+                'unWatchOrderBook': True,
             },
             'urls': {
                 'api': {

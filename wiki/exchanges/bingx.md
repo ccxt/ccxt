@@ -71,6 +71,7 @@
 * [watchOrders](#watchorders)
 * [watchMyTrades](#watchmytrades)
 * [watchBalance](#watchbalance)
+* [watchPositions](#watchpositions)
 
 <a name="fetchTime" id="fetchtime"></a>
 
@@ -1810,5 +1811,28 @@ query for balance and get the amount of funds available for trading or funds loc
 
 ```javascript
 bingx.watchBalance ([params])
+```
+
+
+<a name="watchPositions" id="watchpositions"></a>
+
+### watchPositions{docsify-ignore}
+watch all open positions
+
+**Kind**: instance method of [<code>bingx</code>](#bingx)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/en/latest/manual.html#position-structure)
+
+**See**: https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | No | list of unified market symbols |
+| since | <code>int</code> | No | the earliest time in ms to fetch positions for |
+| limit | <code>int</code> | No | the maximum number of position structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bingx.watchPositions ([symbols, since, limit, params])
 ```
 

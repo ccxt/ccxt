@@ -290,4 +290,24 @@ public partial class woo
         var res = await this.watchBalance(parameters);
         return new Balances(res);
     }
+    /// <summary>
+    /// watch the current funding rate
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.woox.io/#estfundingrate"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRate> WatchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchFundingRate(symbol, parameters);
+        return new FundingRate(res);
+    }
 }

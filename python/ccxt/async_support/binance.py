@@ -8,7 +8,7 @@ from ccxt.abstract.binance import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, LongShortRatio, MarginMode, MarginModes, MarginModification, Market, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Any, ADL, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, LongShortRatio, MarginMode, MarginModes, MarginModification, Market, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -88,6 +88,7 @@ class binance(Exchange, ImplicitAPI):
                 'editOrder': True,
                 'editOrders': True,
                 'fetchAccounts': None,
+                'fetchADLRank': True,
                 'fetchAllGreeks': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
@@ -157,9 +158,11 @@ class binance(Exchange, ImplicitAPI):
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
+                'fetchPositionADLRank': True,
                 'fetchPositionHistory': False,
                 'fetchPositionMode': True,
                 'fetchPositions': True,
+                'fetchPositionsADLRank': True,
                 'fetchPositionsHistory': False,
                 'fetchPositionsRisk': True,
                 'fetchPremiumIndexOHLCV': True,
@@ -1219,6 +1222,7 @@ class binance(Exchange, ImplicitAPI):
                         'asset-collection': 6,
                         'margin/repay-debt': 3000,
                         'um/feeBurn': 1,
+                        'um/stock/contract': 1,
                     },
                     'put': {
                         'listenKey': 0.2,
@@ -1403,16 +1407,74 @@ class binance(Exchange, ImplicitAPI):
                 },
                 'networks': {
                     'ERC20': 'ETH',
+                    'ETH': 'ETH',
                     'TRC20': 'TRX',
+                    'TRX': 'TRX',
                     'BEP2': 'BNB',
+                    'BSC': 'BSC',
                     'BEP20': 'BSC',
-                    'OMNI': 'OMNI',
                     'EOS': 'EOS',
                     'SPL': 'SOL',  # temporarily keep support for SPL(old name)
                     'SOL': 'SOL',  # we shouldn't rename SOL
+                    # 'FIAT': 'FIAT_MONEY',  # not unified atm
+                    # 'LEVERAGE_TOKEN': 'ETF',  # not unified atm
+                    # 'STAKING': 'STAKING',  # not unified atm
+                    'ARBONE': 'ARBITRUM',
+                    'AVAXC': 'AVAXC',
+                    'MATIC': 'MATIC',
+                    'BASE': 'BASE',
+                    'SUI': 'SUI',
+                    'OP': 'OPTIMISM',
+                    'OPTIMISM': 'OPTIMISM',
+                    'NEAR': 'NEAR',
+                    'APT': 'APT',
+                    'SCROLL': 'SCROLL',
+                    'KAVA': 'KAVA',
+                    'XLM': 'XLM',
+                    # BLAST - not supported
+                    # LINEA - not supported
+                    # CRO - not supported
+                    # TAIKO - not supported
+                    'RSK': 'RSK',  # RBTC
+                    'SEI': 'SEI',
+                    # MNT - not supported
+                    'TON': 'TON',
+                    'ADA': 'ADA',
+                    # HYPE - not supported
+                    # CORE - not supported
+                    'ALGO': 'ALGO',
+                    'RUNE': 'RUNE',
+                    'OSMO': 'OSMO',
+                    # XIN - not supported
+                    'CELO': 'CELO',
+                    'HBAR': 'HBAR',
+                    # FTM - renamed
+                    # WEMIX - not supported
+                    'ZKSYNCERA': 'ZKSYNCERA',
+                    'KLAY': 'KLAY',
+                    # HECO - not supported
+                    # FSN - not supported
+                    'ACA': 'ACA',
+                    'STX': 'STX',  # STACKS
+                    'XTZ': 'XTZ',
+                    # 'NEO': 'NEO',  # tbd NEO3
+                    'METIS': 'METIS',
+                    # TLOS - not supported
+                    'EGLD': 'EGLD',
+                    'ASTR': 'ASTR',
+                    'CFX': 'CFX',
+                    # 'GLMR': 'GLMR', GLIMMER vs MOONBEAM
+                    # CANTO - not supported
+                    'SCRT': 'SCRT',
+                    # AUR - not supported
+                    'ONT': 'ONT',  # ontology
                 },
                 'networksById': {
+                    'TRX': 'TRC20',
+                    'BSC': 'BEP20',
+                    'ETH': 'ERC20',
                     'SOL': 'SOL',  # temporary fix for SPL definition
+                    'OPTIMISM': 'OP',
                 },
                 'impliedNetworks': {
                     'ETH': {'ERC20': 'ETH'},
@@ -2802,9 +2864,6 @@ class binance(Exchange, ImplicitAPI):
             return self.create_expired_option_market(marketId)
         return super(binance, self).safe_market(marketId, market, delimiter, marketType)
 
-    def cost_to_precision(self, symbol, cost):
-        return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['quote'], self.precisionMode, self.paddingMode)
-
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
@@ -3002,7 +3061,7 @@ class binance(Exchange, ImplicitAPI):
             for j in range(0, len(networkList)):
                 networkItem = networkList[j]
                 network = self.safe_string(networkItem, 'network')
-                networkCode = self.network_id_to_code(network)
+                networkCode = self.network_id_to_code(network, code)
                 isETF = (network == 'ETF')  # e.g. BTCUP, ETHDOWN
                 # name = self.safe_string(networkItem, 'name')
                 withdrawFee = self.safe_number(networkItem, 'withdrawFee')
@@ -5449,15 +5508,25 @@ class binance(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, type: Str):
-        types = {
-            'limit_maker': 'limit',
-            'stop': 'limit',
-            'stop_market': 'market',
-            'take_profit': 'limit',
-            'take_profit_market': 'market',
-            'trailing_stop_market': 'market',
-        }
+    def parse_order_type_by_market(self, type: Str, marketType: Str):
+        types = {}
+        if (marketType is not None) and marketType == 'spot':
+            types = {
+                'limit_maker': 'limit',
+                'stop_loss_limit': 'limit',
+                'stop_loss': 'market',
+                'take_profit_limit': 'limit',
+                'take_profit': 'market',
+            }
+        else:
+            types = {
+                'limit_maker': 'limit',
+                'stop': 'limit',
+                'stop_market': 'market',
+                'take_profit': 'limit',
+                'take_profit_market': 'market',
+                'trailing_stop_market': 'market',
+            }
         return self.safe_string(types, type, type)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
@@ -6037,7 +6106,7 @@ class binance(Exchange, ImplicitAPI):
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': lastUpdateTimestamp,
             'symbol': symbol,
-            'type': self.parse_order_type(type),
+            'type': self.parse_order_type_by_market(type, marketType),
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'reduceOnly': self.safe_bool(order, 'reduceOnly'),
@@ -6170,6 +6239,7 @@ class binance(Exchange, ImplicitAPI):
         :param str [params.stopLossOrTakeProfit]: 'stopLoss' or 'takeProfit', required for spot trailing orders
         :param str [params.positionSide]: *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
         :param bool [params.hedged]: *swap and portfolio margin only* True for hedged mode, False for one way mode, default is False
+        :param str [params.clientOrderId]: the clientOrderId of the order
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
@@ -8351,7 +8421,8 @@ class binance(Exchange, ImplicitAPI):
         internal = None
         if internalInteger is not None:
             internal = True if (internalInteger != 0) else False
-        network = self.safe_string(transaction, 'network')
+        networkId = self.safe_string(transaction, 'network')
+        network = self.network_id_to_code(networkId, code)
         return {
             'info': transaction,
             'id': id,
@@ -8746,12 +8817,10 @@ class binance(Exchange, ImplicitAPI):
             'coin': currency['id'],
             # 'network': 'ETH',  # 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
         }
-        networks = self.safe_dict(self.options, 'networks', {})
-        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
-        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
-        if network is not None:
-            request['network'] = network
-            params = self.omit(params, 'network')
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        if networkCode is not None:
+            request['network'] = self.network_code_to_id(networkCode, currency['code'])
         # has support for the 'network' parameter
         response = await self.sapiGetCapitalDepositAddress(self.extend(request, params))
         #
@@ -9007,12 +9076,13 @@ class binance(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
+        code = self.safe_string(currency, 'code')
         networkList = self.safe_list(fee, 'networkList', [])
         result = self.deposit_withdraw_fee(fee)
         for j in range(0, len(networkList)):
             networkEntry = networkList[j]
             networkId = self.safe_string(networkEntry, 'network')
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = self.network_id_to_code(networkId, code)
             withdrawFee = self.safe_number(networkEntry, 'withdrawFee')
             isDefault = self.safe_bool(networkEntry, 'isDefault')
             if isDefault is True:
@@ -9057,13 +9127,11 @@ class binance(Exchange, ImplicitAPI):
         }
         if tag is not None:
             request['addressTag'] = tag
-        networks = self.safe_dict(self.options, 'networks', {})
-        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
-        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
-        if network is not None:
-            request['network'] = network
-            params = self.omit(params, 'network')
-        request['amount'] = self.currency_to_precision(code, amount, network)
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        if networkCode is not None:
+            request['network'] = self.network_code_to_id(networkCode, currency['code'])
+        request['amount'] = self.currency_to_precision(currency['code'], amount, networkCode)
         response = await self.sapiPostCapitalWithdrawApply(self.extend(request, params))
         #     {id: '9a67628b16ba4988ae20d329333f16bc'}
         return self.parse_transaction(response, currency)
@@ -13618,4 +13686,129 @@ class binance(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'timeframe': None,
             'longShortRatio': self.safe_number(info, 'longShortRatio'),
+        }
+
+    async def fetch_adl_rank(self, symbol: str, params={}) -> ADL:
+        """
+        fetches the auto deleveraging rank and risk percentage for a symbol
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/ADL-Risk
+
+        :param str symbol: unified symbol of the market to fetch the auto deleveraging rank for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `auto de leverage structure <https://docs.ccxt.com/?id=auto-de-leverage-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'symbol': market['id'],
+        }
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchADLRank', market, params)
+        response = None
+        if subType == 'linear':
+            response = await self.fapiPublicGetSymbolAdlRisk(self.extend(request, params))
+            #
+            #     {
+            #         "symbol": "BTCUSDT",
+            #         "adlRisk": "LOW",
+            #         "updateTime": 1766827800453
+            #     }
+            #
+        else:
+            raise BadRequest(self.id + ' fetchADLRank() supports linear subTypes only')
+        return self.parse_adl_rank(response, market)
+
+    async def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> List[ADL]:
+        """
+        fetches the auto deleveraging rank and risk percentage for a list of symbols that have open positions
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Position-ADL-Quantile-Estimation
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Position-ADL-Quantile-Estimation
+
+        :param str[] [symbols]: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.portfolioMargin]: set to True for the portfolio margin account
+        :returns dict[]: an array of `auto de leverage structure <https://docs.ccxt.com/?id=auto-de-leverage-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True, True)
+        market = self.get_market_from_symbols(symbols)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchPositionsADLRank', market, params)
+        isPortfolioMargin = None
+        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchPositionsADLRank', 'papi', 'portfolioMargin', False)
+        response = None
+        if subType == 'linear':
+            if isPortfolioMargin:
+                response = await self.papiGetUmAdlQuantile(params)
+            else:
+                response = await self.fapiPrivateGetAdlQuantile(params)
+        elif subType == 'inverse':
+            if isPortfolioMargin:
+                response = await self.papiGetCmAdlQuantile(params)
+            else:
+                response = await self.dapiPrivateGetAdlQuantile(params)
+        else:
+            raise BadRequest(self.id + ' fetchPositionsADLRank() supports linear and inverse subTypes only')
+        #
+        #     [
+        #         {
+        #             "symbol": "BTCUSDT",
+        #             "adlQuantile": {
+        #                 "LONG": 0,
+        #                 "SHORT": 0,
+        #                 "BOTH": 1
+        #             }
+        #         }
+        #     ]
+        #
+        return self.parse_adl_ranks(response, symbols)
+
+    def parse_adl_rank(self, info: dict, market: Market = None) -> ADL:
+        #
+        # fetchADLRank
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "adlRisk": "LOW",
+        #         "updateTime": 1766827800453
+        #     }
+        #
+        # fetchPositionADLRank
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "adlQuantile": {
+        #             "LONG": 0,
+        #             "SHORT": 0,
+        #             "BOTH": 1
+        #         }
+        #     }
+        #
+        adlQuantile = self.safe_dict(info, 'adlQuantile', {})
+        longNum = self.safe_number(adlQuantile, 'LONG')
+        shortNum = self.safe_number(adlQuantile, 'SHORT')
+        both = self.safe_number(adlQuantile, 'BOTH')
+        rank = None
+        if both is not None:
+            rank = both
+        else:
+            if longNum is not None and shortNum is not None:
+                if longNum > shortNum:
+                    rank = longNum
+                else:
+                    rank = shortNum
+        marketId = self.safe_string(info, 'symbol')
+        timestamp = self.safe_integer_2(info, 'timestamp', 'updateTime')
+        return {
+            'info': info,
+            'symbol': self.safe_symbol(marketId, market, None, 'contract'),
+            'rank': rank,
+            'rating': self.safe_string_lower(info, 'adlRisk'),
+            'percentage': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
         }

@@ -38,6 +38,9 @@ export default class bitmex extends Exchange {
                 'future': true,
                 'option': false,
                 'addMargin': undefined,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
@@ -50,8 +53,17 @@ export default class bitmex extends Exchange {
                 'createTrailingAmountOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
@@ -63,7 +75,10 @@ export default class bitmex extends Exchange {
                 'fetchFundingRate': 'emulated', // emulated in exchange
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLedger': true,
                 'fetchLeverage': 'emulated',
                 'fetchLeverages': true,
@@ -79,25 +94,31 @@ export default class bitmex extends Exchange {
                 'fetchOpenInterest': 'emulated',
                 'fetchOpenInterests': true,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
                 'fetchPositionADLRank': true,
-                'fetchPositionsADLRank': true,
                 'fetchPositionHistory': false,
                 'fetchPositions': true,
+                'fetchPositionsADLRank': true,
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'fetchVolatilityHistory': false,
                 'index': true,
                 'reduceMargin': undefined,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'sandbox': true,
                 'setLeverage': true,
                 'setMargin': undefined,
@@ -3400,6 +3421,143 @@ export default class bitmex extends Exchange {
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
         } as ADL;
+    }
+
+    /**
+     * @method
+     * @name bitmex#fetchSettlementHistory
+     * @description fetches historical settlement records
+     * @see https://docs.bitmex.com/api-explorer/get-settlements
+     * @param {string} symbol unified market symbol of the settlement history
+     * @param {int} [since] timestamp in ms
+     * @param {int} [limit] number of records
+     * @param {object} [params] exchange specific params
+     * @param {int} [params.until] timestamp in ms
+     *
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {string} [params.filter] generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the timestamp docs for more details, default value = {}
+     * @param {string} [params.columns] array of column names to fetch, if omitted, will return all columns, note that this method will always return item keys, even when not specified, so you may receive more columns that you expect
+     * @param {int} [params.start] possible values are >= 0 starting point for results, default value = 0
+     * @param {boolean} [params.reverse] if true, will sort results newest first, default value = false
+     * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
+     */
+    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request: Dict = {
+            // symbol string Instrument symbol. Send a bare series (e.g. XBT) to get data for the nearest expiring contract in that series. You can also send a timeframe, e.g. XBT:quarterly. Timeframes are nearest, daily, weekly, monthly, quarterly, biquarterly, and perpetual. Symbols are case-insensitive.
+            // filter string Generic table filter. Send JSON key/value pairs, such as {"key": "value"}. You can key on individual fields, and do more advanced querying on timestamps. See the Timestamp Docs for more details. Default value: {}
+            // columns string Array of column names to fetch. If omitted, will return all columns. Note that this method will always return item keys, even when not specified, so you may receive more columns that you expect.
+            // count int32 Possible values: >= 1 and <= 500 Number of results to fetch. Must be a positive integer. Default value: 100
+            // start int32 Possible values: >= 0 Starting point for results. Default value: 0
+            // reverse boolean If true, will sort results newest first. Default value: false
+            // startTime string Starting time filter for results.
+            // endTime string Ending time filter for results.
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const until = this.safeString (params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = this.iso8601 (since);
+            params = this.omit (params, 'until');
+        }
+        const response = await this.publicGetSettlement (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            timestamp: '2025-03-28T12:00:00.000Z',
+        //            symbol: 'ETHUSDH25',
+        //            settlementType: 'Settlement',
+        //            settledPrice: '1897.53'
+        //        }
+        //    ]
+        //
+        return this.parseSettlements (response, market, since, limit);
+    }
+
+    parseSettlements (settlements, market = undefined, since = undefined, limit = undefined) {
+        const result = [];
+        for (let i = 0; i < settlements.length; i++) {
+            result.push (this.parseSettlement (settlements[i], market));
+        }
+        const sorted = this.sortBy (result, 'timestamp');
+        const symbol = this.safeString (market, 'symbol');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    parseSettlement (settlement, market = undefined) {
+        //
+        //    {
+        //        timestamp: '2025-03-28T12:00:00.000Z',
+        //        symbol: 'ETHUSDH25',
+        //        settlementType: 'Settlement',
+        //        settledPrice: '1897.53'
+        //    }
+        //
+        const datetime = this.safeString (settlement, 'timestamp');
+        const marketId = this.safeString (settlement, 'symbol');
+        return {
+            'info': settlement,
+            'symbol': this.safeSymbol (marketId, market),
+            'price': this.safeNumber (settlement, 'settledPrice'),
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+        };
+    }
+
+    /**
+     * @method
+     * @name bitmex#closePosition
+     * @description closes open positions for a market
+     * @see https://docs.bitmex.com/api-explorer/order-new
+     * @see https://docs.bitmex.com/api-explorer/order-close-position
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {string} side the buy or sell side of the closing order, if the position is long set the side to sell, reduceOnly is implied
+     * @param {object} [params] extra parameters specific to the bingx api endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+            'side': this.capitalize (side),
+            'execInst': 'Close',
+        };
+        const response = await this.privatePostOrder (this.extend (request, params));
+        //
+        //     {
+        //         "account": 395724,
+        //         "avgPx": 66358.8,
+        //         "cumQty": 200,
+        //         "currency": "USDT",
+        //         "execInst": "Close",
+        //         "leavesQty": 0,
+        //         "ordStatus": "Filled",
+        //         "ordType": "Market",
+        //         "orderID": "4e1ef998-33c1-4736-b58b-9d8b4d085c49",
+        //         "orderQty": 200,
+        //         "pool": "Primary",
+        //         "settlCurrency": "USDt",
+        //         "side": "Sell",
+        //         "strategy": "OneWay",
+        //         "symbol": "XBTUSDT",
+        //         "text": "Submitted via API.",
+        //         "timeInForce": "ImmediateOrCancel",
+        //         "timestamp": "2026-04-02T05:20:26.607Z",
+        //         "transactTime": "2026-04-02T05:20:26.606Z",
+        //         "workingIndicator": false
+        //     }
+        //
+        return this.parseOrder (response, market);
     }
 
     handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {

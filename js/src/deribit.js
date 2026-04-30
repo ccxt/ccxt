@@ -30,7 +30,7 @@ export default class deribit extends Exchange {
             'pro': true,
             'has': {
                 'CORS': true,
-                'spot': false,
+                'spot': true,
                 'margin': false,
                 'swap': true,
                 'future': true,

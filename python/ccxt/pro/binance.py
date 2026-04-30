@@ -160,7 +160,7 @@ class binance(ccxt.async_support.binance):
                     'name': 'ticker',  # ticker or miniTicker or ticker_<window_size>
                 },
                 'watchTickers': {
-                    'name': 'ticker',  # ticker or miniTicker or ticker_<window_size>
+                    'name': 'miniTicker',  # miniTicker or ticker_<window_size>
                 },
                 'watchOHLCV': {
                     'name': 'kline',  # or indexPriceKline or markPriceKline(coin-m futures)
@@ -231,6 +231,31 @@ class binance(ccxt.async_support.binance):
             self.options['numSubscriptionsByStream'][stream] = subscriptionsByStream + numSubscriptions
         return stream
 
+    def get_ws_url(self, type, category):
+        baseUrl = self.urls['api']['ws'][type]
+        if type == 'future':
+            # skip URL manipulation for proxied/bridge URLs(contain an embedded protocol)
+            firstProtocol = baseUrl.find('://')
+            if firstProtocol != -1 and baseUrl.find('://', firstProtocol + 3) != -1:
+                return baseUrl
+            # only rewrite when the URL ends with exactly "/ws"
+            # self avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
+            if baseUrl.endswith('/ws'):
+                prefix = baseUrl[0:len(baseUrl) - 3]
+                return prefix + '/' + category + '/ws'
+            return baseUrl
+        return baseUrl
+
+    def get_future_ws_category(self, channel):
+        if channel == 'depth' or channel == 'rpiDepth' or channel == 'bookTicker' or channel == 'trade':
+            return 'public'
+        return 'market'
+
+    def get_private_ws_url(self, type, listenKey):
+        if type == 'future':
+            return self.get_ws_url(type, 'private') + '?listenKey=' + listenKey
+        return self.urls['api']['ws'][type] + '/' + listenKey
+
     async def watch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
         """
         watch the public liquidations of a trading pair
@@ -285,7 +310,7 @@ class binance(ccxt.async_support.binance):
         elif self.isInverse(type, subType):
             type = 'delivery'
         numSubscriptions = len(subscriptionHashes)
-        url = self.urls['api']['ws'][type] + '/' + self.stream(type, streamHash, numSubscriptions)
+        url = self.get_ws_url(type, self.get_future_ws_category('forceOrder')) + '/' + self.stream(type, streamHash, numSubscriptions)
         requestId = self.request_id(url)
         request = {
             'method': 'SUBSCRIBE',
@@ -489,7 +514,8 @@ class binance(ccxt.async_support.binance):
         elif self.isInverse(type, subType):
             type = 'delivery'
         await self.authenticate(params)
-        url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
+        listenKey = self.options[type]['listenKey']
+        url = self.get_private_ws_url(type, listenKey)
         message = None
         newLiquidations = await self.watch_multiple(url, messageHashes, message, [type])
         if self.newUpdates:
@@ -661,7 +687,7 @@ class binance(ccxt.async_support.binance):
             symbolHash = subscriptionHash + '@' + str(watchOrderBookRate) + 'ms'
             subParams.append(symbolHash)
         messageHashesLength = len(messageHashes)
-        url = self.urls['api']['ws'][type] + '/' + self.stream(type, streamHash, messageHashesLength)
+        url = self.get_ws_url(type, self.get_future_ws_category(name)) + '/' + self.stream(type, streamHash, messageHashesLength)
         requestId = self.request_id(url)
         request: dict = {
             'method': 'SUBSCRIBE',
@@ -718,7 +744,7 @@ class binance(ccxt.async_support.binance):
             symbolHash = subscriptionHash + '@' + watchOrderBookRate + 'ms'
             subParams.append(symbolHash)
         messageHashesLength = len(subMessageHashes)
-        url = self.urls['api']['ws'][type] + '/' + self.stream(type, streamHash, messageHashesLength)
+        url = self.get_ws_url(type, self.get_future_ws_category('depth')) + '/' + self.stream(type, streamHash, messageHashesLength)
         requestId = self.request_id(url)
         request: dict = {
             'method': 'UNSUBSCRIBE',
@@ -1058,7 +1084,7 @@ class binance(ccxt.async_support.binance):
             subParams.append(rawHash)
         query = self.omit(params, 'type')
         subParamsLength = len(subParams)
-        url = self.urls['api']['ws'][type] + '/' + self.stream(type, streamHash, subParamsLength)
+        url = self.get_ws_url(type, self.get_future_ws_category(name)) + '/' + self.stream(type, streamHash, subParamsLength)
         requestId = self.request_id(url)
         request: dict = {
             'method': 'SUBSCRIBE',
@@ -1116,7 +1142,7 @@ class binance(ccxt.async_support.binance):
             subParams.append(rawHash)
         query = self.omit(params, 'type')
         subParamsLength = len(subParams)
-        url = self.urls['api']['ws'][type] + '/' + self.stream(type, streamHash, subParamsLength)
+        url = self.get_ws_url(type, self.get_future_ws_category(name)) + '/' + self.stream(type, streamHash, subParamsLength)
         requestId = self.request_id(url)
         request: dict = {
             'method': 'UNSUBSCRIBE',
@@ -1410,7 +1436,7 @@ class binance(ccxt.async_support.binance):
             utcSuffix = suffix if shouldUseUTC8 else ''
             rawHashes.append(marketId + '@' + klineType + '_' + interval + utcSuffix)
             messageHashes.append('ohlcv::' + market['symbol'] + '::' + timeframeString)
-        url = self.urls['api']['ws'][type] + '/' + self.stream(type, 'multipleOHLCV')
+        url = self.get_ws_url(type, self.get_future_ws_category(klineType)) + '/' + self.stream(type, 'multipleOHLCV')
         requestId = self.request_id(url)
         request = {
             'method': 'SUBSCRIBE',
@@ -1473,7 +1499,7 @@ class binance(ccxt.async_support.binance):
             rawHashes.append(marketId + '@' + klineType + '_' + interval + utcSuffix)
             subMessageHashes.append('ohlcv::' + market['symbol'] + '::' + timeframeString)
             messageHashes.append('unsubscribe::ohlcv::' + market['symbol'] + '::' + timeframeString)
-        url = self.urls['api']['ws'][type] + '/' + self.stream(type, 'multipleOHLCV')
+        url = self.get_ws_url(type, self.get_future_ws_category(klineType)) + '/' + self.stream(type, 'multipleOHLCV')
         requestId = self.request_id(url)
         request = {
             'method': 'UNSUBSCRIBE',
@@ -1774,7 +1800,7 @@ class binance(ccxt.async_support.binance):
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         channelName = None
-        channelName, params = self.handle_option_and_params(params, 'watchTickers', 'name', 'ticker')
+        channelName, params = self.handle_option_and_params(params, 'watchTickers', 'name', 'miniTicker')
         if channelName == 'bookTicker':
             raise BadRequest(self.id + ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead')
         newTickers = await self.watch_multi_ticker_helper('watchTickers', channelName, symbols, params)
@@ -1927,7 +1953,7 @@ class binance(ccxt.async_support.binance):
         streamHash = channelName
         if symbolsDefined:
             streamHash = channelName + '::' + ','.join(symbols)
-        url = self.urls['api']['ws'][rawMarketType] + '/' + self.stream(rawMarketType, streamHash)
+        url = self.get_ws_url(rawMarketType, self.get_future_ws_category(channelName)) + '/' + self.stream(rawMarketType, streamHash)
         requestId = self.request_id(url)
         request: dict = {
             'method': 'UNSUBSCRIBE' if isUnsubscribe else 'SUBSCRIBE',
@@ -2449,7 +2475,8 @@ class binance(ccxt.async_support.binance):
             urlType = type
             if isPortfolioMargin:
                 urlType = 'papi'
-            url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
+            cachedListenKey = self.options[type]['listenKey']
+            url = self.get_private_ws_url(urlType, cachedListenKey)
             client = self.client(url)
             messageHashes = list(client.futures.keys())
             for i in range(0, len(messageHashes)):
@@ -2737,7 +2764,7 @@ class binance(ccxt.async_support.binance):
         else:
             if isPortfolioMargin:
                 urlType = 'papi'
-            url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
+            url = self.get_private_ws_url(urlType, self.options[type]['listenKey'])
         client = self.client(url)
         self.set_balance_cache(client, type, isPortfolioMargin)
         self.set_positions_cache(client, type, None, isPortfolioMargin)
@@ -3473,7 +3500,7 @@ class binance(ccxt.async_support.binance):
         else:
             if isPortfolioMargin:
                 urlType = 'papi'
-            url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
+            url = self.get_private_ws_url(urlType, self.options[type]['listenKey'])
         client = self.client(url)
         self.set_balance_cache(client, type, isPortfolioMargin)
         self.set_positions_cache(client, type, None, isPortfolioMargin)
@@ -3631,7 +3658,7 @@ class binance(ccxt.async_support.binance):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': lastUpdateTimestamp,
-            'type': self.parseOrderType(self.safe_string_lower(order, 'o')),
+            'type': self.parseOrderTypeByMarket(self.safe_string_lower(order, 'o'), marketType),
             'timeInForce': timeInForce,
             'postOnly': None,
             'reduceOnly': self.safe_bool(order, 'R'),
@@ -3810,7 +3837,7 @@ class binance(ccxt.async_support.binance):
         urlType = type
         if isPortfolioMargin:
             urlType = 'papi'
-        url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
+        url = self.get_private_ws_url(urlType, self.options[type]['listenKey'])
         client = self.client(url)
         self.set_balance_cache(client, type, isPortfolioMargin)
         self.set_positions_cache(client, type, symbols, isPortfolioMargin)
@@ -4153,7 +4180,7 @@ class binance(ccxt.async_support.binance):
         else:
             if isPortfolioMargin:
                 urlType = 'papi'
-            url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
+            url = self.get_private_ws_url(urlType, self.options[type]['listenKey'])
         client = self.client(url)
         self.set_balance_cache(client, type, isPortfolioMargin)
         self.set_positions_cache(client, type, None, isPortfolioMargin)

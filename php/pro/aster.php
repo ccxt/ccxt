@@ -86,16 +86,11 @@ class aster extends \ccxt\async\aster {
         ));
     }
 
-    public function get_account_type_from_subscriptions(array $subscriptions): string {
-        $accountType = '';
-        for ($i = 0; $i < count($subscriptions); $i++) {
-            $subscription = $subscriptions[$i];
-            if (($subscription === 'spot') || ($subscription === 'swap')) {
-                $accountType = $subscription;
-                break;
-            }
+    public function get_account_type_from_url(string $url): string {
+        if (mb_strpos($url, 'fstream') > -1) {
+            return 'swap';
         }
-        return $accountType;
+        return 'spot';
     }
 
     public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
@@ -171,7 +166,7 @@ class aster extends \ccxt\async\aster {
                 $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@ticker';
                 $messageHashes[] = 'ticker:' . $market['symbol'];
             }
-            $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), array( $type )));
+            $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
             if ($this->newUpdates) {
                 $result = array();
                 $result[$newTicker['symbol']] = $newTicker;
@@ -217,7 +212,7 @@ class aster extends \ccxt\async\aster {
                 $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@ticker';
                 $messageHashes[] = 'unsubscribe:ticker:' . $market['symbol'];
             }
-            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), array( $type )));
+            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
         }) ();
     }
 
@@ -296,7 +291,7 @@ class aster extends \ccxt\async\aster {
                 $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@markPrice' . $suffix;
                 $messageHashes[] = 'ticker:' . $market['symbol'];
             }
-            $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), array( $type )));
+            $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
             if ($this->newUpdates) {
                 $result = array();
                 $result[$newTicker['symbol']] = $newTicker;
@@ -344,7 +339,7 @@ class aster extends \ccxt\async\aster {
                 $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@markPrice' . $suffix;
                 $messageHashes[] = 'unsubscribe:ticker:' . $market['symbol'];
             }
-            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), array( $type )));
+            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
         }) ();
     }
 
@@ -387,9 +382,7 @@ class aster extends \ccxt\async\aster {
         //         }
         //     }
         //
-        $subscriptions = $client->subscriptions;
-        $subscriptionsKeys = is_array($subscriptions) ? array_keys($subscriptions) : array();
-        $marketType = $this->get_account_type_from_subscriptions($subscriptionsKeys);
+        $marketType = $this->get_account_type_from_url($client->url);
         $ticker = $this->safe_dict($message, 'data');
         $parsed = $this->parse_ws_ticker($ticker, $marketType);
         $symbol = $parsed['symbol'];
@@ -473,7 +466,7 @@ class aster extends \ccxt\async\aster {
                 $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@bookTicker';
                 $messageHashes[] = 'bidask:' . $market['symbol'];
             }
-            $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), array( $type )));
+            $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
             if ($this->newUpdates) {
                 $result = array();
                 $result[$newTicker['symbol']] = $newTicker;
@@ -516,7 +509,7 @@ class aster extends \ccxt\async\aster {
                 $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@bookTicker';
                 $messageHashes[] = 'unsubscribe:bidask:' . $market['symbol'];
             }
-            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), array( $type )));
+            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
         }) ();
     }
 
@@ -537,9 +530,7 @@ class aster extends \ccxt\async\aster {
         //         }
         //     }
         //
-        $subscriptions = $client->subscriptions;
-        $subscriptionsKeys = is_array($subscriptions) ? array_keys($subscriptions) : array();
-        $marketType = $this->get_account_type_from_subscriptions($subscriptionsKeys);
+        $marketType = $this->get_account_type_from_url($client->url);
         $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 's');
         $market = $this->safe_market($marketId, null, null, $marketType);
@@ -638,7 +629,7 @@ class aster extends \ccxt\async\aster {
                 $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@aggTrade';
                 $messageHashes[] = 'trade:' . $market['symbol'];
             }
-            $trades = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), array( $type )));
+            $trades = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
             if ($this->newUpdates) {
                 $first = $this->safe_value($trades, 0);
                 $tradeSymbol = $this->safe_string($first, 'symbol');
@@ -684,7 +675,7 @@ class aster extends \ccxt\async\aster {
                 $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@aggTrade';
                 $messageHashes[] = 'unsubscribe:trade:' . $market['symbol'];
             }
-            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), array( $type )));
+            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
         }) ();
     }
 
@@ -706,9 +697,7 @@ class aster extends \ccxt\async\aster {
         //         }
         //     }
         //
-        $subscriptions = $client->subscriptions;
-        $subscriptionsKeys = is_array($subscriptions) ? array_keys($subscriptions) : array();
-        $marketType = $this->get_account_type_from_subscriptions($subscriptionsKeys);
+        $marketType = $this->get_account_type_from_url($client->url);
         $trade = $this->safe_dict($message, 'data');
         $marketId = $this->safe_string($trade, 's');
         $market = $this->safe_market($marketId, null, null, $marketType);
@@ -964,7 +953,7 @@ class aster extends \ccxt\async\aster {
                 $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@depth' . (string) $limit;
                 $messageHashes[] = 'orderbook:' . $market['symbol'];
             }
-            $orderbook = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), array( $type )));
+            $orderbook = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
             return $orderbook->limit ();
         }) ();
     }
@@ -1011,7 +1000,7 @@ class aster extends \ccxt\async\aster {
                 $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@depth' . $limit;
                 $messageHashes[] = 'unsubscribe:orderbook:' . $market['symbol'];
             }
-            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), array( $type )));
+            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
         }) ();
     }
 
@@ -1042,9 +1031,7 @@ class aster extends \ccxt\async\aster {
         //         }
         //     }
         //
-        $subscriptions = $client->subscriptions;
-        $subscriptionsKeys = is_array($subscriptions) ? array_keys($subscriptions) : array();
-        $marketType = $this->get_account_type_from_subscriptions($subscriptionsKeys);
+        $marketType = $this->get_account_type_from_url($client->url);
         $data = $this->safe_dict($message, 'data');
         $marketId = $this->safe_string($data, 's');
         $timestamp = $this->safe_integer($data, 'T');
@@ -1145,7 +1132,7 @@ class aster extends \ccxt\async\aster {
                 $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@kline_' . $timeframeId;
                 $messageHashes[] = 'ohlcv:' . $market['symbol'] . ':' . $unfiedTimeframe;
             }
-            list($symbol, $timeframe, $stored) = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), array( $type )));
+            list($symbol, $timeframe, $stored) = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
             if ($this->newUpdates) {
                 $limit = $stored->getLimit ($symbol, $limit);
             }
@@ -1195,7 +1182,7 @@ class aster extends \ccxt\async\aster {
                 $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@kline_' . $timeframeId;
                 $messageHashes[] = 'unsubscribe:ohlcv:' . $market['symbol'] . ':' . $unfiedTimeframe;
             }
-            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), array( $type )));
+            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
         }) ();
     }
 
@@ -1229,9 +1216,7 @@ class aster extends \ccxt\async\aster {
         //         }
         //     }
         //
-        $subscriptions = $client->subscriptions;
-        $subscriptionsKeys = is_array($subscriptions) ? array_keys($subscriptions) : array();
-        $marketType = $this->get_account_type_from_subscriptions($subscriptionsKeys);
+        $marketType = $this->get_account_type_from_url($client->url);
         $data = $this->safe_dict($message, 'data');
         $marketId = $this->safe_string($data, 's');
         $market = $this->safe_market($marketId, null, null, $marketType);
@@ -1442,9 +1427,7 @@ class aster extends \ccxt\async\aster {
         //         }
         //     }
         //
-        $subscriptions = $client->subscriptions;
-        $subscriptionsKeys = is_array($subscriptions) ? array_keys($subscriptions) : array();
-        $accountType = $this->get_account_type_from_subscriptions($subscriptionsKeys);
+        $accountType = $this->get_account_type_from_url($client->url);
         $messageHash = $accountType . ':balance';
         if ($this->balance[$accountType] === null) {
             $this->balance[$accountType] = array();
@@ -1985,9 +1968,7 @@ class aster extends \ccxt\async\aster {
 
     public function get_market_from_order(Client $client, $order) {
         $marketId = $this->safe_string($order, 's');
-        $subscriptions = $client->subscriptions;
-        $subscriptionsKeys = is_array($subscriptions) ? array_keys($subscriptions) : array();
-        $marketType = $this->get_account_type_from_subscriptions($subscriptionsKeys);
+        $marketType = $this->get_account_type_from_url($client->url);
         return $this->safe_market($marketId, null, null, $marketType);
     }
 

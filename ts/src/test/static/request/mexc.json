@@ -181,6 +181,38 @@
                     "cost": 5
                   }
                 ]
+            },
+            {
+                "description": "Swap limit buy reduceOnly non-hedged - side must be 2, reduceOnly absent from body",
+                "method": "createOrder",
+                "url": "https://api.mexc.com/api/v1/private/order/submit",
+                "input": [
+                    "ADA/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    0.6,
+                    {
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"symbol\":\"ADA_USDT\",\"vol\":1,\"type\":1,\"openType\":2,\"price\":0.6,\"side\":2}"
+            },
+            {
+                "description": "Swap limit sell reduceOnly non-hedged - side must be 4, reduceOnly absent from body",
+                "method": "createOrder",
+                "url": "https://api.mexc.com/api/v1/private/order/submit",
+                "input": [
+                    "ADA/USDT:USDT",
+                    "limit",
+                    "sell",
+                    1,
+                    0.6,
+                    {
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"symbol\":\"ADA_USDT\",\"vol\":1,\"type\":1,\"openType\":2,\"price\":0.6,\"side\":4}"
             }
         ],
         "createOrders": [

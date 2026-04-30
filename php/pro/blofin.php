@@ -18,6 +18,8 @@ class blofin extends \ccxt\async\blofin {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
+                'watchFundingRate' => true,
+                'watchFundingRates' => false,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
                 'watchOrderBook' => true,
@@ -661,6 +663,57 @@ class blofin extends \ccxt\async\blofin {
         return $this->parse_position($position, $market);
     }
 
+    public function watch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * watch the current funding rate
+             *
+             * @see https://docs.blofin.com/index.html#ws-funding-rate-channel
+             *
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('watchFundingRate', $market, $params);
+            $messageHash = 'fundingRate:' . $market['symbol'];
+            $requestParams = array(
+                'channel' => 'funding-rate',
+                'instId' => $market['id'],
+            );
+            $request = $this->get_subscription_request(array( $requestParams ));
+            $url = $this->implode_hostname($this->urls['api']['ws'][$marketType]['public']);
+            return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
+        }) ();
+    }
+
+    public function handle_funding_rate(Client $client, $message) {
+        //
+        //     {
+        //         "arg" => array(
+        //             "channel" => "funding-rate",
+        //             "instId" => "BTC-USDT"
+        //         ),
+        //         "data" => array(
+        //             {
+        //                 "instId" => "BTC-USDT",
+        //                 "fundingRate" => "0.00007873240488719234",
+        //                 "fundingTime" => "1771430400000"
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_list($message, 'data', array());
+        $first = $this->safe_dict($data, 0, array());
+        $fundingRate = $this->parse_funding_rate($first);
+        $symbol = $fundingRate['symbol'];
+        $this->fundingRates[$symbol] = $fundingRate;
+        $messageHash = 'fundingRate:' . $symbol;
+        $client->resolve ($fundingRate, $messageHash);
+    }
+
     public function watch_multiple_wrapper(bool $isPublic, string $channelName, string $callerMethodName, ?array $symbolsArray = null, $params = array ()) {
         return Async\async(function () use ($isPublic, $channelName, $callerMethodName, $symbolsArray, $params) {
             // underlier method for all watch-multiple $symbols
@@ -755,6 +808,7 @@ class blofin extends \ccxt\async\blofin {
             'orders' => array($this, 'handle_orders'),
             'orders-algo' => array($this, 'handle_orders'),
             'positions' => array($this, 'handle_positions'),
+            'funding-rate' => array($this, 'handle_funding_rate'),
         );
         $method = null;
         if ($message === 'pong') {

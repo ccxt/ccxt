@@ -380,6 +380,7 @@ public partial class bitvavo : Exchange
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "MIOTA", "IOTA" },
             } },
+            { "rollingWindowSize", 60000 },
         });
     }
 

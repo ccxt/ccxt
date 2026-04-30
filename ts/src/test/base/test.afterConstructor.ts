@@ -10,17 +10,12 @@ function helperTestInitThrottler () {
     });
     // todo: assert (exchange.MAX_VALUE !== undefined);
 
-    let tokenBucket = exchange.getProperty (exchange, 'tokenBucket'); // trick for uncamelcase transpilation
-    if (tokenBucket === undefined) {
-        tokenBucket = exchange.getProperty (exchange, 'TokenBucket');
-    }
+    const tokenBucket = testSharedMethods.exchangeProp (exchange, 'tokenBucket'); // trick for uncamelcase transpilation
     assert (tokenBucket !== undefined);
-    assert ('GO_SKIP_START');
-    const rateLimit = exchange.getProperty (exchange, 'rateLimit');
+    const rateLimit = testSharedMethods.exchangeProp (exchange, 'rateLimit');
     assert (rateLimit === 10.8);
     assert (tokenBucket['delay'] === 0.001);
     assert (tokenBucket['refillRate'] === 1 / rateLimit);
-    assert ('GO_SKIP_END');
     // fix decimal/integer issues across langs
     assert (exchange.inArray (tokenBucket['capacity'], [ 1, 1.0 ]));
     const cost = exchange.parseToNumeric (exchange.safeString2 (tokenBucket, 'cost', 'defaultCost')); // python sync, todo fix
@@ -34,8 +29,7 @@ function helperTestInitThrottler () {
 function helperTestSandboxState (exchange, shouldBeEnabled = true) {
     assert (exchange.urls !== undefined);
     assert ('test' in exchange.urls);
-    assert ('GO_SKIP_START');
-    const isSandboxModeEnabled = exchange.getProperty (exchange, 'isSandboxModeEnabled');
+    const isSandboxModeEnabled = testSharedMethods.exchangeProp (exchange, 'isSandboxModeEnabled');
     if (shouldBeEnabled) {
         assert (isSandboxModeEnabled);
         assert (exchange.urls['api']['public'] === 'https://example.org');
@@ -45,7 +39,6 @@ function helperTestSandboxState (exchange, shouldBeEnabled = true) {
         assert (exchange.urls['api']['public'] === 'https://example.com');
         assert (exchange.urls['test']['public'] === 'https://example.org');
     }
-    assert ('GO_SKIP_END');
 }
 
 function helperTestInitSandbox () {

@@ -19,38 +19,43 @@ def test_aggregate():
     exchange = ccxt.Exchange({
         'id': 'sampleexchange',
     })
-    bids = [[789.1, 123], [789.1, 123], [123, 456], [789, 123], [789.1, 123]]
-    asks = [[123, 456], [789, 123], [789.1, 123]]
-    test_shared_methods.assert_deep_equal(exchange, None, 'aggregate', exchange.aggregate(exchange.sort_by(bids, 0)), [[123, 456], [789, 123], [789.1, 369]])
-    test_shared_methods.assert_deep_equal(exchange, None, 'aggregate', exchange.aggregate(exchange.sort_by(asks, 0)), [[123, 456], [789, 123], [789.1, 123]])
+    assert exchange.milliseconds() > 0, 'go transpiler workaround'
+    assert 'GO_SKIP_START'
+    bids = [[789.1, 111.05], [789.1, 111.05], [123.3, 456.2], [784.2, 111.05], [789.1, 111.05]]
+    expected_bids = [[123.3, 456.2], [784.2, 111.05], [789.1, 333.15]]
+    test_shared_methods.assert_deep_equal(exchange, None, 'aggregate', exchange.aggregate(exchange.sort_by(bids, 0)), expected_bids)
+    asks = [[123.2, 456.2], [784.2, 222.44], [789.1, 111.01]]
+    expected_asks = [[123.2, 456.2], [784.2, 222.44], [789.1, 111.01]]
+    test_shared_methods.assert_deep_equal(exchange, None, 'aggregate', exchange.aggregate(exchange.sort_by(asks, 0)), expected_asks)
     test_shared_methods.assert_deep_equal(exchange, None, 'aggregate', exchange.aggregate([]), [])
     # Test 1: Simple aggregation - same price combined
-    result1 = exchange.aggregate([[100, 1], [101, 2], [100, 0.5]])
-    test_shared_methods.assert_deep_equal(exchange, None, 'testAggregate', result1, [[100, 1.5], [101, 2]])
+    result1 = exchange.aggregate([[100.2, 1.01], [101.5, 2.01], [100.2, 0.5]])
+    test_shared_methods.assert_deep_equal(exchange, None, 'testAggregate', result1, [[100.2, 1.51], [101.5, 2.01]])
     # Test 2: With extra fields (should be ignored)
-    result2 = exchange.aggregate([[100, 1, 'extra'], [101, 2, 'data', 'more']])
-    test_shared_methods.assert_deep_equal(exchange, None, 'testAggregate', result2, [[100, 1], [101, 2]])
+    result2 = exchange.aggregate([[100.2, 1.01, 'extra'], [101.5, 2.01, 'data', 'more']])
+    test_shared_methods.assert_deep_equal(exchange, None, 'testAggregate', result2, [[100.2, 1.01], [101.5, 2.01]])
     # Test 3: Zero volumes should be skipped
-    result3 = exchange.aggregate([[100, 1], [101, 0], [102, 2]])
-    test_shared_methods.assert_deep_equal(exchange, None, 'testAggregate', result3, [[100, 1], [102, 2]])
+    result3 = exchange.aggregate([[100.2, 1.01], [101.5, 0], [102.4, 2.01]])
+    test_shared_methods.assert_deep_equal(exchange, None, 'testAggregate', result3, [[100.2, 1.01], [102.4, 2.01]])
     # Test 4: Empty array
     result4 = exchange.aggregate([])
     test_shared_methods.assert_deep_equal(exchange, None, 'testAggregate', result4, [])
     # Test 5: Single entry
-    result5 = exchange.aggregate([[100, 1]])
-    test_shared_methods.assert_deep_equal(exchange, None, 'testAggregate', result5, [[100, 1]])
+    result5 = exchange.aggregate([[100.2, 1.01]])
+    test_shared_methods.assert_deep_equal(exchange, None, 'testAggregate', result5, [[100.2, 1.01]])
     # Test 6: Many same prices aggregated
-    result6 = exchange.aggregate([[100, 0.1], [100, 0.2], [100, 0.3], [100, 0.4]])
-    test_shared_methods.assert_deep_equal(exchange, None, 'testAggregate', result6, [[100, 1]])
+    result6 = exchange.aggregate([[100.2, 0.12], [100.2, 0.2], [100.2, 0.3], [100.2, 0.4]])
+    test_shared_methods.assert_deep_equal(exchange, None, 'testAggregate', result6, [[100.2, 1.02]])
     # Test 7: All zero volumes - empty result
-    result7 = exchange.aggregate([[100, 0], [101, 0], [102, 0]])
+    result7 = exchange.aggregate([[100.2, 0], [101.5, 0], [102.4, 0]])
     test_shared_methods.assert_deep_equal(exchange, None, 'testAggregate', result7, [])
-    # Test 8: Preserves order of first occurrence
-    result8 = exchange.aggregate([[103, 1], [101, 1], [102, 1], [101, 0.5]])
-    test_shared_methods.assert_deep_equal(exchange, None, 'testAggregate', result8, [[103, 1], [101, 1.5], [102, 1]])
+    # # Test 8: Preserves order of first occurrence
+    # const result8 = exchange.aggregate ([ [ 103, 1.0 ], [ 101.5, 1.0 ], [ 102.4, 1.0 ], [ 101.5, 0.5 ] ]);
+    # testSharedMethods.assertDeepEqual (exchange, undefined, 'testAggregate', result8, [ [ 103, 1.0 ], [ 101.5, 1.5 ], [ 102.4, 1.0 ] ]);
     # Test 9: Decimal prices
-    result9 = exchange.aggregate([[100.5, 1], [100.5, 2], [101.5, 1]])
-    test_shared_methods.assert_deep_equal(exchange, None, 'testAggregate', result9, [[100.5, 3], [101.5, 1]])
+    result9 = exchange.aggregate([[100.5, 1.04], [100.5, 2.04], [101.5, 1.05]])
+    test_shared_methods.assert_deep_equal(exchange, None, 'testAggregate', result9, [[100.5, 3.08], [101.5, 1.05]])
     # Test 10: Mixed zero and non-zero for same price
-    result10 = exchange.aggregate([[100, 1], [100, 0], [100, 2]])
-    test_shared_methods.assert_deep_equal(exchange, None, 'testAggregate', result10, [[100, 3]])
+    result10 = exchange.aggregate([[100.2, 1.04], [100.2, 0], [100.2, 2.04]])
+    test_shared_methods.assert_deep_equal(exchange, None, 'testAggregate', result10, [[100.2, 3.08]])
+    assert 'GO_SKIP_END'

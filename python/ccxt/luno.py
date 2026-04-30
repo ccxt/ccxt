@@ -304,6 +304,7 @@ class luno(Exchange, ImplicitAPI):
                     'inverse': None,
                 },
             },
+            'rollingWindowSize': 60000.0,
         })
 
     def fetch_currencies(self, params={}) -> Currencies:

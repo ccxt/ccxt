@@ -390,7 +390,7 @@ class coinmetro(Exchange, ImplicitAPI):
             code = self.safe_currency_code(id)
             typeRaw = self.safe_string(currency, 'type')
             type = None
-            if typeRaw == 'coin' or typeRaw == 'token' or typeRaw == 'erc20':
+            if typeRaw == 'coin' or typeRaw == 'token' or typeRaw == 'erc20' or typeRaw == 'crypto':
                 type = 'crypto'
             elif typeRaw == 'fiat':
                 type = 'fiat'

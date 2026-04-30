@@ -2874,6 +2874,7 @@ class toobit(Exchange, ImplicitAPI):
             headers = {
                 'Referrer': 'CCXT',
                 'X-BB-APIKEY': self.apiKey,
+                'X-BB-API-PLATFORM': self.safe_string(self.options, 'brokerId', '177321641268789'),
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

@@ -364,6 +364,22 @@
                   }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"type\":\"take_profit\",\"size\":1,\"price_type\":1,\"executive_price\":\"70000\",\"trigger_price\":\"71000\",\"side\":3}"
+            },
+            {
+                "description": "spot trigger create order",
+                "method": "createOrder",
+                "url": "https://api-cloud.bitmart.com/spot/v4/algo/submit_order",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    55000,
+                    {
+                        "triggerPrice": "56000"
+                    }
+                ],
+                "output": "{\"symbol\":\"BTC_USDT\",\"side\":\"buy\",\"type\":\"trigger\",\"trigger_type\":\"limit\",\"trigger_price\":\"56000\",\"size\":\"0.0001\",\"price\":\"55000\",\"triggerPrice\":\"56000\"}"
             }
         ],
         "createOrders": [
@@ -470,6 +486,20 @@
                         "trigger": true
                     }
                 ]
+            },
+            {
+                "description": "spot trigger fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://api-cloud.bitmart.com/spot/v4/query/algo/open-orders",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"symbol\":\"BTC_USDT\",\"orderMode\":\"trigger\"}"
             }
         ],
         "fetchOrder": [
@@ -493,6 +523,19 @@
                         "orderType": "trailing"
                     }
                 ]
+            },
+            {
+                "description": "spot trigger fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://api-cloud.bitmart.com/spot/v4/query/algo/order",
+                "input": [
+                    "1538407746150621696",
+                    "BTC/USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"orderId\":\"1538407746150621696\"}"
             }
         ],
         "fetchClosedOrders": [
@@ -514,6 +557,20 @@
                     null,
                     1
                 ]
+            },
+            {
+                "description": "spot trigger fetch closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api-cloud.bitmart.com/spot/v4/query/algo/history-orders",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"symbol\":\"BTC_USDT\",\"orderMode\":\"trigger\"}"
             }
         ],
         "cancelOrder": [
@@ -561,7 +618,20 @@
                         "trailing": true
                     }
                 ],
-                "output": "{\"symbol\":\"ETHUSDT\",\"order_id\":\"3000080071007939\",\"trailing\":true}"
+                "output": "{\"symbol\":\"ETHUSDT\",\"order_id\":\"3000080071007939\"}"
+            },
+            {
+                "description": "spot trigger cancel order",
+                "method": "cancelOrder",
+                "url": "https://api-cloud.bitmart.com/spot/v4/algo/cancel_order",
+                "input": [
+                    "1538407746150621696",
+                    "BTC/USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"symbol\":\"BTC_USDT\",\"order_id\":\"1538407746150621696\",\"type\":\"trigger\"}"
             }
         ],
         "cancelOrders": [
@@ -595,6 +665,18 @@
                 "url": "https://api-cloud.bitmart.com/spot/v4/cancel_all",
                 "input": [],
                 "output": "{}"
+            },
+            {
+                "description": "spot trigger cancel all orders",
+                "method": "cancelAllOrders",
+                "url": "https://api-cloud.bitmart.com/spot/v4/algo/cancel_all",
+                "input": [
+                    "BTC/USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"symbol\":\"BTC_USDT\",\"type\":\"trigger\"}"
             }
         ],
         "fetchBalance": [

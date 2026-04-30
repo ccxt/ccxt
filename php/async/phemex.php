@@ -93,7 +93,9 @@ class phemex extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPositionADLRank' => true,
                 'fetchPositions' => true,
+                'fetchPositionsADLRank' => true,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -5379,6 +5381,348 @@ class phemex extends Exchange {
             'toAmount' => $this->parse_number($toAmount),
             'price' => $this->safe_number($quoteArgs, 'price'),
             'fee' => null,
+        );
+    }
+
+    public function fetch_positions_adl_rank(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches the auto deleveraging $rank and risk percentage for a list of $symbols
+             *
+             * @see https://phemex-docs.github.io/#query-account-positions
+             * @see https://phemex-docs.github.io/#query-trading-account-and-positions
+             * @see https://phemex-docs.github.io/#query-account-positions-with-unrealized-pnl
+             *
+             * @param {string[]} [$symbols] list of unified $market $symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->code] the $currency $code to fetch $ranks for, USD, BTC or USDT, USDT is the default
+             * @param {string} [$params->method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
+             * @return {array} an array of ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structures~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true, true, true);
+            $subType = null;
+            $code = $this->safe_string_2($params, 'currency', 'code', 'USDT');
+            $params = $this->omit($params, array( 'currency', 'code' ));
+            $settle = null;
+            $market = null;
+            $firstSymbol = $this->safe_string($symbols, 0);
+            if ($firstSymbol !== null) {
+                $market = $this->market($firstSymbol);
+                $settle = $market['settle'];
+                $code = $market['settle'];
+            } else {
+                list($settle, $params) = $this->handle_option_and_params($params, 'fetchPositionsADLRank', 'settle', $code);
+            }
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchPositionsADLRank', $market, $params);
+            $isUSDTSettled = $settle === 'USDT';
+            if ($isUSDTSettled) {
+                $code = 'USDT';
+            } elseif ($settle === 'BTC') {
+                $code = 'BTC';
+            } elseif ($code === null) {
+                $code = ($subType === 'linear') ? 'USD' : 'BTC';
+            }
+            $currency = $this->currency($code);
+            $request = array(
+                'currency' => $currency['id'],
+            );
+            $response = null;
+            if ($isUSDTSettled) {
+                $method = null;
+                list($method, $params) = $this->handle_option_and_params($params, 'fetchPositionsADLRank', 'method', 'privateGetGAccountsAccountPositions');
+                if ($method === 'privateGetGAccountsAccountPositions') {
+                    $response = Async\await($this->privateGetGAccountsAccountPositions ($this->extend($request, $params)));
+                } else {
+                    $response = Async\await($this->privateGetGAccountsPositions ($this->extend($request, $params)));
+                }
+                //
+                //     {
+                //         "code" => 0,
+                //         "msg" => "",
+                //         "data" => {
+                //             "account" => array(
+                //                 "userID" => 940666,
+                //                 "accountId" => 9406660003,
+                //                 "currency" => "USDT",
+                //                 "accountBalanceRv" => "439.96184445932",
+                //                 "totalUsedBalanceRv" => "89.22502732",
+                //                 "bonusBalanceRv" => "0",
+                //                 "status" => 0,
+                //                 "userMode" => 1
+                //             ),
+                //             "positions" => array(
+                //                 array(
+                //                     "userID" => 940666,
+                //                     "accountID" => 9406660003,
+                //                     "symbol" => "BTCUSDT",
+                //                     "currency" => "USDT",
+                //                     "side" => "Buy",
+                //                     "positionStatus" => "Normal",
+                //                     "crossMargin" => true,
+                //                     "leverageRr" => "-10",
+                //                     "initMarginReqRr" => "0.1",
+                //                     "maintMarginReqRr" => "0.005",
+                //                     "riskLimitRv" => "20000000",
+                //                     "size" => "0.01",
+                //                     "valueRv" => "887.531",
+                //                     "avgEntryPriceRp" => "88753.1",
+                //                     "avgEntryPrice" => "88753.1",
+                //                     "posCostRv" => "89.22502732",
+                //                     "assignedPosBalanceRv" => "89.29802732",
+                //                     "bankruptCommRv" => "0.529812426",
+                //                     "bankruptPriceRp" => "44783.79",
+                //                     "positionMarginRv" => "88.695214894",
+                //                     "liquidationPriceRp" => "45009",
+                //                     "deleveragePercentileRr" => "0",
+                //                     "buyValueToCostRr" => "0.10114",
+                //                     "sellValueToCostRr" => "0.10126",
+                //                     "markPriceRp" => "88747.2",
+                //                     "estimatedOrdLossRv" => "0",
+                //                     "usedBalanceRv" => "89.22502732",
+                //                     "cumClosedPnlRv" => "425.97796",
+                //                     "cumFundingFeeRv" => "54.892930099379",
+                //                     "cumTransactFeeRv" => "1.288782144",
+                //                     "transactTimeNs" => 1767176685241254818,
+                //                     "takerFeeRateRr" => "-1",
+                //                     "makerFeeRateRr" => "-1",
+                //                     "term" => 6,
+                //                     "lastTermEndTimeNs" => 1759835547751667598,
+                //                     "lastFundingTimeNs" => 1759824000000000000,
+                //                     "curTermRealisedPnlRv" => "-0.5325186",
+                //                     "execSeq" => 47732822790,
+                //                     "posSide" => "Long",
+                //                     "posMode" => "Hedged",
+                //                     "buyLeavesValueRv" => "0",
+                //                     "buyLeavesQtyRq" => "0",
+                //                     "sellLeavesValueRv" => "0",
+                //                     "sellLeavesQtyRq" => "0"
+                //                 ),
+                //             )
+                //         }
+                //     }
+                //
+            } else {
+                $response = Async\await($this->privateGetAccountsAccountPositions ($this->extend($request, $params)));
+                //
+                //     {
+                //         "code" => 0,
+                //         "msg" => "",
+                //         "data" => {
+                //             "account" => array(
+                //                 "userID" => 940666,
+                //                 "accountId" => 9406660001,
+                //                 "currency" => "BTC",
+                //                 "accountBalanceEv" => 50050270,
+                //                 "totalUsedBalanceEv" => 58,
+                //                 "bonusBalanceEv" => 0
+                //             ),
+                //             "positions" => array(
+                //                 {
+                //                     "userID" => 940666,
+                //                     "accountID" => 9406660001,
+                //                     "symbol" => "BTCUSD",
+                //                     "currency" => "BTC",
+                //                     "side" => "Buy",
+                //                     "positionStatus" => "Normal",
+                //                     "crossMargin" => false,
+                //                     "leverageEr" => -2000000000,
+                //                     "leverage" => -20.00000000,
+                //                     "initMarginReqEr" => 5000000,
+                //                     "initMarginReq" => 0.05000000,
+                //                     "maintMarginReqEr" => 500000,
+                //                     "maintMarginReq" => 0.00500000,
+                //                     "riskLimitEv" => 150000000000,
+                //                     "riskLimit" => 1500.00000000,
+                //                     "size" => 1,
+                //                     "value" => 0.00001128,
+                //                     "valueEv" => 1128,
+                //                     "avgEntryPriceEp" => 886524823,
+                //                     "avgEntryPrice" => 88652.48230000,
+                //                     "posCostEv" => 58,
+                //                     "posCost" => 5.8E-7,
+                //                     "assignedPosBalanceEv" => 58,
+                //                     "assignedPosBalance" => 5.8E-7,
+                //                     "bankruptCommEv" => 1,
+                //                     "bankruptComm" => 1E-8,
+                //                     "bankruptPriceEp" => 100000,
+                //                     "bankruptPrice" => 10.00000000,
+                //                     "positionMarginEv" => 57,
+                //                     "positionMargin" => 5.7E-7,
+                //                     "liquidationPriceEp" => 100000,
+                //                     "liquidationPrice" => 10.00000000,
+                //                     "deleveragePercentileEr" => 0,
+                //                     "deleveragePercentile" => 0E-8,
+                //                     "buyValueToCostEr" => 5123000,
+                //                     "buyValueToCost" => 0.05123000,
+                //                     "sellValueToCostEr" => 5117000,
+                //                     "sellValueToCost" => 0.05117000,
+                //                     "markPriceEp" => 886028000,
+                //                     "markPrice" => 88602.80000000,
+                //                     "estimatedOrdLossEv" => 0,
+                //                     "estimatedOrdLoss" => 0E-8,
+                //                     "usedBalanceEv" => 58,
+                //                     "usedBalance" => 5.8E-7,
+                //                     "cumClosedPnlEv" => 127,
+                //                     "cumFundingFeeEv" => -146,
+                //                     "cumTransactFeeEv" => 3,
+                //                     "transactTimeNs" => 1767177964554892106,
+                //                     "takerFeeRateEr" => 60000,
+                //                     "makerFeeRateEr" => 10000,
+                //                     "term" => 2,
+                //                     "lastTermEndTimeNs" => 1716225275381802994,
+                //                     "lastFundingTimeNs" => 1767168000000000000,
+                //                     "curTermRealisedPnlEv" => -1,
+                //                     "execSeq" => 1104909332,
+                //                     "freeQty" => -1,
+                //                     "freeCostEv" => 0,
+                //                     "buyLeavesValueEv" => 0,
+                //                     "sellLeavesValueEv" => 0,
+                //                     "buyLeavesQty" => 0,
+                //                     "sellLeavesQty" => 0
+                //                 }
+                //             )
+                //         }
+                //     }
+                //
+            }
+            $data = $this->safe_value($response, 'data', array());
+            $ranks = $this->safe_value($data, 'positions', array());
+            $result = array();
+            for ($i = 0; $i < count($ranks); $i++) {
+                $rank = $ranks[$i];
+                $result[] = $this->parse_adl_rank($rank);
+            }
+            return $this->filter_by_array_adl_ranks($result, 'symbol', $symbols, false);
+        }) ();
+    }
+
+    public function parse_adl_rank(array $info, ?array $market = null): array {
+        //
+        // fetchPositionADLRank => linear
+        //
+        //     {
+        //         "userID" => 940666,
+        //         "accountID" => 9406660003,
+        //         "symbol" => "BTCUSDT",
+        //         "currency" => "USDT",
+        //         "side" => "Buy",
+        //         "positionStatus" => "Normal",
+        //         "crossMargin" => true,
+        //         "leverageRr" => "-10",
+        //         "initMarginReqRr" => "0.1",
+        //         "maintMarginReqRr" => "0.005",
+        //         "riskLimitRv" => "20000000",
+        //         "size" => "0.01",
+        //         "valueRv" => "887.531",
+        //         "avgEntryPriceRp" => "88753.1",
+        //         "avgEntryPrice" => "88753.1",
+        //         "posCostRv" => "89.22502732",
+        //         "assignedPosBalanceRv" => "89.29802732",
+        //         "bankruptCommRv" => "0.529812426",
+        //         "bankruptPriceRp" => "44783.79",
+        //         "positionMarginRv" => "88.695214894",
+        //         "liquidationPriceRp" => "45009",
+        //         "deleveragePercentileRr" => "0",
+        //         "buyValueToCostRr" => "0.10114",
+        //         "sellValueToCostRr" => "0.10126",
+        //         "markPriceRp" => "88747.2",
+        //         "estimatedOrdLossRv" => "0",
+        //         "usedBalanceRv" => "89.22502732",
+        //         "cumClosedPnlRv" => "425.97796",
+        //         "cumFundingFeeRv" => "54.892930099379",
+        //         "cumTransactFeeRv" => "1.288782144",
+        //         "transactTimeNs" => 1767176685241254818,
+        //         "takerFeeRateRr" => "-1",
+        //         "makerFeeRateRr" => "-1",
+        //         "term" => 6,
+        //         "lastTermEndTimeNs" => 1759835547751667598,
+        //         "lastFundingTimeNs" => 1759824000000000000,
+        //         "curTermRealisedPnlRv" => "-0.5325186",
+        //         "execSeq" => 47732822790,
+        //         "posSide" => "Long",
+        //         "posMode" => "Hedged",
+        //         "buyLeavesValueRv" => "0",
+        //         "buyLeavesQtyRq" => "0",
+        //         "sellLeavesValueRv" => "0",
+        //         "sellLeavesQtyRq" => "0"
+        //     }
+        //
+        // fetchPositionADLRank => inverse
+        //
+        //     {
+        //         "userID" => 940666,
+        //         "accountID" => 9406660001,
+        //         "symbol" => "BTCUSD",
+        //         "currency" => "BTC",
+        //         "side" => "Buy",
+        //         "positionStatus" => "Normal",
+        //         "crossMargin" => false,
+        //         "leverageEr" => -2000000000,
+        //         "leverage" => -20.00000000,
+        //         "initMarginReqEr" => 5000000,
+        //         "initMarginReq" => 0.05000000,
+        //         "maintMarginReqEr" => 500000,
+        //         "maintMarginReq" => 0.00500000,
+        //         "riskLimitEv" => 150000000000,
+        //         "riskLimit" => 1500.00000000,
+        //         "size" => 1,
+        //         "value" => 0.00001128,
+        //         "valueEv" => 1128,
+        //         "avgEntryPriceEp" => 886524823,
+        //         "avgEntryPrice" => 88652.48230000,
+        //         "posCostEv" => 58,
+        //         "posCost" => 5.8E-7,
+        //         "assignedPosBalanceEv" => 58,
+        //         "assignedPosBalance" => 5.8E-7,
+        //         "bankruptCommEv" => 1,
+        //         "bankruptComm" => 1E-8,
+        //         "bankruptPriceEp" => 100000,
+        //         "bankruptPrice" => 10.00000000,
+        //         "positionMarginEv" => 57,
+        //         "positionMargin" => 5.7E-7,
+        //         "liquidationPriceEp" => 100000,
+        //         "liquidationPrice" => 10.00000000,
+        //         "deleveragePercentileEr" => 0,
+        //         "deleveragePercentile" => 0E-8,
+        //         "buyValueToCostEr" => 5123000,
+        //         "buyValueToCost" => 0.05123000,
+        //         "sellValueToCostEr" => 5117000,
+        //         "sellValueToCost" => 0.05117000,
+        //         "markPriceEp" => 886028000,
+        //         "markPrice" => 88602.80000000,
+        //         "estimatedOrdLossEv" => 0,
+        //         "estimatedOrdLoss" => 0E-8,
+        //         "usedBalanceEv" => 58,
+        //         "usedBalance" => 5.8E-7,
+        //         "cumClosedPnlEv" => 127,
+        //         "cumFundingFeeEv" => -146,
+        //         "cumTransactFeeEv" => 3,
+        //         "transactTimeNs" => 1767177964554892106,
+        //         "takerFeeRateEr" => 60000,
+        //         "makerFeeRateEr" => 10000,
+        //         "term" => 2,
+        //         "lastTermEndTimeNs" => 1716225275381802994,
+        //         "lastFundingTimeNs" => 1767168000000000000,
+        //         "curTermRealisedPnlEv" => -1,
+        //         "execSeq" => 1104909332,
+        //         "freeQty" => -1,
+        //         "freeCostEv" => 0,
+        //         "buyLeavesValueEv" => 0,
+        //         "sellLeavesValueEv" => 0,
+        //         "buyLeavesQty" => 0,
+        //         "sellLeavesQty" => 0
+        //     }
+        //
+        $marketId = $this->safe_string($info, 'symbol');
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
+            'rank' => null,
+            'rating' => null,
+            'percentage' => $this->safe_number_2($info, 'deleveragePercentileRr', 'deleveragePercentileEr'),
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 

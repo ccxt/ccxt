@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/cex.js';
-import { ExchangeError, ArgumentsRequired, NullResponse, PermissionDenied, InsufficientFunds, BadRequest, AuthenticationError } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, NullResponse, PermissionDenied, InsufficientFunds, BadRequest, AuthenticationError, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -246,6 +246,7 @@ export default class cex extends Exchange {
                     'Get deposit address for main account is not allowed': PermissionDenied,
                     'Market Trigger orders are not allowed': BadRequest,
                     'key not passed or incorrect': AuthenticationError,
+                    'API rate limit reached': RateLimitExceeded, // {"error":"API rate limit reached"}
                 },
             },
             'timeframes': {

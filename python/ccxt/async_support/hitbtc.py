@@ -774,6 +774,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 'XMT': 'MTL',
                 'XPNT': 'PNT',
             },
+            'rollingWindowSize': 1000.0,
         })
 
     def nonce(self):

@@ -1,4 +1,5 @@
 using Google.Protobuf;
+using System.Collections;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Globalization;
@@ -242,12 +243,22 @@ public partial class Exchange
                 var contentTypeHeader = contentType;
 #endif
 
-                var stringContent = body != null ? new StringContent(body, Encoding.UTF8, contentTypeHeader) : null;
-                if (stringContent != null)
-                {
-                    stringContent.Headers.ContentType.CharSet = "";
+                if (contentType == "multipart/form-data") {
+                    var formdata = new MultipartFormDataContent();
+                    var body3 = body2 as dict;
+                    var bodyList = body3.Keys;
+                    foreach (string key in bodyList) {
+                        formdata.Add(new StringContent(getValue(body3, key).ToString(), Encoding.UTF8), key);
+                    }
+                    request.Content = formdata;
+                } else {
+                    var stringContent = body != null ? new StringContent(body, Encoding.UTF8, contentTypeHeader) : null;
+                    if (stringContent != null)
+                    {
+                        stringContent.Headers.ContentType.CharSet = "";
+                    }
+                    request.Content = stringContent;
                 }
-                request.Content = stringContent;
 
                 if (method == "POST")
                 {
@@ -412,6 +423,7 @@ public partial class Exchange
         // throw new NotSupported (this.id + ' handleErrors() not implemented yet');
     }
 
+    // it's 32 bits
     public int randNumber(int size)
     {
         Random random = new Random();
@@ -549,7 +561,15 @@ public partial class Exchange
 
     public List<string> unique(object obj)
     {
-        return (obj as List<string>).ToList();
+        if (obj is List<string> stringList)
+        {
+            return stringList.Distinct().ToList();
+        }
+        if (obj is List<object> objectList)
+        {
+             return objectList.Select(x => x.ToString()).Distinct().ToList();
+        }
+        return new List<string>();
     }
 
     public int parseTimeframe(object timeframe2)
@@ -600,6 +620,21 @@ public partial class Exchange
 
     public object clone(object o)
     {
+        if (o is dict srcDict)
+        {
+            var result = new dict(srcDict.Count);
+            foreach (var kvp in srcDict)
+                result[kvp.Key] = clone(kvp.Value);
+            return result;
+        }
+        if (o is List<object> srcList)
+        {
+            var result = new List<object>(srcList.Count);
+            foreach (var item in srcList)
+                result.Add(clone(item));
+            return result;
+        }
+        // scalars (string, number, bool, null) are immutable – return as-is
         return o;
     }
 
@@ -808,12 +843,22 @@ public partial class Exchange
     {
         if (a == null)
             return true;
-        if (a.GetType() == typeof(string))
-            return a.ToString().Length == 0;
+        if (a is String)
+            return false; // disregard strings
         if (a is IList<object>)
             return ((IList<object>)a).Count == 0;
         if (a is IDictionary<string, object>)
             return ((IDictionary<string, object>)a).Count == 0;
+        // This catches List<T>, Dictionary<K,V>, Arrays, etc. without needing to know the specific T, K, or V.
+        if (a is ICollection collection)
+            return collection.Count == 0;
+
+        // This catches specialized collections that only implement IEnumerable 
+        if (a is IEnumerable enumerable) {
+            var enumerator = enumerable.GetEnumerator();
+            return !enumerator.MoveNext(); 
+        }
+
         return false;
     }
 

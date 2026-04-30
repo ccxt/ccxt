@@ -19,6 +19,7 @@
 * [fetchFundingRates](#fetchfundingrates)
 * [fetchOHLCV](#fetchohlcv)
 * [fetchTrades](#fetchtrades)
+* [isUnifiedEnabled](#isunifiedenabled)
 * [setUserAbstraction](#setuserabstraction)
 * [enableUserDexAbstraction](#enableuserdexabstraction)
 * [setAgentAbstraction](#setagentabstraction)
@@ -76,6 +77,10 @@
 * [unWatchTrades](#unwatchtrades)
 * [watchOHLCV](#watchohlcv)
 * [unWatchOHLCV](#unwatchohlcv)
+* [watchBalance](#watchbalance)
+* [unWatchBalance](#unwatchbalance)
+* [watchPositions](#watchpositions)
+* [unWatchPositions](#unwatchpositions)
 * [watchOrders](#watchorders)
 * [unWatchOrders](#unwatchorders)
 
@@ -268,6 +273,7 @@ query for balance and get the amount of funds available for trading or funds loc
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null |
 | params.dex | <code>string</code> | No | for hip3 markets, the dex name, eg: 'xyz' |
 | params.subAccountAddress | <code>string</code> | No | sub account user address |
+| params.enableUnifiedMargin | <code>boolean</code> | No | enable unified margin, CCXT tries to auto-detects this value but you can override it |
 
 
 ```javascript
@@ -398,6 +404,29 @@ get the list of most recent trades for a particular symbol
 
 ```javascript
 hyperliquid.fetchTrades (symbol[, since, limit, params])
+```
+
+
+<a name="isUnifiedEnabled" id="isunifiedenabled"></a>
+
+### isUnifiedEnabled{docsify-ignore}
+returns enableUnifiedMargin so the user can check if unified account is enabled
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>bool</code> - enableUnifiedMargin
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-abstraction-state  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| method | <code>string</code> | Yes | the method for which we want to check if unified margin is enabled, this is used to check options for specific methods (e.g. fetchBalance can have a specific option to enable unified margin) |
+| address |  | Yes |  |
+| shouldRefresh |  | Yes |  |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.isUnifiedEnabled (method, address, shouldRefresh[, params])
 ```
 
 
@@ -1768,6 +1797,91 @@ watches historical candlestick data containing the open, high, low, close price,
 
 ```javascript
 hyperliquid.unWatchOHLCV (symbol, timeframe[, params])
+```
+
+
+<a name="watchBalance" id="watchbalance"></a>
+
+### watchBalance{docsify-ignore}
+watch balance and get the amount of funds available for trading or funds locked in orders
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.dex | <code>string</code> | No | for for hip3 tokens subscription, eg: 'xyz' or 'flx' |
+
+
+```javascript
+hyperliquid.watchBalance ([params])
+```
+
+
+<a name="unWatchBalance" id="unwatchbalance"></a>
+
+### unWatchBalance{docsify-ignore}
+unWatches balance
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - status of the unwatch request
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.unWatchBalance ([params])
+```
+
+
+<a name="watchPositions" id="watchpositions"></a>
+
+### watchPositions{docsify-ignore}
+watch all open positions
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/en/latest/manual.html#position-structure)
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| since | <code>int</code> | No | the earliest time in ms to fetch positions for |
+| limit | <code>int</code> | No | the maximum number of positions to retrieve |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.watchPositions ([symbols, since, limit, params])
+```
+
+
+<a name="unWatchPositions" id="unwatchpositions"></a>
+
+### unWatchPositions{docsify-ignore}
+unWatches all open positions
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - status of the unwatch request
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.unWatchPositions ([symbols, params])
 ```
 
 

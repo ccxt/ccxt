@@ -625,7 +625,7 @@ export default class btcbox extends Exchange {
         //
         //     {
         //         "id":11,
-        //         "datetime":"2014-10-21 10:47:20",
+        //         "datetime":"2014-10-21 10:47:21",
         //         "type":"sell",
         //         "price":42000,
         //         "amount_original":1.2,
@@ -703,7 +703,7 @@ export default class btcbox extends Exchange {
         //
         //      {
         //          "id":11,
-        //          "datetime":"2014-10-21 10:47:20",
+        //          "datetime":"2014-10-21 10:47:21",
         //          "type":"sell",
         //          "price":42000,
         //          "amount_original":1.2,

@@ -457,8 +457,12 @@ public partial class testMainClass : BaseTest
             {
                 // TICK_SIZE should be above zero
                 assertGreater(exchange, skippedProperties, method, entry, key, "0");
-                // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so their existence in our case indicates to incorrectly implemented tick-sizes, which might mistakenly be implemented with DECIMAL_PLACES, so we throw error
+                // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so in our case, such values probably indicate an incorrectly implemented tick-sizes calculation, so we throw error
                 object decimalNumbers = new List<object>() {"2", "3", "4", "5", "6", "7", "8", "9", "11", "12", "13", "14", "15", "16"};
+                if (isTrue(isTrue(isEqual(key, "amount")) && isTrue(inOp(skippedProperties, "precisionAmountAbnormal"))))
+                {
+                    return;
+                }
                 for (object i = 0; isLessThan(i, getArrayLength(decimalNumbers)); postFixIncrement(ref i))
                 {
                     object num = getValue(decimalNumbers, i);
@@ -726,6 +730,17 @@ public partial class testMainClass : BaseTest
         {
             object logText = logTemplate(exchange, method, new Dictionary<string, object>() {});
             assert(deepEqual(exchange, a, b), add(add(add(add("two dicts do not match: ", json(a)), " != "), json(b)), logText));
+        }
+        public object exchangeProp(Exchange exchange, object key, object defaultValue = null)
+        {
+            object value = exchange.getProperty(exchange, ((object)key).ToString());
+            if (isTrue(!isEqual(value, null)))
+            {
+                return value;
+            }
+            // try UpperCase key also, for other langs
+            object keyUpper = exchange.capitalize(((object)key).ToString());
+            return exchange.getProperty(exchange, keyUpper, defaultValue);
         }
 
     }

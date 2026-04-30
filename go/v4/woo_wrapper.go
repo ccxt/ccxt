@@ -1760,6 +1760,39 @@ func (this *Woo) FetchConvertCurrencies(params ...interface{}) (Currencies, erro
 	return NewCurrencies(res), nil
 }
 
+/**
+ * @method
+ * @name woo#fetchPositionsADLRank
+ * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
+ * @see https://docs.woox.io/#get-all-position-info-new
+ * @param {string[]} [symbols] a list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+ */
+func (this *Woo) FetchPositionsADLRank(options ...FetchPositionsADLRankOptions) ([]ADL, error) {
+
+	opts := FetchPositionsADLRankOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols interface{} = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchPositionsADLRank(symbols, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewADLArray(res), nil
+}
+
 // missing typed methods from base
 // nolint
 func (this *Woo) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {

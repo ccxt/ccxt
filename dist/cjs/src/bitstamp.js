@@ -524,7 +524,6 @@ class bitstamp extends bitstamp$1["default"] {
                     'Your account is frozen': errors.PermissionDenied,
                     'Please update your profile with your FATCA information, before using API.': errors.PermissionDenied,
                     'Order not found.': errors.OrderNotFound,
-                    'Price is more than 20% below market price.': errors.InvalidOrder,
                     "Bitstamp.net is under scheduled maintenance. We'll be back soon.": errors.OnMaintenance,
                     'Order could not be placed.': errors.ExchangeNotAvailable,
                     'Invalid offset.': errors.BadRequest,
@@ -532,6 +531,7 @@ class bitstamp extends bitstamp$1["default"] {
                 },
                 'broad': {
                     'Minimum order size is': errors.InvalidOrder,
+                    'Price is more than': errors.InvalidOrder,
                     'Check your account balance for details.': errors.InsufficientFunds,
                     'Ensure this value has at least': errors.InvalidAddress,
                     'Ensure that there are no more than': errors.InvalidOrder, // {"status": "error", "reason": {"amount": ["Ensure that there are no more than 0 decimal places."], "__all__": [""]}}
@@ -1137,6 +1137,19 @@ class bitstamp extends bitstamp$1["default"] {
         priceString = this.safeString(trade, priceId, priceString);
         amountString = this.safeString(trade, market['baseId'], amountString);
         costString = this.safeString(trade, market['quoteId'], costString);
+        // this endpoint is not aligned with "markets" endpoint
+        const baseIdLower = market['baseId'].toLowerCase();
+        const quoteIdLower = market['quoteId'].toLowerCase();
+        const dashedIdLower = baseIdLower + '_' + quoteIdLower;
+        if (priceString === undefined) {
+            priceString = this.safeString(trade, dashedIdLower);
+        }
+        if (amountString === undefined) {
+            amountString = this.safeString(trade, baseIdLower);
+        }
+        if (costString === undefined) {
+            costString = this.safeString(trade, quoteIdLower);
+        }
         symbol = market['symbol'];
         const datetimeString = this.safeString2(trade, 'date', 'datetime');
         let timestamp = undefined;

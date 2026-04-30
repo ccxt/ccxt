@@ -1206,7 +1206,7 @@ class bittrade extends Exchange {
         $response = $this->$method ($this->extend($request, $params));
         //
         //     { "status" =>   "ok",
-        //         "data" => array( {                  id =>  13997833014,
+        //         "data" => array( {                  id =>  13997833016,
         //                                "symbol" => "ethbtc",
         //                          "account-id" =>  3398321,
         //                                "amount" => "0.045000000000000000",

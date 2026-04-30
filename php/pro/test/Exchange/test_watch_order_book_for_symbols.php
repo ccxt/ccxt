@@ -16,7 +16,8 @@ function test_watch_order_book_for_symbols($exchange, $skipped_properties, $symb
         $method = 'watchOrderBookForSymbols';
         $now = $exchange->milliseconds();
         $ends = $now + 15000;
-        while ($now < $ends) {
+        $returned_symbols = [];
+        while ($now < $ends || count($returned_symbols) < count($symbols)) {
             $response = null;
             $success = true;
             try {
@@ -36,6 +37,10 @@ function test_watch_order_book_for_symbols($exchange, $skipped_properties, $symb
                 $now = $exchange->milliseconds();
                 assert_in_array($exchange, $skipped_properties, $method, $response, 'symbol', $symbols);
                 test_order_book($exchange, $skipped_properties, $method, $response, null);
+                $symbol = $response['symbol'];
+                if (!$exchange->in_array($symbol, $returned_symbols)) {
+                    $returned_symbols[] = $symbol;
+                }
             }
         }
         return true;

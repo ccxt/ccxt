@@ -32,10 +32,10 @@ class htx extends htx$1["default"] {
                 'watchMyTrades': true,
                 'watchBalance': true,
                 'watchOHLCV': true,
-                'unwatchTicker': true,
-                'unwatchOHLCV': true,
-                'unwatchTrades': true,
-                'unwatchOrderBook': true,
+                'unWatchTicker': true,
+                'unWatchOHLCV': true,
+                'unWatchTrades': true,
+                'unWatchOrderBook': true,
             },
             'urls': {
                 'api': {

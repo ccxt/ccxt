@@ -28,6 +28,8 @@ class mexc extends \ccxt\async\mexc {
                 'fetchOrderWs' => false,
                 'fetchTradesWs' => false,
                 'watchBalance' => true,
+                'watchFundingRate' => true,
+                'watchFundingRates' => false,
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
                 'watchOrderBook' => true,
@@ -748,13 +750,19 @@ class mexc extends \ccxt\async\mexc {
         //       "amount":"366804.43",
         //       "windowEnd":"1754737980"
         //
+        $volume = $this->safe_number_2($ohlcv, 'v', 'volume');
+        // MEXC swap websocket klines publish contracts $volume in `q`,
+        // while spot/protobuf uses `v`/`$volume`.
+        if (($market !== null) && (!$this->safe_bool($market, 'spot')) && ($volume === null)) {
+            $volume = $this->safe_number_2($ohlcv, 'q', 'v');
+        }
         return array(
             $this->safe_timestamp_2($ohlcv, 't', 'windowStart'),
             $this->safe_number_2($ohlcv, 'o', 'openingPrice'),
             $this->safe_number_2($ohlcv, 'h', 'highestPrice'),
             $this->safe_number_2($ohlcv, 'l', 'lowestPrice'),
             $this->safe_number_2($ohlcv, 'c', 'closingPrice'),
-            $this->safe_number_2($ohlcv, 'v', 'volume'),
+            $volume,
         );
     }
 
@@ -1463,7 +1471,7 @@ class mexc extends \ccxt\async\mexc {
         //
         $timestamp = $this->safe_integer($order, 'createTime');
         $side = $this->safe_string($order, 'tradeType');
-        $status = $this->safe_string($order, 'status');
+        $status = $this->safe_string_2($order, 'status', 'state');
         $type = $this->safe_string($order, 'orderType');
         $fee = null;
         $feeCurrency = $this->safe_string($order, 'N');
@@ -1485,8 +1493,8 @@ class mexc extends \ccxt\async\mexc {
             'timeInForce' => $this->parse_ws_time_in_force($type),
             'side' => ($side === '1') ? 'buy' : 'sell',
             'price' => $this->safe_string($order, 'price'),
-            'stopPrice' => null,
-            'triggerPrice' => null,
+            'stopPrice' => $this->safe_string_2($order, 'triggerPrice', 'P'),
+            'triggerPrice' => $this->safe_string_2($order, 'triggerPrice', 'P'),
             'average' => $this->safe_string($order, 'avgPrice'),
             'amount' => $this->safe_string($order, 'quantity'),
             'cost' => $this->safe_string($order, 'amount'),
@@ -1500,6 +1508,7 @@ class mexc extends \ccxt\async\mexc {
 
     public function parse_ws_order_status($status, $market = null) {
         $statuses = array(
+            '0' => 'open',     // new/pending (OCO orders)
             '1' => 'open',     // new order
             '2' => 'closed',   // filled
             '3' => 'open',     // partially filled
@@ -1521,6 +1530,8 @@ class mexc extends \ccxt\async\mexc {
             '4' => null, // FILL_OR_KILL
             '5' => 'market',  // MARKET_ORDER
             '100' => 'limit', // STOP_LIMIT
+            '101' => 'limit', // OCO_STOP_LIMIT
+            '102' => 'limit', // OCO_LIMIT
         );
         return $this->safe_string($types, $type);
     }
@@ -1533,6 +1544,8 @@ class mexc extends \ccxt\async\mexc {
             '4' => 'FOK', // FILL_OR_KILL
             '5' => 'GTC',  // MARKET_ORDER
             '100' => 'GTC', // STOP_LIMIT
+            '101' => 'GTC', // OCO_STOP_LIMIT
+            '102' => 'GTC', // OCO_LIMIT
         );
         return $this->safe_string($timeInForceIds, $timeInForce);
     }
@@ -1592,7 +1605,7 @@ class mexc extends \ccxt\async\mexc {
         //             "frozenBalance" => 0,
         //             "positionMargin" => 1.36945756
         //         ),
-        //         "ts" => 1680059188190
+        //         "ts" => 1680059188191
         //     }
         //
         $channel = $this->safe_string($message, 'channel');
@@ -1615,6 +1628,76 @@ class mexc extends \ccxt\async\mexc {
         $this->balance[$type][$code] = $account;
         $this->balance[$type] = $this->safe_balance($this->balance[$type]);
         $client->resolve ($this->balance[$type], $messageHash);
+    }
+
+    public function watch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * watch the current funding rate
+             *
+             * @see https://www.mexc.com/api-docs/futures/websocket-api#funding-rate
+             *
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $messageHash = 'fundingRate:' . $market['symbol'];
+            $channel = 'sub.funding.rate';
+            $requestParams = array(
+                'symbol' => $market['id'],
+            );
+            return Async\await($this->watch_swap_public($channel, $messageHash, $requestParams, $params));
+        }) ();
+    }
+
+    public function un_watch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * unWatches the current funding rate for a $symbol
+             *
+             * @see https://www.mexc.com/api-docs/futures/websocket-api#funding-rate
+             *
+             * @param {string} $symbol unified $symbol of the $market
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $messageHash = 'unsubscribe:fundingRate:' . $market['symbol'];
+            $url = null;
+            $channel = 'unsub.funding.rate';
+            $requestParams = array(
+                'symbol' => $market['id'],
+            );
+            $url = $this->urls['api']['ws']['swap'];
+            $this->watch_swap_public($channel, $messageHash, $requestParams, $params);
+            $client = $this->client($url);
+            $this->handle_unsubscriptions($client, array( $messageHash ));
+            return null;
+        }) ();
+    }
+
+    public function handle_funding_rate(Client $client, $message) {
+        //
+        //     {
+        //         "symbol" => "BTC_USDT",
+        //         "data" => array(
+        //             "symbol" => "BTC_USDT",
+        //             "rate" => -0.000021,
+        //             "nextSettleTime" => 1771084800000
+        //         ),
+        //         "channel" => "push.funding.rate",
+        //         "ts" => 1771069020506
+        //     }
+        //
+        $data = $this->safe_dict($message, 'data', array());
+        $fundingRate = $this->parse_funding_rate($data);
+        $symbol = $fundingRate['symbol'];
+        $this->fundingRates[$symbol] = $fundingRate;
+        $messageHash = 'fundingRate:' . $symbol;
+        $client->resolve ($fundingRate, $messageHash);
     }
 
     public function un_watch_ticker(string $symbol, $params = array ()): PromiseInterface {
@@ -1896,6 +1979,11 @@ class mexc extends \ccxt\async\mexc {
                 if (is_array($this->trades) && array_key_exists($symbol, $this->trades)) {
                     unset($this->trades[$symbol]);
                 }
+            } elseif (mb_strpos($messageHash, 'fundingRate') !== false) {
+                $symbol = str_replace('unsubscribe:fundingRate:', '', $messageHash);
+                if (is_array($this->fundingRates) && array_key_exists($symbol, $this->fundingRates)) {
+                    unset($this->fundingRates[$symbol]);
+                }
             }
         }
     }
@@ -2057,6 +2145,7 @@ class mexc extends \ccxt\async\mexc {
             'private.deals.v3.api' => array($this, 'handle_my_trade'),
             'push.personal.order.deal' => array($this, 'handle_my_trade'),
             'pong' => array($this, 'handle_pong'),
+            'push.funding.rate' => array($this, 'handle_funding_rate'),
         );
         if (is_array($methods) && array_key_exists($channel, $methods)) {
             $method = $methods[$channel];

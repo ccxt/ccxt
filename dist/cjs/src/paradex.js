@@ -544,7 +544,9 @@ class paradex extends paradex$1["default"] {
         //  }
         //
         const assetKind = this.safeString(market, 'asset_kind');
-        const isOption = (assetKind === 'PERP_OPTION');
+        const isOptionPerpetual = (assetKind === 'PERP_OPTION');
+        const isOptionDelivery = (assetKind === 'OPTION');
+        const isOption = isOptionPerpetual || isOptionDelivery;
         const type = (isOption) ? 'option' : 'swap';
         const isSwap = (type === 'swap');
         const marketId = this.safeString(market, 'symbol');
@@ -562,7 +564,8 @@ class paradex extends paradex$1["default"] {
         let makerFee = this.parseNumber('-0.00005');
         if (isOption) {
             const optionTypeSuffix = (optionType === 'CALL') ? 'C' : 'P';
-            symbol = symbol + '-' + strikePrice + '-' + optionTypeSuffix;
+            const deliveryValue = (expiry === 0) ? '' : this.yymmdd(expiry) + '-';
+            symbol = symbol + '-' + deliveryValue + strikePrice + '-' + optionTypeSuffix;
             makerFee = this.parseNumber('0.0003');
         }
         else {
@@ -1344,10 +1347,6 @@ class paradex extends paradex$1["default"] {
         };
         return this.safeStringLower(types, type, type);
     }
-    convertShortString(str) {
-        // TODO: add stringToBase16 in exchange
-        return '0x' + this.binaryToBase16(this.base64ToBinary(this.stringToBase64(str)));
-    }
     scaleNumber(num) {
         return Precise["default"].stringMul(num, '100000000');
     }
@@ -1464,9 +1463,9 @@ class paradex extends paradex$1["default"] {
         const now = this.nonce();
         const orderReq = {
             'timestamp': now * 1000,
-            'market': this.convertShortString(request['market']),
+            'market': this.stringToBase16(request['market']),
             'side': (orderSide === 'BUY') ? '1' : '2',
-            'orderType': this.convertShortString(request['type']),
+            'orderType': this.stringToBase16(request['type']),
             'size': this.scaleNumber(request['size']),
             'price': (isMarket) ? '0' : this.scaleNumber(request['price']),
         };

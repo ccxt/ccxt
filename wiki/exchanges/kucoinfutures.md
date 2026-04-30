@@ -46,6 +46,7 @@
 * [setPositionMode](#setpositionmode)
 * [fetchLeverage](#fetchleverage)
 * [setLeverage](#setleverage)
+* [fetchPositionsADLRank](#fetchpositionsadlrank)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
 * [watchBidsAsks](#watchbidsasks)
@@ -1020,6 +1021,27 @@ set the level of leverage for a market
 
 ```javascript
 kucoinfutures.setLeverage (leverage, symbol[, params])
+```
+
+
+<a name="fetchPositionsADLRank" id="fetchpositionsadlrank"></a>
+
+### fetchPositionsADLRank{docsify-ignore}
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+**Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [auto de leverage structures](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+**See**: https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoinfutures.fetchPositionsADLRank ([symbols, params])
 ```
 
 

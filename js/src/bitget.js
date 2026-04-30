@@ -1394,6 +1394,7 @@ export default class bitget extends Exchange {
                     '43115': OnMaintenance,
                     '45110': InvalidOrder,
                     '40774': InvalidOrder,
+                    '40917': InvalidOrder,
                     '45122': InvalidOrder,
                     // spot
                     'invalid sign': AuthenticationError,
@@ -1458,7 +1459,9 @@ export default class bitget extends Exchange {
                     '20003': ExchangeError,
                     '01001': ExchangeError,
                     '40024': RestrictedLocation,
-                    '43111': PermissionDenied, // {"code":"43111","msg":"参数错误 address not in address book","requestTime":1665394201164,"data":null}
+                    '41117': InvalidOrder,
+                    '43111': PermissionDenied,
+                    '45113': InvalidOrder, // {"code":"45113","msg":"Maximum order value limit triggered","requestTime":1774884278712,"data":null}
                 },
                 'broad': {
                     'invalid size, valid range': ExchangeError,
@@ -3594,9 +3597,11 @@ export default class bitget extends Exchange {
         let uta = undefined;
         [uta, params] = this.handleOptionAndParams(params, 'fetchTickers', 'uta', false);
         if (uta) {
-            const symbolsLength = symbols.length;
-            if ((symbols !== undefined) && (symbolsLength === 1)) {
-                request['symbol'] = market['id'];
+            if (symbols !== undefined) {
+                const symbolsLength = symbols.length;
+                if (symbolsLength === 1) {
+                    request['symbol'] = market['id'];
+                }
             }
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketTickers(this.extend(request, params));
@@ -5108,7 +5113,7 @@ export default class bitget extends Exchange {
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much you want to trade in units of the base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders, and used as the execution price for contract stop-loss / take-profit orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.cost] *spot only* how much you want to trade in units of the quote currency, for market buy orders only
      * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
@@ -5439,8 +5444,11 @@ export default class bitget extends Exchange {
                 }
             }
             else if (isStopLossOrTakeProfitTrigger) {
-                if (!isMarketOrder) {
-                    throw new ExchangeError(this.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders');
+                if (price !== undefined) {
+                    request['executePrice'] = this.priceToPrecision(symbol, price);
+                    if ('price' in request) {
+                        delete request['price'];
+                    }
                 }
                 if (hedged) {
                     request['holdSide'] = (side === 'sell') ? 'long' : 'short';
@@ -8869,9 +8877,14 @@ export default class bitget extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchFundingHistory() requires a symbol argument');
         }
+        let uta = undefined;
+        [uta, params] = this.handleOptionAndParams(params, 'fetchFundingHistory', 'uta', false);
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingHistory', 'paginate');
         if (paginate) {
+            if (uta) {
+                return await this.fetchPaginatedCallCursor('fetchFundingHistory', symbol, since, limit, params, 'cursor', 'cursor');
+            }
             return await this.fetchPaginatedCallCursor('fetchFundingHistory', symbol, since, limit, params, 'endId', 'idLessThan');
         }
         const market = this.market(symbol);
@@ -8880,12 +8893,7 @@ export default class bitget extends Exchange {
         }
         let productType = undefined;
         [productType, params] = this.handleProductTypeAndParams(market, params);
-        let request = {
-            'symbol': market['id'],
-            'marginCoin': market['settleId'],
-            'businessType': 'contract_settle_fee',
-            'productType': productType,
-        };
+        let request = {};
         [request, params] = this.handleUntilOption('endTime', request, params);
         if (since !== undefined) {
             request['startTime'] = since;
@@ -8893,32 +8901,70 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateMixGetV2MixAccountBill(this.extend(request, params));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700795977890,
-        //         "data": {
-        //             "bills": [
-        //                 {
-        //                     "billId": "1111499428100472833",
-        //                     "symbol": "BTCUSDT",
-        //                     "amount": "-0.004992",
-        //                     "fee": "0",
-        //                     "feeByCoupon": "",
-        //                     "businessType": "contract_settle_fee",
-        //                     "coin": "USDT",
-        //                     "cTime": "1700728034996"
-        //                 },
-        //             ],
-        //             "endId": "1098396773329305606"
-        //         }
-        //     }
-        //
+        let response = undefined;
+        if (uta) {
+            request['coin'] = market['settleId'];
+            request['category'] = productType;
+            response = await this.privateUtaGetV3AccountFinancialRecords(this.extend(request, params));
+            //
+            // {
+            //     "code": "00000",
+            //     "msg": "success",
+            //     "requestTime": 1750135478641,
+            //     "data": {
+            //         "list": [
+            //             {
+            //                 "category": "Margin",
+            //                 "id": "13111111111111111",
+            //                 "symbol": "BTCUSDT",
+            //                 "coin": "BTC",
+            //                 "type": "ORDER_DEALT_IN",
+            //                 "amount": "0.00531168",
+            //                 "fee": "-0.00000531",
+            //                 "balance": "55.10017801",
+            //                 "ts": "1745853486185"
+            //             }
+            //         ],
+            //         "cursor": "122222222222222222"
+            //     }
+            // }
+            //
+        }
+        else {
+            request['symbol'] = market['id'];
+            request['marginCoin'] = market['settleId'];
+            request['businessType'] = 'contract_settle_fee';
+            request['productType'] = productType;
+            response = await this.privateMixGetV2MixAccountBill(this.extend(request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1700795977890,
+            //         "data": {
+            //             "bills": [
+            //                 {
+            //                     "billId": "1111499428100472833",
+            //                     "symbol": "BTCUSDT",
+            //                     "amount": "-0.004992",
+            //                     "fee": "0",
+            //                     "feeByCoupon": "",
+            //                     "businessType": "contract_settle_fee",
+            //                     "coin": "USDT",
+            //                     "cTime": "1700728034996"
+            //                 },
+            //             ],
+            //             "endId": "1098396773329305606"
+            //         }
+            //     }
+            //
+        }
         const data = this.safeValue(response, 'data', {});
-        const result = this.safeValue(data, 'bills', []);
-        return this.parseFundingHistories(result, market, since, limit);
+        let bills = this.safeList2(data, 'bills', 'list', []);
+        if (uta) {
+            bills = this.filterByArray(bills, 'type', ['CONTRACT_MAIN_SETTLE_FEE_USER_IN', 'CONTRACT_MAIN_SETTLE_FEE_USER_OUT'], false);
+        }
+        return this.parseFundingHistories(bills, market, since, limit);
     }
     parseFundingHistory(contract, market = undefined) {
         //
@@ -8933,9 +8979,21 @@ export default class bitget extends Exchange {
         //         "cTime": "1700728034996"
         //     }
         //
+        //     {
+        //         "category": "Margin",
+        //         "id": "13111111111111111",
+        //         "symbol": "BTCUSDT",
+        //         "coin": "BTC",
+        //         "type": "ORDER_DEALT_IN",
+        //         "amount": "0.00531168",
+        //         "fee": "-0.00000531",
+        //         "balance": "55.10017801",
+        //         "ts": "1745853486185"
+        //     }
+        //
         const marketId = this.safeString(contract, 'symbol');
         const currencyId = this.safeString(contract, 'coin');
-        const timestamp = this.safeInteger(contract, 'cTime');
+        const timestamp = this.safeInteger2(contract, 'cTime', 'ts');
         return {
             'info': contract,
             'symbol': this.safeSymbol(marketId, market, undefined, 'swap'),
@@ -8943,17 +9001,18 @@ export default class bitget extends Exchange {
             'datetime': this.iso8601(timestamp),
             'code': this.safeCurrencyCode(currencyId),
             'amount': this.safeNumber(contract, 'amount'),
-            'id': this.safeString(contract, 'billId'),
+            'id': this.safeString2(contract, 'billId', 'id'),
         };
     }
     parseFundingHistories(contracts, market = undefined, since = undefined, limit = undefined) {
         const result = [];
         for (let i = 0; i < contracts.length; i++) {
             const contract = contracts[i];
-            const business = this.safeString(contract, 'businessType');
-            if (business !== 'contract_settle_fee') {
-                continue;
-            }
+            // for non-uta, we've set bussinessType in request payload. Not sure why this existed.
+            // const business = this.safeString (contract, 'businessType');
+            // if (business !== 'contract_settle_fee') {
+            //     continue;
+            // }
             result.push(this.parseFundingHistory(contract, market));
         }
         const sorted = this.sortBy(result, 'timestamp');

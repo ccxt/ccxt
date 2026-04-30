@@ -47,6 +47,9 @@ class cex(ccxt.async_support.cex):
             },
             'options': {
                 'orderbook': {},
+                'watchTrades': {
+                    'symbol': None,
+                },
             },
             'streaming': {
             },
@@ -132,13 +135,16 @@ class cex(ccxt.async_support.cex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
+        currentSymbol = self.safe_string(self.options['watchTrades'], 'symbol')
+        if currentSymbol is not None and currentSymbol != symbol:
+            raise ArgumentsRequired(self.id + ' : self exchange only supports watching trades for one symbol per instance. You should either set .options["watchTrades"]["symbol"] to new symbol, or create a new instance')
+        self.options['watchTrades']['symbol'] = symbol
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         url = self.urls['api']['ws']
         messageHash = 'trades'
         subscriptionHash = 'old:' + symbol
-        self.options['currentWatchTradeSymbol'] = symbol  # exchange supports only 1 symbol for self watchTrades channel
         client = self.safe_value(self.clients, url)
         if client is not None:
             subscriptionKeys = list(client.subscriptions.keys())
@@ -155,9 +161,6 @@ class cex(ccxt.async_support.cex):
         }
         request = self.deep_extend(message, params)
         trades = await self.watch(url, messageHash, request, subscriptionHash)
-        # assing symbol to the trades does not contain symbol information
-        for i in range(0, len(trades)):
-            trades[i]['symbol'] = symbol
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades_snapshot(self, client: Client, message):
@@ -172,27 +175,13 @@ class cex(ccxt.async_support.cex):
         #         ]
         #     }
         #
-        data = self.safe_list(message, 'data', [])
-        limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-        stored = ArrayCache(limit)
-        symbol = self.safe_string(self.options, 'currentWatchTradeSymbol')
-        if symbol is None:
-            return
-        market = self.market(symbol)
-        dataLength = len(data)
-        for i in range(0, dataLength):
-            index = dataLength - 1 - i
-            rawTrade = data[index]
-            parsed = self.parse_ws_old_trade(rawTrade, market)
-            stored.append(parsed)
-        messageHash = 'trades'
-        self.trades = stored  # trades don't have symbol
-        client.resolve(self.trades, messageHash)
+        self.handle_trades_inner(client, message)
 
     def parse_ws_old_trade(self, trade, market=None):
         #
         #  snapshot trade
         #    "sell:1665467367741:3888551:19058.8:14541219"
+        #
         #  update trade
         #    ['buy', '1665467516704', '98070', "19057.7", "14541220"]
         #
@@ -228,17 +217,25 @@ class cex(ccxt.async_support.cex):
         #         ]
         #     }
         #
-        data = self.safe_value(message, 'data', [])
-        stored = self.trades  # to do fix self, self.trades is not meant to be used like self
+        self.handle_trades_inner(client, message)
+
+    def handle_trades_inner(self, client: Client, message):
+        data = self.safe_list(message, 'data', [])
+        symbol = self.safe_string(self.options['watchTrades'], 'symbol')
+        if not (symbol in self.trades):
+            limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+            self.trades[symbol] = ArrayCache(limit)
+        stored = self.trades[symbol]
+        market = self.market(symbol)
         dataLength = len(data)
         for i in range(0, dataLength):
             index = dataLength - 1 - i
             rawTrade = data[index]
-            parsed = self.parse_ws_old_trade(rawTrade)
+            parsed = self.parse_ws_old_trade(rawTrade, market)
             stored.append(parsed)
         messageHash = 'trades'
-        self.trades = stored
-        client.resolve(self.trades, messageHash)
+        self.trades[symbol] = stored
+        client.resolve(self.trades[symbol], messageHash)
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
@@ -855,7 +852,7 @@ class cex(ccxt.async_support.cex):
         #     {
         #         "e": "open-orders",
         #         "data": [{
-        #             "id": "59098421630",
+        #             "id": "59098421631",
         #             "time": "1664062285425",
         #             "type": "buy",
         #             "price": "18920",

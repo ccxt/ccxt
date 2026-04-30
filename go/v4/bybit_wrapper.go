@@ -2871,6 +2871,39 @@ func (this *Bybit) FetchLongShortRatioHistory(options ...FetchLongShortRatioHist
 
 /**
  * @method
+ * @name bybit#fetchPositionsADLRank
+ * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
+ * @see https://bybit-exchange.github.io/docs/v5/position#response-parameters
+ * @param {string[]} [symbols] list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+ */
+func (this *Bybit) FetchPositionsADLRank(options ...FetchPositionsADLRankOptions) ([]ADL, error) {
+
+	opts := FetchPositionsADLRankOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols interface{} = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchPositionsADLRank(symbols, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewADLArray(res), nil
+}
+
+/**
+ * @method
  * @name bybit#fetchMarginMode
  * @description fetches the margin mode of the trading pair
  * @see https://bybit-exchange.github.io/docs/v5/account/account-info

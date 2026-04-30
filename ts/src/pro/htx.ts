@@ -33,10 +33,10 @@ export default class htx extends htxRest {
                 'watchMyTrades': true,
                 'watchBalance': true,
                 'watchOHLCV': true,
-                'unwatchTicker': true,
-                'unwatchOHLCV': true,
-                'unwatchTrades': true,
-                'unwatchOrderBook': true,
+                'unWatchTicker': true,
+                'unWatchOHLCV': true,
+                'unWatchTrades': true,
+                'unWatchOrderBook': true,
             },
             'urls': {
                 'api': {
