@@ -2734,8 +2734,10 @@ export default class aster extends Exchange {
             request['timeInForce'] = this.safeString (this.options, 'defaultTimeInForce'); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         const requestParams = this.omit (params, [ 'newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
-        request['builder'] = this.safeString (this.options, 'builder');
-        request['feeRate'] = this.safeString (this.options, 'builderRate');
+        if (this.safeBool (this.options, 'builderFee')) {
+            request['builder'] = this.safeString (this.options, 'builder');
+            request['feeRate'] = this.safeString (this.options, 'builderRate');
+        }
         return this.extend (request, requestParams);
     }
 
@@ -4233,23 +4235,23 @@ export default class aster extends Exchange {
         if (approvedBuilderFee) {
             return true; // skip if builder fee is already approved
         }
-        const results = await Promise.all ([ this.fapiPrivateGetV3Builder ()]);
+        const result = await this.fapiPrivateGetV3Builder ();
         //
-        // {
-        //     "results": [{
-        //         "builder_account_id": "GRVT_MAIN_ACCOUNT_ID_HERE",
-        //         "max_futures_fee_rate": 0.001,
-        //         "max_spot_fee_rate": 0.0001
-        //     }]
-        // }
+        //    [
+        //        {
+        //            "userAddress": "0x35a5B33Be664B09F78b5089eb6185f71c8a7f11f",
+        //            "builderAddress": "0x1F5877C19e3777Cfd15F9d57253eA4aA5254Ec39",
+        //            "maxFeeRate": "0.001",
+        //            "builderName": "ccxt"
+        //        }
+        //    ]
         //
-        const currentBuilders = results[0];
-        const approvedBuilder = this.safeList (currentBuilders, 'results', []);
-        const length = approvedBuilder.length;
+        const approvedBuilders = result;
+        const length = approvedBuilders.length;
         let found = false;
         for (let i = 0; i < length; i++) {
-            const builderInfo = this.safeDict (approvedBuilder, i, {});
-            const builderAccountId = this.safeString (builderInfo, 'builder_account_id');
+            const builderInfo = this.safeDict (approvedBuilders, i, {});
+            const builderAccountId = this.safeString (builderInfo, 'builderAddress');
             if (builderAccountId === this.safeString (this.options, 'builder')) {
                 found = true;
                 break;
@@ -4268,16 +4270,10 @@ export default class aster extends Exchange {
                 };
                 const authResponse = await this.fapiPrivatePostV3ApproveBuilder (this.extend (request, params));
                 //
-                // {
-                //     "result": {
-                //         "ack": "true",
-                //         "tx_id":"0"
-                //     }
-                // }
+                // {"code": 200,"msg": "success"}
                 //
-                const authResult = this.safeDict (authResponse, 'result');
-                const ack = this.safeBool (authResult, 'ack');
-                if (!ack) {
+                const codeRes = this.safeInteger (authResponse, 'code');
+                if (codeRes !== 200) {
                     throw new ExchangeError ('Builder authorization failed, ' + this.json (authResponse));
                 }
                 this.options['approvedBuilderFee'] = true;
