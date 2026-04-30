@@ -2734,7 +2734,7 @@ export default class aster extends Exchange {
             request['timeInForce'] = this.safeString (this.options, 'defaultTimeInForce'); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         const requestParams = this.omit (params, [ 'newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
-        if (this.safeBool (this.options, 'builderFee')) {
+        if (this.safeBool (this.options, 'builderFee') && market['swap']) {
             request['builder'] = this.safeString (this.options, 'builder');
             request['feeRate'] = this.safeString (this.options, 'builderRate');
         }

@@ -36,7 +36,7 @@
         ],
         "createOrder": [
             {
-                "description": "market buy & trigger",
+                "description": "spot market buy & trigger",
                 "method": "createOrder",
                 "url": "https://sapi.asterdex.com/api/v3/order",
                 "input": [
@@ -49,10 +49,10 @@
                         "triggerPrice": 0.9
                     }
                 ],
-                "output": "nonce=1777576052905000&user=wallet&signer=0x1230000000000000000000000000000000000123&symbol=ASTERUSDT&side=BUY&type=STOP_MARKET&quantity=9.99&stopPrice=0.9&builder=0x1F5877C19e3777Cfd15F9d57253eA4aA5254Ec39&feeRate=0.001&signature=0x648d89a5263be07be907e153e8420479dccd7ba8e1cf48cebfb567528406fa9957a9cb4bea52c819c34607f98b2f1c3410dc15f3ad2d2dc829d89586027f1d1b1c"
+                "output": "nonce=1777576052905000&user=wallet&signer=0x1230000000000000000000000000000000000123&symbol=ASTERUSDT&side=BUY&type=STOP_MARKET&quantity=9.99&stopPrice=0.9&signature=0x648d89a5263be07be907e153e8420479dccd7ba8e1cf48cebfb567528406fa9957a9cb4bea52c819c34607f98b2f1c3410dc15f3ad2d2dc829d89586027f1d1b1c"
             },
             {
-                "description": "market sell",
+                "description": "spot market sell",
                 "method": "createOrder",
                 "url": "https://sapi.asterdex.com/api/v3/order",
                 "input": [
@@ -61,10 +61,10 @@
                     "sell",
                     9.996
                 ],
-                "output": "nonce=1777576052915000&user=wallet&signer=0x1230000000000000000000000000000000000123&symbol=ASTERUSDT&side=SELL&type=MARKET&quantity=9.99&builder=0x1F5877C19e3777Cfd15F9d57253eA4aA5254Ec39&feeRate=0.001&signature=0xf79453f1c847422d4823c737096714901d0b846bcb90fc0c93d2841d651b9468190568d756b457c970729134ab61b2a3d86a0be3b9a10f176efe5f164f110b231b"
+                "output": "nonce=1777576052915000&user=wallet&signer=0x1230000000000000000000000000000000000123&symbol=ASTERUSDT&side=SELL&type=MARKET&quantity=9.99&signature=0xf79453f1c847422d4823c737096714901d0b846bcb90fc0c93d2841d651b9468190568d756b457c970729134ab61b2a3d86a0be3b9a10f176efe5f164f110b231b"
             },
             {
-                "description": "market buy",
+                "description": "spot market buy",
                 "method": "createOrder",
                 "url": "https://sapi.asterdex.com/api/v3/order",
                 "input": [
@@ -73,7 +73,7 @@
                     "buy",
                     10
                 ],
-                "output": "nonce=1777576052919000&user=wallet&signer=0x1230000000000000000000000000000000000123&symbol=ASTERUSDT&side=BUY&type=MARKET&quantity=10&builder=0x1F5877C19e3777Cfd15F9d57253eA4aA5254Ec39&feeRate=0.001&signature=0xfb19b9ae2bec4699c8fbd2b338964cf3f7195c93487e985f6d3357edc8ab647901bc423b4af7cfd533609e866e7441bbdd042e3176e572acca501093e12088081b"
+                "output": "nonce=1777576052919000&user=wallet&signer=0x1230000000000000000000000000000000000123&symbol=ASTERUSDT&side=BUY&type=MARKET&quantity=10&signature=0xfb19b9ae2bec4699c8fbd2b338964cf3f7195c93487e985f6d3357edc8ab647901bc423b4af7cfd533609e866e7441bbdd042e3176e572acca501093e12088081b"
             },
             {
                 "description": "swap trigger & limit",
@@ -92,7 +92,7 @@
                 "output": "nonce=1777576052922000&user=wallet&signer=0x1230000000000000000000000000000000000123&symbol=ASTERUSDT&side=BUY&type=STOP&quantity=10&price=0.7&stopPrice=0.8&builder=0x1F5877C19e3777Cfd15F9d57253eA4aA5254Ec39&feeRate=0.001&signature=0x612399c890cfdcfd0d415d4fb71038bd39c80bce709f3d69cc6ce872e860f44c400b69d77e5563f00b29a3c362514bcb074fc74dd1c171112d90a50c734c08271b"
             },
             {
-                "description": "limit sell order",
+                "description": "swap limit sell",
                 "method": "createOrder",
                 "url": "https://fapi.asterdex.com/fapi/v3/order",
                 "input": [
