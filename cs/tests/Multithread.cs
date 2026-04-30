@@ -9,7 +9,7 @@ public partial class BaseTest
     public static async Task MultithreadTest()
     {
         var startDate = DateTime.UtcNow;
-        var exchange = new ccxt.pro.binance();
+        var exchange = new ccxt.pro.okx();
         exchange.setSandboxMode(true);
         var symbol = "BTC/USDT";
         var parallelCount = 5;
