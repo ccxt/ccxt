@@ -1148,12 +1148,18 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #    {
         #        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
         #    }
-        # transactionType = self.safe_string(transaction, 'type')
+        transactionType = self.safe_string(transaction, 'resource')
         datetime = self.safe_string(transaction, 'updated_at')
         fromPorfolio = self.safe_dict(transaction, 'from_portfolio', {})
         addressFrom = self.safe_string_n(transaction, ['from_address', 'from_cb_account', self.safe_string_n(fromPorfolio, ['id', 'uuid', 'name']), 'from_counterparty_id'])
-        toPorfolio = self.safe_dict(transaction, 'from_portfolio', {})
+        toPorfolio = self.safe_dict(transaction, 'to_portfolio', {})
         addressTo = self.safe_string_n(transaction, ['to_address', 'to_cb_account', self.safe_string_n(toPorfolio, ['id', 'uuid', 'name']), 'to_counterparty_id'])
+        # Populate address field based on transaction type
+        address = None
+        if transactionType == 'send':
+            address = addressTo
+        elif transactionType == 'receive':
+            address = addressFrom
         return {
             'info': transaction,
             'id': self.safe_string(transaction, 'transfer_uuid'),
@@ -1161,7 +1167,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
             'network': self.network_id_to_code(self.safe_string(transaction, 'network_name')),
-            'address': None,  # TODO check if withdraw or deposit and populate
+            'address': address,
             'addressTo': addressTo,
             'addressFrom': addressFrom,
             'tag': None,

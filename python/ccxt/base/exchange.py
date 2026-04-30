@@ -514,7 +514,11 @@ class Exchange(object):
         try:
             with open(path, 'r', encoding=encoding) as file:
                 return file.read()
-        except Exception:
+        except (FileNotFoundError, IsADirectoryError):
+            return None
+        except (PermissionError, UnicodeDecodeError) as e:
+            if self.verbose:
+                self.log(f"Error reading file {path}: {str(e)}")
             return None
 
     def write_file(self, path: str, data: str, encoding: str = 'utf-8'):
@@ -530,7 +534,11 @@ class Exchange(object):
             with open(path, 'w', encoding=encoding) as file:
                 file.write(data)
             return True
-        except Exception:
+        except (PermissionError, IsADirectoryError):
+            return False
+        except UnicodeEncodeError as e:
+            if self.verbose:
+                self.log(f"Error writing file {path}: {str(e)}")
             return False
 
     def exists_file(self, path: str):
@@ -543,7 +551,7 @@ class Exchange(object):
         try:
             import os
             return os.path.isfile(path)
-        except Exception:
+        except (PermissionError, OSError):
             return False
 
     def get_temp_dir(self):
