@@ -271,6 +271,9 @@ abstract class bingx extends \ccxt\Exchange {
     public function swap_v2_private_get_quote_bookticker($params = array()) {
         return $this->request('quote/bookTicker', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function swap_v2_private_post_trade_getvst($params = array()) {
+        return $this->request('trade/getVst', array('swap', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 5));
+    }
     public function swap_v2_private_post_trade_order($params = array()) {
         return $this->request('trade/order', array('swap', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
@@ -828,6 +831,9 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function swapV2PrivateGetQuoteBookTicker($params = array()) {
         return $this->request('quote/bookTicker', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function swapV2PrivatePostTradeGetVst($params = array()) {
+        return $this->request('trade/getVst', array('swap', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 5));
     }
     public function swapV2PrivatePostTradeOrder($params = array()) {
         return $this->request('trade/order', array('swap', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 2));

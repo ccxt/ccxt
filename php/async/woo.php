@@ -96,9 +96,11 @@ class woo extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionADLRank' => true,
                 'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => true,
+                'fetchPositionsADLRank' => true,
                 'fetchPositionsHistory' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
@@ -507,7 +509,7 @@ class woo extends Exchange {
              * @see https://developer.woox.io/api-reference/endpoint/public_data/systemInfo
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-$status-structure $status structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
              */
             $response = Async\await($this->v3PublicGetSystemInfo ($params));
             //
@@ -715,7 +717,7 @@ class woo extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -864,7 +866,7 @@ class woo extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch trading fees in a portfolio margin account
              * @param {string} [$params->subType] "linear" or "inverse"
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -896,7 +898,7 @@ class woo extends Exchange {
              * @see https://developer.woox.io/api-reference/endpoint/account/get_account_info
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
              */
             Async\await($this->load_markets());
             $response = Async\await($this->v3PrivateGetAccountInfo ($params));
@@ -1115,7 +1117,7 @@ class woo extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {float} $cost how much you want to trade in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1136,7 +1138,7 @@ class woo extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {float} $cost how much you want to trade in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1162,7 +1164,7 @@ class woo extends Exchange {
              * @param {float} $trailingAmount the quote $amount to trail away from the current market $price
              * @param {float} $trailingTriggerPrice the $price to activate a trailing order, default uses the $price argument
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             if ($trailingAmount === null) {
                 throw new ArgumentsRequired($this->id . ' createTrailingAmountOrder() requires a $trailingAmount argument');
@@ -1191,7 +1193,7 @@ class woo extends Exchange {
              * @param {float} $trailingPercent the percent to trail away from the current market $price
              * @param {float} $trailingTriggerPrice the $price to activate a trailing order, default uses the $price argument
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             if ($trailingPercent === null) {
                 throw new ArgumentsRequired($this->id . ' createTrailingPercentOrder() requires a $trailingPercent argument');
@@ -1231,7 +1233,7 @@ class woo extends Exchange {
              * @param {string} [$params->trailingPercent] the percent to trail away from the current $market $price
              * @param {string} [$params->trailingTriggerPrice] the $price to trigger a trailing order, default uses the $price argument
              * @param {string} [$params->position_side] 'SHORT' or 'LONG' - if position mode is HEDGE_MODE and the trading involves futures, then is required, otherwise this parameter is not required
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
             $params = $this->omit($params, array( 'reduceOnly', 'reduce_only' ));
@@ -1251,6 +1253,8 @@ class woo extends Exchange {
             $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
             $stopLoss = $this->safe_value($params, 'stopLoss');
             $takeProfit = $this->safe_value($params, 'takeProfit');
+            $hasStopLoss = ($stopLoss !== null);
+            $hasTakeProfit = ($takeProfit !== null);
             $algoType = $this->safe_string($params, 'algoType');
             $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activatedPrice', $this->number_to_string($price));
             $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'callbackValue');
@@ -1258,7 +1262,7 @@ class woo extends Exchange {
             $isTrailingAmountOrder = $trailingAmount !== null;
             $isTrailingPercentOrder = $trailingPercent !== null;
             $isTrailing = $isTrailingAmountOrder || $isTrailingPercentOrder;
-            $isConditional = $isTrailing || $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($params, 'childOrders') !== null);
+            $isConditional = $isTrailing || $triggerPrice !== null || $hasStopLoss || $hasTakeProfit || ($this->safe_value($params, 'childOrders') !== null);
             $isMarket = $orderType === 'MARKET';
             $timeInForce = $this->safe_string_lower($params, 'timeInForce');
             $postOnly = $this->is_post_only($isMarket, null, $params);
@@ -1322,7 +1326,7 @@ class woo extends Exchange {
                     $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
                     $request['algoType'] = 'STOP';
                 }
-            } elseif (($stopLoss !== null) || ($takeProfit !== null)) {
+            } elseif ($hasStopLoss || $hasTakeProfit) {
                 $request['algoType'] = 'BRACKET';
                 $outterOrder = array(
                     'symbol' => $market['id'],
@@ -1332,7 +1336,7 @@ class woo extends Exchange {
                 );
                 $childOrders = $outterOrder['childOrders'];
                 $closeSide = ($orderSide === 'BUY') ? 'SELL' : 'BUY';
-                if ($stopLoss !== null) {
+                if ($hasStopLoss) {
                     $stopLossPrice = $this->safe_string($stopLoss, 'triggerPrice', $stopLoss);
                     $stopLossOrder = array(
                         'side' => $closeSide,
@@ -1343,7 +1347,7 @@ class woo extends Exchange {
                     );
                     $childOrders[] = $stopLossOrder;
                 }
-                if ($takeProfit !== null) {
+                if ($hasTakeProfit) {
                     $takeProfitPrice = $this->safe_string($takeProfit, 'triggerPrice', $takeProfit);
                     $takeProfitOrder = array(
                         'side' => $closeSide,
@@ -1432,7 +1436,7 @@ class woo extends Exchange {
              * @param {string} [$params->trailingAmount] the quote $amount to trail away from the current $market $price
              * @param {string} [$params->trailingPercent] the percent to trail away from the current $market $price
              * @param {string} [$params->trailingTriggerPrice] the $price to trigger a trailing order, default uses the $price argument
-             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1517,7 +1521,7 @@ class woo extends Exchange {
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
             $params = $this->omit($params, array( 'trigger', 'stop' ));
@@ -1582,7 +1586,7 @@ class woo extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
-             * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
@@ -1653,7 +1657,7 @@ class woo extends Exchange {
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1768,7 +1772,7 @@ class woo extends Exchange {
              * @param {boolean} [$params->isTriggered] whether the order has been triggered (false by default)
              * @param {string} [$params->side] 'buy' or 'sell'
              * @param {boolean} [$params->paginate] set to true if you want to fetch $orders with pagination
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $paginate = false;
@@ -1909,7 +1913,7 @@ class woo extends Exchange {
              * @param {string} [$params->side] 'buy' or 'sell'
              * @param {boolean} [$params->trailing] set to true if you want to fetch trailing orders
              * @param {boolean} [$params->paginate] set to true if you want to fetch orders with pagination
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $extendedParams = $this->extend($params, array( 'status' => 'INCOMPLETE' ));
@@ -1934,7 +1938,7 @@ class woo extends Exchange {
              * @param {string} [$params->side] 'buy' or 'sell'
              * @param {boolean} [$params->trailing] set to true if you want to fetch trailing orders
              * @param {boolean} [$params->paginate] set to true if you want to fetch orders with pagination
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $extendedParams = $this->extend($params, array( 'status' => 'COMPLETED' ));
@@ -2131,7 +2135,7 @@ class woo extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2194,7 +2198,7 @@ class woo extends Exchange {
                 $request['limit'] = min ($limit, 1000);
             }
             if ($since !== null) {
-                $request['after'] = $since;
+                $request['after'] = $since - 1; // #27793
             }
             $until = $this->safe_integer($params, 'until');
             $params = $this->omit($params, 'until');
@@ -2253,7 +2257,7 @@ class woo extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -2299,7 +2303,7 @@ class woo extends Exchange {
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->paginate] set to true if you want to fetch $trades with pagination
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $paginate = false;
@@ -2369,7 +2373,7 @@ class woo extends Exchange {
              * @see https://developer.woox.io/api-reference/endpoint/account/sub_accounts
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=account-structure account structures~ indexed by the account type
              */
             $mainAccountPromise = $this->v3PrivateGetAccountInfo ($params);
             //
@@ -2476,7 +2480,7 @@ class woo extends Exchange {
              * @see https://docs.woox.io/#get-current-holding-get-balance-new
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->v3PrivateGetAssetBalances ($params));
@@ -2533,7 +2537,7 @@ class woo extends Exchange {
              *
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
              */
             // this method is TODO because of networks unification
             Async\await($this->load_markets());
@@ -2662,7 +2666,7 @@ class woo extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entries to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
              */
             $currencyRows = Async\await($this->get_asset_history_rows($code, $since, $limit, $params));
             $currency = $this->safe_value($currencyRows, 0);
@@ -2756,7 +2760,7 @@ class woo extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
             $request = array(
                 'tokenSide' => 'DEPOSIT',
@@ -2776,7 +2780,7 @@ class woo extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
             $request = array(
                 'tokenSide' => 'WITHDRAW',
@@ -2796,7 +2800,7 @@ class woo extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
              * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
             $request = array(
                 'type' => 'BALANCE',
@@ -2889,7 +2893,7 @@ class woo extends Exchange {
              * @param {string} $fromAccount account to $transfer from
              * @param {string} $toAccount account to $transfer to
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transfer-structure $transfer structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=$transfer-structure $transfer structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -2938,7 +2942,7 @@ class woo extends Exchange {
              * @param {int} [$limit] the maximum number of  transfers structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
              */
             $request = array();
             $currency = null;
@@ -3077,7 +3081,7 @@ class woo extends Exchange {
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             Async\await($this->load_markets());
@@ -3131,7 +3135,7 @@ class woo extends Exchange {
              * @param {float} $amount the $amount to repay
              * @param {string} $symbol not used by woo.repayMargin ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=margin-loan-structure margin loan structure~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -3316,7 +3320,7 @@ class woo extends Exchange {
              * @param {int} [$limit] the maximum number of funding history structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structure~
              */
             Async\await($this->load_markets());
             $paginate = false;
@@ -3388,12 +3392,24 @@ class woo extends Exchange {
         //         "estFundingIntervalHours" => 8
         //     }
         //
+        // watchFundingRate
+        //
+        //     {
+        //         "symbol" => "PERP_BTC_USDT",
+        //         "fundingRate" => 0.0001,
+        //         "fundingTs" => 1771488000000
+        //     }
+        //
         $symbol = $this->safe_string($fundingRate, 'symbol');
         $market = $this->market($symbol);
-        $nextFundingTimestamp = $this->safe_integer($fundingRate, 'nextFundingTime');
+        $nextFundingTimestamp = $this->safe_integer_2($fundingRate, 'nextFundingTime', 'fundingTs');
         $estFundingRateTimestamp = $this->safe_integer($fundingRate, 'estFundingRateTimestamp');
         $lastFundingRateTimestamp = $this->safe_integer($fundingRate, 'lastFundingRateTimestamp');
         $intervalString = $this->safe_string($fundingRate, 'estFundingIntervalHours');
+        $interval = null;
+        if ($intervalString !== null) {
+            $interval = $intervalString . 'h';
+        }
         return array(
             'info' => $fundingRate,
             'symbol' => $market['symbol'],
@@ -3403,7 +3419,7 @@ class woo extends Exchange {
             'estimatedSettlePrice' => null,
             'timestamp' => $estFundingRateTimestamp,
             'datetime' => $this->iso8601($estFundingRateTimestamp),
-            'fundingRate' => $this->safe_number($fundingRate, 'estFundingRate'),
+            'fundingRate' => $this->safe_number_2($fundingRate, 'estFundingRate', 'fundingRate'),
             'fundingTimestamp' => $nextFundingTimestamp,
             'fundingDatetime' => $this->iso8601($nextFundingTimestamp),
             'nextFundingRate' => null,
@@ -3412,7 +3428,7 @@ class woo extends Exchange {
             'previousFundingRate' => $this->safe_number($fundingRate, 'lastFundingRate'),
             'previousFundingTimestamp' => $lastFundingRateTimestamp,
             'previousFundingDatetime' => $this->iso8601($lastFundingRateTimestamp),
-            'interval' => $intervalString . 'h',
+            'interval' => $interval,
         );
     }
 
@@ -3425,7 +3441,7 @@ class woo extends Exchange {
              *
              * @param {string} $symbol unified market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
              */
             return Async\await($this->fetch_funding_rate($symbol, $params));
         }) ();
@@ -3440,7 +3456,7 @@ class woo extends Exchange {
              *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -3484,7 +3500,7 @@ class woo extends Exchange {
              *
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rate structures~, indexed by market $symbols
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rate structures~, indexed by market $symbols
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -3524,11 +3540,11 @@ class woo extends Exchange {
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
              * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
-             * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
+             * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] $timestamp in ms of the latest funding rate
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
              */
             Async\await($this->load_markets());
             $paginate = false;
@@ -3635,7 +3651,7 @@ class woo extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] *for swap markets only* 'cross' or 'isolated'
              * @param {string} [$params->positionMode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -3808,7 +3824,7 @@ class woo extends Exchange {
              * @param {float} $amount amount of margin to add
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->position_side] 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, 'ADD', $params));
         }) ();
@@ -3825,7 +3841,7 @@ class woo extends Exchange {
              * @param {float} $amount amount of margin to remove
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->position_side] 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=reduce-margin-structure margin structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, 'REDUCE', $params));
         }) ();
@@ -3854,7 +3870,7 @@ class woo extends Exchange {
              *
              * @param {string} $symbol unified $market $symbol of the $market the position is held in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -3909,7 +3925,7 @@ class woo extends Exchange {
              *
              * @param {string[]} [$symbols] list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->v3PrivateGetFuturesPositions ($params));
@@ -4067,7 +4083,7 @@ class woo extends Exchange {
              * @param {string} $toCode the currency that you want to buy and convert into
              * @param {float} [$amount] how much you want to trade in units of the from currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=conversion-structure conversion structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=conversion-structure conversion structure~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -4113,7 +4129,7 @@ class woo extends Exchange {
              * @param {string} $toCode the currency that you want to buy and convert into
              * @param {float} [$amount] how much you want to trade in units of the from currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=conversion-structure conversion structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?$id=conversion-structure conversion structure~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -4145,7 +4161,7 @@ class woo extends Exchange {
              * @param {string} $id the $id of the trade that you want to fetch
              * @param {string} [$code] the unified currency $code of the conversion trade
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=conversion-structure conversion structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?$id=conversion-structure conversion structure~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -4193,7 +4209,7 @@ class woo extends Exchange {
              * @param {int} [$limit] the maximum number of conversion structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest conversion to fetch
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=conversion-structure conversion structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=conversion-structure conversion structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -4348,6 +4364,96 @@ class woo extends Exchange {
             }
             return $result;
         }) ();
+    }
+
+    public function fetch_positions_adl_rank(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches the auto deleveraging rank and risk percentage for a list of $symbols
+             *
+             * @see https://docs.woox.io/#get-all-position-info-new
+             *
+             * @param {string[]} [$symbols] a list of unified market $symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structures~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true, true, true);
+            $response = Async\await($this->v3PrivateGetFuturesPositions ($params));
+            //
+            //     {
+            //         "success" => true,
+            //         "data" => array(
+            //             "positions" => array(
+            //                 array(
+            //                     "symbol" => "PERP_BTC_USDT",
+            //                     "holding" => "0.001",
+            //                     "pendingLongQty" => "0",
+            //                     "pendingShortQty" => "0",
+            //                     "settlePrice" => "90732",
+            //                     "averageOpenPrice" => "90732",
+            //                     "pnl24H" => "-0.001",
+            //                     "fee24H" => "0.1360115",
+            //                     "markPrice" => "90736",
+            //                     "estLiqPrice" => "0",
+            //                     "timestamp" => 1768049379264,
+            //                     "adlQuantile" => 3,
+            //                     "positionSide" => "BOTH",
+            //                     "marginMode" => "CROSS",
+            //                     "isolatedMarginToken" => "",
+            //                     "isolatedMarginAmount" => "0",
+            //                     "isolatedFrozenLong" => "0",
+            //                     "isolatedFrozenShort" => "0",
+            //                     "leverage" => 10
+            //                 ),
+            //             )
+            //         ),
+            //         "timestamp" => 1768049428472
+            //     }
+            //
+            $result = $this->safe_dict($response, 'data', array());
+            $positions = $this->safe_list($result, 'positions', array());
+            return $this->parse_adl_ranks($positions, $symbols);
+        }) ();
+    }
+
+    public function parse_adl_rank(array $info, ?array $market = null): array {
+        //
+        // fetchPositionsADLRank
+        //
+        //     {
+        //         "symbol" => "PERP_BTC_USDT",
+        //         "holding" => "0.001",
+        //         "pendingLongQty" => "0",
+        //         "pendingShortQty" => "0",
+        //         "settlePrice" => "90732",
+        //         "averageOpenPrice" => "90732",
+        //         "pnl24H" => "-0.001",
+        //         "fee24H" => "0.1360115",
+        //         "markPrice" => "90736",
+        //         "estLiqPrice" => "0",
+        //         "timestamp" => 1768049379264,
+        //         "adlQuantile" => 3,
+        //         "positionSide" => "BOTH",
+        //         "marginMode" => "CROSS",
+        //         "isolatedMarginToken" => "",
+        //         "isolatedMarginAmount" => "0",
+        //         "isolatedFrozenLong" => "0",
+        //         "isolatedFrozenShort" => "0",
+        //         "leverage" => 10
+        //     }
+        //
+        $marketId = $this->safe_string($info, 'symbol');
+        $timestamp = $this->safe_integer($info, 'timestamp');
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
+            'rank' => $this->safe_number($info, 'adlQuantile'),
+            'rating' => null,
+            'percentage' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
     }
 
     public function default_network_code_for_currency($code) {

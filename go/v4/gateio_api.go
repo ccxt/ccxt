@@ -343,6 +343,10 @@ func (this *GateioCore) PrivateWalletGetPush(args ...interface{}) <-chan interfa
 	return this.callEndpointAsync("privateWalletGetPush", args...)
 }
 
+func (this *GateioCore) PrivateWalletGetGetLowCapExchangeList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateWalletGetGetLowCapExchangeList", args...)
+}
+
 func (this *GateioCore) PrivateWalletPostTransfers(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateWalletPostTransfers", args...)
 }
@@ -759,6 +763,10 @@ func (this *GateioCore) PrivateFuturesGetSettlePositionsContract(args ...interfa
 	return this.callEndpointAsync("privateFuturesGetSettlePositionsContract", args...)
 }
 
+func (this *GateioCore) PrivateFuturesGetSettleGetLeverageContract(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateFuturesGetSettleGetLeverageContract", args...)
+}
+
 func (this *GateioCore) PrivateFuturesGetSettleDualCompPositionsContract(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateFuturesGetSettleDualCompPositionsContract", args...)
 }
@@ -819,6 +827,10 @@ func (this *GateioCore) PrivateFuturesPostSettlePositionsContractLeverage(args .
 	return this.callEndpointAsync("privateFuturesPostSettlePositionsContractLeverage", args...)
 }
 
+func (this *GateioCore) PrivateFuturesPostSettlePositionsContractSetLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateFuturesPostSettlePositionsContractSetLeverage", args...)
+}
+
 func (this *GateioCore) PrivateFuturesPostSettlePositionsContractRiskLimit(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateFuturesPostSettlePositionsContractRiskLimit", args...)
 }
@@ -833,6 +845,10 @@ func (this *GateioCore) PrivateFuturesPostSettleDualCompPositionsCrossMode(args 
 
 func (this *GateioCore) PrivateFuturesPostSettleDualMode(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateFuturesPostSettleDualMode", args...)
+}
+
+func (this *GateioCore) PrivateFuturesPostSettleSetPositionMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateFuturesPostSettleSetPositionMode", args...)
 }
 
 func (this *GateioCore) PrivateFuturesPostSettleDualCompPositionsContractMargin(args ...interface{}) <-chan interface{} {
@@ -877,6 +893,10 @@ func (this *GateioCore) PrivateFuturesPostSettlePriceOrders(args ...interface{})
 
 func (this *GateioCore) PrivateFuturesPutSettleOrdersOrderId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateFuturesPutSettleOrdersOrderId", args...)
+}
+
+func (this *GateioCore) PrivateFuturesPutSettlePriceOrdersOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateFuturesPutSettlePriceOrdersOrderId", args...)
 }
 
 func (this *GateioCore) PrivateFuturesDeleteSettleOrders(args ...interface{}) <-chan interface{} {
@@ -1077,6 +1097,10 @@ func (this *GateioCore) PrivateEarnGetStakingEth2RateRecords(args ...interface{}
 
 func (this *GateioCore) PrivateEarnGetDualOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateEarnGetDualOrders", args...)
+}
+
+func (this *GateioCore) PrivateEarnGetDualBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateEarnGetDualBalance", args...)
 }
 
 func (this *GateioCore) PrivateEarnGetStructuredOrders(args ...interface{}) <-chan interface{} {
@@ -1301,4 +1325,40 @@ func (this *GateioCore) PrivateRebateGetUserInfo(args ...interface{}) <-chan int
 
 func (this *GateioCore) PrivateRebateGetUserSubRelation(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateRebateGetUserSubRelation", args...)
+}
+
+func (this *GateioCore) PrivateOtcGetGetUserDefBank(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateOtcGetGetUserDefBank", args...)
+}
+
+func (this *GateioCore) PrivateOtcGetOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateOtcGetOrderList", args...)
+}
+
+func (this *GateioCore) PrivateOtcGetStableCoinOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateOtcGetStableCoinOrderList", args...)
+}
+
+func (this *GateioCore) PrivateOtcGetOrderDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateOtcGetOrderDetail", args...)
+}
+
+func (this *GateioCore) PrivateOtcPostQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateOtcPostQuote", args...)
+}
+
+func (this *GateioCore) PrivateOtcPostOrderCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateOtcPostOrderCreate", args...)
+}
+
+func (this *GateioCore) PrivateOtcPostStableCoinOrderCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateOtcPostStableCoinOrderCreate", args...)
+}
+
+func (this *GateioCore) PrivateOtcPostOrderPaid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateOtcPostOrderPaid", args...)
+}
+
+func (this *GateioCore) PrivateOtcPostOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateOtcPostOrderCancel", args...)
 }

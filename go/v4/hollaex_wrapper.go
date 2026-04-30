@@ -66,7 +66,7 @@ func (this *Hollaex) FetchCurrencies(params ...interface{}) (Currencies, error) 
  * @param {string[]|undefined} symbols not used by hollaex fetchOrderBooks ()
  * @param {int} [limit] not used by hollaex fetchOrderBooks ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
+ * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
  */
 func (this *Hollaex) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 
@@ -105,7 +105,7 @@ func (this *Hollaex) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBo
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Hollaex) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -138,7 +138,7 @@ func (this *Hollaex) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
  * @see https://apidocs.hollaex.com/#ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Hollaex) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -166,7 +166,7 @@ func (this *Hollaex) FetchTicker(symbol string, options ...FetchTickerOptions) (
  * @see https://apidocs.hollaex.com/#tickers
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Hollaex) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -201,7 +201,7 @@ func (this *Hollaex) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Hollaex) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -238,7 +238,7 @@ func (this *Hollaex) FetchTrades(symbol string, options ...FetchTradesOptions) (
  * @description fetch the trading fees for multiple markets
  * @see https://apidocs.hollaex.com/#tiers
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *Hollaex) FetchTradingFees(params ...interface{}) (TradingFees, error) {
 	res := <-this.Core.FetchTradingFees(params...)
@@ -301,7 +301,7 @@ func (this *Hollaex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://apidocs.hollaex.com/#get-balance
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Hollaex) FetchBalance(params ...interface{}) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
@@ -319,7 +319,7 @@ func (this *Hollaex) FetchBalance(params ...interface{}) (Balances, error) {
  * @param {string} id order id
  * @param {string} symbol not used by hollaex fetchOpenOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hollaex) FetchOpenOrder(id string, options ...FetchOpenOrderOptions) (Order, error) {
 
@@ -354,7 +354,7 @@ func (this *Hollaex) FetchOpenOrder(id string, options ...FetchOpenOrderOptions)
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hollaex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -399,7 +399,7 @@ func (this *Hollaex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hollaex) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 
@@ -443,7 +443,7 @@ func (this *Hollaex) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]O
  * @param {string} id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hollaex) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -478,7 +478,7 @@ func (this *Hollaex) FetchOrder(id string, options ...FetchOrderOptions) (Order,
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hollaex) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 
@@ -527,7 +527,7 @@ func (this *Hollaex) FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
  * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hollaex) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -561,7 +561,7 @@ func (this *Hollaex) CreateOrder(symbol string, typeVar string, side string, amo
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hollaex) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -594,7 +594,7 @@ func (this *Hollaex) CancelOrder(id string, options ...CancelOrderOptions) (Orde
  * @see https://apidocs.hollaex.com/#cancel-all-orders
  * @param {string} symbol unified market symbol of the market to cancel orders in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hollaex) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 
@@ -629,7 +629,7 @@ func (this *Hollaex) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Hollaex) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -672,7 +672,7 @@ func (this *Hollaex) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
  * @see https://apidocs.hollaex.com/#get-user
  * @param {string[]|undefined} codes list of unified currency codes, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Hollaex) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 
@@ -707,7 +707,7 @@ func (this *Hollaex) FetchDepositAddresses(options ...FetchDepositAddressesOptio
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Hollaex) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -751,7 +751,7 @@ func (this *Hollaex) FetchDeposits(options ...FetchDepositsOptions) ([]Transacti
  * @param {string} id withdrawal id
  * @param {string} code unified currency code of the currency withdrawn, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Hollaex) FetchWithdrawal(id string, options ...FetchWithdrawalOptions) (Transaction, error) {
 
@@ -786,7 +786,7 @@ func (this *Hollaex) FetchWithdrawal(id string, options ...FetchWithdrawalOption
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Hollaex) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
@@ -832,7 +832,7 @@ func (this *Hollaex) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tra
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Hollaex) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 
@@ -865,7 +865,7 @@ func (this *Hollaex) Withdraw(code string, amount float64, address string, optio
  * @see https://apidocs.hollaex.com/#constants
  * @param {string[]|undefined} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Hollaex) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
 

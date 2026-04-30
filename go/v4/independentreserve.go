@@ -153,9 +153,10 @@ func (this *IndependentreserveCore) Describe() interface{} {
 					"takeProfitPrice":            false,
 					"attachedStopLossTakeProfit": nil,
 					"timeInForce": map[string]interface{}{
-						"IOC": false,
-						"FOK": false,
-						"PO":  false,
+						"GTC": true,
+						"IOC": true,
+						"FOK": true,
+						"PO":  true,
 						"GTD": false,
 					},
 					"hedged":                 false,
@@ -389,7 +390,7 @@ func (this *IndependentreserveCore) ParseBalance(response interface{}) interface
  * @name independentreserve#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *IndependentreserveCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -399,8 +400,8 @@ func (this *IndependentreserveCore) FetchBalance(optionalArgs ...interface{}) <-
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes4228 := (<-this.LoadMarkets())
-		PanicOnError(retRes4228)
+		retRes4238 := (<-this.LoadMarkets())
+		PanicOnError(retRes4238)
 
 		response := (<-this.PrivatePostGetAccounts(params))
 		PanicOnError(response)
@@ -419,7 +420,7 @@ func (this *IndependentreserveCore) FetchBalance(optionalArgs ...interface{}) <-
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *IndependentreserveCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -431,8 +432,8 @@ func (this *IndependentreserveCore) FetchOrderBook(symbol interface{}, optionalA
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes4378 := (<-this.LoadMarkets())
-		PanicOnError(retRes4378)
+		retRes4388 := (<-this.LoadMarkets())
+		PanicOnError(retRes4388)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"primaryCurrencyCode":   GetValue(market, "baseId"),
@@ -505,7 +506,7 @@ func (this *IndependentreserveCore) ParseTicker(ticker interface{}, optionalArgs
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *IndependentreserveCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -515,8 +516,8 @@ func (this *IndependentreserveCore) FetchTicker(symbol interface{}, optionalArgs
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes5058 := (<-this.LoadMarkets())
-		PanicOnError(retRes5058)
+		retRes5068 := (<-this.LoadMarkets())
+		PanicOnError(retRes5068)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"primaryCurrencyCode":   GetValue(market, "baseId"),
@@ -641,7 +642,7 @@ func (this *IndependentreserveCore) ParseOrder(order interface{}, optionalArgs .
 		"lastTradeTimestamp": nil,
 		"symbol":             symbol,
 		"type":               orderType,
-		"timeInForce":        nil,
+		"timeInForce":        this.ParseTimeInForce(this.SafeString(order, "TimeInForce")),
 		"postOnly":           nil,
 		"side":               side,
 		"price":              this.SafeString(order, "Price"),
@@ -669,8 +670,18 @@ func (this *IndependentreserveCore) ParseOrderStatus(status interface{}) interfa
 		"Cancelled":                   "canceled",
 		"PartiallyFilledAndExpired":   "canceled",
 		"Expired":                     "canceled",
+		"Failed":                      "canceled",
 	}
 	return this.SafeString(statuses, status, status)
+}
+func (this *IndependentreserveCore) ParseTimeInForce(timeInForce interface{}) interface{} {
+	var timeInForces interface{} = map[string]interface{}{
+		"Gtc": "GTC",
+		"Moc": "PO",
+		"Fok": "FOK",
+		"Ioc": "IOC",
+	}
+	return this.SafeString(timeInForces, timeInForce, timeInForce)
 }
 
 /**
@@ -680,7 +691,7 @@ func (this *IndependentreserveCore) ParseOrderStatus(status interface{}) interfa
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *IndependentreserveCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -692,8 +703,8 @@ func (this *IndependentreserveCore) FetchOrder(id interface{}, optionalArgs ...i
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes6658 := (<-this.LoadMarkets())
-		PanicOnError(retRes6658)
+		retRes6778 := (<-this.LoadMarkets())
+		PanicOnError(retRes6778)
 
 		response := (<-this.PrivatePostGetOrderDetails(this.Extend(map[string]interface{}{
 			"orderGuid": id,
@@ -719,7 +730,7 @@ func (this *IndependentreserveCore) FetchOrder(id interface{}, optionalArgs ...i
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *IndependentreserveCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -735,9 +746,9 @@ func (this *IndependentreserveCore) FetchOpenOrders(optionalArgs ...interface{})
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes6878 := (<-this.LoadMarkets())
-		PanicOnError(retRes6878)
-		var request interface{} = this.Ordered(map[string]interface{}{})
+		retRes6998 := (<-this.LoadMarkets())
+		PanicOnError(retRes6998)
+		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -769,7 +780,7 @@ func (this *IndependentreserveCore) FetchOpenOrders(optionalArgs ...interface{})
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *IndependentreserveCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -785,9 +796,9 @@ func (this *IndependentreserveCore) FetchClosedOrders(optionalArgs ...interface{
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes7168 := (<-this.LoadMarkets())
-		PanicOnError(retRes7168)
-		var request interface{} = this.Ordered(map[string]interface{}{})
+		retRes7288 := (<-this.LoadMarkets())
+		PanicOnError(retRes7288)
+		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -819,7 +830,7 @@ func (this *IndependentreserveCore) FetchClosedOrders(optionalArgs ...interface{
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *IndependentreserveCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -835,16 +846,16 @@ func (this *IndependentreserveCore) FetchMyTrades(optionalArgs ...interface{}) <
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes7458 := (<-this.LoadMarkets())
-		PanicOnError(retRes7458)
+		retRes7578 := (<-this.LoadMarkets())
+		PanicOnError(retRes7578)
 		var pageIndex interface{} = this.SafeInteger(params, "pageIndex", 1)
 		if IsTrue(IsEqual(limit, nil)) {
 			limit = 50
 		}
-		var request interface{} = this.Ordered(map[string]interface{}{
+		var request interface{} = map[string]interface{}{
 			"pageIndex": pageIndex,
 			"pageSize":  limit,
-		})
+		}
 
 		response := (<-this.PrivatePostGetTrades(this.Extend(request, params)))
 		PanicOnError(response)
@@ -910,7 +921,7 @@ func (this *IndependentreserveCore) ParseTrade(trade interface{}, optionalArgs .
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *IndependentreserveCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -924,8 +935,8 @@ func (this *IndependentreserveCore) FetchTrades(symbol interface{}, optionalArgs
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes8148 := (<-this.LoadMarkets())
-		PanicOnError(retRes8148)
+		retRes8268 := (<-this.LoadMarkets())
+		PanicOnError(retRes8268)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"primaryCurrencyCode":            GetValue(market, "baseId"),
@@ -948,7 +959,7 @@ func (this *IndependentreserveCore) FetchTrades(symbol interface{}, optionalArgs
  * @name independentreserve#fetchTradingFees
  * @description fetch the trading fees for multiple markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *IndependentreserveCore) FetchTradingFees(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -958,8 +969,8 @@ func (this *IndependentreserveCore) FetchTradingFees(optionalArgs ...interface{}
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes8338 := (<-this.LoadMarkets())
-		PanicOnError(retRes8338)
+		retRes8458 := (<-this.LoadMarkets())
+		PanicOnError(retRes8458)
 
 		response := (<-this.PrivatePostGetBrokerageFees(params))
 		PanicOnError(response)
@@ -1015,7 +1026,7 @@ func (this *IndependentreserveCore) FetchTradingFees(optionalArgs ...interface{}
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *IndependentreserveCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1027,16 +1038,16 @@ func (this *IndependentreserveCore) CreateOrder(symbol interface{}, typeVar inte
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes8858 := (<-this.LoadMarkets())
-		PanicOnError(retRes8858)
+		retRes8978 := (<-this.LoadMarkets())
+		PanicOnError(retRes8978)
 		var market interface{} = this.Market(symbol)
 		var orderType interface{} = this.Capitalize(typeVar)
 		orderType = Add(orderType, Ternary(IsTrue((IsEqual(side, "sell"))), "Offer", "Bid"))
-		var request interface{} = this.Ordered(map[string]interface{}{
+		var request interface{} = map[string]interface{}{
 			"primaryCurrencyCode":   GetValue(market, "baseId"),
 			"secondaryCurrencyCode": GetValue(market, "quoteId"),
 			"orderType":             orderType,
-		})
+		}
 		var response interface{} = nil
 		AddElementToObject(request, "volume", amount)
 		if IsTrue(IsEqual(typeVar, "limit")) {
@@ -1068,7 +1079,7 @@ func (this *IndependentreserveCore) CreateOrder(symbol interface{}, typeVar inte
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *IndependentreserveCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1080,8 +1091,8 @@ func (this *IndependentreserveCore) CancelOrder(id interface{}, optionalArgs ...
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes9198 := (<-this.LoadMarkets())
-		PanicOnError(retRes9198)
+		retRes9318 := (<-this.LoadMarkets())
+		PanicOnError(retRes9318)
 		var request interface{} = map[string]interface{}{
 			"orderGuid": id,
 		}
@@ -1118,7 +1129,7 @@ func (this *IndependentreserveCore) CancelOrder(id interface{}, optionalArgs ...
  * @see https://www.independentreserve.com/features/api#GetDigitalCurrencyDepositAddress
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *IndependentreserveCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1128,8 +1139,8 @@ func (this *IndependentreserveCore) FetchDepositAddress(code interface{}, option
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes9528 := (<-this.LoadMarkets())
-		PanicOnError(retRes9528)
+		retRes9648 := (<-this.LoadMarkets())
+		PanicOnError(retRes9648)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"primaryCurrencyCode": GetValue(currency, "id"),
@@ -1187,7 +1198,7 @@ func (this *IndependentreserveCore) ParseDepositAddress(depositAddress interface
  *
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {object} [params.comment] withdrawal comment, should not exceed 500 characters
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *IndependentreserveCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1202,8 +1213,8 @@ func (this *IndependentreserveCore) Withdraw(code interface{}, amount interface{
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
 
-		retRes10068 := (<-this.LoadMarkets())
-		PanicOnError(retRes10068)
+		retRes10188 := (<-this.LoadMarkets())
+		PanicOnError(retRes10188)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"primaryCurrencyCode": GetValue(currency, "id"),
@@ -1329,7 +1340,7 @@ func (this *IndependentreserveCore) Sign(path interface{}, optionalArgs ...inter
 		}
 		var message interface{} = Join(auth, ",")
 		var signature interface{} = this.Hmac(this.Encode(message), this.Encode(this.Secret), sha256)
-		var query interface{} = this.Ordered(map[string]interface{}{})
+		var query interface{} = map[string]interface{}{}
 		AddElementToObject(query, "apiKey", this.ApiKey)
 		AddElementToObject(query, "nonce", nonce)
 		AddElementToObject(query, "signature", ToUpper(signature))

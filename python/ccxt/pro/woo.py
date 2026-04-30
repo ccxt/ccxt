@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -22,6 +22,8 @@ class woo(ccxt.async_support.woo):
             'has': {
                 'ws': True,
                 'watchBalance': True,
+                'watchFundingRate': True,
+                'watchFundingRates': False,
                 'watchMyTrades': True,
                 'watchOHLCV': True,
                 'watchOrderBook': True,
@@ -131,7 +133,7 @@ class woo(ccxt.async_support.woo):
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.method]: either(default) 'orderbook' or 'orderbookupdate', default is 'orderbook'
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         method = None
@@ -167,7 +169,7 @@ class woo(ccxt.async_support.woo):
 
         :param str symbol: unified symbol of the market
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         method = None
@@ -294,7 +296,7 @@ class woo(ccxt.async_support.woo):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         name = 'ticker'
@@ -313,7 +315,7 @@ class woo(ccxt.async_support.woo):
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         method = None
@@ -396,7 +398,7 @@ class woo(ccxt.async_support.woo):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -418,7 +420,7 @@ class woo(ccxt.async_support.woo):
         stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] symbols: unified symbol of the market to stop fetching the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         if symbols is not None:
@@ -477,7 +479,7 @@ class woo(ccxt.async_support.woo):
         watches best bid & ask for symbols
         :param str[] [symbols]: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -501,7 +503,7 @@ class woo(ccxt.async_support.woo):
         unWatches best bid & ask for symbols
         :param str[] [symbols]: unified symbol of the market to fetch the ticker for(not used by woo)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         if symbols is not None:
@@ -659,7 +661,7 @@ class woo(ccxt.async_support.woo):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -683,7 +685,7 @@ class woo(ccxt.async_support.woo):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -860,7 +862,7 @@ class woo(ccxt.async_support.woo):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: True if trigger order
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
@@ -893,7 +895,7 @@ class woo(ccxt.async_support.woo):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: True if trigger order
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
@@ -996,14 +998,10 @@ class woo(ccxt.async_support.woo):
         avgPrice = self.safe_number(order, 'avgPrice')
         if Precise.string_eq(priceString, '0') and (avgPrice is not None):
             price = avgPrice
-        amount = self.safe_float(order, 'quantity')
+        amount = self.safe_string(order, 'quantity')
         side = self.safe_string_lower(order, 'side')
         type = self.safe_string_lower(order, 'type')
-        filled = self.safe_number(order, 'totalExecutedQuantity')
-        totalExecQuantity = self.safe_float(order, 'totalExecutedQuantity')
-        remaining = amount
-        if amount >= totalExecQuantity:
-            remaining -= totalExecQuantity
+        filled = self.safe_string_2(order, 'totalExecutedQuantity', 'executed')
         rawStatus = self.safe_string_2(order, 'status', 'algoStatus')
         status = self.parse_order_status(rawStatus)
         trades = None
@@ -1029,7 +1027,7 @@ class woo(ccxt.async_support.woo):
             'cost': None,
             'average': avgPrice,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             'fee': fee,
             'trades': trades,
@@ -1208,9 +1206,10 @@ class woo(ccxt.async_support.woo):
             if contracts > 0:
                 cache.append(position)
         # don't remove the future from the .futures cache
-        future = client.futures[messageHash]
-        future.resolve(cache)
-        client.resolve(cache, 'positions')
+        if messageHash in client.futures:
+            future = client.futures[messageHash]
+            future.resolve(cache)
+            client.resolve(cache, 'positions')
 
     def handle_positions(self, client, message):
         #
@@ -1263,7 +1262,7 @@ class woo(ccxt.async_support.woo):
 
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
         topic = 'balance'
@@ -1324,6 +1323,46 @@ class woo(ccxt.async_support.woo):
             self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, 'balance')
+
+    async def watch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+        """
+        watch the current funding rate
+
+        https://docs.woox.io/#estfundingrate
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        symbol = market['symbol']
+        topic = market['id'] + '@estfundingrate'
+        request: dict = {
+            'event': 'subscribe',
+            'topic': topic,
+        }
+        message = self.extend(request, params)
+        return await self.watch_public(topic, message)
+
+    def handle_funding_rate(self, client: Client, message):
+        #
+        #     {
+        #         "topic": "PERP_BTC_USDT@estfundingrate",
+        #         "ts": 1771484159016,
+        #         "data": {
+        #             "symbol": "PERP_BTC_USDT",
+        #             "fundingRate": 0.0001,
+        #             "fundingTs": 1771488000000
+        #         }
+        #     }
+        #
+        data = self.safe_dict(message, 'data', {})
+        fundingRate = self.parse_funding_rate(data)
+        symbol = fundingRate['symbol']
+        self.fundingRates[symbol] = fundingRate
+        messageHash = self.safe_string(message, 'topic')
+        client.resolve(fundingRate, messageHash)
 
     def handle_error_message(self, client: Client, message) -> Bool:
         #
@@ -1391,6 +1430,7 @@ class woo(ccxt.async_support.woo):
             'balance': self.handle_balance,
             'position': self.handle_positions,
             'bbos': self.handle_bid_ask,
+            'estfundingrate': self.handle_funding_rate,
         }
         event = self.safe_string(message, 'event')
         method = self.safe_value(methods, event)

@@ -728,7 +728,7 @@ class oxfun extends Exchange {
          *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -792,7 +792,7 @@ class oxfun extends Exchange {
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -968,7 +968,7 @@ class oxfun extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return (default 5, max 100)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1016,7 +1016,7 @@ class oxfun extends Exchange {
          *
          * @param {string[]} $symbols unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Order[]} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
+         * @return {Order[]} an array of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -1051,7 +1051,7 @@ class oxfun extends Exchange {
          *
          * @param {string} $symbol unified market symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Order[]} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
+         * @return {Order[]} an array of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~
          */
         $this->load_markets();
         $request = array(
@@ -1108,7 +1108,7 @@ class oxfun extends Exchange {
          * @param {int} [$limit] the maximum amount of trades to fetch (default 200, max 500)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest trade to fetch (default now)
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1190,7 +1190,7 @@ class oxfun extends Exchange {
          * @param {int} [$limit] the maximum amount of trades to fetch (default 200, max 500)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest trade to fetch (default now)
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1278,7 +1278,7 @@ class oxfun extends Exchange {
          *
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
          */
         $this->load_markets();
         $response = $this->publicGetV3LeverageTiers ($params);
@@ -1375,7 +1375,7 @@ class oxfun extends Exchange {
          * @param {int} [$limit] the maximum amount of trades to fetch (default 200, max 500)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest trade to fetch (default now)
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1542,7 +1542,7 @@ class oxfun extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->asset] currency id, if empty the exchange returns info about all currencies
          * @param {string} [$params->subAcc] Name of sub account. If no $subAcc is given, then the $response contains only the account linked to the API-Key.
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$balance-structure $balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
          */
         $this->load_markets();
         $response = $this->privateGetV3Balances ($params);
@@ -1639,7 +1639,7 @@ class oxfun extends Exchange {
          * @see https://docs.ox.fun/?json#get-v3-account-names
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=account-structure account structures~ indexed by the account type
          */
         $this->load_markets();
         // this endpoint can only be called using API keys paired with the parent account! Returns all active subaccounts.
@@ -1686,7 +1686,7 @@ class oxfun extends Exchange {
          * @param {string} $fromAccount account id to transfer from
          * @param {string} $toAccount account id to transfer to
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
         // transferring funds between sub-accounts is restricted to API keys linked to the parent account.
         $this->load_markets();
@@ -1730,7 +1730,7 @@ class oxfun extends Exchange {
          * @param {int} [$limit] the maximum number of transfer structures to retrieve (default 50, max 200)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch transfers for (default time now)
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
          */
         // API keys linked to the parent account can get all account transfers, while API keys linked to a sub-account can only see transfers where the sub-account is either the "fromAccount" or "toAccount"
         $this->load_markets();
@@ -1820,7 +1820,7 @@ class oxfun extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->network] network for fetch deposit address
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         $networkCode = $this->safe_string($params, 'network');
         $networkId = $this->network_code_to_id($networkCode, $code);
@@ -1868,7 +1868,7 @@ class oxfun extends Exchange {
          * @param {int} [$limit] the maximum number of transfer structures to retrieve (default 50, max 200)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch transfers for (default time now)
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
          */
         $this->load_markets();
         $request = array();
@@ -1924,7 +1924,7 @@ class oxfun extends Exchange {
          * @param {int} [$limit] the maximum number of transfer structures to retrieve (default 50, max 200)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch transfers for (default time now)
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
         $request = array();
@@ -2113,7 +2113,7 @@ class oxfun extends Exchange {
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [$params->tfaType] GOOGLE, or AUTHY_SECRET, or YUBIKEY, for 2FA
          * @param {string} [$params->code] 2FA $code
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->load_markets();
@@ -2164,7 +2164,7 @@ class oxfun extends Exchange {
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->subAcc]
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         // Calling this endpoint using an API key pair linked to the parent $account with the parameter "subAcc"
         // allows the caller to include $positions of additional sub-accounts in the $response->
@@ -2296,7 +2296,7 @@ class oxfun extends Exchange {
          * @param {string} [$params->timeInForce] GTC (default), IOC, FOK, PO, MAKER_ONLY or MAKER_ONLY_REPRICE (reprices $order to the best maker only $price if the specified $price were to lead to a taker trade)
          * @param {string} [$params->selfTradePrevention] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here array(@link https://docs.ox.fun/?json#self-trade-prevention-modes)
          * @param {string} [$params->displayQuantity] for an iceberg $order, pass both quantity and displayQuantity fields in the $order $request
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
         $this->load_markets();
         $request = array(
@@ -2444,7 +2444,7 @@ class oxfun extends Exchange {
          * @param {int} [$params->timestamp] *for all $orders* in milliseconds. If $orders reach the matching engine and the current timestamp exceeds timestamp . recvWindow, then all $orders will be rejected.
          * @param {int} [$params->recvWindow] *for all $orders* in milliseconds. If $orders reach the matching engine and the current timestamp exceeds timestamp . recvWindow, then all $orders will be rejected. If timestamp is provided without recvWindow, then a default recvWindow of 1000ms is used.
          * @param {string} [$params->responseType] *for all $orders* FULL or ACK
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
         $ordersRequests = array();
@@ -2540,7 +2540,7 @@ class oxfun extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2563,7 +2563,7 @@ class oxfun extends Exchange {
          * @param {string} [$symbol] not used by oxfun fetchOrder
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->clientOrderId] the client order $id of the order
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets();
         $request = array(
@@ -2609,7 +2609,7 @@ class oxfun extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->orderId] a unique id for the order
          * @param {int} [$params->clientOrderId] the client order id of the order
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $request = array();
@@ -2635,7 +2635,7 @@ class oxfun extends Exchange {
          * @param {int} [$params->timestamp] in milliseconds
          * @param {int} [$params->recvWindow] in milliseconds
          * @param {string} [$params->responseType] 'FULL' or 'ACK'
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
@@ -2703,7 +2703,7 @@ class oxfun extends Exchange {
          * @param {int} [$params->timestamp] in milliseconds
          * @param {int} [$params->recvWindow] in milliseconds
          * @param {string} [$params->responseType] 'FULL' or 'ACK'
-         * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
+         * @return {array} an list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');

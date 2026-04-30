@@ -68,7 +68,7 @@ coinone.fetchMarkets ([params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>coinone</code>](#coinone)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://docs.coinone.co.kr/v1.0/reference/v21  
 
@@ -88,7 +88,7 @@ coinone.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinone</code>](#coinone)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://docs.coinone.co.kr/v1.0/reference/orderbook  
 
@@ -110,7 +110,7 @@ coinone.fetchOrderBook (symbol[, limit, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>coinone</code>](#coinone)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -135,7 +135,7 @@ coinone.fetchTickers (symbols[, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>coinone</code>](#coinone)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.coinone.co.kr/v1.0/reference/ticker  
 
@@ -156,7 +156,7 @@ coinone.fetchTicker (symbol[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>coinone</code>](#coinone)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.coinone.co.kr/v1.0/reference/recent-completed-orders  
 
@@ -179,7 +179,7 @@ coinone.fetchTrades (symbol[, since, limit, params])
 create a trade order
 
 **Kind**: instance method of [<code>coinone</code>](#coinone)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -208,7 +208,7 @@ coinone.createOrder (symbol, type, side, amount[, price, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>coinone</code>](#coinone)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -229,7 +229,7 @@ coinone.fetchOrder (id, symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>coinone</code>](#coinone)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -251,7 +251,7 @@ coinone.fetchOpenOrders (symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>coinone</code>](#coinone)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 
 | Param | Type | Required | Description |
@@ -273,7 +273,7 @@ coinone.fetchMyTrades (symbol[, since, limit, params])
 cancels an open order
 
 **Kind**: instance method of [<code>coinone</code>](#coinone)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -294,7 +294,7 @@ coinone.cancelOrder (id, symbol[, params])
 fetch deposit addresses for multiple currencies and chain types
 
 **Kind**: instance method of [<code>coinone</code>](#coinone)  
-**Returns**: <code>object</code> - a list of [address structures](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - a list of [address structures](https://docs.ccxt.com/?id=address-structure)
 
 
 | Param | Type | Required | Description |
@@ -314,7 +314,7 @@ coinone.fetchDepositAddresses (codes[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinone</code>](#coinone)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://docs.coinone.co.kr/reference/public-websocket-orderbook  
 
@@ -336,7 +336,7 @@ coinone.watchOrderBook (symbol[, limit, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>coinone</code>](#coinone)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.coinone.co.kr/reference/public-websocket-ticker  
 
@@ -357,7 +357,7 @@ coinone.watchTicker (symbol[, params])
 watches information on multiple trades made in a market
 
 **Kind**: instance method of [<code>coinone</code>](#coinone)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://docs.coinone.co.kr/reference/public-websocket-trade  
 

@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitfinex import ImplicitAPI
-import asyncio
 import hashlib
 from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
@@ -359,6 +358,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'precisionMode': SIGNIFICANT_DIGITS,
             'options': {
                 'precision': 'R0',  # P0, P1, P2, P3, P4, R0
+                'defaultCurrencyPrecision': 8,  # default currency precision
                 # convert 'EXCHANGE MARKET' to lowercase 'market'
                 # convert 'EXCHANGE LIMIT' to lowercase 'limit'
                 # everything else remains uppercase
@@ -565,9 +565,6 @@ class bitfinex(Exchange, ImplicitAPI):
     def is_fiat(self, code):
         return(code in self.options['fiat'])
 
-    def get_currency_id(self, code):
-        return 'f' + code
-
     def get_currency_name(self, code):
         # temporary fix for transpiler recognition, even though self is in parent class
         if code in self.options['currencyNames']:
@@ -597,7 +594,7 @@ class bitfinex(Exchange, ImplicitAPI):
         https://docs.bitfinex.com/reference/rest-public-platform-status
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
+        :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
         """
         #
         #    [1]  # operative
@@ -622,42 +619,35 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        spotMarketsInfoPromise = self.publicGetConfPubInfoPair(params)
-        futuresMarketsInfoPromise = self.publicGetConfPubInfoPairFutures(params)
-        marginIdsPromise = self.publicGetConfPubListPairMargin(params)
-        spotMarketsInfo, futuresMarketsInfo, marginIds = await asyncio.gather(*[spotMarketsInfoPromise, futuresMarketsInfoPromise, marginIdsPromise])
-        spotMarketsInfo = self.safe_list(spotMarketsInfo, 0, [])
-        futuresMarketsInfo = self.safe_list(futuresMarketsInfo, 0, [])
+        labels = [
+            'pub:info:pair',
+            # [ ['AAVE:USD',      [null,null,null,"0.02","5000.0",null,null,null,null,null,null,null,]], ...]
+            'pub:info:pair:futures',
+            # [ ['AAVEF0:USTF0',  [null,null,null,"0.02","5000.0",null,null,null,0.01,0.005,]]]
+            'pub:list:pair:securities',
+            # ALT2612:USD","ALT2612:UST","BMN2:BTC","BMN2:USD","TITAN1:GBP","TITAN1:USD","TITAN2:GBP","TITAN2:USD","USTBL:USD","USTBL:UST"]]
+            'pub:list:pair:margin',
+            # ['ADABTC', 'AVAX:BTC', ...]  # delimiter inconsistency
+        ]
+        config = ','.join(labels)
+        request: dict = {
+            'config': config,
+        }
+        spotMarketsInfo, futuresMarketsInfo, securitiesMarketsIds, marginIds = await self.publicGetConfConfig(self.extend(request, params))
         markets = self.array_concat(spotMarketsInfo, futuresMarketsInfo)
-        marginIds = self.safe_value(marginIds, 0, [])
-        #
-        #    [
-        #        "1INCH:USD",
-        #        [
-        #           null,
-        #           null,
-        #           null,
-        #           "2.0",
-        #           "100000.0",
-        #           null,
-        #           null,
-        #           null,
-        #           null,
-        #           null,
-        #           null,
-        #           null
-        #        ]
-        #    ]
-        #
         result = []
         for i in range(0, len(markets)):
-            pair = markets[i]
-            id = self.safe_string_upper(pair, 0)
-            market = self.safe_value(pair, 1, {})
+            pairObj = markets[i]
+            id = self.safe_string_upper(pairObj, 0)
+            market = self.safe_value(pairObj, 1, {})
             spot = True
+            type: Str = None
             if id.find('F0') >= 0:
                 spot = False
-            swap = not spot
+                type = 'swap'
+            else:
+                type = 'spot'
+            swap = type == 'swap'
             baseId = None
             quoteId = None
             if id.find(':') >= 0:
@@ -674,8 +664,8 @@ class bitfinex(Exchange, ImplicitAPI):
             base = self.safe_string(splitBase, 0)
             quote = self.safe_string(splitQuote, 0)
             symbol = base + '/' + quote
-            baseId = self.get_currency_id(baseId)
-            quoteId = self.get_currency_id(quoteId)
+            # baseId = 'f' + baseId
+            # quoteId = 'f' + quoteId
             settle = None
             settleId = None
             if swap:
@@ -684,9 +674,6 @@ class bitfinex(Exchange, ImplicitAPI):
                 symbol = symbol + ':' + settle
             minOrderSizeString = self.safe_string(market, 3)
             maxOrderSizeString = self.safe_string(market, 4)
-            margin = False
-            if spot and self.in_array(id, marginIds):
-                margin = True
             result.append({
                 'id': 't' + id,
                 'symbol': symbol,
@@ -696,14 +683,15 @@ class bitfinex(Exchange, ImplicitAPI):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': 'spot' if spot else 'swap',
+                'type': type,
                 'spot': spot,
-                'margin': margin,
+                'tradfi': self.in_array(id, securitiesMarketsIds),
+                'margin': (spot and self.in_array(id, marginIds)),
                 'swap': swap,
                 'future': False,
                 'option': False,
                 'active': True,
-                'contract': swap,
+                'contract': not spot,
                 'linear': True if swap else None,
                 'inverse': False if swap else None,
                 'contractSize': self.parse_number('1') if swap else None,
@@ -758,6 +746,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'pub:map:currency:tx:fee',  # maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745,
             'pub:map:tx:method',  # maps withdrawal/deposit methods to their API symbols
             'pub:info:tx:status',  # maps withdrawal/deposit statuses, coins: 1 = enabled, 0 = maintenance
+            'pub:list:currency:margin',  # margin enabled currencies
         ]
         config = ','.join(labels)
         request: dict = {
@@ -857,6 +846,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'fees': self.index_by(self.safe_list(response, 7, []), 0),
             'networks': self.safe_list(response, 8, []),
             'statuses': self.index_by(self.safe_list(response, 9, []), 0),
+            'marginables': self.safe_list(response, 10, []),
         }
         indexedNetworks: dict = {}
         for i in range(0, len(indexed['networks'])):
@@ -881,30 +871,25 @@ class bitfinex(Exchange, ImplicitAPI):
             pool = self.safe_list(indexed['pool'], id, [])
             rawType = self.safe_string(pool, 1)
             isCryptoCoin = (rawType is not None) or (id in indexed['explorer'])  # "hacky" solution
-            type = None
-            if isCryptoCoin:
-                type = 'crypto'
+            type = 'crypto' if isCryptoCoin else None
             feeValues = self.safe_list(indexed['fees'], id, [])
             fees = self.safe_list(feeValues, 1, [])
             fee = self.safe_number(fees, 1)
             undl = self.safe_list(indexed['undl'], id, [])
-            precision = '8'  # default precision, todo: fix "magic constants"
-            fid = 'f' + id
-            dwStatuses = self.safe_list(indexed['statuses'], id, [])
-            depositEnabled = self.safe_integer(dwStatuses, 1) == 1
-            withdrawEnabled = self.safe_integer(dwStatuses, 2) == 1
+            precision = self.safe_string(self.options, 'defaultCurrencyPrecision', '8')
             networks: dict = {}
             netwokIds = self.safe_list(indexedNetworks, id, [])
             for j in range(0, len(netwokIds)):
                 networkId = netwokIds[j]
                 network = self.network_id_to_code(networkId)
+                dwStatuses = self.safe_list(indexed['statuses'], networkId, [])
                 networks[network] = {
                     'info': networkId,
                     'id': networkId.lower(),
                     'network': networkId,
                     'active': None,
-                    'deposit': None,
-                    'withdraw': None,
+                    'deposit': self.safe_integer(dwStatuses, 1) == 1,
+                    'withdraw': self.safe_integer(dwStatuses, 2) == 1,
                     'fee': None,
                     'precision': None,
                     'limits': {
@@ -915,20 +900,19 @@ class bitfinex(Exchange, ImplicitAPI):
                     },
                 }
             result[code] = self.safe_currency_structure({
-                'id': fid,
-                'uppercaseId': id,
+                'id': id,
                 'code': code,
                 'info': [id, label, pool, feeValues, undl],
                 'type': type,
                 'name': name,
                 'active': True,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
+                'deposit': None,
+                'withdraw': None,
                 'fee': fee,
-                'precision': int(precision),
+                'precision': self.parse_number(precision),
                 'limits': {
                     'amount': {
-                        'min': self.parse_number(self.parse_precision(precision)),
+                        'min': None,
                         'max': None,
                     },
                     'withdraw': {
@@ -937,6 +921,7 @@ class bitfinex(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': networks,
+                'margin': self.in_array(id, indexed['marginables']),
             })
         return result
 
@@ -947,7 +932,7 @@ class bitfinex(Exchange, ImplicitAPI):
         https://docs.bitfinex.com/reference/rest-auth-wallets
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         # self api call does not return the 'used' amount - use the v1 version instead(which also returns zero balances)
         # there is a difference between self and the v1 api, namely trading wallet is called margin in v2
@@ -992,7 +977,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         # transferring between derivatives wallet and regular wallet is not documented in their API
         # however we support it in CCXT(from just looking at web inspector)
@@ -1130,7 +1115,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return, bitfinex only allows 1, 25, or 100
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         precision = self.safe_value(self.options, 'precision', 'R0')
@@ -1207,7 +1192,8 @@ class bitfinex(Exchange, ImplicitAPI):
         #     ]
         #
         length = len(ticker)
-        isFetchTicker = (length == 10) or (length == 16)
+        firstValue = self.safe_number(ticker, 0)
+        isFetchTicker = firstValue is not None  # if it's Nan, then it's string(symbol)
         symbol: Str = None
         minusIndex = 0
         isFundingCurrency = False
@@ -1279,7 +1265,7 @@ class bitfinex(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1339,7 +1325,7 @@ class bitfinex(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1442,7 +1428,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param int [params.until]: the latest time in ms to fetch entries for
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         paginate = False
@@ -1742,7 +1728,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :param str [params.price_aux_limit]: order price for stop limit orders
         :param str [params.price_oco_stop]: OCO stop price
         :param str [params.trailingAmount]: *swap only* the quote amount to trail away from the current market price
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1813,7 +1799,7 @@ class bitfinex(Exchange, ImplicitAPI):
 
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         ordersRequests = []
@@ -1872,7 +1858,7 @@ class bitfinex(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         request: dict = {
@@ -1894,7 +1880,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: Not used by bitfinex cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         cid = self.safe_value_2(params, 'cid', 'clientOrderId')  # client order id
@@ -1929,7 +1915,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :param str[] ids: order ids
         :param str symbol: unified market symbol, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an array of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an array of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         numericIds = []
@@ -2009,7 +1995,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified market symbol, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         request: dict = {
             'id': [int(id)],
@@ -2030,7 +2016,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified market symbol, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         request: dict = {
             'id': [int(id)],
@@ -2052,7 +2038,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         request: dict = {}
@@ -2120,7 +2106,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         # returns the most recent closed or canceled orders up to circa two weeks ago
         await self.load_markets()
@@ -2196,7 +2182,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
@@ -2225,7 +2211,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
         market = None
@@ -2256,7 +2242,7 @@ class bitfinex(Exchange, ImplicitAPI):
 
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         await self.load_markets()
         request: dict = {
@@ -2272,7 +2258,7 @@ class bitfinex(Exchange, ImplicitAPI):
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -2479,7 +2465,7 @@ class bitfinex(Exchange, ImplicitAPI):
         https://docs.bitfinex.com/reference/rest-auth-summary
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
         await self.load_markets()
         response = await self.privatePostAuthRSummary(params)
@@ -2593,7 +2579,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
         currency = None
@@ -2605,7 +2591,7 @@ class bitfinex(Exchange, ImplicitAPI):
         response = None
         if code is not None:
             currency = self.currency(code)
-            request['currency'] = currency['uppercaseId']
+            request['currency'] = currency['id']
             response = await self.privatePostAuthRMovementsCurrencyHist(self.extend(request, params))
         else:
             response = await self.privatePostAuthRMovementsHist(self.extend(request, params))
@@ -2650,7 +2636,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.check_address(address)
         await self.load_markets()
@@ -2729,7 +2715,7 @@ class bitfinex(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -2973,7 +2959,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest ledger entry
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         await self.load_markets()
         paginate = False
@@ -2990,7 +2976,7 @@ class bitfinex(Exchange, ImplicitAPI):
         response = None
         if code is not None:
             currency = self.currency(code)
-            request['currency'] = currency['uppercaseId']
+            request['currency'] = currency['id']
             response = await self.privatePostAuthRLedgersCurrencyHist(self.extend(request, params))
         else:
             response = await self.privatePostAuthRLedgersHist(self.extend(request, params))
@@ -3023,7 +3009,7 @@ class bitfinex(Exchange, ImplicitAPI):
 
         :param str[] symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
         if symbols is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRates() requires a symbols argument')
@@ -3077,7 +3063,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest funding rate
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
@@ -3249,7 +3235,7 @@ class bitfinex(Exchange, ImplicitAPI):
 
         :param str[] [symbols]: a list of unified CCXT market symbols
         :param dict [params]: exchange specific parameters
-        :returns dict[]: a list of `open interest structures <https://docs.ccxt.com/#/?id=open-interest-structure>`
+        :returns dict[]: a list of `open interest structures <https://docs.ccxt.com/?id=open-interest-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -3300,7 +3286,7 @@ class bitfinex(Exchange, ImplicitAPI):
 
         :param str symbol: unified CCXT market symbol
         :param dict [params]: exchange specific parameters
-        :returns dict: an `open interest structure <https://docs.ccxt.com/#/?id=open-interest-structure>`
+        :returns dict: an `open interest structure <https://docs.ccxt.com/?id=open-interest-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -3354,7 +3340,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: exchange specific parameters
         :param int [params.until]: the time in ms of the latest record to retrieve unix timestamp
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns: An array of `open interest structures <https://docs.ccxt.com/#/?id=open-interest-structure>`
+        :returns: An array of `open interest structures <https://docs.ccxt.com/?id=open-interest-structure>`
         """
         await self.load_markets()
         paginate = False
@@ -3486,7 +3472,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: exchange specific parameters
         :param int [params.until]: timestamp in ms of the latest liquidation
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: an array of `liquidation structures <https://docs.ccxt.com/#/?id=liquidation-structure>`
+        :returns dict: an array of `liquidation structures <https://docs.ccxt.com/?id=liquidation-structure>`
         """
         await self.load_markets()
         paginate = False
@@ -3629,7 +3615,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :param str id: the order id
         :param str [symbol]: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         request: dict = {
@@ -3705,7 +3691,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :param int [params.leverage]: leverage for a derivative order, supported by derivative symbol orders only, the value should be between 1 and 100 inclusive
         :param int [params.clientOrderId]: a unique client order id for the order
         :param float [params.trailingAmount]: *swap only* the quote amount to trail away from the current market price
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)

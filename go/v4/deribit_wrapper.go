@@ -64,7 +64,7 @@ func (this *Deribit) FetchCurrencies(params ...interface{}) (Currencies, error) 
  * @description the latest known information on the availability of the exchange API
  * @see https://docs.deribit.com/#public-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *Deribit) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
 	res := <-this.Core.FetchStatus(params...)
@@ -80,7 +80,7 @@ func (this *Deribit) FetchStatus(params ...interface{}) (map[string]interface{},
  * @description fetch all the accounts associated with a profile
  * @see https://docs.deribit.com/#private-get_subaccounts
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+ * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
 func (this *Deribit) FetchAccounts(params ...interface{}) ([]Account, error) {
 	res := <-this.Core.FetchAccounts(params...)
@@ -115,7 +115,7 @@ func (this *Deribit) FetchMarkets(params ...interface{}) ([]MarketInterface, err
  * @see https://docs.deribit.com/#private-get_account_summaries
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.code] unified currency code of the currency for the balance, if defined 'privateGetGetAccountSummary' will be used, otherwise 'privateGetGetAccountSummaries' will be used
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Deribit) FetchBalance(params ...interface{}) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
@@ -132,7 +132,7 @@ func (this *Deribit) FetchBalance(params ...interface{}) (Balances, error) {
  * @see https://docs.deribit.com/#private-create_deposit_address
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Deribit) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
 
@@ -160,7 +160,7 @@ func (this *Deribit) CreateDepositAddress(code string, options ...CreateDepositA
  * @see https://docs.deribit.com/#private-get_current_deposit_address
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Deribit) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 
@@ -188,7 +188,7 @@ func (this *Deribit) FetchDepositAddress(code string, options ...FetchDepositAdd
  * @see https://docs.deribit.com/#public-ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Deribit) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -217,7 +217,7 @@ func (this *Deribit) FetchTicker(symbol string, options ...FetchTickerOptions) (
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.code] *required* the currency code to fetch the tickers for, eg. 'BTC', 'ETH'
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Deribit) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -302,7 +302,7 @@ func (this *Deribit) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch trades for
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Deribit) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -339,7 +339,7 @@ func (this *Deribit) FetchTrades(symbol string, options ...FetchTradesOptions) (
  * @description fetch the trading fees for multiple markets
  * @see https://docs.deribit.com/#private-get_account_summary
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *Deribit) FetchTradingFees(params ...interface{}) (TradingFees, error) {
 	res := <-this.Core.FetchTradingFees(params...)
@@ -357,7 +357,7 @@ func (this *Deribit) FetchTradingFees(params ...interface{}) (TradingFees, error
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Deribit) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -391,7 +391,7 @@ func (this *Deribit) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Deribit) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -431,7 +431,7 @@ func (this *Deribit) FetchOrder(id string, options ...FetchOrderOptions) (Order,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.trigger] the trigger type 'index_price', 'mark_price', or 'last_price', default is 'last_price'
  * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Deribit) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -470,7 +470,7 @@ func (this *Deribit) CreateOrder(symbol string, typeVar string, side string, amo
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Deribit) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 
@@ -509,7 +509,7 @@ func (this *Deribit) EditOrder(id string, symbol string, typeVar string, side st
  * @param {string} id order id
  * @param {string} symbol not used by deribit cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Deribit) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -543,7 +543,7 @@ func (this *Deribit) CancelOrder(id string, options ...CancelOrderOptions) (Orde
  * @see https://docs.deribit.com/#private-cancel_all_by_instrument
  * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Deribit) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 
@@ -579,7 +579,7 @@ func (this *Deribit) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Deribit) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -625,7 +625,7 @@ func (this *Deribit) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Deribit) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 
@@ -671,7 +671,7 @@ func (this *Deribit) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]O
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Deribit) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 
@@ -719,7 +719,7 @@ func (this *Deribit) FetchOrderTrades(id string, options ...FetchOrderTradesOpti
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Deribit) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -764,7 +764,7 @@ func (this *Deribit) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Deribit) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -809,7 +809,7 @@ func (this *Deribit) FetchDeposits(options ...FetchDepositsOptions) ([]Transacti
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Deribit) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
@@ -852,7 +852,7 @@ func (this *Deribit) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tra
  * @see https://docs.deribit.com/#private-get_position
  * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Deribit) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
 
@@ -883,7 +883,7 @@ func (this *Deribit) FetchPosition(symbol string, options ...FetchPositionOption
  * @param {string} [params.currency] currency code filter for positions
  * @param {string} [params.kind] market type filter for positions 'future', 'option', 'spot', 'future_combo' or 'option_combo'
  * @param {int} [params.subaccount_id] the user id for the subaccount
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Deribit) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 
@@ -916,7 +916,7 @@ func (this *Deribit) FetchPositions(options ...FetchPositionsOptions) ([]Positio
  * @see https://docs.deribit.com/#public-get_historical_volatility
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/#/?id=volatility-structure}
+ * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
  */
 func (this *Deribit) FetchVolatilityHistory(code string, options ...FetchVolatilityHistoryOptions) ([]map[string]interface{}, error) {
 
@@ -946,7 +946,7 @@ func (this *Deribit) FetchVolatilityHistory(code string, options ...FetchVolatil
  * @param {int} [since] the earliest time in ms to fetch transfers for
  * @param {int} [limit] the maximum number of  transfers structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Deribit) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
 
@@ -993,7 +993,7 @@ func (this *Deribit) FetchTransfers(options ...FetchTransfersOptions) ([]Transfe
  * @param {string} fromAccount account to transfer from
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Deribit) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 
@@ -1024,7 +1024,7 @@ func (this *Deribit) Transfer(code string, amount float64, fromAccount string, t
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Deribit) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 
@@ -1057,7 +1057,7 @@ func (this *Deribit) Withdraw(code string, amount float64, address string, optio
  * @see https://docs.deribit.com/#public-get_currencies
  * @param {string[]|undefined} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Deribit) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
 
@@ -1092,7 +1092,7 @@ func (this *Deribit) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFee
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.start_timestamp] fetch funding rate starting from this timestamp
  * @param {int} [params.end_timestamp] fetch funding rate ending at this timestamp
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Deribit) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
 
@@ -1124,7 +1124,7 @@ func (this *Deribit) FetchFundingRate(symbol string, options ...FetchFundingRate
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] fetch funding rate ending at this timestamp
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Deribit) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
 
@@ -1170,7 +1170,7 @@ func (this *Deribit) FetchFundingRateHistory(options ...FetchFundingRateHistoryO
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
  * @param {object} [params] exchange specific parameters for the deribit api endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
 func (this *Deribit) FetchLiquidations(symbol string, options ...FetchLiquidationsOptions) ([]Liquidation, error) {
 
@@ -1210,7 +1210,7 @@ func (this *Deribit) FetchLiquidations(symbol string, options ...FetchLiquidatio
  * @param {int} [since] the earliest time in ms to fetch liquidations for
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
  * @param {object} [params] exchange specific parameters for the deribit api endpoint
- * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
 func (this *Deribit) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
 
@@ -1253,7 +1253,7 @@ func (this *Deribit) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) 
  * @see https://docs.deribit.com/#public-ticker
  * @param {string} symbol unified symbol of the market to fetch greeks for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+ * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
  */
 func (this *Deribit) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {
 
@@ -1281,7 +1281,7 @@ func (this *Deribit) FetchGreeks(symbol string, options ...FetchGreeksOptions) (
  * @see https://docs.deribit.com/#public-get_book_summary_by_instrument
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+ * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
  */
 func (this *Deribit) FetchOption(symbol string, options ...FetchOptionOptions) (Option, error) {
 
@@ -1309,7 +1309,7 @@ func (this *Deribit) FetchOption(symbol string, options ...FetchOptionOptions) (
  * @see https://docs.deribit.com/#public-get_book_summary_by_currency
  * @param {string} code base currency to fetch an option chain for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+ * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
  */
 func (this *Deribit) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
 
@@ -1337,7 +1337,7 @@ func (this *Deribit) FetchOptionChain(code string, options ...FetchOptionChainOp
  * @see https://docs.deribit.com/?shell#public-get_book_summary_by_instrument
  * @param {string} symbol unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
- * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *Deribit) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
 

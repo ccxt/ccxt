@@ -7,7 +7,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
+
 
 function test_ohlcv($exchange, $skipped_properties, $method, $entry, $symbol, $now) {
     $format = [1638230400000, $exchange->parse_number('0.123'), $exchange->parse_number('0.125'), $exchange->parse_number('0.121'), $exchange->parse_number('0.122'), $exchange->parse_number('123.456')];
@@ -22,6 +22,9 @@ function test_ohlcv($exchange, $skipped_properties, $method, $entry, $symbol, $n
     }
     $high = $exchange->safe_string($entry, 2);
     $low = $exchange->safe_string($entry, 3);
+    if (is_array($skipped_properties) && array_key_exists('compareOHLCV', $skipped_properties)) {
+        return;
+    }
     assert_less_or_equal($exchange, $skipped_properties, $method, $entry, '1', $high);
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, '1', $low);
     assert_less_or_equal($exchange, $skipped_properties, $method, $entry, '4', $high);

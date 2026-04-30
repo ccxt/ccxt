@@ -83,7 +83,7 @@ hibachi.fetchMarkets ([params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31  
 
@@ -126,7 +126,7 @@ hibachi.fetchTrades (symbol[, since, limit, params])
 fetches a price ticker and the related information for the past 24h
 
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47  
 
@@ -147,7 +147,7 @@ hibachi.fetchTicker (symbol[, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-doc.hibachi.xyz/#096a8854-b918-4de8-8731-b2a28d26b96d  
 
@@ -169,7 +169,7 @@ hibachi.fetchOrder (id, symbol[, params])
 fetch the trading fee
 
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
-**Returns**: <code>object</code> - a map of market symbols to [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a map of market symbols to [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 
 | Param | Description |
@@ -188,7 +188,7 @@ hibachi.fetchTradingFees (params, [undefined])
 create a trade order
 
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-doc.hibachi.xyz/#00f6d5ad-5275-41cb-a1a8-19ed5d142124  
 
@@ -213,7 +213,7 @@ hibachi.createOrder (symbol, type, side, amount[, price, params])
 *contract only* create a list of trade orders
 
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-doc.hibachi.xyz/#c2840b9b-f02c-44ed-937d-dc2819f135b4  
 
@@ -234,7 +234,7 @@ hibachi.createOrders (orders[, params])
 edit a limit order that is not matched
 
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-doc.hibachi.xyz/#94d2cdaf-1c71-440f-a981-da1112824810  
 
@@ -260,7 +260,7 @@ hibachi.editOrder (id, symbol, type, side, amount[, price, params])
 edit a list of trade orders
 
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-doc.hibachi.xyz/#c2840b9b-f02c-44ed-937d-dc2819f135b4  
 
@@ -281,7 +281,7 @@ hibachi.editOrders (orders[, params])
 cancels an open order
 
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-doc.hibachi.xyz/#e99c4f48-e610-4b7c-b7f6-1b4bb7af0271  
 
@@ -303,7 +303,7 @@ hibachi.cancelOrder (id, symbol[, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-doc.hibachi.xyz/#c2840b9b-f02c-44ed-937d-dc2819f135b4  
 
@@ -325,7 +325,7 @@ hibachi.cancelOrders (ids[, symbol, params])
 cancel all open orders in a market
 
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-doc.hibachi.xyz/#8ed24695-016e-49b2-a72d-7511ca921fee  
 
@@ -346,7 +346,7 @@ hibachi.cancelAllOrders (symbol[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://api-doc.hibachi.xyz/#6421625d-3e45-45fa-be9b-d2a0e780c090  
 
@@ -370,7 +370,7 @@ hibachi.withdraw (code, amount, address, tag[, params])
 fetches the state of the open orders on the orderbook
 
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
-**Returns**: <code>object</code> - A dictionary containg [orderbook information](https://docs.ccxt.com/#/?id=order-book-structure)
+**Returns**: <code>object</code> - A dictionary containg [orderbook information](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47  
 
@@ -392,7 +392,7 @@ hibachi.fetchOrderBook (symbol[, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://api-doc.hibachi.xyz/#0adbf143-189f-40e0-afdc-88af4cba3c79  
 
@@ -415,7 +415,7 @@ hibachi.fetchMyTrades (symbol[, since, limit, params])
 fetches all current open orders
 
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-doc.hibachi.xyz/#3243f8a0-086c-44c5-ab8a-71bbb7bab403  
 
@@ -438,7 +438,7 @@ hibachi.fetchOpenOrders ([symbol, since, limit, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31  
 
@@ -459,7 +459,7 @@ hibachi.fetchPositions ([symbols, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020  
 
@@ -482,7 +482,7 @@ hibachi.fetchLedger ([code, since, limit, params])
 fetch deposit address for given currency and chain. currently, we have a single EVM address across multiple EVM chains. Note: This method is currently only supported for trustless accounts
 
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 
 | Param | Type | Required | Description |
@@ -503,7 +503,7 @@ hibachi.fetchDepositAddress (code[, params])
 fetch deposits made to account
 
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020  
 
@@ -526,7 +526,7 @@ hibachi.fetchDeposits ([code, since, limit, params])
 fetch withdrawals made from account
 
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020  
 
@@ -569,7 +569,7 @@ hibachi.fetchTime ([params])
 retrieves the open interest of a contract trading pair
 
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
-**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/#/?id=open-interest-structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/?id=open-interest-structure](https://docs.ccxt.com/?id=open-interest-structure)
 
 **See**: https://api-doc.hibachi.xyz/#bc34e8ae-e094-4802-8d56-3efe3a7bad49  
 
@@ -590,7 +590,7 @@ hibachi.fetchOpenInterest (symbol[, params])
 fetch the current funding rate
 
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://api-doc.hibachi.xyz/#bca696ca-b9b2-4072-8864-5d6b8c09807e  
 
@@ -611,7 +611,7 @@ hibachi.fetchFundingRate (symbol[, params])
 fetches historical funding rate prices
 
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**: https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47  
 
@@ -619,7 +619,7 @@ fetches historical funding rate prices
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
 | since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
-| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure) to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 

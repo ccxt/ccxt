@@ -57,7 +57,7 @@ foxbit.fetchMarkets ([params])
 Get last 24 hours ticker information, in real-time, for given market.
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_ticker  
 
@@ -78,7 +78,7 @@ foxbit.fetchTicker (symbol[, params])
 Retrieve the ticker data of all markets.
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_tickers  
 
@@ -99,7 +99,7 @@ foxbit.fetchTickers (symbols[, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**: https://docs.foxbit.com.br/rest/v3/#tag/Member-Info/operation/MembersController_listTradingFees  
 
@@ -119,7 +119,7 @@ foxbit.fetchTradingFees ([params])
 Exports a copy of the order book of a specific market.
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_findOrderbook  
 
@@ -141,7 +141,7 @@ foxbit.fetchOrderBook (symbol[, limit, params])
 Retrieve the trades of a specific market.
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_publicTrades  
 
@@ -188,7 +188,7 @@ foxbit.fetchOHLCV (symbol, timeframe[, since, limit, params])
 Query for balance and get the amount of funds available for trading or funds locked in orders.
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://docs.foxbit.com.br/rest/v3/#tag/Account/operation/AccountsController_all  
 
@@ -208,7 +208,7 @@ foxbit.fetchBalance ([params])
 Fetch all unfilled currently open orders.
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_listOrders  
 
@@ -231,7 +231,7 @@ foxbit.fetchOpenOrders (symbol[, since, limit, params])
 Fetch all currently closed orders.
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_listOrders  
 
@@ -254,7 +254,7 @@ foxbit.fetchClosedOrders (symbol[, since, limit, params])
 Create an order with the specified characteristics
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_create  
 
@@ -283,7 +283,7 @@ foxbit.createOrder (symbol, type, side, amount[, price, params])
 create a list of trade orders
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/createBatch  
 
@@ -304,7 +304,7 @@ foxbit.createOrders (orders[, params])
 Cancel open orders.
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancel  
 
@@ -326,7 +326,7 @@ foxbit.cancelOrder (id, symbol[, params])
 Cancel all open orders or all open orders for a specific market.
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancel  
 
@@ -347,7 +347,7 @@ foxbit.cancelAllOrders (symbol[, params])
 Get an order by ID.
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_findByOrderId  
 
@@ -369,7 +369,7 @@ foxbit.fetchOrder (id, symbol[, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_listOrders  
 
@@ -394,7 +394,7 @@ foxbit.fetchOrders (symbol[, since, limit, params])
 Trade history queries will only have data available for the last 3 months, in descending order (most recents trades first).
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/TradesController_all  
 
@@ -417,7 +417,7 @@ foxbit.fetchMyTrades (symbol[, since, limit, params])
 Fetch the deposit address for a currency associated with this account.
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://docs.foxbit.com.br/rest/v3/#tag/Deposit/operation/DepositsController_depositAddress  
 
@@ -439,7 +439,7 @@ foxbit.fetchDepositAddress (code[, params])
 Fetch all deposits made to an account.
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.foxbit.com.br/rest/v3/#tag/Deposit/operation/DepositsController_listOrders  
 
@@ -462,7 +462,7 @@ foxbit.fetchDeposits ([code, since, limit, params])
 Fetch all withdrawals made from an account.
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.foxbit.com.br/rest/v3/#tag/Withdrawal/operation/WithdrawalsController_listWithdrawals  
 
@@ -485,7 +485,7 @@ foxbit.fetchWithdrawals ([code, since, limit, params])
 Fetch all transactions (deposits and withdrawals) made from an account.
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**
 
@@ -512,7 +512,7 @@ foxbit.fetchTransactions ([code, since, limit, params])
 The latest known information on the availability of the exchange API.
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
 **See**: https://status.foxbit.com/  
 
@@ -532,7 +532,7 @@ foxbit.fetchStatus ([params])
 Simultaneously cancel an existing order and create a new one.
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancelReplace  
 
@@ -558,7 +558,7 @@ foxbit.editOrder (id, symbol, type, side, amount[, price, params])
 Make a withdrawal.
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.foxbit.com.br/rest/v3/#tag/Withdrawal/operation/WithdrawalsController_createWithdrawal  
 
@@ -582,7 +582,7 @@ foxbit.withdraw (code, amount, address, tag[, params])
 fetch the history of changes, actions done by the user or operations that altered balance of the user
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger-structure)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-structure)
 
 **See**: https://docs.foxbit.com.br/rest/v3/#tag/Account/operation/AccountsController_getTransactions  
 

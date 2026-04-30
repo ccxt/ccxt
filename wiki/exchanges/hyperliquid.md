@@ -5,6 +5,8 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
+* [fetchStatus](#fetchstatus)
+* [fetchTime](#fetchtime)
 * [fetchCurrencies](#fetchcurrencies)
 * [fetchMarkets](#fetchmarkets)
 * [fetchHip3Markets](#fetchhip3markets)
@@ -17,11 +19,17 @@
 * [fetchFundingRates](#fetchfundingrates)
 * [fetchOHLCV](#fetchohlcv)
 * [fetchTrades](#fetchtrades)
+* [isUnifiedEnabled](#isunifiedenabled)
+* [setUserAbstraction](#setuserabstraction)
+* [enableUserDexAbstraction](#enableuserdexabstraction)
+* [setAgentAbstraction](#setagentabstraction)
 * [createOrder](#createorder)
+* [createTwapOrder](#createtwaporder)
 * [createOrders](#createorders)
 * [createOrdersRequest](#createordersrequest)
 * [cancelOrder](#cancelorder)
 * [cancelOrders](#cancelorders)
+* [cancelTwapOrder](#canceltwaporder)
 * [cancelOrdersRequest](#cancelordersrequest)
 * [cancelOrdersForSymbols](#cancelordersforsymbols)
 * [cancelAllOrdersAfter](#cancelallordersafter)
@@ -52,6 +60,7 @@
 * [fetchOpenInterest](#fetchopeninterest)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [reserveRequestWeight](#reserverequestweight)
+* [createAccount](#createaccount)
 * [createOrdersWs](#createordersws)
 * [createOrderWs](#createorderws)
 * [editOrderWs](#editorderws)
@@ -63,10 +72,55 @@
 * [watchTickers](#watchtickers)
 * [unWatchTickers](#unwatchtickers)
 * [watchMyTrades](#watchmytrades)
+* [unWatchMyTrades](#unwatchmytrades)
+* [watchTrades](#watchtrades)
 * [unWatchTrades](#unwatchtrades)
 * [watchOHLCV](#watchohlcv)
 * [unWatchOHLCV](#unwatchohlcv)
+* [watchBalance](#watchbalance)
+* [unWatchBalance](#unwatchbalance)
+* [watchPositions](#watchpositions)
+* [unWatchPositions](#unwatchpositions)
 * [watchOrders](#watchorders)
+* [unWatchOrders](#unwatchorders)
+
+<a name="fetchStatus" id="fetchstatus"></a>
+
+### fetchStatus{docsify-ignore}
+the latest known information on the availability of the exchange API
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.fetchStatus ([params])
+```
+
+
+<a name="fetchTime" id="fetchtime"></a>
+
+### fetchTime{docsify-ignore}
+fetches the current integer timestamp in milliseconds from the exchange server
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.fetchTime ([params])
+```
+
 
 <a name="fetchCurrencies" id="fetchcurrencies"></a>
 
@@ -203,7 +257,7 @@ hyperliquid.fetchSpotMarkets ([params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -219,6 +273,7 @@ query for balance and get the amount of funds available for trading or funds loc
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null |
 | params.dex | <code>string</code> | No | for hip3 markets, the dex name, eg: 'xyz' |
 | params.subAccountAddress | <code>string</code> | No | sub account user address |
+| params.enableUnifiedMargin | <code>boolean</code> | No | enable unified margin, CCXT tries to auto-detects this value but you can override it |
 
 
 ```javascript
@@ -232,7 +287,7 @@ hyperliquid.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot  
 
@@ -254,7 +309,7 @@ hyperliquid.fetchOrderBook (symbol[, limit, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -267,6 +322,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 | symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.type | <code>string</code> | No | 'spot' or 'swap', by default fetches both |
+| params.hip3 | <code>boolean</code> | No | set to true to fetch hip3 markets only |
 
 
 ```javascript
@@ -326,7 +382,7 @@ hyperliquid.fetchOHLCV (symbol, timeframe[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
@@ -351,13 +407,99 @@ hyperliquid.fetchTrades (symbol[, since, limit, params])
 ```
 
 
+<a name="isUnifiedEnabled" id="isunifiedenabled"></a>
+
+### isUnifiedEnabled{docsify-ignore}
+returns enableUnifiedMargin so the user can check if unified account is enabled
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>bool</code> - enableUnifiedMargin
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-abstraction-state  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| method | <code>string</code> | Yes | the method for which we want to check if unified margin is enabled, this is used to check options for specific methods (e.g. fetchBalance can have a specific option to enable unified margin) |
+| address |  | Yes |  |
+| shouldRefresh |  | Yes |  |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.isUnifiedEnabled (method, address, shouldRefresh[, params])
+```
+
+
+<a name="setUserAbstraction" id="setuserabstraction"></a>
+
+### setUserAbstraction{docsify-ignore}
+set user abstraction mode
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: dictionary response from the exchange
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#set-user-abstraction  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| abstraction | <code>string</code> | Yes | one of the strings ["disabled", "unifiedAccount", "portfolioMargin"], |
+| params | <code>object</code> | No |  |
+| params.type | <code>string</code> | No | 'userSetAbstraction' or 'agentSetAbstraction' default is 'userSetAbstraction' |
+
+
+```javascript
+hyperliquid.setUserAbstraction (abstraction[, params])
+```
+
+
+<a name="enableUserDexAbstraction" id="enableuserdexabstraction"></a>
+
+### enableUserDexAbstraction{docsify-ignore}
+If set, actions on HIP-3 perps will automatically transfer collateral from validator-operated USDC perps balance for HIP-3 DEXs where USDC is the collateral token, and spot otherwise
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: dictionary response from the exchange
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| enabled |  | Yes |  |
+| params |  | Yes |  |
+| params.type | <code>string</code> | No | 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction' |
+
+
+```javascript
+hyperliquid.enableUserDexAbstraction (enabled, params[])
+```
+
+
+<a name="setAgentAbstraction" id="setagentabstraction"></a>
+
+### setAgentAbstraction{docsify-ignore}
+set agent abstraction mode
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: dictionary response from the exchange
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| abstraction | <code>string</code> | Yes | one of the strings ["i", "u", "p"] where "i" is "disabled", "u" is "unifiedAccount", and "p" is "portfolioMargin" |
+| params | <code>object</code> | No |  |
+
+
+```javascript
+hyperliquid.setAgentAbstraction (abstraction[, params])
+```
+
+
 <a name="createOrder" id="createorder"></a>
 
 ### createOrder{docsify-ignore}
 create a trade order
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order  
 
@@ -384,13 +526,40 @@ hyperliquid.createOrder (symbol, type, side, amount[, price, params])
 ```
 
 
+<a name="createTwapOrder" id="createtwaporder"></a>
+
+### createTwapOrder{docsify-ignore}
+create a trade order that is executed as a TWAP order over a specified duration.
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
+| side | <code>string</code> | Yes | 'buy' or 'sell' |
+| amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
+| duration | <code>int</code> | Yes | the duration of the TWAP order in milliseconds |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.randomize | <code>bool</code> | No | whether to randomize the time intervals of the TWAP order slices (default is false, meaning equal intervals) |
+| params.reduceOnly | <code>bool</code> | No | true or false whether the order is reduce-only |
+| params.expiresAfter | <code>int</code> | No | time in ms after which the twap order expires |
+| params.vaultAddress | <code>string</code> | No | the vault address for order |
+
+
+```javascript
+hyperliquid.createTwapOrder (symbol, side, amount, duration[, params])
+```
+
+
 <a name="createOrders" id="createorders"></a>
 
 ### createOrders{docsify-ignore}
 create a list of trade orders
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order  
 
@@ -411,7 +580,7 @@ hyperliquid.createOrders (orders[, params])
 create a list of trade orders
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order  
 
@@ -431,7 +600,7 @@ hyperliquid.createOrdersRequest (orders, [undefined])
 cancels an open order
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -447,6 +616,7 @@ cancels an open order
 | params.clientOrderId | <code>string</code> | No | client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef) |
 | params.vaultAddress | <code>string</code> | No | the vault address for order |
 | params.subAccountAddress | <code>string</code> | No | sub account user address |
+| params.twap | <code>boolean</code> | No | whether the order to cancel is a twap order, (default is false) |
 
 
 ```javascript
@@ -460,7 +630,7 @@ hyperliquid.cancelOrder (id, symbol[, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -480,6 +650,30 @@ cancel multiple orders
 
 ```javascript
 hyperliquid.cancelOrders (ids[, symbol, params])
+```
+
+
+<a name="cancelTwapOrder" id="canceltwaporder"></a>
+
+### cancelTwapOrder{docsify-ignore}
+cancels a running twap order
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-a-twap-order  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.expiresAfter | <code>int</code> | No | time in ms after which the twap order expires |
+| params.vaultAddress | <code>string</code> | No | the vault address for order |
+
+
+```javascript
+hyperliquid.cancelTwapOrder (id, symbol[, params])
 ```
 
 
@@ -515,7 +709,7 @@ hyperliquid.cancelOrdersRequest (ids, symbol[, params])
 cancel multiple orders for multiple symbols
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -564,7 +758,7 @@ hyperliquid.cancelAllOrdersAfter (timeout[, params])
 edit a trade order
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders  
 
@@ -597,7 +791,7 @@ hyperliquid.editOrder (id, symbol, type, side, amount[, price, params])
 edit a list of trade orders
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders  
 
@@ -640,7 +834,7 @@ hyperliquid.createVault (name, description, initialUsd[, params])
 fetches historical funding rate prices
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-historical-funding-rates  
 
@@ -648,7 +842,7 @@ fetches historical funding rate prices
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
 | since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
-| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure) to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest funding rate |
 
@@ -664,7 +858,7 @@ hyperliquid.fetchFundingRateHistory (symbol[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-open-orders  
 
@@ -691,7 +885,7 @@ hyperliquid.fetchOpenOrders (symbol[, since, limit, params])
 fetch all unfilled currently closed orders
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -714,7 +908,7 @@ hyperliquid.fetchClosedOrders (symbol[, since, limit, params])
 fetch all canceled orders
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -737,7 +931,7 @@ hyperliquid.fetchCanceledOrders (symbol[, since, limit, params])
 fetch all closed and canceled orders
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -760,7 +954,7 @@ hyperliquid.fetchCanceledAndClosedOrders (symbol[, since, limit, params])
 fetch all orders
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -785,7 +979,7 @@ hyperliquid.fetchOrders (symbol[, since, limit, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-order-status-by-oid-or-cloid  
 
@@ -810,7 +1004,7 @@ hyperliquid.fetchOrder (id, symbol[, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
@@ -839,7 +1033,7 @@ hyperliquid.fetchMyTrades (symbol[, since, limit, params])
 fetch data on an open position
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary  
 
@@ -861,7 +1055,7 @@ hyperliquid.fetchPosition (symbol[, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary  
 
@@ -931,7 +1125,7 @@ hyperliquid.setLeverage (leverage, symbol[, params])
 add margin
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin  
 
@@ -955,7 +1149,7 @@ hyperliquid.addMargin (symbol, amount[, params])
 remove margin from a position
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin  
 
@@ -979,7 +1173,7 @@ hyperliquid.reduceMargin (symbol, amount[, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#l1-usdc-transfer  
 
@@ -1004,7 +1198,7 @@ hyperliquid.transfer (code, amount, fromAccount, toAccount[, params])
 make a withdrawal (only support USDC)
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**
 
@@ -1033,7 +1227,7 @@ hyperliquid.withdraw (code, amount, address, tag[, params])
 fetch the trading fees for a market
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 
 | Param | Type | Required | Description |
@@ -1055,7 +1249,7 @@ hyperliquid.fetchTradingFee (symbol[, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 
 | Param | Type | Required | Description |
@@ -1079,7 +1273,7 @@ hyperliquid.fetchLedger ([code, since, limit, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -1104,7 +1298,7 @@ hyperliquid.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -1129,7 +1323,7 @@ hyperliquid.fetchWithdrawals (code[, since, limit, params])
 Retrieves the open interest for a list of symbols
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/#/?id=open-interest-structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/?id=open-interest-structure](https://docs.ccxt.com/?id=open-interest-structure)
 
 
 | Param | Type | Required | Description |
@@ -1149,7 +1343,7 @@ hyperliquid.fetchOpenInterests ([symbols, params])
 retrieves the open interest of a contract trading pair
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+**Returns**: <code>object</code> - an [open interest structure](https://docs.ccxt.com/?id=open-interest-structure)
 
 
 | Param | Type | Required | Description |
@@ -1169,7 +1363,7 @@ hyperliquid.fetchOpenInterest (symbol[, params])
 fetch the history of funding payments paid and received on this account
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/#/?id=funding-history-structure)
+**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/?id=funding-history-structure)
 
 
 | Param | Type | Required | Description |
@@ -1206,13 +1400,34 @@ hyperliquid.reserveRequestWeight (weight[, params])
 ```
 
 
+<a name="createAccount" id="createaccount"></a>
+
+### createAccount{docsify-ignore}
+creates a sub-account under the main account
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - a response object
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| name | <code>string</code> | Yes | the name of the sub-account |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.expiresAfter | <code>int</code> | No | time in ms after which the sub-account will expire |
+
+
+```javascript
+hyperliquid.createAccount (name[, params])
+```
+
+
 <a name="createOrdersWs" id="createordersws"></a>
 
 ### createOrdersWs{docsify-ignore}
 create a list of trade orders using WebSocket post request
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order  
 
@@ -1233,7 +1448,7 @@ hyperliquid.createOrdersWs (orders[, params])
 create a trade order using WebSocket post request
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order  
 
@@ -1265,7 +1480,7 @@ hyperliquid.createOrderWs (symbol, type, side, amount[, price, params])
 edit a trade order
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders  
 
@@ -1297,7 +1512,7 @@ hyperliquid.editOrderWs (id, symbol, type, side, amount[, price, params])
 cancel multiple orders using WebSocket post request
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/post-requests  
 
@@ -1321,7 +1536,7 @@ hyperliquid.cancelOrdersWs (ids, symbol[, params])
 cancel a single order using WebSocket post request
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/post-requests  
 
@@ -1345,7 +1560,7 @@ hyperliquid.cancelOrderWs (id, symbol[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
 
@@ -1367,7 +1582,7 @@ hyperliquid.watchOrderBook (symbol[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
 
@@ -1388,7 +1603,7 @@ hyperliquid.unWatchOrderBook (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
 
@@ -1396,6 +1611,7 @@ watches a price ticker, a statistical calculation with the information calculate
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.channel | <code>string</code> | No | 'webData2' or 'allMids', default is 'webData2' |
 
 
 ```javascript
@@ -1409,7 +1625,7 @@ hyperliquid.watchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
 
@@ -1417,6 +1633,8 @@ watches a price ticker, a statistical calculation with the information calculate
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.channel | <code>string</code> | No | 'webData2' or 'allMids', default is 'webData2' |
+| params.dex | <code>string</code> | No | for for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market |
 
 
 ```javascript
@@ -1430,7 +1648,7 @@ hyperliquid.watchTickers (symbols[, params])
 unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
 
@@ -1438,6 +1656,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.channel | <code>string</code> | No | 'webData2' or 'allMids', default is 'webData2' |
 
 
 ```javascript
@@ -1451,7 +1670,7 @@ hyperliquid.unWatchTickers (symbols[, params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
 
@@ -1469,13 +1688,58 @@ hyperliquid.watchMyTrades (symbol[, since, limit, params])
 ```
 
 
+<a name="unWatchMyTrades" id="unwatchmytrades"></a>
+
+### unWatchMyTrades{docsify-ignore}
+unWatches information on multiple trades made by the user
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
+
+
+```javascript
+hyperliquid.unWatchMyTrades (symbol[, params])
+```
+
+
+<a name="watchTrades" id="watchtrades"></a>
+
+### watchTrades{docsify-ignore}
+watches information on multiple trades made in a market
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market trades were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
+| limit | <code>int</code> | No | the maximum number of trade structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.watchTrades (symbol[, since, limit, params])
+```
+
+
 <a name="unWatchTrades" id="unwatchtrades"></a>
 
 ### unWatchTrades{docsify-ignore}
 unWatches information on multiple trades made in a market
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
 
@@ -1536,13 +1800,98 @@ hyperliquid.unWatchOHLCV (symbol, timeframe[, params])
 ```
 
 
+<a name="watchBalance" id="watchbalance"></a>
+
+### watchBalance{docsify-ignore}
+watch balance and get the amount of funds available for trading or funds locked in orders
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.dex | <code>string</code> | No | for for hip3 tokens subscription, eg: 'xyz' or 'flx' |
+
+
+```javascript
+hyperliquid.watchBalance ([params])
+```
+
+
+<a name="unWatchBalance" id="unwatchbalance"></a>
+
+### unWatchBalance{docsify-ignore}
+unWatches balance
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - status of the unwatch request
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.unWatchBalance ([params])
+```
+
+
+<a name="watchPositions" id="watchpositions"></a>
+
+### watchPositions{docsify-ignore}
+watch all open positions
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/en/latest/manual.html#position-structure)
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| since | <code>int</code> | No | the earliest time in ms to fetch positions for |
+| limit | <code>int</code> | No | the maximum number of positions to retrieve |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.watchPositions ([symbols, since, limit, params])
+```
+
+
+<a name="unWatchPositions" id="unwatchpositions"></a>
+
+### unWatchPositions{docsify-ignore}
+unWatches all open positions
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - status of the unwatch request
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.unWatchPositions ([symbols, params])
+```
+
+
 <a name="watchOrders" id="watchorders"></a>
 
 ### watchOrders{docsify-ignore}
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
 
@@ -1557,5 +1906,27 @@ watches information on multiple orders made by the user
 
 ```javascript
 hyperliquid.watchOrders (symbol[, since, limit, params])
+```
+
+
+<a name="unWatchOrders" id="unwatchorders"></a>
+
+### unWatchOrders{docsify-ignore}
+unWatches information on multiple orders made by the user
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
+
+
+```javascript
+hyperliquid.unWatchOrders (symbol[, params])
 ```
 

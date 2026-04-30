@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, Conversion, Position, Dictionary } from './base/types.js';
+import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, Conversion, Position, Dictionary, ADL } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -33,6 +33,9 @@ export default class phemex extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'closePosition': false,
@@ -43,9 +46,14 @@ export default class phemex extends Exchange {
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'editOrder': true,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchConvertQuote': true,
                 'fetchConvertTrade': false,
@@ -62,6 +70,7 @@ export default class phemex extends Exchange {
                 'fetchFundingRateHistories': false,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
@@ -74,10 +83,14 @@ export default class phemex extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPositionADLRank': true,
                 'fetchPositions': true,
+                'fetchPositionsADLRank': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -86,8 +99,11 @@ export default class phemex extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransfers': true,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'sandbox': true,
                 'setLeverage': true,
                 'setMargin': true,
@@ -1218,7 +1234,7 @@ export default class phemex extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -1540,7 +1556,7 @@ export default class phemex extends Exchange {
      * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query24hrsticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
@@ -1616,7 +1632,7 @@ export default class phemex extends Exchange {
      * @see https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols       // inverse
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
@@ -1651,7 +1667,7 @@ export default class phemex extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
@@ -2098,7 +2114,7 @@ export default class phemex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] spot or swap
      * @param {string} [params.code] *swap only* currency code of the balance to query (USD, USDT, etc), default is USDT
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
@@ -2641,7 +2657,7 @@ export default class phemex extends Exchange {
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
      * @param {string} [params.posSide] *swap only* "Merged" for one way mode, "Long" for buy side of hedged mode, "Short" for sell side of hedged mode
      * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
@@ -2678,9 +2694,9 @@ export default class phemex extends Exchange {
         };
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         const stopLoss = this.safeValue (params, 'stopLoss');
-        const stopLossDefined = (stopLoss !== undefined);
         const takeProfit = this.safeValue (params, 'takeProfit');
-        const takeProfitDefined = (takeProfit !== undefined);
+        const hasStopLoss = (stopLoss !== undefined);
+        const hasTakeProfit = (takeProfit !== undefined);
         const isStableSettled = (market['settle'] === 'USDT') || (market['settle'] === 'USDC');
         if (clientOrderId === undefined) {
             const brokerId = this.safeString (this.options, 'brokerId', 'CCXT123456');
@@ -2783,8 +2799,8 @@ export default class phemex extends Exchange {
                     }
                 }
             }
-            if (stopLossDefined || takeProfitDefined) {
-                if (stopLossDefined) {
+            if (hasStopLoss || hasTakeProfit) {
+                if (hasStopLoss) {
                     const stopLossTriggerPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice');
                     if (stopLossTriggerPrice === undefined) {
                         throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"] for a stop loss order');
@@ -2803,7 +2819,7 @@ export default class phemex extends Exchange {
                         request['slPxRp'] = this.priceToPrecision (symbol, slLimitPrice);
                     }
                 }
-                if (takeProfitDefined) {
+                if (hasTakeProfit) {
                     const takeProfitTriggerPrice = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice');
                     if (takeProfitTriggerPrice === undefined) {
                         throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"] for a take profit order');
@@ -2951,7 +2967,7 @@ export default class phemex extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
@@ -3020,7 +3036,7 @@ export default class phemex extends Exchange {
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
@@ -3061,7 +3077,7 @@ export default class phemex extends Exchange {
      * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancelall
      * @param {string} symbol unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
@@ -3125,7 +3141,7 @@ export default class phemex extends Exchange {
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
@@ -3179,7 +3195,7 @@ export default class phemex extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (symbol === undefined) {
@@ -3221,7 +3237,7 @@ export default class phemex extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
@@ -3270,7 +3286,7 @@ export default class phemex extends Exchange {
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.settle] the settlement currency to fetch orders for
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
@@ -3354,7 +3370,7 @@ export default class phemex extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
@@ -3512,7 +3528,7 @@ export default class phemex extends Exchange {
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] the chain name to fetch the deposit address e.g. ETH, TRX, EOS, SOL, etc.
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
@@ -3568,7 +3584,7 @@ export default class phemex extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
@@ -3609,7 +3625,7 @@ export default class phemex extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
@@ -3793,7 +3809,7 @@ export default class phemex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.code] the currency code to fetch positions for, USD, BTC or USDT, USDT is the default
      * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
@@ -4080,7 +4096,7 @@ export default class phemex extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
@@ -4170,7 +4186,7 @@ export default class phemex extends Exchange {
      * @description fetch the current funding rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         await this.loadMarkets ();
@@ -4289,7 +4305,7 @@ export default class phemex extends Exchange {
      * @param {string} symbol unified market symbol of the market to set margin in
      * @param {float} amount the amount to set the margin to
      * @param {object} [params] parameters specific to the exchange API endpoint
-     * @returns {object} A [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async setMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         await this.loadMarkets ();
@@ -4423,7 +4439,7 @@ export default class phemex extends Exchange {
      * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
     async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
         await this.loadMarkets ();
@@ -4658,7 +4674,7 @@ export default class phemex extends Exchange {
      * @param {string} toAccount account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.bizType] for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         await this.loadMarkets ();
@@ -4743,7 +4759,7 @@ export default class phemex extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of  transfers structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         await this.loadMarkets ();
@@ -4859,11 +4875,11 @@ export default class phemex extends Exchange {
      * @see https://phemex-docs.github.io/#query-funding-rate-history-2
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {int} [params.until] timestamp in ms of the latest funding rate
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
@@ -5016,7 +5032,7 @@ export default class phemex extends Exchange {
      * @see https://phemex-docs.github.io/#query-24-hours-ticker
      * @param {string} symbol unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
-     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterest (symbol: string, params = {}) {
         await this.loadMarkets ();
@@ -5094,7 +5110,7 @@ export default class phemex extends Exchange {
      * @param {string} toCode the currency that you want to buy and convert into
      * @param {float} amount how much you want to trade in units of the from currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     async fetchConvertQuote (fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
         await this.loadMarkets ();
@@ -5139,7 +5155,7 @@ export default class phemex extends Exchange {
      * @param {string} toCode the currency that you want to buy and convert into
      * @param {float} [amount] how much you want to trade in units of the from currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
         await this.loadMarkets ();
@@ -5190,7 +5206,7 @@ export default class phemex extends Exchange {
      * @param {string} [params.until] the end time in ms
      * @param {string} [params.fromCurrency] the currency that you sold and converted from
      * @param {string} [params.toCurrency] the currency that you bought and converted into
-     * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     async fetchConvertTradeHistory (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Conversion[]> {
         await this.loadMarkets ();
@@ -5305,6 +5321,346 @@ export default class phemex extends Exchange {
             'price': this.safeNumber (quoteArgs, 'price'),
             'fee': undefined,
         } as Conversion;
+    }
+
+    /**
+     * @method
+     * @name phemex#fetchPositionADLRank
+     * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
+     * @see https://phemex-docs.github.io/#query-account-positions
+     * @see https://phemex-docs.github.io/#query-trading-account-and-positions
+     * @see https://phemex-docs.github.io/#query-account-positions-with-unrealized-pnl
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.code] the currency code to fetch ranks for, USD, BTC or USDT, USDT is the default
+     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
+     * @returns {object} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+     */
+    async fetchPositionsADLRank (symbols: Strings = undefined, params = {}): Promise<ADL[]> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        let subType = undefined;
+        let code = this.safeString2 (params, 'currency', 'code', 'USDT');
+        params = this.omit (params, [ 'currency', 'code' ]);
+        let settle = undefined;
+        let market = undefined;
+        const firstSymbol = this.safeString (symbols, 0);
+        if (firstSymbol !== undefined) {
+            market = this.market (firstSymbol);
+            settle = market['settle'];
+            code = market['settle'];
+        } else {
+            [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositionsADLRank', 'settle', code);
+        }
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionsADLRank', market, params);
+        const isUSDTSettled = settle === 'USDT';
+        if (isUSDTSettled) {
+            code = 'USDT';
+        } else if (settle === 'BTC') {
+            code = 'BTC';
+        } else if (code === undefined) {
+            code = (subType === 'linear') ? 'USD' : 'BTC';
+        }
+        const currency = this.currency (code);
+        const request: Dict = {
+            'currency': currency['id'],
+        };
+        let response = undefined;
+        if (isUSDTSettled) {
+            let method = undefined;
+            [ method, params ] = this.handleOptionAndParams (params, 'fetchPositionsADLRank', 'method', 'privateGetGAccountsAccountPositions');
+            if (method === 'privateGetGAccountsAccountPositions') {
+                response = await this.privateGetGAccountsAccountPositions (this.extend (request, params));
+            } else {
+                response = await this.privateGetGAccountsPositions (this.extend (request, params));
+            }
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "data": {
+            //             "account": {
+            //                 "userID": 940666,
+            //                 "accountId": 9406660003,
+            //                 "currency": "USDT",
+            //                 "accountBalanceRv": "439.96184445932",
+            //                 "totalUsedBalanceRv": "89.22502732",
+            //                 "bonusBalanceRv": "0",
+            //                 "status": 0,
+            //                 "userMode": 1
+            //             },
+            //             "positions": [
+            //                 {
+            //                     "userID": 940666,
+            //                     "accountID": 9406660003,
+            //                     "symbol": "BTCUSDT",
+            //                     "currency": "USDT",
+            //                     "side": "Buy",
+            //                     "positionStatus": "Normal",
+            //                     "crossMargin": true,
+            //                     "leverageRr": "-10",
+            //                     "initMarginReqRr": "0.1",
+            //                     "maintMarginReqRr": "0.005",
+            //                     "riskLimitRv": "20000000",
+            //                     "size": "0.01",
+            //                     "valueRv": "887.531",
+            //                     "avgEntryPriceRp": "88753.1",
+            //                     "avgEntryPrice": "88753.1",
+            //                     "posCostRv": "89.22502732",
+            //                     "assignedPosBalanceRv": "89.29802732",
+            //                     "bankruptCommRv": "0.529812426",
+            //                     "bankruptPriceRp": "44783.79",
+            //                     "positionMarginRv": "88.695214894",
+            //                     "liquidationPriceRp": "45009",
+            //                     "deleveragePercentileRr": "0",
+            //                     "buyValueToCostRr": "0.10114",
+            //                     "sellValueToCostRr": "0.10126",
+            //                     "markPriceRp": "88747.2",
+            //                     "estimatedOrdLossRv": "0",
+            //                     "usedBalanceRv": "89.22502732",
+            //                     "cumClosedPnlRv": "425.97796",
+            //                     "cumFundingFeeRv": "54.892930099379",
+            //                     "cumTransactFeeRv": "1.288782144",
+            //                     "transactTimeNs": 1767176685241254818,
+            //                     "takerFeeRateRr": "-1",
+            //                     "makerFeeRateRr": "-1",
+            //                     "term": 6,
+            //                     "lastTermEndTimeNs": 1759835547751667598,
+            //                     "lastFundingTimeNs": 1759824000000000000,
+            //                     "curTermRealisedPnlRv": "-0.5325186",
+            //                     "execSeq": 47732822790,
+            //                     "posSide": "Long",
+            //                     "posMode": "Hedged",
+            //                     "buyLeavesValueRv": "0",
+            //                     "buyLeavesQtyRq": "0",
+            //                     "sellLeavesValueRv": "0",
+            //                     "sellLeavesQtyRq": "0"
+            //                 },
+            //             ]
+            //         }
+            //     }
+            //
+        } else {
+            response = await this.privateGetAccountsAccountPositions (this.extend (request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "data": {
+            //             "account": {
+            //                 "userID": 940666,
+            //                 "accountId": 9406660001,
+            //                 "currency": "BTC",
+            //                 "accountBalanceEv": 50050270,
+            //                 "totalUsedBalanceEv": 58,
+            //                 "bonusBalanceEv": 0
+            //             },
+            //             "positions": [
+            //                 {
+            //                     "userID": 940666,
+            //                     "accountID": 9406660001,
+            //                     "symbol": "BTCUSD",
+            //                     "currency": "BTC",
+            //                     "side": "Buy",
+            //                     "positionStatus": "Normal",
+            //                     "crossMargin": false,
+            //                     "leverageEr": -2000000000,
+            //                     "leverage": -20.00000000,
+            //                     "initMarginReqEr": 5000000,
+            //                     "initMarginReq": 0.05000000,
+            //                     "maintMarginReqEr": 500000,
+            //                     "maintMarginReq": 0.00500000,
+            //                     "riskLimitEv": 150000000000,
+            //                     "riskLimit": 1500.00000000,
+            //                     "size": 1,
+            //                     "value": 0.00001128,
+            //                     "valueEv": 1128,
+            //                     "avgEntryPriceEp": 886524823,
+            //                     "avgEntryPrice": 88652.48230000,
+            //                     "posCostEv": 58,
+            //                     "posCost": 5.8E-7,
+            //                     "assignedPosBalanceEv": 58,
+            //                     "assignedPosBalance": 5.8E-7,
+            //                     "bankruptCommEv": 1,
+            //                     "bankruptComm": 1E-8,
+            //                     "bankruptPriceEp": 100000,
+            //                     "bankruptPrice": 10.00000000,
+            //                     "positionMarginEv": 57,
+            //                     "positionMargin": 5.7E-7,
+            //                     "liquidationPriceEp": 100000,
+            //                     "liquidationPrice": 10.00000000,
+            //                     "deleveragePercentileEr": 0,
+            //                     "deleveragePercentile": 0E-8,
+            //                     "buyValueToCostEr": 5123000,
+            //                     "buyValueToCost": 0.05123000,
+            //                     "sellValueToCostEr": 5117000,
+            //                     "sellValueToCost": 0.05117000,
+            //                     "markPriceEp": 886028000,
+            //                     "markPrice": 88602.80000000,
+            //                     "estimatedOrdLossEv": 0,
+            //                     "estimatedOrdLoss": 0E-8,
+            //                     "usedBalanceEv": 58,
+            //                     "usedBalance": 5.8E-7,
+            //                     "cumClosedPnlEv": 127,
+            //                     "cumFundingFeeEv": -146,
+            //                     "cumTransactFeeEv": 3,
+            //                     "transactTimeNs": 1767177964554892106,
+            //                     "takerFeeRateEr": 60000,
+            //                     "makerFeeRateEr": 10000,
+            //                     "term": 2,
+            //                     "lastTermEndTimeNs": 1716225275381802994,
+            //                     "lastFundingTimeNs": 1767168000000000000,
+            //                     "curTermRealisedPnlEv": -1,
+            //                     "execSeq": 1104909332,
+            //                     "freeQty": -1,
+            //                     "freeCostEv": 0,
+            //                     "buyLeavesValueEv": 0,
+            //                     "sellLeavesValueEv": 0,
+            //                     "buyLeavesQty": 0,
+            //                     "sellLeavesQty": 0
+            //                 }
+            //             ]
+            //         }
+            //     }
+            //
+        }
+        const data = this.safeValue (response, 'data', {});
+        const ranks = this.safeValue (data, 'positions', []);
+        const result = [];
+        for (let i = 0; i < ranks.length; i++) {
+            const rank = ranks[i];
+            result.push (this.parseADLRank (rank));
+        }
+        return this.filterByArrayADLRanks (result, 'symbol', symbols, false);
+    }
+
+    parseADLRank (info: Dict, market: Market = undefined): ADL {
+        //
+        // fetchPositionADLRank: linear
+        //
+        //     {
+        //         "userID": 940666,
+        //         "accountID": 9406660003,
+        //         "symbol": "BTCUSDT",
+        //         "currency": "USDT",
+        //         "side": "Buy",
+        //         "positionStatus": "Normal",
+        //         "crossMargin": true,
+        //         "leverageRr": "-10",
+        //         "initMarginReqRr": "0.1",
+        //         "maintMarginReqRr": "0.005",
+        //         "riskLimitRv": "20000000",
+        //         "size": "0.01",
+        //         "valueRv": "887.531",
+        //         "avgEntryPriceRp": "88753.1",
+        //         "avgEntryPrice": "88753.1",
+        //         "posCostRv": "89.22502732",
+        //         "assignedPosBalanceRv": "89.29802732",
+        //         "bankruptCommRv": "0.529812426",
+        //         "bankruptPriceRp": "44783.79",
+        //         "positionMarginRv": "88.695214894",
+        //         "liquidationPriceRp": "45009",
+        //         "deleveragePercentileRr": "0",
+        //         "buyValueToCostRr": "0.10114",
+        //         "sellValueToCostRr": "0.10126",
+        //         "markPriceRp": "88747.2",
+        //         "estimatedOrdLossRv": "0",
+        //         "usedBalanceRv": "89.22502732",
+        //         "cumClosedPnlRv": "425.97796",
+        //         "cumFundingFeeRv": "54.892930099379",
+        //         "cumTransactFeeRv": "1.288782144",
+        //         "transactTimeNs": 1767176685241254818,
+        //         "takerFeeRateRr": "-1",
+        //         "makerFeeRateRr": "-1",
+        //         "term": 6,
+        //         "lastTermEndTimeNs": 1759835547751667598,
+        //         "lastFundingTimeNs": 1759824000000000000,
+        //         "curTermRealisedPnlRv": "-0.5325186",
+        //         "execSeq": 47732822790,
+        //         "posSide": "Long",
+        //         "posMode": "Hedged",
+        //         "buyLeavesValueRv": "0",
+        //         "buyLeavesQtyRq": "0",
+        //         "sellLeavesValueRv": "0",
+        //         "sellLeavesQtyRq": "0"
+        //     }
+        //
+        // fetchPositionADLRank: inverse
+        //
+        //     {
+        //         "userID": 940666,
+        //         "accountID": 9406660001,
+        //         "symbol": "BTCUSD",
+        //         "currency": "BTC",
+        //         "side": "Buy",
+        //         "positionStatus": "Normal",
+        //         "crossMargin": false,
+        //         "leverageEr": -2000000000,
+        //         "leverage": -20.00000000,
+        //         "initMarginReqEr": 5000000,
+        //         "initMarginReq": 0.05000000,
+        //         "maintMarginReqEr": 500000,
+        //         "maintMarginReq": 0.00500000,
+        //         "riskLimitEv": 150000000000,
+        //         "riskLimit": 1500.00000000,
+        //         "size": 1,
+        //         "value": 0.00001128,
+        //         "valueEv": 1128,
+        //         "avgEntryPriceEp": 886524823,
+        //         "avgEntryPrice": 88652.48230000,
+        //         "posCostEv": 58,
+        //         "posCost": 5.8E-7,
+        //         "assignedPosBalanceEv": 58,
+        //         "assignedPosBalance": 5.8E-7,
+        //         "bankruptCommEv": 1,
+        //         "bankruptComm": 1E-8,
+        //         "bankruptPriceEp": 100000,
+        //         "bankruptPrice": 10.00000000,
+        //         "positionMarginEv": 57,
+        //         "positionMargin": 5.7E-7,
+        //         "liquidationPriceEp": 100000,
+        //         "liquidationPrice": 10.00000000,
+        //         "deleveragePercentileEr": 0,
+        //         "deleveragePercentile": 0E-8,
+        //         "buyValueToCostEr": 5123000,
+        //         "buyValueToCost": 0.05123000,
+        //         "sellValueToCostEr": 5117000,
+        //         "sellValueToCost": 0.05117000,
+        //         "markPriceEp": 886028000,
+        //         "markPrice": 88602.80000000,
+        //         "estimatedOrdLossEv": 0,
+        //         "estimatedOrdLoss": 0E-8,
+        //         "usedBalanceEv": 58,
+        //         "usedBalance": 5.8E-7,
+        //         "cumClosedPnlEv": 127,
+        //         "cumFundingFeeEv": -146,
+        //         "cumTransactFeeEv": 3,
+        //         "transactTimeNs": 1767177964554892106,
+        //         "takerFeeRateEr": 60000,
+        //         "makerFeeRateEr": 10000,
+        //         "term": 2,
+        //         "lastTermEndTimeNs": 1716225275381802994,
+        //         "lastFundingTimeNs": 1767168000000000000,
+        //         "curTermRealisedPnlEv": -1,
+        //         "execSeq": 1104909332,
+        //         "freeQty": -1,
+        //         "freeCostEv": 0,
+        //         "buyLeavesValueEv": 0,
+        //         "sellLeavesValueEv": 0,
+        //         "buyLeavesQty": 0,
+        //         "sellLeavesQty": 0
+        //     }
+        //
+        const marketId = this.safeString (info, 'symbol');
+        return {
+            'info': info,
+            'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
+            'rank': undefined,
+            'rating': undefined,
+            'percentage': this.safeNumber2 (info, 'deleveragePercentileRr', 'deleveragePercentileEr'),
+            'timestamp': undefined,
+            'datetime': undefined,
+        } as ADL;
     }
 
     handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {

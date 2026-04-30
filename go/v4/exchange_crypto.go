@@ -375,7 +375,7 @@ func Eddsa(data2 interface{}, secret interface{}, curve interface{}) string {
 		return ""
 	}
 	base64Str := base64.StdEncoding.EncodeToString(signature)
-	return Base64ToBase64URL(base64Str, true)
+	return base64Str
 }
 
 // func Ecdsa(request interface{}, secret interface{}, alg interface{}, hash interface{}) string {

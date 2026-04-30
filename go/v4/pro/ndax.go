@@ -50,7 +50,7 @@ func  (this *NdaxCore) RequestId() interface{}  {
  * @see https://apidoc.ndax.io/#subscribelevel1
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *NdaxCore) WatchTicker(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -132,7 +132,7 @@ func  (this *NdaxCore) HandleTicker(client interface{}, message interface{})  {
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *NdaxCore) WatchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -370,7 +370,7 @@ func  (this *NdaxCore) HandleOHLCV(client interface{}, message interface{})  {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *NdaxCore) WatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -437,7 +437,7 @@ func  (this *NdaxCore) HandleOrderBook(client interface{}, message interface{}) 
     //
     //     [
     //         0,   // 0 MDUpdateId
-    //         1,   // 1 Number of ccxt.Unique Accounts
+    //         1,   // 1 Number of Unique Accounts
     //         123, // 2 ActionDateTime in Posix format X 1000
     //         0,   // 3 ActionType 0 (New), 1 (Update), 2(Delete)
     //         0.0, // 4 LastTradePrice
@@ -513,7 +513,7 @@ func  (this *NdaxCore) HandleOrderBookSubscription(client interface{}, message i
     //     [
     //         [
     //             0,   // 0 MDUpdateId
-    //             1,   // 1 Number of ccxt.Unique Accounts
+    //             1,   // 1 Number of Unique Accounts
     //             123, // 2 ActionDateTime in Posix format X 1000
     //             0,   // 3 ActionType 0 (New), 1 (Update), 2(Delete)
     //             0.0, // 4 LastTradePrice

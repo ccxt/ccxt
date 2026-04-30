@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "4.5.22",
+  "version": "4.5.51",
   "description": "A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go",
   "unpkg": "dist/ccxt.browser.min.js",
   "type": "module",
@@ -11,7 +11,7 @@
         "default": "./js/ccxt.js"
       },
       "require": {
-        "types": "./index.d.ts",
+        "types": "./index.d.cts",
         "default": "./dist/ccxt.cjs"
       }
     }
@@ -33,6 +33,7 @@
     "benchmark": "tsx examples/ts/benchmark.ts",
     "build": "npm run pre-transpile && npm run transpile && npm run post-transpile && npm run update-badges && npm run build-docs",
     "build-docs": "node jsdoc2md.js && node examples2md.js",
+    "build-go-cli": "go build -C go/cli",
     "buildCS": "dotnet build cs/ccxt.sln",
     "buildCSRelease": "dotnet build cs --configuration Release",
     "buildCSTests": "dotnet build cs/tests/tests.csproj",
@@ -93,6 +94,7 @@
     "git-ignore-generated-files": "node build/git-ignore-generated-files.cjs",
     "git-unignore-generated-files": "node build/git-ignore-generated-files.cjs --unignore",
     "go": "npm run transpileGO && npm run buildGO",
+    "go-build-single": "tsx ./build/granular-go-build.ts",
     "id-tests": "npm run id-tests-js && npm run id-tests-py && npm run id-tests-php && npm run id-tests-cs",
     "id-tests-cs": "npm run ti-cs  -- --idTests",
     "id-tests-go": "npm run ti-go  -- --idTests",
