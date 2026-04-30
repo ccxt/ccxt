@@ -8,7 +8,7 @@ except ImportError:
 
 import json
 
-from asyncio import sleep, ensure_future, wait_for, TimeoutError, BaseEventLoop, Future as asyncioFuture
+from asyncio import sleep, ensure_future, wait_for, TimeoutError, BaseEventLoop, Future as asyncioFuture, CancelledError
 from .functions import milliseconds, iso8601, deep_extend, is_json_encoded_object
 from ccxt import NetworkError, RequestTimeout
 from ccxt.async_support.base.ws.future import Future
@@ -137,7 +137,11 @@ class Client(object):
             task = self.asyncio_loop.create_task(self.receive())
 
             def after_interrupt(resolved: asyncioFuture):
-                exception = resolved.exception()
+                try:
+                    exception = resolved.exception()
+                except CancelledError:
+                    # Task was cancelled, likely during shutdown
+                    return
                 if exception is None:
                     self.handle_message(resolved.result())
                     self.asyncio_loop.call_soon(self.receive_loop)
