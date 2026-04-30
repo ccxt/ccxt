@@ -123,7 +123,10 @@ class ArrayCacheByTimestamp(BaseCache):
             self.hashmap[item[0]] = item
             if len(self._deque) == self._deque.maxlen:
                 delete_reference = self._deque.popleft()
-                del self.hashmap[delete_reference[0]]
+                try:
+                    del self.hashmap[delete_reference[0]]
+                except KeyError:
+                    logger.warning(f"KeyError deleting item from cache: {delete_reference[0]}")
             self._deque.append(item)
         if self._clear_updates:
             self._clear_updates = False
@@ -199,7 +202,10 @@ class ArrayCacheBySymbolBySide(ArrayCache):
         if len(self._deque) == self._deque.maxlen:
             delete_item = self._deque.popleft()
             self._index.popleft()
-            del self.hashmap[delete_item['symbol']][delete_item['side']]
+            try:
+                del self.hashmap[delete_item['symbol']][delete_item['side']]
+            except KeyError:
+                logger.warning(f"KeyError deleting item from cache: {delete_item}")
         self._deque.append(item)
         self._index.append(item['symbol'] + item['side'])
         if self._clear_all_updates:
