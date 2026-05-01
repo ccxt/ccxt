@@ -640,6 +640,11 @@ func (this *Exchange) ValueIsDefined(v interface{}) bool {
 	if str, ok := v.(string); ok {
 		return str != ""
 	}
+	val := reflect.ValueOf(v)
+	switch val.Kind() {
+	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Chan, reflect.Func, reflect.Interface:
+		return !val.IsNil()
+	}
 	return true
 }
 
