@@ -11,11 +11,11 @@ import (
 	"strings"
 )
 
-// // ConvertToDictionaryOfStringObject converts a potential dictionary to a map[string]interface{}
-// func ConvertToDictionaryOfStringObject(potentialDictionary interface{}) (map[string]interface{}, error) {
+// // ConvertToDictionaryOfStringObject converts a potential dictionary to a map[string]any
+// func ConvertToDictionaryOfStringObject(potentialDictionary any) (map[string]any, error) {
 // 	dictValue := reflect.ValueOf(potentialDictionary)
 // 	if dictValue.Kind() == reflect.Map && dictValue.Type().Key().Kind() == reflect.String {
-// 		result := make(map[string]interface{})
+// 		result := make(map[string]any)
 // 		for _, key := range dictValue.MapKeys() {
 // 			result[key.String()] = dictValue.MapIndex(key).Interface()
 // 		}
@@ -25,8 +25,8 @@ import (
 // }
 
 // SafeValueN retrieves a value from a nested structure
-// func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}) interface{} {
-// 	var defVal interface{} = nil
+// func SafeValueN(obj any, keys []any, defaultValue ...any) any {
+// 	var defVal any = nil
 // 	if len(defaultValue) > 0 {
 // 		defVal = defaultValue[0]
 // 	}
@@ -57,7 +57,7 @@ import (
 // 			}
 // 		}
 // 	case reflect.Slice:
-// 		if list, ok := obj.([]interface{}); ok {
+// 		if list, ok := obj.([]any); ok {
 // 			for _, key := range keys {
 // 				if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
 // 					if keyInt >= 0 && keyInt < len(list) {
@@ -111,9 +111,9 @@ import (
 // 	return defVal
 // }
 
-func getValueFromList(list interface{}, keys []interface{}, defVal interface{}) interface{} {
+func getValueFromList(list any, keys []any, defVal any) any {
 	switch l := list.(type) {
-	case []interface{}:
+	case []any:
 		for _, key := range keys {
 			if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
 				if keyInt >= 0 && keyInt < len(l) {
@@ -165,8 +165,8 @@ func getValueFromList(list interface{}, keys []interface{}, defVal interface{}) 
 	return defVal
 }
 
-func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}) interface{} {
-	var defVal interface{} = nil
+func SafeValueN(obj any, keys []any, defaultValue ...any) any {
+	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
@@ -175,7 +175,7 @@ func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}
 	}
 
 	// Handle maps
-	if dict, ok := obj.(map[string]interface{}); ok {
+	if dict, ok := obj.(map[string]any); ok {
 		// serialize map reads to avoid races with concurrent writes elsewhere
 		addElementMu.Lock()
 		for _, key := range keys {
@@ -211,7 +211,7 @@ func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}
 
 	switch v := obj.(type) {
 	// handle slices
-	case []interface{}:
+	case []any:
 		return getValueFromList(v, keys, defVal)
 	case []string:
 		return getValueFromList(v, keys, defVal)
@@ -224,7 +224,7 @@ func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}
 	case []float64:
 		return getValueFromList(v, keys, defVal)
 	// handle map[strings]
-	case map[string]map[string]interface{}:
+	case map[string]map[string]any:
 		for _, key := range keys {
 			if key == nil {
 				continue
@@ -327,7 +327,7 @@ func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}
 }
 
 // SafeStringN retrieves a string value from a nested structure
-func SafeStringN(obj interface{}, keys []interface{}, defaultValue interface{}) interface{} {
+func SafeStringN(obj any, keys []any, defaultValue any) any {
 	value := SafeValueN(obj, keys, defaultValue)
 	if value == nil {
 		return defaultValue
@@ -356,15 +356,15 @@ func SafeStringN(obj interface{}, keys []interface{}, defaultValue interface{}) 
 	}
 }
 
-func (this *Exchange) SafeStringUpperN(obj interface{}, keys []interface{}, defaultValue ...interface{}) interface{} {
-	var defVal interface{} = nil
+func (this *Exchange) SafeStringUpperN(obj any, keys []any, defaultValue ...any) any {
+	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
 	return SafeStringUpperN(obj, keys, defVal)
 }
 
-func SafeStringUpperN(obj interface{}, keys []interface{}, defaultValue interface{}) interface{} {
+func SafeStringUpperN(obj any, keys []any, defaultValue any) any {
 	value := SafeStringN(obj, keys, defaultValue)
 	if value == nil {
 		return defaultValue
@@ -373,7 +373,7 @@ func SafeStringUpperN(obj interface{}, keys []interface{}, defaultValue interfac
 }
 
 // SafeFloatN retrieves a float64 value from a nested structure
-func SafeFloatN(obj interface{}, keys []interface{}, defaultValue interface{}) float64 {
+func SafeFloatN(obj any, keys []any, defaultValue any) float64 {
 	value := SafeValueN(obj, keys, defaultValue)
 	if value == nil {
 		return defaultValue.(float64)
@@ -406,7 +406,7 @@ func SafeFloatN(obj interface{}, keys []interface{}, defaultValue interface{}) f
 }
 
 // SafeIntegerN retrieves an int64 value from a nested structure
-func SafeIntegerN(obj interface{}, keys []interface{}, defaultValue interface{}) interface{} {
+func SafeIntegerN(obj any, keys []any, defaultValue any) any {
 	value := SafeValueN(obj, keys, defaultValue)
 	if value == nil {
 		return nil
@@ -443,34 +443,34 @@ func SafeIntegerN(obj interface{}, keys []interface{}, defaultValue interface{})
 }
 
 // SafeValue retrieves a value from a nested structure
-func SafeValue(obj interface{}, key interface{}, defaultValue interface{}) interface{} {
-	return SafeValueN(obj, []interface{}{key}, defaultValue)
+func SafeValue(obj any, key any, defaultValue any) any {
+	return SafeValueN(obj, []any{key}, defaultValue)
 }
 
 // SafeString retrieves a string value from a nested structure
-func SafeString(obj interface{}, key interface{}, defaultValue interface{}) interface{} {
-	return SafeStringN(obj, []interface{}{key}, defaultValue)
+func SafeString(obj any, key any, defaultValue any) any {
+	return SafeStringN(obj, []any{key}, defaultValue)
 }
 
-func SafeString2(obj interface{}, key interface{}, key2 interface{}, defaultValue interface{}) interface{} {
-	return SafeStringN(obj, []interface{}{key, key2}, defaultValue)
+func SafeString2(obj any, key any, key2 any, defaultValue any) any {
+	return SafeStringN(obj, []any{key, key2}, defaultValue)
 }
 
 // SafeFloat retrieves a float64 value from a nested structure
-func SafeFloat(obj interface{}, key interface{}, defaultValue interface{}) interface{} {
-	return SafeFloatN(obj, []interface{}{key}, defaultValue)
+func SafeFloat(obj any, key any, defaultValue any) any {
+	return SafeFloatN(obj, []any{key}, defaultValue)
 }
 
-func SafeFloat2(obj interface{}, key interface{}, key2 interface{}, defaultValue interface{}) interface{} {
-	return SafeFloatN(obj, []interface{}{key, key2}, defaultValue)
+func SafeFloat2(obj any, key any, key2 any, defaultValue any) any {
+	return SafeFloatN(obj, []any{key, key2}, defaultValue)
 }
 
 // SafeInteger retrieves an int64 value from a nested structure
-func SafeInteger(obj interface{}, key interface{}, defaultValue interface{}) interface{} {
-	return SafeIntegerN(obj, []interface{}{key}, defaultValue)
+func SafeInteger(obj any, key any, defaultValue any) any {
+	return SafeIntegerN(obj, []any{key}, defaultValue)
 }
 
-func SafeInt64(obj interface{}, key interface{}, defaultValue interface{}) interface{} {
+func SafeInt64(obj any, key any, defaultValue any) any {
 	res := SafeInteger(obj, key, defaultValue)
 	if res != nil {
 		return res.(int64)
@@ -478,12 +478,12 @@ func SafeInt64(obj interface{}, key interface{}, defaultValue interface{}) inter
 	return nil
 }
 
-func SafeInteger2(obj interface{}, key interface{}, key2 interface{}, defaultValue interface{}) interface{} {
-	return SafeIntegerN(obj, []interface{}{key, key2}, defaultValue)
+func SafeInteger2(obj any, key any, key2 any, defaultValue any) any {
+	return SafeIntegerN(obj, []any{key, key2}, defaultValue)
 }
 
 // SafeTimestampN retrieves a timestamp value from a nested structure
-func SafeTimestampN(obj interface{}, keys []interface{}, defaultValue interface{}) interface{} {
+func SafeTimestampN(obj any, keys []any, defaultValue any) any {
 	result := SafeValueN(obj, keys, defaultValue)
 	if result == nil {
 		return nil
@@ -512,17 +512,17 @@ func SafeTimestampN(obj interface{}, keys []interface{}, defaultValue interface{
 }
 
 // SafeTimestamp retrieves a timestamp value from a nested structure
-func SafeTimestamp(obj interface{}, key interface{}, defaultValue interface{}) interface{} {
-	return SafeTimestampN(obj, []interface{}{key}, defaultValue)
+func SafeTimestamp(obj any, key any, defaultValue any) any {
+	return SafeTimestampN(obj, []any{key}, defaultValue)
 }
 
 // SafeTimestamp2 retrieves a timestamp value from a nested structure with two keys
-func SafeTimestamp2(obj interface{}, key1, key2 interface{}, defaultValue interface{}) interface{} {
-	return SafeTimestampN(obj, []interface{}{key1, key2}, defaultValue)
+func SafeTimestamp2(obj any, key1, key2 any, defaultValue any) any {
+	return SafeTimestampN(obj, []any{key1, key2}, defaultValue)
 }
 
 // SafeIntegerProductN retrieves a multiplied integer value from a nested structure
-func SafeIntegerProductN(obj interface{}, keys []interface{}, multiplier interface{}, defaultValue interface{}) interface{} {
+func SafeIntegerProductN(obj any, keys []any, multiplier any, defaultValue any) any {
 	if multiplier == nil {
 		multiplier = 1
 	}
@@ -552,18 +552,18 @@ func SafeIntegerProductN(obj interface{}, keys []interface{}, multiplier interfa
 }
 
 // SafeIntegerProduct retrieves a multiplied integer value from a nested structure
-func SafeIntegerProduct(obj interface{}, key interface{}, multiplier interface{}, defaultValue interface{}) interface{} {
-	return SafeIntegerProductN(obj, []interface{}{key}, multiplier, defaultValue)
+func SafeIntegerProduct(obj any, key any, multiplier any, defaultValue any) any {
+	return SafeIntegerProductN(obj, []any{key}, multiplier, defaultValue)
 }
 
 // SafeIntegerProduct2 retrieves a multiplied integer value from a nested structure with two keys
-func SafeIntegerProduct2(obj interface{}, key1, key2 interface{}, multiplier interface{}, defaultValue interface{}) interface{} {
-	return SafeIntegerProductN(obj, []interface{}{key1, key2}, multiplier, defaultValue)
+func SafeIntegerProduct2(obj any, key1, key2 any, multiplier any, defaultValue any) any {
+	return SafeIntegerProductN(obj, []any{key1, key2}, multiplier, defaultValue)
 }
 
 // SafeBool retrieves a boolean value from a nested structure
-func SafeBool(obj interface{}, key interface{}, defaultValue interface{}) interface{} {
-	value := SafeValueN(obj, []interface{}{key}, defaultValue)
+func SafeBool(obj any, key any, defaultValue any) any {
+	value := SafeValueN(obj, []any{key}, defaultValue)
 	if value == nil {
 		return defaultValue
 	}
@@ -577,15 +577,15 @@ func SafeBool(obj interface{}, key interface{}, defaultValue interface{}) interf
 
 // private wrappers
 
-func (this *Exchange) SafeString(obj interface{}, key interface{}, defaultValue ...interface{}) interface{} {
-	var defVal interface{} = nil
+func (this *Exchange) SafeString(obj any, key any, defaultValue ...any) any {
+	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
 	return SafeString(obj, key, defVal)
 }
 
-func (this *Exchange) SafeStringUpper(obj interface{}, key interface{}, defaultValue ...interface{}) interface{} {
+func (this *Exchange) SafeStringUpper(obj any, key any, defaultValue ...any) any {
 	// return strings.ToUpper(this.safeString(obj, key, defaultValue...))
 	res := this.SafeString(obj, key, defaultValue...)
 	if res != nil {
@@ -594,7 +594,7 @@ func (this *Exchange) SafeStringUpper(obj interface{}, key interface{}, defaultV
 	return nil // check this return type
 }
 
-func (this *Exchange) SafeStringLower(obj interface{}, key interface{}, defaultValue ...interface{}) interface{} {
+func (this *Exchange) SafeStringLower(obj any, key any, defaultValue ...any) any {
 	// return strings.ToUpper(this.safeString(obj, key, defaultValue...))
 	res := this.SafeString(obj, key, defaultValue...)
 	if res != "" && res != nil {
@@ -603,7 +603,7 @@ func (this *Exchange) SafeStringLower(obj interface{}, key interface{}, defaultV
 	return nil // check this return type
 }
 
-func (this *Exchange) SafeStringLower2(obj interface{}, key interface{}, key2 interface{}, defaultValue ...interface{}) interface{} {
+func (this *Exchange) SafeStringLower2(obj any, key any, key2 any, defaultValue ...any) any {
 	// return strings.ToUpper(this.safeString(obj, key, defaultValue...))
 	res := this.SafeString2(obj, key, key2, defaultValue...)
 	if res != "" && res != nil {
@@ -612,7 +612,7 @@ func (this *Exchange) SafeStringLower2(obj interface{}, key interface{}, key2 in
 	return nil // check this return type
 }
 
-func (this *Exchange) SafeStringUpper2(obj interface{}, key interface{}, key2 interface{}, defaultValue ...interface{}) interface{} {
+func (this *Exchange) SafeStringUpper2(obj any, key any, key2 any, defaultValue ...any) any {
 	// return strings.ToUpper(this.safeString(obj, key, defaultValue...))
 	res := this.SafeString2(obj, key, key2, defaultValue...)
 	if res != "" && res != nil {
@@ -621,26 +621,26 @@ func (this *Exchange) SafeStringUpper2(obj interface{}, key interface{}, key2 in
 	return nil // check this return type
 }
 
-func (this *Exchange) SafeString2(obj interface{}, key interface{}, key2 interface{}, defaultValue ...interface{}) interface{} {
-	var defVal interface{} = nil
+func (this *Exchange) SafeString2(obj any, key any, key2 any, defaultValue ...any) any {
+	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
 	return SafeString2(obj, key, key2, defVal)
 }
 
-func (this *Exchange) SafeStringN(obj interface{}, keys2 interface{}, defaultValue ...interface{}) interface{} {
-	keys := keys2.([]interface{})
-	var defVal interface{} = nil
+func (this *Exchange) SafeStringN(obj any, keys2 any, defaultValue ...any) any {
+	keys := keys2.([]any)
+	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
 	return SafeStringN(obj, keys, defVal)
 }
 
-func (this *Exchange) SafeStringLowerN(obj interface{}, keys2 interface{}, defaultValue ...interface{}) interface{} {
-	keys := keys2.([]interface{})
-	var defVal interface{} = nil
+func (this *Exchange) SafeStringLowerN(obj any, keys2 any, defaultValue ...any) any {
+	keys := keys2.([]any)
+	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
@@ -651,124 +651,124 @@ func (this *Exchange) SafeStringLowerN(obj interface{}, keys2 interface{}, defau
 	return defVal
 }
 
-func (this *Exchange) SafeFloat(obj interface{}, key interface{}, defaultValue ...interface{}) interface{} {
-	var defVal interface{} = nil
+func (this *Exchange) SafeFloat(obj any, key any, defaultValue ...any) any {
+	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
 	return SafeFloat(obj, key, defVal)
 }
 
-func (this *Exchange) SafeFloat2(obj interface{}, key interface{}, key2 interface{}, defaultValue ...interface{}) interface{} {
-	var defVal interface{} = nil
+func (this *Exchange) SafeFloat2(obj any, key any, key2 any, defaultValue ...any) any {
+	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
 	return SafeFloat2(obj, key, key2, defVal)
 }
 
-func (this *Exchange) SafeFloatN(obj interface{}, keys []interface{}, defaultValue ...interface{}) interface{} {
-	var defVal interface{} = nil
+func (this *Exchange) SafeFloatN(obj any, keys []any, defaultValue ...any) any {
+	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
 	return SafeFloatN(obj, keys, defVal)
 }
 
-func (this *Exchange) SafeInteger(obj interface{}, key interface{}, defaultValue ...interface{}) interface{} {
-	var defVal interface{} = nil
+func (this *Exchange) SafeInteger(obj any, key any, defaultValue ...any) any {
+	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
 	return SafeInteger(obj, key, defVal)
 }
 
-func (this *Exchange) SafeInteger2(obj interface{}, key interface{}, key2 interface{}, defaultValue ...interface{}) interface{} {
-	var defVal interface{} = nil
+func (this *Exchange) SafeInteger2(obj any, key any, key2 any, defaultValue ...any) any {
+	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
 	return SafeInteger2(obj, key, key2, defVal)
 }
 
-func (this *Exchange) SafeIntegerN(obj interface{}, keys []interface{}, defaultValue ...interface{}) interface{} {
-	var defVal interface{} = nil
+func (this *Exchange) SafeIntegerN(obj any, keys []any, defaultValue ...any) any {
+	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
 	return SafeIntegerN(obj, keys, defVal)
 }
 
-func (this *Exchange) SafeValue(obj interface{}, key interface{}, defaultValue ...interface{}) interface{} {
-	var defVal interface{} = nil
+func (this *Exchange) SafeValue(obj any, key any, defaultValue ...any) any {
+	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
 	return SafeValue(obj, key, defVal)
 }
 
-func (this *Exchange) SafeValue2(obj interface{}, key interface{}, key2 interface{}, defaultValue ...interface{}) interface{} {
-	return SafeValueN(obj, []interface{}{key, key2}, defaultValue...)
+func (this *Exchange) SafeValue2(obj any, key any, key2 any, defaultValue ...any) any {
+	return SafeValueN(obj, []any{key, key2}, defaultValue...)
 }
 
-func (this *Exchange) SafeValueN(obj interface{}, keys interface{}, defaultValue ...interface{}) interface{} {
-	keysArray := keys.([]interface{})
-	var defVal interface{} = nil
+func (this *Exchange) SafeValueN(obj any, keys any, defaultValue ...any) any {
+	keysArray := keys.([]any)
+	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
 	return SafeValueN(obj, keysArray, defVal)
 }
 
-func (this *Exchange) SafeTimestamp(obj interface{}, key interface{}, defaultValue ...interface{}) interface{} {
-	var defVal interface{} = nil
+func (this *Exchange) SafeTimestamp(obj any, key any, defaultValue ...any) any {
+	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
 	return SafeTimestamp(obj, key, defVal)
 }
 
-func (this *Exchange) SafeTimestamp2(obj interface{}, key1, key2 interface{}, defaultValue ...interface{}) interface{} {
-	var defVal interface{} = nil
+func (this *Exchange) SafeTimestamp2(obj any, key1, key2 any, defaultValue ...any) any {
+	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
 	return SafeTimestamp2(obj, key1, key2, defVal)
 }
 
-func (this *Exchange) SafeTimestampN(obj interface{}, keys []interface{}, defaultValue ...interface{}) interface{} {
-	var defVal interface{} = nil
+func (this *Exchange) SafeTimestampN(obj any, keys []any, defaultValue ...any) any {
+	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
 	return SafeTimestampN(obj, keys, defVal)
 }
 
-func (this *Exchange) SafeIntegerProduct(obj interface{}, key interface{}, multiplier interface{}, defaultValue ...interface{}) interface{} {
-	var defVal interface{} = nil
+func (this *Exchange) SafeIntegerProduct(obj any, key any, multiplier any, defaultValue ...any) any {
+	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
 	return SafeIntegerProduct(obj, key, multiplier, defVal)
 }
 
-func (this *Exchange) SafeIntegerProduct2(obj interface{}, key1, key2 interface{}, multiplier interface{}, defaultValue ...interface{}) interface{} {
-	var defVal interface{} = nil
+func (this *Exchange) SafeIntegerProduct2(obj any, key1, key2 any, multiplier any, defaultValue ...any) any {
+	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
 	return SafeIntegerProduct2(obj, key1, key2, multiplier, defVal)
 }
 
-func (this *Exchange) SafeIntegerProductN(obj interface{}, keys []interface{}, multiplier interface{}, defaultValue ...interface{}) interface{} {
-	var defVal interface{} = nil
+func (this *Exchange) SafeIntegerProductN(obj any, keys []any, multiplier any, defaultValue ...any) any {
+	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
 	return SafeIntegerProductN(obj, keys, multiplier, defVal)
 }
 
-// func (this *Exchange) safeBool(obj interface{}, key interface{}, defaultValue ...bool) bool {
+// func (this *Exchange) safeBool(obj any, key any, defaultValue ...bool) bool {
 // 	defVal := false
 // 	if len(defaultValue) > 0 {
 // 		defVal = defaultValue[0]
@@ -776,6 +776,6 @@ func (this *Exchange) SafeIntegerProductN(obj interface{}, keys []interface{}, m
 // 	return SafeBool(obj, key, defVal)
 // }
 
-// func (this *Exchange) safeBool(obj interface{}, key interface{}, defaultValue bool) bool {
+// func (this *Exchange) safeBool(obj any, key any, defaultValue bool) bool {
 // 	return SafeBool(obj, key, defaultValue)
 // }
