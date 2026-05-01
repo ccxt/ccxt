@@ -120,8 +120,10 @@ class bybit extends Exchange {
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionADLRank' => true,
                 'fetchPositionHistory' => 'emulated',
                 'fetchPositions' => true,
+                'fetchPositionsADLRank' => true,
                 'fetchPositionsHistory' => true,
                 'fetchPremiumIndexOHLCV' => true,
                 'fetchSettlementHistory' => true,
@@ -353,7 +355,7 @@ class bybit extends Exchange {
                         'v5/asset/coin-greeks' => 1,
                         'v5/account/fee-rate' => 10, // 5/s = 1000 / (20 * 10)
                         'v5/account/info' => 5,
-                        'v5/account/transaction-log' => 1,
+                        'v5/account/transaction-log' => 1.66, // 30/s = 50 / 30
                         'v5/account/contract-transaction-log' => 1,
                         'v5/account/smp-group' => 1,
                         'v5/account/mmp-state' => 5,
@@ -549,6 +551,7 @@ class bybit extends Exchange {
                         'v5/account/borrow' => 5,
                         'v5/account/repay' => 5,
                         'v5/account/no-convert-repay' => 5,
+                        'v5/account/set-limit-px-action' => 5,
                         // asset
                         'v5/asset/exchange/quote-apply' => 1, // 50/s
                         'v5/asset/exchange/convert-execute' => 1, // 50/s
@@ -1131,8 +1134,12 @@ class bybit extends Exchange {
                     'FUND' => 'fund',
                 ),
                 'networks' => array(
+                    'BTC' => 'BTC',
+                    'ETH' => 'ETH',
                     'ERC20' => 'ETH',
+                    'TRX' => 'TRX',
                     'TRC20' => 'TRX',
+                    'BSC' => 'BSC',
                     'BEP20' => 'BSC',
                     'SOL' => 'SOL',
                     'ACA' => 'ACA',
@@ -1181,6 +1188,7 @@ class bybit extends Exchange {
                     'OASIS' => 'ROSE',
                     'OMNI' => 'OMNI',
                     'ONE' => 'ONE',
+                    'OP' => 'OP',
                     'OPTIMISM' => 'OP',
                     'POKT' => 'POKT',
                     'QTUM' => 'QTUM',
@@ -1211,8 +1219,7 @@ class bybit extends Exchange {
                     'ETH' => 'ERC20',
                     'TRX' => 'TRC20',
                     'BSC' => 'BEP20',
-                    'OMNI' => 'OMNI',
-                    'SPL' => 'SOL',
+                    'OP' => 'OP',
                 ),
                 'defaultNetwork' => 'ERC20',
                 'defaultNetworks' => array(
@@ -1352,6 +1359,7 @@ class bybit extends Exchange {
                     'deposit' => array(),
                 ),
             ),
+            'rollingWindowSize' => 5000.0, // According to the docs (https://bybit-exchange.github.io/docs/v5/rate-limit), tested with 90000.0 with no errors
         ));
     }
 
@@ -1722,69 +1730,68 @@ class bybit extends Exchange {
             //
             $data = $this->safe_dict($response, 'result', array());
             $rows = $this->safe_list($data, 'rows', array());
-            $result = array();
-            for ($i = 0; $i < count($rows); $i++) {
-                $currency = $rows[$i];
-                $currencyId = $this->safe_string($currency, 'coin');
-                $code = $this->safe_currency_code($currencyId);
-                $name = $this->safe_string($currency, 'name');
-                $chains = $this->safe_list($currency, 'chains', array());
-                $networks = array();
-                for ($j = 0; $j < count($chains); $j++) {
-                    $chain = $chains[$j];
-                    $networkId = $this->safe_string($chain, 'chain');
-                    $networkCode = $this->network_id_to_code($networkId);
-                    $networks[$networkCode] = array(
-                        'info' => $chain,
-                        'id' => $networkId,
-                        'network' => $networkCode,
-                        'active' => null,
-                        'deposit' => $this->safe_integer($chain, 'chainDeposit') === 1,
-                        'withdraw' => $this->safe_integer($chain, 'chainWithdraw') === 1,
-                        'fee' => $this->safe_number($chain, 'withdrawFee'),
-                        'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'minAccuracy'))),
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => $this->safe_number($chain, 'withdrawMin'),
-                                'max' => null,
-                            ),
-                            'deposit' => array(
-                                'min' => $this->safe_number($chain, 'depositMin'),
-                                'max' => null,
-                            ),
-                        ),
-                    );
-                }
-                $result[$code] = $this->safe_currency_structure(array(
-                    'info' => $currency,
-                    'code' => $code,
-                    'id' => $currencyId,
-                    'name' => $name,
-                    'active' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'fee' => null,
-                    'precision' => null,
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'networks' => $networks,
-                    'type' => 'crypto', // atm exchange api provides only cryptos
-                ));
-            }
-            return $result;
+            return $this->parse_currencies($rows);
         }) ();
+    }
+
+    public function parse_currency(array $currency): array {
+        $currencyId = $this->safe_string($currency, 'coin');
+        $code = $this->safe_currency_code($currencyId);
+        $name = $this->safe_string($currency, 'name');
+        $chains = $this->safe_list($currency, 'chains', array());
+        $networks = array();
+        for ($j = 0; $j < count($chains); $j++) {
+            $chain = $chains[$j];
+            $networkId = $this->safe_string($chain, 'chain');
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            $networks[$networkCode] = array(
+                'info' => $chain,
+                'id' => $networkId,
+                'network' => $networkCode,
+                'active' => null,
+                'deposit' => $this->safe_integer($chain, 'chainDeposit') === 1,
+                'withdraw' => $this->safe_integer($chain, 'chainWithdraw') === 1,
+                'fee' => $this->safe_number($chain, 'withdrawFee'),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'minAccuracy'))),
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number($chain, 'withdrawMin'),
+                        'max' => null,
+                    ),
+                    'deposit' => array(
+                        'min' => $this->safe_number($chain, 'depositMin'),
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        return $this->safe_currency_structure(array(
+            'info' => $currency,
+            'code' => $code,
+            'id' => $currencyId,
+            'name' => $name,
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'precision' => null,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+            'type' => 'crypto', // atm exchange api provides only cryptos
+        ));
     }
 
     public function fetch_markets($params = array ()): PromiseInterface {
@@ -4215,11 +4222,15 @@ class bybit extends Exchange {
                         }
                     }
                 }
-                if ($tpslModeSl !== $tpslModeTp) {
+                if ($isTakeProfitOrder && $isStopLossOrder && $tpslModeSl !== $tpslModeTp) {
                     throw new InvalidOrder($this->id . ' createOrder() requires both $stopLoss and $takeProfit to be full or partial when using combination');
                 }
-                $request['tpslMode'] = $tpslModeSl; // same
-                $params = $this->omit($params, array( 'stopLossLimitPrice', 'takeProfitLimitPrice' ));
+                if ($tpslModeSl !== null) {
+                    $request['tpslMode'] = $tpslModeSl;
+                } else {
+                    $request['tpslMode'] = $tpslModeTp;
+                }
+                $params = $this->omit($params, array( 'stopLossLimitPrice', 'takeProfitLimitPrice', 'tradingStopEndpoint' ));
             }
         } else {
             $request['side'] = $this->capitalize($side);
@@ -6150,7 +6161,7 @@ class bybit extends Exchange {
             'txid' => $this->safe_string($transaction, 'txID'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $this->network_id_to_code($this->safe_string($transaction, 'chain')),
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'chain'), $code),
             'address' => null,
             'addressTo' => $toAddress,
             'addressFrom' => null,
@@ -6491,7 +6502,7 @@ class bybit extends Exchange {
                 $request['tag'] = $tag;
             }
             list($networkCode, $query) = $this->handle_network_code_and_params($params);
-            $networkId = $this->network_code_to_id($networkCode);
+            $networkId = $this->network_code_to_id($networkCode, $code);
             if ($networkId !== null) {
                 $request['chain'] = strtoupper($networkId);
             }
@@ -6930,7 +6941,7 @@ class bybit extends Exchange {
             'notional' => $this->parse_number($notional),
             'leverage' => $this->parse_number($leverage),
             'unrealizedPnl' => $this->parse_number($unrealisedPnl),
-            'realizedPnl' => $this->safe_number($position, 'closedPnl'),
+            'realizedPnl' => $this->safe_number_2($position, 'curRealisedPnl', 'closedPnl'),
             'contracts' => $this->parse_number($size), // in USD for inverse swaps
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'marginRatio' => $this->parse_number($marginRatio),
@@ -9629,6 +9640,143 @@ class bybit extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'timeframe' => null,
             'longShortRatio' => $this->parse_to_numeric(Precise::string_div($longString, $shortString)),
+        );
+    }
+
+    public function fetch_positions_adl_rank(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches the auto deleveraging rank and risk percentage for a list of $symbols
+             *
+             * @see https://bybit-exchange.github.io/docs/v5/position#$response-parameters
+             *
+             * @param {string[]} [$symbols] list of unified $market $symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structures~
+             */
+            if ($symbols === null) {
+                throw new ArgumentsRequired($this->id . ' fetchPositionsADLRank() requires a $symbols argument');
+            }
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true, true, true);
+            $market = $this->get_market_from_symbols($symbols);
+            $request = array();
+            if ($market !== null) {
+                $request['symbol'] = $market['id'];
+            }
+            $type = null;
+            list($type, $params) = $this->get_bybit_type('fetchPositionsADLRank', $market, $params);
+            $request['category'] = $type;
+            $response = Async\await($this->privateGetV5PositionList ($this->extend($request, $params)));
+            //
+            //     {
+            //         "retCode" => 0,
+            //         "retMsg" => "OK",
+            //         "result" => {
+            //             "nextPageCursor" => "BTCUSDT%2C1767085496112%2C0",
+            //             "category" => "linear",
+            //             "list" => array(
+            //                 array(
+            //                     "symbol" => "BTCUSDT",
+            //                     "leverage" => "",
+            //                     "autoAddMargin" => 0,
+            //                     "avgPrice" => "177489.6",
+            //                     "liqPrice" => "",
+            //                     "riskLimitValue" => "",
+            //                     "takeProfit" => "",
+            //                     "positionValue" => "1774.896",
+            //                     "isReduceOnly" => false,
+            //                     "positionIMByMp" => "",
+            //                     "tpslMode" => "Full",
+            //                     "riskId" => 0,
+            //                     "trailingStop" => "0",
+            //                     "unrealisedPnl" => "-3.016",
+            //                     "markPrice" => "177188",
+            //                     "adlRankIndicator" => 2,
+            //                     "cumRealisedPnl" => "-9782.391468",
+            //                     "positionMM" => "",
+            //                     "createdTime" => "1699928551230",
+            //                     "positionIdx" => 0,
+            //                     "positionIM" => "",
+            //                     "positionMMByMp" => "",
+            //                     "seq" => 9558506126,
+            //                     "updatedTime" => "1767085496112",
+            //                     "side" => "Buy",
+            //                     "bustPrice" => "",
+            //                     "positionBalance" => "",
+            //                     "leverageSysUpdatedTime" => "",
+            //                     "curRealisedPnl" => "-0.9761928",
+            //                     "size" => "0.01",
+            //                     "positionStatus" => "Normal",
+            //                     "mmrSysUpdatedTime" => "",
+            //                     "stopLoss" => "",
+            //                     "tradeMode" => 0,
+            //                     "sessionAvgPrice" => ""
+            //                 }
+            //             )
+            //         ),
+            //         "retExtInfo" => array(),
+            //         "time" => 1767085741416
+            //     }
+            //
+            $result = $this->safe_dict($response, 'result', array());
+            $ranks = $this->safe_list($result, 'list', array());
+            return $this->parse_adl_ranks($ranks, $symbols);
+        }) ();
+    }
+
+    public function parse_adl_rank(array $info, ?array $market = null): array {
+        //
+        // fetchPositionsADLRank
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "leverage" => "",
+        //         "autoAddMargin" => 0,
+        //         "avgPrice" => "177489.6",
+        //         "liqPrice" => "",
+        //         "riskLimitValue" => "",
+        //         "takeProfit" => "",
+        //         "positionValue" => "1774.896",
+        //         "isReduceOnly" => false,
+        //         "positionIMByMp" => "",
+        //         "tpslMode" => "Full",
+        //         "riskId" => 0,
+        //         "trailingStop" => "0",
+        //         "unrealisedPnl" => "-3.016",
+        //         "markPrice" => "177188",
+        //         "adlRankIndicator" => 2,
+        //         "cumRealisedPnl" => "-9782.391468",
+        //         "positionMM" => "",
+        //         "createdTime" => "1699928551230",
+        //         "positionIdx" => 0,
+        //         "positionIM" => "",
+        //         "positionMMByMp" => "",
+        //         "seq" => 9558506126,
+        //         "updatedTime" => "1767085496112",
+        //         "side" => "Buy",
+        //         "bustPrice" => "",
+        //         "positionBalance" => "",
+        //         "leverageSysUpdatedTime" => "",
+        //         "curRealisedPnl" => "-0.9761928",
+        //         "size" => "0.01",
+        //         "positionStatus" => "Normal",
+        //         "mmrSysUpdatedTime" => "",
+        //         "stopLoss" => "",
+        //         "tradeMode" => 0,
+        //         "sessionAvgPrice" => ""
+        //     }
+        //
+        $marketId = $this->safe_string($info, 'symbol');
+        $timestamp = $this->safe_integer($info, 'updatedTime');
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
+            'rank' => $this->safe_integer($info, 'adlRankIndicator'),
+            'rating' => null,
+            'percentage' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
         );
     }
 

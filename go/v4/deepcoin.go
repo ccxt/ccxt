@@ -1051,7 +1051,7 @@ func (this *DeepcoinCore) FetchBalance(optionalArgs ...interface{}) <-chan inter
 
 		retRes9288 := (<-this.LoadMarkets())
 		PanicOnError(retRes9288)
-		var marketType interface{} = "spot"
+		var marketType interface{} = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params, marketType)
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)

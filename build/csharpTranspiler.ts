@@ -782,6 +782,7 @@ class NewTranspiler {
 
             const file = fileHeader + baseMethods + "\n";
             fs.writeFileSync (csharpExchangeBase, file);
+            log.green ('Transpiled base methods to', (csharpExchangeBase as any).yellow)
         }
     }
 
@@ -1219,7 +1220,7 @@ class NewTranspiler {
         for (const testName of baseFunctionTests) {
             const tsFile = baseFolders.ts + testName + '.ts';
             const tsContent = fs.readFileSync(tsFile).toString();
-            if (!tsContent.includes ('// AUTO_TRANSPILE_ENABLED')) {
+            if (tsContent.includes ('// NO_AUTO_TRANSPILE')) {
                 continue;
             }
 
@@ -1234,7 +1235,7 @@ class NewTranspiler {
                 [/assert/g, 'Assert'],
                 [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
                 [ /\s*public\sobject\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
-                [ /testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual' ], // deepEqual added
+                [ /testSharedMethods\./gm, '' ], // deepEqual added
                 // Match ArrayCache variables and cast to appropriate type based on variable name
                 // Order matters: check most specific types first
                 [/(\w*ArrayCacheBySymbolBySide\w*)\.hashmap/g, '(($1 as ArrayCacheBySymbolBySide).hashmap)'],
@@ -1450,13 +1451,16 @@ async function runMain () {
     const examples = process.argv.includes ('--examples');
     const force = process.argv.includes ('--force')
     const child = process.argv.includes ('--child')
+    const baseClassOnly = process.argv.includes ('--baseClass')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
     shouldTranspileTests = process.argv.includes ('--noTests') ? false : true
     if (!child && !multiprocess) {
         log.bright.green ({ force })
     }
     const transpiler = new NewTranspiler ();
-    if (ws) {
+    if (baseClassOnly) {
+        transpiler.transpileBaseMethods ('./ts/src/base/Exchange.ts')
+    } else if (ws) {
         await transpiler.transpileWS (force)
     } else if (test) {
         transpiler.transpileTests ()

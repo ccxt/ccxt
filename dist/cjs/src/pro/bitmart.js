@@ -23,6 +23,8 @@ class bitmart extends bitmart$1["default"] {
                 'cancelAllOrdersWs': false,
                 'ws': true,
                 'watchBalance': true,
+                'watchFundingRate': true,
+                'watchFundingRates': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchBidsAsks': true,
@@ -484,17 +486,17 @@ class bitmart extends bitmart$1["default"] {
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('watchBidsAsks', firstMarket, params);
         const url = this.implodeHostname(this.urls['api']['ws'][marketType]['public']);
-        const channelType = (marketType === 'spot') ? 'spot' : 'futures';
+        const channelType = (marketType === 'spot') ? 'spot/bookTicker' : 'futures/ticker';
         const actionType = (marketType === 'spot') ? 'op' : 'action';
         let rawSubscriptions = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market(symbols[i]);
-            rawSubscriptions.push(channelType + '/ticker:' + market['id']);
+            rawSubscriptions.push(channelType + ':' + market['id']);
             messageHashes.push('bidask:' + symbols[i]);
         }
         if (marketType !== 'spot') {
-            rawSubscriptions = [channelType + '/ticker'];
+            rawSubscriptions = [channelType];
         }
         const request = {
             'args': rawSubscriptions,
@@ -1742,6 +1744,69 @@ class bitmart extends bitmart$1["default"] {
         params = this.extend(params, { 'unsubscribe': true });
         return await this.subscribeMultiple(channel, type, symbols, params);
     }
+    /**
+     * @method
+     * @name bitmart#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-funding-rate-channel
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async watchFundingRate(symbol, params = {}) {
+        await this.loadMarkets();
+        symbol = this.symbol(symbol);
+        const fundingRate = await this.watchFundingRates([symbol], params);
+        return fundingRate[symbol];
+    }
+    /**
+     * @method
+     * @name bitmart#watchFundingRates
+     * @description watch the funding rate for multiple markets
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-funding-rate-channel
+     * @param {string[]} symbols a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market symbols
+     */
+    async watchFundingRates(symbols = undefined, params = {}) {
+        if (symbols === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' watchFundingRates() requires an array of symbols');
+        }
+        await this.loadMarkets();
+        const market = this.getMarketFromSymbols(symbols);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('watchFundingRates', market, params);
+        const fundingRate = await this.subscribeMultiple('fundingRate', marketType, symbols, params);
+        if (this.newUpdates) {
+            const fundingRates = {};
+            fundingRates[fundingRate['symbol']] = fundingRate;
+            return fundingRates;
+        }
+        return this.filterByArray(this.fundingRates, 'symbol', symbols);
+    }
+    handleFundingRate(client, message) {
+        //
+        //     {
+        //         "data": {
+        //             "symbol": "BTCUSDT",
+        //             "fundingRate": "0.0000561",
+        //             "fundingTime": 1770978448000,
+        //             "nextFundingRate": "-0.0000195",
+        //             "nextFundingTime": 1770998400000,
+        //             "funding_upper_limit": "0.0375",
+        //             "funding_lower_limit": "-0.0375",
+        //             "ts": 1770978448970
+        //         },
+        //         "group": "futures/fundingRate:BTCUSDT"
+        //     }
+        //
+        const data = this.safeDict(message, 'data', {});
+        const fundingRate = this.parseFundingRate(data);
+        const symbol = fundingRate['symbol'];
+        this.fundingRates[symbol] = fundingRate;
+        const messageHash = 'fundingRate:' + symbol;
+        client.resolve(fundingRate, messageHash);
+    }
     async authenticate(type, params = {}) {
         this.checkRequiredCredentials();
         const url = this.implodeHostname(this.urls['api']['ws'][type]['private']);
@@ -2023,6 +2088,7 @@ class bitmart extends bitmart$1["default"] {
             const channel = this.safeString2(message, 'table', 'group');
             const methods = {
                 'depth': this.handleOrderBook,
+                'bookTicker': this.handleBidAsk,
                 'ticker': this.handleTicker,
                 'trade': this.handleTrade,
                 'kline': this.handleOHLCV,
@@ -2031,6 +2097,9 @@ class bitmart extends bitmart$1["default"] {
                 'balance': this.handleBalance,
                 'asset': this.handleBalance,
             };
+            if (channel.indexOf('fundingRate') >= 0) {
+                this.handleFundingRate(client, message);
+            }
             const keys = Object.keys(methods);
             for (let i = 0; i < keys.length; i++) {
                 const key = keys[i];

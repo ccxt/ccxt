@@ -84,7 +84,9 @@ export default class bullish extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -819,7 +821,8 @@ export default class bullish extends Exchange {
                 expiryDatetime = this.safeString(market, 'expiryDatetime');
                 const idParts = id.split('-');
                 const datePart = this.safeString(idParts, 2);
-                symbol += '-' + datePart;
+                const dateYmd = datePart.slice(2);
+                symbol += '-' + dateYmd;
                 if (type === 'future') {
                     future = true;
                 }
@@ -2789,6 +2792,113 @@ export default class bullish extends Exchange {
     }
     getTimestamp() {
         return this.milliseconds() - this.options['timeDifference'];
+    }
+    /**
+     * @method
+     * @name bullish#fetchOpenInterest
+     * @description fetches the open interest of a specific market
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-symbol-/tick
+     * @param {string} symbol unified symbol of the market to fetch the open interest for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async fetchOpenInterest(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetV1MarketsSymbolTick(this.extend(request, params));
+        //
+        //     {
+        //         "createdAtDatetime": "2021-05-20T01:01:01.000Z",
+        //         "createdAtTimestamp": "1621490985000",
+        //         "high": "1.00000000",
+        //         "low": "1.00000000",
+        //         "bestBid": "1.00000000",
+        //         "bidVolume": "1.00000000",
+        //         "bestAsk": "1.00000000",
+        //         "askVolume": "1.00000000",
+        //         "vwap": "1.00000000",
+        //         "open": "1.00000000",
+        //         "close": "1.00000000",
+        //         "last": "1.00000000",
+        //         "change": "1.00000000",
+        //         "percentage": "1.00000000",
+        //         "average": "1.00000000",
+        //         "baseVolume": "1.00000000",
+        //         "quoteVolume": "1.00000000",
+        //         "bancorPrice": "1.00000000",
+        //         "markPrice": "19999.00",
+        //         "fundingRate": "0.01",
+        //         "openInterest": "100000.32452",
+        //         "lastTradeDatetime": "2021-05-20T01:01:01.000Z",
+        //         "lastTradeTimestamp": "1621490985000",
+        //         "lastTradeQuantity": "1.00000000",
+        //         "ammData": [
+        //             {
+        //                 "feeTierId": "1",
+        //                 "bidSpreadFee": "0.00040000",
+        //                 "askSpreadFee": "0.00040000",
+        //                 "baseReservesQuantity": "245.56257825",
+        //                 "quoteReservesQuantity": "3424383.3629",
+        //                 "currentPrice": "16856.0000"
+        //             }
+        //         ]
+        //     }
+        //
+        return this.parseOpenInterest(response, market);
+    }
+    parseOpenInterest(interest, market = undefined) {
+        //
+        //     {
+        //         "createdAtDatetime": "2021-05-20T01:01:01.000Z",
+        //         "createdAtTimestamp": "1621490985000",
+        //         "high": "1.00000000",
+        //         "low": "1.00000000",
+        //         "bestBid": "1.00000000",
+        //         "bidVolume": "1.00000000",
+        //         "bestAsk": "1.00000000",
+        //         "askVolume": "1.00000000",
+        //         "vwap": "1.00000000",
+        //         "open": "1.00000000",
+        //         "close": "1.00000000",
+        //         "last": "1.00000000",
+        //         "change": "1.00000000",
+        //         "percentage": "1.00000000",
+        //         "average": "1.00000000",
+        //         "baseVolume": "1.00000000",
+        //         "quoteVolume": "1.00000000",
+        //         "bancorPrice": "1.00000000",
+        //         "markPrice": "19999.00",
+        //         "fundingRate": "0.01",
+        //         "openInterest": "100000.32452",
+        //         "lastTradeDatetime": "2021-05-20T01:01:01.000Z",
+        //         "lastTradeTimestamp": "1621490985000",
+        //         "lastTradeQuantity": "1.00000000",
+        //         "ammData": [
+        //             {
+        //                 "feeTierId": "1",
+        //                 "bidSpreadFee": "0.00040000",
+        //                 "askSpreadFee": "0.00040000",
+        //                 "baseReservesQuantity": "245.56257825",
+        //                 "quoteReservesQuantity": "3424383.3629",
+        //                 "currentPrice": "16856.0000"
+        //             }
+        //         ]
+        //     }
+        //
+        const openInterest = this.safeString(interest, 'openInterest');
+        return this.safeOpenInterest({
+            'info': interest,
+            'symbol': this.safeString(market, 'symbol'),
+            'openInterestAmount': openInterest,
+            'openInterestValue': undefined,
+            'timestamp': this.safeString(interest, 'createdAtTimestamp'),
+            'datetime': this.safeString(interest, 'createdAtDatetime'),
+            'baseVolume': openInterest,
+            'quoteVolume': undefined,
+        }, market);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = this.omit(params, this.extractParams(path));

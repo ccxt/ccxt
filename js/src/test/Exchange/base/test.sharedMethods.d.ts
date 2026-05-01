@@ -32,7 +32,9 @@ declare function assertNonEmtpyArray(exchange: Exchange, skippedProperties: obje
 declare function assertRoundMinuteTimestamp(exchange: Exchange, skippedProperties: object, method: string, entry: any[] | object, key: string | number): void;
 declare function deepEqual(exchange: Exchange, a: any, b: any): boolean;
 declare function assertDeepEqual(exchange: Exchange, skippedProperties: any, method: string, a: any, b: any): void;
+declare function exchangeProp(exchange: Exchange, key: string, defaultValue?: any): any;
 declare const _default: {
+    exchangeProp: typeof exchangeProp;
     deepEqual: typeof deepEqual;
     assertDeepEqual: typeof assertDeepEqual;
     logTemplate: typeof logTemplate;

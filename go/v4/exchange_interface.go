@@ -29,6 +29,8 @@ type IBaseExchange interface {
 	GetLast_request_url() interface{}
 	GetLast_request_body() interface{}
 	GetLast_request_headers() map[string]interface{}
+	GetLast_response_headers() map[string]interface{}
+	GetLastResponseHeaders() map[string]interface{}
 	GetReturnResponseHeaders() bool
 	SetReturnResponseHeaders(val interface{})
 	GetHas() map[string]interface{}
@@ -53,6 +55,7 @@ type IBaseExchange interface {
 	GetCurrenciesList() []Currency
 	Throttle(cost interface{}) <-chan interface{}
 	Close() []error
+	ParseTimeframe(timeframe interface{}) interface{}
 	// methods from base
 }
 
@@ -147,7 +150,6 @@ type ICoreExchange interface {
 	ParseNumber(v interface{}, a ...interface{}) interface{}
 	OmitZero(v interface{}) interface{}
 	FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
-	ParseTimeframe(timeframe interface{}) interface{}
 	FetchLeverageTiers(optionalArgs ...interface{}) <-chan interface{}
 	FetchMarginMode(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchMarketLeverageTiers(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
@@ -172,7 +174,10 @@ type ICoreExchange interface {
 	FetchLedgerEntry(id interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{}
 	FetchMyTrades(optionalArgs ...interface{}) <-chan interface{}
+	FetchDepositAddressesByNetwork(code interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchOpenInterestHistory(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchOpenInterest(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchOpenInterests(optionalArgs ...interface{}) <-chan interface{}
 	FetchOrderBooks(optionalArgs ...interface{}) <-chan interface{}
 	FetchTickers(optionalArgs ...interface{}) <-chan interface{}
 	FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
@@ -209,6 +214,7 @@ type ICoreExchange interface {
 	SafeNumber(obj interface{}, key interface{}, optionalArgs ...interface{}) interface{}
 	SafeNumber2(dictionary interface{}, key1 interface{}, key2 interface{}, optionalArgs ...interface{}) interface{}
 	SafeNumberOmitZero(obj interface{}, key interface{}, optionalArgs ...interface{}) interface{}
+	IsEmptyString(obj interface{}) interface{}
 	SafeDictN(dictionaryOrList interface{}, keys interface{}, optionalArgs ...interface{}) interface{}
 	SafeListN(dictionaryOrList interface{}, keys interface{}, optionalArgs ...interface{}) interface{}
 	SafeList(dictionaryOrList interface{}, key interface{}, optionalArgs ...interface{}) interface{}
@@ -222,7 +228,8 @@ type ICoreExchange interface {
 	CheckProxySettings(optionalArgs ...interface{}) interface{}
 	IsTickPrecision() interface{}
 	SetProperty(obj interface{}, property interface{}, defaultValue interface{})
-	GetProperty(obj interface{}, property interface{}) interface{}
+	Capitalize(value interface{}) string
+	GetProperty(obj interface{}, property interface{}, defaultValue ...interface{}) interface{}
 	ExceptionMessage(exc interface{}, includeStack ...interface{}) interface{}
 	SetProxyUrl(proxyUrl interface{})
 	SetSocksProxy(proxyUrl interface{})
@@ -318,6 +325,7 @@ type ICoreExchange interface {
 	WatchTradesForSymbols(symbols interface{}, optionalArgs ...interface{}) <-chan interface{}
 	WithdrawWs(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{}
 	Close() []error
+	ParseTimeframe(timeframe interface{}) interface{}
 }
 
 type IDerivedExchange interface {
@@ -405,6 +413,11 @@ type IDerivedExchange interface {
 	WatchMyLiquidationsForSymbols(symbols interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchOrdersWs(optionalArgs ...interface{}) <-chan interface{}
 	ParseWsTrade(trade interface{}, optionalArgs ...interface{}) interface{}
+	FetchPositionsADLRank(optionalArgs ...interface{}) <-chan interface{}
+	ParseADLRank(info interface{}, optionalArgs ...interface{}) interface{}
+	FetchDepositAddressesByNetwork(code interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchOpenInterest(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchOpenInterests(optionalArgs ...interface{}) <-chan interface{}
 }
 
 type Describer interface {

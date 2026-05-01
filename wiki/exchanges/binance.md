@@ -98,6 +98,8 @@
 * [fetchConvertTradeHistory](#fetchconverttradehistory)
 * [fetchFundingIntervals](#fetchfundingintervals)
 * [fetchLongShortRatioHistory](#fetchlongshortratiohistory)
+* [fetchADLRank](#fetchadlrank)
+* [fetchPositionsADLRank](#fetchpositionsadlrank)
 * [watchLiquidations](#watchliquidations)
 * [watchLiquidationsForSymbols](#watchliquidationsforsymbols)
 * [watchMyLiquidations](#watchmyliquidations)
@@ -738,6 +740,7 @@ create a trade order
 | params.stopLossOrTakeProfit | <code>string</code> | No | 'stopLoss' or 'takeProfit', required for spot trailing orders |
 | params.positionSide | <code>string</code> | No | *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode |
 | params.hedged | <code>bool</code> | No | *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false |
+| params.clientOrderId | <code>string</code> | No | the clientOrderId of the order |
 
 
 ```javascript
@@ -2718,6 +2721,55 @@ binance.fetchLongShortRatioHistory (symbol[, timeframe, since, limit, params])
 ```
 
 
+<a name="fetchADLRank" id="fetchadlrank"></a>
+
+### fetchADLRank{docsify-ignore}
+fetches the auto deleveraging rank and risk percentage for a symbol
+
+**Kind**: instance method of [<code>binance</code>](#binance)  
+**Returns**: <code>object</code> - an [auto de leverage structure](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+**See**: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/ADL-Risk  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the auto deleveraging rank for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+binance.fetchADLRank (symbol[, params])
+```
+
+
+<a name="fetchPositionsADLRank" id="fetchpositionsadlrank"></a>
+
+### fetchPositionsADLRank{docsify-ignore}
+fetches the auto deleveraging rank and risk percentage for a list of symbols that have open positions
+
+**Kind**: instance method of [<code>binance</code>](#binance)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [auto de leverage structure](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+**See**
+
+- https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation
+- https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation
+- https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Position-ADL-Quantile-Estimation
+- https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Position-ADL-Quantile-Estimation
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.portfolioMargin | <code>boolean</code> | No | set to true for the portfolio margin account |
+
+
+```javascript
+binance.fetchPositionsADLRank ([symbols, params])
+```
+
+
 <a name="ensureUserDataStreamWsSubscribeSignature" id="ensureuserdatastreamwssubscribesignature"></a>
 
 ### ensureUserDataStreamWsSubscribeSignature{docsify-ignore}
@@ -2735,6 +2787,30 @@ watches best bid & ask for symbols
 
 ```javascript
 binance.ensureUserDataStreamWsSubscribeSignature (marketType, [undefined])
+```
+
+
+<a name="ensureUserDataStreamWsSubscribeListenToken" id="ensureuserdatastreamwssubscribelistentoken"></a>
+
+### ensureUserDataStreamWsSubscribeListenToken{docsify-ignore}
+subscribes to user data stream using listenToken (for margin)
+
+**Kind**: instance property of [<code>binance</code>](#binance)  
+**Returns**: Promise<void>
+
+**See**: [Binance User Data Stream Documentation](https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-api/user-data-stream)  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| marketType | <code>string</code> | Yes | the market type (e.g., 'margin') |
+| params | <code>object</code> | Yes | extra parameters specific to the request |
+| params.symbol | <code>string</code> | No | required for isolated margin |
+| params.isIsolated | <code>boolean</code> | No | whether it is isolated margin |
+| params.validity | <code>number</code> | No | validity in milliseconds, default 24 hours, max 24 hours |
+
+
+```javascript
+binance.ensureUserDataStreamWsSubscribeListenToken (marketType, params[])
 ```
 
 

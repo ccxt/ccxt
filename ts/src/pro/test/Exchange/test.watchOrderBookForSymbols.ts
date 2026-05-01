@@ -9,7 +9,8 @@ async function testWatchOrderBookForSymbols (exchange: Exchange, skippedProperti
     const method = 'watchOrderBookForSymbols';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
-    while (now < ends) {
+    const returnedSymbols = [];
+    while (now < ends || returnedSymbols.length < symbols.length) {
         let response = undefined;
         let success = true;
         try {
@@ -29,6 +30,10 @@ async function testWatchOrderBookForSymbols (exchange: Exchange, skippedProperti
             now = exchange.milliseconds ();
             testSharedMethods.assertInArray (exchange, skippedProperties, method, response, 'symbol', symbols);
             testOrderBook (exchange, skippedProperties, method, response, undefined);
+            const symbol = response['symbol'];
+            if (!exchange.inArray (symbol, returnedSymbols)) {
+                returnedSymbols.push (symbol);
+            }
         }
     }
     return true;

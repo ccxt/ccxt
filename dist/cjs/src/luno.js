@@ -303,6 +303,7 @@ class luno extends luno$1["default"] {
                     'inverse': undefined,
                 },
             },
+            'rollingWindowSize': 60000.0,
         });
     }
     /**

@@ -2999,6 +2999,7 @@ export default class coinbase extends Exchange {
      * @param {string} [params.retail_portfolio_id] portfolio uid
      * @param {boolean} [params.is_max] Used in conjunction with tradable_balance to indicate the user wants to use their entire tradable balance
      * @param {string} [params.tradable_balance] amount of tradable balance
+     * @param {float} [params.reduceOnly] set to true for closing a position or use closePosition
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -3010,6 +3011,12 @@ export default class coinbase extends Exchange {
             'product_id': market['id'],
             'side': side.toUpperCase (),
         };
+        const reduceOnly = this.safeBool (params, 'reduceOnly');
+        if (reduceOnly) {
+            params = this.omit (params, 'reduceOnly');
+            params['amount'] = amount;
+            return await this.closePosition (symbol, side, params);
+        }
         const triggerPrice = this.safeNumberN (params, [ 'stopPrice', 'stop_price', 'triggerPrice' ]);
         const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
         const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
@@ -4118,6 +4125,7 @@ export default class coinbase extends Exchange {
      * @param {string} [tag] an optional tag for the withdrawal
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] the cryptocurrency network to use for the withdrawal using the lowercase name like bitcoin, ethereum, solana, etc.
+     * @param {object} [params.travel_rule_data] some regions require travel rule information for crypto withdrawals, see the exchange docs for details https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/travel-rule
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
@@ -4125,6 +4133,12 @@ export default class coinbase extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
+        const request: Dict = {
+            'type': 'send',
+            'to': address,
+            'amount': this.numberToString (amount),
+            'currency': currency['id'],
+        };
         let accountId = this.safeString2 (params, 'account_id', 'accountId');
         params = this.omit (params, [ 'account_id', 'accountId' ]);
         if (accountId === undefined) {
@@ -4135,14 +4149,10 @@ export default class coinbase extends Exchange {
             if (accountId === undefined) {
                 throw new ExchangeError (this.id + ' withdraw() could not find account id for ' + code);
             }
+            request['account_id'] = accountId;
+        } else {
+            request['account_id'] = accountId;
         }
-        const request: Dict = {
-            'account_id': accountId,
-            'type': 'send',
-            'to': address,
-            'amount': amount,
-            'currency': currency['id'],
-        };
         if (tag !== undefined) {
             request['destination_tag'] = tag;
         }

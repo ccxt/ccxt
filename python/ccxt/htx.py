@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.htx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, BorrowInterest, Currencies, Currency, DepositAddress, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, ADL, Balances, BorrowInterest, Currencies, Currency, DepositAddress, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -123,13 +123,15 @@ class htx(Exchange, ImplicitAPI):
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
+                'fetchPositionADLRank': True,
                 'fetchPositionHistory': 'emulated',
                 'fetchPositions': True,
+                'fetchPositionsADLRank': True,
                 'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': True,
                 'fetchSettlementHistory': True,
-                'fetchStatus': True,
+                'fetchStatus': False,  # none of `summary.json` endpoint work atm. revise in near future
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -1414,6 +1416,7 @@ class htx(Exchange, ImplicitAPI):
                     },
                 },
             },
+            'rollingWindowSize': 2000.0,
         })
 
     def fetch_status(self, params={}):
@@ -3413,6 +3416,7 @@ class htx(Exchange, ImplicitAPI):
 
     def fetch_balance(self, params={}) -> Balances:
         """
+        query for balance and get the amount of funds available for trading or funds locked in orders
 
         https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
         https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
@@ -3421,34 +3425,37 @@ class htx(Exchange, ImplicitAPI):
         https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
         https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-account-information
         https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-account-information
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969
 
-        query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.unified]: provide self parameter if you have a recent account with unified cross+isolated margin account
+        :param str [params.subType]: linear or future
+        :param bool [params.uta]: provide self parameter if you have a recent account with unified cross+isolated margin account
+        :param bool [params.multiAssetMode]: set to True if you are using multi-asset mode for USDT-margined contracts
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.load_markets()
         type = None
         type, params = self.handle_market_type_and_params('fetchBalance', None, params)
-        options = self.safe_value(self.options, 'fetchBalance', {})
-        isUnifiedAccount = self.safe_value_2(params, 'isUnifiedAccount', 'unified', False)
-        params = self.omit(params, ['isUnifiedAccount', 'unified'])
+        subType = None
+        isUnifiedAccount = None
+        isMultiAssetMode = None
+        subType, params = self.handle_option_and_params_2(params, 'fetchBalance', 'defaultSubType', 'subType', 'linear')
+        isUnifiedAccount, params = self.handle_option_and_params_2(params, 'fetchBalance', 'unified', 'uta', False)
+        isMultiAssetMode, params = self.handle_option_and_params(params, 'fetchBalance', 'multiAssetMode', False)
         request: dict = {}
         spot = (type == 'spot')
         future = (type == 'future')
-        defaultSubType = self.safe_string_2(self.options, 'defaultSubType', 'subType', 'linear')
-        subType = self.safe_string_2(options, 'defaultSubType', 'subType', defaultSubType)
-        subType = self.safe_string_2(params, 'defaultSubType', 'subType', subType)
         inverse = (subType == 'inverse')
         linear = (subType == 'linear')
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
-        params = self.omit(params, ['defaultSubType', 'subType'])
         isolated = (marginMode == 'isolated')
         cross = (marginMode == 'cross')
         margin = (type == 'margin') or (spot and (cross or isolated))
         response = None
-        if spot or margin:
+        if isMultiAssetMode:
+            response = self.contractPrivateGetV5AccountBalance(self.extend(request, params))
+        elif spot or margin:
             if margin:
                 if isolated:
                     response = self.spotPrivateGetV1MarginAccountsBalance(self.extend(request, params))
@@ -3628,11 +3635,59 @@ class htx(Exchange, ImplicitAPI):
         #         "ts": 1640915104870
         #     }
         #
-        # TODO add balance parsing for linear swap
+        # multi asset mode
+        #
+        #     {
+        #         "code": 200,
+        #         "message": "Success",
+        #         "data": {
+        #             "state": "normal",
+        #             "equity": "174.216697577770536136",
+        #             "details": [
+        #                 {
+        #                     "currency": "USDT",
+        #                     "equity": "174.216697577770536136",
+        #                     "available": "174.216697577770536136",
+        #                     "profit_unreal": "0",
+        #                     "initial_margin": "0",
+        #                     "maintenance_margin": "0",
+        #                     "maintenance_margin_rate": "0",
+        #                     "initial_margin_rate": "0",
+        #                     "available_margin": "174.216697577770536136",
+        #                     "voucher": "0",
+        #                     "voucher_value": "0",
+        #                     "withdraw_available": "174.216697577770536136",
+        #                     "created_time": 1770293270932,
+        #                     "updated_time": 1770293270932,
+        #                     "isolated_equity": "0",
+        #                     "isolated_profit_unreal": "0"
+        #                 }
+        #             ],
+        #             "initial_margin": "0",
+        #             "maintenance_margin": "0",
+        #             "maintenance_margin_rate": "0",
+        #             "profit_unreal": "0",
+        #             "available_margin": "174.216697577770536136",
+        #             "voucher_value": "0",
+        #             "created_time": 1770293268881,
+        #             "updated_time": 1770293270932
+        #         },
+        #         "ts": 1770293281344
+        #     }
         #
         result: dict = {'info': response}
         data = self.safe_value(response, 'data')
-        if spot or margin:
+        if isMultiAssetMode:
+            details = self.safe_list(data, 'details', [])
+            for i in range(0, len(details)):
+                balance = details[i]
+                currencyId = self.safe_string(balance, 'currency')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['free'] = self.safe_string(balance, 'withdraw_available')
+                result[code] = account
+            result = self.safe_balance(result)
+        elif spot or margin:
             if isolated:
                 for i in range(0, len(data)):
                     entry = data[i]
@@ -4017,7 +4072,7 @@ class htx(Exchange, ImplicitAPI):
             # POST /linear-swap-api/v3/swap_hisorders linear isolated --------
             # POST /linear-swap-api/v3/swap_cross_hisorders linear cross -----
             'trade_type': 0,  # 0:All; 1: Open long; 2: Open short; 3: Close short; 4: Close long; 5: Liquidate long positions; 6: Liquidate short positions, 17:buy(one-way mode), 18:sell(one-way mode)
-            'status': '0',  # support multiple query seperated by ',',such as '3,4,5', 0: all. 3. Have sumbmitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled
+            'status': '0',  # support multiple query separated by ',',such as '3,4,5', 0: all. 3. Have submitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled
         }
         response = None
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
@@ -8084,9 +8139,9 @@ class htx(Exchange, ImplicitAPI):
                 market = self.market(first)
         request: dict = {}
         subType = None
-        subType, params = self.handle_sub_type_and_params('fetchPositions', market, params, 'linear')
+        subType, params = self.handle_sub_type_and_params('fetchOpenInterests', market, params, 'linear')
         marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchPositions', market, params)
+        marketType, params = self.handle_market_type_and_params('fetchOpenInterests', market, params)
         response = None
         if marketType == 'future':
             response = self.contractPublicGetApiV1ContractOpenInterest(self.extend(request, params))
@@ -9011,3 +9066,253 @@ class htx(Exchange, ImplicitAPI):
             #    }
             #
         return response
+
+    def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> List[ADL]:
+        """
+        fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb81b5a-77b5-11ed-9966-0242ac110003
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb81c49-77b5-11ed-9966-0242ac110003
+        https://www.htx.com/en-us/opend/newApiPages/?id=28c2f164-77ae-11ed-9966-0242ac110003
+        https://www.htx.com/en-us/opend/newApiPages/?id=5d518648-77b6-11ed-9966-0242ac110003
+
+        :param str[] [symbols]: a list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of `auto de leverage structures <https://docs.ccxt.com/?id=auto-de-leverage-structure>`
+        """
+        self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True, True)
+        market = None
+        if symbols is not None:
+            symbolsLength = len(symbols)
+            if symbolsLength > 0:
+                first = self.safe_string(symbols, 0)
+                market = self.market(first)
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchPositionsADLRank', params, 'cross')
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchPositionsADLRank', market, params, 'linear')
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchPositionsADLRank', market, params)
+        if marketType == 'spot':
+            marketType = 'future'
+        response = None
+        if subType == 'linear':
+            if marginMode == 'isolated':
+                response = self.contractPrivatePostLinearSwapApiV1SwapPositionInfo(params)
+            elif marginMode == 'cross':
+                response = self.contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo(params)
+            else:
+                raise NotSupported(self.id + ' fetchPositionsADLRank() not support self market type')
+            #
+            #         {
+            #             "status": "ok",
+            #         "data": [
+            #             {
+            #                 "symbol": "BTC",
+            #                 "contract_code": "BTC-USDT",
+            #                 "volume": 1.000000000000000000,
+            #                 "available": 1.000000000000000000,
+            #                 "frozen": 0E-18,
+            #                 "cost_open": 96039.700000000000000000,
+            #                 "cost_hold": 96039.700000000000000000,
+            #                 "profit_unreal": 0.000600000000000000,
+            #                 "profit_rate": 0.000006247416432995,
+            #                 "lever_rate": 1,
+            #                 "position_margin": 96.040300000000000000,
+            #                 "direction": "buy",
+            #                 "profit": 0.000600000000000000,
+            #                 "last_price": 96040.3,
+            #                 "margin_asset": "USDT",
+            #                 "margin_mode": "cross",
+            #                 "margin_account": "USDT",
+            #                 "contract_type": "swap",
+            #                 "pair": "BTC-USDT",
+            #                 "business_type": "swap",
+            #                 "trade_partition":"USDT",
+            #                 "position_mode": "single_side",
+            #                 "store_time": "2023-10-08 20:05:06",
+            #                 "liquidation_price": null,
+            #                 "market_closing_slippage": null,
+            #                 "risk_rate": 249.274066168760049797,
+            #                 "new_risk_rate": 0.003995619743220614,
+            #                 "risk_rate_percent": 0.003995619743220614,
+            #                 "withdraw_available": null,
+            #                 "open_adl": 1,
+            #                 "adl_risk_percent": 3,
+            #                 "tp_trigger_price": null,
+            #                 "sl_trigger_price": null,
+            #                 "tp_order_id": null,
+            #                 "sl_order_id": null,
+            #                 "tp_trigger_type": null,
+            #                 "sl_trigger_type": null,
+            #                 "adjust_value": null
+            #             }
+            #         ],
+            #         "ts": 1768489640285
+            #     }
+            #
+        else:
+            if marketType == 'future':
+                response = self.contractPrivatePostApiV1ContractPositionInfo(params)
+                #
+                #     {
+                #         "status": "ok",
+                #         "data": [
+                #             {
+                #                 "symbol": "BTC",
+                #                 "contract_code": "BTC-USDT-260123",
+                #                 "volume": 1.000000000000000000,
+                #                 "available": 1.000000000000000000,
+                #                 "frozen": 0E-18,
+                #                 "cost_open": 96203.100000000000000000,
+                #                 "cost_hold": 96203.100000000000000000,
+                #                 "profit_unreal": -0.199400000000000000,
+                #                 "profit_rate": -0.002072698281032524,
+                #                 "lever_rate": 1,
+                #                 "position_margin": 96.003700000000000000,
+                #                 "direction": "buy",
+                #                 "profit": -0.199400000000000000,
+                #                 "last_price": 96003.7,
+                #                 "margin_asset": "USDT",
+                #                 "margin_mode": "cross",
+                #                 "margin_account": "USDT",
+                #                 "contract_type": "next_week",
+                #                 "pair": "BTC-USDT",
+                #                 "business_type": "futures",
+                #                 "trade_partition": "USDT",
+                #                 "position_mode": "single_side",
+                #                 "store_time": "2026-01-15 23:45:21",
+                #                 "liquidation_price": null,
+                #                 "market_closing_slippage": null,
+                #                 "risk_rate": 249.265098252125343196,
+                #                 "new_risk_rate": 0.003995762920935011,
+                #                 "risk_rate_percent": 0.003995762920935011,
+                #                 "withdraw_available": null,
+                #                 "open_adl": 1,
+                #                 "adl_risk_percent": 2,
+                #                 "tp_trigger_price": null,
+                #                 "sl_trigger_price": null,
+                #                 "tp_order_id": null,
+                #                 "sl_order_id": null,
+                #                 "tp_trigger_type": null,
+                #                 "sl_trigger_type": null,
+                #                 "adjust_value": null
+                #             }
+                #         ],
+                #         "ts": 1768491964551
+                #     }
+                #
+            elif marketType == 'swap':
+                response = self.contractPrivatePostSwapApiV1SwapPositionInfo(params)
+                #
+                #     {
+                #         "status": "ok"
+                #         "data": [
+                #             {
+                #                 "symbol": "THETA"
+                #                 "contract_code": "THETA-USD"
+                #                 "volume": 20
+                #                 "available": 20
+                #                 "frozen": 0
+                #                 "cost_open": 0.6048347107438017
+                #                 "cost_hold": 0.65931
+                #                 "profit_unreal": -10.5257562398811
+                #                 "profit_rate": 1.0158596753357925
+                #                 "lever_rate": 20
+                #                 "position_margin": 15.693659761456372
+                #                 "direction": "buy"
+                #                 "profit": 16.795657677889032
+                #                 "last_price": 0.6372
+                #                 "adl_risk_percent": "3"
+                #                 "liq_px": "112"
+                #                 "new_risk_rate": ""
+                #                 "trade_partition": ""
+                #             }
+                #         ]
+                #         "ts": 1603868312729
+                #     }
+                #
+            else:
+                raise NotSupported(self.id + ' fetchPositionsADLRank() not support self market type')
+        data = self.safe_list(response, 'data', [])
+        return self.parse_adl_ranks(data, symbols)
+
+    def parse_adl_rank(self, info: dict, market: Market = None) -> ADL:
+        #
+        # fetchPositionADLRank linear swap and future
+        #
+        #     {
+        #         "symbol": "BTC",
+        #         "contract_code": "BTC-USDT",
+        #         "volume": 1.000000000000000000,
+        #         "available": 1.000000000000000000,
+        #         "frozen": 0E-18,
+        #         "cost_open": 96039.700000000000000000,
+        #         "cost_hold": 96039.700000000000000000,
+        #         "profit_unreal": 0.000600000000000000,
+        #         "profit_rate": 0.000006247416432995,
+        #         "lever_rate": 1,
+        #         "position_margin": 96.040300000000000000,
+        #         "direction": "buy",
+        #         "profit": 0.000600000000000000,
+        #         "last_price": 96040.3,
+        #         "margin_asset": "USDT",
+        #         "margin_mode": "cross",
+        #         "margin_account": "USDT",
+        #         "contract_type": "swap",
+        #         "pair": "BTC-USDT",
+        #         "business_type": "swap",
+        #         "trade_partition":"USDT",
+        #         "position_mode": "single_side",
+        #         "store_time": "2023-10-08 20:05:06",
+        #         "liquidation_price": null,
+        #         "market_closing_slippage": null,
+        #         "risk_rate": 249.274066168760049797,
+        #         "new_risk_rate": 0.003995619743220614,
+        #         "risk_rate_percent": 0.003995619743220614,
+        #         "withdraw_available": null,
+        #         "open_adl": 1,
+        #         "adl_risk_percent": 3,
+        #         "tp_trigger_price": null,
+        #         "sl_trigger_price": null,
+        #         "tp_order_id": null,
+        #         "sl_order_id": null,
+        #         "tp_trigger_type": null,
+        #         "sl_trigger_type": null,
+        #         "adjust_value": null
+        #     }
+        #
+        # fetchPositionADLRank inverse
+        #
+        #     {
+        #         "symbol": "THETA"
+        #         "contract_code": "THETA-USD"
+        #         "volume": 20
+        #         "available": 20
+        #         "frozen": 0
+        #         "cost_open": 0.6048347107438017
+        #         "cost_hold": 0.65931
+        #         "profit_unreal": -10.5257562398811
+        #         "profit_rate": 1.0158596753357925
+        #         "lever_rate": 20
+        #         "position_margin": 15.693659761456372
+        #         "direction": "buy"
+        #         "profit": 16.795657677889032
+        #         "last_price": 0.6372
+        #         "adl_risk_percent": "3"
+        #         "liq_px": "112"
+        #         "new_risk_rate": ""
+        #         "trade_partition": ""
+        #     }
+        #
+        marketId = self.safe_string(info, 'contract_code')
+        return {
+            'info': info,
+            'symbol': self.safe_symbol(marketId, market, None, 'contract'),
+            'rank': self.safe_integer(info, 'adl_risk_percent'),
+            'rating': None,
+            'percentage': None,
+            'timestamp': None,
+            'datetime': None,
+        }

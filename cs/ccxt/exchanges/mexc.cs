@@ -143,8 +143,8 @@ public partial class mexc : Exchange
                         { "private", "https://www.mexc.com/open/api/v2" },
                     } },
                     { "contract", new Dictionary<string, object>() {
-                        { "public", "https://contract.mexc.com/api/v1/contract" },
-                        { "private", "https://contract.mexc.com/api/v1/private" },
+                        { "public", "https://api.mexc.com/api/v1/contract" },
+                        { "private", "https://api.mexc.com/api/v1/private" },
                     } },
                     { "broker", new Dictionary<string, object>() {
                         { "private", "https://api.mexc.com/api/v3/broker" },
@@ -162,6 +162,7 @@ public partial class mexc : Exchange
                             { "ping", 1 },
                             { "time", 1 },
                             { "defaultSymbols", 1 },
+                            { "symbol/offline", 10 },
                             { "exchangeInfo", 10 },
                             { "depth", 1 },
                             { "trades", 5 },
@@ -222,6 +223,9 @@ public partial class mexc : Exchange
                             { "rebate/affiliate/commission", 1 },
                             { "rebate/affiliate/withdraw", 1 },
                             { "rebate/affiliate/commission/detail", 1 },
+                            { "rebate/affiliate/campaign", 1 },
+                            { "rebate/affiliate/referral", 1 },
+                            { "rebate/affiliate/subaffiliates", 1 },
                             { "mxDeduct/enable", 1 },
                             { "userDataStream", 1 },
                             { "selfSymbols", 1 },
@@ -253,6 +257,8 @@ public partial class mexc : Exchange
                             { "order", 1 },
                             { "openOrders", 1 },
                             { "sub-account/apiKey", 1 },
+                            { "strategy/group", 1 },
+                            { "strategy/group/uid", 1 },
                             { "margin/order", 1 },
                             { "margin/openOrders", 1 },
                             { "userDataStream", 1 },
@@ -286,41 +292,82 @@ public partial class mexc : Exchange
                             { "account/assets", 2 },
                             { "account/asset/{currency}", 2 },
                             { "account/transfer_record", 2 },
+                            { "account/profit_rate/{type}", 2 },
+                            { "account/asset/analysis/{type}", 2 },
+                            { "account/feeDeductConfigs", 2 },
+                            { "account/asset/analysis/yesterday_pnl", 2 },
+                            { "account/asset/analysis/today_pnl", 2 },
+                            { "account/config/contractFeeDiscountConfig", 2 },
+                            { "order/fee_details", 2 },
+                            { "account/discountType", 2 },
+                            { "account/asset/analysis/export", 2 },
+                            { "account/asset_book/order_deal_fee/total", 2 },
+                            { "account/contract/fee_rate", 2 },
+                            { "account/contract/zero_fee_rate", 2 },
                             { "position/list/history_positions", 2 },
                             { "position/open_positions", 2 },
                             { "position/funding_records", 2 },
                             { "position/position_mode", 2 },
                             { "order/list/open_orders/{symbol}", 2 },
                             { "order/list/history_orders", 2 },
+                            { "order/list/order_deals/v3", 2 },
                             { "order/external/{symbol}/{external_oid}", 2 },
                             { "order/get/{order_id}", 2 },
                             { "order/batch_query", 8 },
                             { "order/deal_details/{order_id}", 2 },
                             { "order/list/order_deals", 2 },
+                            { "order/list/close_orders", 2 },
                             { "planorder/list/orders", 2 },
                             { "stoporder/list/orders", 2 },
+                            { "stoporder/open_orders", 2 },
                             { "stoporder/order_details/{stop_order_id}", 2 },
                             { "account/risk_limit", 2 },
                             { "account/tiered_fee_rate", 2 },
                             { "position/leverage", 2 },
+                            { "account/tiered_fee_rate/v2", 2 },
+                            { "trackorder/list/orders", 2 },
+                            { "market_maker/self_trade/blacklist", 2 },
+                            { "market_maker/self_trade/blacklist/search", 2 },
                         } },
                         { "post", new Dictionary<string, object>() {
+                            { "account/asset/analysis/v3", 2 },
+                            { "account/asset/analysis/calendar/daily/v3", 2 },
+                            { "account/asset/analysis/calendar/monthly/v3", 2 },
+                            { "account/asset/analysis/recent/v3", 2 },
                             { "position/change_margin", 2 },
+                            { "position/change_auto_add_im", 2 },
                             { "position/change_leverage", 2 },
                             { "position/change_position_mode", 2 },
+                            { "position/reverse", 2 },
+                            { "position/close_all", 2 },
+                            { "order/create", 2 },
                             { "order/submit", 2 },
                             { "order/submit_batch", 40 },
+                            { "order/chase_limit_order", 40 },
+                            { "order/change_limit_order", 40 },
                             { "order/cancel", 2 },
+                            { "order/batch_cancel_with_external", 2 },
                             { "order/cancel_with_external", 2 },
                             { "order/cancel_all", 2 },
+                            { "order/open_order_total_count", 2 },
+                            { "order/batch_query_with_external", 2 },
                             { "account/change_risk_level", 2 },
                             { "planorder/place", 2 },
+                            { "planorder/place/v2", 2 },
                             { "planorder/cancel", 2 },
                             { "planorder/cancel_all", 2 },
+                            { "planorder/change_stop_order", 2 },
+                            { "stoporder/place", 2 },
                             { "stoporder/cancel", 2 },
                             { "stoporder/cancel_all", 2 },
                             { "stoporder/change_price", 2 },
                             { "stoporder/change_plan_price", 2 },
+                            { "trackorder/place", 2 },
+                            { "trackorder/cancel", 2 },
+                            { "trackorder/change_order", 2 },
+                            { "market_maker/self_trade/blacklist/create", 2 },
+                            { "market_maker/self_trade/blacklist/update", 2 },
+                            { "market_maker/self_trade/blacklist/delete", 2 },
                         } },
                     } },
                 } },
@@ -374,10 +421,12 @@ public partial class mexc : Exchange
                         { "get", new Dictionary<string, object>() {
                             { "sub-account/universalTransfer", 1 },
                             { "sub-account/list", 1 },
+                            { "sub-account/status", 1 },
                             { "sub-account/apiKey", 1 },
                             { "capital/deposit/subAddress", 1 },
                             { "capital/deposit/subHisrec", 1 },
                             { "capital/deposit/subHisrec/getall", 1 },
+                            { "rebate/taxQuery", 1 },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "sub-account/virtualSubAccount", 1 },
@@ -417,11 +466,6 @@ public partial class mexc : Exchange
             { "options", new Dictionary<string, object>() {
                 { "adjustForTimeDifference", false },
                 { "timeDifference", 0 },
-                { "unavailableContracts", new Dictionary<string, object>() {
-                    { "BTC/USDT:USDT", true },
-                    { "LTC/USDT:USDT", true },
-                    { "ETH/USDT:USDT", true },
-                } },
                 { "fetchMarkets", new Dictionary<string, object>() {
                     { "types", new Dictionary<string, object>() {
                         { "spot", true },
@@ -2086,6 +2130,7 @@ public partial class mexc : Exchange
      * @name mexc#createOrder
      * @description create a trade order
      * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints#place-order
      * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
      * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
      * @param {string} symbol unified symbol of the market to create an order in
@@ -2270,6 +2315,7 @@ public partial class mexc : Exchange
      * @method
      * @name mexc#createSwapOrder
      * @description create a trade order
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints#place-order
      * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
      * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
      * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
@@ -2297,12 +2343,6 @@ public partial class mexc : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object symbol = getValue(market, "symbol");
-        object unavailableContracts = this.safeValue(this.options, "unavailableContracts", new Dictionary<string, object>() {});
-        object isContractUnavaiable = this.safeBool(unavailableContracts, symbol, false);
-        if (isTrue(isContractUnavaiable))
-        {
-            throw new NotSupported ((string)add(add(this.id, " createSwapOrder() does not support yet this symbol:"), symbol)) ;
-        }
         object openType = null;
         if (isTrue(!isEqual(marginMode, null)))
         {
@@ -2364,15 +2404,18 @@ public partial class mexc : Exchange
             if (isTrue(reduceOnly))
             {
                 parameters = this.omit(parameters, "reduceOnly"); // hedged mode does not accept this parameter
-                side = ((bool) isTrue((isEqual(side, "buy")))) ? "sell" : "buy";
+                sideInteger = ((bool) isTrue((isEqual(side, "buy")))) ? 4 : 2; // close short, close long
+            } else
+            {
+                sideInteger = ((bool) isTrue((isEqual(side, "buy")))) ? 1 : 3;
             }
-            sideInteger = ((bool) isTrue((isEqual(side, "buy")))) ? 1 : 3;
             ((IDictionary<string,object>)request)["positionMode"] = 1;
         } else
         {
             if (isTrue(reduceOnly))
             {
                 sideInteger = ((bool) isTrue((isEqual(side, "buy")))) ? 2 : 4;
+                parameters = this.omit(parameters, "reduceOnly");
             } else
             {
                 sideInteger = ((bool) isTrue((isEqual(side, "buy")))) ? 1 : 3;
@@ -4300,7 +4343,15 @@ public partial class mexc : Exchange
         //         "timestamp": 1643240373359
         //     }
         //
-        object nextFundingRate = this.safeNumber(contract, "fundingRate");
+        // watchFundingRate
+        //
+        //     {
+        //         "symbol": "BTC_USDT",
+        //         "rate": -0.000021,
+        //         "nextSettleTime": 1771084800000
+        //     }
+        //
+        object nextFundingRate = this.safeNumber2(contract, "fundingRate", "rate");
         object nextFundingTimestamp = this.safeInteger(contract, "nextSettleTime");
         object marketId = this.safeString(contract, "symbol");
         object symbol = this.safeSymbol(marketId, market, null, "contract");
@@ -4618,7 +4669,6 @@ public partial class mexc : Exchange
         object address = this.safeString(depositAddress, "address");
         object currencyId = this.safeString(depositAddress, "coin");
         object networkId = this.safeString(depositAddress, "netWork");
-        this.checkAddress(address);
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", this.safeCurrencyCode(currencyId, currency) },

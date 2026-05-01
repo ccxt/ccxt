@@ -1356,7 +1356,7 @@ export default class btcmarkets extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request: Dict = {
-            'currency_id': currency['id'],
+            'assetName': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
         if (code !== 'AUD') {

@@ -30,6 +30,7 @@ func TestSafeMethods() {
 		"emptyString":  "",
 		"floatNumeric": 0.123,
 		"floatString":  "0.123",
+		"longInt":      123456789012345,
 	}
 	var inputList interface{} = []interface{}{"Hi", 2}
 	var compareDict map[string]interface{} = map[string]interface{}{
@@ -186,6 +187,7 @@ func TestSafeMethods() {
 	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct(inputDict, "f", factor), 1)) // NB the result is 1
 	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct(inputDict, "strNumber", factor), 30))
 	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct(inputList, 1, factor), 20))
+	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct(inputDict, "longInt", 0.000001), 123456789))
 	// safeIntegerProduct2
 	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct2(inputDict, "a", "i", factor), 10))
 	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct2(inputDict, "a", "f", factor), 1)) // NB the result is 1

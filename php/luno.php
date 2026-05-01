@@ -299,6 +299,7 @@ class luno extends Exchange {
                     'inverse' => null,
                 ),
             ),
+            'rollingWindowSize' => 60000.0,
         ));
     }
 

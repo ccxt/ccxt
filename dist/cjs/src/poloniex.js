@@ -44,6 +44,7 @@ class poloniex extends poloniex$1["default"] {
                 'createStopOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': true,
@@ -61,6 +62,7 @@ class poloniex extends poloniex$1["default"] {
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': undefined,
+                'fetchGreeks': false,
                 'fetchLedger': undefined,
                 'fetchLeverage': true,
                 'fetchLiquidations': undefined,
@@ -71,6 +73,8 @@ class poloniex extends poloniex$1["default"] {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
@@ -87,6 +91,7 @@ class poloniex extends poloniex$1["default"] {
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'sandbox': true,
@@ -3616,7 +3621,7 @@ class poloniex extends poloniex$1["default"] {
         if (this.inArray(api, ['swapPublic', 'swapPrivate'])) {
             url = this.urls['api']['swap'];
         }
-        if ('symbol' in params) {
+        if (method === 'GET' && ('symbol' in params)) {
             params['symbol'] = this.encodeURIComponent(params['symbol']); // handle symbols like 索拉拉/USDT'
         }
         const query = this.omit(params, this.extractParams(path));

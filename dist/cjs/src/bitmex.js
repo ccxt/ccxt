@@ -38,6 +38,9 @@ class bitmex extends bitmex$1["default"] {
                 'future': true,
                 'option': false,
                 'addMargin': undefined,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
@@ -50,8 +53,17 @@ class bitmex extends bitmex$1["default"] {
                 'createTrailingAmountOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
@@ -63,7 +75,10 @@ class bitmex extends bitmex$1["default"] {
                 'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLedger': true,
                 'fetchLeverage': 'emulated',
                 'fetchLeverages': true,
@@ -76,24 +91,34 @@ class bitmex extends bitmex$1["default"] {
                 'fetchMyLiquidations': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': 'emulated',
+                'fetchOpenInterests': true,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionADLRank': true,
                 'fetchPositionHistory': false,
                 'fetchPositions': true,
+                'fetchPositionsADLRank': true,
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'fetchVolatilityHistory': false,
                 'index': true,
                 'reduceMargin': undefined,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'sandbox': true,
                 'setLeverage': true,
                 'setMargin': undefined,
@@ -1880,10 +1905,12 @@ class bitmex extends bitmex$1["default"] {
         else {
             filled = cumQty;
         }
-        const execInst = this.safeString(order, 'execInst');
+        const execInst = this.safeString(order, 'execInst', '');
         let postOnly = undefined;
-        if (execInst !== undefined) {
-            postOnly = (execInst === 'ParticipateDoNotInitiate');
+        let reduceOnly = undefined;
+        if (execInst.length > 0) {
+            postOnly = (execInst.indexOf('ParticipateDoNotInitiate') >= 0);
+            reduceOnly = ((execInst.indexOf('ReduceOnly') >= 0) || (execInst.indexOf('Close') >= 0));
         }
         const timestamp = this.parse8601(this.safeString(order, 'timestamp'));
         const triggerPrice = this.safeNumber(order, 'stopPx');
@@ -1899,6 +1926,7 @@ class bitmex extends bitmex$1["default"] {
             'type': this.safeStringLower(order, 'ordType'),
             'timeInForce': this.parseTimeInForce(this.safeString(order, 'timeInForce')),
             'postOnly': postOnly,
+            'reduceOnly': reduceOnly,
             'side': this.safeStringLower(order, 'side'),
             'price': this.safeString(order, 'price'),
             'triggerPrice': triggerPrice,
@@ -2007,6 +2035,8 @@ class bitmex extends bitmex$1["default"] {
                 throw new errors.InvalidOrder(this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only');
             }
         }
+        const postOnly = this.safeBool(params, 'postOnly');
+        params = this.omit(params, ['reduceOnly', 'postOnly']);
         const brokerId = this.safeString(this.options, 'brokerId', 'CCXT');
         const qty = this.parseToInt(this.amountToPrecision(symbol, amount));
         const request = {
@@ -2016,6 +2046,17 @@ class bitmex extends bitmex$1["default"] {
             'ordType': orderType,
             'text': brokerId,
         };
+        const execInstructions = [];
+        if (reduceOnly === true) {
+            execInstructions.push('ReduceOnly');
+        }
+        if (postOnly === true) {
+            execInstructions.push('ParticipateDoNotInitiate');
+        }
+        const execInstLength = execInstructions.length;
+        if (execInstLength > 0) {
+            request['execInst'] = execInstructions.join(',');
+        }
         // support for unified trigger format
         const triggerPrice = this.safeNumberN(params, ['triggerPrice', 'stopPx', 'stopPrice']);
         let trailingAmount = this.safeString2(params, 'trailingAmount', 'pegOffsetValue');
@@ -2945,6 +2986,70 @@ class bitmex extends bitmex$1["default"] {
         //
         return this.parseDepositWithdrawFees(assets, codes, 'asset');
     }
+    /**
+     * @method
+     * @name bitmex#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://docs.bitmex.com/api-explorer/get-stats
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    async fetchOpenInterests(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        const request = {};
+        let response = undefined;
+        response = await this.publicGetStats(this.extend(request, params));
+        //
+        //    [
+        //        {
+        //            currency: 'XBt',
+        //            openInterest: '0',
+        //            openValue: '323890820079',
+        //            rootSymbol: 'Total',
+        //            turnover24h: '447088001322',
+        //            volume24h: '0'
+        //        }
+        //        ...
+        //    ]
+        //
+        symbols = this.marketSymbols(symbols);
+        return this.parseOpenInterests(response, symbols);
+    }
+    parseOpenInterest(interest, market = undefined) {
+        //
+        // fetchOpenInterest
+        //
+        //    {
+        //        currency: 'XBt',
+        //        openInterest: '0',
+        //        openValue: '323890820079',
+        //        rootSymbol: 'Total',
+        //        turnover24h: '447088001322',
+        //        volume24h: '0'
+        //    }
+        //
+        const quoteId = this.safeString(interest, 'currency');
+        const baseId = this.safeString(interest, 'rootSymbol');
+        const quoteSymbol = this.safeCurrencyCode(quoteId);
+        const baseSymbol = this.safeCurrencyCode(baseId);
+        let symbol = baseSymbol;
+        if (quoteSymbol !== undefined) {
+            symbol = baseSymbol + '/' + quoteSymbol + ':' + quoteSymbol;
+        }
+        const openInterest = this.safeNumber(interest, 'openInterest');
+        const openValue = this.safeNumber(interest, 'openValue');
+        return this.safeOpenInterest({
+            'info': interest,
+            'symbol': symbol,
+            'baseVolume': openInterest,
+            'quoteVolume': openValue,
+            'openInterestAmount': openInterest,
+            'openInterestValue': openValue,
+            'timestamp': undefined,
+            'datetime': undefined,
+        }, market);
+    }
     calculateRateLimiterCost(api, method, path, params, config = {}) {
         const isAuthenticated = this.checkRequiredCredentials(false);
         const cost = this.safeValue(config, 'cost', 1);
@@ -3026,6 +3131,399 @@ class bitmex extends bitmex$1["default"] {
             'timestamp': undefined,
             'datetime': undefined,
         });
+    }
+    /**
+     * @method
+     * @name bitmex#fetchPositionsADLRank
+     * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
+     * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+     */
+    async fetchPositionsADLRank(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, true, true, true);
+        const response = await this.privateGetPosition(params);
+        //
+        //     [
+        //         {
+        //             "account": 395724,
+        //             "symbol": "XBTUSDT",
+        //             "strategy": "OneWay",
+        //             "currency": "USDt",
+        //             "underlying": "XBT",
+        //             "quoteCurrency": "USDT",
+        //             "commission": 0.0005,
+        //             "initMarginReq": 0.01,
+        //             "maintMarginReq": 0.005,
+        //             "riskLimit": 1000000000000,
+        //             "leverage": 100,
+        //             "crossMargin": true,
+        //             "deleveragePercentile": 1,
+        //             "rebalancedPnl": -4319,
+        //             "prevRealisedPnl": 0,
+        //             "prevUnrealisedPnl": null,
+        //             "openingQty": null,
+        //             "openOrderBuyQty": 0,
+        //             "openOrderBuyCost": 0,
+        //             "openOrderBuyPremium": 0,
+        //             "openOrderSellQty": 0,
+        //             "openOrderSellCost": 0,
+        //             "openOrderSellPremium": 0,
+        //             "currentQty": 100,
+        //             "currentCost": 8639330,
+        //             "currentComm": 0,
+        //             "realisedCost": 0,
+        //             "unrealisedCost": 8639330,
+        //             "grossOpenPremium": 0,
+        //             "isOpen": true,
+        //             "markPrice": 88636.92,
+        //             "markValue": 8863692,
+        //             "riskValue": 8863692,
+        //             "homeNotional": 0.0001,
+        //             "foreignNotional": -8.863692,
+        //             "posCost": 8639330,
+        //             "posCross": 0,
+        //             "posComm": 0,
+        //             "posLoss": 0,
+        //             "posMargin": 44061,
+        //             "posMaint": 44061,
+        //             "posInit": 0,
+        //             "initMargin": 0,
+        //             "maintMargin": 44061,
+        //             "realisedPnl": 0,
+        //             "unrealisedPnl": 224362,
+        //             "unrealisedPnlPcnt": 0.026,
+        //             "unrealisedRoePcnt": 2.597,
+        //             "avgCostPrice": 86393.3,
+        //             "avgEntryPrice": 86393.3,
+        //             "breakEvenPrice": 86436.5,
+        //             "marginCallPrice": null,
+        //             "liquidationPrice": 0,
+        //             "bankruptPrice": 0,
+        //             "timestamp": "2025-12-31T07:55:50.505Z",
+        //             "positionReport": {
+        //                 "account": 395724,
+        //                 "avgCostPrice": 86393.3,
+        //                 "avgEntryPrice": 86393.3,
+        //                 "bankruptPrice": 0,
+        //                 "breakEvenPrice": 86436.5,
+        //                 "commission": 0.0005,
+        //                 "crossMargin": true,
+        //                 "currency": "USDt",
+        //                 "currentComm": 0,
+        //                 "currentCost": 8639330,
+        //                 "currentQty": 100,
+        //                 "deleveragePercentile": 1,
+        //                 "foreignNotional": -8.863692,
+        //                 "grossOpenPremium": 0,
+        //                 "homeNotional": 0.0001,
+        //                 "initMargin": 0,
+        //                 "initMarginReq": 0.01,
+        //                 "isOpen": true,
+        //                 "leverage": 100,
+        //                 "liquidationPrice": 0,
+        //                 "maintMargin": 44061,
+        //                 "maintMarginReq": 0.005,
+        //                 "markPrice": 88636.92,
+        //                 "markValue": 8863692,
+        //                 "openOrderBuyCost": 0,
+        //                 "openOrderBuyPremium": 0,
+        //                 "openOrderBuyQty": 0,
+        //                 "openOrderRealisedPnl": 0,
+        //                 "openOrderSellCost": 0,
+        //                 "openOrderSellPremium": 0,
+        //                 "openOrderSellQty": 0,
+        //                 "posComm": 0,
+        //                 "posCost": 8639330,
+        //                 "posCross": 0,
+        //                 "posInit": 0,
+        //                 "posLoss": 0,
+        //                 "posMaint": 44061,
+        //                 "posMargin": 44061,
+        //                 "prevRealisedPnl": 0,
+        //                 "quoteCurrency": "USDT",
+        //                 "realisedCost": 0,
+        //                 "realisedPnl": 0,
+        //                 "rebalancedPnl": -4319,
+        //                 "riskLimit": 1000000000000,
+        //                 "riskValue": 8863692,
+        //                 "strategy": "OneWay",
+        //                 "symbol": "XBTUSDT",
+        //                 "timestamp": "2025-12-31T07:55:50.505Z",
+        //                 "underlying": "XBT",
+        //                 "unrealisedCost": 8639330,
+        //                 "unrealisedPnl": 224362,
+        //                 "unrealisedPnlPcnt": 0.026,
+        //                 "unrealisedRoePcnt": 2.597
+        //             }
+        //         }
+        //     ]
+        //
+        return this.parseADLRanks(response, symbols);
+    }
+    parseADLRank(info, market = undefined) {
+        //
+        // fetchPositionsADLRank
+        //
+        //     {
+        //         "account": 395724,
+        //         "symbol": "XBTUSDT",
+        //         "strategy": "OneWay",
+        //         "currency": "USDt",
+        //         "underlying": "XBT",
+        //         "quoteCurrency": "USDT",
+        //         "commission": 0.0005,
+        //         "initMarginReq": 0.01,
+        //         "maintMarginReq": 0.005,
+        //         "riskLimit": 1000000000000,
+        //         "leverage": 100,
+        //         "crossMargin": true,
+        //         "deleveragePercentile": 1,
+        //         "rebalancedPnl": -4319,
+        //         "prevRealisedPnl": 0,
+        //         "prevUnrealisedPnl": null,
+        //         "openingQty": null,
+        //         "openOrderBuyQty": 0,
+        //         "openOrderBuyCost": 0,
+        //         "openOrderBuyPremium": 0,
+        //         "openOrderSellQty": 0,
+        //         "openOrderSellCost": 0,
+        //         "openOrderSellPremium": 0,
+        //         "currentQty": 100,
+        //         "currentCost": 8639330,
+        //         "currentComm": 0,
+        //         "realisedCost": 0,
+        //         "unrealisedCost": 8639330,
+        //         "grossOpenPremium": 0,
+        //         "isOpen": true,
+        //         "markPrice": 88636.92,
+        //         "markValue": 8863692,
+        //         "riskValue": 8863692,
+        //         "homeNotional": 0.0001,
+        //         "foreignNotional": -8.863692,
+        //         "posCost": 8639330,
+        //         "posCross": 0,
+        //         "posComm": 0,
+        //         "posLoss": 0,
+        //         "posMargin": 44061,
+        //         "posMaint": 44061,
+        //         "posInit": 0,
+        //         "initMargin": 0,
+        //         "maintMargin": 44061,
+        //         "realisedPnl": 0,
+        //         "unrealisedPnl": 224362,
+        //         "unrealisedPnlPcnt": 0.026,
+        //         "unrealisedRoePcnt": 2.597,
+        //         "avgCostPrice": 86393.3,
+        //         "avgEntryPrice": 86393.3,
+        //         "breakEvenPrice": 86436.5,
+        //         "marginCallPrice": null,
+        //         "liquidationPrice": 0,
+        //         "bankruptPrice": 0,
+        //         "timestamp": "2025-12-31T07:55:50.505Z",
+        //         "positionReport": {
+        //             "account": 395724,
+        //             "avgCostPrice": 86393.3,
+        //             "avgEntryPrice": 86393.3,
+        //             "bankruptPrice": 0,
+        //             "breakEvenPrice": 86436.5,
+        //             "commission": 0.0005,
+        //             "crossMargin": true,
+        //             "currency": "USDt",
+        //             "currentComm": 0,
+        //             "currentCost": 8639330,
+        //             "currentQty": 100,
+        //             "deleveragePercentile": 1,
+        //             "foreignNotional": -8.863692,
+        //             "grossOpenPremium": 0,
+        //             "homeNotional": 0.0001,
+        //             "initMargin": 0,
+        //             "initMarginReq": 0.01,
+        //             "isOpen": true,
+        //             "leverage": 100,
+        //             "liquidationPrice": 0,
+        //             "maintMargin": 44061,
+        //             "maintMarginReq": 0.005,
+        //             "markPrice": 88636.92,
+        //             "markValue": 8863692,
+        //             "openOrderBuyCost": 0,
+        //             "openOrderBuyPremium": 0,
+        //             "openOrderBuyQty": 0,
+        //             "openOrderRealisedPnl": 0,
+        //             "openOrderSellCost": 0,
+        //             "openOrderSellPremium": 0,
+        //             "openOrderSellQty": 0,
+        //             "posComm": 0,
+        //             "posCost": 8639330,
+        //             "posCross": 0,
+        //             "posInit": 0,
+        //             "posLoss": 0,
+        //             "posMaint": 44061,
+        //             "posMargin": 44061,
+        //             "prevRealisedPnl": 0,
+        //             "quoteCurrency": "USDT",
+        //             "realisedCost": 0,
+        //             "realisedPnl": 0,
+        //             "rebalancedPnl": -4319,
+        //             "riskLimit": 1000000000000,
+        //             "riskValue": 8863692,
+        //             "strategy": "OneWay",
+        //             "symbol": "XBTUSDT",
+        //             "timestamp": "2025-12-31T07:55:50.505Z",
+        //             "underlying": "XBT",
+        //             "unrealisedCost": 8639330,
+        //             "unrealisedPnl": 224362,
+        //             "unrealisedPnlPcnt": 0.026,
+        //             "unrealisedRoePcnt": 2.597
+        //         }
+        //     }
+        //
+        const marketId = this.safeString(info, 'symbol');
+        const datetime = this.safeString(info, 'timestamp');
+        return {
+            'info': info,
+            'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
+            'rank': this.safeInteger(info, 'deleveragePercentile'),
+            'rating': undefined,
+            'percentage': undefined,
+            'timestamp': this.parse8601(datetime),
+            'datetime': datetime,
+        };
+    }
+    /**
+     * @method
+     * @name bitmex#fetchSettlementHistory
+     * @description fetches historical settlement records
+     * @see https://docs.bitmex.com/api-explorer/get-settlements
+     * @param {string} symbol unified market symbol of the settlement history
+     * @param {int} [since] timestamp in ms
+     * @param {int} [limit] number of records
+     * @param {object} [params] exchange specific params
+     * @param {int} [params.until] timestamp in ms
+     *
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {string} [params.filter] generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the timestamp docs for more details, default value = {}
+     * @param {string} [params.columns] array of column names to fetch, if omitted, will return all columns, note that this method will always return item keys, even when not specified, so you may receive more columns that you expect
+     * @param {int} [params.start] possible values are >= 0 starting point for results, default value = 0
+     * @param {boolean} [params.reverse] if true, will sort results newest first, default value = false
+     * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
+     */
+    async fetchSettlementHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        const request = {
+        // symbol string Instrument symbol. Send a bare series (e.g. XBT) to get data for the nearest expiring contract in that series. You can also send a timeframe, e.g. XBT:quarterly. Timeframes are nearest, daily, weekly, monthly, quarterly, biquarterly, and perpetual. Symbols are case-insensitive.
+        // filter string Generic table filter. Send JSON key/value pairs, such as {"key": "value"}. You can key on individual fields, and do more advanced querying on timestamps. See the Timestamp Docs for more details. Default value: {}
+        // columns string Array of column names to fetch. If omitted, will return all columns. Note that this method will always return item keys, even when not specified, so you may receive more columns that you expect.
+        // count int32 Possible values: >= 1 and <= 500 Number of results to fetch. Must be a positive integer. Default value: 100
+        // start int32 Possible values: >= 0 Starting point for results. Default value: 0
+        // reverse boolean If true, will sort results newest first. Default value: false
+        // startTime string Starting time filter for results.
+        // endTime string Ending time filter for results.
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = this.iso8601(since);
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const until = this.safeString(params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = this.iso8601(since);
+            params = this.omit(params, 'until');
+        }
+        const response = await this.publicGetSettlement(this.extend(request, params));
+        //
+        //    [
+        //        {
+        //            timestamp: '2025-03-28T12:00:00.000Z',
+        //            symbol: 'ETHUSDH25',
+        //            settlementType: 'Settlement',
+        //            settledPrice: '1897.53'
+        //        }
+        //    ]
+        //
+        return this.parseSettlements(response, market, since, limit);
+    }
+    parseSettlements(settlements, market = undefined, since = undefined, limit = undefined) {
+        const result = [];
+        for (let i = 0; i < settlements.length; i++) {
+            result.push(this.parseSettlement(settlements[i], market));
+        }
+        const sorted = this.sortBy(result, 'timestamp');
+        const symbol = this.safeString(market, 'symbol');
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+    }
+    parseSettlement(settlement, market = undefined) {
+        //
+        //    {
+        //        timestamp: '2025-03-28T12:00:00.000Z',
+        //        symbol: 'ETHUSDH25',
+        //        settlementType: 'Settlement',
+        //        settledPrice: '1897.53'
+        //    }
+        //
+        const datetime = this.safeString(settlement, 'timestamp');
+        const marketId = this.safeString(settlement, 'symbol');
+        return {
+            'info': settlement,
+            'symbol': this.safeSymbol(marketId, market),
+            'price': this.safeNumber(settlement, 'settledPrice'),
+            'timestamp': this.parse8601(datetime),
+            'datetime': datetime,
+        };
+    }
+    /**
+     * @method
+     * @name bitmex#closePosition
+     * @description closes open positions for a market
+     * @see https://docs.bitmex.com/api-explorer/order-new
+     * @see https://docs.bitmex.com/api-explorer/order-close-position
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {string} side the buy or sell side of the closing order, if the position is long set the side to sell, reduceOnly is implied
+     * @param {object} [params] extra parameters specific to the bingx api endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async closePosition(symbol, side = undefined, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+            'side': this.capitalize(side),
+            'execInst': 'Close',
+        };
+        const response = await this.privatePostOrder(this.extend(request, params));
+        //
+        //     {
+        //         "account": 395724,
+        //         "avgPx": 66358.8,
+        //         "cumQty": 200,
+        //         "currency": "USDT",
+        //         "execInst": "Close",
+        //         "leavesQty": 0,
+        //         "ordStatus": "Filled",
+        //         "ordType": "Market",
+        //         "orderID": "4e1ef998-33c1-4736-b58b-9d8b4d085c49",
+        //         "orderQty": 200,
+        //         "pool": "Primary",
+        //         "settlCurrency": "USDt",
+        //         "side": "Sell",
+        //         "strategy": "OneWay",
+        //         "symbol": "XBTUSDT",
+        //         "text": "Submitted via API.",
+        //         "timeInForce": "ImmediateOrCancel",
+        //         "timestamp": "2026-04-02T05:20:26.607Z",
+        //         "transactTime": "2026-04-02T05:20:26.606Z",
+        //         "workingIndicator": false
+        //     }
+        //
+        return this.parseOrder(response, market);
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

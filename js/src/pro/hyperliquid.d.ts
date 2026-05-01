@@ -1,6 +1,6 @@
 import hyperliquidRest from '../hyperliquid.js';
 import Client from '../base/ws/Client.js';
-import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest, Bool } from '../base/types.js';
+import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest, Bool, Balances, Position } from '../base/types.js';
 export default class hyperliquid extends hyperliquidRest {
     describe(): any;
     /**
@@ -216,6 +216,51 @@ export default class hyperliquid extends hyperliquidRest {
     handleWsPost(client: Client, message: Dict): void;
     /**
      * @method
+     * @name hyperliquid#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.dex] for for hip3 tokens subscription, eg: 'xyz' or 'flx'
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    watchBalance(params?: {}): Promise<Balances>;
+    /**
+     * @method
+     * @name hyperliquid#unWatchBalance
+     * @description unWatches balance
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} status of the unwatch request
+     */
+    unWatchBalance(params?: {}): Promise<any>;
+    handleBalance(client: Client, message: any): void;
+    parseWsBalance(balance: any, accountType?: any): void;
+    /**
+     * @method
+     * @name hyperliquid#watchPositions
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @description watch all open positions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of positions to retrieve
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    setPositionsCache(client: Client, symbols?: Strings): void;
+    handlePositions(client: any, message: any): void;
+    /**
+     * @method
+     * @name hyperliquid#unWatchPositions
+     * @description unWatches all open positions
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} status of the unwatch request
+     */
+    unWatchPositions(symbols?: Strings, params?: {}): Promise<any>;
+    /**
+     * @method
      * @name hyperliquid#watchOrders
      * @description watches information on multiple orders made by the user
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
@@ -246,6 +291,8 @@ export default class hyperliquid extends hyperliquidRest {
     handleOHLCVUnsubscription(client: Client, subscription: Dict): void;
     handleOrderUnsubscription(client: Client, subscription: Dict): void;
     handleMyTradesUnsubscription(client: Client, subscription: Dict): void;
+    handlePositionsUnsubscription(client: Client, subscription: Dict): void;
+    handleSpotBalanceUnsubscription(client: Client, subscription: Dict): void;
     handleSubscriptionResponse(client: Client, message: any): void;
     handleMessage(client: Client, message: any): void;
     ping(client: Client): {

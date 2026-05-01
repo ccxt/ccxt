@@ -459,7 +459,7 @@ public partial class backpack : Exchange
                     { "INSUFFICIENT_SUPPLY", typeof(InsufficientFunds) },
                     { "INVALID_ASSET", typeof(BadRequest) },
                     { "INVALID_MARKET", typeof(BadSymbol) },
-                    { "INVALID_PRICE", typeof(BadRequest) },
+                    { "INVALID_PRICE", typeof(InvalidOrder) },
                     { "INVALID_POSITION_ID", typeof(BadRequest) },
                     { "INVALID_QUANTITY", typeof(BadRequest) },
                     { "INVALID_RANGE", typeof(BadRequest) },

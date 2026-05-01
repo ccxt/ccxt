@@ -148,7 +148,7 @@ public partial class gate
     /// cancel all open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/futures/ws/en/#cancel-all-open-orders-matched"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#cancel-matched-open-orders"/>  <br/>
     /// See <see href="https://www.gate.io/docs/developers/apiv4/ws/en/#order-cancel-all-with-specified-currency-pair"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -356,6 +356,7 @@ public partial class gate
     /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#order-book-api"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#order-book-v2-api"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/delivery/ws/en/#order-book-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/options/ws/en/#order-book-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -383,6 +384,8 @@ public partial class gate
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#tickers-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/delivery/ws/en/#tickers-api"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -403,6 +406,8 @@ public partial class gate
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#tickers-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/delivery/ws/en/#tickers-api"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -424,6 +429,7 @@ public partial class gate
     /// <remarks>
     /// See <see href="https://www.gate.io/docs/developers/apiv4/ws/en/#best-bid-or-ask-price"/>  <br/>
     /// See <see href="https://www.gate.io/docs/developers/apiv4/ws/en/#order-book-channel"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/options/ws/en/#best-bid-or-ask-price"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -443,6 +449,10 @@ public partial class gate
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/ws/en/#public-trades-channel"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#trades-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/delivery/ws/en/#trades-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/options/ws/en/#public-contract-trades-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -476,6 +486,10 @@ public partial class gate
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/ws/en/#public-trades-channel"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#trades-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/delivery/ws/en/#trades-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/options/ws/en/#public-contract-trades-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -509,6 +523,9 @@ public partial class gate
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/ws/en/#candlesticks-channel"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#candlesticks-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/delivery/ws/en/#candlesticks-api"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -542,6 +559,10 @@ public partial class gate
     /// watches information on multiple trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/ws/en/#user-trades-channel"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#user-trades-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/delivery/ws/en/#user-trades-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/options/ws/en/#user-trades-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -575,6 +596,10 @@ public partial class gate
     /// watch balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/ws/en/#spot-balance-channel"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#balances-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/delivery/ws/en/#balances-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/options/ws/en/#balances-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -624,6 +649,10 @@ public partial class gate
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/ws/en/#orders-channel"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#orders-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/delivery/ws/en/#orders-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/options/ws/en/#orders-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

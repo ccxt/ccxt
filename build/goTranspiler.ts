@@ -92,6 +92,7 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     "fetchAccounts": true,
     "fetchBalance": true,
     "fetchClosedOrders": true,
+    "fetchDepositAddressesByNetwork": true,
     "fetchDeposits": true,
     "fetchDepositsWithdrawals": true,
     "fetchDepositWithdrawFees": true,
@@ -166,6 +167,7 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     "safeCurrencyCode": false,
     "parseConversion": false,
     "sign": false,
+    "signIn": true,
     // ws methods
     'cancelAllOrdersWs': true,
     'cancelOrdersWs': true,
@@ -201,6 +203,7 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     'fetchOrdersByStatusWs': true,
     'fetchOrdersWs': true,
     'fetchOrderWs': true,
+    'fetchOpenInterests': true,
     'fetchPositionsForSymbolWs': true,
     'fetchPositionsWs': true,
     'fetchPositionWs': true,
@@ -235,6 +238,8 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     'watchTradesForSymbols': true,
     'withdrawWs': true,
     "parseLastPrice": false,
+    'fetchPositionsADLRank': true,
+    'parseADLRank': false
     // 'fetchCurrenciesWs': true,
     // 'fetchMarketsWs': true,
 }
@@ -460,7 +465,7 @@ class NewTranspiler {
     oldTranspiler = new OldTranspiler();
     private _extendedExchanges: { [key: string]: string } | null = null;
     futuresExchanges = new Set<string>([  // futures exchanges that extend a spot exchange class
-        'kucoinfutures'
+        // 'kucoinfutures'
     ]);
 
     constructor(isWs: boolean = false) {
@@ -2056,6 +2061,8 @@ ${caseStatements.join('\n')}
             'PAD_WITH_ZERO',
             'TRUNCATE',
             'ROUND',
+            'ROUND_UP',
+            'ROUND_DOWN',
             'toFixed',
             'throwDynamicException',
             'NewArrayCache',
@@ -2374,7 +2381,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         for (const testName of baseFunctionTests) {
             const tsFile = `${baseFolders.ts}/${testName}.ts`;
             const tsContent = fs.readFileSync(tsFile).toString();
-            if (!tsContent.includes ('// AUTO_TRANSPILE_ENABLED')) {
+            if (tsContent.includes ('// NO_AUTO_TRANSPILE')) {
                 continue;
             }
 
@@ -2391,7 +2398,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 [/ interface\{\}(?= \= map\[string\]interface\{\} )/g, ' map[string]interface{}'], // fix incorrect variable type
                 [ /interface{}\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
                 [/Precise\.String/gm, 'ccxt.Precise.String'],
-                [ /testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual' ], // deepEqual added
+                [ /testSharedMethods\./gm, '' ], // no need of class reference
                 [ /func Equals\(.+\n.*\n.*\n.*\}/gm, '' ], // remove equals
                 [ /Assert\("GO_SKIP_START"\)[\S\s]+?Assert\("GO_SKIP_END"\)/gm, '' ], // remove equals
                 // Match ArrayCache variables and cast to appropriate type based on variable name
@@ -2539,7 +2546,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             let regexes = [
                 [/exchange := (?:&)?ccxt\.Exchange\{\}/g, 'exchange := ccxt.NewExchange()'],
                 [/exchange interface\{\}([,)])/g, 'exchange ccxt.ICoreExchange$1'],
-                [/testSharedMethods\./g, ''],
+                [/testSharedMethods\./g, ''], // no need of class reference
                 [/assert/gm, 'Assert'],
                 [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],
                 [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
@@ -2707,6 +2714,7 @@ if (isMainEntry(import.meta.url)) {
     const examples = process.argv.includes ('--examples');
     const force = process.argv.includes ('--force');
     const child = process.argv.includes ('--child');
+    const baseClassOnly = process.argv.includes ('--baseClass')
     const exchange = process.argv.includes ('--exchange');
     if (exchange) {
         transpiledExchanges = [ exchange ];
@@ -2717,7 +2725,9 @@ if (isMainEntry(import.meta.url)) {
         log.bright.green ({ force });
     }
     const transpiler = new NewTranspiler (ws);
-    if (ws) {
+    if (baseClassOnly) {
+        transpiler.transpileBaseMethods (TS_BASE_FILE)
+    } else if (ws) {
         await transpiler.transpileWS (force);
     } else if (test) {
         transpiler.transpileTests ();

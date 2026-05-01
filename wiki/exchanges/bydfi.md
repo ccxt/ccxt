@@ -61,7 +61,7 @@ retrieves data on all markets for bydfi
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
 
-**See**: https://developers.bydfi.com/en/swap/market#fetching-trading-rules-and-pairs  
+**See**: https://developers.bydfi.com/en/futures/market#fetching-trading-rules-and-pairs  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -81,7 +81,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure) indexed by market symbols
 
-**See**: https://developers.bydfi.com/en/swap/market#depth-information  
+**See**: https://developers.bydfi.com/en/futures/market#depth-information  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -104,7 +104,7 @@ get the list of most recent trades for a particular symbol
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
-**See**: https://developers.bydfi.com/en/swap/market#recent-trades  
+**See**: https://developers.bydfi.com/en/futures/market#recent-trades  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -128,7 +128,7 @@ fetch all trades made by the user
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
-**See**: https://developers.bydfi.com/en/swap/trade#historical-trades-query  
+**See**: https://developers.bydfi.com/en/futures/trade#historical-trades-query  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -155,7 +155,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://developers.bydfi.com/en/swap/market#candlestick-data  
+**See**: https://developers.bydfi.com/en/futures/market#candlestick-data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -180,7 +180,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://developers.bydfi.com/en/swap/market#24hr-price-change-statistics  
+**See**: https://developers.bydfi.com/en/futures/market#24hr-price-change-statistics  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -201,7 +201,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://developers.bydfi.com/en/swap/market#24hr-price-change-statistics  
+**See**: https://developers.bydfi.com/en/futures/market#24hr-price-change-statistics  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -222,7 +222,7 @@ fetch the current funding rate
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
-**See**: https://developers.bydfi.com/en/swap/market#recent-funding-rate  
+**See**: https://developers.bydfi.com/en/futures/market#recent-funding-rate  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -243,7 +243,7 @@ fetches historical funding rate prices
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
-**See**: https://developers.bydfi.com/en/swap/market#historical-funding-rates  
+**See**: https://developers.bydfi.com/en/futures/market#historical-funding-rates  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -267,7 +267,7 @@ create a trade order
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://developers.bydfi.com/en/swap/trade#placing-an-order  
+**See**: https://developers.bydfi.com/en/futures/trade#placing-an-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -304,7 +304,7 @@ create a list of trade orders
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://developers.bydfi.com/en/swap/trade#batch-order-placement  
+**See**: https://developers.bydfi.com/en/futures/trade#batch-order-placement  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -326,7 +326,7 @@ edit a trade order
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://developers.bydfi.com/en/swap/trade#order-modification  
+**See**: https://developers.bydfi.com/en/futures/trade#order-modification  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -354,7 +354,7 @@ edit a list of trade orders
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://developers.bydfi.com/en/swap/trade#batch-order-modification  
+**See**: https://developers.bydfi.com/en/futures/trade#batch-order-modification  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -376,7 +376,7 @@ cancel all open orders in a market
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://developers.bydfi.com/en/swap/trade#complete-order-cancellation  
+**See**: https://developers.bydfi.com/en/futures/trade#complete-order-cancellation  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -400,8 +400,8 @@ fetch all unfilled currently open orders
 
 **See**
 
-- https://developers.bydfi.com/en/swap/trade#pending-order-query
-- https://developers.bydfi.com/en/swap/trade#planned-order-query
+- https://developers.bydfi.com/en/futures/trade#pending-order-query
+- https://developers.bydfi.com/en/futures/trade#planned-order-query
 
 
 | Param | Type | Required | Description |
@@ -429,8 +429,8 @@ fetch an open order by the id
 
 **See**
 
-- https://developers.bydfi.com/en/swap/trade#pending-order-query
-- https://developers.bydfi.com/en/swap/trade#planned-order-query
+- https://developers.bydfi.com/en/futures/trade#pending-order-query
+- https://developers.bydfi.com/en/futures/trade#planned-order-query
 
 
 | Param | Type | Required | Description |
@@ -456,7 +456,7 @@ fetches information on multiple canceled and closed orders made by the user
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://developers.bydfi.com/en/swap/trade#historical-orders-query  
+**See**: https://developers.bydfi.com/en/futures/trade#historical-orders-query  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -483,7 +483,7 @@ set the level of leverage for a market
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>object</code> - response from the exchange
 
-**See**: https://developers.bydfi.com/en/swap/trade#set-leverage-for-single-trading-pair  
+**See**: https://developers.bydfi.com/en/futures/trade#set-leverage-for-single-trading-pair  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -506,7 +506,7 @@ fetch the set leverage for a market
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
 
-**See**: https://developers.bydfi.com/en/swap/trade#get-leverage-for-single-trading-pair  
+**See**: https://developers.bydfi.com/en/futures/trade#get-leverage-for-single-trading-pair  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -528,7 +528,7 @@ fetch all open positions
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
-**See**: https://developers.bydfi.com/en/swap/trade#positions-query  
+**See**: https://developers.bydfi.com/en/futures/trade#positions-query  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -551,7 +551,7 @@ fetch all open positions for specific symbol
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
-**See**: https://developers.bydfi.com/en/swap/trade#positions-query  
+**See**: https://developers.bydfi.com/en/futures/trade#positions-query  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -573,7 +573,7 @@ fetches historical positions
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
-**See**: https://developers.bydfi.com/en/swap/trade#query-historical-position-profit-and-loss-records  
+**See**: https://developers.bydfi.com/en/futures/trade#query-historical-position-profit-and-loss-records  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -599,7 +599,7 @@ fetches historical positions
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
-**See**: https://developers.bydfi.com/en/swap/trade#query-historical-position-profit-and-loss-records  
+**See**: https://developers.bydfi.com/en/futures/trade#query-historical-position-profit-and-loss-records  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -625,7 +625,7 @@ fetches the margin mode of a trading pair
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/?id=margin-mode-structure)
 
-**See**: https://developers.bydfi.com/en/swap/user#margin-mode-query  
+**See**: https://developers.bydfi.com/en/futures/user#margin-mode-query  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -648,7 +648,7 @@ set margin mode to 'cross' or 'isolated'
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>object</code> - response from the exchange
 
-**See**: https://developers.bydfi.com/en/swap/user#change-margin-type-cross-margin  
+**See**: https://developers.bydfi.com/en/futures/user#change-margin-type-cross-margin  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -672,7 +672,7 @@ set hedged to true or false for a market, hedged for bydfi is set identically fo
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>object</code> - response from the exchange
 
-**See**: https://developers.bydfi.com/en/swap/user#change-position-mode-dual  
+**See**: https://developers.bydfi.com/en/futures/user#change-position-mode-dual  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -697,7 +697,7 @@ fetchs the position mode, hedged or one way, hedged for bydfi is set identically
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>object</code> - an object detailing whether the market is in hedged or one-way mode
 
-**See**: https://developers.bydfi.com/en/swap/user#get-position-mode  
+**See**: https://developers.bydfi.com/en/futures/user#get-position-mode  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -724,13 +724,13 @@ query for balance and get the amount of funds available for trading or funds loc
 **See**
 
 - https://developers.bydfi.com/en/account#asset-inquiry
-- https://developers.bydfi.com/en/swap/user#asset-query
+- https://developers.bydfi.com/en/futures/user#asset-query
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.accountType | <code>string</code> | No | the type of account to fetch the balance for, either 'spot' or 'swap'  or 'funding' (default is 'spot') |
+| params.account | <code>string</code> | No | the type of account to fetch the balance for, either 'SPOT' or 'UMFUTURE'  or 'CMFUTURE'  or 'COPY'  or 'GRID'  or 'FUNDING' (default is 'SPOT') |
 | params.wallet | <code>string</code> | No | *swap only* The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract |
 | params.asset | <code>string</code> | No | currency id for the balance to fetch |
 
@@ -818,7 +818,7 @@ watches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://developers.bydfi.com/en/swap/websocket-market#ticker-by-symbol  
+**See**: https://developers.bydfi.com/en/futures/websocket-market#ticker-by-symbol  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -839,7 +839,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://developers.bydfi.com/en/swap/websocket-market#ticker-by-symbol  
+**See**: https://developers.bydfi.com/en/futures/websocket-market#ticker-by-symbol  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -862,8 +862,8 @@ watches a price ticker, a statistical calculation with the information calculate
 
 **See**
 
-- https://developers.bydfi.com/en/swap/websocket-market#ticker-by-symbol
-- https://developers.bydfi.com/en/swap/websocket-market#market-wide-ticker
+- https://developers.bydfi.com/en/futures/websocket-market#ticker-by-symbol
+- https://developers.bydfi.com/en/futures/websocket-market#market-wide-ticker
 
 
 | Param | Type | Required | Description |
@@ -887,8 +887,8 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 **See**
 
-- https://developers.bydfi.com/en/swap/websocket-market#ticker-by-symbol
-- https://developers.bydfi.com/en/swap/websocket-market#market-wide-ticker
+- https://developers.bydfi.com/en/futures/websocket-market#ticker-by-symbol
+- https://developers.bydfi.com/en/futures/websocket-market#market-wide-ticker
 
 
 | Param | Type | Required | Description |
@@ -910,7 +910,7 @@ watches historical candlestick data containing the open, high, low, close price,
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://developers.bydfi.com/en/swap/websocket-market#candlestick-data  
+**See**: https://developers.bydfi.com/en/futures/websocket-market#candlestick-data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -934,7 +934,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://developers.bydfi.com/en/swap/websocket-market#candlestick-data  
+**See**: https://developers.bydfi.com/en/futures/websocket-market#candlestick-data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -956,7 +956,7 @@ watches historical candlestick data containing the open, high, low, close price,
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://developers.bydfi.com/en/swap/websocket-market#candlestick-data  
+**See**: https://developers.bydfi.com/en/futures/websocket-market#candlestick-data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -979,7 +979,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://developers.bydfi.com/en/swap/websocket-market#candlestick-data  
+**See**: https://developers.bydfi.com/en/futures/websocket-market#candlestick-data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1000,7 +1000,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
-**See**: https://developers.bydfi.com/en/swap/websocket-market#limited-depth-information  
+**See**: https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1022,7 +1022,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
-**See**: https://developers.bydfi.com/en/swap/websocket-market#limited-depth-information  
+**See**: https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1043,7 +1043,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
-**See**: https://developers.bydfi.com/en/swap/websocket-market#limited-depth-information  
+**See**: https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1065,7 +1065,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
-**See**: https://developers.bydfi.com/en/swap/websocket-market#limited-depth-information  
+**See**: https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1087,7 +1087,7 @@ watches information on multiple orders made by the user
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://developers.bydfi.com/en/swap/websocket-account#order-trade-update-push  
+**See**: https://developers.bydfi.com/en/futures/websocket-account#order-trade-update-push  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1110,7 +1110,7 @@ watches information on multiple orders made by the user
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://developers.bydfi.com/en/swap/websocket-account#order-trade-update-push  
+**See**: https://developers.bydfi.com/en/futures/websocket-account#order-trade-update-push  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1133,7 +1133,7 @@ watch all open positions
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/en/latest/manual.html#position-structure)
 
-**See**: https://developers.bydfi.com/en/swap/websocket-account#balance-and-position-update-push  
+**See**: https://developers.bydfi.com/en/futures/websocket-account#balance-and-position-update-push  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1156,7 +1156,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
-**See**: https://developers.bydfi.com/en/swap/websocket-account#balance-and-position-update-push  
+**See**: https://developers.bydfi.com/en/futures/websocket-account#balance-and-position-update-push  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

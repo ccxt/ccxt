@@ -91,6 +91,8 @@ type Exchange struct {
 	LastRestRequestTimestamp int64
 	LastRequestHeaders       interface{}
 	Last_request_headers     interface{}
+	Last_response_headers    interface{}
+	LastResponseHeaders      interface{}
 	Last_http_response       interface{}
 	LastRequestBody          interface{}
 	Last_request_body        interface{}
@@ -162,12 +164,12 @@ type Exchange struct {
 	Orders         interface{} // *ArrayCache  // cache object, not a map
 	MyTrades       interface{} // *ArrayCache  // cache object, not a map
 	Orderbooks     *sync.Map
-	Liquidations   *sync.Map
+	Liquidations   interface{} // *ArrayCacheBySymbolBySide
 	FundingRates   interface{}
 	Bidsasks       *sync.Map
 	TriggerOrders  interface{} // *ArrayCache
 	Transactions   *sync.Map
-	MyLiquidations *sync.Map
+	MyLiquidations interface{} // *ArrayCacheBySymbolBySide
 
 	PaddingMode int
 
@@ -231,10 +233,12 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 
 	limit := 10000
 	// Initialize WebSocket data structures with thread-safe sync.Map
-	this.Trades = make(map[string]*ArrayCache)
+	// this.Trades = make(map[string]*ArrayCache)
+	this.Trades = &sync.Map{}
 	this.Tickers = &sync.Map{}
 	this.Orderbooks = &sync.Map{}
-	this.Ohlcvs = make(map[string]map[string]*ArrayCacheByTimestamp)
+	// this.Ohlcvs = make(map[string]map[string]*ArrayCacheByTimestamp)
+	this.Ohlcvs = &sync.Map{}
 	this.Orders = NewArrayCache(limit)
 	this.TriggerOrders = NewArrayCache(limit)
 	this.MyTrades = NewArrayCache(limit)
@@ -242,7 +246,8 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	this.Liquidations = &sync.Map{}
 	this.MyLiquidations = &sync.Map{}
 	this.Clients = make(map[string]interface{})
-	this.Balance = make(map[string]interface{})
+	// this.Balance = make(map[string]interface{})
+	this.Balance = &sync.Map{}
 
 	// beforeNs := time.Now().UnixNano()
 	// this.WarmUpCache(this.Itf)
@@ -250,7 +255,8 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	// fmt.Println("Warmup cache took: ", afterNs-beforeNs)
 
 	this.Currencies = &sync.Map{}
-	this.FundingRates = make(map[string]interface{})
+	// this.FundingRates = make(map[string]interface{})
+	this.FundingRates = &sync.Map{}
 	this.Bidsasks = &sync.Map{}
 	this.ProxyDictionaries = make(map[string]interface{})
 	this.AccountsById = make(map[string]interface{})
@@ -267,15 +273,6 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 		Timeout:   30 * time.Second,
 		Transport: transport,
 	}
-	userOptions := this.SafeDict(userConfig, "options")
-	if userOptions == nil {
-		userOptions = map[string]interface{}{}
-	}
-	if IsTrue(IsTrue(this.SafeBool(userOptions, "sandbox")) || IsTrue(this.SafeBool(userOptions, "testnet"))) {
-		this.SetSandboxMode(true)
-	}
-
-	// fmt.Println(this.TransformedApi)
 }
 
 func (this *Exchange) Init(userConfig map[string]interface{}) {
@@ -385,7 +382,6 @@ func (this *Exchange) LoadMarketsHelper(params ...interface{}) <-chan interface{
 		}()
 		reload := GetArg(params, 0, false).(bool)
 		params := GetArg(params, 1, map[string]interface{}{})
-		this.WarmUpCache()
 		if !reload {
 			if this.Markets != nil {
 				if this.Markets_by_id == nil {
@@ -489,28 +485,6 @@ func (this *Exchange) Sleep(milliseconds interface{}) <-chan bool {
 	return ch
 }
 
-func Unique(obj interface{}) []string {
-	// Type assertion to check if obj is of type []string
-	strList, ok := obj.([]string)
-	if !ok {
-		return nil
-	}
-
-	// Use a map to ensure uniqueness
-	uniqueMap := make(map[string]struct{})
-	var result []string
-
-	for _, str := range strList {
-		// Check if the string is already in the map
-		if _, exists := uniqueMap[str]; !exists {
-			uniqueMap[str] = struct{}{}
-			result = append(result, str)
-		}
-	}
-
-	return result
-}
-
 func (this *Exchange) Log(args ...interface{}) {
 	// convert to str and print
 	fmt.Println(args...)
@@ -579,6 +553,8 @@ func NewError(errType interface{}, message ...interface{}) error {
 	stack := ""
 	if len(message) > 0 {
 		msg = ToString(message[0])
+		msgParts := strings.Split(msg, "]\nStack:")
+		msg = msgParts[0]
 		if len(message) > 1 {
 			stack = ToString(message[1])
 		}
@@ -664,6 +640,11 @@ func (this *Exchange) ValueIsDefined(v interface{}) bool {
 	if str, ok := v.(string); ok {
 		return str != ""
 	}
+	val := reflect.ValueOf(v)
+	switch val.Kind() {
+	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Chan, reflect.Func, reflect.Interface:
+		return !val.IsNil()
+	}
 	return true
 }
 
@@ -685,11 +666,31 @@ func (this *Exchange) CallDynamically(name2 interface{}, args ...interface{}) <-
 
 // clone creates a deep copy of the input object. It supports arrays, slices, and maps.
 func (this *Exchange) Clone(object interface{}) interface{} {
-	return this.DeepCopy(reflect.ValueOf(object)).Interface()
+	if object == nil {
+		return nil
+	}
+	result := this.DeepCopy(reflect.ValueOf(object))
+	if !result.IsValid() {
+		return nil
+	}
+	return result.Interface()
 }
 
 func (this *Exchange) DeepCopy(value reflect.Value) reflect.Value {
+	if !value.IsValid() {
+		// zero / invalid reflect.Value – preserve as-is (callers use IsValid to detect nil)
+		return value
+	}
 	switch value.Kind() {
+	case reflect.Interface:
+		// unwrap the interface; if it holds nil, return a typed nil of the same interface type
+		if value.IsNil() {
+			return reflect.Zero(value.Type())
+		}
+		inner := this.DeepCopy(value.Elem())
+		result := reflect.New(value.Type()).Elem()
+		result.Set(inner)
+		return result
 	case reflect.Array, reflect.Slice:
 		// Create a new slice/array of the same type and length
 		copy := reflect.MakeSlice(value.Type(), value.Len(), value.Cap())
@@ -701,7 +702,12 @@ func (this *Exchange) DeepCopy(value reflect.Value) reflect.Value {
 		// Create a new map of the same type
 		copy := reflect.MakeMap(value.Type())
 		for _, key := range value.MapKeys() {
-			copy.SetMapIndex(key, this.DeepCopy(value.MapIndex(key)))
+			copiedVal := this.DeepCopy(value.MapIndex(key))
+			if !copiedVal.IsValid() {
+				// nil interface value: store as zero of the map's element type so the key is preserved
+				copiedVal = reflect.Zero(value.Type().Elem())
+			}
+			copy.SetMapIndex(key, copiedVal)
 		}
 		return copy
 	default:
@@ -986,21 +992,27 @@ func (this *Exchange) FixStringifiedJsonMembers(a interface{}) string {
 	aStr = strings.ReplaceAll(aStr, "}\"", "}")
 	return aStr
 }
-
 func (this *Exchange) IsEmpty(a interface{}) bool {
 	if a == nil {
 		return true
 	}
-
 	v := reflect.ValueOf(a)
 
 	switch v.Kind() {
-	case reflect.String:
+
+	case reflect.Array, reflect.Slice, reflect.Map:
 		return v.Len() == 0
-	case reflect.Slice, reflect.Array:
-		return v.Len() == 0
-	case reflect.Map:
-		return v.Len() == 0
+
+	case reflect.Struct:
+		return v.IsZero()
+
+	case reflect.Ptr:
+		if v.IsNil() {
+			return true
+		}
+		// Recursively check the value the pointer points to
+		return this.IsEmpty(v.Elem().Interface())
+
 	default:
 		return false
 	}
@@ -1210,11 +1222,14 @@ func (this *Exchange) ExceptionMessage(exc interface{}, includeStack ...interfac
 	return message[:length]
 }
 
-func (this *Exchange) GetProperty(obj interface{}, property interface{}) interface{} {
+func (this *Exchange) GetProperty(obj interface{}, property interface{}, defaultValue ...interface{}) interface{} {
 	// Convert property to string
 	propName, ok := property.(string)
 	if !ok {
 		// fmt.Println("Property should be a string")
+		if len(defaultValue) > 0 {
+			return defaultValue[0]
+		}
 		return nil
 	}
 
@@ -1230,30 +1245,36 @@ func (this *Exchange) GetProperty(obj interface{}, property interface{}) interfa
 		return field.Interface()
 	} else {
 		// fmt.Printf("Field '%s' is either invalid or cannot be accessed\n", propName)
+		if len(defaultValue) > 0 {
+			return defaultValue[0]
+		}
 		return nil
 	}
 }
 
-func (this *Exchange) Unique(obj interface{}) []string {
-	// Type assertion to check if obj is a slice of strings
-	if list, ok := obj.([]string); ok {
-		// Create a map to track unique strings
-		uniqueMap := make(map[string]bool)
-		var uniqueList []string
+func (this *Exchange) Unique(obj interface{}) []interface{} {
+	var list []interface{}
 
-		// Iterate over the list and add only unique elements
-		for _, item := range list {
-			if !uniqueMap[item] {
-				uniqueMap[item] = true
-				uniqueList = append(uniqueList, item)
-			}
+	switch v := obj.(type) {
+	case []string:
+		for _, item := range v {
+			list = append(list, item)
 		}
-
-		return uniqueList
+	case []interface{}:
+		list = v
+	default:
+		return []interface{}{}
 	}
 
-	// If obj is not a []string, return an empty slice
-	return []string{}
+	uniqueMap := make(map[interface{}]bool)
+	uniqueList := []interface{}{}
+	for _, item := range list {
+		if !uniqueMap[item] {
+			uniqueMap[item] = true
+			uniqueList = append(uniqueList, item)
+		}
+	}
+	return uniqueList
 }
 
 // func (this *Exchange) callInternal(name2 string, args ...interface{}) interface{} {

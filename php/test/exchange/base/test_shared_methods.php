@@ -399,8 +399,11 @@ function check_precision_accuracy($exchange, $skipped_properties, $method, $entr
     if ($exchange->is_tick_precision()) {
         // \ccxt\TICK_SIZE should be above zero
         assert_greater($exchange, $skipped_properties, $method, $entry, $key, '0');
-        // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so their existence in our case indicates to incorrectly implemented tick-sizes, which might mistakenly be implemented with DECIMAL_PLACES, so we throw error
+        // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so in our case, such values probably indicate an incorrectly implemented tick-sizes calculation, so we throw error
         $decimal_numbers = ['2', '3', '4', '5', '6', '7', '8', '9', '11', '12', '13', '14', '15', '16'];
+        if ($key === 'amount' && is_array($skipped_properties) && array_key_exists('precisionAmountAbnormal', $skipped_properties)) {
+            return;
+        }
         for ($i = 0; $i < count($decimal_numbers); $i++) {
             $num = $decimal_numbers[$i];
             $num_str = $num;
@@ -647,4 +650,15 @@ function deep_equal($exchange, $a, $b) {
 function assert_deep_equal($exchange, $skipped_properties, $method, $a, $b) {
     $log_text = log_template($exchange, $method, array());
     assert(deep_equal($exchange, $a, $b), 'two dicts do not match: ' . json_encode($a) . ' != ' . json_encode($b) . $log_text);
+}
+
+
+function exchange_prop($exchange, $key, $default_value = null) {
+    $value = $exchange->get_property($exchange, ((string) $key));
+    if ($value !== null) {
+        return $value;
+    }
+    // try UpperCase key also, for other langs
+    $key_upper = $exchange->capitalize(((string) $key));
+    return $exchange->get_property($exchange, $key_upper, $default_value);
 }

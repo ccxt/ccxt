@@ -61,8 +61,18 @@
                         "price": 0.50008,
                         "amount": 1,
                         "cost": 0.50008,
-                        "fee": {"cost": null, "currency": null },
-                        "fees": []
+                        "fee": {
+                            "currency": "USD",
+                            "cost": 0.00025004,
+                            "rate": 0.0005
+                        },
+                        "fees": [
+                            {
+                                "currency": "USD",
+                                "cost": 0.00025004,
+                                "rate": 0.0005
+                            }
+                        ]
                     },
                     {
                         "info": {
@@ -86,15 +96,124 @@
                         "price": 68.54,
                         "amount": 0.1,
                         "cost": 6.854,
-                        "fee": {"cost": null, "currency": null },
-                        "fees": []
+                        "fee": {
+                            "currency": "USD",
+                            "cost": 0.0051405,
+                            "rate": 0.00075
+                        },
+                        "fees": [
+                            {
+                                "currency": "USD",
+                                "cost": 0.0051405,
+                                "rate": 0.00075
+                            }
+                        ]
                     }
                 ]
             }
         ],
         "fetchClosedOrders": [
             {
-                "description": "fetchClosed trigger roders",
+                "description": "fetch closed orders including filled limit order",
+                "method": "fetchClosedOrders",
+                "input": [
+                    "ETH/USD:USD",
+                    1769618102000
+                ],
+                "httpResponse": {
+                    "elements": [
+                        {
+                            "uid": "d6458bb3-2d6e-471a-a84e-bc1d99ef2216",
+                            "timestamp": "1769618176659",
+                            "event": {
+                                "OrderUpdated": {
+                                    "oldOrder": {
+                                        "uid": "a0f221cd-f686-4bf8-aae7-dab68c69bffb",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_ETHUSD",
+                                        "direction": "Buy",
+                                        "quantity": "0",
+                                        "filled": "0.001",
+                                        "timestamp": "1769618102000",
+                                        "limitPrice": "3003.1",
+                                        "orderType": "Limit",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "lastUpdateTimestamp": "1769618176659"
+                                    },
+                                    "newOrder": {
+                                        "uid": "a0f221cd-f686-4bf8-aae7-dab68c69bffb",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_ETHUSD",
+                                        "direction": "Buy",
+                                        "quantity": "0",
+                                        "filled": "0.001",
+                                        "timestamp": "1769618102000",
+                                        "limitPrice": "3003.1",
+                                        "orderType": "Limit",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "lastUpdateTimestamp": "1769618176659"
+                                    },
+                                    "reason": "full_fill",
+                                    "reducedQuantity": "0",
+                                    "algoId": "",
+                                    "origin": "Unknown Origin"
+                                }
+                            }
+                        }
+                    ],
+                    "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                    "len": "17"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "uid": "a0f221cd-f686-4bf8-aae7-dab68c69bffb",
+                            "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                            "tradeable": "PF_ETHUSD",
+                            "direction": "Buy",
+                            "quantity": "0",
+                            "filled": "0.001",
+                            "timestamp": "1769618102000",
+                            "limitPrice": "3003.1",
+                            "orderType": "Limit",
+                            "clientId": "",
+                            "reduceOnly": false,
+                            "lastUpdateTimestamp": "1769618176659",
+                            "status": "closed"
+                        },
+                        "id": "a0f221cd-f686-4bf8-aae7-dab68c69bffb",
+                        "clientOrderId": null,
+                        "timestamp": 1769618102000,
+                        "datetime": "2026-01-28T16:35:02.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1769618176659,
+                        "symbol": "ETH/USD:USD",
+                        "type": "limit",
+                        "timeInForce": "gtc",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": null,
+                        "triggerPrice": null,
+                        "stopPrice": null,
+                        "amount": 0.001,
+                        "cost": null,
+                        "average": null,
+                        "filled": 0.001,
+                        "remaining": 0,
+                        "status": "closed",
+                        "fee": null,
+                        "fees": [],
+                        "trades": [],
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "fetchClosed trigger orders",
                 "method": "fetchClosedOrders",
                 "input": [
                     null,
@@ -288,7 +407,7 @@
                         "postOnly": false,
                         "reduceOnly": false,
                         "side": "buy",
-                        "price": 3003.1,
+                        "price": null,
                         "triggerPrice": null,
                         "amount": 0.001,
                         "cost": 0,
@@ -466,12 +585,12 @@
                         "postOnly": false,
                         "reduceOnly": false,
                         "side": "buy",
-                        "price": 68.96,
+                        "price": null,
                         "stopPrice": null,
                         "triggerPrice": null,
                         "amount": 0.1,
-                        "cost": 6.896,
-                        "average": 68.96,
+                        "cost": null,
+                        "average": null,
                         "filled": 0.1,
                         "remaining": 0,
                         "status": "closed",
@@ -537,10 +656,10 @@
                         "postOnly": false,
                         "reduceOnly": false,
                         "side": "buy",
-                        "price": 50,
+                        "price": null,
                         "triggerPrice": null,
                         "amount": 0.1,
-                        "cost": 0,
+                        "cost": null,
                         "average": null,
                         "filled": 0,
                         "remaining": 0.1,
@@ -604,11 +723,11 @@
                         "postOnly": false,
                         "reduceOnly": false,
                         "side": "buy",
-                        "price": 50,
+                        "price": null,
                         "stopPrice": null,
                         "triggerPrice": null,
                         "amount": 0.1,
-                        "cost": 0,
+                        "cost": null,
                         "average": null,
                         "filled": 0,
                         "remaining": 0.1,
@@ -956,10 +1075,10 @@
                         "postOnly": false,
                         "reduceOnly": false,
                         "side": "sell",
-                        "price": 2900,
+                        "price": null,
                         "triggerPrice": null,
                         "amount": 0.001,
-                        "cost": 0,
+                        "cost": null,
                         "average": null,
                         "filled": 0,
                         "remaining": 0.001,
@@ -1044,11 +1163,11 @@
                         "postOnly": false,
                         "reduceOnly": false,
                         "side": null,
-                        "price": 50,
+                        "price": null,
                         "stopPrice": null,
                         "triggerPrice": null,
                         "amount": 0.1,
-                        "cost": 0,
+                        "cost": null,
                         "average": null,
                         "filled": 0,
                         "remaining": 0.1,
@@ -1058,6 +1177,209 @@
                         "trades": [],
                         "takeProfitPrice": null,
                         "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetch funding rates",
+                "method": "fetchFundingRates",
+                "input": [
+                    [
+                        "DOGE/USD:USD"
+                    ]
+                ],
+                "httpResponse": {
+                    "result": "success",
+                    "serverTime": "2026-02-08T17:33:58.322Z",
+                    "tickers": [
+                        {
+                            "symbol": "PF_DOGEUSD",
+                            "last": "0.096326",
+                            "lastTime": "2026-02-08T17:32:13.922599Z",
+                            "tag": "perpetual",
+                            "pair": "DOGE:USD",
+                            "markPrice": "0.09624183255",
+                            "bid": "0.096234",
+                            "bidSize": "100",
+                            "ask": "0.096253",
+                            "askSize": "1714",
+                            "vol24h": "38320755",
+                            "volumeQuote": "3743943.987912",
+                            "openInterest": "23062948.000000000000000",
+                            "open24h": "0.097602",
+                            "high24h": "0.099418",
+                            "low24h": "0.095038",
+                            "lastSize": "665",
+                            "fundingRate": "-0.000000742689179664",
+                            "fundingRatePrediction": "-0.000000253089377012",
+                            "suspended": false,
+                            "indexPrice": "0.096257",
+                            "postOnly": false,
+                            "change24h": "-1.31"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "DOGE/USD:USD": {
+                        "info": {
+                            "symbol": "PF_DOGEUSD",
+                            "last": "0.096326",
+                            "lastTime": "2026-02-08T17:32:13.922599Z",
+                            "tag": "perpetual",
+                            "pair": "DOGE:USD",
+                            "markPrice": "0.09624183255",
+                            "bid": "0.096234",
+                            "bidSize": "100",
+                            "ask": "0.096253",
+                            "askSize": "1714",
+                            "vol24h": "38320755",
+                            "volumeQuote": "3743943.987912",
+                            "openInterest": "23062948.000000000000000",
+                            "open24h": "0.097602",
+                            "high24h": "0.099418",
+                            "low24h": "0.095038",
+                            "lastSize": "665",
+                            "fundingRate": "-0.000000742689179664",
+                            "fundingRatePrediction": "-0.000000253089377012",
+                            "suspended": false,
+                            "indexPrice": "0.096257",
+                            "postOnly": false,
+                            "change24h": "-1.31"
+                        },
+                        "symbol": "DOGE/USD:USD",
+                        "markPrice": 0.09624183255,
+                        "indexPrice": 0.096257,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": 1770571933922,
+                        "datetime": "2026-02-08T17:32:13.922Z",
+                        "fundingRate": -0.000007716906047878,
+                        "fundingTimestamp": null,
+                        "fundingDatetime": null,
+                        "nextFundingRate": -0.000002629723170332,
+                        "nextFundingTimestamp": null,
+                        "nextFundingDatetime": null,
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "1h"
+                    }
+                }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Inverse swap fetch trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USD:BTC",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "elements": [
+                        {
+                            "uid": "1aa82c9b-e778-49d9-976f-6c4974677089",
+                            "timestamp": "1772026472238",
+                            "event": {
+                                "Execution": {
+                                    "execution": {
+                                    "uid": "73dd02fe-54f1-4ed8-a419-7e468357cd72",
+                                    "makerOrder": {
+                                        "uid": "a12a3479-d3e5-410a-8c86-3c1c4c8b6ef1",
+                                        "tradeable": "PI_XBTUSD",
+                                        "direction": "Sell",
+                                        "quantity": "200.0",
+                                        "timestamp": "1772026410977",
+                                        "limitPrice": "66155.0",
+                                        "orderType": "Limit",
+                                        "reduceOnly": false,
+                                        "lastUpdateTimestamp": "1772026470976"
+                                    },
+                                    "takerOrder": {
+                                        "uid": "a12a34d7-4e1d-4018-ab50-04f6485736db",
+                                        "tradeable": "PI_XBTUSD",
+                                        "direction": "Buy",
+                                        "quantity": "200",
+                                        "timestamp": "1772026472238",
+                                        "limitPrice": "66816.500",
+                                        "orderType": "Market",
+                                        "reduceOnly": false,
+                                        "lastUpdateTimestamp": "1772026472238"
+                                    },
+                                    "timestamp": "1772026472238",
+                                    "quantity": "200.0",
+                                    "price": "66155.0",
+                                    "markPrice": "66156.99270213483",
+                                    "limitFilled": true,
+                                    "usdValue": "200.00"
+                                    },
+                                    "takerReducedQuantity": ""
+                                }
+                            }
+                        }
+                    ],
+                    "len": "1",
+                    "continuationToken": "MTc3MjAyMTc1MTg0Ny81MzI5NzAyNjM5Mw=="
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "uid": "73dd02fe-54f1-4ed8-a419-7e468357cd72",
+                            "makerOrder": {
+                                "uid": "a12a3479-d3e5-410a-8c86-3c1c4c8b6ef1",
+                                "tradeable": "PI_XBTUSD",
+                                "direction": "Sell",
+                                "quantity": "200.0",
+                                "timestamp": "1772026410977",
+                                "limitPrice": "66155.0",
+                                "orderType": "Limit",
+                                "reduceOnly": false,
+                                "lastUpdateTimestamp": "1772026470976"
+                            },
+                            "takerOrder": {
+                                "uid": "a12a34d7-4e1d-4018-ab50-04f6485736db",
+                                "tradeable": "PI_XBTUSD",
+                                "direction": "Buy",
+                                "quantity": "200",
+                                "timestamp": "1772026472238",
+                                "limitPrice": "66816.500",
+                                "orderType": "Market",
+                                "reduceOnly": false,
+                                "lastUpdateTimestamp": "1772026472238"
+                            },
+                            "timestamp": "1772026472238",
+                            "quantity": "200.0",
+                            "price": "66155.0",
+                            "markPrice": "66156.99270213483",
+                            "limitFilled": true,
+                            "usdValue": "200.00"
+                        },
+                        "id": "73dd02fe-54f1-4ed8-a419-7e468357cd72",
+                        "symbol": "BTC/USD:BTC",
+                        "timestamp": 1772026472238,
+                        "datetime": "2026-02-25T13:34:32.238Z",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 66155,
+                        "amount": null,
+                        "cost": 0.003023203083667145,
+                        "fee": {
+                            "currency": "USD",
+                            "cost": 0.0000022674023127503585,
+                            "rate": 0.00075
+                        },
+                        "fees": [
+                            {
+                                "currency": "USD",
+                                "cost": 0.0000022674023127503585,
+                                "rate": 0.00075
+                            }
+                        ]
                     }
                 ]
             }

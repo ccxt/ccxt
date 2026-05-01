@@ -308,6 +308,7 @@ class bitget extends Exchange {
                             'v3/market/tickers' => 1,
                             'v3/market/orderbook' => 1,
                             'v3/market/fills' => 1,
+                            'v3/market/proof-of-reserves' => 1,
                             'v3/market/open-interest' => 1,
                             'v3/market/candles' => 1,
                             'v3/market/history-candles' => 1,
@@ -318,6 +319,7 @@ class bitget extends Exchange {
                             'v3/market/margin-loans' => 1,
                             'v3/market/position-tier' => 1,
                             'v3/market/oi-limit' => 2,
+                            'v3/market/index-components' => 2,
                         ),
                     ),
                 ),
@@ -355,6 +357,7 @@ class bitget extends Exchange {
                             'v2/spot/wallet/deposit-address' => 2,
                             'v2/spot/wallet/deposit-records' => 2,
                             'v2/spot/wallet/withdrawal-records' => 2,
+                            'v2/spot/account/upgrade-status' => 20,
                         ),
                         'post' => array(
                             'spot/v1/wallet/transfer' => 4,
@@ -424,6 +427,7 @@ class bitget extends Exchange {
                             'v2/spot/wallet/withdrawal' => 2,
                             'v2/spot/wallet/cancel-withdrawal' => 2,
                             'v2/spot/wallet/modify-deposit-account' => 2,
+                            'v2/spot/account/upgrade' => 20,
                         ),
                     ),
                     'mix' => array(
@@ -832,14 +836,29 @@ class bitget extends Exchange {
                     'uta' => array(
                         'get' => array(
                             'v3/account/assets' => 1,
+                            'v3/account/funding-assets' => 1,
                             'v3/account/settings' => 1,
-                            'v3/account/deposit-records' => 2,
                             'v3/account/financial-records' => 1,
                             'v3/account/repayable-coins' => 2,
                             'v3/account/payment-coins' => 2,
                             'v3/account/convert-records' => 1,
+                            'v3/account/deduct-info' => 20,
+                            'v3/account/fee-rate' => 6.6667,
+                            'v3/account/switch-status' => 4,
+                            'v3/account/max-transferable' => 6.6667,
+                            'v3/account/open-interest-limit' => 4,
+                            'v3/account/sub-unified-assets' => 20,
                             'v3/account/transferable-coins' => 2,
                             'v3/account/sub-transfer-record' => 4,
+                            'v3/account/deposit-address' => 2,
+                            'v3/account/sub-deposit-address' => 2,
+                            'v3/account/deposit-records' => 2,
+                            'v3/account/sub-deposit-records' => 2,
+                            'v3/account/withdrawal-records' => 2,
+                            'v3/broker/sub-list' => 1,
+                            'v3/broker/all-sub-deposit-withdrawal' => 1,
+                            'v3/broker/commission' => 1,
+                            'v3/broker/query-sub-apikey' => 1,
                             'v3/ins-loan/transfered' => 6.6667,
                             'v3/ins-loan/symbols' => 6.6667,
                             'v3/ins-loan/risk-unit' => 6.6667,
@@ -848,8 +867,18 @@ class bitget extends Exchange {
                             'v3/ins-loan/loan-order' => 6.6667,
                             'v3/ins-loan/ltv-convert' => 6.6667,
                             'v3/ins-loan/ensure-coins-convert' => 6.6667,
+                            'v3/loan/coins' => 2,
+                            'v3/loan/interest' => 2,
+                            'v3/loan/borrow-ongoing' => 2,
+                            'v3/loan/borrow-history' => 2,
+                            'v3/loan/repay-history' => 2,
+                            'v3/loan/pledge-rate-history' => 2,
+                            'v3/loan/debts' => 2,
+                            'v3/loan/reduces' => 2,
                             'v3/position/current-position' => 1,
                             'v3/position/history-position' => 1,
+                            'v3/position/adlRank' => 20,
+                            'v3/tax/records' => 20,
                             'v3/trade/order-info' => 1,
                             'v3/trade/unfilled-orders' => 1,
                             'v3/trade/unfilled-strategy-orders' => 1,
@@ -863,10 +892,26 @@ class bitget extends Exchange {
                             'v3/account/set-leverage' => 2,
                             'v3/account/set-hold-mode' => 2,
                             'v3/account/repay' => 4,
+                            'v3/account/switch-deduct' => 20,
+                            'v3/account/deposit-account' => 20,
+                            'v3/account/switch' => 20,
+                            'v3/account/adjust-account-mode' => 20,
                             'v3/account/transfer' => 4,
                             'v3/account/sub-transfer' => 4,
+                            'v3/account/sub-master-transfer' => 4,
                             'v3/account/max-open-available' => 4,
+                            'v3/account/withdrawal' => 20,
+                            'v3/broker/create-sub' => 1,
+                            'v3/broker/modify-sub' => 1,
+                            'v3/broker/sub-withdrawal' => 1,
+                            'v3/broker/sub-deposit-address' => 1,
+                            'v3/broker/create-sub-apikey' => 1,
+                            'v3/broker/modify-sub-apikey' => 1,
+                            'v3/broker/delete-sub-apikey' => 1,
                             'v3/ins-loan/bind-uid' => 6.6667,
+                            'v3/loan/borrow' => 2,
+                            'v3/loan/repay' => 2,
+                            'v3/loan/revise-pledge' => 2,
                             'v3/trade/place-order' => 2,
                             'v3/trade/place-strategy-order' => 2,
                             'v3/trade/modify-order' => 2,
@@ -878,6 +923,7 @@ class bitget extends Exchange {
                             'v3/trade/cancel-batch' => 4,
                             'v3/trade/cancel-symbol-order' => 4,
                             'v3/trade/close-positions' => 4,
+                            'v3/trade/countdown-cancel-all' => 20,
                             'v3/user/create-sub' => 2,
                             'v3/user/freeze-sub' => 2,
                             'v3/user/create-sub-api' => 2,
@@ -1353,6 +1399,7 @@ class bitget extends Exchange {
                     '43115' => '\\ccxt\\OnMaintenance', // array("code":"43115","msg":"The current trading pair is opening soon, please refer to the official announcement for the opening time","requestTime":1688907202434,"data":null)
                     '45110' => '\\ccxt\\InvalidOrder', // array("code":"45110","msg":"less than the minimum amount 5 USDT","requestTime":1669911118932,"data":null)
                     '40774' => '\\ccxt\\InvalidOrder', // array("code":"40774","msg":"The order type for unilateral position must also be the unilateral position type.","requestTime":1758709764409,"data":null)
+                    '40917' => '\\ccxt\\InvalidOrder', // array("code":"40917","msg":"Stop price for long positions please < mark price {0}","requestTime":1776355933687,"data":null)
                     '45122' => '\\ccxt\\InvalidOrder', // array("code":"45122","msg":"Short position stop loss price please > mark price 106.86","requestTime":1758709970499,"data":null)
                     // spot
                     'invalid sign' => '\\ccxt\\AuthenticationError',
@@ -1417,7 +1464,9 @@ class bitget extends Exchange {
                     '20003' => '\\ccxt\\ExchangeError', // operation failed, array("status":"error","ts":1595730308979,"err_code":"bad-request","err_msg":"20003")
                     '01001' => '\\ccxt\\ExchangeError', // order failed, array("status":"fail","err_code":"01001","err_msg":"系统异常，请稍后重试")
                     '40024' => '\\ccxt\\RestrictedLocation', // array("code":"40024","msg":"The currency is a regional currency and does not meet the purchase conditions.","requestTime":1765282460733,"data":null)
+                    '41117' => '\\ccxt\\InvalidOrder', // array("code":"41117","msg":"K/USDT selling price cannot be lower than 0.00085","requestTime":1773990851247,"data":null)
                     '43111' => '\\ccxt\\PermissionDenied', // array("code":"43111","msg":"参数错误 address not in address book","requestTime":1665394201164,"data":null)
+                    '45113' => '\\ccxt\\InvalidOrder', // array("code":"45113","msg":"Maximum order value limit triggered","requestTime":1774884278712,"data":null)
                 ),
                 'broad' => array(
                     'invalid size, valid range' => '\\ccxt\\ExchangeError',
@@ -3568,9 +3617,11 @@ class bitget extends Exchange {
             $uta = null;
             list($uta, $params) = $this->handle_option_and_params($params, 'fetchTickers', 'uta', false);
             if ($uta) {
-                $symbolsLength = count($symbols);
-                if (($symbols !== null) && ($symbolsLength === 1)) {
-                    $request['symbol'] = $market['id'];
+                if ($symbols !== null) {
+                    $symbolsLength = count($symbols);
+                    if ($symbolsLength === 1) {
+                        $request['symbol'] = $market['id'];
+                    }
                 }
                 $request['category'] = $productType;
                 $response = Async\await($this->publicUtaGetV3MarketTickers ($this->extend($request, $params)));
@@ -5077,7 +5128,7 @@ class bitget extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much you want to trade in units of the base currency
-             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders, and used execution $price for contract stop-loss / take-profit orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->cost] *spot only* how much you want to trade in units of the quote currency, for $market buy orders only
              * @param {float} [$params->triggerPrice] *swap only* The $price at which a trigger order is triggered at
@@ -5386,8 +5437,11 @@ class bitget extends Exchange {
                     $request['stopSurplusTriggerType'] = $tpType;
                 }
             } elseif ($isStopLossOrTakeProfitTrigger) {
-                if (!$isMarketOrder) {
-                    throw new ExchangeError($this->id . ' createOrder() bitget $stopLoss or $takeProfit orders must be $market orders');
+                if ($price !== null) {
+                    $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                    if (is_array($request) && array_key_exists('price', $request)) {
+                        unset($request['price']);
+                    }
                 }
                 if ($hedged) {
                     $request['holdSide'] = ($side === 'sell') ? 'long' : 'short';
@@ -8772,9 +8826,14 @@ class bitget extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
             }
+            $uta = null;
+            list($uta, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'uta', false);
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
             if ($paginate) {
+                if ($uta) {
+                    return Async\await($this->fetch_paginated_call_cursor('fetchFundingHistory', $symbol, $since, $limit, $params, 'cursor', 'cursor'));
+                }
                 return Async\await($this->fetch_paginated_call_cursor('fetchFundingHistory', $symbol, $since, $limit, $params, 'endId', 'idLessThan'));
             }
             $market = $this->market($symbol);
@@ -8783,12 +8842,7 @@ class bitget extends Exchange {
             }
             $productType = null;
             list($productType, $params) = $this->handle_product_type_and_params($market, $params);
-            $request = array(
-                'symbol' => $market['id'],
-                'marginCoin' => $market['settleId'],
-                'businessType' => 'contract_settle_fee',
-                'productType' => $productType,
-            );
+            $request = array();
             list($request, $params) = $this->handle_until_option('endTime', $request, $params);
             if ($since !== null) {
                 $request['startTime'] = $since;
@@ -8796,32 +8850,69 @@ class bitget extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateMixGetV2MixAccountBill ($this->extend($request, $params)));
-            //
-            //     {
-            //         "code" => "00000",
-            //         "msg" => "success",
-            //         "requestTime" => 1700795977890,
-            //         "data" => {
-            //             "bills" => array(
-            //                 array(
-            //                     "billId" => "1111499428100472833",
-            //                     "symbol" => "BTCUSDT",
-            //                     "amount" => "-0.004992",
-            //                     "fee" => "0",
-            //                     "feeByCoupon" => "",
-            //                     "businessType" => "contract_settle_fee",
-            //                     "coin" => "USDT",
-            //                     "cTime" => "1700728034996"
-            //                 ),
-            //             ),
-            //             "endId" => "1098396773329305606"
-            //         }
-            //     }
-            //
+            $response = null;
+            if ($uta) {
+                $request['coin'] = $market['settleId'];
+                $request['category'] = $productType;
+                $response = Async\await($this->privateUtaGetV3AccountFinancialRecords ($this->extend($request, $params)));
+                //
+                // {
+                //     "code" => "00000",
+                //     "msg" => "success",
+                //     "requestTime" => 1750135478641,
+                //     "data" => {
+                //         "list" => array(
+                //             {
+                //                 "category" => "Margin",
+                //                 "id" => "13111111111111111",
+                //                 "symbol" => "BTCUSDT",
+                //                 "coin" => "BTC",
+                //                 "type" => "ORDER_DEALT_IN",
+                //                 "amount" => "0.00531168",
+                //                 "fee" => "-0.00000531",
+                //                 "balance" => "55.10017801",
+                //                 "ts" => "1745853486185"
+                //             }
+                //         ),
+                //         "cursor" => "122222222222222222"
+                //     }
+                // }
+                //
+            } else {
+                $request['symbol'] = $market['id'];
+                $request['marginCoin'] = $market['settleId'];
+                $request['businessType'] = 'contract_settle_fee';
+                $request['productType'] = $productType;
+                $response = Async\await($this->privateMixGetV2MixAccountBill ($this->extend($request, $params)));
+                //
+                //     {
+                //         "code" => "00000",
+                //         "msg" => "success",
+                //         "requestTime" => 1700795977890,
+                //         "data" => {
+                //             "bills" => array(
+                //                 array(
+                //                     "billId" => "1111499428100472833",
+                //                     "symbol" => "BTCUSDT",
+                //                     "amount" => "-0.004992",
+                //                     "fee" => "0",
+                //                     "feeByCoupon" => "",
+                //                     "businessType" => "contract_settle_fee",
+                //                     "coin" => "USDT",
+                //                     "cTime" => "1700728034996"
+                //                 ),
+                //             ),
+                //             "endId" => "1098396773329305606"
+                //         }
+                //     }
+                //
+            }
             $data = $this->safe_value($response, 'data', array());
-            $result = $this->safe_value($data, 'bills', array());
-            return $this->parse_funding_histories($result, $market, $since, $limit);
+            $bills = $this->safe_list_2($data, 'bills', 'list', array());
+            if ($uta) {
+                $bills = $this->filter_by_array($bills, 'type', array( 'CONTRACT_MAIN_SETTLE_FEE_USER_IN', 'CONTRACT_MAIN_SETTLE_FEE_USER_OUT' ), false);
+            }
+            return $this->parse_funding_histories($bills, $market, $since, $limit);
         }) ();
     }
 
@@ -8838,9 +8929,21 @@ class bitget extends Exchange {
         //         "cTime" => "1700728034996"
         //     }
         //
+        //     {
+        //         "category" => "Margin",
+        //         "id" => "13111111111111111",
+        //         "symbol" => "BTCUSDT",
+        //         "coin" => "BTC",
+        //         "type" => "ORDER_DEALT_IN",
+        //         "amount" => "0.00531168",
+        //         "fee" => "-0.00000531",
+        //         "balance" => "55.10017801",
+        //         "ts" => "1745853486185"
+        //     }
+        //
         $marketId = $this->safe_string($contract, 'symbol');
         $currencyId = $this->safe_string($contract, 'coin');
-        $timestamp = $this->safe_integer($contract, 'cTime');
+        $timestamp = $this->safe_integer_2($contract, 'cTime', 'ts');
         return array(
             'info' => $contract,
             'symbol' => $this->safe_symbol($marketId, $market, null, 'swap'),
@@ -8848,7 +8951,7 @@ class bitget extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'code' => $this->safe_currency_code($currencyId),
             'amount' => $this->safe_number($contract, 'amount'),
-            'id' => $this->safe_string($contract, 'billId'),
+            'id' => $this->safe_string_2($contract, 'billId', 'id'),
         );
     }
 
@@ -8856,10 +8959,11 @@ class bitget extends Exchange {
         $result = array();
         for ($i = 0; $i < count($contracts); $i++) {
             $contract = $contracts[$i];
-            $business = $this->safe_string($contract, 'businessType');
-            if ($business !== 'contract_settle_fee') {
-                continue;
-            }
+            // for non-uta, we've set bussinessType in request payload. Not sure why this existed.
+            // $business = $this->safe_string($contract, 'businessType');
+            // if ($business !== 'contract_settle_fee') {
+            //     continue;
+            // }
             $result[] = $this->parse_funding_history($contract, $market);
         }
         $sorted = $this->sort_by($result, 'timestamp');

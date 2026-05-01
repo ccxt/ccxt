@@ -1065,4 +1065,9 @@ public partial class phemex
         var res = await this.fetchConvertTradeHistory(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Conversion(item)).ToList<Conversion>();
     }
+    public async Task<List<ADL>> FetchPositionsADLRank(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionsADLRank(symbols, parameters);
+        return ((IList<object>)res).Select(item => new ADL(item)).ToList<ADL>();
+    }
 }

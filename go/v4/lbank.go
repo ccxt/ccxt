@@ -2601,7 +2601,7 @@ func (this *LbankCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inter
 		//              },
 		//          ],
 		//          "error_code":0,
-		//          "ts":1648506641469
+		//          "ts":1648506641468
 		//      }
 		//
 		var data interface{} = this.SafeList(response, "data", []interface{}{})
@@ -2824,7 +2824,7 @@ func (this *LbankCore) Withdraw(code interface{}, amount interface{}, address in
 		//          "result":true,
 		//          "data": {
 		//              "fee":10.00000000000000000000,
-		//              "withdrawId":1900376
+		//              "withdrawId":1900377
 		//              },
 		//          "error_code":0,
 		//          "ts":1648992501414

@@ -2,10 +2,207 @@
     "exchange": "whitebit",
     "skipKeys": [],
     "methods": {
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetch funding rate history",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "ETH/USDT:USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "fundingTime": "1773648000",
+                        "fundingRate": "-0.00004593",
+                        "market": "ETH_PERP",
+                        "settlementPrice": "2248.47",
+                        "rateCalculatedTime": "1773619200"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "fundingTime": "1773648000",
+                            "fundingRate": "-0.00004593",
+                            "market": "ETH_PERP",
+                            "settlementPrice": "2248.47",
+                            "rateCalculatedTime": "1773619200"
+                        },
+                        "symbol": "ETH/USDT:USDT",
+                        "fundingRate": -0.00004593,
+                        "timestamp": 1773648000000,
+                        "datetime": "2026-03-16T08:00:00.000Z"
+                    }
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "swap tickers",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "message": null,
+                    "result": [
+                        {
+                            "ticker_id": "BTC_PERP",
+                            "stock_currency": "BTC",
+                            "money_currency": "USDT",
+                            "last_price": "65543.6",
+                            "stock_volume": "37131.918",
+                            "money_volume": "2458965212.2374",
+                            "bid": "65528.8",
+                            "ask": "65546",
+                            "high": "67278.7",
+                            "low": "65044",
+                            "product_type": "Perpetual",
+                            "open_interest": "20166.261",
+                            "index_price": "65531.7",
+                            "index_name": "Bitcoin",
+                            "index_currency": "BTC",
+                            "funding_rate": "0.00001014",
+                            "next_funding_rate_timestamp": "1772467200000",
+                            "brackets": {
+                                "1": "0",
+                                "2": "0",
+                                "3": "0",
+                                "5": "0",
+                                "10": "0",
+                                "20": "10000000",
+                                "50": "1000000",
+                                "100": "200000"
+                            },
+                            "max_leverage": "100",
+                            "funding_interval_minutes": "480"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": 67278.7,
+                        "low": 65044,
+                        "bid": 65528.8,
+                        "bidVolume": null,
+                        "ask": 65546,
+                        "askVolume": null,
+                        "vwap": 66222.41307969602,
+                        "open": null,
+                        "close": 65543.6,
+                        "last": 65543.6,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": 37131.918,
+                        "quoteVolume": 2458965212.2374,
+                        "indexPrice": 65531.7,
+                        "info": {
+                            "ticker_id": "BTC_PERP",
+                            "stock_currency": "BTC",
+                            "money_currency": "USDT",
+                            "last_price": "65543.6",
+                            "stock_volume": "37131.918",
+                            "money_volume": "2458965212.2374",
+                            "bid": "65528.8",
+                            "ask": "65546",
+                            "high": "67278.7",
+                            "low": "65044",
+                            "product_type": "Perpetual",
+                            "open_interest": "20166.261",
+                            "index_price": "65531.7",
+                            "index_name": "Bitcoin",
+                            "index_currency": "BTC",
+                            "funding_rate": "0.00001014",
+                            "next_funding_rate_timestamp": "1772467200000",
+                            "brackets": {
+                                "1": "0",
+                                "2": "0",
+                                "3": "0",
+                                "5": "0",
+                                "10": "0",
+                                "20": "10000000",
+                                "50": "1000000",
+                                "100": "200000"
+                            },
+                            "max_leverage": "100",
+                            "funding_interval_minutes": "480"
+                        },
+                        "markPrice": null
+                    }
+                }
+            },
+            {
+                "description": "swap tickers using v4PublicGetTicker",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ],
+                    {
+                        "method": "v4PublicGetTicker"
+                    }
+                ],
+                "httpResponse": {
+                    "BTC_PERP": {
+                        "base_id": "0",
+                        "quote_id": "0",
+                        "last_price": "65539.5",
+                        "quote_volume": "2459427894.6224",
+                        "base_volume": "37138.704",
+                        "isFrozen": false,
+                        "change": "-2.38"
+                    }
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 66222.77111830289,
+                        "open": 67137.36939151814,
+                        "close": 65539.5,
+                        "last": 65539.5,
+                        "previousClose": null,
+                        "change": -1597.8693915181316,
+                        "percentage": -2.38,
+                        "average": 66338.4,
+                        "baseVolume": 37138.704,
+                        "quoteVolume": 2459427894.6224,
+                        "indexPrice": null,
+                        "info": {
+                            "base_id": "0",
+                            "quote_id": "0",
+                            "last_price": "65539.5",
+                            "quote_volume": "2459427894.6224",
+                            "base_volume": "37138.704",
+                            "isFrozen": false,
+                            "change": "-2.38"
+                        },
+                        "markPrice": null
+                    }
+                }
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",
                 "method": "fetchCurrencies",
+                "disabled": true,
                 "input": [],
                 "httpResponse": {
                     "USDT": {

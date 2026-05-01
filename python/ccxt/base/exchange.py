@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.34'
+__version__ = '4.5.51'
 
 # -----------------------------------------------------------------------------
 
@@ -100,6 +100,11 @@ try:
 except ImportError:
     zklink_sdk = None
 
+# lighter
+import os
+from ccxt.static_dependencies.lighter_client.signer import load_lighter_library, decode_tx_info, decode_auth, decode_api_key, CreateOrderTxReq
+# import ctypes
+
 # -----------------------------------------------------------------------------
 
 __all__ = [
@@ -121,6 +126,7 @@ import gzip
 import hashlib
 import hmac
 import io
+import tempfile
 
 # load orjson if available, otherwise default to json
 orjson = None
@@ -144,8 +150,6 @@ import time
 import uuid
 import zlib
 from decimal import Decimal
-from time import mktime
-from wsgiref.handlers import format_date_time
 import urllib.parse as _urlencode
 from typing import Any, List
 from ccxt.base.types import Int
@@ -397,6 +401,8 @@ class Exchange(object):
     # no lower case l or upper case I, O
     base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 
+    extract_params_regex = re.compile(r'{([\w-]+)}')
+
     commonCurrencies = {
         'XBT': 'BTC',
         'BCC': 'BCH',
@@ -420,8 +426,8 @@ class Exchange(object):
         self.trades = dict() if self.trades is None else self.trades
         self.transactions = dict() if self.transactions is None else self.transactions
         self.ohlcvs = dict() if self.ohlcvs is None else self.ohlcvs
-        self.liquidations = dict() if self.liquidations is None else self.liquidations
-        self.myLiquidations = dict() if self.myLiquidations is None else self.myLiquidations
+        self.liquidations = None if self.liquidations is None else self.liquidations
+        self.myLiquidations = None if self.myLiquidations is None else self.myLiquidations
         self.currencies = dict() if self.currencies is None else self.currencies
         self.options = self.get_default_options() if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
         self.decimal_to_precision = decimal_to_precision
@@ -454,7 +460,7 @@ class Exchange(object):
             if name[0] != '_' and name[-1] != '_' and '_' in name:
                 parts = name.split('_')
                 # fetch_ohlcv → fetchOHLCV (not fetchOhlcv!)
-                exceptions = {'ohlcv': 'OHLCV', 'le': 'LE', 'be': 'BE'}
+                exceptions = {'ohlcv': 'OHLCV', 'le': 'LE', 'be': 'BE', 'adl': 'ADL'}
                 camelcase = parts[0] + ''.join(exceptions.get(i, self.capitalize(i)) for i in parts[1:])
                 attr = getattr(self, name)
                 if isinstance(attr, types.MethodType):
@@ -496,6 +502,59 @@ class Exchange(object):
         if elapsed < sleep_time:
             delay = sleep_time - elapsed
             time.sleep(delay / 1000.0)
+
+    def read_file(self, path: str, encoding: str = 'utf-8'):
+        """
+        Read file contents (synchronous)
+        :param str path: File path to read
+        :param str encoding: File encoding (default: 'utf-8')
+        :returns str|None: File contents as string, or None on error
+        """
+        self._ensure_whitelisted_file(path)
+        try:
+            with open(path, 'r', encoding=encoding) as file:
+                return file.read()
+        except Exception:
+            return None
+
+    def write_file(self, path: str, data: str, encoding: str = 'utf-8'):
+        """
+        Write file contents (synchronous)
+        :param str path: File path to write
+        :param str data: Data to write
+        :param str encoding: File encoding (default: 'utf-8')
+        :returns bool: True if successful, False otherwise
+        """
+        self._ensure_whitelisted_file(path)
+        try:
+            with open(path, 'w', encoding=encoding) as file:
+                file.write(data)
+            return True
+        except Exception:
+            return False
+
+    def exists_file(self, path: str):
+        """
+        Check if file exists (synchronous)
+        :param str path: File path to check
+        :returns bool: True if file exists, False otherwise
+        """
+        self._ensure_whitelisted_file(path)
+        try:
+            import os
+            return os.path.isfile(path)
+        except Exception:
+            return False
+
+    def get_temp_dir(self):
+        tmp = os.path.realpath(tempfile.gettempdir())
+        return tmp if tmp.endswith(os.sep) else tmp + os.sep
+
+    def _ensure_whitelisted_file(self, file_path: str):
+        sanitized = os.path.realpath(file_path)
+        if sanitized.startswith(self.get_temp_dir()) and sanitized.endswith('.ccxtfile'):
+            return
+        raise ValueError(f'invalid file path: {file_path}')
 
     @staticmethod
     def gzip_deflate(response, text):
@@ -573,6 +632,23 @@ class Exchange(object):
         # end of proxies & headers
 
         request_body = body
+        content_type_key = None
+        files = None
+        for k, v in request_headers.items():
+            lk = k.lower()
+            if lk == 'content-type':
+                if v == 'multipart/form-data':
+                    content_type_key = k
+                    files = ()
+                    for k, v in body.items():
+                        files += ((k, (None, v)), )
+                    body = None
+                    break
+                else:
+                    break
+        if files is not None:
+            # requests would handle it for multipart/form-data
+            del request_headers[content_type_key]
         if body:
             body = body.encode()
 
@@ -590,7 +666,8 @@ class Exchange(object):
                 headers=request_headers,
                 timeout=(self.timeout / 1000),
                 proxies=proxies,
-                verify=self.verify and self.validateServerSsl
+                verify=self.verify and self.validateServerSsl,
+                files=files
             )
             # does not try to detect encoding
             response.encoding = 'utf-8'
@@ -913,15 +990,19 @@ class Exchange(object):
 
     @staticmethod
     def get_object_value_from_key_list(dictionary_or_list, key_list):
-        isDataArray = isinstance(dictionary_or_list, list)
-        isDataDict = isinstance(dictionary_or_list, dict)
-        for key in key_list:
-            if isDataDict:
-                if key in dictionary_or_list and dictionary_or_list[key] is not None and dictionary_or_list[key] != '':
-                    return dictionary_or_list[key]
-            elif isDataArray and not isinstance(key, str):
-                if (key < len(dictionary_or_list)) and (dictionary_or_list[key] is not None) and (dictionary_or_list[key] != ''):
-                    return dictionary_or_list[key]
+        if isinstance(dictionary_or_list, dict):
+            get = dictionary_or_list.get
+            for key in key_list:
+                value = get(key)
+                if value is not None and value != '':
+                    return value
+        elif isinstance(dictionary_or_list, list):
+            length = len(dictionary_or_list)
+            for key in key_list:
+                if isinstance(key, int) and 0 <= key < length:
+                    value = dictionary_or_list[key]
+                    if value is not None and value != '':
+                        return value
         return None
 
     @staticmethod
@@ -950,19 +1031,15 @@ class Exchange(object):
 
     @staticmethod
     def uuid22(length=22):
-        return format(random.getrandbits(length * 4), 'x')
+        return '{:0{}x}'.format(random.getrandbits(length * 4), length)
 
     @staticmethod
     def uuid16(length=16):
-        return format(random.getrandbits(length * 4), 'x')
+        return '{:0{}x}'.format(random.getrandbits(length * 4), length)
 
     @staticmethod
     def uuid():
         return str(uuid.uuid4())
-
-    @staticmethod
-    def uuidv1():
-        return str(uuid.uuid1()).replace('-', '')
 
     @staticmethod
     def uuid5(namespace: str, name):
@@ -973,9 +1050,9 @@ class Exchange(object):
         # the native pythonic .capitalize() method lowercases all other characters
         # which is an unwanted behaviour, therefore we use this custom implementation
         # check it yourself: print('foobar'.capitalize(), 'fooBar'.capitalize())
-        if len(string) > 1:
-            return "%s%s" % (string[0].upper(), string[1:])
-        return string.upper()
+        if string:
+            return string[0].upper() + string[1:]
+        return string
 
     @staticmethod
     def strip(string):
@@ -983,7 +1060,7 @@ class Exchange(object):
 
     @staticmethod
     def keysort(dictionary):
-        return collections.OrderedDict(sorted(dictionary.items(), key=lambda t: t[0]))
+        return dict(sorted(dictionary.items()))
 
     @staticmethod
     def sort(array):
@@ -991,16 +1068,13 @@ class Exchange(object):
 
     @staticmethod
     def extend(*args):
-        if args is not None:
-            result = None
-            if type(args[0]) is collections.OrderedDict:
-                result = collections.OrderedDict()
-            else:
-                result = {}
-            for arg in args:
-                result.update(arg)
-            return result
-        return {}
+        if not args:
+            return {}
+        # after dropping 3.7 py, we can use result = {}
+        result = collections.OrderedDict() if type(args[0]) is collections.OrderedDict else {}
+        for arg in args:
+            result.update(arg)
+        return result
 
     @staticmethod
     def deep_extend(*args, _all_dicts=False):
@@ -1037,7 +1111,7 @@ class Exchange(object):
     @staticmethod
     def filter_by(array, key, value=None):
         array = Exchange.to_array(array)
-        return list(filter(lambda x: x[key] == value, array))
+        return [x for x in array if x.get(key) == value]
 
     @staticmethod
     def filterBy(array, key, value=None):
@@ -1045,19 +1119,16 @@ class Exchange(object):
 
     @staticmethod
     def group_by(array, key):
-        result = {}
-        array = Exchange.to_array(array)
-        array = [entry for entry in array if (key in entry) and (entry[key] is not None)]
-        for entry in array:
-            if entry[key] not in result:
-                result[entry[key]] = []
-            result[entry[key]].append(entry)
+        result = collections.defaultdict(list)
+        for entry in Exchange.to_array(array):
+            value = entry.get(key)
+            if value is not None:
+                result[value].append(entry)
         return result
 
     @staticmethod
     def groupBy(array, key):
         return Exchange.group_by(array, key)
-
 
     @staticmethod
     def index_by_safe(array, key):
@@ -1066,13 +1137,19 @@ class Exchange(object):
     @staticmethod
     def index_by(array, key):
         result = {}
-        if type(array) is dict:
-            array = Exchange.keysort(array).values()
-        is_int_key = isinstance(key, int)
-        for element in array:
-            if ((is_int_key and (key < len(element))) or (key in element)) and (element[key] is not None):
-                k = element[key]
-                result[k] = element
+        if isinstance(array, dict):
+            array = dict(sorted(array.items())).values()
+        if isinstance(key, int):
+            for element in array:
+                if key < len(element):
+                    k = element[key]
+                    if k is not None:
+                        result[k] = element
+        else:
+            for element in array:
+                k = element.get(key)
+                if k is not None:
+                    result[k] = element
         return result
 
     @staticmethod
@@ -1092,12 +1169,25 @@ class Exchange(object):
         return needle in haystack
 
     @staticmethod
-    def is_empty(object):
-        return not object
+    def is_empty(obj):
+
+        if obj is None:
+            return True
+
+        # skip the strings
+        if hasattr(obj, "__len__") and not isinstance(obj, (str, bytes)):
+            return len(obj) == 0
+
+        if hasattr(obj, "__dict__"):
+            # filter-out private members
+            public_vars = [k for k in vars(obj).keys() if not k.startswith('_')]
+            return len(public_vars) == 0
+
+        return False
 
     @staticmethod
     def extract_params(string):
-        return re.findall(r'{([\w-]+)}', string)
+        return Exchange.extract_params_regex.findall(string)
 
     @staticmethod
     def implode_params(string, params):
@@ -1115,9 +1205,11 @@ class Exchange(object):
                 newParams[key] = 'true' if value else 'false'
         return _urlencode.urlencode(newParams, doseq, quote_via=_urlencode.quote)
 
+    _URLENCODE_WITH_ARRAY_REPEAT_REGEX = re.compile(r'%5B\d*%5D')
+
     @staticmethod
     def urlencode_with_array_repeat(params={}):
-        return re.sub(r'%5B\d*%5D', '', Exchange.urlencode(params, True))
+        return Exchange._URLENCODE_WITH_ARRAY_REPEAT_REGEX.sub('', Exchange.urlencode(params, True))
 
     @staticmethod
     def urlencode_nested(params):
@@ -1141,7 +1233,7 @@ class Exchange(object):
         if isinstance(params, dict):
             for key in params:
                 _encode_params(params[key], key)
-        return _urlencode.urlencode(result, quote_via=_urlencode.quote)
+        return _urlencode.urlencode(result, safe='[]', quote_via=_urlencode.quote)
 
     @staticmethod
     def rawencode(params={}, sort=False):
@@ -1171,44 +1263,22 @@ class Exchange(object):
         return list(set(array))
 
     @staticmethod
-    def pluck(array, key):
-        return [
-            element[key]
-            for element in array
-            if (key in element) and (element[key] is not None)
-        ]
-
-    @staticmethod
     def sum(*args):
-        return sum([arg for arg in args if isinstance(arg, (float, int))])
+        total = 0
+        for arg in args:
+            if isinstance(arg, (int, float)):
+                total += arg
+        return total
 
-    @staticmethod
-    def ordered(array):
-        return collections.OrderedDict(array)
 
     @staticmethod
     def aggregate(bidasks):
-        ordered = Exchange.ordered({})
-        for [price, volume, *_] in bidasks:
+        ordered = {}
+        for price, volume, *_ in bidasks:
             if volume > 0:
-                ordered[price] = (ordered[price] if price in ordered else 0) + volume
-        result = []
-        items = list(ordered.items())
-        for price, volume in items:
-            result.append([price, volume])
-        return result
+                ordered[price] = ordered.get(price, 0) + volume
+        return [[price, volume] for price, volume in ordered.items()]
 
-    @staticmethod
-    def sec():
-        return Exchange.seconds()
-
-    @staticmethod
-    def msec():
-        return Exchange.milliseconds()
-
-    @staticmethod
-    def usec():
-        return Exchange.microseconds()
 
     @staticmethod
     def seconds():
@@ -1216,35 +1286,23 @@ class Exchange(object):
 
     @staticmethod
     def milliseconds():
-        return int(time.time() * 1000)
+        return time.time_ns() // 1_000_000
 
     @staticmethod
     def microseconds():
-        return int(time.time() * 1000000)
+        return time.time_ns() // 1_000
 
     @staticmethod
     def iso8601(timestamp=None):
         if timestamp is None:
-            return timestamp
-        if not isinstance(timestamp, int):
             return None
-        if int(timestamp) < 0:
+        if not isinstance(timestamp, int) or timestamp < 0:
             return None
-
         try:
             utc = datetime.datetime.fromtimestamp(timestamp // 1000, datetime.timezone.utc)
-            return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:03d}".format(int(timestamp) % 1000) + 'Z'
+            return f"{utc.year:04d}-{utc.month:02d}-{utc.day:02d}T{utc.hour:02d}:{utc.minute:02d}:{utc.second:02d}.{timestamp % 1000:03d}Z"
         except (TypeError, OverflowError, OSError):
             return None
-
-    @staticmethod
-    def rfc2616(self, timestamp=None):
-        if timestamp is None:
-            ts = datetime.datetime.now()
-        else:
-            ts = timestamp
-        stamp = mktime(ts.timetuple())
-        return format_date_time(stamp)
 
     @staticmethod
     def dmy(timestamp, infix='-'):
@@ -1273,48 +1331,54 @@ class Exchange(object):
     @staticmethod
     def parse_date(timestamp=None):
         if timestamp is None:
-            return timestamp
+            return None
         if not isinstance(timestamp, str):
             return None
         if 'GMT' in timestamp:
             try:
-                string = ''.join([str(value).zfill(2) for value in parsedate(timestamp)[:6]]) + '.000Z'
-                dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
-                return calendar.timegm(dt.utctimetuple()) * 1000
+                parsed = parsedate(timestamp)
+                if parsed is None:
+                    return None
+                return calendar.timegm(parsed[:6]) * 1000
             except (TypeError, OverflowError, OSError):
                 return None
-        else:
-            return Exchange.parse8601(timestamp)
+        return Exchange.parse8601(timestamp)
+
+    _PARSE8601_ISO8601_PATTERN = re.compile(
+        r'([0-9]{4})-?([0-9]{2})-?([0-9]{2})(?:T|[\s])?'
+        r'([0-9]{2}):?([0-9]{2}):?([0-9]{2})'
+        r'(\.[0-9]{1,3})?'
+        r'(?:(\+|\-)([0-9]{2})\:?([0-9]{2})|Z)?',
+        re.IGNORECASE
+    )
 
     @staticmethod
     def parse8601(timestamp=None):
         if timestamp is None:
-            return timestamp
-        yyyy = '([0-9]{4})-?'
-        mm = '([0-9]{2})-?'
-        dd = '([0-9]{2})(?:T|[\\s])?'
-        h = '([0-9]{2}):?'
-        m = '([0-9]{2}):?'
-        s = '([0-9]{2})'
-        ms = '(\\.[0-9]{1,3})?'
-        tz = '(?:(\\+|\\-)([0-9]{2})\\:?([0-9]{2})|Z)?'
-        regex = r'' + yyyy + mm + dd + h + m + s + ms + tz
+            return None
         try:
-            match = re.search(regex, timestamp, re.IGNORECASE)
+            match = Exchange._PARSE8601_ISO8601_PATTERN.search(timestamp)
             if match is None:
                 return None
             yyyy, mm, dd, h, m, s, ms, sign, hours, minutes = match.groups()
-            ms = ms or '.000'
-            ms = (ms + '00')[0:4]
-            msint = int(ms[1:])
-            sign = sign or ''
-            sign = int(sign + '1') * -1
-            hours = int(hours or 0) * sign
-            minutes = int(minutes or 0) * sign
-            offset = datetime.timedelta(hours=hours, minutes=minutes)
-            string = yyyy + mm + dd + h + m + s + ms + 'Z'
-            dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
-            dt = dt + offset
+            # Parse milliseconds
+            if ms:
+                ms = ms[1:]  # Remove leading dot
+                ms = ms + '0' * (3 - len(ms))  # Pad to 3 digits
+                msint = int(ms)
+            else:
+                msint = 0
+            # Parse timezone offset
+            if sign:
+                offset_sign = -1 if sign == '+' else 1
+                offset_hours = int(hours) * offset_sign
+                offset_minutes = int(minutes) * offset_sign
+            else:
+                offset_hours = 0
+                offset_minutes = 0
+            # Build datetime directly
+            dt = datetime.datetime(int(yyyy), int(mm), int(dd), int(h), int(m), int(s))
+            dt = dt + datetime.timedelta(hours=offset_hours, minutes=offset_minutes)
             return calendar.timegm(dt.utctimetuple()) * 1000 + msint
         except (TypeError, OverflowError, OSError, ValueError):
             return None
@@ -1343,6 +1407,14 @@ class Exchange(object):
         return binary
 
     @staticmethod
+    def string_to_binary(buff: str) -> bytes:
+        return buff.encode('utf-8')
+
+    @staticmethod
+    def binary_to_string(buff: bytes) -> str:
+        return buff.decode('utf-8')
+
+    @staticmethod
     def binary_concat(*args):
         result = bytes()
         for arg in args:
@@ -1358,7 +1430,11 @@ class Exchange(object):
 
     @staticmethod
     def urlencode_base64(s):
-        return Exchange.decode(base64.urlsafe_b64encode(s)).replace('=', '')
+        payload = s
+        if isinstance(s, str):
+            payload64 = Exchange.string_to_base64(s)
+            payload = Exchange.base64_to_binary(payload64)
+        return base64.urlsafe_b64encode(payload).decode().rstrip('=')
 
     @staticmethod
     def binary_to_base64(s):
@@ -1706,14 +1782,18 @@ class Exchange(object):
     def precision_from_string(self, str):
         # support string formats like '1e-4'
         if 'e' in str or 'E' in str:
-            numStr = re.sub(r'\d\.?\d*[eE]', '', str)
-            return int(numStr) * -1
-        # support integer formats (without dot) like '1', '10' etc [Note: bug in decimalToPrecision, so this should not be used atm]
-        # if not ('.' in str):
-        #     return len(str) * -1
+            # Find the exponent part after e/E
+            idx = str.find('e')
+            if idx == -1:
+                idx = str.find('E')
+            return -int(str[idx + 1:])
         # default strings like '0.0001'
-        parts = re.sub(r'0+$', '', str).split('.')
-        return len(parts[1]) if len(parts) > 1 else 0
+        dot_idx = str.find('.')
+        if dot_idx == -1:
+            return 0
+        # Strip trailing zeros and count decimal places
+        decimal_part = str[dot_idx + 1:].rstrip('0')
+        return len(decimal_part)
 
     def map_to_safe_map(self, dictionary):
         return dictionary  # wrapper for go
@@ -1786,15 +1866,15 @@ class Exchange(object):
         amount = int(timeframe[0:-1])
         unit = timeframe[-1]
         if 'y' == unit:
-            scale = 60 * 60 * 24 * 365
+            scale = 31536000  # 60 * 60 * 24 * 365
         elif 'M' == unit:
-            scale = 60 * 60 * 24 * 30
+            scale = 2592000  # 60 * 60 * 24 * 30
         elif 'w' == unit:
-            scale = 60 * 60 * 24 * 7
+            scale = 604800  # 60 * 60 * 24 * 7
         elif 'd' == unit:
-            scale = 60 * 60 * 24
+            scale = 86400  # 60 * 60 * 24
         elif 'h' == unit:
-            scale = 60 * 60
+            scale = 3600  # 60 * 60
         elif 'm' == unit:
             scale = 60
         elif 's' == unit:
@@ -1809,9 +1889,6 @@ class Exchange(object):
         # Get offset based on timeframe in milliseconds
         offset = timestamp % ms
         return timestamp - offset + (ms if direction == ROUND_UP else 0)
-
-    def vwap(self, baseVolume, quoteVolume):
-        return (quoteVolume / baseVolume) if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume > 0) else None
 
     def check_required_dependencies(self):
         if self.requiresEddsa and eddsa is None:
@@ -2182,6 +2259,253 @@ class Exchange(object):
     def unlock_id(self):
         return None
 
+    def is_lighter_library_path_required(self):
+        return True
+
+    def load_lighter_library(self, path, chainId, privateKey, apiKeyIndex, accountIndex, createClient):
+        return self.load_lighter_library_helper(path, chainId, privateKey, apiKeyIndex, accountIndex, createClient)
+
+    def load_lighter_library_helper(self, path, chainId, privateKey, apiKeyIndex, accountIndex, createClient):
+        if path is None:
+            raise NotSupported(self.id + ' load_lighter_library() requires a path to the lighter library. You can find it here https://github.com/elliottech/lighter-python/tree/main/lighter/signers. Please download the appropriate library for your system and provide the path to it.\nExample: exchange.options["libraryPath"] = "path/to/lighter-signer-linux-arm64.so"')
+        if not os.path.isfile(path):
+            raise NotSupported(self.id + ' the library path does not exist')
+
+        lighterSigner = load_lighter_library(path)
+        if createClient:
+            self.lighter_create_client(lighterSigner, chainId, privateKey, apiKeyIndex, accountIndex)
+        return lighterSigner
+
+    def lighter_create_client(self, lighterSigner, chainId, privateKey, apiKeyIndex, accountIndex):
+        url = self.implode_hostname(self.urls['api']['public'])
+        res = lighterSigner.CreateClient(
+            url.encode("utf-8"),
+            privateKey.encode("utf-8"),
+            chainId,
+            apiKeyIndex,
+            accountIndex,
+        )
+        if res is not None and str(res).find('error'):
+            raise Exception('lighter_create_client(): Failed to create lighter client: ' + str(res))
+        return lighterSigner
+
+    def lighter_sign_create_grouped_orders(self, signer, request):
+        orders = request['orders']
+        arr_type = CreateOrderTxReq * len(orders)
+        orders_arr = []
+        for order in orders:
+            orders_arr.append(CreateOrderTxReq(
+                MarketIndex=int(order['market_index']),
+                ClientOrderIndex=order['client_order_index'],
+                BaseAmount=order['base_amount'],
+                Price=order['avg_execution_price'],
+                IsAsk=order['is_ask'],
+                Type=order['order_type'],
+                TimeInForce=order['time_in_force'],
+                ReduceOnly=order['reduce_only'],
+                TriggerPrice=order['trigger_price'],
+                OrderExpiry=order['order_expiry'],
+            ))
+        orders_carr = arr_type(*orders_arr)
+        tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignCreateGroupedOrders(
+            request['grouping_type'],
+            orders_carr,
+            len(orders),
+            request['integrator_account_index'],
+            request['integrator_taker_fee'],
+            request['integrator_maker_fee'],
+            True,
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index']
+        ))
+        return [tx_type, tx_info]
+
+    def lighter_sign_create_order(self, signer, request):
+        tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignCreateOrder(
+            int(request['market_index']),
+            request['client_order_index'],
+            request['base_amount'],
+            request['avg_execution_price'],
+            request['is_ask'],
+            request['order_type'],
+            request['time_in_force'],
+            request['reduce_only'],
+            request['trigger_price'],
+            request['order_expiry'],
+            request['integrator_account_index'],
+            request['integrator_taker_fee'],
+            request['integrator_maker_fee'],
+            True,
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        if error:
+            raise Exception('lighter_sign_create_order() failed with error: ' + str(error))
+        return [tx_type, tx_info]
+
+    def lighter_sign_cancel_order(self, signer, request):
+        tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignCancelOrder(
+            request['market_index'],
+            request['order_index'],
+            True,
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        if error:
+            raise Exception('lighter_sign_cancel_order() failed with error: ' + str(error))
+        return [tx_type, tx_info]
+
+    def lighter_sign_withdraw(self, signer, request):
+        tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignWithdraw(
+            request['asset_index'],
+            request['route_type'],
+            request['amount'],
+            True,
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        if error:
+            raise Exception('lighter_sign_withdraw() failed with error: ' + str(error))
+        return [tx_type, tx_info]
+
+    def lighter_sign_create_sub_account(self, signer, request):
+        tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignCreateSubAccount(
+            True,
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        if error:
+            raise Exception('lighter_sign_create_sub_account() failed with error: ' + str(error))
+        return [tx_type, tx_info]
+
+    def lighter_sign_cancel_all_orders(self, signer, request):
+        tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignCancelAllOrders(
+            request['time_in_force'],
+            request['time'],
+            True,
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        if error:
+            raise Exception('lighter_sign_cancel_all_orders() failed with error: ' + str(error))
+        return [tx_type, tx_info]
+
+    def lighter_sign_modify_order(self, signer, request):
+        tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignModifyOrder(
+            request['market_index'],
+            request['index'],
+            request['base_amount'],
+            request['price'],
+            request['trigger_price'],
+            request['integrator_account_index'],
+            request['integrator_taker_fee'],
+            request['integrator_maker_fee'],
+            True,
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        if error:
+            raise Exception('lighter_sign_modify_order() failed with error: ' + str(error))
+        return [tx_type, tx_info]
+
+    def lighter_sign_transfer(self, signer, request):
+        tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignTransfer(
+            request['to_account_index'],
+            request['asset_index'],
+            request['from_route_type'],
+            request['to_route_type'],
+            request['amount'],
+            request['usdc_fee'],
+            request['memo'],
+            True,
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        if error:
+            raise Exception('lighter_sign_transfer() failed with error: ' + str(error))
+        return [tx_type, tx_info]
+
+    def lighter_sign_update_leverage(self, signer, request):
+        tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignUpdateLeverage(
+            request['market_index'],
+            request['initial_margin_fraction'],
+            request['margin_mode'],
+            True,
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        if error:
+            raise Exception('lighter_sign_update_leverage() failed with error: ' + str(error))
+        return [tx_type, tx_info]
+
+    def lighter_create_auth_token(self, signer, request):
+        auth, error = decode_auth(signer.CreateAuthToken(
+            request['deadline'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        if error:
+            raise Exception('lighter_create_auth_token() failed with error: ' + str(error))
+        return auth
+
+    def lighter_sign_update_margin(self, signer, request):
+        tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignUpdateMargin(
+            request['market_index'],
+            request['usdc_amount'],
+            request['direction'],
+            True,
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        if error:
+            raise Exception('lighter_sign_update_margin() failed with error: ' + str(error))
+        return [tx_type, tx_info]
+
+    def lighter_sign_approve_integrator(self, signer, request):
+        tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignApproveIntegrator(
+            int(request['integrator_account_index']),
+            int(request['integrator_taker_fee']),
+            int(request['integrator_maker_fee']),
+            int(request['integrator_taker_fee']),
+            int(request['integrator_maker_fee']),
+            request['approval_expiry'],
+            True,
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        if error:
+            raise Exception('lighter_sign_approve_integrator() failed with error: ' + str(error))
+        return [tx_type, tx_info, message_to_sign]
+
+    def lighter_generate_api_key(self, signer):
+        privateKey, publicKey, error = decode_api_key(signer.GenerateAPIKey())
+        if error:
+            raise Exception('lighter_generate_api_key() failed with error: ' + str(error))
+        return [privateKey, publicKey]
+
+    def lighter_sign_change_pubkey(self, signer, request):
+        tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignChangePubKey(
+            request['pubkey'],
+            True,
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        if error:
+            raise Exception('lighter_sign_change_pubkey() failed with error: ' + str(error))
+        return [tx_type, tx_info, message_to_sign]
+
     # ########################################################################
     # ########################################################################
     # ########################################################################
@@ -2307,6 +2631,7 @@ class Exchange(object):
                 'editOrders': None,
                 'editOrderWs': None,
                 'fetchAccounts': None,
+                'fetchADLRank': None,
                 'fetchBalance': True,
                 'fetchBalanceWs': None,
                 'fetchBidsAsks': None,
@@ -2392,6 +2717,8 @@ class Exchange(object):
                 'fetchOrderTrades': None,
                 'fetchOrderWs': None,
                 'fetchPosition': None,
+                'fetchPositionADLRank': None,
+                'fetchPositionsADLRank': None,
                 'fetchPositionHistory': None,
                 'fetchPositionsHistory': None,
                 'fetchPositionWs': None,
@@ -2596,7 +2923,7 @@ class Exchange(object):
         value = self.safe_value_n(dictionaryOrList, keys, defaultValue)
         if value is None:
             return defaultValue
-        if isinstance(value, dict):
+        if self.is_dictionary(value):
             return value
         return defaultValue
 
@@ -2609,7 +2936,7 @@ class Exchange(object):
         value = self.safe_value(dictionary, key, defaultValue)
         if value is None:
             return defaultValue
-        if isinstance(value, dict):
+        if self.is_dictionary(value):
             return value
         return defaultValue
 
@@ -2633,6 +2960,9 @@ class Exchange(object):
         if isinstance(value, list):
             return value
         return defaultValue
+
+    def is_dictionary(self, value: Any):
+        return(value is not None) and isinstance(value, dict)
 
     def safe_list_2(self, dictionaryOrList, key1: IndexType, key2: str, defaultValue: List[Any] = None):
         """
@@ -3132,8 +3462,11 @@ class Exchange(object):
     def watch_funding_rate(self, symbol: str, params={}):
         raise NotSupported(self.id + ' watchFundingRate() is not supported yet')
 
-    def watch_funding_rates(self, symbols: List[str], params={}):
+    def watch_funding_rates(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' watchFundingRates() is not supported yet')
+
+    def un_watch_funding_rates(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' unWatchFundingRates() is not supported yet')
 
     def watch_funding_rates_for_symbols(self, symbols: List[str], params={}):
         return self.watch_funding_rates(symbols, params)
@@ -3200,7 +3533,11 @@ class Exchange(object):
         raise NotSupported(self.id + ' fetchOpenInterestHistory() is not supported yet')
 
     def fetch_open_interest(self, symbol: str, params={}):
-        raise NotSupported(self.id + ' fetchOpenInterest() is not supported yet')
+        if self.has['fetchOpenInterests']:
+            openInterests = self.fetch_open_interests([symbol], params)
+            return self.safe_dict(openInterests, symbol)
+        else:
+            raise NotSupported(self.id + ' fetchOpenInterest() is not supported yet')
 
     def fetch_open_interests(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchOpenInterests() is not supported yet')
@@ -3233,6 +3570,9 @@ class Exchange(object):
         # i.e. isRoundNumber(1.000) returns True, while isInteger(1.000) returns False
         res = self.parse_to_numeric((value % 1))
         return res == 0
+
+    def is_empty_string(self, value):
+        return not self.value_is_defined(value) or value == ''
 
     def safe_number_omit_zero(self, obj: object, key: IndexType, defaultValue: Num = None):
         value = self.safe_string(obj, key)
@@ -4238,6 +4578,9 @@ class Exchange(object):
                 reversed[value] = key
         return reversed
 
+    def string_to_base16(self, str):
+        return '0x' + self.binary_to_base16(self.base64_to_binary(self.string_to_base64(str)))
+
     def reduce_fees_by_currency(self, fees):
         #
         # self function takes a list of fee structures having the following format
@@ -4418,6 +4761,12 @@ class Exchange(object):
         if self.has['fetchTrades']:
             message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file'
         raise NotSupported(self.id + ' fetchOHLCV() is not supported yet' + message)
+
+    def fetch_spot_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchSpotOHLCV() is not supported yet')
+
+    def fetch_contract_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchContractOHLCV() is not supported yet')
 
     def fetch_ohlcv_ws(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
         message = ''
@@ -4829,6 +5178,18 @@ class Exchange(object):
             result.append(position)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
+    def parse_adl_rank(self, info: dict, market: Market = None):
+        raise NotSupported(self.id + ' parseADLRank() is not supported yet')
+
+    def parse_adl_ranks(self, ranks: List[Any], symbols: List[str] = None, params={}):
+        symbols = self.market_symbols(symbols)
+        ranks = self.to_array(ranks)
+        result = []
+        for i in range(0, len(ranks)):
+            rank = self.extend(self.parse_adl_rank(ranks[i], None), params)
+            result.append(rank)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
+
     def parse_accounts(self, accounts: List[Any], params={}):
         accounts = self.to_array(accounts)
         result = []
@@ -5017,6 +5378,24 @@ class Exchange(object):
             return self.index_by(results, key)
         return results
 
+    def filter_out_by_array(self, objects, key: IndexType, values=None, indexed=True):
+        objects = self.to_array(objects)
+        # return all of them if no values were passed
+        if values is None or not values:
+            # return self.index_by(objects, key) if indexed else objects
+            if indexed:
+                return self.index_by(objects, key)
+            else:
+                return objects
+        results = []
+        for i in range(0, len(objects)):
+            if not self.in_array(objects[i][key], values):
+                results.append(objects[i])
+        # return self.index_by(results, key) if indexed else results
+        if indexed:
+            return self.index_by(results, key)
+        return results
+
     def fetch2(self, path, api: Any = 'public', method='GET', params={}, headers: Any = None, body: Any = None, config={}):
         if self.enableRateLimit:
             cost = self.calculate_rate_limiter_cost(api, method, path, params, config)
@@ -5129,7 +5508,8 @@ class Exchange(object):
         return self.create_order(symbol, type, side, amount, price, params)
 
     def edit_order_with_client_order_id(self, clientOrderId: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
-        return self.edit_order('', symbol, type, side, amount, price, self.extend({'clientOrderId': clientOrderId}, params))
+        extendedParams = self.extend(params, {'clientOrderId': clientOrderId})
+        return self.edit_order('', symbol, type, side, amount, price, extendedParams)
 
     def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         self.cancel_order_ws(id, symbol)
@@ -5522,11 +5902,17 @@ class Exchange(object):
     def fetch_tickers(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchTickers() is not supported yet')
 
+    def fetch_spot_tickers(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' fetchSpotTickers() is not supported yet')
+
+    def fetch_contract_tickers(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' fetchContractTickers() is not supported yet')
+
     def fetch_mark_prices(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchMarkPrices() is not supported yet')
 
     def fetch_tickers_ws(self, symbols: Strings = None, params={}):
-        raise NotSupported(self.id + ' fetchTickers() is not supported yet')
+        raise NotSupported(self.id + ' fetchTickersWs() is not supported yet')
 
     def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOrderBooks() is not supported yet')
@@ -5539,6 +5925,9 @@ class Exchange(object):
 
     def un_watch_tickers(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' unWatchTickers() is not supported yet')
+
+    def un_watch_funding_rate(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' unWatchFundingRate() is not supported yet')
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' fetchOrder() is not supported yet')
@@ -5569,6 +5958,9 @@ class Exchange(object):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
 
+    def create_twap_order(self, symbol: str, side: OrderSide, amount: float, duration: float, params={}):
+        raise NotSupported(self.id + ' createTwapOrder() is not supported yet')
+
     def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params={}):
         raise NotSupported(self.id + ' createConvertTrade() is not supported yet')
 
@@ -5580,6 +5972,26 @@ class Exchange(object):
 
     def fetch_position_mode(self, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' fetchPositionMode() is not supported yet')
+
+    def fetch_adl_rank(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' fetchADLRank() is not supported yet')
+
+    def fetch_positions_adl_rank(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' fetchPositionsADLRank() is not supported yet')
+
+    def fetch_position_adl_rank(self, symbol: str, params={}):
+        if self.has['fetchPositionsADLRank']:
+            self.load_markets()
+            market = self.market(symbol)
+            symbol = market['symbol']
+            ranks = self.fetch_positions_adl_rank([symbol], params)
+            rank = self.safe_dict(ranks, 0)
+            if rank is None:
+                raise NullResponse(self.id + ' fetchPositionsADLRank() could not find a rank for ' + symbol)
+            else:
+                return rank
+        else:
+            raise NotSupported(self.id + ' fetchPositionsADLRank() is not supported yet')
 
     def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount: Num = None, trailingTriggerPrice: Num = None, params={}):
         """
@@ -5926,6 +6338,12 @@ class Exchange(object):
     def create_orders(self, orders: List[OrderRequest], params={}):
         raise NotSupported(self.id + ' createOrders() is not supported yet')
 
+    def create_spot_orders(self, orders: List[OrderRequest], params={}):
+        raise NotSupported(self.id + ' createSpotOrders() is not supported yet')
+
+    def create_contract_orders(self, orders: List[OrderRequest], params={}):
+        raise NotSupported(self.id + ' createContractOrders() is not supported yet')
+
     def edit_orders(self, orders: List[OrderRequest], params={}):
         raise NotSupported(self.id + ' editOrders() is not supported yet')
 
@@ -5934,6 +6352,12 @@ class Exchange(object):
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' cancelOrder() is not supported yet')
+
+    def cancel_spot_order(self, id: str, symbol: Str = None, params={}):
+        raise NotSupported(self.id + ' cancelSpotOrder() is not supported yet')
+
+    def cancel_contract_order(self, id: str, symbol: Str = None, params={}):
+        raise NotSupported(self.id + ' cancelContractOrder() is not supported yet')
 
     def cancel_order_with_client_order_id(self, clientOrderId: str, symbol: Str = None, params={}):
         """
@@ -5968,6 +6392,12 @@ class Exchange(object):
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' cancelAllOrders() is not supported yet')
+
+    def cancel_all_spot_orders(self, symbol: Str = None, params={}):
+        raise NotSupported(self.id + ' cancelAllSpotOrders() is not supported yet')
+
+    def cancel_all_contract_orders(self, symbol: Str = None, params={}):
+        raise NotSupported(self.id + ' cancelAllContractOrders() is not supported yet')
 
     def cancel_all_orders_after(self, timeout: Int, params={}):
         raise NotSupported(self.id + ' cancelAllOrdersAfter() is not supported yet')
@@ -6117,6 +6547,9 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + ' fetchDepositAddress() is not supported yet')
 
+    def fetch_contract_deposit_address(self, code: str, params={}):
+        raise NotSupported(self.id + ' fetchContractDepositAddress() is not supported yet')
+
     def account(self) -> BalanceAccount:
         return {
             'free': None,
@@ -6180,7 +6613,7 @@ class Exchange(object):
         return False
 
     def handle_withdraw_tag_and_params(self, tag, params):
-        if (tag is not None) and (isinstance(tag, dict)):
+        if self.is_dictionary(tag):
             params = self.extend(tag, params)
             tag = None
         if tag is None:
@@ -6997,6 +7430,13 @@ class Exchange(object):
         """
         return self.filter_by_array(objects, key, values, indexed)
 
+    def filter_by_array_adl_ranks(self, objects, key: IndexType, values=None, indexed=True):
+        """
+ @ignore
+        Typed wrapper for filterByArray that returns a list of ADL Ranks
+        """
+        return self.filter_by_array(objects, key, values, indexed)
+
     def create_ohlcv_object(self, symbol: str, timeframe: str, data):
         res = {}
         res[symbol] = {}
@@ -7720,3 +8160,6 @@ class Exchange(object):
         if ms % second == 0:
             return(ms / second) + 's'
         return ''
+
+    def is_uta_enabled(self, params={}):
+        return False  # stub

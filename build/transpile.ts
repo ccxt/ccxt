@@ -376,6 +376,7 @@ class Transpiler {
     getPHPSyncRegexes () {
         return [
             [ /Async\\await\(Promise\\all\((.+)\)\)/g, '$1' ], // remove line entirely
+            [ /Promise\\all\((.+)\)/g, '$1' ], // remove line entirely
             // delete await, the following regex does not pick up multiline await calls
             [ /\bAsync\\await\((.+)\);/g, '$1;' ],
             // hence the following regex is added with a dotAll modifier 's'
@@ -807,6 +808,7 @@ class Transpiler {
         const matchObject = {
             'Account': /-> (?:List\[)?Account/,
             'Any': /(?:->|:) (?:List\[)?Any/,
+            'ADL': /-> ADL:/,
             'BalanceAccount': /-> BalanceAccount:/,
             'Balances': /-> Balances:/,
             'BorrowInterest': /-> BorrowInterest:/,
@@ -1649,7 +1651,7 @@ class Transpiler {
                     'Dictionary<any>': 'array',
                     'Dict': 'array',
                 }
-                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|Position|BorrowInterest)( \| undefined)?$|\w+\[\]/
+                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|Position|BorrowInterest)( \| undefined)?$|\w+\[\]/
 
                 phpArgs = argsArray.map (x => {
                     const parts = x.split (':')
@@ -2174,7 +2176,7 @@ class Transpiler {
             const unCamelCasedFileName = this.uncamelcaseName(testName);
             const tsFile = baseFolders.ts + testName + '.ts';
             const tsContent = fs.readFileSync(tsFile).toString();
-            if (!tsContent.includes ('// AUTO_TRANSPILE_ENABLED')) {
+            if (tsContent.includes ('// NO_AUTO_TRANSPILE')) {
                 continue;
             }
             const test: any = {
@@ -2492,12 +2494,12 @@ class Transpiler {
 
             if (this.buildPHP && this.buildPython) {
                 phpAsync = phpFixes(result[0].content);
-                phpSync = phpFixes(result[1].content);
+                phpSync = this.transpileAsyncPHPToSyncPHP (phpFixes(result[1].content));
                 pythonSync = pyFixes (result[2].content, true);
                 pythonAsync = pyFixes (result[3].content);
             } else if (this.buildPHP) {
                 phpAsync = phpFixes(result[0].content);
-                phpSync = phpFixes(result[1].content);
+                phpSync = this.transpileAsyncPHPToSyncPHP (phpFixes(result[1].content));
             } else if (this.buildPython) {
                 pythonAsync = pyFixes(result[1].content);
                 pythonSync = pyFixes(result[0].content);
@@ -2542,7 +2544,7 @@ class Transpiler {
                 phpHeaderAsync.push ('use React\\Promise;');
             }
 
-            phpAsync = phpAsync.replace ('\\ccxt\\Exchange', '\\ccxt\\async\\Exchange');
+            phpAsync = phpAsync.replace (/\\ccxt\\Exchange/g, '\\ccxt\\async\\Exchange');
 
             const decimalProps = [ 'DECIMAL_PLACES', 'TICK_SIZE', 'NO_PADDING', 'TRUNCATE', 'ROUND', 'ROUND_UP', 'ROUND_DOWN', 'SIGNIFICANT_DIGITS', 'PAD_WITH_ZERO', 'decimal_to_precision', 'number_to_string' ];
             for (const propName of decimalProps) {

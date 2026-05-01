@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import coinbaseinternationalRest from '../coinbaseinternational.js';
-import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
+import { AuthenticationError, ExchangeError, NotSupported, ArgumentsRequired } from '../base/errors.js';
 import { Ticker, Int, Trade, OrderBook, Market, Dict, Strings, FundingRate, FundingRates, Tickers, OHLCV, Bool } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
@@ -192,11 +192,14 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @name coinbaseinternational#watchFundingRates
      * @description watch the funding rate for multiple markets
      * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
-     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {string[]} symbols a list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
      */
-    async watchFundingRates (symbols: string[], params = {}): Promise<FundingRates> {
+    async watchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchFundingRates() requires an array of symbols');
+        }
         await this.loadMarkets ();
         const fundingRate = await this.subscribeMultiple ('RISK', symbols, params);
         const symbol = this.safeString (fundingRate, 'symbol');

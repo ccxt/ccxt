@@ -51,7 +51,7 @@ func  (this *BydfiCore) Describe() interface{}  {
         },
         "urls": map[string]interface{} {
             "api": map[string]interface{} {
-                "ws": "wss://stream.bydfi.com/v1/public/swap",
+                "ws": "wss://stream.bydfi.com/v1/public/fapi",
             },
         },
         "options": map[string]interface{} {
@@ -178,7 +178,7 @@ func  (this *BydfiCore) WatchPrivate(messageHashes interface{}, optionalArgs ...
  * @method
  * @name bydfi#watchTicker
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://developers.bydfi.com/en/swap/websocket-market#ticker-by-symbol
+ * @see https://developers.bydfi.com/en/futures/websocket-market#ticker-by-symbol
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -210,7 +210,7 @@ func  (this *BydfiCore) WatchTicker(symbol interface{}, optionalArgs ...interfac
  * @method
  * @name bydfi#unWatchTicker
  * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://developers.bydfi.com/en/swap/websocket-market#ticker-by-symbol
+ * @see https://developers.bydfi.com/en/futures/websocket-market#ticker-by-symbol
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -235,8 +235,8 @@ func  (this *BydfiCore) UnWatchTicker(symbol interface{}, optionalArgs ...interf
  * @method
  * @name bydfi#watchTickers
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
- * @see https://developers.bydfi.com/en/swap/websocket-market#ticker-by-symbol
- * @see https://developers.bydfi.com/en/swap/websocket-market#market-wide-ticker
+ * @see https://developers.bydfi.com/en/futures/websocket-market#ticker-by-symbol
+ * @see https://developers.bydfi.com/en/futures/websocket-market#market-wide-ticker
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -283,8 +283,8 @@ func  (this *BydfiCore) WatchTickers(optionalArgs ...interface{}) <- chan interf
  * @method
  * @name bydfi#unWatchTickers
  * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
- * @see https://developers.bydfi.com/en/swap/websocket-market#ticker-by-symbol
- * @see https://developers.bydfi.com/en/swap/websocket-market#market-wide-ticker
+ * @see https://developers.bydfi.com/en/futures/websocket-market#ticker-by-symbol
+ * @see https://developers.bydfi.com/en/futures/websocket-market#market-wide-ticker
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -384,7 +384,7 @@ func  (this *BydfiCore) HandleTicker(client interface{}, message interface{})  {
  * @method
  * @name bydfi#watchOHLCV
  * @description watches historical candlestick data containing the open, high, low, close price, and the volume of a market
- * @see https://developers.bydfi.com/en/swap/websocket-market#candlestick-data
+ * @see https://developers.bydfi.com/en/futures/websocket-market#candlestick-data
  * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -419,7 +419,7 @@ func  (this *BydfiCore) WatchOHLCV(symbol interface{}, optionalArgs ...interface
  * @method
  * @name bydfi#unWatchOHLCV
  * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://developers.bydfi.com/en/swap/websocket-market#candlestick-data
+ * @see https://developers.bydfi.com/en/futures/websocket-market#candlestick-data
  * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -447,7 +447,7 @@ func  (this *BydfiCore) UnWatchOHLCV(symbol interface{}, optionalArgs ...interfa
  * @method
  * @name bydfi#watchOHLCVForSymbols
  * @description watches historical candlestick data containing the open, high, low, close price, and the volume of a market
- * @see https://developers.bydfi.com/en/swap/websocket-market#candlestick-data
+ * @see https://developers.bydfi.com/en/futures/websocket-market#candlestick-data
  * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch ccxt.OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
@@ -503,7 +503,7 @@ func  (this *BydfiCore) WatchOHLCVForSymbols(symbolsAndTimeframes interface{}, o
  * @method
  * @name bydfi#unWatchOHLCVForSymbols
  * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://developers.bydfi.com/en/swap/websocket-market#candlestick-data
+ * @see https://developers.bydfi.com/en/futures/websocket-market#candlestick-data
  * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch ccxt.OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -588,7 +588,7 @@ func  (this *BydfiCore) HandleOHLCV(client interface{}, message interface{})  {
  * @method
  * @name bydfi#watchOrderBook
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://developers.bydfi.com/en/swap/websocket-market#limited-depth-information
+ * @see https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return (default and maxi is 100)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -616,7 +616,7 @@ func  (this *BydfiCore) WatchOrderBook(symbol interface{}, optionalArgs ...inter
  * @method
  * @name bydfi#unWatchOrderBook
  * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://developers.bydfi.com/en/swap/websocket-market#limited-depth-information
+ * @see https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information
  * @param {string} symbol unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
@@ -641,7 +641,7 @@ func  (this *BydfiCore) UnWatchOrderBook(symbol interface{}, optionalArgs ...int
  * @method
  * @name bydfi#watchOrderBookForSymbols
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://developers.bydfi.com/en/swap/websocket-market#limited-depth-information
+ * @see https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return (default and max is 100)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -694,7 +694,7 @@ func  (this *BydfiCore) WatchOrderBookForSymbols(symbols interface{}, optionalAr
  * @method
  * @name bydfi#unWatchOrderBookForSymbols
  * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://developers.bydfi.com/en/swap/websocket-market#limited-depth-information
+ * @see https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information
  * @param {string[]} symbols unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
@@ -774,7 +774,7 @@ func  (this *BydfiCore) HandleOrderBook(client interface{}, message interface{})
  * @method
  * @name bydfi#watchOrders
  * @description watches information on multiple orders made by the user
- * @see https://developers.bydfi.com/en/swap/websocket-account#order-trade-update-push
+ * @see https://developers.bydfi.com/en/futures/websocket-account#order-trade-update-push
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -811,7 +811,7 @@ func  (this *BydfiCore) WatchOrders(optionalArgs ...interface{}) <- chan interfa
  * @method
  * @name bydfi#watchOrdersForSymbols
  * @description watches information on multiple orders made by the user
- * @see https://developers.bydfi.com/en/swap/websocket-account#order-trade-update-push
+ * @see https://developers.bydfi.com/en/futures/websocket-account#order-trade-update-push
  * @param {string[]} symbols unified symbol of the market to fetch orders for
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -890,30 +890,19 @@ func  (this *BydfiCore) HandleOrder(client interface{}, message interface{})  {
     var marketId interface{} = this.SafeString(rawOrder, "s")
     var market interface{} = this.SafeMarket(marketId)
     var symbol interface{} = ccxt.GetValue(market, "symbol")
-    var match interface{} = false
     var messageHash interface{} = "orders"
     var symbolMessageHash interface{} = ccxt.Add(ccxt.Add(messageHash, "::"), symbol)
-    var messageHashes interface{} = this.FindMessageHashes(client.(*ccxt.Client), messageHash)
-    for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
-        var hash interface{} = ccxt.GetValue(messageHashes, i)
-        if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(hash, symbolMessageHash)) || ccxt.IsTrue(ccxt.IsEqual(hash, messageHash))) {
-            match = true
-            break
-        }
+    if ccxt.IsTrue(ccxt.IsEqual(this.Orders, nil)) {
+        var limit interface{} = this.SafeInteger(this.Options, "ordersLimit", 1000)
+        this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
     }
-    if ccxt.IsTrue(match) {
-        if ccxt.IsTrue(ccxt.IsEqual(this.Orders, nil)) {
-            var limit interface{} = this.SafeInteger(this.Options, "ordersLimit", 1000)
-            this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
-        }
-        var orders interface{} = this.Orders
-        var order interface{} = this.ParseWsOrder(rawOrder, market)
-        var lastUpdateTimestamp interface{} = this.SafeInteger(message, "T")
-        ccxt.AddElementToObject(order, "lastUpdateTimestamp", lastUpdateTimestamp)
-        orders.(ccxt.Appender).Append(order)
-        client.(ccxt.ClientInterface).Resolve(orders, messageHash)
-        client.(ccxt.ClientInterface).Resolve(orders, symbolMessageHash)
-    }
+    var orders interface{} = this.Orders
+    var order interface{} = this.ParseWsOrder(rawOrder, market)
+    var lastUpdateTimestamp interface{} = this.SafeInteger(message, "T")
+    ccxt.AddElementToObject(order, "lastUpdateTimestamp", lastUpdateTimestamp)
+    orders.(ccxt.Appender).Append(order)
+    client.(ccxt.ClientInterface).Resolve(orders, messageHash)
+    client.(ccxt.ClientInterface).Resolve(orders, symbolMessageHash)
 }
 func  (this *BydfiCore) ParseWsOrder(order interface{}, optionalArgs ...interface{}) interface{}  {
     //
@@ -985,7 +974,7 @@ func  (this *BydfiCore) ParseWsOrder(order interface{}, optionalArgs ...interfac
  * @method
  * @name bydfi#watchPositions
  * @description watch all open positions
- * @see https://developers.bydfi.com/en/swap/websocket-account#balance-and-position-update-push
+ * @see https://developers.bydfi.com/en/futures/websocket-account#balance-and-position-update-push
  * @param {string[]} [symbols] list of unified market symbols
  * @param {int} [since] the earliest time in ms to fetch positions for
  * @param {int} [limit] the maximum number of positions to retrieve
@@ -1006,8 +995,8 @@ func  (this *BydfiCore) WatchPositions(optionalArgs ...interface{}) <- chan inte
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes7428 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7428)
+            retRes7318 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes7318)
             symbols = this.MarketSymbols(symbols, nil, true)
             var messageHashes interface{} = []interface{}{}
             var messageHash interface{} = "positions"
@@ -1083,29 +1072,17 @@ func  (this *BydfiCore) HandlePositions(client interface{}, message interface{})
     var symbol interface{} = ccxt.GetValue(market, "symbol")
     var messageHash interface{} = "positions"
     var symbolMessageHash interface{} = ccxt.Add(ccxt.Add(messageHash, "::"), symbol)
-    var messageHashes interface{} = this.FindMessageHashes(client.(*ccxt.Client), messageHash)
-    var match interface{} = false
-    for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
-        var hash interface{} = ccxt.GetValue(messageHashes, i)
-        if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(hash, symbolMessageHash)) || ccxt.IsTrue(ccxt.IsEqual(hash, messageHash))) {
-            match = true
-            break
-        }
+    if ccxt.IsTrue(ccxt.IsEqual(this.Positions, nil)) {
+        this.Positions = ccxt.NewArrayCacheBySymbolBySide()
     }
-    if ccxt.IsTrue(match) {
-        if ccxt.IsTrue(ccxt.IsEqual(this.Positions, nil)) {
-            this.Positions = ccxt.NewArrayCacheBySymbolBySide()
-        }
-        var cache interface{} = this.Positions
-        var parsedPosition interface{} = this.ParseWsPosition(rawPosition, market)
-        var timestamp interface{} = this.SafeInteger(message, "T")
-        ccxt.AddElementToObject(parsedPosition, "timestamp", timestamp)
-        ccxt.AddElementToObject(parsedPosition, "datetime", this.Iso8601(timestamp))
-        cache.(ccxt.Appender).Append(parsedPosition)
-        var symbolSpecificMessageHash interface{} = ccxt.Add(ccxt.Add(messageHash, ":"), ccxt.GetValue(parsedPosition, "symbol"))
-        client.(ccxt.ClientInterface).Resolve([]interface{}{parsedPosition}, messageHash)
-        client.(ccxt.ClientInterface).Resolve([]interface{}{parsedPosition}, symbolSpecificMessageHash)
-    }
+    var cache interface{} = this.Positions
+    var parsedPosition interface{} = this.ParseWsPosition(rawPosition, market)
+    var timestamp interface{} = this.SafeInteger(message, "T")
+    ccxt.AddElementToObject(parsedPosition, "timestamp", timestamp)
+    ccxt.AddElementToObject(parsedPosition, "datetime", this.Iso8601(timestamp))
+    cache.(ccxt.Appender).Append(parsedPosition)
+    client.(ccxt.ClientInterface).Resolve([]interface{}{parsedPosition}, messageHash)
+    client.(ccxt.ClientInterface).Resolve([]interface{}{parsedPosition}, symbolMessageHash)
 }
 func  (this *BydfiCore) ParseWsPosition(position interface{}, optionalArgs ...interface{}) interface{}  {
     //
@@ -1174,7 +1151,7 @@ func  (this *BydfiCore) ParseWsPositionSide(rawPositionSide interface{}) interfa
  * @method
  * @name bydfi#watchBalance
  * @description watch balance and get the amount of funds available for trading or funds locked in orders
- * @see https://developers.bydfi.com/en/swap/websocket-account#balance-and-position-update-push
+ * @see https://developers.bydfi.com/en/futures/websocket-account#balance-and-position-update-push
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
@@ -1186,8 +1163,8 @@ func  (this *BydfiCore) WatchBalance(optionalArgs ...interface{}) <- chan interf
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes9078 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes9078)
+            retRes8848 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes8848)
             var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var client interface{} = this.Client(url)
             this.FetchBalanceSnapshot(client)
@@ -1196,14 +1173,14 @@ func  (this *BydfiCore) WatchBalance(optionalArgs ...interface{}) <- chan interf
             var awaitBalanceSnapshot interface{} = this.SafeBool(options, "awaitBalanceSnapshot", true)
             if ccxt.IsTrue(ccxt.IsTrue(fetchBalanceSnapshot) && ccxt.IsTrue(awaitBalanceSnapshot)) {
         
-                retRes91512 := (<-client.(ccxt.ClientInterface).Future("fetchBalanceSnapshot"))
-                ccxt.PanicOnError(retRes91512)
+                retRes89212 := (<-client.(ccxt.ClientInterface).Future("fetchBalanceSnapshot"))
+                ccxt.PanicOnError(retRes89212)
             }
             var messageHash interface{} = "balance"
         
-                retRes91815 :=  (<-this.WatchPrivate([]interface{}{messageHash}, params))
-                ccxt.PanicOnError(retRes91815)
-                ch <- retRes91815
+                retRes89515 :=  (<-this.WatchPrivate([]interface{}{messageHash}, params))
+                ccxt.PanicOnError(retRes89515)
+                ch <- retRes89515
                 return nil
         
             }()

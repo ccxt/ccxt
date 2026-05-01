@@ -16,54 +16,54 @@ public partial class bydfi : Exchange
         return await this.callAsync ("publicGetV1PublicApiLimits",parameters);
     }
 
-    public async Task<object> publicGetV1SwapMarketExchangeInfo (object parameters = null)
+    public async Task<object> publicGetV1FapiMarketExchangeInfo (object parameters = null)
     {
-        return await this.callAsync ("publicGetV1SwapMarketExchangeInfo",parameters);
+        return await this.callAsync ("publicGetV1FapiMarketExchangeInfo",parameters);
     }
 
-    public async Task<object> publicGetV1SwapMarketDepth (object parameters = null)
+    public async Task<object> publicGetV1FapiMarketDepth (object parameters = null)
     {
-        return await this.callAsync ("publicGetV1SwapMarketDepth",parameters);
+        return await this.callAsync ("publicGetV1FapiMarketDepth",parameters);
     }
 
-    public async Task<object> publicGetV1SwapMarketTrades (object parameters = null)
+    public async Task<object> publicGetV1FapiMarketTrades (object parameters = null)
     {
-        return await this.callAsync ("publicGetV1SwapMarketTrades",parameters);
+        return await this.callAsync ("publicGetV1FapiMarketTrades",parameters);
     }
 
-    public async Task<object> publicGetV1SwapMarketKlines (object parameters = null)
+    public async Task<object> publicGetV1FapiMarketKlines (object parameters = null)
     {
-        return await this.callAsync ("publicGetV1SwapMarketKlines",parameters);
+        return await this.callAsync ("publicGetV1FapiMarketKlines",parameters);
     }
 
-    public async Task<object> publicGetV1SwapMarketTicker24hr (object parameters = null)
+    public async Task<object> publicGetV1FapiMarketTicker24hr (object parameters = null)
     {
-        return await this.callAsync ("publicGetV1SwapMarketTicker24hr",parameters);
+        return await this.callAsync ("publicGetV1FapiMarketTicker24hr",parameters);
     }
 
-    public async Task<object> publicGetV1SwapMarketTickerPrice (object parameters = null)
+    public async Task<object> publicGetV1FapiMarketTickerPrice (object parameters = null)
     {
-        return await this.callAsync ("publicGetV1SwapMarketTickerPrice",parameters);
+        return await this.callAsync ("publicGetV1FapiMarketTickerPrice",parameters);
     }
 
-    public async Task<object> publicGetV1SwapMarketMarkPrice (object parameters = null)
+    public async Task<object> publicGetV1FapiMarketMarkPrice (object parameters = null)
     {
-        return await this.callAsync ("publicGetV1SwapMarketMarkPrice",parameters);
+        return await this.callAsync ("publicGetV1FapiMarketMarkPrice",parameters);
     }
 
-    public async Task<object> publicGetV1SwapMarketFundingRate (object parameters = null)
+    public async Task<object> publicGetV1FapiMarketFundingRate (object parameters = null)
     {
-        return await this.callAsync ("publicGetV1SwapMarketFundingRate",parameters);
+        return await this.callAsync ("publicGetV1FapiMarketFundingRate",parameters);
     }
 
-    public async Task<object> publicGetV1SwapMarketFundingRateHistory (object parameters = null)
+    public async Task<object> publicGetV1FapiMarketFundingRateHistory (object parameters = null)
     {
-        return await this.callAsync ("publicGetV1SwapMarketFundingRateHistory",parameters);
+        return await this.callAsync ("publicGetV1FapiMarketFundingRateHistory",parameters);
     }
 
-    public async Task<object> publicGetV1SwapMarketRiskLimit (object parameters = null)
+    public async Task<object> publicGetV1FapiMarketRiskLimit (object parameters = null)
     {
-        return await this.callAsync ("publicGetV1SwapMarketRiskLimit",parameters);
+        return await this.callAsync ("publicGetV1FapiMarketRiskLimit",parameters);
     }
 
     public async Task<object> privateGetV1AccountAssets (object parameters = null)
@@ -86,54 +86,54 @@ public partial class bydfi : Exchange
         return await this.callAsync ("privateGetV1SpotWithdrawRecords",parameters);
     }
 
-    public async Task<object> privateGetV1SwapTradeOpenOrder (object parameters = null)
+    public async Task<object> privateGetV1FapiTradeOpenOrder (object parameters = null)
     {
-        return await this.callAsync ("privateGetV1SwapTradeOpenOrder",parameters);
+        return await this.callAsync ("privateGetV1FapiTradeOpenOrder",parameters);
     }
 
-    public async Task<object> privateGetV1SwapTradePlanOrder (object parameters = null)
+    public async Task<object> privateGetV1FapiTradePlanOrder (object parameters = null)
     {
-        return await this.callAsync ("privateGetV1SwapTradePlanOrder",parameters);
+        return await this.callAsync ("privateGetV1FapiTradePlanOrder",parameters);
     }
 
-    public async Task<object> privateGetV1SwapTradeLeverage (object parameters = null)
+    public async Task<object> privateGetV1FapiTradeLeverage (object parameters = null)
     {
-        return await this.callAsync ("privateGetV1SwapTradeLeverage",parameters);
+        return await this.callAsync ("privateGetV1FapiTradeLeverage",parameters);
     }
 
-    public async Task<object> privateGetV1SwapTradeHistoryOrder (object parameters = null)
+    public async Task<object> privateGetV1FapiTradeHistoryOrder (object parameters = null)
     {
-        return await this.callAsync ("privateGetV1SwapTradeHistoryOrder",parameters);
+        return await this.callAsync ("privateGetV1FapiTradeHistoryOrder",parameters);
     }
 
-    public async Task<object> privateGetV1SwapTradeHistoryTrade (object parameters = null)
+    public async Task<object> privateGetV1FapiTradeHistoryTrade (object parameters = null)
     {
-        return await this.callAsync ("privateGetV1SwapTradeHistoryTrade",parameters);
+        return await this.callAsync ("privateGetV1FapiTradeHistoryTrade",parameters);
     }
 
-    public async Task<object> privateGetV1SwapTradePositionHistory (object parameters = null)
+    public async Task<object> privateGetV1FapiTradePositionHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetV1SwapTradePositionHistory",parameters);
+        return await this.callAsync ("privateGetV1FapiTradePositionHistory",parameters);
     }
 
-    public async Task<object> privateGetV1SwapTradePositions (object parameters = null)
+    public async Task<object> privateGetV1FapiTradePositions (object parameters = null)
     {
-        return await this.callAsync ("privateGetV1SwapTradePositions",parameters);
+        return await this.callAsync ("privateGetV1FapiTradePositions",parameters);
     }
 
-    public async Task<object> privateGetV1SwapAccountBalance (object parameters = null)
+    public async Task<object> privateGetV1FapiAccountBalance (object parameters = null)
     {
-        return await this.callAsync ("privateGetV1SwapAccountBalance",parameters);
+        return await this.callAsync ("privateGetV1FapiAccountBalance",parameters);
     }
 
-    public async Task<object> privateGetV1SwapUserDataAssetsMargin (object parameters = null)
+    public async Task<object> privateGetV1FapiUserDataAssetsMargin (object parameters = null)
     {
-        return await this.callAsync ("privateGetV1SwapUserDataAssetsMargin",parameters);
+        return await this.callAsync ("privateGetV1FapiUserDataAssetsMargin",parameters);
     }
 
-    public async Task<object> privateGetV1SwapUserDataPositionSideDual (object parameters = null)
+    public async Task<object> privateGetV1FapiUserDataPositionSideDual (object parameters = null)
     {
-        return await this.callAsync ("privateGetV1SwapUserDataPositionSideDual",parameters);
+        return await this.callAsync ("privateGetV1FapiUserDataPositionSideDual",parameters);
     }
 
     public async Task<object> privateGetV1AgentTeams (object parameters = null)
@@ -186,49 +186,49 @@ public partial class bydfi : Exchange
         return await this.callAsync ("privatePostV1AccountTransfer",parameters);
     }
 
-    public async Task<object> privatePostV1SwapTradePlaceOrder (object parameters = null)
+    public async Task<object> privatePostV1FapiTradePlaceOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostV1SwapTradePlaceOrder",parameters);
+        return await this.callAsync ("privatePostV1FapiTradePlaceOrder",parameters);
     }
 
-    public async Task<object> privatePostV1SwapTradeBatchPlaceOrder (object parameters = null)
+    public async Task<object> privatePostV1FapiTradeBatchPlaceOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostV1SwapTradeBatchPlaceOrder",parameters);
+        return await this.callAsync ("privatePostV1FapiTradeBatchPlaceOrder",parameters);
     }
 
-    public async Task<object> privatePostV1SwapTradeEditOrder (object parameters = null)
+    public async Task<object> privatePostV1FapiTradeEditOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostV1SwapTradeEditOrder",parameters);
+        return await this.callAsync ("privatePostV1FapiTradeEditOrder",parameters);
     }
 
-    public async Task<object> privatePostV1SwapTradeBatchEditOrder (object parameters = null)
+    public async Task<object> privatePostV1FapiTradeBatchEditOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostV1SwapTradeBatchEditOrder",parameters);
+        return await this.callAsync ("privatePostV1FapiTradeBatchEditOrder",parameters);
     }
 
-    public async Task<object> privatePostV1SwapTradeCancelAllOrder (object parameters = null)
+    public async Task<object> privatePostV1FapiTradeCancelAllOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostV1SwapTradeCancelAllOrder",parameters);
+        return await this.callAsync ("privatePostV1FapiTradeCancelAllOrder",parameters);
     }
 
-    public async Task<object> privatePostV1SwapTradeLeverage (object parameters = null)
+    public async Task<object> privatePostV1FapiTradeLeverage (object parameters = null)
     {
-        return await this.callAsync ("privatePostV1SwapTradeLeverage",parameters);
+        return await this.callAsync ("privatePostV1FapiTradeLeverage",parameters);
     }
 
-    public async Task<object> privatePostV1SwapTradeBatchLeverageMargin (object parameters = null)
+    public async Task<object> privatePostV1FapiTradeBatchLeverageMargin (object parameters = null)
     {
-        return await this.callAsync ("privatePostV1SwapTradeBatchLeverageMargin",parameters);
+        return await this.callAsync ("privatePostV1FapiTradeBatchLeverageMargin",parameters);
     }
 
-    public async Task<object> privatePostV1SwapUserDataMarginType (object parameters = null)
+    public async Task<object> privatePostV1FapiUserDataMarginType (object parameters = null)
     {
-        return await this.callAsync ("privatePostV1SwapUserDataMarginType",parameters);
+        return await this.callAsync ("privatePostV1FapiUserDataMarginType",parameters);
     }
 
-    public async Task<object> privatePostV1SwapUserDataPositionSideDual (object parameters = null)
+    public async Task<object> privatePostV1FapiUserDataPositionSideDual (object parameters = null)
     {
-        return await this.callAsync ("privatePostV1SwapUserDataPositionSideDual",parameters);
+        return await this.callAsync ("privatePostV1FapiUserDataPositionSideDual",parameters);
     }
 
     public async Task<object> privatePostV1AgentInternalWithdrawal (object parameters = null)

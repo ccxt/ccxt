@@ -1786,5 +1786,109 @@
         "tierBased": true,
         "percentage": true,
         "feeSide": "get"
+    },
+    "TRIA/USDT:USDT": {
+        "id": "TRIAUSDT",
+        "lowercaseId": null,
+        "symbol": "TRIA/USDT:USDT",
+        "base": "TRIA",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "TRIA",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0006,
+        "maker": 0.0001,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 10,
+            "price": 0.000001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 25
+            },
+            "amount": {
+                "min": 10,
+                "max": 6250000
+            },
+            "price": {
+                "min": 0.000001,
+                "max": 19.999998
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1770285700000,
+        "info": {
+            "symbol": "TRIAUSDT",
+            "contractType": "LinearPerpetual",
+            "status": "Trading",
+            "baseCoin": "TRIA",
+            "quoteCoin": "USDT",
+            "launchTime": "1770285700000",
+            "deliveryTime": "0",
+            "deliveryFeeRate": "",
+            "priceScale": "6",
+            "leverageFilter": {
+                "minLeverage": "1",
+                "maxLeverage": "25.00",
+                "leverageStep": "0.01"
+            },
+            "priceFilter": {
+                "minPrice": "0.000001",
+                "maxPrice": "19.999998",
+                "tickSize": "0.000001"
+            },
+            "lotSizeFilter": {
+                "maxOrderQty": "6250000",
+                "minOrderQty": "10",
+                "qtyStep": "10",
+                "postOnlyMaxOrderQty": "6250000",
+                "maxMktOrderQty": "1250000",
+                "minNotionalValue": "5"
+            },
+            "unifiedMarginTrade": true,
+            "fundingInterval": "240",
+            "settleCoin": "USDT",
+            "copyTrading": "none",
+            "upperFundingRate": "0.02",
+            "lowerFundingRate": "-0.02",
+            "isPreListing": false,
+            "preListingInfo": null,
+            "riskParameters": {
+                "priceLimitRatioX": "0.15",
+                "priceLimitRatioY": "0.3"
+            },
+            "displayName": "",
+            "symbolType": "innovation",
+            "forbidUplWithdrawal": false
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get"
     }
 }

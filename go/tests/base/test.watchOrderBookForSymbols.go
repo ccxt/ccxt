@@ -13,7 +13,8 @@ func TestWatchOrderBookForSymbols(exchange ccxt.ICoreExchange, skippedProperties
 		var method interface{} = "watchOrderBookForSymbols"
 		var now interface{} = exchange.Milliseconds()
 		var ends interface{} = Add(now, 15000)
-		for IsLessThan(now, ends) {
+		var returnedSymbols interface{} = []interface{}{}
+		for IsTrue(IsLessThan(now, ends)) || IsTrue(IsLessThan(GetArrayLength(returnedSymbols), GetArrayLength(symbols))) {
 			var response interface{} = nil
 			var success interface{} = true
 
@@ -51,6 +52,10 @@ func TestWatchOrderBookForSymbols(exchange ccxt.ICoreExchange, skippedProperties
 				now = exchange.Milliseconds()
 				AssertInArray(exchange, skippedProperties, method, response, "symbol", symbols)
 				TestOrderBook(exchange, skippedProperties, method, response, nil)
+				var symbol interface{} = GetValue(response, "symbol")
+				if !IsTrue(exchange.InArray(symbol, returnedSymbols)) {
+					AppendToArray(&returnedSymbols, symbol)
+				}
 			}
 		}
 

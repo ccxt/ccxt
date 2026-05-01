@@ -418,6 +418,7 @@ create a trade order
 | params.retail_portfolio_id | <code>string</code> | No | portfolio uid |
 | params.is_max | <code>boolean</code> | No | Used in conjunction with tradable_balance to indicate the user wants to use their entire tradable balance |
 | params.tradable_balance | <code>string</code> | No | amount of tradable balance |
+| params.reduceOnly | <code>float</code> | No | set to true for closing a position or use closePosition |
 
 
 ```javascript
@@ -754,6 +755,7 @@ make a withdrawal
 | tag | <code>string</code> | No | an optional tag for the withdrawal |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.network | <code>string</code> | No | the cryptocurrency network to use for the withdrawal using the lowercase name like bitcoin, ethereum, solana, etc. |
+| params.travel_rule_data | <code>object</code> | No | some regions require travel rule information for crypto withdrawals, see the exchange docs for details https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/travel-rule |
 
 
 ```javascript

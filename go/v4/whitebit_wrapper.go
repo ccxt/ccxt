@@ -280,7 +280,8 @@ func (this *Whitebit) FetchOrder(id string, options ...FetchOrderOptions) (Order
  * @see https://docs.whitebit.com/public/http-v4/#market-activity
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.method] either v2PublicGetTicker or v4PublicGetTicker default is v4PublicGetTicker
+ * @param {string} [params.type] 'spot' or 'swap' - default is 'spot'. If type is 'swap', it will call v4PublicGetFutures
+ * @param {string} [params.method] either v2PublicGetTicker or v4PublicGetTicker or v4PublicGetFutures - default is v4PublicGetTicker for spot and mixed markets, and v4PublicGetFutures for swap
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Whitebit) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
@@ -1756,6 +1757,52 @@ func (this *Whitebit) FetchCrossBorrowRate(code string, options ...FetchCrossBor
 	return NewCrossBorrowRate(res), nil
 }
 
+/**
+ * @method
+ * @name whitebit#fetchFundingRateHistory
+ * @description fetches historical funding rate prices
+ * @see https://docs.whitebit.com/api-reference/market-data/funding-history
+ * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+ * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch (default 100, max 100)
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest funding rate
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+ */
+func (this *Whitebit) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
+
+	opts := FetchFundingRateHistoryOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol interface{} = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since interface{} = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit interface{} = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchFundingRateHistory(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewFundingRateHistoryArray(res), nil
+}
+
 // missing typed methods from base
 // nolint
 func (this *Whitebit) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
@@ -1883,9 +1930,6 @@ func (this *Whitebit) FetchFundingInterval(symbol string, options ...FetchFundin
 }
 func (this *Whitebit) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {
 	return this.exchangeTyped.FetchFundingIntervals(options...)
-}
-func (this *Whitebit) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
-	return this.exchangeTyped.FetchFundingRateHistory(options...)
 }
 func (this *Whitebit) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {
 	return this.exchangeTyped.FetchGreeks(symbol, options...)

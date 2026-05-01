@@ -11,6 +11,7 @@ from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
 
 
@@ -182,16 +183,18 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         await self.load_markets()
         return await self.subscribe('RISK', [symbol], params)
 
-    async def watch_funding_rates(self, symbols: List[str], params={}) -> FundingRates:
+    async def watch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
         watch the funding rate for multiple markets
 
         https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
 
-        :param str[]|None symbols: list of unified market symbols
+        :param str[] symbols: a list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/?id=funding-rates-structure>`, indexe by market symbols
         """
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' watchFundingRates() requires an array of symbols')
         await self.load_markets()
         fundingRate = await self.subscribe_multiple('RISK', symbols, params)
         symbol = self.safe_string(fundingRate, 'symbol')

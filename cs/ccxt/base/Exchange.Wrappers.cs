@@ -192,7 +192,7 @@ public partial class Exchange
         var res = await this.watchFundingRate(symbol, parameters);
         return new FundingRate(res);
     }
-    public async Task<FundingRates> WatchFundingRates(List<string> symbols, Dictionary<string, object> parameters = null)
+    public async Task<FundingRates> WatchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchFundingRates(symbols, parameters);
         return new FundingRates(res);
@@ -313,6 +313,20 @@ public partial class Exchange
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOHLCV(symbol, timeframe, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
+    }
+    public async Task<List<OHLCV>> FetchSpotOHLCV(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchSpotOHLCV(symbol, timeframe, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
+    }
+    public async Task<List<OHLCV>> FetchContractOHLCV(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchContractOHLCV(symbol, timeframe, since, limit, parameters);
         return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
     public async Task<List<OHLCV>> FetchOHLCVWs(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
@@ -557,6 +571,16 @@ public partial class Exchange
         var res = await this.fetchTickers(symbols, parameters);
         return new Tickers(res);
     }
+    public async Task<Tickers> FetchSpotTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchSpotTickers(symbols, parameters);
+        return new Tickers(res);
+    }
+    public async Task<Tickers> FetchContractTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchContractTickers(symbols, parameters);
+        return new Tickers(res);
+    }
     public async Task<Tickers> FetchMarkPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkPrices(symbols, parameters);
@@ -614,6 +638,11 @@ public partial class Exchange
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
+    public async Task<Order> CreateTwapOrder(string symbol, string side, double amount, double duration, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createTwapOrder(symbol, side, amount, duration, parameters);
+        return new Order(res);
+    }
     public async Task<Conversion> CreateConvertTrade(string id, string fromCode, string toCode, double? amount2 = 0, Dictionary<string, object> parameters = null)
     {
         var amount = amount2 == 0 ? null : (object)amount2;
@@ -636,6 +665,21 @@ public partial class Exchange
     {
         var res = await this.fetchPositionMode(symbol, parameters);
         return ((Dictionary<string, object>)res);
+    }
+    public async Task<ADL> FetchADLRank(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchADLRank(symbol, parameters);
+        return new ADL(res);
+    }
+    public async Task<List<ADL>> FetchPositionsADLRank(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionsADLRank(symbols, parameters);
+        return ((IList<object>)res).Select(item => new ADL(item)).ToList<ADL>();
+    }
+    public async Task<ADL> FetchPositionADLRank(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionADLRank(symbol, parameters);
+        return new ADL(res);
     }
     public async Task<Order> CreateTrailingAmountOrder(string symbol, string type, string side, double amount, double? price2 = 0, double? trailingAmount2 = 0, double? trailingTriggerPrice2 = 0, Dictionary<string, object> parameters = null)
     {
@@ -752,6 +796,16 @@ public partial class Exchange
         var res = await this.createOrders(orders, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
+    public async Task<List<Order>> CreateSpotOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createSpotOrders(orders, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    public async Task<List<Order>> CreateContractOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createContractOrders(orders, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
     public async Task<List<Order>> EditOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = await this.editOrders(orders, parameters);
@@ -766,6 +820,16 @@ public partial class Exchange
     public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
+        return new Order(res);
+    }
+    public async Task<Order> CancelSpotOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelSpotOrder(id, symbol, parameters);
+        return new Order(res);
+    }
+    public async Task<Order> CancelContractOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelContractOrder(id, symbol, parameters);
         return new Order(res);
     }
     public async Task<Order> CancelOrderWithClientOrderId(string clientOrderId, string symbol = null, Dictionary<string, object> parameters = null)
@@ -796,6 +860,16 @@ public partial class Exchange
     public async Task<List<Order>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    public async Task<List<Order>> CancelAllSpotOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelAllSpotOrders(symbol, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    public async Task<List<Order>> CancelAllContractOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelAllContractOrders(symbol, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     public async Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
@@ -1007,6 +1081,11 @@ public partial class Exchange
     public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
+        return new DepositAddress(res);
+    }
+    public async Task<DepositAddress> FetchContractDepositAddress(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchContractDepositAddress(code, parameters);
         return new DepositAddress(res);
     }
     public MarketInterface CreateExpiredOptionMarket(string symbol)
@@ -1292,7 +1371,7 @@ public partial class Exchange
     }
 }
 // class wrappers
-public class  Alp: alp { public Alp(object args = null) : base(args) { } }
+public class  Aftermath: aftermath { public Aftermath(object args = null) : base(args) { } }
 public class  Alpaca: alpaca { public Alpaca(object args = null) : base(args) { } }
 public class  Apex: apex { public Apex(object args = null) : base(args) { } }
 public class  Arkham: arkham { public Arkham(object args = null) : base(args) { } }
@@ -1335,7 +1414,6 @@ public class  Coinbase: coinbase { public Coinbase(object args = null) : base(ar
 public class  Coinbaseadvanced: coinbaseadvanced { public Coinbaseadvanced(object args = null) : base(args) { } }
 public class  Coinbaseexchange: coinbaseexchange { public Coinbaseexchange(object args = null) : base(args) { } }
 public class  Coinbaseinternational: coinbaseinternational { public Coinbaseinternational(object args = null) : base(args) { } }
-public class  Coincatch: coincatch { public Coincatch(object args = null) : base(args) { } }
 public class  Coincheck: coincheck { public Coincheck(object args = null) : base(args) { } }
 public class  Coinex: coinex { public Coinex(object args = null) : base(args) { } }
 public class  Coinmate: coinmate { public Coinmate(object args = null) : base(args) { } }
@@ -1346,7 +1424,6 @@ public class  Coinspot: coinspot { public Coinspot(object args = null) : base(ar
 public class  Cryptocom: cryptocom { public Cryptocom(object args = null) : base(args) { } }
 public class  Cryptomus: cryptomus { public Cryptomus(object args = null) : base(args) { } }
 public class  Deepcoin: deepcoin { public Deepcoin(object args = null) : base(args) { } }
-public class  Defx: defx { public Defx(object args = null) : base(args) { } }
 public class  Delta: delta { public Delta(object args = null) : base(args) { } }
 public class  Deribit: deribit { public Deribit(object args = null) : base(args) { } }
 public class  Derive: derive { public Derive(object args = null) : base(args) { } }
@@ -1358,6 +1435,7 @@ public class  Foxbit: foxbit { public Foxbit(object args = null) : base(args) { 
 public class  Gate: gate { public Gate(object args = null) : base(args) { } }
 public class  Gateio: gateio { public Gateio(object args = null) : base(args) { } }
 public class  Gemini: gemini { public Gemini(object args = null) : base(args) { } }
+public class  Grvt: grvt { public Grvt(object args = null) : base(args) { } }
 public class  Hashkey: hashkey { public Hashkey(object args = null) : base(args) { } }
 public class  Hibachi: hibachi { public Hibachi(object args = null) : base(args) { } }
 public class  Hitbtc: hitbtc { public Hitbtc(object args = null) : base(args) { } }
@@ -1373,6 +1451,7 @@ public class  Kucoin: kucoin { public Kucoin(object args = null) : base(args) { 
 public class  Kucoinfutures: kucoinfutures { public Kucoinfutures(object args = null) : base(args) { } }
 public class  Latoken: latoken { public Latoken(object args = null) : base(args) { } }
 public class  Lbank: lbank { public Lbank(object args = null) : base(args) { } }
+public class  Lighter: lighter { public Lighter(object args = null) : base(args) { } }
 public class  Luno: luno { public Luno(object args = null) : base(args) { } }
 public class  Mercado: mercado { public Mercado(object args = null) : base(args) { } }
 public class  Mexc: mexc { public Mexc(object args = null) : base(args) { } }
@@ -1385,16 +1464,16 @@ public class  Okxus: okxus { public Okxus(object args = null) : base(args) { } }
 public class  Onetrading: onetrading { public Onetrading(object args = null) : base(args) { } }
 public class  Oxfun: oxfun { public Oxfun(object args = null) : base(args) { } }
 public class  P2b: p2b { public P2b(object args = null) : base(args) { } }
+public class  Pacifica: pacifica { public Pacifica(object args = null) : base(args) { } }
 public class  Paradex: paradex { public Paradex(object args = null) : base(args) { } }
 public class  Paymium: paymium { public Paymium(object args = null) : base(args) { } }
 public class  Phemex: phemex { public Phemex(object args = null) : base(args) { } }
 public class  Poloniex: poloniex { public Poloniex(object args = null) : base(args) { } }
-public class  Probit: probit { public Probit(object args = null) : base(args) { } }
-public class  Timex: timex { public Timex(object args = null) : base(args) { } }
 public class  Tokocrypto: tokocrypto { public Tokocrypto(object args = null) : base(args) { } }
 public class  Toobit: toobit { public Toobit(object args = null) : base(args) { } }
 public class  Upbit: upbit { public Upbit(object args = null) : base(args) { } }
 public class  Wavesexchange: wavesexchange { public Wavesexchange(object args = null) : base(args) { } }
+public class  Weex: weex { public Weex(object args = null) : base(args) { } }
 public class  Whitebit: whitebit { public Whitebit(object args = null) : base(args) { } }
 public class  Woo: woo { public Woo(object args = null) : base(args) { } }
 public class  Woofipro: woofipro { public Woofipro(object args = null) : base(args) { } }

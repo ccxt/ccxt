@@ -1039,6 +1039,18 @@ func (this *BinanceusdmCore) SapiGetDciProductAccounts(args ...interface{}) <-ch
 	return this.callEndpointAsync("sapiGetDciProductAccounts", args...)
 }
 
+func (this *BinanceusdmCore) SapiGetAccumulatorProductList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAccumulatorProductList", args...)
+}
+
+func (this *BinanceusdmCore) SapiGetAccumulatorProductPositionList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAccumulatorProductPositionList", args...)
+}
+
+func (this *BinanceusdmCore) SapiGetAccumulatorProductSumHolding(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAccumulatorProductSumHolding", args...)
+}
+
 func (this *BinanceusdmCore) SapiPostAssetDust(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("sapiPostAssetDust", args...)
 }
@@ -1181,6 +1193,10 @@ func (this *BinanceusdmCore) SapiPostUserDataStream(args ...interface{}) <-chan 
 
 func (this *BinanceusdmCore) SapiPostUserDataStreamIsolated(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("sapiPostUserDataStreamIsolated", args...)
+}
+
+func (this *BinanceusdmCore) SapiPostUserListenToken(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostUserListenToken", args...)
 }
 
 func (this *BinanceusdmCore) SapiPostFuturesTransfer(args ...interface{}) <-chan interface{} {
@@ -1525,6 +1541,10 @@ func (this *BinanceusdmCore) SapiPostDciProductSubscribe(args ...interface{}) <-
 
 func (this *BinanceusdmCore) SapiPostDciProductAutoCompoundEdit(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("sapiPostDciProductAutoCompoundEdit", args...)
+}
+
+func (this *BinanceusdmCore) SapiPostAccumulatorProductSubscribe(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostAccumulatorProductSubscribe", args...)
 }
 
 func (this *BinanceusdmCore) SapiPutUserDataStream(args ...interface{}) <-chan interface{} {
@@ -3073,6 +3093,10 @@ func (this *BinanceusdmCore) PapiPostMarginRepayDebt(args ...interface{}) <-chan
 
 func (this *BinanceusdmCore) PapiPostUmFeeBurn(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("papiPostUmFeeBurn", args...)
+}
+
+func (this *BinanceusdmCore) PapiPostUmStockContract(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiPostUmStockContract", args...)
 }
 
 func (this *BinanceusdmCore) PapiPutListenKey(args ...interface{}) <-chan interface{} {

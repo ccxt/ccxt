@@ -1181,6 +1181,16 @@ public partial class coinex : Exchange
         return await this.callAsync ("v2PrivatePostFuturesBatchStopOrder",parameters);
     }
 
+    public async Task<object> v2PrivatePostFuturesCancelPositionStopLoss (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostFuturesCancelPositionStopLoss",parameters);
+    }
+
+    public async Task<object> v2PrivatePostFuturesCancelPositionTakeProfit (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostFuturesCancelPositionTakeProfit",parameters);
+    }
+
     public async Task<object> v2PrivatePostFuturesModifyOrder (object parameters = null)
     {
         return await this.callAsync ("v2PrivatePostFuturesModifyOrder",parameters);
