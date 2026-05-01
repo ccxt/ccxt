@@ -730,7 +730,7 @@ class phemex(Exchange, ImplicitAPI):
         contractSize: Num = None
         if settle == 'USDT':
             contractSize = self.parse_number('1')
-        elif contractSizeString.find(' '):
+        elif contractSizeString.find(' ') >= 0:
             # "1 USD"
             # "0.005 ETH"
             parts = contractSizeString.split(' ')
