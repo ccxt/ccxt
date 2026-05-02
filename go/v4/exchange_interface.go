@@ -362,7 +362,7 @@ type IDerivedExchange interface {
 	ParseMarketLeverageTiers(info interface{}, optionalArgs ...interface{}) interface{}
 	FetchMarginModes(optionalArgs ...interface{}) <-chan interface{}
 	FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
-	ParseBidsAsks(bidasks interface{}, optionalArgs ...interface{}) interface{}
+	ParseOrderBookBidsAsks(bidasks interface{}, optionalArgs ...interface{}) interface{}
 	FetchLeverages(optionalArgs ...interface{}) <-chan interface{}
 	SafeMarket(optionalArgs ...interface{}) interface{}
 	FetchTickers(optionalArgs ...interface{}) <-chan interface{}
