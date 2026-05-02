@@ -3123,6 +3123,15 @@ export default class binance extends Exchange {
                     },
                 };
             }
+            let type: Str = undefined;
+            if (isETF) {
+                type = 'other';
+            } else if (isFiat) {
+                type = 'fiat';
+            } else {
+                type = 'crypto';
+            }
+            const trading = this.safeBool (entry, 'trading');
             const marginEntry = this.safeDict (marginablesById, id, {});
             //
             //     {
@@ -3134,14 +3143,6 @@ export default class binance extends Exchange {
             //         userMinRepay: "0",
             //     }
             //
-            let type: Str = undefined;
-            if (isETF) {
-                type = 'other';
-            } else if (isFiat) {
-                type = 'fiat';
-            } else {
-                type = 'crypto';
-            }
             result[code] = this.safeCurrencyStructure ({
                 'id': id,
                 'name': name,
@@ -3149,7 +3150,7 @@ export default class binance extends Exchange {
                 'type': type,
                 'precision': undefined,
                 'info': entry,
-                'active': this.safeBool (entry, 'trading'),
+                'active': trading,
                 'deposit': undefined,
                 'withdraw': undefined,
                 'networks': networks,
