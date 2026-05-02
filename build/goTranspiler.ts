@@ -127,7 +127,7 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     "fetchWithdrawals": true,
     "parseAccount": false,
     "parseBalance": false,
-    "parseBidsAsks": false,
+    "parseOrderBookBidsAsks": false,
     "parseBorrowInterest": false,
     "parseBorrowRate": false,
     "parseCurrency": false,
