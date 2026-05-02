@@ -3136,7 +3136,7 @@ export default class binance extends Exchange {
             //
             let type: Str = undefined;
             if (isETF) {
-                type = 'leveraged';
+                type = 'other';
             } else if (isFiat) {
                 type = 'fiat';
             } else {
