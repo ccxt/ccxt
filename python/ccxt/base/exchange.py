@@ -2003,6 +2003,16 @@ class Exchange(object):
         if amount <= 0:
             raise InvalidOrder(self.id + ' create_order() amount should be above 0')
 
+    def check_withdraw_arguments(self, code: str, amount: float, address: str):
+        if amount is None or not isinstance(amount, (int, float)):
+            raise ArgumentsRequired(self.id + ' withdraw() requires amount to be a number')
+        if amount <= 0:
+            raise InvalidOrder(self.id + ' withdraw() amount should be above 0')
+        if address is None or address == '':
+            raise ArgumentsRequired(self.id + ' withdraw() requires address argument')
+        if code is None or code == '':
+            raise ArgumentsRequired(self.id + ' withdraw() requires currency code argument')
+
     def handle_http_status_code(self, code, reason, url, method, body):
         codeAsString = str(code)
         if codeAsString in self.httpExceptions:
