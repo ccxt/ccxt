@@ -201,7 +201,7 @@ class mexc_futures(mexc_abs):
         actual_amount = float(Precise.string_mul(str(contracts), str(contract_size)))
         quantity = actual_amount * (1 if position['side'] == 'long' else -1)
         position['quantity'] = quantity
-        position['unrealizedPnl'] = float(info.get('unrealizedProfit', 0))
+        position['unrealizedPnl'] = None
 
         if position['notional'] is None:
             entry_price = position['entryPrice'] or 0
