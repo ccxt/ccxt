@@ -22,6 +22,7 @@ from ccxt.base.errors import RestrictedLocation
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import InvalidResponse
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ContractUnavailable
 from ccxt.base.errors import NotSupported
@@ -5213,7 +5214,11 @@ class okx(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
+        if len(data) == 0:
+            raise InvalidResponse(self.id + ' withdraw() API returned empty response. The withdrawal may have failed or API may be temporarily unavailable. Please check your account on the exchange directly.')
         transaction = self.safe_dict(data, 0)
+        if transaction is None or len(transaction) == 0:
+            raise InvalidResponse(self.id + ' withdraw() API returned invalid transaction structure: ' + str(response))
         return self.parse_transaction(transaction, currency)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
