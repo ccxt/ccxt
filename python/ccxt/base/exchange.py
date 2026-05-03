@@ -3776,6 +3776,57 @@ class Exchange(object):
         networkIdsToCodesGenerated = self.invert_flat_string_dictionary(self.safe_value(self.options, 'networks', {}))  # invert defined networks dictionary
         self.options['networksById'] = self.extend(networkIdsToCodesGenerated, self.safe_value(self.options, 'networksById', {}))  # support manually overriden "networksById" dictionary too
 
+    # Unified network name standardization
+    UNIFIED_NETWORK_NAMES = {
+        'ethereum': {'ETH', 'ERC20'},
+        'arbitrum': {'ARBITRUM', 'ARBONE', 'ARB', 'ARBITRUM_ONE'},
+        'polygon': {'POLYGON', 'MATIC', 'POLYGON_MAINNET'},
+        'bsc': {'BSC', 'BEP20', 'BNB'},
+        'optimism': {'OPTIMISM', 'OPT', 'OP'},
+        'base': {'BASE', 'BASE_ETHEREUM'},
+        'avalanche': {'AVALANCHE', 'AVAX', 'AVAX_C'},
+        'fantom': {'FANTOM', 'FTM'},
+        'gnosis': {'GNOSIS', 'XDAI'},
+        'solana': {'SOLANA', 'SOL'},
+        'bitcoin': {'BITCOIN', 'BTC'},
+        'tron': {'TRON', 'TRX', 'TRC20'},
+    }
+
+    def normalize_network_name(self, networkName: str) -> str:
+        """
+        Convert exchange-specific network names to unified format
+
+        :param str networkName: Exchange-specific network name (e.g., 'ARBITRUM', 'ARBONE', 'ARB')
+        :returns str: Unified network name in lowercase (e.g., 'arbitrum')
+
+        Example:
+        >>> exchange.normalize_network_name('ARBONE')  # Returns 'arbitrum'
+        >>> exchange.normalize_network_name('MATIC')   # Returns 'polygon'
+        """
+        if networkName is None:
+            return None
+        networkName_upper = networkName.upper()
+        for unified_name, variants in self.UNIFIED_NETWORK_NAMES.items():
+            if networkName_upper in variants:
+                return unified_name
+        return networkName_upper.lower()
+
+    def get_network_names_for_code(self, code: str) -> set:
+        """
+        Get all known names/variants for a unified network
+
+        :param str code: Unified network code (e.g., 'arbitrum', 'polygon', 'ethereum')
+        :returns set: Set of all known variants for this network
+
+        Example:
+        >>> exchange.get_network_names_for_code('arbitrum')
+        # Returns {'ARBITRUM', 'ARBONE', 'ARB', 'ARBITRUM_ONE'}
+        """
+        if code is None:
+            return set()
+        code_lower = code.lower()
+        return self.UNIFIED_NETWORK_NAMES.get(code_lower, set())
+
     def get_default_options(self):
         return {
             'defaultNetworkCodeReplacements': {
