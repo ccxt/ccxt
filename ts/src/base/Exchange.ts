@@ -2619,7 +2619,7 @@ export default class Exchange {
         this.baseCurrencies = {};
         this.quoteCurrencies = {};
         this.last_http_response = undefined;
-        this.last_json_response = undefined;
+        // this.last_json_response = undefined; // not unified prop
         this.last_response_headers = undefined;
         this.last_request_headers = undefined;
     }
