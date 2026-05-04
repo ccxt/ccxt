@@ -9,15 +9,16 @@ public partial class Exchange
     public virtual object describe()
     {
         return new Dictionary<string, object>() {
-            { "id", null },
-            { "name", null },
-            { "countries", null },
-            { "enableRateLimit", true },
-            { "rateLimit", 2000 },
+            { "id", this.id },
+            { "name", this.name },
+            { "countries", this.countries },
+            { "enableRateLimit", this.enableRateLimit },
+            { "rateLimit", this.rateLimit },
+            { "rateLimiterAlgorithm", this.rateLimiterAlgorithm },
             { "timeout", this.timeout },
-            { "certified", false },
-            { "pro", false },
-            { "alias", false },
+            { "certified", this.certified },
+            { "pro", this.pro },
+            { "alias", this.alias },
             { "dex", false },
             { "has", new Dictionary<string, object>() {
                 { "publicAPI", true },
@@ -263,9 +264,12 @@ public partial class Exchange
             { "urls", new Dictionary<string, object>() {
                 { "logo", null },
                 { "api", null },
+                { "test", null },
                 { "www", null },
                 { "doc", null },
+                { "api_management", null },
                 { "fees", null },
+                { "referral", null },
             } },
             { "api", null },
             { "requiredCredentials", new Dictionary<string, object>() {
@@ -302,6 +306,7 @@ public partial class Exchange
                 { "updated", null },
                 { "eta", null },
                 { "url", null },
+                { "info", null },
             } },
             { "exceptions", null },
             { "httpExceptions", new Dictionary<string, object>() {

@@ -568,15 +568,19 @@ public partial class grvt : Exchange
      */
     public async override Task<object> signIn(object parameters = null)
     {
+        // if (this.usesPrivateKey ()) {
+        //     await this.signInWithPrivateKey (params);
+        //     await this.initializeClient (params);
+        // } else {
+        //     await this.signInWithApiKey (params);
+        // }
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(this.usesPrivateKey()))
+        if (isTrue(isTrue(isEqual(this.privateKey, null)) || isTrue(isEqual(this.privateKey, ""))))
         {
-            await this.signInWithPrivateKey(parameters);
-            await this.initializeClient(parameters);
-        } else
-        {
-            await this.signInWithApiKey(parameters);
+            throw new PermissionDenied ((string)"Private key is required for this operation. If you used joined GRVT through email registration instead of Web3 wallet, then read: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt") ;
         }
+        await this.signInWithPrivateKey(parameters);
+        await this.initializeClient(parameters);
         await this.loadAccountInfos();
         return true;
     }

@@ -495,11 +495,16 @@ class grvt(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns: response from exchange
         """
-        if self.uses_private_key():
-            self.sign_in_with_private_key(params)
-            self.initialize_client(params)
-        else:
-            self.sign_in_with_api_key(params)
+        # if self.uses_private_key():
+        #     self.sign_in_with_private_key(params)
+        #     self.initialize_client(params)
+        # else:
+        #     self.sign_in_with_api_key(params)
+        # }
+        if self.privateKey is None or self.privateKey == '':
+            raise PermissionDenied('Private key is required for self operation. If you used joined GRVT through email registration instead of Web3 wallet, then read: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt')
+        self.sign_in_with_private_key(params)
+        self.initialize_client(params)
         self.load_account_infos()
         return True
 

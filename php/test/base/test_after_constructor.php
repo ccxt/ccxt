@@ -29,18 +29,18 @@ function helper_test_init_throttler() {
 }
 
 
-function helper_test_sandbox_state($exchange, $should_be_enabled = true) {
+function helper_test_sandbox_state($exchange, $expect_enabled = true) {
     assert($exchange->urls !== null);
     assert(is_array($exchange->urls) && array_key_exists('test', $exchange->urls));
     $is_sandbox_mode_enabled = exchange_prop($exchange, 'isSandboxModeEnabled');
-    if ($should_be_enabled) {
+    if ($expect_enabled) {
         assert($is_sandbox_mode_enabled);
-        assert($exchange->urls['api']['public'] === 'https://example.org');
+        assert($exchange->urls['api']['public'] === 'https://testnet.org');
         assert($exchange->urls['apiBackup']['public'] === 'https://example.com');
     } else {
         assert(!$is_sandbox_mode_enabled);
         assert($exchange->urls['api']['public'] === 'https://example.com');
-        assert($exchange->urls['test']['public'] === 'https://example.org');
+        assert($exchange->urls['test']['public'] === 'https://testnet.org');
     }
 }
 
@@ -57,7 +57,7 @@ function helper_test_init_sandbox() {
                 'public' => 'https://example.com',
             ),
             'test' => array(
-                'public' => 'https://example.org',
+                'public' => 'https://testnet.org',
             ),
         ),
     );
@@ -101,8 +101,243 @@ function helper_test_init_market() {
 }
 
 
+function helper_test_properties() {
+    $exchange = new \ccxt\async\Exchange(array());
+    //
+    // userAgents
+    //
+    $keys = ['chrome', 'chrome39', 'chrome100'];
+    assert(exchange_prop($exchange, 'userAgents') !== null);
+    for ($i = 0; $i < count($keys); $i++) {
+        $key = $keys[$i];
+        $user_agent = exchange_prop($exchange, 'userAgents')[$key];
+        assert($user_agent !== null);
+    }
+    //
+    // options
+    //
+    assert($exchange->options !== null);
+    $default_network_code_replacements = array(
+        'ETH' => array(
+            'ERC20' => 'ETH',
+        ),
+        'TRX' => array(
+            'TRC20' => 'TRX',
+        ),
+        'CRO' => array(
+            'CRC20' => 'CRONOS',
+        ),
+        'BRC20' => array(
+            'BRC20' => 'BTC',
+        ),
+    );
+    assert_deep_equal($exchange, array(), 'options', $exchange->options['defaultNetworkCodeReplacements'], $default_network_code_replacements);
+    //
+    // credentials
+    //
+    assert(exchange_prop($exchange, 'apiKey') === null, 'apiKey should be empty string');
+    assert($exchange->secret === null, 'secret should be empty string');
+    assert($exchange->uid === null, 'uid should be empty string');
+    assert($exchange->login === null, 'login should be empty string');
+    assert($exchange->password === null, 'password should be empty string');
+    assert($exchange->twofa === null, 'twofa should be undefined');
+    assert(exchange_prop($exchange, 'privateKey') === null, 'privateKey should be empty string');
+    assert(exchange_prop($exchange, 'walletAddress') === null, 'walletAddress should be empty string');
+    assert($exchange->token === null, 'token should be empty string');
+    $required_credentials = array(
+        'apiKey' => true,
+        'secret' => true,
+        'uid' => false,
+        'accountId' => false,
+        'login' => false,
+        'password' => false,
+        'twofa' => false,
+        'privateKey' => false,
+        'walletAddress' => false,
+        'token' => false,
+    );
+    assert_deep_equal($exchange, array(), 'requiredCredentials', exchange_prop($exchange, 'requiredCredentials'), $required_credentials);
+    //
+    // proxies
+    //
+    assert($exchange->proxy === null, 'proxy should be undefined');
+    assert(exchange_prop($exchange, 'proxyUrl') === null, 'proxyUrl should be undefined');
+    assert($exchange->proxy_url === null, 'proxy_url should be undefined');
+    assert(exchange_prop($exchange, 'proxyUrlCallback') === null, 'proxyUrlCallback should be undefined');
+    assert($exchange->proxy_url_callback === null, 'proxy_url_callback should be undefined');
+    assert(exchange_prop($exchange, 'httpProxy') === null, 'httpProxy should be undefined');
+    assert($exchange->http_proxy === null, 'http_proxy should be undefined');
+    assert(exchange_prop($exchange, 'httpProxyCallback') === null, 'httpProxyCallback should be undefined');
+    assert($exchange->http_proxy_callback === null, 'http_proxy_callback should be undefined');
+    assert(exchange_prop($exchange, 'httpsProxy') === null, 'httpsProxy should be undefined');
+    assert($exchange->https_proxy === null, 'https_proxy should be undefined');
+    assert(exchange_prop($exchange, 'httpsProxyCallback') === null, 'httpsProxyCallback should be undefined');
+    assert($exchange->https_proxy_callback === null, 'https_proxy_callback should be undefined');
+    assert(exchange_prop($exchange, 'socksProxy') === null, 'socksProxy should be undefined');
+    assert($exchange->socks_proxy === null, 'socks_proxy should be undefined');
+    assert(exchange_prop($exchange, 'socksProxyCallback') === null, 'socksProxyCallback should be undefined');
+    assert($exchange->socks_proxy_callback === null, 'socks_proxy_callback should be undefined');
+    assert(exchange_prop($exchange, 'wsProxy') === null, 'wsProxy should be undefined');
+    assert($exchange->ws_proxy === null, 'ws_proxy should be undefined');
+    assert(exchange_prop($exchange, 'wssProxy') === null, 'wssProxy should be undefined');
+    assert($exchange->wss_proxy === null, 'wss_proxy should be undefined');
+    assert(exchange_prop($exchange, 'wsSocksProxy') === null, 'wsSocksProxy should be undefined');
+    assert($exchange->ws_socks_proxy === null, 'ws_socks_proxy should be undefined');
+    //
+    // request-response
+    //
+    assert(exchange_prop($exchange, 'lastRestRequestTimestamp') === 0, 'lastRestRequestTimestamp should be 0');
+    // assert (exchange.enableLastJsonResponse === false);
+    // assert (exchange.enableLastHttpResponse === true);
+    // assert (exchange.enableLastResponseHeaders === true);
+    assert($exchange->last_http_response === null, 'last_http_response should be undefined');
+    // assert (exchange.last_json_response === undefined);
+    assert($exchange->last_response_headers === null, 'last_response_headers should be undefined');
+    assert($exchange->last_request_headers === null, 'last_request_headers should be undefined');
+    assert($exchange->last_request_body === null, 'last_request_body should be undefined');
+    assert($exchange->last_request_url === null, 'last_request_url should be undefined');
+    // assert (exchange.last_request_path === undefined);
+    assert(exchange_prop($exchange, 'returnResponseHeaders') === false, 'returnResponseHeaders should be false');
+    //
+    // common props
+    //
+    assert('GO_SKIP_START');
+    assert($exchange->id === 'Exch' . 'ange', 'id should be "Exchange"');
+    assert($exchange->has !== null, 'has should not be undefined');
+    assert($exchange->api === null, 'api should be undefined');
+    assert($exchange->features === null, 'features should be undefined');
+    assert(exchange_prop($exchange, 'minFundingAddressLength') >= 1, 'minFundingAddressLength should be >= 1');
+    assert(exchange_prop($exchange, 'isSandboxModeEnabled') === false, 'isSandboxModeEnabled should be false');
+    assert(exchange_prop($exchange, 'enableRateLimit') === true, 'enableRateLimit should be true');
+    assert(exchange_prop($exchange, 'rateLimiterAlgorithm') === 'leakyBucket', 'rateLimiterAlgorithm should be "leakyBucket"');
+    assert(exchange_prop($exchange, 'rateLimit') === 2000, 'rateLimit should be 2000');
+    assert($exchange->certified === false, 'certified should be false');
+    assert($exchange->pro === false, 'pro should be false');
+    assert($exchange->alias === false, 'alias should be false');
+    $http_exception_keys = ['400', '401', '403', '404', '405', '407', '408', '409', '410', '418', '422', '429', '451', '500', '501', '502', '503', '504', '511', '520', '521', '522', '525', '526', '530'];
+    // php errors with below, bcz integer key cast
+    // testSharedMethods.assertDeepEqual (exchange, {}, 'httpExceptionKeys', Object.keys (testSharedMethods.exchangeProp (exchange, 'httpExceptions')), httpExceptionKeys); // todo: add better deepAssert with error classes
+    assert(count((is_array(exchange_prop($exchange, 'httpExceptions')) ? array_keys(exchange_prop($exchange, 'httpExceptions')) : array())) === count($http_exception_keys), 'httpExceptions should have ' . ((string) (count($http_exception_keys))) . ' keys');
+    $limits = array(
+        'leverage' => array(
+            'min' => null,
+            'max' => null,
+        ),
+        'amount' => array(
+            'min' => null,
+            'max' => null,
+        ),
+        'price' => array(
+            'min' => null,
+            'max' => null,
+        ),
+        'cost' => array(
+            'min' => null,
+            'max' => null,
+        ),
+    );
+    assert_deep_equal($exchange, array(), 'limits', $exchange->limits, $limits);
+    assert(exchange_prop($exchange, 'rollingWindowSize') === 60000, 'rollingWindowSize should be 60000');
+    assert($exchange->countries === null, 'countries should be undefined');
+    $urls = array(
+        'logo' => null,
+        'api' => null,
+        'test' => null,
+        'www' => null,
+        'doc' => null,
+        'api_management' => null,
+        'fees' => null,
+        'referral' => null,
+    );
+    assert_deep_equal($exchange, array(), 'urls', $exchange->urls, $urls);
+    assert($exchange->precision === null, 'precision should be undefined');
+    assert($exchange->hostname === null, 'hostname should be undefined');
+    assert(exchange_prop($exchange, 'precisionMode') === null || exchange_prop($exchange, 'precisionMode') === 4, 'precisionMode should be undefined or 4');
+    assert(exchange_prop($exchange, 'paddingMode') === null || exchange_prop($exchange, 'paddingMode') === 5, 'paddingMode should be undefined or 5');
+    assert_deep_equal($exchange, array(), 'headers', $exchange->headers, array());
+    // assert (exchange.origin === '*');
+    assert(exchange_prop($exchange, 'substituteCommonCurrencyCodes') === true, 'substituteCommonCurrencyCodes should be true');
+    // assert (testSharedMethods.exchangeProp (exchange, 'quoteJsonNumbers') === true);
+    // assert (testSharedMethods.exchangeProp (exchange, 'handleContentTypeApplicationZip') === false);
+    assert(exchange_prop($exchange, 'reduceFees') === true, 'reduceFees should be true');
+    $fees = array(
+        'trading' => array(
+            'tierBased' => null,
+            'percentage' => null,
+            'taker' => null,
+            'maker' => null,
+        ),
+        'funding' => array(
+            'tierBased' => null,
+            'percentage' => null,
+            'withdraw' => array(),
+            'deposit' => array(),
+        ),
+    );
+    assert_deep_equal($exchange, array(), 'fees', $exchange->fees, $fees);
+    $status = array(
+        'status' => 'ok',
+        'updated' => null,
+        'eta' => null,
+        'url' => null,
+        'info' => null,
+    );
+    assert_deep_equal($exchange, array(), 'status', $exchange->status, $status);
+    assert($exchange->timeout === 10000, 'timeout should be 10000');
+    assert($exchange->verbose === false, 'verbose should be false');
+    // assert (testSharedMethods.exchangeProp (exchange, 'newUpdates') === true, 'newUpdates should be true'); // todo WS
+    // assert (exchange.requiresEddsa === false);
+    assert(!exchange_prop($exchange, 'reloadingMarkets'), 'reloadingMarkets should be false');
+    assert(exchange_prop($exchange, 'marketsLoading') === null, 'marketsLoading should be undefined');
+    // undefined or false
+    assert($exchange->version === null, 'version should be undefined');
+    assert($exchange->name === null, 'name should be undefined');
+    assert($exchange->exceptions === null, 'exceptions should be undefined');
+    assert($exchange->timeframes === null, 'timeframes should be undefined');
+    // testSharedMethods.assertDeepEqual (exchange, {}, 'clients', testSharedMethods.exchangeProp (exchange, 'clients'), {}); // todo WS
+    // testSharedMethods.assertDeepEqual (exchange, {}, 'streaming', testSharedMethods.exchangeProp (exchange, 'streaming'), {}); // todo WS
+    //
+    // instance dynamic cache
+    //
+    // todo: remove initialization from GO
+    assert_deep_equal($exchange, array(), 'balance', $exchange->balance, array());
+    assert_deep_equal($exchange, array(), 'bidsasks', $exchange->bidsasks, array());
+    assert_deep_equal($exchange, array(), 'orderbooks', $exchange->orderbooks, array());
+    assert_deep_equal($exchange, array(), 'tickers', $exchange->tickers, array());
+    assert($exchange->liquidations === null, 'liquidations should be undefined');
+    assert($exchange->orders === null, 'orders should be undefined');
+    assert_deep_equal($exchange, array(), 'trades', $exchange->trades, array());
+    assert_deep_equal($exchange, array(), 'transactions', $exchange->transactions, array());
+    assert_deep_equal($exchange, array(), 'ohlcvs', $exchange->ohlcvs, array());
+    assert(exchange_prop($exchange, 'myLiquidations') === null);
+    assert(exchange_prop($exchange, 'myTrades') === null);
+    assert($exchange->positions === null, 'positions should be undefined');
+    //
+    // common props
+    //
+    assert($exchange->markets === null, 'markets should be undefined');
+    assert($exchange->symbols === null, 'symbols should be undefined');
+    assert($exchange->markets_by_id === null, 'markets_by_id should be undefined');
+    assert($exchange->ids === null, 'ids should be undefined');
+    assert_deep_equal($exchange, array(), 'currencies', $exchange->currencies, array());
+    assert(exchange_prop($exchange, 'baseCurrencies') === null, 'baseCurrencies should be undefined');
+    assert(exchange_prop($exchange, 'quoteCurrencies') === null, 'quoteCurrencies should be undefined');
+    assert($exchange->currencies_by_id === null, 'currencies_by_id should be undefined');
+    assert($exchange->codes === null, 'codes should be undefined');
+    assert($exchange->accounts === null, 'accounts should be undefined');
+    assert(exchange_prop($exchange, 'accountsById') === null, 'accountsById should be undefined');
+    assert_deep_equal($exchange, array(), 'commonCurrencies', exchange_prop($exchange, 'commonCurrencies'), array(
+        'XBT' => 'BTC',
+        'BCHSV' => 'BSV',
+    ));
+    assert('GO_SKIP_END');
+}
+
+
 function test_after_constructor() {
+    // here should be added all needed tests
     helper_test_init_throttler();
     helper_test_init_sandbox();
     helper_test_init_market();
+    helper_test_properties();
 }

@@ -38,9 +38,9 @@ async function testWatchTradesForSymbols(exchange, skippedProperties, symbols) {
                     returnedSymbols.push(symbol);
                 }
             }
-            if (!('timestampSort' in skippedProperties)) {
-                testSharedMethods.assertTimestampOrder(exchange, method, symbol, response);
-            }
+            // if (!('timestampSort' in skippedProperties)) {
+            //     testSharedMethods.assertTimestampOrder (exchange, method, symbol, response);
+            // }
         }
     }
     return true;

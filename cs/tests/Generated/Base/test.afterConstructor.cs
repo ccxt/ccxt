@@ -26,22 +26,22 @@ public partial class BaseTest
             Assert(exchange.inArray(cost, new List<object>() {1, 1}));
             Assert(!isTrue((inOp(tokenBucket, "maxCapacity"))) || isTrue(exchange.inArray(getValue(tokenBucket, "maxCapacity"), new List<object>() {1000, 1000})));
         }
-        public void helperTestSandboxState(Exchange exchange, object shouldBeEnabled = null)
+        public void helperTestSandboxState(Exchange exchange, object expectEnabled = null)
         {
-            shouldBeEnabled ??= true;
+            expectEnabled ??= true;
             Assert(!isEqual(exchange.urls, null));
             Assert(inOp(exchange.urls, "test"));
             object isSandboxModeEnabled = exchangeProp(exchange, "isSandboxModeEnabled");
-            if (isTrue(shouldBeEnabled))
+            if (isTrue(expectEnabled))
             {
                 Assert(isSandboxModeEnabled);
-                Assert(isEqual(getValue(getValue(exchange.urls, "api"), "public"), "https://example.org"));
+                Assert(isEqual(getValue(getValue(exchange.urls, "api"), "public"), "https://testnet.org"));
                 Assert(isEqual(getValue(getValue(exchange.urls, "apiBackup"), "public"), "https://example.com"));
             } else
             {
                 Assert(!isTrue(isSandboxModeEnabled));
                 Assert(isEqual(getValue(getValue(exchange.urls, "api"), "public"), "https://example.com"));
-                Assert(isEqual(getValue(getValue(exchange.urls, "test"), "public"), "https://example.org"));
+                Assert(isEqual(getValue(getValue(exchange.urls, "test"), "public"), "https://testnet.org"));
             }
         }
         public void helperTestInitSandbox()
@@ -57,7 +57,7 @@ public partial class BaseTest
                         { "public", "https://example.com" },
                     } },
                     { "test", new Dictionary<string, object>() {
-                        { "public", "https://example.org" },
+                        { "public", "https://testnet.org" },
                     } },
                 } },
             };
@@ -98,10 +98,245 @@ public partial class BaseTest
             });
             Assert(!isEqual(getValue(exchange2.markets, "BTC/USD"), null));
         }
+        public void helperTestProperties()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {});
+            //
+            // userAgents
+            //
+            object keys = new List<object>() {"chrome", "chrome39", "chrome100"};
+            Assert(!isEqual(exchangeProp(exchange, "userAgents"), null));
+            for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+            {
+                object key = getValue(keys, i);
+                object userAgent = getValue(exchangeProp(exchange, "userAgents"), key);
+                Assert(!isEqual(userAgent, null));
+            }
+            //
+            // options
+            //
+            Assert(!isEqual(exchange.options, null));
+            object defaultNetworkCodeReplacements = new Dictionary<string, object>() {
+                { "ETH", new Dictionary<string, object>() {
+                    { "ERC20", "ETH" },
+                } },
+                { "TRX", new Dictionary<string, object>() {
+                    { "TRC20", "TRX" },
+                } },
+                { "CRO", new Dictionary<string, object>() {
+                    { "CRC20", "CRONOS" },
+                } },
+                { "BRC20", new Dictionary<string, object>() {
+                    { "BRC20", "BTC" },
+                } },
+            };
+            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "options", getValue(exchange.options, "defaultNetworkCodeReplacements"), defaultNetworkCodeReplacements);
+            //
+            // credentials
+            //
+            Assert(isEqual(exchangeProp(exchange, "apiKey"), null), "apiKey should be empty string");
+            Assert(isEqual(exchange.secret, null), "secret should be empty string");
+            Assert(isEqual(exchange.uid, null), "uid should be empty string");
+            Assert(isEqual(exchange.login, null), "login should be empty string");
+            Assert(isEqual(exchange.password, null), "password should be empty string");
+            Assert(isEqual(exchange.twofa, null), "twofa should be undefined");
+            Assert(isEqual(exchangeProp(exchange, "privateKey"), null), "privateKey should be empty string");
+            Assert(isEqual(exchangeProp(exchange, "walletAddress"), null), "walletAddress should be empty string");
+            Assert(isEqual(exchange.token, null), "token should be empty string");
+            object requiredCredentials = new Dictionary<string, object>() {
+                { "apiKey", true },
+                { "secret", true },
+                { "uid", false },
+                { "accountId", false },
+                { "login", false },
+                { "password", false },
+                { "twofa", false },
+                { "privateKey", false },
+                { "walletAddress", false },
+                { "token", false },
+            };
+            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "requiredCredentials", exchangeProp(exchange, "requiredCredentials"), requiredCredentials);
+            //
+            // proxies
+            //
+            Assert(isEqual(exchange.proxy, null), "proxy should be undefined");
+            Assert(isEqual(exchangeProp(exchange, "proxyUrl"), null), "proxyUrl should be undefined");
+            Assert(isEqual(exchange.proxy_url, null), "proxy_url should be undefined");
+            Assert(isEqual(exchangeProp(exchange, "proxyUrlCallback"), null), "proxyUrlCallback should be undefined");
+            Assert(isEqual(exchange.proxy_url_callback, null), "proxy_url_callback should be undefined");
+            Assert(isEqual(exchangeProp(exchange, "httpProxy"), null), "httpProxy should be undefined");
+            Assert(isEqual(exchange.http_proxy, null), "http_proxy should be undefined");
+            Assert(isEqual(exchangeProp(exchange, "httpProxyCallback"), null), "httpProxyCallback should be undefined");
+            Assert(isEqual(exchange.http_proxy_callback, null), "http_proxy_callback should be undefined");
+            Assert(isEqual(exchangeProp(exchange, "httpsProxy"), null), "httpsProxy should be undefined");
+            Assert(isEqual(exchange.https_proxy, null), "https_proxy should be undefined");
+            Assert(isEqual(exchangeProp(exchange, "httpsProxyCallback"), null), "httpsProxyCallback should be undefined");
+            Assert(isEqual(exchange.https_proxy_callback, null), "https_proxy_callback should be undefined");
+            Assert(isEqual(exchangeProp(exchange, "socksProxy"), null), "socksProxy should be undefined");
+            Assert(isEqual(exchange.socks_proxy, null), "socks_proxy should be undefined");
+            Assert(isEqual(exchangeProp(exchange, "socksProxyCallback"), null), "socksProxyCallback should be undefined");
+            Assert(isEqual(exchange.socks_proxy_callback, null), "socks_proxy_callback should be undefined");
+            Assert(isEqual(exchangeProp(exchange, "wsProxy"), null), "wsProxy should be undefined");
+            Assert(isEqual(exchange.ws_proxy, null), "ws_proxy should be undefined");
+            Assert(isEqual(exchangeProp(exchange, "wssProxy"), null), "wssProxy should be undefined");
+            Assert(isEqual(exchange.wss_proxy, null), "wss_proxy should be undefined");
+            Assert(isEqual(exchangeProp(exchange, "wsSocksProxy"), null), "wsSocksProxy should be undefined");
+            Assert(isEqual(exchange.ws_socks_proxy, null), "ws_socks_proxy should be undefined");
+            //
+            // request-response
+            //
+            Assert(isEqual(exchangeProp(exchange, "lastRestRequestTimestamp"), 0), "lastRestRequestTimestamp should be 0");
+            // Assert (exchange.enableLastJsonResponse === false);
+            // Assert (exchange.enableLastHttpResponse === true);
+            // Assert (exchange.enableLastResponseHeaders === true);
+            Assert(isEqual(exchange.last_http_response, null), "last_http_response should be undefined");
+            // Assert (exchange.last_json_response === undefined);
+            Assert(isEqual(exchange.last_response_headers, null), "last_response_headers should be undefined");
+            Assert(isEqual(exchange.last_request_headers, null), "last_request_headers should be undefined");
+            Assert(isEqual(exchange.last_request_body, null), "last_request_body should be undefined");
+            Assert(isEqual(exchange.last_request_url, null), "last_request_url should be undefined");
+            // Assert (exchange.last_request_path === undefined);
+            Assert(isEqual(exchangeProp(exchange, "returnResponseHeaders"), false), "returnResponseHeaders should be false");
+            //
+            // common props
+            //
+            Assert("GO_SKIP_START");
+            Assert(isEqual(exchange.id, add("Exch", "ange")), "id should be \"Exchange\"");
+            Assert(!isEqual(exchange.has, null), "has should not be undefined");
+            Assert(isEqual(exchange.api, null), "api should be undefined");
+            Assert(isEqual(exchange.features, null), "features should be undefined");
+            Assert(isGreaterThanOrEqual(exchangeProp(exchange, "minFundingAddressLength"), 1), "minFundingAddressLength should be >= 1");
+            Assert(isEqual(exchangeProp(exchange, "isSandboxModeEnabled"), false), "isSandboxModeEnabled should be false");
+            Assert(isEqual(exchangeProp(exchange, "enableRateLimit"), true), "enableRateLimit should be true");
+            Assert(isEqual(exchangeProp(exchange, "rateLimiterAlgorithm"), "leakyBucket"), "rateLimiterAlgorithm should be \"leakyBucket\"");
+            Assert(isEqual(exchangeProp(exchange, "rateLimit"), 2000), "rateLimit should be 2000");
+            Assert(isEqual(exchange.certified, false), "certified should be false");
+            Assert(isEqual(exchange.pro, false), "pro should be false");
+            Assert(isEqual(exchange.alias, false), "alias should be false");
+            object httpExceptionKeys = new List<object>() {"400", "401", "403", "404", "405", "407", "408", "409", "410", "418", "422", "429", "451", "500", "501", "502", "503", "504", "511", "520", "521", "522", "525", "526", "530"};
+            // php errors with below, bcz integer key cast
+            // AssertDeepEqual (exchange, {}, 'httpExceptionKeys', Object.keys (exchangeProp (exchange, 'httpExceptions')), httpExceptionKeys); // todo: add better deepAssert with error classes
+            Assert(isEqual(getArrayLength((new List<object>(((IDictionary<string,object>)exchangeProp(exchange, "httpExceptions")).Keys))), getArrayLength(httpExceptionKeys)), add(add("httpExceptions should have ", ((object)(getArrayLength(httpExceptionKeys))).ToString()), " keys"));
+            object limits = new Dictionary<string, object>() {
+                { "leverage", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "price", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "cost", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            };
+            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "limits", exchange.limits, limits);
+            Assert(isEqual(exchangeProp(exchange, "rollingWindowSize"), 60000), "rollingWindowSize should be 60000");
+            Assert(isEqual(exchange.countries, null), "countries should be undefined");
+            object urls = new Dictionary<string, object>() {
+                { "logo", null },
+                { "api", null },
+                { "test", null },
+                { "www", null },
+                { "doc", null },
+                { "api_management", null },
+                { "fees", null },
+                { "referral", null },
+            };
+            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "urls", exchange.urls, urls);
+            Assert(isEqual(exchange.precision, null), "precision should be undefined");
+            Assert(isEqual(exchange.hostname, null), "hostname should be undefined");
+            Assert(isTrue(isEqual(exchangeProp(exchange, "precisionMode"), null)) || isTrue(isEqual(exchangeProp(exchange, "precisionMode"), 4)), "precisionMode should be undefined or 4");
+            Assert(isTrue(isEqual(exchangeProp(exchange, "paddingMode"), null)) || isTrue(isEqual(exchangeProp(exchange, "paddingMode"), 5)), "paddingMode should be undefined or 5");
+            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "headers", exchange.headers, new Dictionary<string, object>() {});
+            // Assert (exchange.origin === '*');
+            Assert(isEqual(exchangeProp(exchange, "substituteCommonCurrencyCodes"), true), "substituteCommonCurrencyCodes should be true");
+            // Assert (exchangeProp (exchange, 'quoteJsonNumbers') === true);
+            // Assert (exchangeProp (exchange, 'handleContentTypeApplicationZip') === false);
+            Assert(isEqual(exchangeProp(exchange, "reduceFees"), true), "reduceFees should be true");
+            object fees = new Dictionary<string, object>() {
+                { "trading", new Dictionary<string, object>() {
+                    { "tierBased", null },
+                    { "percentage", null },
+                    { "taker", null },
+                    { "maker", null },
+                } },
+                { "funding", new Dictionary<string, object>() {
+                    { "tierBased", null },
+                    { "percentage", null },
+                    { "withdraw", new Dictionary<string, object>() {} },
+                    { "deposit", new Dictionary<string, object>() {} },
+                } },
+            };
+            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "fees", exchange.fees, fees);
+            object status = new Dictionary<string, object>() {
+                { "status", "ok" },
+                { "updated", null },
+                { "eta", null },
+                { "url", null },
+                { "info", null },
+            };
+            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "status", exchange.status, status);
+            Assert(isEqual(exchange.timeout, 10000), "timeout should be 10000");
+            Assert(isEqual(exchange.verbose, false), "verbose should be false");
+            // Assert (exchangeProp (exchange, 'newUpdates') === true, 'newUpdates should be true'); // todo WS
+            // Assert (exchange.requiresEddsa === false);
+            Assert(!isTrue(exchangeProp(exchange, "reloadingMarkets")), "reloadingMarkets should be false");
+            Assert(isEqual(exchangeProp(exchange, "marketsLoading"), null), "marketsLoading should be undefined");
+            // undefined or false
+            Assert(isEqual(exchange.version, null), "version should be undefined");
+            Assert(isEqual(exchange.name, null), "name should be undefined");
+            Assert(isEqual(exchange.exceptions, null), "exceptions should be undefined");
+            Assert(isEqual(exchange.timeframes, null), "timeframes should be undefined");
+            // AssertDeepEqual (exchange, {}, 'clients', exchangeProp (exchange, 'clients'), {}); // todo WS
+            // AssertDeepEqual (exchange, {}, 'streaming', exchangeProp (exchange, 'streaming'), {}); // todo WS
+            //
+            // instance dynamic cache
+            //
+            // todo: remove initialization from GO
+            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "balance", exchange.balance, new Dictionary<string, object>() {});
+            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "bidsasks", exchange.bidsasks, new Dictionary<string, object>() {});
+            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "orderbooks", exchange.orderbooks, new Dictionary<string, object>() {});
+            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "tickers", exchange.tickers, new Dictionary<string, object>() {});
+            Assert(isEqual(exchange.liquidations, null), "liquidations should be undefined");
+            Assert(isEqual(exchange.orders, null), "orders should be undefined");
+            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "trades", exchange.trades, new Dictionary<string, object>() {});
+            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "transactions", exchange.transactions, new Dictionary<string, object>() {});
+            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "ohlcvs", exchange.ohlcvs, new Dictionary<string, object>() {});
+            Assert(isEqual(exchangeProp(exchange, "myLiquidations"), null));
+            Assert(isEqual(exchangeProp(exchange, "myTrades"), null));
+            Assert(isEqual(exchange.positions, null), "positions should be undefined");
+            //
+            // common props
+            //
+            Assert(isEqual(exchange.markets, null), "markets should be undefined");
+            Assert(isEqual(exchange.symbols, null), "symbols should be undefined");
+            Assert(isEqual(exchange.markets_by_id, null), "markets_by_id should be undefined");
+            Assert(isEqual(exchange.ids, null), "ids should be undefined");
+            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "currencies", exchange.currencies, new Dictionary<string, object>() {});
+            Assert(isEqual(exchangeProp(exchange, "baseCurrencies"), null), "baseCurrencies should be undefined");
+            Assert(isEqual(exchangeProp(exchange, "quoteCurrencies"), null), "quoteCurrencies should be undefined");
+            Assert(isEqual(exchange.currencies_by_id, null), "currencies_by_id should be undefined");
+            Assert(isEqual(exchange.codes, null), "codes should be undefined");
+            Assert(isEqual(exchange.accounts, null), "accounts should be undefined");
+            Assert(isEqual(exchangeProp(exchange, "accountsById"), null), "accountsById should be undefined");
+            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "commonCurrencies", exchangeProp(exchange, "commonCurrencies"), new Dictionary<string, object>() {
+                { "XBT", "BTC" },
+                { "BCHSV", "BSV" },
+            });
+            Assert("GO_SKIP_END");
+        }
         public void testAfterConstructor()
         {
+            // here should be added all needed tests
             helperTestInitThrottler();
             helperTestInitSandbox();
             helperTestInitMarket();
+            helperTestProperties();
         }
 }

@@ -107,7 +107,6 @@ class Exchange {
         this.validateClientSsl = false;
         this.timeout = 10000; // milliseconds
         this.verbose = false;
-        this.twofa = undefined; // two-factor authentication (2-FA)
         this.balance = {};
         this.liquidations = undefined;
         this.orderbooks = {};
@@ -135,10 +134,10 @@ class Exchange {
         this.markets = undefined;
         this.features = undefined;
         this.status = undefined;
-        this.rateLimit = undefined; // milliseconds
+        this.rateLimit = 2000; // milliseconds
         this.tokenBucket = undefined;
         this.throttler = undefined;
-        this.enableRateLimit = undefined;
+        this.enableRateLimit = true;
         this.rollingWindowSize = 0.0; // set to 0.0 to use leaky bucket rate limiter
         this.rateLimiterAlgorithm = 'leakyBucket';
         this.httpExceptions = undefined;
@@ -162,10 +161,8 @@ class Exchange {
         this.exceptions = {};
         this.timeframes = {};
         this.version = undefined;
-        this.marketsByAltname = undefined;
         this.name = undefined;
         this.targetAccount = undefined;
-        this.stablePairs = {};
         this.httpProxyAgentModule = undefined;
         this.httpsProxyAgentModule = undefined;
         this.socksProxyAgentModule = undefined;
@@ -1793,15 +1790,16 @@ class Exchange {
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
     describe() {
         return {
-            'id': undefined,
-            'name': undefined,
-            'countries': undefined,
-            'enableRateLimit': true,
-            'rateLimit': 2000,
+            'id': this.id,
+            'name': this.name,
+            'countries': this.countries,
+            'enableRateLimit': this.enableRateLimit,
+            'rateLimit': this.rateLimit,
+            'rateLimiterAlgorithm': this.rateLimiterAlgorithm,
             'timeout': this.timeout,
-            'certified': false,
-            'pro': false,
-            'alias': false,
+            'certified': this.certified,
+            'pro': this.pro,
+            'alias': this.alias,
             'dex': false,
             'has': {
                 'publicAPI': true,
@@ -2047,9 +2045,12 @@ class Exchange {
             'urls': {
                 'logo': undefined,
                 'api': undefined,
+                'test': undefined,
                 'www': undefined,
                 'doc': undefined,
+                'api_management': undefined,
                 'fees': undefined,
+                'referral': undefined,
             },
             'api': undefined,
             'requiredCredentials': {
@@ -2086,6 +2087,7 @@ class Exchange {
                 'updated': undefined,
                 'eta': undefined,
                 'url': undefined,
+                'info': undefined,
             },
             'exceptions': undefined,
             'httpExceptions': {

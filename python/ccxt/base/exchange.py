@@ -2553,15 +2553,16 @@ class Exchange(object):
 
     def describe(self) -> Any:
         return {
-            'id': None,
-            'name': None,
-            'countries': None,
-            'enableRateLimit': True,
-            'rateLimit': 2000,  # milliseconds = seconds * 1000
+            'id': self.id,
+            'name': self.name,
+            'countries': self.countries,
+            'enableRateLimit': self.enableRateLimit,
+            'rateLimit': self.rateLimit,  # milliseconds = seconds * 1000
+            'rateLimiterAlgorithm': self.rateLimiterAlgorithm,
             'timeout': self.timeout,  # milliseconds = seconds * 1000
-            'certified': False,  # if certified by the CCXT dev team
-            'pro': False,  # if it is integrated with CCXT Pro for WebSocket support
-            'alias': False,  # whether self exchange is an alias to another exchange
+            'certified': self.certified,  # if certified by the CCXT dev team
+            'pro': self.pro,  # if it is integrated with CCXT Pro for WebSocket support
+            'alias': self.alias,  # whether self exchange is an alias to another exchange
             'dex': False,
             'has': {
                 'publicAPI': True,
@@ -2807,9 +2808,12 @@ class Exchange(object):
             'urls': {
                 'logo': None,
                 'api': None,
+                'test': None,
                 'www': None,
                 'doc': None,
+                'api_management': None,
                 'fees': None,
+                'referral': None,
             },
             'api': None,
             'requiredCredentials': {

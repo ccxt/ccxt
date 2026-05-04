@@ -26,19 +26,19 @@ func HelperTestInitThrottler() {
 	Assert(!ccxt.IsTrue((ccxt.InOp(tokenBucket, "maxCapacity"))) || ccxt.IsTrue(exchange.InArray(ccxt.GetValue(tokenBucket, "maxCapacity"), []interface{}{1000, 1000})))
 }
 func HelperTestSandboxState(exchange *ccxt.Exchange, optionalArgs ...interface{}) {
-	shouldBeEnabled := ccxt.GetArg(optionalArgs, 0, true)
-	_ = shouldBeEnabled
+	expectEnabled := ccxt.GetArg(optionalArgs, 0, true)
+	_ = expectEnabled
 	Assert(!ccxt.IsEqual(exchange.Urls, nil))
 	Assert(ccxt.InOp(exchange.Urls, "test"))
 	var isSandboxModeEnabled interface{} = ExchangeProp(exchange, "isSandboxModeEnabled")
-	if ccxt.IsTrue(shouldBeEnabled) {
+	if ccxt.IsTrue(expectEnabled) {
 		Assert(isSandboxModeEnabled)
-		Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(exchange.Urls, "api"), "public"), "https://example.org"))
+		Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(exchange.Urls, "api"), "public"), "https://testnet.org"))
 		Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(exchange.Urls, "apiBackup"), "public"), "https://example.com"))
 	} else {
 		Assert(!ccxt.IsTrue(isSandboxModeEnabled))
 		Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(exchange.Urls, "api"), "public"), "https://example.com"))
-		Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(exchange.Urls, "test"), "public"), "https://example.org"))
+		Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(exchange.Urls, "test"), "public"), "https://testnet.org"))
 	}
 }
 func HelperTestInitSandbox() {
@@ -53,7 +53,7 @@ func HelperTestInitSandbox() {
 				"public": "https://example.com",
 			},
 			"test": map[string]interface{}{
-				"public": "https://example.org",
+				"public": "https://testnet.org",
 			},
 		},
 	}
@@ -99,8 +99,114 @@ func HelperTestInitMarket() {
 	}, map[string]interface{}{}, exchange2)
 	Assert(!ccxt.IsEqual(ccxt.GetValue(exchange2.Markets, "BTC/USD"), nil))
 }
+func HelperTestProperties() {
+	exchange := ccxt.NewExchange().(*ccxt.Exchange)
+	exchange.DerivedExchange = exchange
+	exchange.InitParent(map[string]interface{}{}, map[string]interface{}{}, exchange)
+	//
+	// userAgents
+	//
+	var keys interface{} = []interface{}{"chrome", "chrome39", "chrome100"}
+	Assert(!ccxt.IsEqual(ExchangeProp(exchange, "userAgents"), nil))
+	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
+		var key interface{} = ccxt.GetValue(keys, i)
+		var userAgent interface{} = ccxt.GetValue(ExchangeProp(exchange, "userAgents"), key)
+		Assert(!ccxt.IsEqual(userAgent, nil))
+	}
+	//
+	// options
+	//
+	Assert(!ccxt.IsEqual(exchange.Options, nil))
+	var defaultNetworkCodeReplacements map[string]interface{} = map[string]interface{}{
+		"ETH": map[string]interface{}{
+			"ERC20": "ETH",
+		},
+		"TRX": map[string]interface{}{
+			"TRC20": "TRX",
+		},
+		"CRO": map[string]interface{}{
+			"CRC20": "CRONOS",
+		},
+		"BRC20": map[string]interface{}{
+			"BRC20": "BTC",
+		},
+	}
+	AssertDeepEqual(exchange, map[string]interface{}{}, "options", ccxt.GetValue(exchange.Options, "defaultNetworkCodeReplacements"), defaultNetworkCodeReplacements)
+	//
+	// credentials
+	//
+	assert(ccxt.IsEqual(ExchangeProp(exchange, "apiKey"), nil), "apiKey should be empty string")
+	assert(ccxt.IsEqual(exchange.Secret, nil), "secret should be empty string")
+	assert(ccxt.IsEqual(exchange.Uid, nil), "uid should be empty string")
+	assert(ccxt.IsEqual(exchange.Login, nil), "login should be empty string")
+	assert(ccxt.IsEqual(exchange.Password, nil), "password should be empty string")
+	assert(ccxt.IsEqual(exchange.Twofa, nil), "twofa should be undefined")
+	assert(ccxt.IsEqual(ExchangeProp(exchange, "privateKey"), nil), "privateKey should be empty string")
+	assert(ccxt.IsEqual(ExchangeProp(exchange, "walletAddress"), nil), "walletAddress should be empty string")
+	assert(ccxt.IsEqual(exchange.Token, nil), "token should be empty string")
+	var requiredCredentials map[string]interface{} = map[string]interface{}{
+		"apiKey":        true,
+		"secret":        true,
+		"uid":           false,
+		"accountId":     false,
+		"login":         false,
+		"password":      false,
+		"twofa":         false,
+		"privateKey":    false,
+		"walletAddress": false,
+		"token":         false,
+	}
+	AssertDeepEqual(exchange, map[string]interface{}{}, "requiredCredentials", ExchangeProp(exchange, "requiredCredentials"), requiredCredentials)
+	//
+	// proxies
+	//
+	assert(ccxt.IsEqual(exchange.Proxy, nil), "proxy should be undefined")
+	assert(ccxt.IsEqual(ExchangeProp(exchange, "proxyUrl"), nil), "proxyUrl should be undefined")
+	assert(ccxt.IsEqual(exchange.Proxy_url, nil), "proxy_url should be undefined")
+	assert(ccxt.IsEqual(ExchangeProp(exchange, "proxyUrlCallback"), nil), "proxyUrlCallback should be undefined")
+	assert(ccxt.IsEqual(exchange.Proxy_url_callback, nil), "proxy_url_callback should be undefined")
+	assert(ccxt.IsEqual(ExchangeProp(exchange, "httpProxy"), nil), "httpProxy should be undefined")
+	assert(ccxt.IsEqual(exchange.Http_proxy, nil), "http_proxy should be undefined")
+	assert(ccxt.IsEqual(ExchangeProp(exchange, "httpProxyCallback"), nil), "httpProxyCallback should be undefined")
+	assert(ccxt.IsEqual(exchange.Http_proxy_callback, nil), "http_proxy_callback should be undefined")
+	assert(ccxt.IsEqual(ExchangeProp(exchange, "httpsProxy"), nil), "httpsProxy should be undefined")
+	assert(ccxt.IsEqual(exchange.Https_proxy, nil), "https_proxy should be undefined")
+	assert(ccxt.IsEqual(ExchangeProp(exchange, "httpsProxyCallback"), nil), "httpsProxyCallback should be undefined")
+	assert(ccxt.IsEqual(exchange.Https_proxy_callback, nil), "https_proxy_callback should be undefined")
+	assert(ccxt.IsEqual(ExchangeProp(exchange, "socksProxy"), nil), "socksProxy should be undefined")
+	assert(ccxt.IsEqual(exchange.Socks_proxy, nil), "socks_proxy should be undefined")
+	assert(ccxt.IsEqual(ExchangeProp(exchange, "socksProxyCallback"), nil), "socksProxyCallback should be undefined")
+	assert(ccxt.IsEqual(exchange.Socks_proxy_callback, nil), "socks_proxy_callback should be undefined")
+	assert(ccxt.IsEqual(ExchangeProp(exchange, "wsProxy"), nil), "wsProxy should be undefined")
+	assert(ccxt.IsEqual(exchange.Ws_proxy, nil), "ws_proxy should be undefined")
+	assert(ccxt.IsEqual(ExchangeProp(exchange, "wssProxy"), nil), "wssProxy should be undefined")
+	assert(ccxt.IsEqual(exchange.Wss_proxy, nil), "wss_proxy should be undefined")
+	assert(ccxt.IsEqual(ExchangeProp(exchange, "wsSocksProxy"), nil), "wsSocksProxy should be undefined")
+	assert(ccxt.IsEqual(exchange.Ws_socks_proxy, nil), "ws_socks_proxy should be undefined")
+	//
+	// request-response
+	//
+	assert(ccxt.IsEqual(ExchangeProp(exchange, "lastRestRequestTimestamp"), 0), "lastRestRequestTimestamp should be 0")
+	// assert (exchange.enableLastJsonResponse === false);
+	// assert (exchange.enableLastHttpResponse === true);
+	// assert (exchange.enableLastResponseHeaders === true);
+	assert(ccxt.IsEqual(exchange.Last_http_response, nil), "last_http_response should be undefined")
+	// assert (exchange.last_json_response === undefined);
+	assert(ccxt.IsEqual(exchange.Last_response_headers, nil), "last_response_headers should be undefined")
+	assert(ccxt.IsEqual(exchange.Last_request_headers, nil), "last_request_headers should be undefined")
+	assert(ccxt.IsEqual(exchange.Last_request_body, nil), "last_request_body should be undefined")
+	assert(ccxt.IsEqual(exchange.Last_request_url, nil), "last_request_url should be undefined")
+	// assert (exchange.last_request_path === undefined);
+	assert(ccxt.IsEqual(ExchangeProp(exchange, "returnResponseHeaders"), false), "returnResponseHeaders should be false")
+	//
+	// common props
+	//
+
+}
 func TestAfterConstructor() {
+	// here should be added all needed tests
 	HelperTestInitThrottler()
 	HelperTestInitSandbox()
 	HelperTestInitMarket()
+	HelperTestProperties()
 }
