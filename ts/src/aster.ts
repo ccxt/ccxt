@@ -185,7 +185,7 @@ export default class aster extends Exchange {
                 'setMargin': false,
                 'setMarginMode': true,
                 'setPositionMode': true,
-                'signIn': false,
+                'signIn': true,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -419,6 +419,7 @@ export default class aster extends Exchange {
             'requiredCredentials': {
                 'apiKey': false,
                 'secret': false,
+                'privateKey': true,
             },
             'fees': {
                 'trading': {
@@ -728,12 +729,7 @@ export default class aster extends Exchange {
             this.sapiPublicGetV3ExchangeInfo (params),
             this.fapiPublicGetV3ExchangeInfo (params),
         ];
-        if (!this.isEmptyString (this.privateKey)) {
-            if (this.privateKey.length > 66) {
-                throw new NotSupported (this.id + ' after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt');
-            }
-            promises.push (this.signIn ());
-        }
+        promises.push (this.signIn ());
         const results = await Promise.all (promises);
         const sapiResult = this.safeDict (results, 0, {});
         const sapiRows = this.safeList (sapiResult, 'symbols', []);
@@ -876,7 +872,10 @@ export default class aster extends Exchange {
         const filterPrice = this.safeDict (filtersByType, 'PRICE_FILTER');
         const filterLotSize = this.safeDict (filtersByType, 'LOT_SIZE');
         const filterMarketLotSize = this.safeDict (filtersByType, 'MARKET_LOT_SIZE', {});
-        const pricePrecision = (filterPrice !== undefined) ? this.safeNumber (filterPrice, 'tickSize') : this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision')));
+        let precision = this.safeNumber (filterPrice, 'tickSize');
+        if (precision === undefined) {
+            precision = this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision')));
+        }
         const amountPrecision = (filterLotSize !== undefined) ? this.safeNumber (filterLotSize, 'stepSize') : this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityPrecision')));
         return this.safeMarketStructure ({
             'id': id,
@@ -1253,7 +1252,7 @@ export default class aster extends Exchange {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        await this.loadMarketsAndSignIn ();
         let request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -1874,6 +1873,7 @@ export default class aster extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
+        await this.loadMarketsAndSignIn ();
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let response = undefined;
@@ -1946,7 +1946,7 @@ export default class aster extends Exchange {
         if ((marginMode !== 'ISOLATED') && (marginMode !== 'CROSSED')) {
             throw new BadRequest (this.id + ' marginMode must be either isolated or cross');
         }
-        await this.loadMarkets ();
+        await this.loadMarketsAndSignIn ();
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -2030,7 +2030,7 @@ export default class aster extends Exchange {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
      */
     async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
-        await this.loadMarkets ();
+        await this.loadMarketsAndSignIn ();
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -2183,7 +2183,7 @@ export default class aster extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        await this.loadMarketsAndSignIn ();
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -2248,7 +2248,7 @@ export default class aster extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        await this.loadMarketsAndSignIn ();
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -2312,10 +2312,10 @@ export default class aster extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
+        await this.loadMarketsAndSignIn ();
         const market = this.market (symbol);
         let request: Dict = {
             'symbol': market['id'],
@@ -2381,7 +2381,7 @@ export default class aster extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        await this.loadMarketsAndSignIn ();
         const request: Dict = {};
         let market = undefined;
         let marketType = undefined;
@@ -2463,7 +2463,7 @@ export default class aster extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+        await this.loadMarketsAndSignIn ();
         const market = this.market (symbol);
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
         let response = undefined;
@@ -2515,7 +2515,7 @@ export default class aster extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrders (orders: OrderRequest[], params = {}) {
-        await this.loadMarkets ();
+        await this.loadMarketsAndSignIn ();
         const ordersRequests = [];
         let orderSymbols = [];
         if (orders.length > 5) {
@@ -2755,7 +2755,7 @@ export default class aster extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        await this.loadMarketsAndSignIn ();
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -2796,7 +2796,7 @@ export default class aster extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        await this.loadMarketsAndSignIn ();
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -2836,7 +2836,7 @@ export default class aster extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        await this.loadMarketsAndSignIn ();
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -2908,7 +2908,7 @@ export default class aster extends Exchange {
         if ((leverage < 1) || (leverage > 125)) {
             throw new BadRequest (this.id + ' leverage should be between 1 and 125');
         }
-        await this.loadMarkets ();
+        await this.loadMarketsAndSignIn ();
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -2935,7 +2935,7 @@ export default class aster extends Exchange {
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
     async fetchLeverages (symbols: Strings = undefined, params = {}): Promise<Leverages> {
-        await this.loadMarkets ();
+        await this.loadMarketsAndSignIn ();
         const response = await this.fapiPrivateGetV3PositionRisk (params);
         //
         //     [
@@ -3014,7 +3014,7 @@ export default class aster extends Exchange {
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
      */
     async fetchMarginModes (symbols: Strings = undefined, params = {}): Promise<MarginModes> {
-        await this.loadMarkets ();
+        await this.loadMarketsAndSignIn ();
         const response = await this.fapiPrivateGetV3PositionRisk (params);
         //
         //
@@ -3085,10 +3085,10 @@ export default class aster extends Exchange {
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
      */
     async fetchMarginAdjustmentHistory (symbol: Str = undefined, type: Str = undefined, since: Num = undefined, limit: Num = undefined, params = {}): Promise<MarginModification[]> {
-        await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMarginAdjustmentHistory () requires a symbol argument');
         }
+        await this.loadMarketsAndSignIn ();
         const market = this.market (symbol);
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
@@ -3164,7 +3164,7 @@ export default class aster extends Exchange {
     }
 
     async modifyMarginHelper (symbol: string, amount, addOrReduce, params = {}) {
-        await this.loadMarkets ();
+        await this.loadMarketsAndSignIn ();
         const market = this.market (symbol);
         amount = this.amountToPrecision (symbol, amount);
         const request: Dict = {
@@ -3255,7 +3255,7 @@ export default class aster extends Exchange {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
      */
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        await this.loadMarketsAndSignIn ();
         let market = undefined;
         let request: Dict = {
             'incomeType': 'FUNDING_FEE', // "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION", "INSURANCE_CLEAR", and "MARKET_MERCHANT_RETURN_REWARD"
@@ -3346,7 +3346,7 @@ export default class aster extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
-        await this.loadMarkets ();
+        await this.loadMarketsAndSignIn ();
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -3566,7 +3566,7 @@ export default class aster extends Exchange {
                 throw new ArgumentsRequired (this.id + ' fetchPositionsRisk() requires an array argument for symbols');
             }
         }
-        await this.loadMarkets ();
+        await this.loadMarketsAndSignIn ();
         await this.loadLeverageBrackets (false, params);
         const request: Dict = {};
         const response = await this.fapiPrivateGetV3PositionRisk (this.extend (request, params));
@@ -3848,7 +3848,7 @@ export default class aster extends Exchange {
                 throw new ArgumentsRequired (this.id + ' fetchPositions() requires an array argument for symbols');
             }
         }
-        await this.loadMarkets ();
+        await this.loadMarketsAndSignIn ();
         await this.loadLeverageBrackets (false, params);
         const response = await this.fapiPrivateGetV4Account (params);
         let filterClosed = undefined;
@@ -3859,7 +3859,7 @@ export default class aster extends Exchange {
     }
 
     async loadLeverageBrackets (reload = false, params = {}) {
-        await this.loadMarkets ();
+        await this.loadMarketsAndSignIn ();
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
         const leverageBrackets = this.safeDict (this.options, 'leverageBrackets');
@@ -3967,7 +3967,7 @@ export default class aster extends Exchange {
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
-        await this.loadMarkets ();
+        await this.loadMarketsAndSignIn ();
         const currency = this.currency (code);
         const nonce = this.milliseconds () * 1000;
         const request: Dict = {
@@ -4045,7 +4045,7 @@ export default class aster extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
-        await this.loadMarkets ();
+        await this.loadMarketsAndSignIn ();
         const currency = this.currency (code);
         const request: Dict = {
             'asset': currency['id'],
@@ -4213,6 +4213,10 @@ export default class aster extends Exchange {
         return capitalized;
     }
 
+    async loadMarketsAndSignIn () {
+        await Promise.all ([ this.loadMarkets (), this.signIn () ]);
+    }
+
     /**
      * @method
      * @name aster#signIn
@@ -4222,6 +4226,12 @@ export default class aster extends Exchange {
      * @returns response from exchange
      */
     async signIn (params = {}) {
+        if (this.isEmptyString (this.privateKey)) {
+            return false;
+        }
+        if (this.privateKey.length > 66) {
+            throw new NotSupported (this.id + ' after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt');
+        }
         await this.initializeClient (params);
         return true;
     }
@@ -4257,9 +4267,8 @@ export default class aster extends Exchange {
                 break;
             }
         }
-        if (found) {
+        if (!found) {
             this.options['approvedBuilderFee'] = true;
-        } else {
             try {
                 const request: Dict = {
                     'builder': this.safeString (this.options, 'builder'),
@@ -4276,8 +4285,8 @@ export default class aster extends Exchange {
                 if (codeRes !== 200) {
                     throw new ExchangeError ('Builder authorization failed, ' + this.json (authResponse));
                 }
-                this.options['approvedBuilderFee'] = true;
             } catch (e) {
+                this.options['approvedBuilderFee'] = false;
                 this.options['builderFee'] = false; // disable if err
             }
         }
