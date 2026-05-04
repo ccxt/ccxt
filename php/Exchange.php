@@ -294,12 +294,9 @@ class Exchange {
     // rate limiter properties
     public $rateLimiterAlgorithm = 'leakyBucket';  // rollingWindow or leakyBucket
     public $rollingWindowSize = 60000;
-    public $enableLastJsonResponse = false;
     public $enableLastHttpResponse = true;
     public $enableLastResponseHeaders = true;
-    public $last_http_response = null;
-    public $last_json_response = null;
-    public $last_response_headers = null;
+    public $last_http_response = null;    public $last_response_headers = null;
     public $last_request_headers = null;
     public $last_request_body = null;
     public $last_request_url = null;
@@ -1952,9 +1949,6 @@ class Exchange {
 
         if ($is_json_encoded_response) {
             $json_response = $this->parse_json($result);
-            if ($this->enableLastJsonResponse) {
-                $this->last_json_response = $json_response;
-            }
             if ($json_response && !array_is_list($json_response) && $this->returnResponseHeaders) {
                 $json_response['responseHeaders'] = $response_headers;
             }

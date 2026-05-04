@@ -937,7 +937,6 @@ fmt.Println(market)
 
 // Check last request/response
 fmt.Println(exchange.LastHttpResponse)
-fmt.Println(exchange.LastJsonResponse)
 ```
 
 ## Learn More

@@ -926,7 +926,6 @@ var market = exchange.Markets["BTC/USDT"];
 
 // Check last request/response
 Console.WriteLine(exchange.LastHttpResponse);
-Console.WriteLine(exchange.LastJsonResponse);
 ```
 
 ## Learn More

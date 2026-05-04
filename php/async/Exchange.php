@@ -253,9 +253,6 @@ class Exchange extends \ccxt\Exchange {
 
             if ($is_json_encoded_response) {
                 $json_response = $this->parse_json($response_body);
-                if ($this->enableLastJsonResponse) {
-                    $this->last_json_response = $json_response;
-                }
                 if ($this->returnResponseHeaders) {
                     $json_response['responseHeaders'] = $response_headers;
                 }

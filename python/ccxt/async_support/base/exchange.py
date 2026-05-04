@@ -264,8 +264,6 @@ class Exchange(BaseExchange):
                     self.last_http_response = http_response
                 if self.enableLastResponseHeaders:
                     self.last_response_headers = headers
-                if self.enableLastJsonResponse:
-                    self.last_json_response = json_response
                 if self.verbose:
                     self.log("\nfetch Response:", self.id, method, url, http_status_code, "ResponseHeaders:", headers, "ResponseBody:", http_response)
                 if json_response and not isinstance(json_response, list) and self.returnResponseHeaders:

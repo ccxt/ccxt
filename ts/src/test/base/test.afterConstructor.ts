@@ -169,11 +169,9 @@ function helperTestProperties () {
     // request-response
     //
     assert (testSharedMethods.exchangeProp (exchange, 'lastRestRequestTimestamp') === 0, 'lastRestRequestTimestamp should be 0');
-    // assert (exchange.enableLastJsonResponse === false);
     // assert (exchange.enableLastHttpResponse === true);
     // assert (exchange.enableLastResponseHeaders === true);
     assert (exchange.last_http_response === undefined, 'last_http_response should be undefined');
-    // assert (exchange.last_json_response === undefined);
     assert (exchange.last_response_headers === undefined, 'last_response_headers should be undefined');
     assert (exchange.last_request_headers === undefined, 'last_request_headers should be undefined');
     assert (exchange.last_request_body === undefined, 'last_request_body should be undefined');
