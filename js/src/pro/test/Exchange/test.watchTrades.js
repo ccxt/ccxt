@@ -30,7 +30,7 @@ async function testWatchTrades(exchange, skippedProperties, symbol) {
             for (let i = 0; i < response.length; i++) {
                 testTrade(exchange, skippedProperties, method, response[i], symbol, now);
             }
-            if (!('timestamp' in skippedProperties)) {
+            if (!('timestampSort' in skippedProperties)) {
                 testSharedMethods.assertTimestampOrder(exchange, method, symbol, response);
             }
         }

@@ -156,9 +156,16 @@
                     "deposit_disabled": false
                 },
                 {
+                    "name": "0G",
+                    "addr": "0x1217bfe6c773eec6cc4a38b5dc45b92292b6e189",
+                    "withdraw_disabled": true,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": true
+                },
+                {
                     "name": "ALGO",
                     "addr": "312769",
-                    "withdraw_disabled": true,
+                    "withdraw_disabled": false,
                     "withdraw_delayed": false,
                     "deposit_disabled": true
                 },
@@ -214,7 +221,7 @@
                 {
                     "name": "EOS",
                     "addr": "USDT@tethertether",
-                    "withdraw_disabled": true,
+                    "withdraw_disabled": false,
                     "withdraw_delayed": false,
                     "deposit_disabled": true
                 },
@@ -254,16 +261,16 @@
                     "deposit_disabled": false
                 },
                 {
-                    "name": "NEAR",
-                    "addr": "usdt.tether-token.near",
+                    "name": "MON",
+                    "addr": "0xe7cd86e13ac4309349f30b3435a9d337750fc82d",
                     "withdraw_disabled": false,
                     "withdraw_delayed": false,
                     "deposit_disabled": false
                 },
                 {
-                    "name": "OKT",
-                    "addr": "0x382bb369d343125bfb2117af9c149795c6c65c50",
-                    "withdraw_disabled": true,
+                    "name": "NEAR",
+                    "addr": "usdt.tether-token.near",
+                    "withdraw_disabled": false,
                     "withdraw_delayed": false,
                     "deposit_disabled": false
                 },
@@ -291,6 +298,13 @@
                 {
                     "name": "TRX",
                     "addr": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "XPL",
+                    "addr": "0xb8ce59fc3717ada4c02eadf9682a9e934f625ebb",
                     "withdraw_disabled": false,
                     "withdraw_delayed": false,
                     "deposit_disabled": false
@@ -342,11 +356,37 @@
                     }
                 }
             },
+            "0G": {
+                "info": {
+                    "name": "0G",
+                    "addr": "0x1217bfe6c773eec6cc4a38b5dc45b92292b6e189",
+                    "withdraw_disabled": true,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": true
+                },
+                "id": "0G",
+                "network": "0G",
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": null,
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
             "ALGO": {
                 "info": {
                     "name": "ALGO",
                     "addr": "312769",
-                    "withdraw_disabled": true,
+                    "withdraw_disabled": false,
                     "withdraw_delayed": false,
                     "deposit_disabled": true
                 },
@@ -354,7 +394,7 @@
                 "network": "ALGO",
                 "active": false,
                 "deposit": false,
-                "withdraw": false,
+                "withdraw": true,
                 "fee": null,
                 "precision": 0.0001,
                 "limits": {
@@ -554,7 +594,7 @@
                 "info": {
                     "name": "EOS",
                     "addr": "USDT@tethertether",
-                    "withdraw_disabled": true,
+                    "withdraw_disabled": false,
                     "withdraw_delayed": false,
                     "deposit_disabled": true
                 },
@@ -562,7 +602,7 @@
                 "network": "EOS",
                 "active": false,
                 "deposit": false,
-                "withdraw": false,
+                "withdraw": true,
                 "fee": null,
                 "precision": 0.0001,
                 "limits": {
@@ -706,16 +746,16 @@
                     }
                 }
             },
-            "NEAR": {
+            "MON": {
                 "info": {
-                    "name": "NEAR",
-                    "addr": "usdt.tether-token.near",
+                    "name": "MON",
+                    "addr": "0xe7cd86e13ac4309349f30b3435a9d337750fc82d",
                     "withdraw_disabled": false,
                     "withdraw_delayed": false,
                     "deposit_disabled": false
                 },
-                "id": "NEAR",
-                "network": "NEAR",
+                "id": "MON",
+                "network": "MON",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
@@ -732,19 +772,19 @@
                     }
                 }
             },
-            "OKC": {
+            "NEAR": {
                 "info": {
-                    "name": "OKT",
-                    "addr": "0x382bb369d343125bfb2117af9c149795c6c65c50",
-                    "withdraw_disabled": true,
+                    "name": "NEAR",
+                    "addr": "usdt.tether-token.near",
+                    "withdraw_disabled": false,
                     "withdraw_delayed": false,
                     "deposit_disabled": false
                 },
-                "id": "OKT",
-                "network": "OKC",
-                "active": false,
+                "id": "NEAR",
+                "network": "NEAR",
+                "active": true,
                 "deposit": true,
-                "withdraw": false,
+                "withdraw": true,
                 "fee": null,
                 "precision": 0.0001,
                 "limits": {
@@ -846,6 +886,32 @@
                 },
                 "id": "TRX",
                 "network": "TRC20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "XPL": {
+                "info": {
+                    "name": "XPL",
+                    "addr": "0xb8ce59fc3717ada4c02eadf9682a9e934f625ebb",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                "id": "XPL",
+                "network": "XPL",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
@@ -2065,6 +2131,77 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            }
+        },
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "人生K线": {
+        "info": {
+            "currency": "人生K线",
+            "name": "人生K线",
+            "delisted": false,
+            "withdraw_disabled": true,
+            "withdraw_delayed": false,
+            "deposit_disabled": true,
+            "trade_disabled": true,
+            "fixed_rate": "",
+            "chain": "ETH",
+            "chains": [
+                {
+                    "name": "ETH",
+                    "addr": "invalid-人生K线-8700152-380",
+                    "withdraw_disabled": true,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": true
+                }
+            ]
+        },
+        "id": "人生K线",
+        "numericId": null,
+        "code": "人生K线",
+        "precision": 0.0001,
+        "type": "crypto",
+        "name": "人生K线",
+        "active": true,
+        "deposit": false,
+        "withdraw": false,
+        "fee": null,
+        "fees": {},
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "name": "ETH",
+                    "addr": "invalid-人生K线-8700152-380",
+                    "withdraw_disabled": true,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": true
+                },
+                "id": "ETH",
+                "network": "ERC20",
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
                 "fee": null,
                 "precision": 0.0001,
                 "limits": {

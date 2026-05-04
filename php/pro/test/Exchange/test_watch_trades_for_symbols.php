@@ -10,14 +10,14 @@ namespace ccxt;
 use React\Async;
 use React\Promise;
 include_once PATH_TO_CCXT . '/test/exchange/base/test_trade.php';
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function test_watch_trades_for_symbols($exchange, $skipped_properties, $symbols) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbols) {
         $method = 'watchTradesForSymbols';
         $now = $exchange->milliseconds();
         $ends = $now + 15000;
-        while ($now < $ends) {
+        $returned_symbols = [];
+        while ($now < $ends || count($returned_symbols) < count($symbols)) {
             $response = null;
             $success = true;
             try {
@@ -37,8 +37,11 @@ function test_watch_trades_for_symbols($exchange, $skipped_properties, $symbols)
                     $symbol = $trade['symbol'];
                     test_trade($exchange, $skipped_properties, $method, $trade, $symbol, $now);
                     assert_in_array($exchange, $skipped_properties, $method, $trade, 'symbol', $symbols);
+                    if (!$exchange->in_array($symbol, $returned_symbols)) {
+                        $returned_symbols[] = $symbol;
+                    }
                 }
-                if (!(is_array($skipped_properties) && array_key_exists('timestamp', $skipped_properties))) {
+                if (!(is_array($skipped_properties) && array_key_exists('timestampSort', $skipped_properties))) {
                     assert_timestamp_order($exchange, $method, $symbol, $response);
                 }
             }

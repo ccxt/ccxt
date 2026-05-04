@@ -131,6 +131,7 @@ const exec = (bin, ...args) => {
             const hasFailed = (
                 // exception caught in "test -> testMethod"
                 output.indexOf('[TEST_FAILURE]') > -1 ||
+                // below checks are retained just for the sake of completeness & possible edge-cases, however it should not be needed anymore, because we always add `[TEST_FAILURE]` to the output in tests
                 // 1) thrown from JS assert module
                 output.indexOf('AssertionError:') > -1 ||
                 // 2) thrown from PYTHON (i.e. [AssertionError], [KeyError], [ValueError], etc)

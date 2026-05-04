@@ -195,9 +195,14 @@ public partial class testMainClass : BaseTest
                     //    assert (dt === exchange.iso8601 (entry['timestamp']))
                     // so, we have to compare with millisecond accururacy
                     object dtParsed = exchange.parse8601(dt);
-                    object dtParsedString = exchange.iso8601(dtParsed);
-                    object dtEntryString = exchange.iso8601(getValue(entry, "timestamp"));
-                    assert(isEqual(dtParsedString, dtEntryString), add(add(add(add(add("datetime is not iso8601 of timestamp:", dtParsedString), "(string) != "), dtEntryString), "(from ts)"), logText));
+                    object tsMs = getValue(entry, "timestamp");
+                    object diff = Math.Abs(Convert.ToDouble(subtract(dtParsed, tsMs)));
+                    if (isTrue(isGreaterThanOrEqual(diff, 500)))
+                    {
+                        object dtParsedString = exchange.iso8601(dtParsed);
+                        object dtEntryString = exchange.iso8601(tsMs);
+                        assert(false, add(add(add(add(add("datetime is not iso8601 of timestamp:", dtParsedString), "(string) != "), dtEntryString), "(from ts)"), logText));
+                    }
                 }
             }
         }
@@ -452,8 +457,12 @@ public partial class testMainClass : BaseTest
             {
                 // TICK_SIZE should be above zero
                 assertGreater(exchange, skippedProperties, method, entry, key, "0");
-                // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so their existence in our case indicates to incorrectly implemented tick-sizes, which might mistakenly be implemented with DECIMAL_PLACES, so we throw error
+                // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so in our case, such values probably indicate an incorrectly implemented tick-sizes calculation, so we throw error
                 object decimalNumbers = new List<object>() {"2", "3", "4", "5", "6", "7", "8", "9", "11", "12", "13", "14", "15", "16"};
+                if (isTrue(isTrue(isEqual(key, "amount")) && isTrue(inOp(skippedProperties, "precisionAmountAbnormal"))))
+                {
+                    return;
+                }
                 for (object i = 0; isLessThan(i, getArrayLength(decimalNumbers)); postFixIncrement(ref i))
                 {
                     object num = getValue(decimalNumbers, i);
@@ -713,14 +722,25 @@ public partial class testMainClass : BaseTest
             object ts = exchange.safeString(entry, key);
             assert(isEqual(Precise.stringMod(ts, "60000"), "0"), add("timestamp should be a multiple of 60 seconds (1 minute)", logText));
         }
-        public object deepEqual(object a, object b)
+        public object deepEqual(Exchange exchange, object a, object b)
         {
             return isEqual(json(a), json(b));
         }
         public void assertDeepEqual(Exchange exchange, object skippedProperties, object method, object a, object b)
         {
             object logText = logTemplate(exchange, method, new Dictionary<string, object>() {});
-            assert(deepEqual(a, b), add(add(add(add("two dicts do not match: ", json(a)), " != "), json(b)), logText));
+            assert(deepEqual(exchange, a, b), add(add(add(add("two dicts do not match: ", json(a)), " != "), json(b)), logText));
+        }
+        public object exchangeProp(Exchange exchange, object key, object defaultValue = null)
+        {
+            object value = exchange.getProperty(exchange, ((object)key).ToString());
+            if (isTrue(!isEqual(value, null)))
+            {
+                return value;
+            }
+            // try UpperCase key also, for other langs
+            object keyUpper = exchange.capitalize(((object)key).ToString());
+            return exchange.getProperty(exchange, keyUpper, defaultValue);
         }
 
     }

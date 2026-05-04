@@ -1,0 +1,48 @@
+
+import assert from 'assert';
+import ccxt from '../../../ccxt.js';
+
+function helperStrToBinary5 (exchange, str: string) {
+    return exchange.base64ToBinary (exchange.stringToBase64 (str));
+}
+
+function testBinaryToBase58 () {
+
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleexchange',
+    });
+
+    assert (exchange.parseNumber (undefined) === undefined, 'GO skip trick');
+
+    assert ('GO_SKIP_START');
+    // Test 1: Simple string
+    const binary1 = helperStrToBinary5 (exchange, 'hello');
+    assert (exchange.binaryToBase58 (binary1) === 'Cn8eVZg');
+
+    // Test 2: String with space
+    const binary2 = helperStrToBinary5 (exchange, 'hello world');
+    assert (exchange.binaryToBase58 (binary2) === 'StV1DL6CwTryKyV');
+
+    // Test 3: Short string
+    const binary3 = helperStrToBinary5 (exchange, 'test');
+    assert (exchange.binaryToBase58 (binary3) === '3yZe7d');
+
+    // Test 4: Single byte
+    const binary4 = helperStrToBinary5 (exchange, 'a');
+    assert (exchange.binaryToBase58 (binary4) === '2g');
+
+    // Test 5: Two bytes
+    const binary5 = helperStrToBinary5 (exchange, 'ab');
+    assert (exchange.binaryToBase58 (binary5) === '8Qq');
+
+    // Test 6: Three bytes
+    const binary6 = helperStrToBinary5 (exchange, 'abc');
+    assert (exchange.binaryToBase58 (binary6) === 'ZiCa');
+
+    // Test 7: JSON-like binary
+    const binary7 = helperStrToBinary5 (exchange, '{"key":"value"}');
+    assert (exchange.binaryToBase58 (binary7) === '4SoiMiEYtTt5tPdi81Fik');
+    assert ('GO_SKIP_END');
+}
+
+export default testBinaryToBase58;

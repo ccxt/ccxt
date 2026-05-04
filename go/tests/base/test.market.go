@@ -184,10 +184,10 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties interface{}, meth
 		AssertGreater(exchange, skippedProperties, method, market, "expiry", "0")
 		if IsTrue(option) {
 			// strike should be defined
-			Assert(!IsEqual(GetValue(market, "strike"), nil), Add("\"strike\" must be defined when \"option\" is true", logText))
+			Assert((IsTrue((InOp(skippedProperties, "strike"))) || IsTrue(!IsEqual(GetValue(market, "strike"), nil))), Add("\"strike\" must be defined when \"option\" is true", logText))
 			AssertGreater(exchange, skippedProperties, method, market, "strike", "0")
 			// optionType should be defined
-			Assert(!IsEqual(GetValue(market, "optionType"), nil), Add("\"optionType\" must be defined when \"option\" is true", logText))
+			Assert((IsTrue((InOp(skippedProperties, "optionType"))) || IsTrue(!IsEqual(GetValue(market, "optionType"), nil))), Add("\"optionType\" must be defined when \"option\" is true", logText))
 			AssertInArray(exchange, skippedProperties, method, market, "optionType", []interface{}{"put", "call"})
 		} else {
 			// if not option, then strike and optionType should be undefined

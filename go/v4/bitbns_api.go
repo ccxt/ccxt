@@ -7,146 +7,146 @@
 
 package ccxt
 
-func (this *bitbns) WwwGetOrderFetchMarkets(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) WwwGetOrderFetchMarkets(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("wwwGetOrderFetchMarkets", args...)
 }
 
-func (this *bitbns) WwwGetOrderFetchTickers(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) WwwGetOrderFetchTickers(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("wwwGetOrderFetchTickers", args...)
 }
 
-func (this *bitbns) WwwGetOrderFetchOrderbook(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) WwwGetOrderFetchOrderbook(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("wwwGetOrderFetchOrderbook", args...)
 }
 
-func (this *bitbns) WwwGetOrderGetTickerWithVolume(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) WwwGetOrderGetTickerWithVolume(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("wwwGetOrderGetTickerWithVolume", args...)
 }
 
-func (this *bitbns) WwwGetExchangeDataOhlc(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) WwwGetExchangeDataOhlc(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("wwwGetExchangeDataOhlc", args...)
 }
 
-func (this *bitbns) WwwGetExchangeDataOrderBook(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) WwwGetExchangeDataOrderBook(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("wwwGetExchangeDataOrderBook", args...)
 }
 
-func (this *bitbns) WwwGetExchangeDataTradedetails(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) WwwGetExchangeDataTradedetails(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("wwwGetExchangeDataTradedetails", args...)
 }
 
-func (this *bitbns) V1GetPlatformStatus(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V1GetPlatformStatus(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1GetPlatformStatus", args...)
 }
 
-func (this *bitbns) V1GetTickers(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V1GetTickers(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1GetTickers", args...)
 }
 
-func (this *bitbns) V1GetOrderbookSellSymbol(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V1GetOrderbookSellSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1GetOrderbookSellSymbol", args...)
 }
 
-func (this *bitbns) V1GetOrderbookBuySymbol(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V1GetOrderbookBuySymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1GetOrderbookBuySymbol", args...)
 }
 
-func (this *bitbns) V1PostCurrentCoinBalanceEVERYTHING(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V1PostCurrentCoinBalanceEVERYTHING(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1PostCurrentCoinBalanceEVERYTHING", args...)
 }
 
-func (this *bitbns) V1PostGetApiUsageStatusUSAGE(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V1PostGetApiUsageStatusUSAGE(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1PostGetApiUsageStatusUSAGE", args...)
 }
 
-func (this *bitbns) V1PostGetOrderSocketTokenUSAGE(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V1PostGetOrderSocketTokenUSAGE(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1PostGetOrderSocketTokenUSAGE", args...)
 }
 
-func (this *bitbns) V1PostCurrentCoinBalanceSymbol(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V1PostCurrentCoinBalanceSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1PostCurrentCoinBalanceSymbol", args...)
 }
 
-func (this *bitbns) V1PostOrderStatusSymbol(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V1PostOrderStatusSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1PostOrderStatusSymbol", args...)
 }
 
-func (this *bitbns) V1PostDepositHistorySymbol(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V1PostDepositHistorySymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1PostDepositHistorySymbol", args...)
 }
 
-func (this *bitbns) V1PostWithdrawHistorySymbol(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V1PostWithdrawHistorySymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1PostWithdrawHistorySymbol", args...)
 }
 
-func (this *bitbns) V1PostWithdrawHistoryAllSymbol(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V1PostWithdrawHistoryAllSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1PostWithdrawHistoryAllSymbol", args...)
 }
 
-func (this *bitbns) V1PostDepositHistoryAllSymbol(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V1PostDepositHistoryAllSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1PostDepositHistoryAllSymbol", args...)
 }
 
-func (this *bitbns) V1PostListOpenOrdersSymbol(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V1PostListOpenOrdersSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1PostListOpenOrdersSymbol", args...)
 }
 
-func (this *bitbns) V1PostListOpenStopOrdersSymbol(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V1PostListOpenStopOrdersSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1PostListOpenStopOrdersSymbol", args...)
 }
 
-func (this *bitbns) V1PostGetCoinAddressSymbol(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V1PostGetCoinAddressSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1PostGetCoinAddressSymbol", args...)
 }
 
-func (this *bitbns) V1PostPlaceSellOrderSymbol(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V1PostPlaceSellOrderSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1PostPlaceSellOrderSymbol", args...)
 }
 
-func (this *bitbns) V1PostPlaceBuyOrderSymbol(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V1PostPlaceBuyOrderSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1PostPlaceBuyOrderSymbol", args...)
 }
 
-func (this *bitbns) V1PostBuyStopLossSymbol(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V1PostBuyStopLossSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1PostBuyStopLossSymbol", args...)
 }
 
-func (this *bitbns) V1PostSellStopLossSymbol(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V1PostSellStopLossSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1PostSellStopLossSymbol", args...)
 }
 
-func (this *bitbns) V1PostCancelOrderSymbol(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V1PostCancelOrderSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1PostCancelOrderSymbol", args...)
 }
 
-func (this *bitbns) V1PostCancelStopLossOrderSymbol(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V1PostCancelStopLossOrderSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1PostCancelStopLossOrderSymbol", args...)
 }
 
-func (this *bitbns) V1PostListExecutedOrdersSymbol(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V1PostListExecutedOrdersSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1PostListExecutedOrdersSymbol", args...)
 }
 
-func (this *bitbns) V1PostPlaceMarketOrderSymbol(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V1PostPlaceMarketOrderSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1PostPlaceMarketOrderSymbol", args...)
 }
 
-func (this *bitbns) V1PostPlaceMarketOrderQntySymbol(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V1PostPlaceMarketOrderQntySymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1PostPlaceMarketOrderQntySymbol", args...)
 }
 
-func (this *bitbns) V2PostOrders(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V2PostOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v2PostOrders", args...)
 }
 
-func (this *bitbns) V2PostCancel(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V2PostCancel(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v2PostCancel", args...)
 }
 
-func (this *bitbns) V2PostGetordersnew(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V2PostGetordersnew(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v2PostGetordersnew", args...)
 }
 
-func (this *bitbns) V2PostMarginOrders(args ...interface{}) <-chan interface{} {
+func (this *BitbnsCore) V2PostMarginOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v2PostMarginOrders", args...)
 }

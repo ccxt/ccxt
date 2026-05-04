@@ -7,226 +7,226 @@
 
 package ccxt
 
-func (this *backpack) PublicGetApiV1Assets(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PublicGetApiV1Assets(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetApiV1Assets", args...)
 }
 
-func (this *backpack) PublicGetApiV1Collateral(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PublicGetApiV1Collateral(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetApiV1Collateral", args...)
 }
 
-func (this *backpack) PublicGetApiV1BorrowLendMarkets(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PublicGetApiV1BorrowLendMarkets(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetApiV1BorrowLendMarkets", args...)
 }
 
-func (this *backpack) PublicGetApiV1BorrowLendMarketsHistory(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PublicGetApiV1BorrowLendMarketsHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetApiV1BorrowLendMarketsHistory", args...)
 }
 
-func (this *backpack) PublicGetApiV1Markets(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PublicGetApiV1Markets(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetApiV1Markets", args...)
 }
 
-func (this *backpack) PublicGetApiV1Market(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PublicGetApiV1Market(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetApiV1Market", args...)
 }
 
-func (this *backpack) PublicGetApiV1Ticker(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PublicGetApiV1Ticker(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetApiV1Ticker", args...)
 }
 
-func (this *backpack) PublicGetApiV1Tickers(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PublicGetApiV1Tickers(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetApiV1Tickers", args...)
 }
 
-func (this *backpack) PublicGetApiV1Depth(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PublicGetApiV1Depth(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetApiV1Depth", args...)
 }
 
-func (this *backpack) PublicGetApiV1Klines(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PublicGetApiV1Klines(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetApiV1Klines", args...)
 }
 
-func (this *backpack) PublicGetApiV1MarkPrices(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PublicGetApiV1MarkPrices(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetApiV1MarkPrices", args...)
 }
 
-func (this *backpack) PublicGetApiV1OpenInterest(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PublicGetApiV1OpenInterest(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetApiV1OpenInterest", args...)
 }
 
-func (this *backpack) PublicGetApiV1FundingRates(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PublicGetApiV1FundingRates(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetApiV1FundingRates", args...)
 }
 
-func (this *backpack) PublicGetApiV1Status(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PublicGetApiV1Status(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetApiV1Status", args...)
 }
 
-func (this *backpack) PublicGetApiV1Ping(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PublicGetApiV1Ping(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetApiV1Ping", args...)
 }
 
-func (this *backpack) PublicGetApiV1Time(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PublicGetApiV1Time(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetApiV1Time", args...)
 }
 
-func (this *backpack) PublicGetApiV1Wallets(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PublicGetApiV1Wallets(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetApiV1Wallets", args...)
 }
 
-func (this *backpack) PublicGetApiV1Trades(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PublicGetApiV1Trades(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetApiV1Trades", args...)
 }
 
-func (this *backpack) PublicGetApiV1TradesHistory(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PublicGetApiV1TradesHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetApiV1TradesHistory", args...)
 }
 
-func (this *backpack) PrivateGetApiV1Account(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivateGetApiV1Account(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetApiV1Account", args...)
 }
 
-func (this *backpack) PrivateGetApiV1AccountLimitsBorrow(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivateGetApiV1AccountLimitsBorrow(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetApiV1AccountLimitsBorrow", args...)
 }
 
-func (this *backpack) PrivateGetApiV1AccountLimitsOrder(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivateGetApiV1AccountLimitsOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetApiV1AccountLimitsOrder", args...)
 }
 
-func (this *backpack) PrivateGetApiV1AccountLimitsWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivateGetApiV1AccountLimitsWithdrawal(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetApiV1AccountLimitsWithdrawal", args...)
 }
 
-func (this *backpack) PrivateGetApiV1BorrowLendPositions(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivateGetApiV1BorrowLendPositions(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetApiV1BorrowLendPositions", args...)
 }
 
-func (this *backpack) PrivateGetApiV1Capital(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivateGetApiV1Capital(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetApiV1Capital", args...)
 }
 
-func (this *backpack) PrivateGetApiV1CapitalCollateral(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivateGetApiV1CapitalCollateral(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetApiV1CapitalCollateral", args...)
 }
 
-func (this *backpack) PrivateGetWapiV1CapitalDeposits(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivateGetWapiV1CapitalDeposits(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetWapiV1CapitalDeposits", args...)
 }
 
-func (this *backpack) PrivateGetWapiV1CapitalDepositAddress(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivateGetWapiV1CapitalDepositAddress(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetWapiV1CapitalDepositAddress", args...)
 }
 
-func (this *backpack) PrivateGetWapiV1CapitalWithdrawals(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivateGetWapiV1CapitalWithdrawals(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetWapiV1CapitalWithdrawals", args...)
 }
 
-func (this *backpack) PrivateGetApiV1Position(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivateGetApiV1Position(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetApiV1Position", args...)
 }
 
-func (this *backpack) PrivateGetWapiV1HistoryBorrowLend(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivateGetWapiV1HistoryBorrowLend(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetWapiV1HistoryBorrowLend", args...)
 }
 
-func (this *backpack) PrivateGetWapiV1HistoryInterest(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivateGetWapiV1HistoryInterest(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetWapiV1HistoryInterest", args...)
 }
 
-func (this *backpack) PrivateGetWapiV1HistoryBorrowLendPositions(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivateGetWapiV1HistoryBorrowLendPositions(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetWapiV1HistoryBorrowLendPositions", args...)
 }
 
-func (this *backpack) PrivateGetWapiV1HistoryDust(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivateGetWapiV1HistoryDust(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetWapiV1HistoryDust", args...)
 }
 
-func (this *backpack) PrivateGetWapiV1HistoryFills(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivateGetWapiV1HistoryFills(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetWapiV1HistoryFills", args...)
 }
 
-func (this *backpack) PrivateGetWapiV1HistoryFunding(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivateGetWapiV1HistoryFunding(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetWapiV1HistoryFunding", args...)
 }
 
-func (this *backpack) PrivateGetWapiV1HistoryOrders(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivateGetWapiV1HistoryOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetWapiV1HistoryOrders", args...)
 }
 
-func (this *backpack) PrivateGetWapiV1HistoryRfq(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivateGetWapiV1HistoryRfq(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetWapiV1HistoryRfq", args...)
 }
 
-func (this *backpack) PrivateGetWapiV1HistoryQuote(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivateGetWapiV1HistoryQuote(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetWapiV1HistoryQuote", args...)
 }
 
-func (this *backpack) PrivateGetWapiV1HistorySettlement(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivateGetWapiV1HistorySettlement(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetWapiV1HistorySettlement", args...)
 }
 
-func (this *backpack) PrivateGetWapiV1HistoryStrategies(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivateGetWapiV1HistoryStrategies(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetWapiV1HistoryStrategies", args...)
 }
 
-func (this *backpack) PrivateGetApiV1Order(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivateGetApiV1Order(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetApiV1Order", args...)
 }
 
-func (this *backpack) PrivateGetApiV1Orders(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivateGetApiV1Orders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetApiV1Orders", args...)
 }
 
-func (this *backpack) PrivatePostApiV1AccountConvertDust(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivatePostApiV1AccountConvertDust(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostApiV1AccountConvertDust", args...)
 }
 
-func (this *backpack) PrivatePostApiV1BorrowLend(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivatePostApiV1BorrowLend(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostApiV1BorrowLend", args...)
 }
 
-func (this *backpack) PrivatePostWapiV1CapitalWithdrawals(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivatePostWapiV1CapitalWithdrawals(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostWapiV1CapitalWithdrawals", args...)
 }
 
-func (this *backpack) PrivatePostApiV1Order(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivatePostApiV1Order(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostApiV1Order", args...)
 }
 
-func (this *backpack) PrivatePostApiV1Orders(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivatePostApiV1Orders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostApiV1Orders", args...)
 }
 
-func (this *backpack) PrivatePostApiV1Rfq(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivatePostApiV1Rfq(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostApiV1Rfq", args...)
 }
 
-func (this *backpack) PrivatePostApiV1RfqAccept(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivatePostApiV1RfqAccept(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostApiV1RfqAccept", args...)
 }
 
-func (this *backpack) PrivatePostApiV1RfqRefresh(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivatePostApiV1RfqRefresh(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostApiV1RfqRefresh", args...)
 }
 
-func (this *backpack) PrivatePostApiV1RfqCancel(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivatePostApiV1RfqCancel(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostApiV1RfqCancel", args...)
 }
 
-func (this *backpack) PrivatePostApiV1RfqQuote(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivatePostApiV1RfqQuote(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostApiV1RfqQuote", args...)
 }
 
-func (this *backpack) PrivateDeleteApiV1Order(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivateDeleteApiV1Order(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateDeleteApiV1Order", args...)
 }
 
-func (this *backpack) PrivateDeleteApiV1Orders(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivateDeleteApiV1Orders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateDeleteApiV1Orders", args...)
 }
 
-func (this *backpack) PrivatePatchApiV1Account(args ...interface{}) <-chan interface{} {
+func (this *BackpackCore) PrivatePatchApiV1Account(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePatchApiV1Account", args...)
 }

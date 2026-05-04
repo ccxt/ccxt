@@ -155,73 +155,216 @@
         ],
         "fetchMarkets": [
             {
-                "description": "fetchMarkets",
+                "description": "default",
                 "method": "fetchMarkets",
                 "input": [],
                 "httpResponse": {
                     "results": [
                         {
-                            "symbol": "BTC-USD-PERP",
+                            "symbol": "BTC-USD-29MAY26-320000-P",
                             "base_currency": "BTC",
                             "quote_currency": "USD",
                             "settlement_currency": "USDC",
                             "order_size_increment": "0.001",
-                            "price_tick_size": "0.1",
-                            "min_notional": "500",
-                            "open_at": 1698756879745,
-                            "expiry_at": 0,
-                            "asset_kind": "PERP",
-                            "position_limit": "60",
-                            "price_bands_width": "0.05",
-                            "max_open_orders": 100,
-                            "max_funding_rate": "0.02",
-                            "delta1_cross_margin_params": {
-                                "imf_base": "0.02",
-                                "imf_shift": "180000",
-                                "imf_factor": "0.00007",
-                                "mmf_factor": "0.5"
+                            "price_tick_size": "0.01",
+                            "min_notional": "20",
+                            "open_at": "1777525200000",
+                            "expiry_at": "1780041600000",
+                            "asset_kind": "OPTION",
+                            "market_kind": "cross",
+                            "position_limit": "0",
+                            "price_bands_width": "0.3",
+                            "max_slippage": "0",
+                            "iv_bands_width": "0.05",
+                            "max_open_orders": "150",
+                            "max_funding_rate": "0",
+                            "option_cross_margin_params": {
+                                "imf": {
+                                    "long_itm": "0.2",
+                                    "short_itm": "0.15",
+                                    "short_otm": "0.1",
+                                    "short_put_cap": "0.5",
+                                    "premium_multiplier": "1"
+                                },
+                                "mmf": {
+                                    "long_itm": "0.1",
+                                    "short_itm": "0.075",
+                                    "short_otm": "0.05",
+                                    "short_put_cap": "0.5",
+                                    "premium_multiplier": "0.5"
+                                }
                             },
-                            "price_feed_id": "GVXRSBjFk6e6J3NbVPXohDJetcTjaeeuykUpbQF8UoMU",
-                            "oracle_ewma_factor": "0.20000046249626113",
+                            "price_feed_id": "",
+                            "oracle_ewma_factor": "0.043647610787352464",
                             "max_order_size": "100",
-                            "max_funding_rate_change": "0.0002",
-                            "max_tob_spread": "0.1"
+                            "max_funding_rate_change": "0",
+                            "max_tob_spread": "2",
+                            "interest_rate": "0",
+                            "clamp_rate": "0",
+                            "option_type": "PUT",
+                            "strike_price": "320000",
+                            "funding_period_hours": "0",
+                            "funding_multiplier": "1",
+                            "tags": [],
+                            "fee_config": {
+                                "interactive_fee": {
+                                    "maker_fee": {
+                                        "fee": "0.000075",
+                                        "fee_cap": "0.125",
+                                        "fee_floor": "-0.125"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.000075",
+                                        "fee_cap": "0.125",
+                                        "fee_floor": "-0.125"
+                                    }
+                                },
+                                "api_fee": {
+                                    "maker_fee": {
+                                        "fee": "0.000075",
+                                        "fee_cap": "0.125",
+                                        "fee_floor": "-0.125"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.000125",
+                                        "fee_cap": "0.125",
+                                        "fee_floor": "-0.125"
+                                    }
+                                },
+                                "rpi_fee": {
+                                    "maker_fee": {
+                                        "fee": "0.000075",
+                                        "fee_cap": "0.125",
+                                        "fee_floor": "-0.125"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.000125",
+                                        "fee_cap": "0.125",
+                                        "fee_floor": "-0.125"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "symbol": "BTC-USD-29MAY26-84000-C",
+                            "base_currency": "BTC",
+                            "quote_currency": "USD",
+                            "settlement_currency": "USDC",
+                            "order_size_increment": "0.001",
+                            "price_tick_size": "0.01",
+                            "min_notional": "20",
+                            "open_at": "1775938576427",
+                            "expiry_at": "1780041600000",
+                            "asset_kind": "OPTION",
+                            "market_kind": "cross",
+                            "position_limit": "20",
+                            "price_bands_width": "0.3",
+                            "max_slippage": "0",
+                            "iv_bands_width": "0.05",
+                            "max_open_orders": "150",
+                            "max_funding_rate": "0",
+                            "option_cross_margin_params": {
+                                "imf": {
+                                    "long_itm": "0.2",
+                                    "short_itm": "0.15",
+                                    "short_otm": "0.1",
+                                    "short_put_cap": "0.5",
+                                    "premium_multiplier": "1"
+                                },
+                                "mmf": {
+                                    "long_itm": "0.1",
+                                    "short_itm": "0.075",
+                                    "short_otm": "0.05",
+                                    "short_put_cap": "0.5",
+                                    "premium_multiplier": "0.5"
+                                }
+                            },
+                            "price_feed_id": "",
+                            "oracle_ewma_factor": "0.043647610787352464",
+                            "max_order_size": "100",
+                            "max_funding_rate_change": "0",
+                            "max_tob_spread": "2",
+                            "interest_rate": "0",
+                            "clamp_rate": "0",
+                            "option_type": "CALL",
+                            "strike_price": "84000",
+                            "funding_period_hours": "0",
+                            "funding_multiplier": "1",
+                            "tags": [],
+                            "fee_config": {
+                                "interactive_fee": {
+                                    "maker_fee": {
+                                        "fee": "0.000075",
+                                        "fee_cap": "0.125",
+                                        "fee_floor": "-0.125"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.000075",
+                                        "fee_cap": "0.125",
+                                        "fee_floor": "-0.125"
+                                    }
+                                },
+                                "api_fee": {
+                                    "maker_fee": {
+                                        "fee": "0.000075",
+                                        "fee_cap": "0.125",
+                                        "fee_floor": "-0.125"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.000125",
+                                        "fee_cap": "0.125",
+                                        "fee_floor": "-0.125"
+                                    }
+                                },
+                                "rpi_fee": {
+                                    "maker_fee": {
+                                        "fee": "0.000075",
+                                        "fee_cap": "0.125",
+                                        "fee_floor": "-0.125"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.000125",
+                                        "fee_cap": "0.125",
+                                        "fee_floor": "-0.125"
+                                    }
+                                }
+                            }
                         }
                     ]
                 },
                 "parsedResponse": [
                     {
-                        "id": "BTC-USD-PERP",
+                        "id": "BTC-USD-29MAY26-320000-P",
                         "lowercaseId": null,
-                        "symbol": "BTC/USD:USDC",
+                        "symbol": "BTC/USD:USDC-260529-320000-P",
                         "base": "BTC",
                         "quote": "USD",
                         "settle": "USDC",
                         "baseId": "BTC",
                         "quoteId": "USD",
                         "settleId": "USDC",
-                        "type": "swap",
+                        "type": "option",
                         "spot": false,
                         "margin": null,
-                        "swap": true,
+                        "swap": false,
                         "future": false,
-                        "option": false,
+                        "option": true,
                         "index": null,
                         "active": null,
                         "contract": true,
                         "linear": true,
-                        "inverse": null,
+                        "inverse": false,
                         "subType": null,
                         "taker": 0.0003,
-                        "maker": -0.00005,
+                        "maker": 0.0003,
                         "contractSize": 1,
-                        "expiry": null,
-                        "expiryDatetime": null,
-                        "strike": null,
-                        "optionType": null,
+                        "expiry": 1780041600000,
+                        "expiryDatetime": "2026-05-29T08:00:00.000Z",
+                        "strike": 320000,
+                        "optionType": "put",
                         "precision": {
                             "amount": 0.001,
-                            "price": 0.1
+                            "price": 0.01
                         },
                         "limits": {
                             "leverage": {
@@ -237,7 +380,7 @@
                                 "max": null
                             },
                             "cost": {
-                                "min": 500,
+                                "min": 20,
                                 "max": null
                             }
                         },
@@ -247,31 +390,231 @@
                         },
                         "created": null,
                         "info": {
-                            "symbol": "BTC-USD-PERP",
+                            "symbol": "BTC-USD-29MAY26-320000-P",
                             "base_currency": "BTC",
                             "quote_currency": "USD",
                             "settlement_currency": "USDC",
                             "order_size_increment": "0.001",
-                            "price_tick_size": "0.1",
-                            "min_notional": "500",
-                            "open_at": 1698756879745,
-                            "expiry_at": 0,
-                            "asset_kind": "PERP",
-                            "position_limit": "60",
-                            "price_bands_width": "0.05",
-                            "max_open_orders": 100,
-                            "max_funding_rate": "0.02",
-                            "delta1_cross_margin_params": {
-                                "imf_base": "0.02",
-                                "imf_shift": "180000",
-                                "imf_factor": "0.00007",
-                                "mmf_factor": "0.5"
+                            "price_tick_size": "0.01",
+                            "min_notional": "20",
+                            "open_at": "1777525200000",
+                            "expiry_at": "1780041600000",
+                            "asset_kind": "OPTION",
+                            "market_kind": "cross",
+                            "position_limit": "0",
+                            "price_bands_width": "0.3",
+                            "max_slippage": "0",
+                            "iv_bands_width": "0.05",
+                            "max_open_orders": "150",
+                            "max_funding_rate": "0",
+                            "option_cross_margin_params": {
+                                "imf": {
+                                    "long_itm": "0.2",
+                                    "short_itm": "0.15",
+                                    "short_otm": "0.1",
+                                    "short_put_cap": "0.5",
+                                    "premium_multiplier": "1"
+                                },
+                                "mmf": {
+                                    "long_itm": "0.1",
+                                    "short_itm": "0.075",
+                                    "short_otm": "0.05",
+                                    "short_put_cap": "0.5",
+                                    "premium_multiplier": "0.5"
+                                }
                             },
-                            "price_feed_id": "GVXRSBjFk6e6J3NbVPXohDJetcTjaeeuykUpbQF8UoMU",
-                            "oracle_ewma_factor": "0.20000046249626113",
+                            "price_feed_id": "",
+                            "oracle_ewma_factor": "0.043647610787352464",
                             "max_order_size": "100",
-                            "max_funding_rate_change": "0.0002",
-                            "max_tob_spread": "0.1"
+                            "max_funding_rate_change": "0",
+                            "max_tob_spread": "2",
+                            "interest_rate": "0",
+                            "clamp_rate": "0",
+                            "option_type": "PUT",
+                            "strike_price": "320000",
+                            "funding_period_hours": "0",
+                            "funding_multiplier": "1",
+                            "tags": [],
+                            "fee_config": {
+                                "interactive_fee": {
+                                    "maker_fee": {
+                                        "fee": "0.000075",
+                                        "fee_cap": "0.125",
+                                        "fee_floor": "-0.125"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.000075",
+                                        "fee_cap": "0.125",
+                                        "fee_floor": "-0.125"
+                                    }
+                                },
+                                "api_fee": {
+                                    "maker_fee": {
+                                        "fee": "0.000075",
+                                        "fee_cap": "0.125",
+                                        "fee_floor": "-0.125"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.000125",
+                                        "fee_cap": "0.125",
+                                        "fee_floor": "-0.125"
+                                    }
+                                },
+                                "rpi_fee": {
+                                    "maker_fee": {
+                                        "fee": "0.000075",
+                                        "fee_cap": "0.125",
+                                        "fee_floor": "-0.125"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.000125",
+                                        "fee_cap": "0.125",
+                                        "fee_floor": "-0.125"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "id": "BTC-USD-29MAY26-84000-C",
+                        "lowercaseId": null,
+                        "symbol": "BTC/USD:USDC-260529-84000-C",
+                        "base": "BTC",
+                        "quote": "USD",
+                        "settle": "USDC",
+                        "baseId": "BTC",
+                        "quoteId": "USD",
+                        "settleId": "USDC",
+                        "type": "option",
+                        "spot": false,
+                        "margin": null,
+                        "swap": false,
+                        "future": false,
+                        "option": true,
+                        "index": null,
+                        "active": null,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": null,
+                        "taker": 0.0003,
+                        "maker": 0.0003,
+                        "contractSize": 1,
+                        "expiry": 1780041600000,
+                        "expiryDatetime": "2026-05-29T08:00:00.000Z",
+                        "strike": 84000,
+                        "optionType": "call",
+                        "precision": {
+                            "amount": 0.001,
+                            "price": 0.01
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": 100
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 20,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "symbol": "BTC-USD-29MAY26-84000-C",
+                            "base_currency": "BTC",
+                            "quote_currency": "USD",
+                            "settlement_currency": "USDC",
+                            "order_size_increment": "0.001",
+                            "price_tick_size": "0.01",
+                            "min_notional": "20",
+                            "open_at": "1775938576427",
+                            "expiry_at": "1780041600000",
+                            "asset_kind": "OPTION",
+                            "market_kind": "cross",
+                            "position_limit": "20",
+                            "price_bands_width": "0.3",
+                            "max_slippage": "0",
+                            "iv_bands_width": "0.05",
+                            "max_open_orders": "150",
+                            "max_funding_rate": "0",
+                            "option_cross_margin_params": {
+                                "imf": {
+                                    "long_itm": "0.2",
+                                    "short_itm": "0.15",
+                                    "short_otm": "0.1",
+                                    "short_put_cap": "0.5",
+                                    "premium_multiplier": "1"
+                                },
+                                "mmf": {
+                                    "long_itm": "0.1",
+                                    "short_itm": "0.075",
+                                    "short_otm": "0.05",
+                                    "short_put_cap": "0.5",
+                                    "premium_multiplier": "0.5"
+                                }
+                            },
+                            "price_feed_id": "",
+                            "oracle_ewma_factor": "0.043647610787352464",
+                            "max_order_size": "100",
+                            "max_funding_rate_change": "0",
+                            "max_tob_spread": "2",
+                            "interest_rate": "0",
+                            "clamp_rate": "0",
+                            "option_type": "CALL",
+                            "strike_price": "84000",
+                            "funding_period_hours": "0",
+                            "funding_multiplier": "1",
+                            "tags": [],
+                            "fee_config": {
+                                "interactive_fee": {
+                                    "maker_fee": {
+                                        "fee": "0.000075",
+                                        "fee_cap": "0.125",
+                                        "fee_floor": "-0.125"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.000075",
+                                        "fee_cap": "0.125",
+                                        "fee_floor": "-0.125"
+                                    }
+                                },
+                                "api_fee": {
+                                    "maker_fee": {
+                                        "fee": "0.000075",
+                                        "fee_cap": "0.125",
+                                        "fee_floor": "-0.125"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.000125",
+                                        "fee_cap": "0.125",
+                                        "fee_floor": "-0.125"
+                                    }
+                                },
+                                "rpi_fee": {
+                                    "maker_fee": {
+                                        "fee": "0.000075",
+                                        "fee_cap": "0.125",
+                                        "fee_floor": "-0.125"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.000125",
+                                        "fee_cap": "0.125",
+                                        "fee_floor": "-0.125"
+                                    }
+                                }
+                            }
                         }
                     }
                 ]

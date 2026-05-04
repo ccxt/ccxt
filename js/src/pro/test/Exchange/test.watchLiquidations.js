@@ -5,15 +5,14 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 import assert from 'assert';
-import errors from '../../../base/errors.js';
 import testLiquidation from '../../../test/Exchange/base/test.liquidation.js';
-/*  ------------------------------------------------------------------------ */
-export default async (exchange, skippedProperties, symbol) => {
+import { NetworkError } from '../../../base/errors.js';
+async function testWatchLiquidations(exchange, skippedProperties, symbol) {
     // log (symbol.green, 'watching trades...')
     const method = 'watchLiquidations';
     // we have to skip some exchanges here due to the frequency of trading
     const skippedExchanges = [];
-    if (skippedExchanges.includes(exchange.id)) {
+    if (exchange.inArray(exchange.id, skippedExchanges)) {
         console.log(exchange.id, method + '() test skipped');
         return false;
     }
@@ -28,7 +27,8 @@ export default async (exchange, skippedProperties, symbol) => {
         try {
             response = await exchange[method](symbol);
             now = Date.now();
-            assert(response instanceof Array);
+            const isArray = Array.isArray(response);
+            assert(isArray, "response must be an array");
             console.log(exchange.iso8601(now), exchange.id, symbol, method, Object.values(response).length, 'liquidations');
             // log.noLocate (asTable (response))
             for (let i = 0; i < response.length; i++) {
@@ -36,11 +36,12 @@ export default async (exchange, skippedProperties, symbol) => {
             }
         }
         catch (e) {
-            if (!(e instanceof errors.NetworkError)) {
+            if (!(e instanceof NetworkError)) {
                 throw e;
             }
             now = Date.now();
         }
     }
     return response;
-};
+}
+export default testWatchLiquidations;

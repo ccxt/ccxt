@@ -7,254 +7,318 @@
 
 package ccxt
 
-func (this *blofin) PublicGetMarketInstruments(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PublicGetMarketInstruments(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetMarketInstruments", args...)
 }
 
-func (this *blofin) PublicGetMarketTickers(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PublicGetMarketTickers(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetMarketTickers", args...)
 }
 
-func (this *blofin) PublicGetMarketBooks(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PublicGetMarketBooks(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetMarketBooks", args...)
 }
 
-func (this *blofin) PublicGetMarketTrades(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PublicGetMarketTrades(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetMarketTrades", args...)
 }
 
-func (this *blofin) PublicGetMarketCandles(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketCandles", args...)
-}
-
-func (this *blofin) PublicGetMarketMarkPrice(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PublicGetMarketMarkPrice(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetMarketMarkPrice", args...)
 }
 
-func (this *blofin) PublicGetMarketFundingRate(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PublicGetMarketFundingRate(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetMarketFundingRate", args...)
 }
 
-func (this *blofin) PublicGetMarketFundingRateHistory(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PublicGetMarketFundingRateHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetMarketFundingRateHistory", args...)
 }
 
-func (this *blofin) PrivateGetAssetBalances(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PublicGetMarketCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketCandles", args...)
+}
+
+func (this *BlofinCore) PublicGetMarketIndexCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketIndexCandles", args...)
+}
+
+func (this *BlofinCore) PublicGetMarketMarkPriceCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketMarkPriceCandles", args...)
+}
+
+func (this *BlofinCore) PublicGetMarketPositionTiers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketPositionTiers", args...)
+}
+
+func (this *BlofinCore) PrivateGetAssetBalances(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAssetBalances", args...)
 }
 
-func (this *blofin) PrivateGetTradeOrdersPending(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetTradeOrdersPending", args...)
-}
-
-func (this *blofin) PrivateGetTradeFillsHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetTradeFillsHistory", args...)
-}
-
-func (this *blofin) PrivateGetAssetDepositHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAssetDepositHistory", args...)
-}
-
-func (this *blofin) PrivateGetAssetWithdrawalHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAssetWithdrawalHistory", args...)
-}
-
-func (this *blofin) PrivateGetAssetBills(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivateGetAssetBills(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAssetBills", args...)
 }
 
-func (this *blofin) PrivateGetAccountBalance(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivateGetAssetWithdrawalHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetWithdrawalHistory", args...)
+}
+
+func (this *BlofinCore) PrivateGetAssetDepositHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetDepositHistory", args...)
+}
+
+func (this *BlofinCore) PrivateGetAccountConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountConfig", args...)
+}
+
+func (this *BlofinCore) PrivateGetAssetCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetCurrencies", args...)
+}
+
+func (this *BlofinCore) PrivateGetAccountBalance(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountBalance", args...)
 }
 
-func (this *blofin) PrivateGetAccountPositions(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivateGetAccountPositions(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountPositions", args...)
 }
 
-func (this *blofin) PrivateGetAccountLeverageInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAccountLeverageInfo", args...)
+func (this *BlofinCore) PrivateGetAccountPositionsHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountPositionsHistory", args...)
 }
 
-func (this *blofin) PrivateGetAccountMarginMode(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivateGetAccountMarginMode(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountMarginMode", args...)
 }
 
-func (this *blofin) PrivateGetAccountPositionMode(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivateGetAccountPositionMode(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountPositionMode", args...)
 }
 
-func (this *blofin) PrivateGetAccountBatchLeverageInfo(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivateGetAccountLeverageInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountLeverageInfo", args...)
+}
+
+func (this *BlofinCore) PrivateGetAccountBatchLeverageInfo(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountBatchLeverageInfo", args...)
 }
 
-func (this *blofin) PrivateGetTradeOrdersTpslPending(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivateGetTradeOrdersPending(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradeOrdersPending", args...)
+}
+
+func (this *BlofinCore) PrivateGetTradeOrderDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradeOrderDetail", args...)
+}
+
+func (this *BlofinCore) PrivateGetTradeOrdersTpslPending(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradeOrdersTpslPending", args...)
 }
 
-func (this *blofin) PrivateGetTradeOrdersAlgoPending(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivateGetTradeOrderTpslDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradeOrderTpslDetail", args...)
+}
+
+func (this *BlofinCore) PrivateGetTradeOrdersAlgoPending(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradeOrdersAlgoPending", args...)
 }
 
-func (this *blofin) PrivateGetTradeOrdersHistory(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivateGetTradeOrdersHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradeOrdersHistory", args...)
 }
 
-func (this *blofin) PrivateGetTradeOrdersTpslHistory(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivateGetTradeOrdersTpslHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradeOrdersTpslHistory", args...)
 }
 
-func (this *blofin) PrivateGetTradeOrdersAlgoHistory(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivateGetTradeOrdersAlgoHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradeOrdersAlgoHistory", args...)
 }
 
-func (this *blofin) PrivateGetTradeOrderPriceRange(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivateGetTradeFillsHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradeFillsHistory", args...)
+}
+
+func (this *BlofinCore) PrivateGetTradeOrderPriceRange(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradeOrderPriceRange", args...)
 }
 
-func (this *blofin) PrivateGetUserQueryApikey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetUserQueryApikey", args...)
-}
-
-func (this *blofin) PrivateGetAffiliateBasic(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivateGetAffiliateBasic(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAffiliateBasic", args...)
 }
 
-func (this *blofin) PrivateGetCopytradingInstruments(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivateGetAffiliateReferralCode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAffiliateReferralCode", args...)
+}
+
+func (this *BlofinCore) PrivateGetAffiliateInvitees(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAffiliateInvitees", args...)
+}
+
+func (this *BlofinCore) PrivateGetAffiliateSubInvitees(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAffiliateSubInvitees", args...)
+}
+
+func (this *BlofinCore) PrivateGetAffiliateSubAffiliates(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAffiliateSubAffiliates", args...)
+}
+
+func (this *BlofinCore) PrivateGetAffiliateInviteesDailyInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAffiliateInviteesDailyInfo", args...)
+}
+
+func (this *BlofinCore) PrivateGetCopytradingInstruments(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetCopytradingInstruments", args...)
 }
 
-func (this *blofin) PrivateGetCopytradingAccountBalance(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivateGetCopytradingConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetCopytradingConfig", args...)
+}
+
+func (this *BlofinCore) PrivateGetCopytradingAccountBalance(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetCopytradingAccountBalance", args...)
 }
 
-func (this *blofin) PrivateGetCopytradingAccountPositionsByOrder(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivateGetCopytradingAccountPositionsByOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetCopytradingAccountPositionsByOrder", args...)
 }
 
-func (this *blofin) PrivateGetCopytradingAccountPositionsDetailsByOrder(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivateGetCopytradingAccountPositionsDetailsByOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetCopytradingAccountPositionsDetailsByOrder", args...)
 }
 
-func (this *blofin) PrivateGetCopytradingAccountPositionsByContract(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivateGetCopytradingAccountPositionsByContract(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetCopytradingAccountPositionsByContract", args...)
 }
 
-func (this *blofin) PrivateGetCopytradingAccountPositionMode(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivateGetCopytradingAccountPositionMode(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetCopytradingAccountPositionMode", args...)
 }
 
-func (this *blofin) PrivateGetCopytradingAccountLeverageInfo(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivateGetCopytradingAccountLeverageInfo(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetCopytradingAccountLeverageInfo", args...)
 }
 
-func (this *blofin) PrivateGetCopytradingTradeOrdersPending(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivateGetCopytradingTradeOrdersPending(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetCopytradingTradeOrdersPending", args...)
 }
 
-func (this *blofin) PrivateGetCopytradingTradePendingTpslByContract(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivateGetCopytradingTradePendingTpslByContract(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetCopytradingTradePendingTpslByContract", args...)
 }
 
-func (this *blofin) PrivateGetCopytradingTradePositionHistoryByOrder(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivateGetCopytradingTradePositionHistoryByOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetCopytradingTradePositionHistoryByOrder", args...)
 }
 
-func (this *blofin) PrivateGetCopytradingTradeOrdersHistory(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivateGetCopytradingTradeOrdersHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetCopytradingTradeOrdersHistory", args...)
 }
 
-func (this *blofin) PrivateGetCopytradingTradePendingTpslByOrder(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivateGetCopytradingTradePendingTpslByOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetCopytradingTradePendingTpslByOrder", args...)
 }
 
-func (this *blofin) PrivatePostAccountSetMarginMode(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountSetMarginMode", args...)
+func (this *BlofinCore) PrivateGetUserQueryApikey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserQueryApikey", args...)
 }
 
-func (this *blofin) PrivatePostAccountSetPositionMode(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountSetPositionMode", args...)
+func (this *BlofinCore) PrivateGetSpotTradeFillsHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotTradeFillsHistory", args...)
 }
 
-func (this *blofin) PrivatePostTradeOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostTradeOrder", args...)
-}
-
-func (this *blofin) PrivatePostTradeOrderAlgo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostTradeOrderAlgo", args...)
-}
-
-func (this *blofin) PrivatePostTradeCancelOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostTradeCancelOrder", args...)
-}
-
-func (this *blofin) PrivatePostTradeCancelAlgo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostTradeCancelAlgo", args...)
-}
-
-func (this *blofin) PrivatePostAccountSetLeverage(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountSetLeverage", args...)
-}
-
-func (this *blofin) PrivatePostTradeBatchOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostTradeBatchOrders", args...)
-}
-
-func (this *blofin) PrivatePostTradeOrderTpsl(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostTradeOrderTpsl", args...)
-}
-
-func (this *blofin) PrivatePostTradeCancelBatchOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostTradeCancelBatchOrders", args...)
-}
-
-func (this *blofin) PrivatePostTradeCancelTpsl(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostTradeCancelTpsl", args...)
-}
-
-func (this *blofin) PrivatePostTradeClosePosition(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostTradeClosePosition", args...)
-}
-
-func (this *blofin) PrivatePostAssetTransfer(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivatePostAssetTransfer(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostAssetTransfer", args...)
 }
 
-func (this *blofin) PrivatePostCopytradingAccountSetPositionMode(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivatePostAssetDemoApplyMoney(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetDemoApplyMoney", args...)
+}
+
+func (this *BlofinCore) PrivatePostAccountSetMarginMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSetMarginMode", args...)
+}
+
+func (this *BlofinCore) PrivatePostAccountSetPositionMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSetPositionMode", args...)
+}
+
+func (this *BlofinCore) PrivatePostAccountSetLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSetLeverage", args...)
+}
+
+func (this *BlofinCore) PrivatePostTradeOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeOrder", args...)
+}
+
+func (this *BlofinCore) PrivatePostTradeBatchOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeBatchOrders", args...)
+}
+
+func (this *BlofinCore) PrivatePostTradeOrderTpsl(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeOrderTpsl", args...)
+}
+
+func (this *BlofinCore) PrivatePostTradeOrderAlgo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeOrderAlgo", args...)
+}
+
+func (this *BlofinCore) PrivatePostTradeCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeCancelOrder", args...)
+}
+
+func (this *BlofinCore) PrivatePostTradeCancelBatchOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeCancelBatchOrders", args...)
+}
+
+func (this *BlofinCore) PrivatePostTradeCancelTpsl(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeCancelTpsl", args...)
+}
+
+func (this *BlofinCore) PrivatePostTradeCancelAlgo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeCancelAlgo", args...)
+}
+
+func (this *BlofinCore) PrivatePostTradeClosePosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeClosePosition", args...)
+}
+
+func (this *BlofinCore) PrivatePostCopytradingAccountSetPositionMode(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostCopytradingAccountSetPositionMode", args...)
 }
 
-func (this *blofin) PrivatePostCopytradingAccountSetLeverage(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivatePostCopytradingAccountSetLeverage(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostCopytradingAccountSetLeverage", args...)
 }
 
-func (this *blofin) PrivatePostCopytradingTradePlaceOrder(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivatePostCopytradingTradePlaceOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostCopytradingTradePlaceOrder", args...)
 }
 
-func (this *blofin) PrivatePostCopytradingTradeCancelOrder(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivatePostCopytradingTradeCancelOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostCopytradingTradeCancelOrder", args...)
 }
 
-func (this *blofin) PrivatePostCopytradingTradePlaceTpslByContract(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivatePostCopytradingTradePlaceTpslByContract(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostCopytradingTradePlaceTpslByContract", args...)
 }
 
-func (this *blofin) PrivatePostCopytradingTradeCancelTpslByContract(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivatePostCopytradingTradeCancelTpslByContract(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostCopytradingTradeCancelTpslByContract", args...)
 }
 
-func (this *blofin) PrivatePostCopytradingTradePlaceTpslByOrder(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivatePostCopytradingTradePlaceTpslByOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostCopytradingTradePlaceTpslByOrder", args...)
 }
 
-func (this *blofin) PrivatePostCopytradingTradeCancelTpslByOrder(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivatePostCopytradingTradeCancelTpslByOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostCopytradingTradeCancelTpslByOrder", args...)
 }
 
-func (this *blofin) PrivatePostCopytradingTradeClosePositionByOrder(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivatePostCopytradingTradeClosePositionByOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostCopytradingTradeClosePositionByOrder", args...)
 }
 
-func (this *blofin) PrivatePostCopytradingTradeClosePositionByContract(args ...interface{}) <-chan interface{} {
+func (this *BlofinCore) PrivatePostCopytradingTradeClosePositionByContract(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostCopytradingTradeClosePositionByContract", args...)
 }

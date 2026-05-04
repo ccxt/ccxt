@@ -7,122 +7,122 @@
 
 package ccxt
 
-func (this *oxfun) PublicGetV3Markets(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PublicGetV3Markets(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetV3Markets", args...)
 }
 
-func (this *oxfun) PublicGetV3Assets(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PublicGetV3Assets(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetV3Assets", args...)
 }
 
-func (this *oxfun) PublicGetV3Tickers(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PublicGetV3Tickers(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetV3Tickers", args...)
 }
 
-func (this *oxfun) PublicGetV3FundingEstimates(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PublicGetV3FundingEstimates(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetV3FundingEstimates", args...)
 }
 
-func (this *oxfun) PublicGetV3Candles(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PublicGetV3Candles(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetV3Candles", args...)
 }
 
-func (this *oxfun) PublicGetV3Depth(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PublicGetV3Depth(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetV3Depth", args...)
 }
 
-func (this *oxfun) PublicGetV3MarketsOperational(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PublicGetV3MarketsOperational(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetV3MarketsOperational", args...)
 }
 
-func (this *oxfun) PublicGetV3ExchangeTrades(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PublicGetV3ExchangeTrades(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetV3ExchangeTrades", args...)
 }
 
-func (this *oxfun) PublicGetV3FundingRates(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PublicGetV3FundingRates(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetV3FundingRates", args...)
 }
 
-func (this *oxfun) PublicGetV3LeverageTiers(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PublicGetV3LeverageTiers(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetV3LeverageTiers", args...)
 }
 
-func (this *oxfun) PrivateGetV3Account(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PrivateGetV3Account(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetV3Account", args...)
 }
 
-func (this *oxfun) PrivateGetV3AccountNames(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PrivateGetV3AccountNames(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetV3AccountNames", args...)
 }
 
-func (this *oxfun) PrivateGetV3Wallet(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PrivateGetV3Wallet(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetV3Wallet", args...)
 }
 
-func (this *oxfun) PrivateGetV3Transfer(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PrivateGetV3Transfer(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetV3Transfer", args...)
 }
 
-func (this *oxfun) PrivateGetV3Balances(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PrivateGetV3Balances(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetV3Balances", args...)
 }
 
-func (this *oxfun) PrivateGetV3Positions(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PrivateGetV3Positions(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetV3Positions", args...)
 }
 
-func (this *oxfun) PrivateGetV3Funding(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PrivateGetV3Funding(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetV3Funding", args...)
 }
 
-func (this *oxfun) PrivateGetV3DepositAddresses(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PrivateGetV3DepositAddresses(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetV3DepositAddresses", args...)
 }
 
-func (this *oxfun) PrivateGetV3Deposit(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PrivateGetV3Deposit(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetV3Deposit", args...)
 }
 
-func (this *oxfun) PrivateGetV3WithdrawalAddresses(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PrivateGetV3WithdrawalAddresses(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetV3WithdrawalAddresses", args...)
 }
 
-func (this *oxfun) PrivateGetV3Withdrawal(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PrivateGetV3Withdrawal(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetV3Withdrawal", args...)
 }
 
-func (this *oxfun) PrivateGetV3WithdrawalFees(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PrivateGetV3WithdrawalFees(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetV3WithdrawalFees", args...)
 }
 
-func (this *oxfun) PrivateGetV3OrdersStatus(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PrivateGetV3OrdersStatus(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetV3OrdersStatus", args...)
 }
 
-func (this *oxfun) PrivateGetV3OrdersWorking(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PrivateGetV3OrdersWorking(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetV3OrdersWorking", args...)
 }
 
-func (this *oxfun) PrivateGetV3Trades(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PrivateGetV3Trades(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetV3Trades", args...)
 }
 
-func (this *oxfun) PrivatePostV3Transfer(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PrivatePostV3Transfer(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostV3Transfer", args...)
 }
 
-func (this *oxfun) PrivatePostV3Withdrawal(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PrivatePostV3Withdrawal(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostV3Withdrawal", args...)
 }
 
-func (this *oxfun) PrivatePostV3OrdersPlace(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PrivatePostV3OrdersPlace(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostV3OrdersPlace", args...)
 }
 
-func (this *oxfun) PrivateDeleteV3OrdersCancel(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PrivateDeleteV3OrdersCancel(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateDeleteV3OrdersCancel", args...)
 }
 
-func (this *oxfun) PrivateDeleteV3OrdersCancelAll(args ...interface{}) <-chan interface{} {
+func (this *OxfunCore) PrivateDeleteV3OrdersCancelAll(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateDeleteV3OrdersCancelAll", args...)
 }

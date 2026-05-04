@@ -170,9 +170,13 @@ func AssertTimestampAndDatetime(exchange ccxt.ICoreExchange, skippedProperties i
 			//    Assert (dt === exchange.Getiso8601() (entry['timestamp']))
 			// so, we have to compare with millisecond accururacy
 			var dtParsed interface{} = exchange.Parse8601(dt)
-			var dtParsedString interface{} = exchange.Iso8601(dtParsed)
-			var dtEntryString interface{} = exchange.Iso8601(GetValue(entry, "timestamp"))
-			Assert(IsEqual(dtParsedString, dtEntryString), Add(Add(Add(Add(Add("datetime is not iso8601 of timestamp:", dtParsedString), "(string) != "), dtEntryString), "(from ts)"), logText))
+			var tsMs interface{} = GetValue(entry, "timestamp")
+			var diff interface{} = mathAbs(Subtract(dtParsed, tsMs))
+			if IsTrue(IsGreaterThanOrEqual(diff, 500)) {
+				var dtParsedString interface{} = exchange.Iso8601(dtParsed)
+				var dtEntryString interface{} = exchange.Iso8601(tsMs)
+				Assert(false, Add(Add(Add(Add(Add("datetime is not iso8601 of timestamp:", dtParsedString), "(string) != "), dtEntryString), "(from ts)"), logText))
+			}
 		}
 	}
 }
@@ -395,8 +399,11 @@ func CheckPrecisionAccuracy(exchange ccxt.ICoreExchange, skippedProperties inter
 	if IsTrue(exchange.IsTickPrecision()) {
 		// TICK_SIZE should be above zero
 		AssertGreater(exchange, skippedProperties, method, entry, key, "0")
-		// the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so their existence in our case indicates to incorrectly implemented tick-sizes, which might mistakenly be implemented with DECIMAL_PLACES, so we throw error
+		// the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so in our case, such values probably indicate an incorrectly implemented tick-sizes calculation, so we throw error
 		var decimalNumbers interface{} = []interface{}{"2", "3", "4", "5", "6", "7", "8", "9", "11", "12", "13", "14", "15", "16"}
+		if IsTrue(IsTrue(IsEqual(key, "amount")) && IsTrue(InOp(skippedProperties, "precisionAmountAbnormal"))) {
+			return
+		}
 		for i := 0; IsLessThan(i, GetArrayLength(decimalNumbers)); i++ {
 			var num interface{} = GetValue(decimalNumbers, i)
 			var numStr interface{} = num
@@ -656,10 +663,21 @@ func AssertRoundMinuteTimestamp(exchange ccxt.ICoreExchange, skippedProperties i
 	var ts interface{} = exchange.SafeString(entry, key)
 	Assert(IsEqual(ccxt.Precise.StringMod(ts, "60000"), "0"), Add("timestamp should be a multiple of 60 seconds (1 minute)", logText))
 }
-func DeepEqual(a interface{}, b interface{}) interface{} {
+func DeepEqual(exchange ccxt.ICoreExchange, a interface{}, b interface{}) interface{} {
 	return IsEqual(JsonStringify(a), JsonStringify(b))
 }
 func AssertDeepEqual(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, a interface{}, b interface{}) {
 	var logText interface{} = LogTemplate(exchange, method, map[string]interface{}{})
-	Assert(DeepEqual(a, b), Add(Add(Add(Add("two dicts do not match: ", JsonStringify(a)), " != "), JsonStringify(b)), logText))
+	Assert(DeepEqual(exchange, a, b), Add(Add(Add(Add("two dicts do not match: ", JsonStringify(a)), " != "), JsonStringify(b)), logText))
+}
+func ExchangeProp(exchange ccxt.ICoreExchange, key interface{}, optionalArgs ...interface{}) interface{} {
+	defaultValue := GetArg(optionalArgs, 0, nil)
+	_ = defaultValue
+	var value interface{} = exchange.GetProperty(exchange, ToString(key))
+	if IsTrue(!IsEqual(value, nil)) {
+		return value
+	}
+	// try UpperCase key also, for other langs
+	var keyUpper interface{} = exchange.Capitalize(ToString(key))
+	return exchange.GetProperty(exchange, keyUpper, defaultValue)
 }

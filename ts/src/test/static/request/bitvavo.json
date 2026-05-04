@@ -68,9 +68,9 @@
                     "limit",
                     "buy",
                     0.0002,
-                    33000
+                    33123
                 ],
-                "output": "{\"market\":\"BTC-EUR\",\"side\":\"buy\",\"orderType\":\"limit\",\"price\":\"33000\",\"amount\":\"0.0002\", \"operatorId\":123456}"
+                "output": "{\"market\":\"BTC-EUR\",\"side\":\"buy\",\"orderType\":\"limit\",\"price\":\"33123\",\"amount\":\"0.0002\", \"operatorId\":123456}"
             },
             {
                 "description": "Spot Market Buy with Trigger Price",

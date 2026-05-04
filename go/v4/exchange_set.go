@@ -2,7 +2,7 @@ package ccxt
 
 import "sync"
 
-func (this *Exchange) SetRateLimit(rateLimit bool) {
+func (this *Exchange) SetEnableRateLimit(rateLimit bool) {
 	this.EnableRateLimit = rateLimit
 }
 
@@ -44,6 +44,14 @@ func (this *Exchange) SetSocksProxy(proxyUrl interface{}) {
 
 func (this *Exchange) GetLast_request_headers() map[string]interface{} {
 	return this.Last_request_headers.(map[string]interface{})
+}
+
+func (this *Exchange) GetLast_response_headers() map[string]interface{} {
+	return this.Last_response_headers.(map[string]interface{})
+}
+
+func (this *Exchange) GetLastResponseHeaders() map[string]interface{} {
+	return this.Last_response_headers.(map[string]interface{})
 }
 
 func (this *Exchange) GetId() string {

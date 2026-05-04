@@ -28,6 +28,7 @@ class wavesexchange extends Exchange {
             'certified' => false,
             'pro' => false,
             'dex' => true,
+            'rateLimit' => 10,  // https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -59,6 +60,7 @@ class wavesexchange extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchCurrencies' => false,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => null,
                 'fetchDepositAddressesByNetwork' => null,
@@ -225,74 +227,74 @@ class wavesexchange extends Exchange {
                 ),
                 'node' => array(
                     'get' => array(
-                        'addresses',
-                        'addresses/balance/{address}',
-                        'addresses/balance/{address}/{confirmations}',
-                        'addresses/balance/details/{address}',
-                        'addresses/data/{address}',
-                        'addresses/data/{address}/{key}',
-                        'addresses/effectiveBalance/{address}',
-                        'addresses/effectiveBalance/{address}/{confirmations}',
-                        'addresses/publicKey/{publicKey}',
-                        'addresses/scriptInfo/{address}',
-                        'addresses/scriptInfo/{address}/meta',
-                        'addresses/seed/{address}',
-                        'addresses/seq/{from}/{to}',
-                        'addresses/validate/{address}',
-                        'alias/by-address/{address}',
-                        'alias/by-alias/{alias}',
-                        'assets/{assetId}/distribution/{height}/{limit}',
-                        'assets/balance/{address}',
-                        'assets/balance/{address}/{assetId}',
-                        'assets/details/{assetId}',
-                        'assets/nft/{address}/limit/{limit}',
-                        'blockchain/rewards',
-                        'blockchain/rewards/height',
-                        'blocks/address/{address}/{from}/{to}/',
-                        'blocks/at/{height}',
-                        'blocks/delay/{signature}/{blockNum}',
-                        'blocks/first',
-                        'blocks/headers/last',
-                        'blocks/headers/seq/{from}/{to}',
-                        'blocks/height',
-                        'blocks/height/{signature}',
-                        'blocks/last',
-                        'blocks/seq/{from}/{to}',
-                        'blocks/signature/{signature}',
-                        'consensus/algo',
-                        'consensus/basetarget',
-                        'consensus/basetarget/{blockId}',
-                        'consensus/{generatingbalance}/address',
-                        'consensus/generationsignature',
-                        'consensus/generationsignature/{blockId}',
-                        'debug/balances/history/{address}',
-                        'debug/blocks/{howMany}',
-                        'debug/configInfo',
-                        'debug/historyInfo',
-                        'debug/info',
-                        'debug/minerInfo',
-                        'debug/portfolios/{address}',
-                        'debug/state',
-                        'debug/stateChanges/address/{address}',
-                        'debug/stateChanges/info/{id}',
-                        'debug/stateWaves/{height}',
-                        'leasing/active/{address}',
-                        'node/state',
-                        'node/version',
-                        'peers/all',
-                        'peers/blacklisted',
-                        'peers/connected',
-                        'peers/suspended',
-                        'transactions/address/{address}/limit/{limit}',
-                        'transactions/info/{id}',
-                        'transactions/status',
-                        'transactions/unconfirmed',
-                        'transactions/unconfirmed/info/{id}',
-                        'transactions/unconfirmed/size',
-                        'utils/seed',
-                        'utils/seed/{length}',
-                        'utils/time',
-                        'wallet/seed',
+                        'addresses' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'addresses/balance/{address}' => 1,
+                        'addresses/balance/{address}/{confirmations}' => 1,
+                        'addresses/balance/details/{address}' => 1,
+                        'addresses/data/{address}' => 100 / 17,
+                        'addresses/data/{address}/{key}' => 100 / 17,
+                        'addresses/effectiveBalance/{address}' => 5,
+                        'addresses/effectiveBalance/{address}/{confirmations}' => 5,
+                        'addresses/publicKey/{publicKey}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'addresses/scriptInfo/{address}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'addresses/scriptInfo/{address}/meta' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'addresses/seed/{address}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'addresses/seq/{from}/{to}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'addresses/validate/{address}' => 5,
+                        'alias/by-address/{address}' => 5,
+                        'alias/by-alias/{alias}' => 5,
+                        'assets/{assetId}/distribution/{height}/{limit}' => 100 / 17,
+                        'assets/balance/{address}' => 100 / 17,
+                        'assets/balance/{address}/{assetId}' => 1,
+                        'assets/details/{assetId}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'assets/nft/{address}/limit/{limit}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'blockchain/rewards' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'blockchain/rewards/height' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'blocks/address/{address}/{from}/{to}/' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'blocks/at/{height}' => 100,
+                        'blocks/delay/{signature}/{blockNum}' => 5,
+                        'blocks/first' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'blocks/headers/last' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'blocks/headers/seq/{from}/{to}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'blocks/height' => 5,
+                        'blocks/height/{signature}' => 5,  // might be incorrect, docs list blocks/height, but not blocks/height/.+
+                        'blocks/last' => 5,
+                        'blocks/seq/{from}/{to}' => 100,
+                        'blocks/signature/{signature}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'consensus/algo' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'consensus/basetarget' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'consensus/basetarget/{blockId}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'consensus/{generatingbalance}/address' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'consensus/generationsignature' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'consensus/generationsignature/{blockId}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'debug/balances/history/{address}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'debug/blocks/{howMany}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'debug/configInfo' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'debug/historyInfo' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'debug/info' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'debug/minerInfo' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'debug/portfolios/{address}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'debug/state' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'debug/stateChanges/address/{address}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'debug/stateChanges/info/{id}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'debug/stateWaves/{height}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'leasing/active/{address}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'node/state' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'node/version' => 5,
+                        'peers/all' => 5,
+                        'peers/blacklisted' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'peers/connected' => 5,
+                        'peers/suspended' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'transactions/address/{address}/limit/{limit}' => 5,
+                        'transactions/info/{id}' => 5,
+                        'transactions/status' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'transactions/unconfirmed' => 5,
+                        'transactions/unconfirmed/info/{id}' => 5,
+                        'transactions/unconfirmed/size' => 5,
+                        'utils/seed' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'utils/seed/{length}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'utils/time' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'wallet/seed' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
                     ),
                     'post' => array(
                         'addresses',
@@ -737,7 +739,7 @@ class wavesexchange extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1002,7 +1004,7 @@ class wavesexchange extends Exchange {
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1046,7 +1048,7 @@ class wavesexchange extends Exchange {
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
              * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->marketGetTickers ($params));
@@ -1082,7 +1084,7 @@ class wavesexchange extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the $open, high, low, and close price, and the volume of a $market
@@ -1227,7 +1229,7 @@ class wavesexchange extends Exchange {
              * fetch the deposit $address for a $currency associated with this account
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=$address-structure $address structure~
              */
             Async\await($this->sign_in());
             $networks = $this->safe_value($this->options, 'networks', array());
@@ -1457,7 +1459,7 @@ class wavesexchange extends Exchange {
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->triggerPrice] The $price at which a stop order is triggered at
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             $this->check_required_dependencies();
             $this->check_required_keys();
@@ -1641,7 +1643,7 @@ class wavesexchange extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             $this->check_required_dependencies();
             $this->check_required_keys();
@@ -1693,7 +1695,7 @@ class wavesexchange extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             $this->check_required_dependencies();
             $this->check_required_keys();
@@ -1729,7 +1731,7 @@ class wavesexchange extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             $this->check_required_dependencies();
             $this->check_required_keys();
@@ -1782,7 +1784,7 @@ class wavesexchange extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             Async\await($this->sign_in());
@@ -1808,7 +1810,7 @@ class wavesexchange extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             Async\await($this->sign_in());
@@ -2014,7 +2016,7 @@ class wavesexchange extends Exchange {
             /**
              * query for $balance and get the $amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$balance-structure $balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
              */
             // makes a lot of different requests to get all the $data
             // in particular:
@@ -2169,7 +2171,7 @@ class wavesexchange extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $address = Async\await($this->get_waves_address());
@@ -2265,7 +2267,7 @@ class wavesexchange extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2535,7 +2537,7 @@ class wavesexchange extends Exchange {
              *
              * @param {string[]|null} $codes list of unified currency $codes
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
+             * @return {array} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
              */
             Async\await($this->load_markets());
             $data = array();
@@ -2634,7 +2636,7 @@ class wavesexchange extends Exchange {
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             // currently only works for BTC and WAVES

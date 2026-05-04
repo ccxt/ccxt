@@ -14,6 +14,7 @@ public partial class wavesexchange : Exchange
             { "certified", false },
             { "pro", false },
             { "dex", true },
+            { "rateLimit", 10 },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", true },
@@ -45,6 +46,7 @@ public partial class wavesexchange : Exchange
                 { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
+                { "fetchCurrencies", false },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", null },
                 { "fetchDepositAddressesByNetwork", null },
@@ -161,7 +163,76 @@ public partial class wavesexchange : Exchange
                     { "put", new List<object>() {"matcher/settings/rates/{assetId}"} },
                 } },
                 { "node", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"addresses", "addresses/balance/{address}", "addresses/balance/{address}/{confirmations}", "addresses/balance/details/{address}", "addresses/data/{address}", "addresses/data/{address}/{key}", "addresses/effectiveBalance/{address}", "addresses/effectiveBalance/{address}/{confirmations}", "addresses/publicKey/{publicKey}", "addresses/scriptInfo/{address}", "addresses/scriptInfo/{address}/meta", "addresses/seed/{address}", "addresses/seq/{from}/{to}", "addresses/validate/{address}", "alias/by-address/{address}", "alias/by-alias/{alias}", "assets/{assetId}/distribution/{height}/{limit}", "assets/balance/{address}", "assets/balance/{address}/{assetId}", "assets/details/{assetId}", "assets/nft/{address}/limit/{limit}", "blockchain/rewards", "blockchain/rewards/height", "blocks/address/{address}/{from}/{to}/", "blocks/at/{height}", "blocks/delay/{signature}/{blockNum}", "blocks/first", "blocks/headers/last", "blocks/headers/seq/{from}/{to}", "blocks/height", "blocks/height/{signature}", "blocks/last", "blocks/seq/{from}/{to}", "blocks/signature/{signature}", "consensus/algo", "consensus/basetarget", "consensus/basetarget/{blockId}", "consensus/{generatingbalance}/address", "consensus/generationsignature", "consensus/generationsignature/{blockId}", "debug/balances/history/{address}", "debug/blocks/{howMany}", "debug/configInfo", "debug/historyInfo", "debug/info", "debug/minerInfo", "debug/portfolios/{address}", "debug/state", "debug/stateChanges/address/{address}", "debug/stateChanges/info/{id}", "debug/stateWaves/{height}", "leasing/active/{address}", "node/state", "node/version", "peers/all", "peers/blacklisted", "peers/connected", "peers/suspended", "transactions/address/{address}/limit/{limit}", "transactions/info/{id}", "transactions/status", "transactions/unconfirmed", "transactions/unconfirmed/info/{id}", "transactions/unconfirmed/size", "utils/seed", "utils/seed/{length}", "utils/time", "wallet/seed"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "addresses", 5 },
+                        { "addresses/balance/{address}", 1 },
+                        { "addresses/balance/{address}/{confirmations}", 1 },
+                        { "addresses/balance/details/{address}", 1 },
+                        { "addresses/data/{address}", divide(100, 17) },
+                        { "addresses/data/{address}/{key}", divide(100, 17) },
+                        { "addresses/effectiveBalance/{address}", 5 },
+                        { "addresses/effectiveBalance/{address}/{confirmations}", 5 },
+                        { "addresses/publicKey/{publicKey}", 5 },
+                        { "addresses/scriptInfo/{address}", 5 },
+                        { "addresses/scriptInfo/{address}/meta", 5 },
+                        { "addresses/seed/{address}", 5 },
+                        { "addresses/seq/{from}/{to}", 5 },
+                        { "addresses/validate/{address}", 5 },
+                        { "alias/by-address/{address}", 5 },
+                        { "alias/by-alias/{alias}", 5 },
+                        { "assets/{assetId}/distribution/{height}/{limit}", divide(100, 17) },
+                        { "assets/balance/{address}", divide(100, 17) },
+                        { "assets/balance/{address}/{assetId}", 1 },
+                        { "assets/details/{assetId}", 5 },
+                        { "assets/nft/{address}/limit/{limit}", 5 },
+                        { "blockchain/rewards", 5 },
+                        { "blockchain/rewards/height", 5 },
+                        { "blocks/address/{address}/{from}/{to}/", 5 },
+                        { "blocks/at/{height}", 100 },
+                        { "blocks/delay/{signature}/{blockNum}", 5 },
+                        { "blocks/first", 5 },
+                        { "blocks/headers/last", 5 },
+                        { "blocks/headers/seq/{from}/{to}", 5 },
+                        { "blocks/height", 5 },
+                        { "blocks/height/{signature}", 5 },
+                        { "blocks/last", 5 },
+                        { "blocks/seq/{from}/{to}", 100 },
+                        { "blocks/signature/{signature}", 5 },
+                        { "consensus/algo", 5 },
+                        { "consensus/basetarget", 5 },
+                        { "consensus/basetarget/{blockId}", 5 },
+                        { "consensus/{generatingbalance}/address", 5 },
+                        { "consensus/generationsignature", 5 },
+                        { "consensus/generationsignature/{blockId}", 5 },
+                        { "debug/balances/history/{address}", 5 },
+                        { "debug/blocks/{howMany}", 5 },
+                        { "debug/configInfo", 5 },
+                        { "debug/historyInfo", 5 },
+                        { "debug/info", 5 },
+                        { "debug/minerInfo", 5 },
+                        { "debug/portfolios/{address}", 5 },
+                        { "debug/state", 5 },
+                        { "debug/stateChanges/address/{address}", 5 },
+                        { "debug/stateChanges/info/{id}", 5 },
+                        { "debug/stateWaves/{height}", 5 },
+                        { "leasing/active/{address}", 5 },
+                        { "node/state", 5 },
+                        { "node/version", 5 },
+                        { "peers/all", 5 },
+                        { "peers/blacklisted", 5 },
+                        { "peers/connected", 5 },
+                        { "peers/suspended", 5 },
+                        { "transactions/address/{address}/limit/{limit}", 5 },
+                        { "transactions/info/{id}", 5 },
+                        { "transactions/status", 5 },
+                        { "transactions/unconfirmed", 5 },
+                        { "transactions/unconfirmed/info/{id}", 5 },
+                        { "transactions/unconfirmed/size", 5 },
+                        { "utils/seed", 5 },
+                        { "utils/seed/{length}", 5 },
+                        { "utils/time", 5 },
+                        { "wallet/seed", 5 },
+                    } },
                     { "post", new List<object>() {"addresses", "addresses/data/{address}", "addresses/sign/{address}", "addresses/signText/{address}", "addresses/verify/{address}", "addresses/verifyText/{address}", "debug/blacklist", "debug/print", "debug/rollback", "debug/validate", "node/stop", "peers/clearblacklist", "peers/connect", "transactions/broadcast", "transactions/calculateFee", "tranasctions/sign", "transactions/sign/{signerAddress}", "tranasctions/status", "utils/hash/fast", "utils/hash/secure", "utils/script/compileCode", "utils/script/compileWithImports", "utils/script/decompile", "utils/script/estimate", "utils/sign/{privateKey}", "utils/transactionsSerialize"} },
                     { "delete", new List<object>() {"addresses/{address}", "debug/rollback-to/{signature}"} },
                 } },
@@ -568,7 +639,7 @@ public partial class wavesexchange : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -868,7 +939,7 @@ public partial class wavesexchange : Exchange
      * @see https://api.wavesplatform.com/v0/docs/#/pairs/getPairsListAll
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
@@ -914,7 +985,7 @@ public partial class wavesexchange : Exchange
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
@@ -1103,7 +1174,7 @@ public partial class wavesexchange : Exchange
      * @description fetch the deposit address for a currency associated with this account
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
@@ -1362,7 +1433,7 @@ public partial class wavesexchange : Exchange
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] The price at which a stop order is triggered at
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -1564,7 +1635,7 @@ public partial class wavesexchange : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
@@ -1616,7 +1687,7 @@ public partial class wavesexchange : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
@@ -1652,7 +1723,7 @@ public partial class wavesexchange : Exchange
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1705,7 +1776,7 @@ public partial class wavesexchange : Exchange
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1734,7 +1805,7 @@ public partial class wavesexchange : Exchange
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1956,7 +2027,7 @@ public partial class wavesexchange : Exchange
      * @name wavesexchange#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
@@ -2119,7 +2190,7 @@ public partial class wavesexchange : Exchange
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2216,7 +2287,7 @@ public partial class wavesexchange : Exchange
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -2508,7 +2579,7 @@ public partial class wavesexchange : Exchange
      * @see https://docs.wx.network/en/api/gateways/withdraw/currencies
      * @param {string[]|undefined} codes list of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
@@ -2614,7 +2685,7 @@ public partial class wavesexchange : Exchange
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {

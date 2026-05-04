@@ -186,11 +186,11 @@ func (p *PreciseStruct) Reduce() *PreciseStruct {
 			break
 		}
 	}
-	difference := start - i
+	difference := int64(start - i)
 	if difference == 0 {
 		return p
 	}
-	p.Decimals = int(ParseInt(p.Decimals)) - difference
+	p.Decimals = int(ParseInt(p.Decimals) - difference) // TODO: loss of precision by converting to int, should be int64
 	p.integer = new(big.Int)
 	p.integer.SetString(str[:i+1], 10)
 	return p
@@ -213,18 +213,25 @@ func (p *PreciseStruct) String() string {
 		abs = p.integer
 	}
 	absParsed := abs.String()
-	padSize := p.Decimals.(int)
+	var intDecimals int
+	switch v := p.Decimals.(type) {
+	case int:
+		intDecimals = v
+	case int64:
+		intDecimals = int(v) // TODO: loss of precsion by converting to int, should be int64
+	}
+	padSize := intDecimals
 	if padSize < 0 {
 		padSize = 0
 	}
 	integerArray := strings.Split(fmt.Sprintf("%0*s", padSize, absParsed), "")
-	index := len(integerArray) - p.Decimals.(int)
+	index := len(integerArray) - intDecimals
 	item := ""
 	if index == 0 {
 		item = "0."
-	} else if p.Decimals.(int) < 0 {
-		item = strings.Repeat("0", -p.Decimals.(int))
-	} else if p.Decimals.(int) == 0 {
+	} else if intDecimals < 0 {
+		item = strings.Repeat("0", -intDecimals)
+	} else if intDecimals == 0 {
 		item = ""
 	} else {
 		item = "."

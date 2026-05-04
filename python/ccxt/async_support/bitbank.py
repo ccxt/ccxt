@@ -26,6 +26,7 @@ class bitbank(Exchange, ImplicitAPI):
             'name': 'bitbank',
             'countries': ['JP'],
             'version': 'v1',
+            'rateLimit': 100,  # https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -54,6 +55,7 @@ class bitbank(Exchange, ImplicitAPI):
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchCurrencies': False,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
@@ -144,46 +146,46 @@ class bitbank(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    'get': [
-                        '{pair}/ticker',
-                        'tickers',
-                        'tickers_jpy',
-                        '{pair}/depth',
-                        '{pair}/transactions',
-                        '{pair}/transactions/{yyyymmdd}',
-                        '{pair}/candlestick/{candletype}/{yyyymmdd}',
-                        '{pair}/circuit_break_info',
-                    ],
+                    'get': {
+                        '{pair}/ticker': 1,
+                        'tickers': 1,
+                        'tickers_jpy': 1,
+                        '{pair}/depth': 1,
+                        '{pair}/transactions': 1,
+                        '{pair}/transactions/{yyyymmdd}': 1,
+                        '{pair}/candlestick/{candletype}/{yyyymmdd}': 1,
+                        '{pair}/circuit_break_info': 1,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'user/assets',
-                        'user/spot/order',
-                        'user/spot/active_orders',
-                        'user/margin/positions',
-                        'user/spot/trade_history',
-                        'user/deposit_history',
-                        'user/unconfirmed_deposits',
-                        'user/deposit_originators',
-                        'user/withdrawal_account',
-                        'user/withdrawal_history',
-                        'spot/status',
-                        'spot/pairs',
-                    ],
-                    'post': [
-                        'user/spot/order',
-                        'user/spot/cancel_order',
-                        'user/spot/cancel_orders',
-                        'user/spot/orders_info',
-                        'user/confirm_deposits',
-                        'user/confirm_deposits_all',
-                        'user/request_withdrawal',
-                    ],
+                    'get': {
+                        'user/assets': 1,
+                        'user/spot/order': 1,
+                        'user/spot/active_orders': 1,
+                        'user/margin/positions': 1,
+                        'user/spot/trade_history': 1,
+                        'user/deposit_history': 1,
+                        'user/unconfirmed_deposits': 1,
+                        'user/deposit_originators': 1,
+                        'user/withdrawal_account': 1,
+                        'user/withdrawal_history': 1,
+                        'spot/status': 1,
+                        'spot/pairs': 1,
+                    },
+                    'post': {
+                        'user/spot/order': 1.66,
+                        'user/spot/cancel_order': 1.66,
+                        'user/spot/cancel_orders': 1.66,
+                        'user/spot/orders_info': 1.66,  # might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
+                        'user/confirm_deposits': 1.66,  # might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
+                        'user/confirm_deposits_all': 1.66,  # might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
+                        'user/request_withdrawal': 1.66,
+                    },
                 },
                 'markets': {
-                    'get': [
-                        'spot/pairs',
-                    ],
+                    'get': {
+                        'spot/pairs': 1,
+                    },
                 },
             },
             'features': {
@@ -403,7 +405,7 @@ class bitbank(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -423,7 +425,7 @@ class bitbank(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -489,7 +491,7 @@ class bitbank(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -508,7 +510,7 @@ class bitbank(Exchange, ImplicitAPI):
         https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#get-all-pairs-info
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
         await self.load_markets()
         response = await self.marketsGetSpotPairs(params)
@@ -578,7 +580,7 @@ class bitbank(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 4),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -654,7 +656,7 @@ class bitbank(Exchange, ImplicitAPI):
         https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#assets
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
         response = await self.privateGetUserAssets(params)
@@ -752,7 +754,7 @@ class bitbank(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -777,7 +779,7 @@ class bitbank(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -821,7 +823,7 @@ class bitbank(Exchange, ImplicitAPI):
         :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -865,7 +867,7 @@ class bitbank(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -891,7 +893,7 @@ class bitbank(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
         request: dict = {}
@@ -916,7 +918,7 @@ class bitbank(Exchange, ImplicitAPI):
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -948,7 +950,7 @@ class bitbank(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         if not ('uuid' in params):

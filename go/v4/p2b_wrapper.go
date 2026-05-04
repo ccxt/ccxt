@@ -1,18 +1,25 @@
 package ccxt
 
 type P2b struct {
-	*p2b
-	Core          *p2b
+	*P2bCore
+	Core          *P2bCore
 	exchangeTyped *ExchangeTyped
 }
 
 func NewP2b(userConfig map[string]interface{}) *P2b {
-	p := &p2b{}
+	p := NewP2bCore()
 	p.Init(userConfig)
 	return &P2b{
-		p2b:           p,
+		P2bCore:       p,
 		Core:          p,
 		exchangeTyped: NewExchangeTyped(&p.Exchange),
+	}
+}
+func NewP2bFromCore(core *P2bCore) *P2b {
+	return &P2b{
+		P2bCore:       core,
+		Core:          core,
+		exchangeTyped: NewExchangeTyped(&core.Exchange),
 	}
 }
 
@@ -42,7 +49,7 @@ func (this *P2b) FetchMarkets(params ...interface{}) ([]MarketInterface, error) 
  * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *P2b) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -75,7 +82,7 @@ func (this *P2b) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
  * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *P2b) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -107,7 +114,7 @@ func (this *P2b) FetchTicker(symbol string, options ...FetchTickerOptions) (Tick
  *
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {string} [params.interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *P2b) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -143,7 +150,7 @@ func (this *P2b) FetchOrderBook(symbol string, options ...FetchOrderBookOptions)
  * @param {int} [limit] 1-100, default=50
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} params.lastId order id
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *P2b) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -227,7 +234,7 @@ func (this *P2b) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLC
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#all-balances
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *P2b) FetchBalance(params ...interface{}) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
@@ -248,7 +255,7 @@ func (this *P2b) FetchBalance(params ...interface{}) (Balances, error) {
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *P2b) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -282,7 +289,7 @@ func (this *P2b) CreateOrder(symbol string, typeVar string, side string, amount 
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *P2b) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -320,7 +327,7 @@ func (this *P2b) CancelOrder(id string, options ...CancelOrderOptions) (Order, e
  *
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {int} [params.offset] 0-10000, default=0
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *P2b) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -369,7 +376,7 @@ func (this *P2b) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, er
  *
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {int} [params.offset] 0-10000, default=0
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *P2b) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 
@@ -418,7 +425,7 @@ func (this *P2b) FetchOrderTrades(id string, options ...FetchOrderTradesOptions)
  *
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {int} [params.offset] 0-10000, default=0
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *P2b) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -467,7 +474,7 @@ func (this *P2b) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error)
  *
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {int} [params.offset] 0-10000, default=0
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *P2b) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 
@@ -508,11 +515,20 @@ func (this *P2b) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order
 func (this *P2b) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
+func (this *P2b) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrders(ids, options...)
+}
+func (this *P2b) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
+}
 func (this *P2b) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }
 func (this *P2b) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
+}
+func (this *P2b) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
 }
 func (this *P2b) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
@@ -597,6 +613,9 @@ func (this *P2b) EditLimitSellOrder(id string, symbol string, amount float64, op
 }
 func (this *P2b) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 	return this.exchangeTyped.EditOrder(id, symbol, typeVar, side, options...)
+}
+func (this *P2b) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
 }
 func (this *P2b) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
@@ -763,6 +782,9 @@ func (this *P2b) FetchOptionChain(code string, options ...FetchOptionChainOption
 func (this *P2b) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 	return this.exchangeTyped.FetchOrder(id, options...)
 }
+func (this *P2b) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
+}
 func (this *P2b) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
@@ -846,4 +868,226 @@ func (this *P2b) Transfer(code string, amount float64, fromAccount string, toAcc
 }
 func (this *P2b) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 	return this.exchangeTyped.Withdraw(code, amount, address, options...)
+}
+func (this *P2b) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelAllOrdersWs(options...)
+}
+func (this *P2b) CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrdersWs(ids, options...)
+}
+func (this *P2b) CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CancelOrderWs(id, options...)
+}
+func (this *P2b) CreateLimitBuyOrderWs(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateLimitBuyOrderWs(symbol, amount, price, options...)
+}
+func (this *P2b) CreateLimitOrderWs(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateLimitOrderWs(symbol, side, amount, price, options...)
+}
+func (this *P2b) CreateLimitSellOrderWs(symbol string, amount float64, price float64, options ...CreateLimitSellOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateLimitSellOrderWs(symbol, amount, price, options...)
+}
+func (this *P2b) CreateMarketBuyOrderWs(symbol string, amount float64, options ...CreateMarketBuyOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateMarketBuyOrderWs(symbol, amount, options...)
+}
+func (this *P2b) CreateMarketOrderWithCostWs(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateMarketOrderWithCostWs(symbol, side, cost, options...)
+}
+func (this *P2b) CreateMarketOrderWs(symbol string, side string, amount float64, options ...CreateMarketOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateMarketOrderWs(symbol, side, amount, options...)
+}
+func (this *P2b) CreateMarketSellOrderWs(symbol string, amount float64, options ...CreateMarketSellOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateMarketSellOrderWs(symbol, amount, options...)
+}
+func (this *P2b) CreateOrdersWs(orders []OrderRequest, options ...CreateOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.CreateOrdersWs(orders, options...)
+}
+func (this *P2b) CreateOrderWithTakeProfitAndStopLossWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLossWs(symbol, typeVar, side, amount, options...)
+}
+func (this *P2b) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *P2b) CreatePostOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreatePostOnlyOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *P2b) CreateReduceOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateReduceOnlyOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *P2b) CreateStopLimitOrderWs(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateStopLimitOrderWs(symbol, side, amount, price, triggerPrice, options...)
+}
+func (this *P2b) CreateStopLossOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateStopLossOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *P2b) CreateStopMarketOrderWs(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateStopMarketOrderWs(symbol, side, amount, triggerPrice, options...)
+}
+func (this *P2b) CreateStopOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateStopOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *P2b) CreateTakeProfitOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateTakeProfitOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *P2b) CreateTrailingAmountOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateTrailingAmountOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *P2b) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateTrailingPercentOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *P2b) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateTriggerOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *P2b) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
+}
+func (this *P2b) FetchBalanceWs(params ...interface{}) (Balances, error) {
+	return this.exchangeTyped.FetchBalanceWs(params...)
+}
+func (this *P2b) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.FetchClosedOrdersWs(options...)
+}
+func (this *P2b) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {
+	return this.exchangeTyped.FetchDepositsWs(options...)
+}
+func (this *P2b) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
+	return this.exchangeTyped.FetchMyTradesWs(options...)
+}
+func (this *P2b) FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error) {
+	return this.exchangeTyped.FetchOHLCVWs(symbol, options...)
+}
+func (this *P2b) FetchOpenOrdersWs(options ...FetchOpenOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.FetchOpenOrdersWs(options...)
+}
+func (this *P2b) FetchOrderBookWs(symbol string, options ...FetchOrderBookWsOptions) (OrderBook, error) {
+	return this.exchangeTyped.FetchOrderBookWs(symbol, options...)
+}
+func (this *P2b) FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error) {
+	return this.exchangeTyped.FetchOrdersByStatusWs(status, options...)
+}
+func (this *P2b) FetchOrdersWs(options ...FetchOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.FetchOrdersWs(options...)
+}
+func (this *P2b) FetchOrderWs(id string, options ...FetchOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.FetchOrderWs(id, options...)
+}
+func (this *P2b) FetchPositionsForSymbolWs(symbol string, options ...FetchPositionsForSymbolWsOptions) ([]Position, error) {
+	return this.exchangeTyped.FetchPositionsForSymbolWs(symbol, options...)
+}
+func (this *P2b) FetchPositionsWs(options ...FetchPositionsWsOptions) ([]Position, error) {
+	return this.exchangeTyped.FetchPositionsWs(options...)
+}
+func (this *P2b) FetchPositionWs(symbol string, options ...FetchPositionWsOptions) ([]Position, error) {
+	return this.exchangeTyped.FetchPositionWs(symbol, options...)
+}
+func (this *P2b) FetchTickersWs(options ...FetchTickersWsOptions) (Tickers, error) {
+	return this.exchangeTyped.FetchTickersWs(options...)
+}
+func (this *P2b) FetchTickerWs(symbol string, options ...FetchTickerWsOptions) (Ticker, error) {
+	return this.exchangeTyped.FetchTickerWs(symbol, options...)
+}
+func (this *P2b) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
+	return this.exchangeTyped.FetchTradesWs(symbol, options...)
+}
+func (this *P2b) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {
+	return this.exchangeTyped.FetchTradingFeesWs(params...)
+}
+func (this *P2b) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {
+	return this.exchangeTyped.FetchWithdrawalsWs(options...)
+}
+func (this *P2b) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchBidsAsks(options...)
+}
+func (this *P2b) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchMyTrades(options...)
+}
+func (this *P2b) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
+}
+func (this *P2b) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
+}
+func (this *P2b) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
+}
+func (this *P2b) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
+}
+func (this *P2b) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchOrders(options...)
+}
+func (this *P2b) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchTicker(symbol, options...)
+}
+func (this *P2b) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchTickers(options...)
+}
+func (this *P2b) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchTrades(symbol, options...)
+}
+func (this *P2b) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
+}
+func (this *P2b) WatchBalance(params ...interface{}) (Balances, error) {
+	return this.exchangeTyped.WatchBalance(params...)
+}
+func (this *P2b) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {
+	return this.exchangeTyped.WatchBidsAsks(options...)
+}
+func (this *P2b) WatchLiquidations(symbol string, options ...WatchLiquidationsOptions) ([]Liquidation, error) {
+	return this.exchangeTyped.WatchLiquidations(symbol, options...)
+}
+func (this *P2b) WatchMarkPrice(symbol string, options ...WatchMarkPriceOptions) (Ticker, error) {
+	return this.exchangeTyped.WatchMarkPrice(symbol, options...)
+}
+func (this *P2b) WatchMarkPrices(options ...WatchMarkPricesOptions) (Tickers, error) {
+	return this.exchangeTyped.WatchMarkPrices(options...)
+}
+func (this *P2b) WatchMyLiquidations(symbol string, options ...WatchMyLiquidationsOptions) ([]Liquidation, error) {
+	return this.exchangeTyped.WatchMyLiquidations(symbol, options...)
+}
+func (this *P2b) WatchMyLiquidationsForSymbols(symbols []string, options ...WatchMyLiquidationsForSymbolsOptions) ([]Liquidation, error) {
+	return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)
+}
+func (this *P2b) WatchMyTrades(options ...WatchMyTradesOptions) ([]Trade, error) {
+	return this.exchangeTyped.WatchMyTrades(options...)
+}
+func (this *P2b) WatchOHLCV(symbol string, options ...WatchOHLCVOptions) ([]OHLCV, error) {
+	return this.exchangeTyped.WatchOHLCV(symbol, options...)
+}
+func (this *P2b) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...WatchOHLCVForSymbolsOptions) (map[string]map[string][]OHLCV, error) {
+	return this.exchangeTyped.WatchOHLCVForSymbols(symbolsAndTimeframes, options...)
+}
+func (this *P2b) WatchOrderBook(symbol string, options ...WatchOrderBookOptions) (OrderBook, error) {
+	return this.exchangeTyped.WatchOrderBook(symbol, options...)
+}
+func (this *P2b) WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error) {
+	return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)
+}
+func (this *P2b) WatchOrders(options ...WatchOrdersOptions) ([]Order, error) {
+	return this.exchangeTyped.WatchOrders(options...)
+}
+func (this *P2b) WatchOrdersForSymbols(symbols []string, options ...WatchOrdersForSymbolsOptions) ([]Order, error) {
+	return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)
+}
+func (this *P2b) WatchPosition(options ...WatchPositionOptions) (Position, error) {
+	return this.exchangeTyped.WatchPosition(options...)
+}
+func (this *P2b) WatchPositions(options ...WatchPositionsOptions) ([]Position, error) {
+	return this.exchangeTyped.WatchPositions(options...)
+}
+func (this *P2b) WatchTicker(symbol string, options ...WatchTickerOptions) (Ticker, error) {
+	return this.exchangeTyped.WatchTicker(symbol, options...)
+}
+func (this *P2b) WatchTickers(options ...WatchTickersOptions) (Tickers, error) {
+	return this.exchangeTyped.WatchTickers(options...)
+}
+func (this *P2b) WatchTrades(symbol string, options ...WatchTradesOptions) ([]Trade, error) {
+	return this.exchangeTyped.WatchTrades(symbol, options...)
+}
+func (this *P2b) WatchTradesForSymbols(symbols []string, options ...WatchTradesForSymbolsOptions) ([]Trade, error) {
+	return this.exchangeTyped.WatchTradesForSymbols(symbols, options...)
+}
+func (this *P2b) WithdrawWs(code string, amount float64, address string, options ...WithdrawWsOptions) (Transaction, error) {
+	return this.exchangeTyped.WithdrawWs(code, amount, address, options...)
 }

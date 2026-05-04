@@ -43,6 +43,7 @@ class blockchaincom(Exchange, ImplicitAPI):
                 'fetchBalance': True,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
+                'fetchCurrencies': False,
                 'fetchDeposit': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
@@ -432,7 +433,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         return self.fetch_l3_order_book(symbol, limit, params)
 
@@ -445,7 +446,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param int [limit]: max number of orders to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order book structure <https://docs.ccxt.com/#/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -513,7 +514,7 @@ class blockchaincom(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -531,7 +532,7 @@ class blockchaincom(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         tickers = self.publicGetTickers(params)
@@ -616,7 +617,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -667,7 +668,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         request: dict = {
             'orderId': id,
@@ -686,7 +687,7 @@ class blockchaincom(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol of the market to cancel orders in, all markets are used if None, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         # cancels all open orders if no symbol specified
         # cancels all open orders of specified symbol, if symbol is specified
@@ -714,7 +715,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         https://api.blockchain.com/v3/#getfees
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
         self.load_markets()
         response = self.privateGetFees(params)
@@ -748,7 +749,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest order, default is None
         :param int [limit]: max number of orders to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         state = 'CANCELED'
         return self.fetch_orders_by_state(state, symbol, since, limit, params)
@@ -763,7 +764,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         state = 'FILLED'
         return self.fetch_orders_by_state(state, symbol, since, limit, params)
@@ -778,7 +779,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         state = 'OPEN'
         return self.fetch_orders_by_state(state, symbol, since, limit, params)
@@ -853,7 +854,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
         request: dict = {}
@@ -874,7 +875,7 @@ class blockchaincom(Exchange, ImplicitAPI):
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -987,7 +988,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -1021,7 +1022,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -1045,7 +1046,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param str id: withdrawal id
         :param str code: not used by blockchaincom.fetchWithdrawal
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -1064,7 +1065,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -1088,7 +1089,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param str id: deposit id
         :param str code: not used by blockchaincom fetchDeposit()
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
         depositId = self.safe_string(params, 'depositId', id)
@@ -1105,7 +1106,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         https://api.blockchain.com/v3/#getaccounts
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.load_markets()
         accountName = self.safe_string(params, 'account', 'primary')
@@ -1152,7 +1153,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param str id: the order id
         :param str symbol: not used by blockchaincom fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         # note: only works with exchange-order-id
         # does not work with clientOrderId

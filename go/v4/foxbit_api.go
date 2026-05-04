@@ -7,90 +7,90 @@
 
 package ccxt
 
-func (this *foxbit) V3PublicGetCurrencies(args ...interface{}) <-chan interface{} {
+func (this *FoxbitCore) V3PublicGetCurrencies(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v3PublicGetCurrencies", args...)
 }
 
-func (this *foxbit) V3PublicGetMarkets(args ...interface{}) <-chan interface{} {
+func (this *FoxbitCore) V3PublicGetMarkets(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v3PublicGetMarkets", args...)
 }
 
-func (this *foxbit) V3PublicGetMarketsTicker24hr(args ...interface{}) <-chan interface{} {
+func (this *FoxbitCore) V3PublicGetMarketsTicker24hr(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v3PublicGetMarketsTicker24hr", args...)
 }
 
-func (this *foxbit) V3PublicGetMarketsMarketOrderbook(args ...interface{}) <-chan interface{} {
+func (this *FoxbitCore) V3PublicGetMarketsMarketOrderbook(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v3PublicGetMarketsMarketOrderbook", args...)
 }
 
-func (this *foxbit) V3PublicGetMarketsMarketCandlesticks(args ...interface{}) <-chan interface{} {
+func (this *FoxbitCore) V3PublicGetMarketsMarketCandlesticks(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v3PublicGetMarketsMarketCandlesticks", args...)
 }
 
-func (this *foxbit) V3PublicGetMarketsMarketTradesHistory(args ...interface{}) <-chan interface{} {
+func (this *FoxbitCore) V3PublicGetMarketsMarketTradesHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v3PublicGetMarketsMarketTradesHistory", args...)
 }
 
-func (this *foxbit) V3PublicGetMarketsMarketTicker24hr(args ...interface{}) <-chan interface{} {
+func (this *FoxbitCore) V3PublicGetMarketsMarketTicker24hr(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v3PublicGetMarketsMarketTicker24hr", args...)
 }
 
-func (this *foxbit) V3PrivateGetAccounts(args ...interface{}) <-chan interface{} {
+func (this *FoxbitCore) V3PrivateGetAccounts(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v3PrivateGetAccounts", args...)
 }
 
-func (this *foxbit) V3PrivateGetAccountsSymbolTransactions(args ...interface{}) <-chan interface{} {
+func (this *FoxbitCore) V3PrivateGetAccountsSymbolTransactions(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v3PrivateGetAccountsSymbolTransactions", args...)
 }
 
-func (this *foxbit) V3PrivateGetOrders(args ...interface{}) <-chan interface{} {
+func (this *FoxbitCore) V3PrivateGetOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v3PrivateGetOrders", args...)
 }
 
-func (this *foxbit) V3PrivateGetOrdersByOrderIdId(args ...interface{}) <-chan interface{} {
+func (this *FoxbitCore) V3PrivateGetOrdersByOrderIdId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v3PrivateGetOrdersByOrderIdId", args...)
 }
 
-func (this *foxbit) V3PrivateGetTrades(args ...interface{}) <-chan interface{} {
+func (this *FoxbitCore) V3PrivateGetTrades(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v3PrivateGetTrades", args...)
 }
 
-func (this *foxbit) V3PrivateGetDepositsAddress(args ...interface{}) <-chan interface{} {
+func (this *FoxbitCore) V3PrivateGetDepositsAddress(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v3PrivateGetDepositsAddress", args...)
 }
 
-func (this *foxbit) V3PrivateGetDeposits(args ...interface{}) <-chan interface{} {
+func (this *FoxbitCore) V3PrivateGetDeposits(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v3PrivateGetDeposits", args...)
 }
 
-func (this *foxbit) V3PrivateGetWithdrawals(args ...interface{}) <-chan interface{} {
+func (this *FoxbitCore) V3PrivateGetWithdrawals(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v3PrivateGetWithdrawals", args...)
 }
 
-func (this *foxbit) V3PrivateGetMeFeesTrading(args ...interface{}) <-chan interface{} {
+func (this *FoxbitCore) V3PrivateGetMeFeesTrading(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v3PrivateGetMeFeesTrading", args...)
 }
 
-func (this *foxbit) V3PrivatePostOrders(args ...interface{}) <-chan interface{} {
+func (this *FoxbitCore) V3PrivatePostOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v3PrivatePostOrders", args...)
 }
 
-func (this *foxbit) V3PrivatePostOrdersBatch(args ...interface{}) <-chan interface{} {
+func (this *FoxbitCore) V3PrivatePostOrdersBatch(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v3PrivatePostOrdersBatch", args...)
 }
 
-func (this *foxbit) V3PrivatePostOrdersCancelReplace(args ...interface{}) <-chan interface{} {
+func (this *FoxbitCore) V3PrivatePostOrdersCancelReplace(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v3PrivatePostOrdersCancelReplace", args...)
 }
 
-func (this *foxbit) V3PrivatePostWithdrawals(args ...interface{}) <-chan interface{} {
+func (this *FoxbitCore) V3PrivatePostWithdrawals(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v3PrivatePostWithdrawals", args...)
 }
 
-func (this *foxbit) V3PrivatePutOrdersCancel(args ...interface{}) <-chan interface{} {
+func (this *FoxbitCore) V3PrivatePutOrdersCancel(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v3PrivatePutOrdersCancel", args...)
 }
 
-func (this *foxbit) StatusPublicGetStatus(args ...interface{}) <-chan interface{} {
+func (this *FoxbitCore) StatusPublicGetStatus(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("statusPublicGetStatus", args...)
 }

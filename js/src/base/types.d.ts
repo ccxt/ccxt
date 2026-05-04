@@ -407,6 +407,8 @@ export interface Liquidation {
     price: number;
     baseValue?: number;
     quoteValue?: number;
+    contracts?: number;
+    contractSize?: number;
     side?: OrderSide;
 }
 export interface OrderRequest {
@@ -513,6 +515,15 @@ export interface LongShortRatio {
     datetime?: string;
     timeframe?: string;
     longShortRatio: number;
+}
+export interface ADL {
+    info: any;
+    symbol: string;
+    rank?: Int;
+    rating?: Str;
+    percentage?: number;
+    timestamp?: Int;
+    datetime?: Str;
 }
 export interface MarginModification {
     'info': any;

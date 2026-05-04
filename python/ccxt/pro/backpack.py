@@ -158,7 +158,7 @@ class backpack(ccxt.async_support.backpack):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -175,7 +175,7 @@ class backpack(ccxt.async_support.backpack):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         return await self.un_watch_tickers([symbol], params)
 
@@ -187,7 +187,7 @@ class backpack(ccxt.async_support.backpack):
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
@@ -209,7 +209,7 @@ class backpack(ccxt.async_support.backpack):
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
@@ -302,7 +302,7 @@ class backpack(ccxt.async_support.backpack):
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
@@ -321,7 +321,7 @@ class backpack(ccxt.async_support.backpack):
         unWatches best bid & ask for symbols
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
@@ -409,7 +409,7 @@ class backpack(ccxt.async_support.backpack):
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
         return result[symbol][timeframe]
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}) -> Any:
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -555,7 +555,7 @@ class backpack(ccxt.async_support.backpack):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         return await self.watch_trades_for_symbols([symbol], since, limit, params)
 
@@ -567,7 +567,7 @@ class backpack(ccxt.async_support.backpack):
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         return await self.un_watch_trades_for_symbols([symbol], params)
 
@@ -581,7 +581,7 @@ class backpack(ccxt.async_support.backpack):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -600,7 +600,8 @@ class backpack(ccxt.async_support.backpack):
             first = self.safe_value(trades, 0)
             tradeSymbol = self.safe_string(first, 'symbol')
             limit = trades.getLimit(tradeSymbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        result = self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.sort_by(result, 'timestamp')  # needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
 
     async def un_watch_trades_for_symbols(self, symbols: List[str], params={}) -> Any:
         """
@@ -610,7 +611,7 @@ class backpack(ccxt.async_support.backpack):
 
         :param str[] symbols: unified symbol of the market to fetch trades for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -717,7 +718,7 @@ class backpack(ccxt.async_support.backpack):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         return await self.watch_order_book_for_symbols([symbol], limit, params)
 
@@ -731,7 +732,7 @@ class backpack(ccxt.async_support.backpack):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.method]: either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
@@ -752,7 +753,7 @@ class backpack(ccxt.async_support.backpack):
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified array of symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         return await self.un_watch_order_book_for_symbols([symbol], params)
 
@@ -762,7 +763,7 @@ class backpack(ccxt.async_support.backpack):
         :param str[] symbols: unified array of symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.method]: either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
@@ -814,7 +815,7 @@ class backpack(ccxt.async_support.backpack):
                 self.spawn(self.load_order_book, client, messageHash, symbol, None, {})
             storedOrderBook.cache.append(data)
             return
-        elif nonce >= deltaNonce:
+        elif nonce > deltaNonce:
             return
         self.handle_delta(storedOrderBook, data)
         client.resolve(storedOrderBook, messageHash)
@@ -824,8 +825,8 @@ class backpack(ccxt.async_support.backpack):
         orderbook['timestamp'] = timestamp
         orderbook['datetime'] = self.iso8601(timestamp)
         orderbook['nonce'] = self.safe_integer(delta, 'u')
-        bids = self.safe_dict(delta, 'b', [])
-        asks = self.safe_dict(delta, 'a', [])
+        bids = self.safe_list(delta, 'b', [])
+        asks = self.safe_list(delta, 'a', [])
         storedBids = orderbook['bids']
         storedAsks = orderbook['asks']
         self.handle_bid_asks(storedBids, bids)
@@ -837,15 +838,17 @@ class backpack(ccxt.async_support.backpack):
             bookSide.storeArray(bidAsk)
 
     def get_cache_index(self, orderbook, cache):
+        #
+        # {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
         firstDelta = self.safe_dict(cache, 0)
         nonce = self.safe_integer(orderbook, 'nonce')
-        firstDeltaStart = self.safe_integer(firstDelta, 'sequenceStart')
+        firstDeltaStart = self.safe_integer(firstDelta, 'U')
         if nonce < firstDeltaStart - 1:
             return -1
         for i in range(0, len(cache)):
             delta = cache[i]
-            deltaStart = self.safe_integer(delta, 'sequenceStart')
-            deltaEnd = self.safe_integer(delta, 'sequenceEnd')
+            deltaStart = self.safe_integer(delta, 'U')
+            deltaEnd = self.safe_integer(delta, 'u')
             if (nonce >= deltaStart - 1) and (nonce < deltaEnd):
                 return i
         return len(cache)
@@ -860,7 +863,7 @@ class backpack(ccxt.async_support.backpack):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -885,7 +888,7 @@ class backpack(ccxt.async_support.backpack):
 
         :param str [symbol]: unified market symbol of the market orders were made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = None
