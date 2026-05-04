@@ -16,7 +16,7 @@ public class TestSharedMethods extends BaseTest {
         // there are cases when exchange is undefined (eg. base tests)
         Object id = ((Helpers.isTrue((!Helpers.isEqual(exchange, null))))) ? exchange.id : "undefined";
         Object methodString = ((Helpers.isTrue((!Helpers.isEqual(method, null))))) ? method : "undefined";
-        Object entryString = ((Helpers.isTrue((!Helpers.isEqual(exchange, null))))) ? exchange.json(entry) : "";
+        Object entryString = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(exchange, null)) && Helpers.isTrue(!Helpers.isEqual(entry, null)))))) ? exchange.json(entry) : "";
         return Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(" <<< ", id), " "), methodString), " ::: "), entryString), " >>> ");
     }
     public static Object isTemporaryFailure(Object e)

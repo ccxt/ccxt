@@ -2726,7 +2726,8 @@ public class TestMain extends BaseTest
 
             if (Helpers.isTrue(Helpers.isEqual(this.lang, "java")))
             {
-                return false;  // skip for java for now due to issues with the required lib
+                // skip for java for now due to issues with the required lib
+                return false;
             }
             Exchange exchange = this.initOfflineExchange("paradex");
             exchange.walletAddress = "0xc751489d24a33172541ea451bc253d7a9e98c781";
@@ -2835,7 +2836,8 @@ public class TestMain extends BaseTest
 
             if (Helpers.isTrue(Helpers.isEqual(this.lang, "java")))
             {
-                return false;  // skip for java for now due to issues with the required lib
+                // skip for java for now due to issues with the required lib
+                return false;
             }
             Exchange exchange = this.initOfflineExchange("derive");
             Object id = "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749";
@@ -2872,7 +2874,8 @@ public class TestMain extends BaseTest
 
             if (Helpers.isTrue(Helpers.isEqual(this.lang, "java")))
             {
-                return false;  // skip for java for now due to issues with the required lib
+                // skip for java for now due to issues with the required lib
+                return false;
             }
             Exchange exchange = this.initOfflineExchange("modetrade");
             exchange.secret = "secretsecretsecretsecretsecretsecretsecrets";

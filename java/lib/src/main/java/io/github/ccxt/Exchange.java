@@ -52,6 +52,10 @@ public class Exchange {
 
     // Basic info
     public String id = "Exchange";
+    public String name = "";
+    public Object countries = new java.util.ArrayList<>();
+    public boolean certified = false;
+    public boolean pro = false;
     public boolean alias = false;
     public String version = "";
     public String userAgent;                              // null by default
@@ -2662,15 +2666,16 @@ public class Exchange {
 public Object describe()
     {
         return new java.util.HashMap<String, Object>() {{
-            put( "id", null );
-            put( "name", null );
-            put( "countries", null );
-            put( "enableRateLimit", true );
-            put( "rateLimit", 2000 );
+            put( "id", Exchange.this.id );
+            put( "name", Exchange.this.name );
+            put( "countries", Exchange.this.countries );
+            put( "enableRateLimit", Exchange.this.enableRateLimit );
+            put( "rateLimit", Exchange.this.rateLimit );
+            put( "rateLimiterAlgorithm", Exchange.this.rateLimiterAlgorithm );
             put( "timeout", Exchange.this.timeout );
-            put( "certified", false );
-            put( "pro", false );
-            put( "alias", false );
+            put( "certified", Exchange.this.certified );
+            put( "pro", Exchange.this.pro );
+            put( "alias", Exchange.this.alias );
             put( "dex", false );
             put( "has", new java.util.HashMap<String, Object>() {{
                 put( "publicAPI", true );
@@ -2916,9 +2921,12 @@ public Object describe()
             put( "urls", new java.util.HashMap<String, Object>() {{
                 put( "logo", null );
                 put( "api", null );
+                put( "test", null );
                 put( "www", null );
                 put( "doc", null );
+                put( "api_management", null );
                 put( "fees", null );
+                put( "referral", null );
             }} );
             put( "api", null );
             put( "requiredCredentials", new java.util.HashMap<String, Object>() {{
@@ -2955,6 +2963,7 @@ public Object describe()
                 put( "updated", null );
                 put( "eta", null );
                 put( "url", null );
+                put( "info", null );
             }} );
             put( "exceptions", null );
             put( "httpExceptions", new java.util.HashMap<String, Object>() {{
@@ -9191,7 +9200,10 @@ public Object describe()
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createTriggerOrder() requires a triggerPrice argument")) ;
             }
-            Helpers.addElementToObject(parameters, "triggerPrice", triggerPrice);
+            final Object finalTriggerPrice = triggerPrice;
+            parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+                put( "triggerPrice", finalTriggerPrice );
+            }});
             if (Helpers.isTrue(Helpers.GetValue(this.has, "createTriggerOrder")))
             {
                 return (this.createOrder(symbol, type, side, amount, price, parameters)).join();
@@ -9226,7 +9238,10 @@ public Object describe()
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createTriggerOrderWs() requires a triggerPrice argument")) ;
             }
-            Helpers.addElementToObject(parameters, "triggerPrice", triggerPrice);
+            final Object finalTriggerPrice = triggerPrice;
+            parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+                put( "triggerPrice", finalTriggerPrice );
+            }});
             if (Helpers.isTrue(Helpers.GetValue(this.has, "createTriggerOrderWs")))
             {
                 return (this.createOrderWs(symbol, type, side, amount, price, parameters)).join();
@@ -9261,7 +9276,10 @@ public Object describe()
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createStopLossOrder() requires a stopLossPrice argument")) ;
             }
-            Helpers.addElementToObject(parameters, "stopLossPrice", stopLossPrice);
+            final Object finalStopLossPrice = stopLossPrice;
+            parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+                put( "stopLossPrice", finalStopLossPrice );
+            }});
             if (Helpers.isTrue(Helpers.GetValue(this.has, "createStopLossOrder")))
             {
                 return (this.createOrder(symbol, type, side, amount, price, parameters)).join();
@@ -9296,7 +9314,10 @@ public Object describe()
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createStopLossOrderWs() requires a stopLossPrice argument")) ;
             }
-            Helpers.addElementToObject(parameters, "stopLossPrice", stopLossPrice);
+            final Object finalStopLossPrice = stopLossPrice;
+            parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+                put( "stopLossPrice", finalStopLossPrice );
+            }});
             if (Helpers.isTrue(Helpers.GetValue(this.has, "createStopLossOrderWs")))
             {
                 return (this.createOrderWs(symbol, type, side, amount, price, parameters)).join();
@@ -9331,7 +9352,10 @@ public Object describe()
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createTakeProfitOrder() requires a takeProfitPrice argument")) ;
             }
-            Helpers.addElementToObject(parameters, "takeProfitPrice", takeProfitPrice);
+            final Object finalTakeProfitPrice = takeProfitPrice;
+            parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+                put( "takeProfitPrice", finalTakeProfitPrice );
+            }});
             if (Helpers.isTrue(Helpers.GetValue(this.has, "createTakeProfitOrder")))
             {
                 return (this.createOrder(symbol, type, side, amount, price, parameters)).join();
@@ -9366,7 +9390,10 @@ public Object describe()
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createTakeProfitOrderWs() requires a takeProfitPrice argument")) ;
             }
-            Helpers.addElementToObject(parameters, "takeProfitPrice", takeProfitPrice);
+            final Object finalTakeProfitPrice = takeProfitPrice;
+            parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+                put( "takeProfitPrice", finalTakeProfitPrice );
+            }});
             if (Helpers.isTrue(Helpers.GetValue(this.has, "createTakeProfitOrderWs")))
             {
                 return (this.createOrderWs(symbol, type, side, amount, price, parameters)).join();
@@ -10521,7 +10548,7 @@ public Object describe()
             return null;
         }
         Object market = this.market(symbol);
-        return this.decimalToPrecision(cost, TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
+        return this.decimalToPrecision(cost, TRUNCATE, this.safeString2(Helpers.GetValue(market, "precision"), "cost", "price"), this.precisionMode, this.paddingMode);
     }
 
     public Object priceToPrecision(Object symbol, Object price)

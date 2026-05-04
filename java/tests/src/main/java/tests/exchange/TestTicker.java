@@ -48,6 +48,7 @@ public class TestTicker extends BaseTest {
         Object logText = TestSharedMethods.logTemplate(exchange, method, entry);
         // check market
         Object market = null;
+        Object isFetchTickerCalled = Helpers.isEqual(method, "fetchTicker");
         Object symbolForMarket = ((Helpers.isTrue((!Helpers.isEqual(symbol, null))))) ? symbol : exchange.safeString(entry, "symbol");
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(symbolForMarket, null)) && Helpers.isTrue((Helpers.inOp(exchange.markets, symbolForMarket)))))
         {
@@ -171,6 +172,15 @@ public class TestTicker extends BaseTest {
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(askString, null))) && Helpers.isTrue((!Helpers.isEqual(bidString, null)))) && !Helpers.isTrue((Helpers.inOp(skippedProperties, "spread")))))
         {
             TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "ask", exchange.safeString(entry, "bid"));
+        }
+        // last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
+        Object allowedPercentageVariation = "0.01";
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isFetchTickerCalled) && Helpers.isTrue(!Helpers.isEqual(lastString, null))) && Helpers.isTrue(!Helpers.isEqual(bidString, null))) && Helpers.isTrue(!Helpers.isEqual(askString, null))) && !Helpers.isTrue((Helpers.inOp(skippedProperties, "lastBetweenBidAsk")))))
+        {
+            Object medianPrice = Precise.stringDiv(Precise.stringAdd(bidString, askString), "2");
+            Object medianLow = Precise.stringMul(medianPrice, Precise.stringSub("1", allowedPercentageVariation));
+            Object medianHigh = Precise.stringMul(medianPrice, Precise.stringAdd("1", allowedPercentageVariation));
+            Assert(Helpers.isTrue(Precise.stringGe(lastString, medianLow)) && Helpers.isTrue(Precise.stringLe(lastString, medianHigh)), Helpers.add("last price should be within 1% of the bid/ask median price", logText));
         }
         Object percentage = exchange.safeString(entry, "percentage");
         Object change = exchange.safeString(entry, "change");
