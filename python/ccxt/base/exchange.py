@@ -167,7 +167,7 @@ class SafeJSONEncoder(json.JSONEncoder):
 
 class Exchange(object):
     """Base exchange class"""
-    id = None
+    id = 'Exchange'
     name = None
     countries = None
     version = None
@@ -270,15 +270,18 @@ class Exchange(object):
     proxies = None
 
     hostname = None  # in case of inaccessibility of the "main" domain
-    apiKey = ''
-    secret = ''
-    password = ''
-    uid = ''
+
+    apiKey = None
+    secret = None
+    password = None
+    uid = None
     accountId = None
-    privateKey = ''  # a "0x"-prefixed hexstring private key for a wallet
-    walletAddress = ''  # the wallet address "0x"-prefixed hexstring
-    token = ''  # reserved for HTTP auth in some cases
+    login = None
+    privateKey = None  # a "0x"-prefixed hexstring private key for a wallet
+    walletAddress = None  # the wallet address "0x"-prefixed hexstring
+    token = None  # reserved for HTTP auth in some cases
     twofa = None
+
     markets_by_id = None
     currencies_by_id = None
 
@@ -368,7 +371,7 @@ class Exchange(object):
 
     # API method metainfo
     has = {}
-    features = {}
+    features = None
     precisionMode = DECIMAL_PLACES
     paddingMode = NO_PADDING
     minFundingAddressLength = 1  # used in check_address
@@ -405,7 +408,6 @@ class Exchange(object):
 
     commonCurrencies = {
         'XBT': 'BTC',
-        'BCC': 'BCH',
         'BCHSV': 'BSV',
     }
     synchronous = True
@@ -414,7 +416,6 @@ class Exchange(object):
         self.aiohttp_trust_env = self.aiohttp_trust_env or self.trust_env
         self.requests_trust_env = self.requests_trust_env or self.trust_env
 
-        self.precision = dict() if self.precision is None else self.precision
         self.limits = dict() if self.limits is None else self.limits
         self.exceptions = dict() if self.exceptions is None else self.exceptions
         self.headers = dict() if self.headers is None else self.headers
@@ -2845,6 +2846,7 @@ class Exchange(object):
                 'updated': None,
                 'eta': None,
                 'url': None,
+                'info': None,
             },
             'exceptions': None,
             'httpExceptions': {

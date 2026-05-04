@@ -337,22 +337,26 @@ func (this *Exchange) initializeProperties(extendedProperties map[string]interfa
 	this.cacheLoaded = false
 	reqCred := SafeValue(extendedProperties, "requiredCredentials", map[string]interface{}{})
 	this.RequiredCredentials = reqCred.(map[string]interface{})
-	this.ApiKey = SafeString(extendedProperties, "apiKey", "").(string)
-	this.Secret = SafeString(extendedProperties, "secret", "").(string)
-	this.Password = SafeString(extendedProperties, "password", "").(string)
-	this.Login = SafeString(extendedProperties, "login", "").(string)
-	this.Twofa = SafeString(extendedProperties, "twofa", "").(string)
-	this.PrivateKey = SafeString(extendedProperties, "privateKey", "").(string)
-	this.WalletAddress = SafeString(extendedProperties, "walletAddress", "").(string)
-	this.Token = SafeString(extendedProperties, "token", "").(string)
-	this.Uid = SafeString(extendedProperties, "uid", "").(string)
-	this.AccountId = SafeString(extendedProperties, "accountId", "").(string)
+	this.ApiKey = SafeString(extendedProperties, "apiKey", nil)
+	this.Secret = SafeString(extendedProperties, "secret", nil)
+	this.Password = SafeString(extendedProperties, "password", nil)
+	this.Login = SafeString(extendedProperties, "login", nil)
+	this.Twofa = SafeString(extendedProperties, "twofa", nil)
+	this.PrivateKey = SafeString(extendedProperties, "privateKey", nil)
+	this.WalletAddress = SafeString(extendedProperties, "walletAddress", nil)
+	this.Token = SafeString(extendedProperties, "token", nil)
+	this.Uid = SafeString(extendedProperties, "uid", nil)
+	this.AccountId = SafeString(extendedProperties, "accountId", nil)
 
-	this.UserAgents = SafeValue(extendedProperties, "userAgents", map[string]interface{}{}).(map[string]interface{})
+	this.UserAgents = SafeValue(extendedProperties, "userAgents", map[string]interface{}{
+		"chrome":    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36",
+		"chrome39":  "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36",
+		"chrome100": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36",
+	}).(map[string]interface{})
 	this.UserAgent = SafeString(extendedProperties, "userAgent", "").(string)
 	this.Timeout = SafeInteger(extendedProperties, "timeout", 10000).(int64)
 	this.MAX_VALUE = SafeFloat(extendedProperties, "MAX_VALUE", 1.7976931348623157e+308).(float64) // math.MaxFloat64
-	this.Id = SafeString(extendedProperties, "id", "").(string)
+	this.Id = SafeString(extendedProperties, "id", "Exchange").(string)
 	this.Alias = SafeValue(extendedProperties, "alias", false).(bool)
 
 	this.Api = SafeValue(extendedProperties, "api", map[string]interface{}{}).(map[string]interface{})

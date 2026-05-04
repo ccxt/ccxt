@@ -182,7 +182,7 @@ public partial class BaseTest
     {
         assert(DeepEqual(a, b), add(add(add(add("two dicts do not match: ", Exchange.Json(a)), " != "), Exchange.Json(b)), method));
     }
-    
+
     public object exchangeProp(Exchange exchange, object key, object defaultValue = null)
     {
         object value = exchange.getProperty(exchange, ((object)key).ToString());
