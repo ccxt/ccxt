@@ -2657,7 +2657,7 @@ class Exchange {
         $this->options = array_merge($this->options, $newOptions);
     }
 
-    public function create_safe_dictionary() {
+    public function create_safe_dictionary($isWs = false) {
         return array();
     }
 
