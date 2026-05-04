@@ -133,14 +133,14 @@ public partial class BaseTest
             testIso8601();
             testParse8601();
             testParseDate();
+            // @SKIP_START_GO
+            testYmd();
+            testYmdhms();
+            // @SKIP_END_GO
             testMicroseconds();
             testMilliseconds();
             testSeconds();
             testYymmdd();
             testYyyymmdd();
-            Assert("GO_SKIP_START");
-            testYmd();
-            testYmdhms();
-            Assert("GO_SKIP_END");
         }
 }

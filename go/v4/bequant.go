@@ -19,6 +19,9 @@ func (this *BequantCore) Describe() interface{} {
 		"name":      "Bequant",
 		"pro":       true,
 		"countries": []interface{}{"MT"},
+		"has": map[string]interface{}{
+			"swap": false,
+		},
 		"urls": map[string]interface{}{
 			"logo": "https://github.com/user-attachments/assets/0583ef1f-29fe-4b7c-8189-63565a0e2867",
 			"api": map[string]interface{}{

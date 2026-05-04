@@ -488,13 +488,17 @@ export default class grvt extends Exchange {
      * @returns response from exchange
      */
     async signIn(params = {}) {
-        if (this.usesPrivateKey()) {
-            await this.signInWithPrivateKey(params);
-            await this.initializeClient(params);
+        // if (this.usesPrivateKey ()) {
+        //     await this.signInWithPrivateKey (params);
+        //     await this.initializeClient (params);
+        // } else {
+        //     await this.signInWithApiKey (params);
+        // }
+        if (this.privateKey === undefined || this.privateKey === '') {
+            throw new PermissionDenied('Private key is required for this operation. If you used joined GRVT through email registration instead of Web3 wallet, then read: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt');
         }
-        else {
-            await this.signInWithApiKey(params);
-        }
+        await this.signInWithPrivateKey(params);
+        await this.initializeClient(params);
         await this.loadAccountInfos();
         return true;
     }

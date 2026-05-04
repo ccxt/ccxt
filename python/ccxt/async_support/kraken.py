@@ -667,7 +667,6 @@ class kraken(Exchange, ImplicitAPI):
             id = keys[i]
             isSynthetic = False
             if id.find(':BTNL') >= 0:
-                # continue  # skip syntetic markets
                 isSynthetic = True
             market = markets[id]
             baseIdRaw = self.safe_string(market, 'base')
@@ -702,7 +701,7 @@ class kraken(Exchange, ImplicitAPI):
                     precisionAmount = currencyPrecision
             status = self.safe_string(market, 'status')
             isActive = status == 'online'
-            symbol = not (base + '/' + quote) if isSynthetic else id
+            symbol = (base + '/' + quote) if (not isSynthetic) else id
             result.append({
                 'id': id,
                 'wsId': self.safe_string(market, 'wsname'),

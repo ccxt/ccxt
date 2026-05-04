@@ -612,7 +612,6 @@ public partial class kraken : Exchange
             object isSynthetic = false;
             if (isTrue(isGreaterThanOrEqual(getIndexOf(id, ":BTNL"), 0)))
             {
-                // continue; // skip syntetic markets
                 isSynthetic = true;
             }
             object market = getValue(markets, id);
@@ -656,7 +655,7 @@ public partial class kraken : Exchange
             }
             object status = this.safeString(market, "status");
             object isActive = isEqual(status, "online");
-            object symbol = ((bool) !isTrue(isSynthetic)) ? (add(add(bs, "/"), quote)) : id;
+            object symbol = ((bool) isTrue((!isTrue(isSynthetic)))) ? (add(add(bs, "/"), quote)) : id;
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "wsId", this.safeString(market, "wsname") },

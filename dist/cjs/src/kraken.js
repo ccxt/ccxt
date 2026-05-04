@@ -651,7 +651,6 @@ class kraken extends kraken$1["default"] {
             const id = keys[i];
             let isSynthetic = false;
             if (id.indexOf(':BTNL') >= 0) {
-                // continue; // skip syntetic markets
                 isSynthetic = true;
             }
             const market = markets[id];
@@ -691,7 +690,7 @@ class kraken extends kraken$1["default"] {
             }
             const status = this.safeString(market, 'status');
             const isActive = status === 'online';
-            const symbol = !isSynthetic ? (base + '/' + quote) : id;
+            const symbol = (!isSynthetic) ? (base + '/' + quote) : id;
             result.push({
                 'id': id,
                 'wsId': this.safeString(market, 'wsname'),

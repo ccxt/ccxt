@@ -9,7 +9,7 @@ func LogTemplate(exchange ccxt.ICoreExchange, method interface{}, entry interfac
 	// there are cases when exchange is undefined (eg. base tests)
 	var id interface{} = Ternary(IsTrue((!IsEqual(exchange, nil))), exchange.GetId(), "undefined")
 	var methodString interface{} = Ternary(IsTrue((!IsEqual(method, nil))), method, "undefined")
-	var entryString interface{} = Ternary(IsTrue((!IsEqual(exchange, nil))), exchange.Json(entry), "")
+	var entryString interface{} = Ternary(IsTrue((IsTrue(!IsEqual(exchange, nil)) && IsTrue(!IsEqual(entry, nil)))), exchange.Json(entry), "")
 	return Add(Add(Add(Add(Add(Add(" <<< ", id), " "), methodString), " ::: "), entryString), " >>> ")
 }
 func IsTemporaryFailure(e interface{}) interface{} {

@@ -19,7 +19,11 @@ func NewBinanceusdmCore() *BinanceusdmCore {
 }
 
 func  (this *BinanceusdmCore) Describe() interface{}  {
-    return this.DeepExtend(this.base.Describe(), map[string]interface{} {
+    // eslint-disable-next-line new-cap
+    restInstance := ccxt.NewBinanceusdm(nil)
+    var restDescribe interface{} = restInstance.Describe()
+    var extended interface{} = this.DeepExtend(this.base.Describe(), restDescribe)
+    return this.DeepExtend(extended, map[string]interface{} {
         "id": "binanceusdm",
         "name": "Binance USDⓈ-M",
         "urls": map[string]interface{} {

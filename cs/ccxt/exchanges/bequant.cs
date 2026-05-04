@@ -12,6 +12,9 @@ public partial class bequant : hitbtc
             { "name", "Bequant" },
             { "pro", true },
             { "countries", new List<object>() {"MT"} },
+            { "has", new Dictionary<string, object>() {
+                { "swap", false },
+            } },
             { "urls", new Dictionary<string, object>() {
                 { "logo", "https://github.com/user-attachments/assets/0583ef1f-29fe-4b7c-8189-63565a0e2867" },
                 { "api", new Dictionary<string, object>() {

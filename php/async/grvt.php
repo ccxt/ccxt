@@ -494,12 +494,17 @@ class grvt extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return response from exchange
              */
-            if ($this->uses_private_key()) {
-                Async\await($this->sign_in_with_private_key($params));
-                Async\await($this->initialize_client($params));
-            } else {
-                Async\await($this->sign_in_with_api_key($params));
+            // if ($this->uses_private_key()) {
+            //     Async\await($this->sign_in_with_private_key($params));
+            //     Async\await($this->initialize_client($params));
+            // } else {
+            //     Async\await($this->sign_in_with_api_key($params));
+            // }
+            if ($this->privateKey === null || $this->privateKey === '') {
+                throw new PermissionDenied('Private key is required for this operation. If you used joined GRVT through email registration instead of Web3 wallet, then read => https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt');
             }
+            Async\await($this->sign_in_with_private_key($params));
+            Async\await($this->initialize_client($params));
             Async\await($this->load_account_infos());
             return true;
         }) ();

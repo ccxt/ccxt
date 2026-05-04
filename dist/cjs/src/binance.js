@@ -1496,6 +1496,7 @@ class binance extends binance$1["default"] {
                     'BUSD': 'USD',
                 },
                 'defaultWithdrawPrecision': 0.00000001,
+                'defaultFiatWithdrawPrecision': 0.01,
             },
             'features': {
                 'spot': {
@@ -3059,59 +3060,48 @@ class binance extends binance$1["default"] {
             //        ]
             //    }
             //
+            //     some coins (e.g. ETH, BIGTIME, SONIC, etc) return extra fields under network entry
+            //
+            //                "specialTips": "",
+            //                "specialWithdrawTips": "",
+            //                "withdrawInternalMin": "0",
+            //                "contractAddressUrl": "https://etherscan.io/address/",
+            //                "contractAddress": "0x64bc2ca1be492be7185faa2c8835d9b824c8a194"
+            //
             const entry = responseCurrencies[i];
             const id = this.safeString(entry, 'coin');
             const name = this.safeString(entry, 'name');
             const code = this.safeCurrencyCode(id);
             const isFiat = this.safeBool(entry, 'isLegalMoney');
-            let minPrecision = undefined;
-            let isWithdrawEnabled = true;
-            let isDepositEnabled = true;
             const networkList = this.safeList(entry, 'networkList', []);
             const fees = {};
-            let fee = undefined;
             const networks = {};
+            let isETF = false;
             for (let j = 0; j < networkList.length; j++) {
                 const networkItem = networkList[j];
                 const network = this.safeString(networkItem, 'network');
                 const networkCode = this.networkIdToCode(network, code);
-                const isETF = (network === 'ETF'); // e.g. BTCUP, ETHDOWN
+                isETF = (network === 'ETF'); // ETF currencies (e.g. BTCUP, ETHDOWN) have only 1 "network" entry and are deterministic to set
                 // const name = this.safeString (networkItem, 'name');
                 const withdrawFee = this.safeNumber(networkItem, 'withdrawFee');
                 const depositEnable = this.safeBool(networkItem, 'depositEnable');
                 const withdrawEnable = this.safeBool(networkItem, 'withdrawEnable');
-                isDepositEnabled = isDepositEnabled || depositEnable;
-                isWithdrawEnabled = isWithdrawEnabled || withdrawEnable;
                 fees[network] = withdrawFee;
-                const isDefault = this.safeBool(networkItem, 'isDefault');
-                if (isDefault || (fee === undefined)) {
-                    fee = withdrawFee;
-                }
+                this.safeBool(networkItem, 'isDefault');
                 // todo: default networks in "setMarkets" overload
                 // if (isDefault) {
                 //     this.options['defaultNetworkCodesForCurrencies'][code] = networkCode;
                 // }
-                const precisionTick = this.safeString(networkItem, 'withdrawIntegerMultiple');
-                let withdrawPrecision = precisionTick;
-                // avoid zero values, which are mostly from fiat or leveraged tokens or some abandoned coins : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
-                if (!Precise["default"].stringEq(precisionTick, '0')) {
-                    minPrecision = (minPrecision === undefined) ? precisionTick : Precise["default"].stringMin(minPrecision, precisionTick);
-                }
-                else {
-                    if (!isFiat && !isETF) {
-                        // non-fiat and non-ETF currency, there are many cases when precision is set to zero (probably bug, we've reported to binance already)
-                        // in such cases, we can set default precision of 8 (which is in UI for such coins)
-                        withdrawPrecision = this.omitZero(this.safeString(networkItem, 'withdrawInternalMin'));
-                        if (withdrawPrecision === undefined) {
-                            withdrawPrecision = this.safeString(this.options, 'defaultWithdrawPrecision');
-                        }
-                    }
+                let withdrawPrecision = this.omitZero(this.safeString2(networkItem, 'withdrawIntegerMultiple', 'withdrawInternalMin'));
+                // zero values happen only on fiat or leveraged(ETF) tokens: https://t.me/binance_api_english/393075
+                if (withdrawPrecision === undefined && isFiat) {
+                    withdrawPrecision = this.safeString(this.options, 'defaultFiatWithdrawPrecision');
                 }
                 networks[networkCode] = {
                     'info': networkItem,
                     'id': network,
                     'network': networkCode,
-                    'active': depositEnable && withdrawEnable,
+                    'active': undefined,
                     'deposit': depositEnable,
                     'withdraw': withdrawEnable,
                     'fee': withdrawFee,
@@ -3128,8 +3118,17 @@ class binance extends binance$1["default"] {
                     },
                 };
             }
+            let type = undefined;
+            if (isETF) {
+                type = 'other';
+            }
+            else if (isFiat) {
+                type = 'fiat';
+            }
+            else {
+                type = 'crypto';
+            }
             const trading = this.safeBool(entry, 'trading');
-            const active = (isWithdrawEnabled && isDepositEnabled && trading);
             const marginEntry = this.safeDict(marginablesById, id, {});
             //
             //     {
@@ -3141,22 +3140,22 @@ class binance extends binance$1["default"] {
             //         userMinRepay: "0",
             //     }
             //
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'name': name,
                 'code': code,
-                'type': isFiat ? 'fiat' : 'crypto',
-                'precision': this.parseNumber(minPrecision),
+                'type': type,
+                'precision': undefined,
                 'info': entry,
-                'active': active,
-                'deposit': isDepositEnabled,
-                'withdraw': isWithdrawEnabled,
+                'active': trading,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'networks': networks,
-                'fee': fee,
+                'fee': undefined,
                 'fees': fees,
-                'limits': this.limits,
+                'limits': undefined,
                 'margin': this.safeBool(marginEntry, 'isBorrowable'),
-            };
+            });
         }
         return result;
     }

@@ -393,8 +393,15 @@ exchange = ccxt.grvt({
 	'privateKey': 'XXXXXXX', // the l1 private key (hex)
 })
 ```
+Note: Users who signed up via email, their wallet is powered by Privy (GRVT's embedded wallet solution). To export the private key:
 
-CCXT is also a builder on GRVT meaning that by default users will pay 1bps (0.01%) extra for using it through CCXT, however this fee is totally optional and can be disabled by providing the option `builderFee: False` in options. Your contribution is much appreciated.
+1. Go to https://home.privy.io
+2. Log in with the same email/Google account used to sign up on GRVT
+3. From there, you can export the private key
+
+*(If you need a help, you can visit https://support.privy.io)*
+
+CCXT is also a builder on GRVT meaning that by default users will pay 1bps (0.01%) extra for using it through CCXT, however this fee is totally optional and can be disabled by providing the option `builderFee: False` in options. Howerer, your contribution is much appreciated.
 
 ```
 exchange.options['builderFee'] = False

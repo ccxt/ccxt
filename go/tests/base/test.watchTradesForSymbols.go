@@ -56,9 +56,6 @@ func TestWatchTradesForSymbols(exchange ccxt.ICoreExchange, skippedProperties in
 						AppendToArray(&returnedSymbols, symbol)
 					}
 				}
-				if !IsTrue((InOp(skippedProperties, "timestampSort"))) {
-					AssertTimestampOrder(exchange, method, symbol, response)
-				}
 			}
 		}
 

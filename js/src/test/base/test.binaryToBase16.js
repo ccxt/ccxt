@@ -11,7 +11,7 @@ function testBinaryToBase16() {
         'id': 'sampleexchange',
     });
     assert(exchange.parseNumber(undefined) === undefined, "GO_WORKAROUND");
-    assert('GO_SKIP_START');
+    // @SKIP_START_GO
     // Test 1: simple known bytes
     // 'ff' => [255]
     const binary1 = exchange.base16ToBinary('ff');
@@ -43,6 +43,6 @@ function testBinaryToBase16() {
     const hex8 = 'cafebabe';
     const binary8 = exchange.base16ToBinary(hex8);
     assert(exchange.binaryToBase16(binary8) === hex8);
-    assert('GO_SKIP_END');
+    // @SKIP_END_GO
 }
 export default testBinaryToBase16;

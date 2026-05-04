@@ -34,6 +34,7 @@ func (this *BinanceusdmCore) Describe() interface{} {
 			"fetchMarkets": map[string]interface{}{
 				"types": []interface{}{"linear"},
 			},
+			"defaultType":      "swap",
 			"defaultSubType":   "linear",
 			"leverageBrackets": nil,
 			"marginTypes":      map[string]interface{}{},
@@ -57,9 +58,9 @@ func (this *BinanceusdmCore) TransferIn(code interface{}, amount interface{}, op
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes5515 := (<-this.FuturesTransfer(code, amount, 1, params))
-		PanicOnError(retRes5515)
-		ch <- retRes5515
+		retRes5615 := (<-this.FuturesTransfer(code, amount, 1, params))
+		PanicOnError(retRes5615)
+		ch <- retRes5615
 		return nil
 
 	}()
@@ -74,9 +75,9 @@ func (this *BinanceusdmCore) TransferOut(code interface{}, amount interface{}, o
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes6015 := (<-this.FuturesTransfer(code, amount, 2, params))
-		PanicOnError(retRes6015)
-		ch <- retRes6015
+		retRes6115 := (<-this.FuturesTransfer(code, amount, 2, params))
+		PanicOnError(retRes6115)
+		ch <- retRes6115
 		return nil
 
 	}()
