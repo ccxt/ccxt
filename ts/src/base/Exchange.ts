@@ -1535,10 +1535,10 @@ export default class Exchange {
     }
 
     async close () {
-        // Here happens the language-specific cleanup of WS & REST resources
-        // test by running ts/src/pro/test/base/test.close.ts
-        await this.sleep (0); // allow other futures to run
+        // [REST]
+        this.cleanRestData ();
         // [WS]
+        await this.sleep (0); // allow other futures to run
         const clients = Object.values (this.clients || {});
         const closedClients = [];
         for (let i = 0; i < clients.length; i++) {
@@ -1552,10 +1552,7 @@ export default class Exchange {
             closedClients.push (client.close ());
         }
         this.cleanWsData ();
-        // [REST]
-        // todo if any
-        return Promise.all (closedClients);
-        this.cleanRestData ();
+        await Promise.all (closedClients);
     }
 
     async loadOrderBook (client, messageHash: string, symbol: string, limit: Int = undefined, params = {}) {

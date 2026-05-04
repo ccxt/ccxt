@@ -98,6 +98,7 @@ class Exchange extends \ccxt\Exchange {
             unset($this->default_connector);
         }
         parent::close();
+        // [WS]
     }
 
     private $proxyDictionaries = [];
