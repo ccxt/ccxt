@@ -927,7 +927,6 @@ print_r($exchange->markets['BTC/USDT']);
 
 // Check last request/response
 print_r($exchange->last_http_response);
-print_r($exchange->last_json_response);
 ```
 
 ## Learn More

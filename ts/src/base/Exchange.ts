@@ -300,11 +300,9 @@ export default class Exchange {
         quote?: Num,
     } = undefined;
 
-    enableLastJsonResponse: boolean = false;
     enableLastHttpResponse: boolean = true;
     enableLastResponseHeaders: boolean = true;
     last_http_response: string = undefined;
-    last_json_response: any = undefined;
     last_response_headers: Dictionary<string> = undefined;
     last_request_headers: Dictionary<string> = undefined;
     last_request_body: any = undefined;
@@ -576,11 +574,9 @@ export default class Exchange {
         this.requiresEddsa = false;
         // response handling flags and properties
         this.lastRestRequestTimestamp = 0;
-        this.enableLastJsonResponse = false;
         this.enableLastHttpResponse = true;
         this.enableLastResponseHeaders = true;
         this.last_http_response = undefined;
-        this.last_json_response = undefined;
         this.last_response_headers = undefined;
         this.last_request_headers = undefined;
         this.last_request_body = undefined;
@@ -1094,9 +1090,6 @@ export default class Exchange {
             }
             if (this.enableLastHttpResponse) {
                 this.last_http_response = responseBody;
-            }
-            if (this.enableLastJsonResponse) {
-                this.last_json_response = parsedBody;
             }
             if (this.verbose) {
                 this.log ('handleRestResponse:\n', this.id, method, url, response.status, response.statusText, '\nResponseHeaders:\n', responseHeaders, '\nResponseBody:\n', responseBody, '\n');

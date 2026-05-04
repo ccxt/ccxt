@@ -389,10 +389,8 @@ class Exchange(object):
     rateLimitMaxTokens = 16
     rateLimitUpdateTime = 0
     enableLastHttpResponse = True
-    enableLastJsonResponse = False
     enableLastResponseHeaders = True
     last_http_response = None
-    last_json_response = None
     last_response_headers = None
     last_request_body = None
     last_request_url = None
@@ -680,8 +678,6 @@ class Exchange(object):
             # FIXME remove last_x_responses from subclasses
             if self.enableLastHttpResponse:
                 self.last_http_response = http_response
-            if self.enableLastJsonResponse:
-                self.last_json_response = json_response
             if self.enableLastResponseHeaders:
                 self.last_response_headers = headers
             if self.verbose:

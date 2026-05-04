@@ -1013,7 +1013,6 @@ print(exchange.markets['BTC/USDT'])
 
 # Check last request/response
 print(exchange.last_http_response)
-print(exchange.last_json_response)
 ```
 
 ## Learn More

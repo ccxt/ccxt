@@ -954,7 +954,6 @@ console.log(exchange.markets['BTC/USDT'])
 
 // Check last request/response
 console.log(exchange.last_http_response)
-console.log(exchange.last_json_response)
 ```
 
 ## Learn More
