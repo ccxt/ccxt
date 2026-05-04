@@ -2609,15 +2609,15 @@ export default class Exchange {
     }
 
     cleanRestData () {
-        this.ids = [];
-        this.markets = {};
-        this.markets_by_id = {};
-        this.symbols = [];
-        this.codes = [];
+        this.ids = undefined;
+        this.markets = this.createSafeDictionary ();
+        this.markets_by_id = this.createSafeDictionary ();
+        this.symbols = undefined;
+        this.codes = undefined;
         this.currencies = this.createSafeDictionary ();
         this.currencies_by_id = this.createSafeDictionary ();
-        this.baseCurrencies = {};
-        this.quoteCurrencies = {};
+        this.baseCurrencies = this.createSafeDictionary ();
+        this.quoteCurrencies = this.createSafeDictionary ();
         this.last_http_response = undefined;
         // this.last_json_response = undefined; // not unified prop
         this.last_response_headers = undefined;
