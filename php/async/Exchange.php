@@ -93,11 +93,9 @@ class Exchange extends \ccxt\Exchange {
         // [REST]
         if ($this->browser) {
             unset($this->browser);
-            $this->browser = null;
         }
         if ($this->default_connector) {
             unset($this->default_connector);
-            $this->default_connector = null;
         }
         parent::close();
     }

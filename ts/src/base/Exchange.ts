@@ -1551,9 +1551,11 @@ export default class Exchange {
             delete this.clients[client.url];
             closedClients.push (client.close ());
         }
+        this.cleanWsData ();
         // [REST]
         // todo if any
         return Promise.all (closedClients);
+        this.cleanRestData ();
     }
 
     async loadOrderBook (client, messageHash: string, symbol: string, limit: Int = undefined, params = {}) {
@@ -2637,13 +2639,6 @@ export default class Exchange {
         this.myLiquidations = this.createSafeDictionary ();
         this.myTrades = undefined;
         this.positions = undefined;
-    }
-
-    async clean () {
-        // this method can be used as a successor of `.close()`
-        await this.close ();
-        this.cleanWsData ();
-        this.cleanRestData ();
     }
 
     safeBoolN (dictionaryOrList, keys: IndexType[], defaultValue: boolean = undefined): boolean | undefined {
