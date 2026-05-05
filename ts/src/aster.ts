@@ -4227,10 +4227,10 @@ export default class aster extends Exchange {
      */
     async signIn (params = {}) {
         if (this.isEmptyString (this.privateKey)) {
+            if (!this.isEmptyString (this.apiKey) || !this.isEmptyString (this.secret)) {
+                throw new NotSupported (this.id + 'after the latest upgrade (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.');
+            }
             return false;
-        }
-        if (!this.isEmptyString (this.apiKey) || !this.isEmptyString (this.secret)) {
-            throw new NotSupported (this.id + 'after the latest upgrade (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.');
         }
         if (this.privateKey.length > 66) {
             throw new NotSupported (this.id + ' after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.');
