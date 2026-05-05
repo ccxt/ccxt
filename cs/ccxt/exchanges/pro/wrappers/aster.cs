@@ -10,8 +10,14 @@ public partial class aster
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#full-ticker-per-symbol"/>  <br/>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-symbol-ticker-streams"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#simplified-ticker-by-symbol"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#compact-tickers-for-all-symbols-in-the-entire-market"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#full-ticker-per-symbol"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#complete-ticker-for-all-trading-pairs-on-the-entire-market"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#individual-symbol-mini-ticker-stream"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-mini-tickers-stream"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#individual-symbol-ticker-streams"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-tickers-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -31,8 +37,10 @@ public partial class aster
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#full-ticker-per-symbol"/>  <br/>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-symbol-ticker-streams"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#compact-tickers-for-all-symbols-in-the-entire-market"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#complete-ticker-for-all-trading-pairs-on-the-entire-market"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-mini-tickers-stream"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-tickers-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -52,7 +60,8 @@ public partial class aster
     /// watches a mark price for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#mark-price-stream"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream-for-all-market"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -78,7 +87,8 @@ public partial class aster
     /// watches the mark price for all markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#mark-price-stream"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream-for-all-market"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -104,8 +114,10 @@ public partial class aster
     /// watches best bid & ask for symbols
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#best-order-book-information-by-symbol"/>  <br/>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-symbol-book-ticker-streams"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#best-order-book-information-by-symbol"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#best-order-book-information-across-the-entire-market"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#individual-symbol-book-ticker-streams"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-book-tickers-stream"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -125,8 +137,9 @@ public partial class aster
     /// watches information on multiple trades made in a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#collection-transaction-flow"/>  <br/>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#aggregate-trade-streams"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#collection-transaction-flow"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#tick-by-tick-trades"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#aggregate-trade-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -160,8 +173,9 @@ public partial class aster
     /// get the list of most recent trades for a list of symbols
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#collection-transaction-flow"/>  <br/>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#aggregate-trade-streams"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#collection-transaction-flow"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#tick-by-tick-trades"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#aggregate-trade-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -195,8 +209,10 @@ public partial class aster
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#limited-depth-information"/>  <br/>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#partial-book-depth-streams"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#limited-depth-information"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#incremental-depth-information"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#partial-book-depth-streams"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#diff-book-depth-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -223,8 +239,10 @@ public partial class aster
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#limited-depth-information"/>  <br/>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#partial-book-depth-streams"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#limited-depth-information"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#incremental-depth-information"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#partial-book-depth-streams"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#diff-book-depth-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -251,8 +269,8 @@ public partial class aster
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#k-line-streams"/>  <br/>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#klinecandlestick-streams"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#k-line-streams"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#klinecandlestick-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -286,8 +304,8 @@ public partial class aster
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#k-line-streams"/>  <br/>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#klinecandlestick-streams"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#k-line-streams"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#klinecandlestick-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -321,8 +339,8 @@ public partial class aster
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-account_update"/>  <br/>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-balance-and-position-update"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/websocket-account-info/#payload-account_update"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/user-data-streams/#event-balance-and-position-update"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -348,7 +366,7 @@ public partial class aster
     /// watch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-balance-and-position-update"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/user-data-streams/#event-balance-and-position-update"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -376,8 +394,8 @@ public partial class aster
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-order-update"/>  <br/>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-order-update"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/websocket-account-info/#payload-order-update"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/user-data-streams/#event-order-update"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -423,8 +441,8 @@ public partial class aster
     /// watches information on multiple trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-order-update"/>  <br/>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-order-update"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/websocket-account-info/#payload-order-update"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/user-data-streams/#event-order-update"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>

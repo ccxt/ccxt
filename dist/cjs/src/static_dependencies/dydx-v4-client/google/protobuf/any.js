@@ -8,7 +8,6 @@ function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'defau
 
 var _m0__default = /*#__PURE__*/_interopDefaultLegacy(_m0);
 
-// ----------------------------------------------------------------------------
 function createBaseAny() {
     return {
         typeUrl: "",

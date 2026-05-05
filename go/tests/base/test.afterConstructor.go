@@ -8,29 +8,29 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func HelperTestInitThrottler() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id":        "sampleexchange",
 		"rateLimit": 10.8,
-	}, map[string]interface{}{}, exchange)
+	}, map[string]any{}, exchange)
 	// todo: assert (exchange.MAX_VALUE !== undefined);
-	var tokenBucket interface{} = ExchangeProp(exchange, "tokenBucket") // trick for uncamelcase transpilation
+	var tokenBucket any = ExchangeProp(exchange, "tokenBucket") // trick for uncamelcase transpilation
 	Assert(!ccxt.IsEqual(tokenBucket, nil))
-	var rateLimit interface{} = ExchangeProp(exchange, "rateLimit")
+	var rateLimit any = ExchangeProp(exchange, "rateLimit")
 	Assert(ccxt.IsEqual(rateLimit, 10.8))
 	Assert(ccxt.IsEqual(ccxt.GetValue(tokenBucket, "delay"), 0.001))
 	Assert(ccxt.IsEqual(ccxt.GetValue(tokenBucket, "refillRate"), ccxt.Divide(1, rateLimit)))
 	// fix decimal/integer issues across langs
-	Assert(exchange.InArray(ccxt.GetValue(tokenBucket, "capacity"), []interface{}{1, 1}))
-	var cost interface{} = exchange.ParseToNumeric(exchange.SafeString2(tokenBucket, "cost", "defaultCost")) // python sync, todo fix
-	Assert(exchange.InArray(cost, []interface{}{1, 1}))
-	Assert(!ccxt.IsTrue((ccxt.InOp(tokenBucket, "maxCapacity"))) || ccxt.IsTrue(exchange.InArray(ccxt.GetValue(tokenBucket, "maxCapacity"), []interface{}{1000, 1000})))
+	Assert(exchange.InArray(ccxt.GetValue(tokenBucket, "capacity"), []any{1, 1}))
+	var cost any = exchange.ParseToNumeric(exchange.SafeString2(tokenBucket, "cost", "defaultCost")) // python sync, todo fix
+	Assert(exchange.InArray(cost, []any{1, 1}))
+	Assert(!ccxt.IsTrue((ccxt.InOp(tokenBucket, "maxCapacity"))) || ccxt.IsTrue(exchange.InArray(ccxt.GetValue(tokenBucket, "maxCapacity"), []any{1000, 1000})))
 }
-func HelperTestSandboxState(exchange *ccxt.Exchange, optionalArgs ...interface{}) {
+func HelperTestSandboxState(exchange *ccxt.Exchange, optionalArgs ...any) {
 	expectEnabled := ccxt.GetArg(optionalArgs, 0, true)
 	_ = expectEnabled
 	Assert(!ccxt.IsEqual(exchange.Urls, nil))
 	Assert(ccxt.InOp(exchange.Urls, "test"))
-	var isSandboxModeEnabled interface{} = ExchangeProp(exchange, "isSandboxModeEnabled")
+	var isSandboxModeEnabled any = ExchangeProp(exchange, "isSandboxModeEnabled")
 	if ccxt.IsTrue(expectEnabled) {
 		Assert(isSandboxModeEnabled)
 		Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(exchange.Urls, "api"), "public"), "https://testnet.org"))
@@ -43,16 +43,16 @@ func HelperTestSandboxState(exchange *ccxt.Exchange, optionalArgs ...interface{}
 }
 func HelperTestInitSandbox() {
 	// todo: sandbox for real exchanges
-	var opts map[string]interface{} = map[string]interface{}{
+	var opts map[string]any = map[string]any{
 		"id": "sampleexchange",
-		"options": map[string]interface{}{
+		"options": map[string]any{
 			"sandbox": false,
 		},
-		"urls": map[string]interface{}{
-			"api": map[string]interface{}{
+		"urls": map[string]any{
+			"api": map[string]any{
 				"public": "https://example.com",
 			},
-			"test": map[string]interface{}{
+			"test": map[string]any{
 				"public": "https://testnet.org",
 			},
 		},
@@ -62,7 +62,7 @@ func HelperTestInitSandbox() {
 	//
 	exchange3 := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange3.DerivedExchange = exchange3
-	exchange3.InitParent(opts, map[string]interface{}{}, exchange3)
+	exchange3.InitParent(opts, map[string]any{}, exchange3)
 	HelperTestSandboxState(exchange3, false)
 	exchange3.SetSandboxMode(true)
 	HelperTestSandboxState(exchange3, true)
@@ -72,14 +72,14 @@ func HelperTestInitSandbox() {
 	ccxt.AddElementToObject(ccxt.GetValue(opts, "options"), "sandbox", true)
 	exchange4 := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange4.DerivedExchange = exchange4
-	exchange4.InitParent(opts, map[string]interface{}{}, exchange4)
+	exchange4.InitParent(opts, map[string]any{}, exchange4)
 	HelperTestSandboxState(exchange4, true)
 	exchange4.SetSandboxMode(false)
 	HelperTestSandboxState(exchange4, false)
 }
 func HelperTestInitMarket() {
 	// ############# markets ############# //
-	var sampleMarket map[string]interface{} = map[string]interface{}{
+	var sampleMarket map[string]any = map[string]any{
 		"id":      "BtcUsd",
 		"symbol":  "BTC/USD",
 		"base":    "BTC",
@@ -91,47 +91,47 @@ func HelperTestInitMarket() {
 	}
 	exchange2 := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange2.DerivedExchange = exchange2
-	exchange2.InitParent(map[string]interface{}{
+	exchange2.InitParent(map[string]any{
 		"id": "sampleexchange",
-		"markets": map[string]interface{}{
+		"markets": map[string]any{
 			"BTC/USD": sampleMarket,
 		},
-	}, map[string]interface{}{}, exchange2)
+	}, map[string]any{}, exchange2)
 	Assert(!ccxt.IsEqual(ccxt.GetValue(exchange2.Markets, "BTC/USD"), nil))
 }
 func HelperTestProperties() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{}, map[string]interface{}{}, exchange)
+	exchange.InitParent(map[string]any{}, map[string]any{}, exchange)
 	//
 	// userAgents
 	//
-	var keys interface{} = []interface{}{"chrome", "chrome39", "chrome100"}
+	var keys any = []any{"chrome", "chrome39", "chrome100"}
 	Assert(!ccxt.IsEqual(ExchangeProp(exchange, "userAgents"), nil))
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
-		var key interface{} = ccxt.GetValue(keys, i)
-		var userAgent interface{} = ccxt.GetValue(ExchangeProp(exchange, "userAgents"), key)
+		var key any = ccxt.GetValue(keys, i)
+		var userAgent any = ccxt.GetValue(ExchangeProp(exchange, "userAgents"), key)
 		Assert(!ccxt.IsEqual(userAgent, nil))
 	}
 	//
 	// options
 	//
 	Assert(!ccxt.IsEqual(exchange.Options, nil))
-	var defaultNetworkCodeReplacements map[string]interface{} = map[string]interface{}{
-		"ETH": map[string]interface{}{
+	var defaultNetworkCodeReplacements map[string]any = map[string]any{
+		"ETH": map[string]any{
 			"ERC20": "ETH",
 		},
-		"TRX": map[string]interface{}{
+		"TRX": map[string]any{
 			"TRC20": "TRX",
 		},
-		"CRO": map[string]interface{}{
+		"CRO": map[string]any{
 			"CRC20": "CRONOS",
 		},
-		"BRC20": map[string]interface{}{
+		"BRC20": map[string]any{
 			"BRC20": "BTC",
 		},
 	}
-	AssertDeepEqual(exchange, map[string]interface{}{}, "options", ccxt.GetValue(exchange.Options, "defaultNetworkCodeReplacements"), defaultNetworkCodeReplacements)
+	AssertDeepEqual(exchange, map[string]any{}, "options", ccxt.GetValue(exchange.Options, "defaultNetworkCodeReplacements"), defaultNetworkCodeReplacements)
 	//
 	// credentials
 	//
@@ -144,7 +144,7 @@ func HelperTestProperties() {
 	assert(ccxt.IsEqual(ExchangeProp(exchange, "privateKey"), nil), "privateKey should be empty string")
 	assert(ccxt.IsEqual(ExchangeProp(exchange, "walletAddress"), nil), "walletAddress should be empty string")
 	assert(ccxt.IsEqual(exchange.Token, nil), "token should be empty string")
-	var requiredCredentials map[string]interface{} = map[string]interface{}{
+	var requiredCredentials map[string]any = map[string]any{
 		"apiKey":        true,
 		"secret":        true,
 		"uid":           false,
@@ -156,7 +156,7 @@ func HelperTestProperties() {
 		"walletAddress": false,
 		"token":         false,
 	}
-	AssertDeepEqual(exchange, map[string]interface{}{}, "requiredCredentials", ExchangeProp(exchange, "requiredCredentials"), requiredCredentials)
+	AssertDeepEqual(exchange, map[string]any{}, "requiredCredentials", ExchangeProp(exchange, "requiredCredentials"), requiredCredentials)
 	//
 	// proxies
 	//
@@ -201,7 +201,11 @@ func HelperTestProperties() {
 	//
 	// common props
 	//
-
+	//
+	AssertDeepEqual(exchange, map[string]any{}, "commonCurrencies", ExchangeProp(exchange, "commonCurrencies"), map[string]any{
+		"XBT":   "BTC",
+		"BCHSV": "BSV",
+	})
 }
 func TestAfterConstructor() {
 	// here should be added all needed tests

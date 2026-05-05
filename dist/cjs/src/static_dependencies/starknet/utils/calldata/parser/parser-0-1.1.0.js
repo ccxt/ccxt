@@ -4,7 +4,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var cairo = require('../cairo.js');
 
-// ----------------------------------------------------------------------------
 class AbiParser1 {
     constructor(abi) {
         this.abi = abi;

@@ -6,11 +6,11 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestPrecise() {
-	var w interface{} = "-1.123e-6"
-	var x interface{} = "0.00000002"
-	var y interface{} = "69696900000"
-	var z interface{} = "0"
-	var a interface{} = "1e8"
+	var w any = "-1.123e-6"
+	var x any = "0.00000002"
+	var y any = "69696900000"
+	var z any = "0"
+	var a any = "1e8"
 	Assert(ccxt.IsEqual(ccxt.Precise.StringMul(x, y), "1393.938"))
 	Assert(ccxt.IsEqual(ccxt.Precise.StringMul(y, x), "1393.938"))
 	Assert(ccxt.IsEqual(ccxt.Precise.StringAdd(x, y), "69696900000.00000002"))

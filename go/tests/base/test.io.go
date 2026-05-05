@@ -8,18 +8,18 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestIo() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleex",
-	}, map[string]interface{}{}, exchange)
-	var ms interface{} = exchange.Milliseconds()
-	var fileName interface{} = ccxt.Add(ccxt.Add("ccxt-test-io-", ccxt.ToString(ms)), ".ccxtfile")
+	}, map[string]any{}, exchange)
+	var ms any = exchange.Milliseconds()
+	var fileName any = ccxt.Add(ccxt.Add("ccxt-test-io-", ccxt.ToString(ms)), ".ccxtfile")
 	// upper tmp dir
-	var tempDir interface{} = exchange.GetTempDir()
+	var tempDir any = exchange.GetTempDir()
 	assert(ccxt.IsTrue(!ccxt.IsEqual(tempDir, nil)) && ccxt.IsTrue(!ccxt.IsEqual(tempDir, "")), "temp dir should not be empty")
-	var filePath interface{} = ccxt.Add(tempDir, fileName) // '../../../../../../../../../../../../tmp/' + fileName;
-	var fileContent interface{} = "hello world"
+	var filePath any = ccxt.Add(tempDir, fileName) // '../../../../../../../../../../../../tmp/' + fileName;
+	var fileContent any = "hello world"
 	assert(exchange.WriteFile(filePath, fileContent), ccxt.Add("can not write file ", filePath))
 	assert(exchange.ExistsFile(filePath), ccxt.Add("file does not exist: ", filePath))
-	var readContent interface{} = exchange.ReadFile(filePath)
+	var readContent any = exchange.ReadFile(filePath)
 	assert(ccxt.IsEqual(readContent, fileContent), ccxt.Add(ccxt.Add(ccxt.Add("file content mismatch. Expected: ", fileContent), ", got: "), readContent))
 }

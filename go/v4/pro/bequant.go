@@ -18,36 +18,36 @@ func NewBequantCore() *BequantCore {
     return p
 }
 
-func  (this *BequantCore) Describe() interface{}  {
+func  (this *BequantCore) Describe() any  {
     // eslint-disable-next-line new-cap
     restInstance := ccxt.NewBequant(nil)
-    var restDescribe interface{} = restInstance.Describe()
-    var extended interface{} = this.DeepExtend(this.base.Describe(), restDescribe)
-    return this.DeepExtend(extended, map[string]interface{} {
+    var restDescribe any = restInstance.Describe()
+    var extended any = this.DeepExtend(this.base.Describe(), restDescribe)
+    return this.DeepExtend(extended, map[string]any {
         "id": "bequant",
         "name": "Bequant",
-        "countries": []interface{}{"MT"},
+        "countries": []any{"MT"},
         "pro": true,
-        "urls": map[string]interface{} {
+        "urls": map[string]any {
             "logo": "https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg",
-            "api": map[string]interface{} {
+            "api": map[string]any {
                 "public": "https://api.bequant.io/api/3",
                 "private": "https://api.bequant.io/api/3",
-                "ws": map[string]interface{} {
+                "ws": map[string]any {
                     "public": "wss://api.bequant.io/api/3/ws/public",
                     "private": "wss://api.bequant.io/api/3/ws/trading",
                 },
             },
             "www": "https://bequant.io",
-            "doc": []interface{}{"https://api.bequant.io/"},
-            "fees": []interface{}{"https://bequant.io/fees-and-limits"},
+            "doc": []any{"https://api.bequant.io/"},
+            "fees": []any{"https://bequant.io/fees-and-limits"},
             "referral": "https://bequant.io",
         },
     })
 }
 
 
-func (this *BequantCore) Init(userConfig map[string]interface{}) {
+func (this *BequantCore) Init(userConfig map[string]any) {
     this.base.Init(this.DeepExtend(this.Describe(), userConfig))
     this.Itf = this
     this.Exchange.DerivedExchange = this

@@ -20,7 +20,7 @@ def test_binary_to_base16():
         'id': 'sampleexchange',
     })
     assert exchange.parse_number(None) is None, 'GO_WORKAROUND'
-    assert 'GO_SKIP_START'
+    # @SKIP_START_GO
     # Test 1: simple known bytes
     # 'ff' => [255]
     binary1 = exchange.base16_to_binary('ff')
@@ -52,4 +52,3 @@ def test_binary_to_base16():
     hex8 = 'cafebabe'
     binary8 = exchange.base16_to_binary(hex8)
     assert exchange.binary_to_base16(binary8) == hex8
-    assert 'GO_SKIP_END'
