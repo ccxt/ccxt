@@ -57,7 +57,7 @@ export default class extended extends Exchange {
                 'createTrailingAmountOrder': false,
                 'createTrailingPercentOrder': false,
                 'createTriggerOrder': false,
-                'editOrder': false,
+                'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': false,
                 'fetchBorrowInterest': false,
@@ -1126,29 +1126,7 @@ export default class extended extends Exchange {
         return result;
     }
 
-    /**
-     * @method
-     * @name extended#createOrder
-     * @description create a trade order
-     * @see https://api.docs.extended.exchange/#create-or-edit-order
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'limit' or 'market'
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, required for all order types
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.clientOrderId] client order id, sent as the exchange order id
-     * @param {string} [params.timeInForce] 'GTT' or 'IOC'
-     * @param {boolean} [params.postOnly] true if the order should only make liquidity
-     * @param {boolean} [params.reduceOnly] true if the order should only reduce a position
-     * @param {string} [params.fee] max fee rate for the order, default is 0.0005
-     * @param {int} [params.nonce] order nonce, default is current timestamp modulo 2^31
-     * @param {int} [params.expiryEpochMillis] order expiration timestamp in milliseconds, default is now + 1 hour
-     * @param {string} [params.starkKey] account stark public key, fetched from account info if omitted
-     * @param {string} [params.collateralPosition] account vault id, fetched from account info if omitted
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-     */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    async createExtendedOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params = {}): Promise<Dict> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
@@ -1231,14 +1209,10 @@ export default class extended extends Exchange {
             'fee': fee,
             'nonce': nonce,
             'settlement': settlement,
+            'postOnly': postOnly,
+            'reduceOnly': reduceOnly,
             'selfTradeProtectionLevel': this.safeString (params, 'selfTradeProtectionLevel', 'ACCOUNT'),
         };
-        if (postOnly) {
-            request['postOnly'] = true;
-        }
-        if (reduceOnly) {
-            request['reduceOnly'] = true;
-        }
         if (builderFee !== undefined) {
             request['builderFee'] = builderFee;
         }
@@ -1246,8 +1220,47 @@ export default class extended extends Exchange {
         if (builderId !== undefined) {
             request['builderId'] = builderId;
         }
-        params = this.omit (params, [ 'clientOrderId', 'client_id', 'timeInForce', 'postOnly', 'reduceOnly', 'reduce_only', 'fee', 'nonce', 'expiryEpochMillis', 'settlementExpiration', 'starkKey', 'l2Key', 'collateralPosition', 'l2Vault', 'selfTradeProtectionLevel', 'builderFee', 'builderId' ]);
-        const response = await this.v1PrivatePostUserOrder (this.extend (request, params));
+        const cancelId = this.safeString2 (params, 'cancelId', 'previousOrderId');
+        if (cancelId !== undefined) {
+            request['cancelId'] = cancelId;
+        }
+        params = this.omit (params, [ 'clientOrderId', 'client_id', 'timeInForce', 'postOnly', 'reduceOnly', 'reduce_only', 'fee', 'nonce', 'expiryEpochMillis', 'settlementExpiration', 'starkKey', 'l2Key', 'collateralPosition', 'l2Vault', 'selfTradeProtectionLevel', 'builderFee', 'builderId', 'cancelId', 'previousOrderId' ]);
+        return {
+            'request': this.extend (request, params),
+            'market': market,
+            'timestamp': now,
+            'clientOrderId': clientOrderId,
+            'price': priceString,
+            'amount': amountString,
+        };
+    }
+
+    /**
+     * @method
+     * @name extended#createOrder
+     * @description create a trade order
+     * @see https://api.docs.extended.exchange/#create-or-edit-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'limit' or 'market'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, required for all order types
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id, sent as the exchange order id
+     * @param {string} [params.cancelId] previous external order id to replace
+     * @param {string} [params.timeInForce] 'GTT' or 'IOC'
+     * @param {boolean} [params.postOnly] true if the order should only make liquidity
+     * @param {boolean} [params.reduceOnly] true if the order should only reduce a position
+     * @param {string} [params.fee] max fee rate for the order, default is 0.0005
+     * @param {int} [params.expiryEpochMillis] order expiration timestamp in milliseconds, default is now + 1 hour
+     * @param {string} [params.starkKey] account stark public key, fetched from account info if omitted
+     * @param {string} [params.collateralPosition] account vault id, fetched from account info if omitted
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        const extendedOrderRequest = await this.createExtendedOrderRequest (symbol, type, side, amount, price, params);
+        const request = this.safeDict (extendedOrderRequest, 'request', {});
+        const response = await this.v1PrivatePostUserOrder (request);
         //
         //     {
         //         "status": "OK",
@@ -1258,10 +1271,101 @@ export default class extended extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
+        const market = extendedOrderRequest['market'] as Market;
+        const now = this.safeInteger (extendedOrderRequest, 'timestamp');
+        const priceString = this.safeString (extendedOrderRequest, 'price');
+        const amountString = this.safeString (extendedOrderRequest, 'amount');
         return this.safeOrder ({
             'info': response,
-            'id': this.safeString (data, 'id'),
-            'clientOrderId': this.safeString (data, 'externalId', clientOrderId),
+            'id': this.safeString (data, 'externalId'),
+            'clientOrderId': this.safeString (data, 'id'),
+            'timestamp': now,
+            'datetime': this.iso8601 (now),
+            'symbol': market['symbol'],
+            'type': type,
+            'side': side,
+            'price': priceString,
+            'amount': amountString,
+            'status': 'open',
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name extended#editOrder
+     * @description edit a trade order
+     * @see https://api.docs.extended.exchange/#create-or-edit-order
+     * @param {string} id the external order id to replace
+     * @param {string} symbol unified symbol of the market to edit an order in
+     * @param {string} type 'limit' or 'market'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} [amount] how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
+        if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires an id argument');
+        }
+        let expiryEpochMillis = this.safeInteger (params, 'expiryEpochMillis');
+        let postOnly = this.safeBool (params, 'postOnly');
+        let reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
+        if ((amount === undefined) || (price === undefined) || (expiryEpochMillis === undefined) || (postOnly === undefined) || (reduceOnly === undefined)) {
+            const response = await this.v1PrivateGetUserOrdersExternalExternalId ({ 'externalId': id });
+            const data = this.safeList (response, 'data', []);
+            const order = this.safeDict (data, 0, {});
+            if (amount === undefined) {
+                amount = this.safeNumber (order, 'qty');
+            }
+            if (price === undefined) {
+                price = this.safeNumber (order, 'price');
+            }
+            if (expiryEpochMillis === undefined) {
+                expiryEpochMillis = this.safeInteger (order, 'expireTime');
+            }
+            if (postOnly === undefined) {
+                postOnly = this.safeBool (order, 'postOnly', false);
+            }
+            if (reduceOnly === undefined) {
+                reduceOnly = this.safeBool (order, 'reduceOnly', false);
+            }
+        }
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument or an existing order with qty');
+        }
+        if (price === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires a price argument or an existing order with price');
+        }
+        params = this.extend ({
+            'postOnly': postOnly,
+            'reduceOnly': reduceOnly,
+        }, params);
+        const requestParams = this.extend (params, {
+            'cancelId': id,
+            'expiryEpochMillis': expiryEpochMillis,
+        });
+        const extendedOrderRequest = await this.createExtendedOrderRequest (symbol, type, side, amount, price, requestParams);
+        const request = this.safeDict (extendedOrderRequest, 'request', {});
+        const editResponse = await this.v1PrivatePostUserOrder (request);
+        //
+        //     {
+        //         "status": "OK",
+        //         "data": {
+        //             "id": "2051479786538188800",
+        //             "externalId": "3480985089570526249141260266819446928410958787024864860785196119336740291620"
+        //         }
+        //     }
+        //
+        const responseData = this.safeDict (editResponse, 'data', {});
+        const market = extendedOrderRequest['market'] as Market;
+        const now = this.safeInteger (extendedOrderRequest, 'timestamp');
+        const priceString = this.safeString (extendedOrderRequest, 'price');
+        const amountString = this.safeString (extendedOrderRequest, 'amount');
+        return this.safeOrder ({
+            'info': editResponse,
+            'id': this.safeString (responseData, 'externalId'),
+            'clientOrderId': this.safeString (responseData, 'id'),
             'timestamp': now,
             'datetime': this.iso8601 (now),
             'symbol': market['symbol'],

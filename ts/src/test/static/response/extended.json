@@ -1,6 +1,10 @@
 {
     "exchange": "extended",
-    "skipKeys": [],
+    "privateKey": "0x12345",
+    "skipKeys": [
+        "timestamp",
+        "datetime"
+    ],
     "methods": {
         "fetchCurrencies": [
             {
@@ -934,6 +938,135 @@
                         "datetime": "2026-04-30T00:00:01.028Z"
                     }
                 ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "create limit sell order",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "sell",
+                    0.01,
+                    87777,
+                    {
+                        "clientOrderId": "123456789",
+                        "starkKey": "0x3",
+                        "collateralPosition": "4",
+                        "expiryEpochMillis": 1777966055617,
+                        "settlementExpiration": 1779175656,
+                        "postOnly": false,
+                        "reduceOnly": false
+                    }
+                ],
+                "httpResponse": {
+                    "status": "OK",
+                    "data": {
+                        "id": "2051479786538188800",
+                        "externalId": "123456789"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "status": "OK",
+                        "data": {
+                            "id": "2051479786538188800",
+                            "externalId": "123456789"
+                        }
+                    },
+                    "id": "123456789",
+                    "clientOrderId": "2051479786538188800",
+                    "timestamp": 1777964689506,
+                    "datetime": "2026-05-05T07:04:49.506Z",
+                    "symbol": "BTC/USDC:USDC",
+                    "type": "limit",
+                    "side": "sell",
+                    "price": 87777,
+                    "amount": 0.01,
+                    "status": "open",
+                    "fees": [],
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fee": null
+                }
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "edit limit sell order",
+                "method": "editOrder",
+                "input": [
+                    "987654321",
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "sell",
+                    0.01,
+                    85777,
+                    {
+                        "clientOrderId": "223456789",
+                        "starkKey": "0x3",
+                        "collateralPosition": "4",
+                        "expiryEpochMillis": 1777966055617,
+                        "settlementExpiration": 1779175656,
+                        "postOnly": false,
+                        "reduceOnly": false
+                    }
+                ],
+                "httpResponse": {
+                    "status": "OK",
+                    "data": {
+                        "id": "2051479786538188801",
+                        "externalId": "223456789"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "status": "OK",
+                        "data": {
+                            "id": "2051479786538188801",
+                            "externalId": "223456789"
+                        }
+                    },
+                    "id": "223456789",
+                    "clientOrderId": "2051479786538188801",
+                    "timestamp": 1777964689537,
+                    "datetime": "2026-05-05T07:04:49.537Z",
+                    "symbol": "BTC/USDC:USDC",
+                    "type": "limit",
+                    "side": "sell",
+                    "price": 85777,
+                    "amount": 0.01,
+                    "status": "open",
+                    "fees": [],
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fee": null
+                }
             }
         ],
         "fetchOpenInterestHistory": [
