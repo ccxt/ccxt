@@ -1512,6 +1512,11 @@ export default class Exchange {
         return future;
     }
 
+    subsciptionExistsForRawHash (url: string, rawHash: string) {
+        const client = this.client (url);
+        return (rawHash in client.subscriptions);
+    }
+
     onConnected (client, message = undefined) {
         // for user hooks
         // console.log ('Connected to', client.url)
