@@ -872,9 +872,9 @@ export default class aster extends Exchange {
         const filterPrice = this.safeDict (filtersByType, 'PRICE_FILTER');
         const filterLotSize = this.safeDict (filtersByType, 'LOT_SIZE');
         const filterMarketLotSize = this.safeDict (filtersByType, 'MARKET_LOT_SIZE', {});
-        let precision = this.safeNumber (filterPrice, 'tickSize');
-        if (precision === undefined) {
-            precision = this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision')));
+        let pricePrecision = this.safeNumber (filterPrice, 'tickSize');
+        if (pricePrecision === undefined) {
+            pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision')));
         }
         const amountPrecision = (filterLotSize !== undefined) ? this.safeNumber (filterLotSize, 'stepSize') : this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityPrecision')));
         return this.safeMarketStructure ({
@@ -905,7 +905,7 @@ export default class aster extends Exchange {
             'optionType': undefined,
             'precision': {
                 'amount': amountPrecision,
-                'price': precision,
+                'price': pricePrecision,
                 'base': this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetPrecision'))),
                 'quote': this.parseNumber (this.parsePrecision (this.safeString (market, 'quotePrecision'))),
             },
