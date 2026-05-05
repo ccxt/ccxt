@@ -2,9 +2,10 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/extended.js';
-import type { Currencies, Currency, Dict, FundingRateHistory, Int, Market, OHLCV, OpenInterest, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import { Precise } from './base/Precise.js';
+import type { Currencies, Currency, Dict, FundingRateHistory, Int, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 import { ArgumentsRequired, BadRequest } from './base/errors.js';
-import { TICK_SIZE } from './base/functions/number.js';
+import { DECIMAL_PLACES, NO_PADDING, TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -43,7 +44,7 @@ export default class extended extends Exchange {
                 'createMarketBuyOrderWithCost': false,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
-                'createOrder': false,
+                'createOrder': true,
                 'createOrders': false,
                 'createOrderWithTakeProfitAndStopLoss': false,
                 'createPostOnlyOrder': false,
@@ -188,7 +189,52 @@ export default class extended extends Exchange {
                         ],
                     },
                     'private': {
-                        'get': [],
+                        'get': [
+                            'user/account/info',
+                            'user/balance',
+                            'user/spot/balances',
+                            'user/assetOperations',
+                            'user/positions',
+                            'user/positions/history',
+                            'user/orders',
+                            'user/orders/history',
+                            'user/orders/{id}',
+                            'user/orders/external/{externalId}',
+                            'user/trades',
+                            'user/funding/history',
+                            'user/rebates/stats',
+                            'user/leverage',
+                            'user/fees',
+                            'user/bridge/config',
+                            'user/bridge/quote',
+                            'user/affiliate',
+                            'user/referrals/status',
+                            'user/referrals/links',
+                            'user/referrals/dashboard',
+                            'user/rewards/earned',
+                            'user/rewards/leaderboard/stats',
+                            'portfolio/charts/equities',
+                            'portfolio/charts/pnl',
+                            'vault/public/performance',
+                            'vault/public/summary',
+                        ],
+                        'post': [
+                            'user/order',
+                            'user/order/massCancel',
+                            'user/deadmanswitch',
+                            'user/bridge/quote',
+                            'user/withdrawal',
+                            'user/transfer',
+                            'user/referrals/use',
+                            'user/referrals',
+                        ],
+                        'put': [
+                            'user/referrals',
+                        ],
+                        'delete': [
+                            'user/order/{id}',
+                            'user/order',
+                        ],
                     },
                 },
             },
@@ -198,8 +244,8 @@ export default class extended extends Exchange {
             },
             'requiredCredentials': {
                 'apiKey': true,
-                'secret': true,
-                'password': true,
+                'secret': false,
+                'privateKey': false,
             },
             'exceptions': {
                 'exact': {
@@ -1070,7 +1116,229 @@ export default class extended extends Exchange {
         }, market);
     }
 
-    sign (path, api = 'public', method = 'POST', params = {}, headers = undefined, body = undefined) {
+    getExtendedStarkAmount (amount: string, resolution, roundUp = false): string {
+        const resolutionString = this.numberToString (resolution);
+        const precise = Precise.stringMul (amount, resolutionString);
+        let result = this.decimalToPrecision (precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
+        if (roundUp && Precise.stringGt (precise, result)) {
+            result = Precise.stringAdd (result, '1');
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name extended#createOrder
+     * @description create a trade order
+     * @see https://api.docs.extended.exchange/#create-or-edit-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'limit' or 'market'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, required for all order types
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id, sent as the exchange order id
+     * @param {string} [params.timeInForce] 'GTT' or 'IOC'
+     * @param {boolean} [params.postOnly] true if the order should only make liquidity
+     * @param {boolean} [params.reduceOnly] true if the order should only reduce a position
+     * @param {string} [params.fee] max fee rate for the order, default is 0.0005
+     * @param {int} [params.nonce] order nonce, default is current timestamp modulo 2^31
+     * @param {int} [params.expiryEpochMillis] order expiration timestamp in milliseconds, default is now + 1 hour
+     * @param {string} [params.starkKey] account stark public key, fetched from account info if omitted
+     * @param {string} [params.collateralPosition] account vault id, fetched from account info if omitted
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const uppercaseType = type.toUpperCase ();
+        const uppercaseSide = side.toUpperCase ();
+        if (!this.inArray (uppercaseType, [ 'LIMIT', 'MARKET' ])) {
+            throw new BadRequest (this.id + ' createOrder() supports limit and market orders only');
+        }
+        if (price === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument');
+        }
+        const amountString = this.amountToPrecision (symbol, amount);
+        const priceString = this.priceToPrecision (symbol, price);
+        const postOnly = this.isPostOnly (uppercaseType === 'MARKET', undefined, params);
+        const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only', false);
+        let timeInForce = this.safeStringUpper (params, 'timeInForce');
+        if (timeInForce === undefined) {
+            timeInForce = (uppercaseType === 'MARKET') ? 'IOC' : 'GTT';
+        }
+        const fee = this.safeString (params, 'fee', '0.0005');
+        const builderFee = this.safeString (params, 'builderFee');
+        const totalFee = (builderFee === undefined) ? fee : Precise.stringAdd (fee, builderFee);
+        const now = this.milliseconds ();
+        const expiryEpochMillis = this.safeInteger (params, 'expiryEpochMillis', now + 3600000);
+        const settlementExpiration = this.safeInteger (params, 'settlementExpiration', this.parseToInt ((expiryEpochMillis + 999) / 1000) + 1209600);
+        const nonce = this.numberToString (this.nonce ());
+        let starkKey = this.safeString2 (params, 'starkKey', 'l2Key');
+        let collateralPosition = this.safeString2 (params, 'collateralPosition', 'l2Vault');
+        if ((starkKey === undefined) || (collateralPosition === undefined)) {
+            const account = await this.v1PrivateGetUserAccountInfo ();
+            const accountData = this.safeDict (account, 'data', {});
+            starkKey = this.safeString (accountData, 'l2Key', starkKey);
+            collateralPosition = this.safeString (accountData, 'l2Vault', collateralPosition);
+        }
+        const info = this.safeDict (market, 'info', {});
+        const l2Config = this.safeDict (info, 'l2Config', {});
+        const syntheticId = this.safeString (l2Config, 'syntheticId');
+        const collateralId = this.safeString (l2Config, 'collateralId');
+        const syntheticResolution = this.safeValue (l2Config, 'syntheticResolution');
+        const collateralResolution = this.safeValue (l2Config, 'collateralResolution');
+        if ((syntheticId === undefined) || (collateralId === undefined) || (syntheticResolution === undefined) || (collateralResolution === undefined)) {
+            throw new BadRequest (this.id + ' createOrder() requires l2Config in market info');
+        }
+        const isBuy = (uppercaseSide === 'BUY');
+        const quoteAmount = Precise.stringMul (amountString, priceString);
+        const baseRoundUp = isBuy;
+        const quoteRoundUp = isBuy;
+        let baseAmount = this.getExtendedStarkAmount (amountString, syntheticResolution, baseRoundUp);
+        let collateralAmount = this.getExtendedStarkAmount (quoteAmount, collateralResolution, quoteRoundUp);
+        if (isBuy) {
+            collateralAmount = Precise.stringNeg (collateralAmount);
+        } else {
+            baseAmount = Precise.stringNeg (baseAmount);
+        }
+        const feeAmount = this.getExtendedStarkAmount (Precise.stringMul (totalFee, quoteAmount), collateralResolution, true);
+        const settlement = {
+            'starkKey': starkKey,
+            'collateralPosition': collateralPosition,
+            'baseAssetId': syntheticId,
+            'baseAmount': baseAmount,
+            'quoteAssetId': collateralId,
+            'quoteAmount': collateralAmount,
+            'feeAssetId': collateralId,
+            'feeAmount': feeAmount,
+            'expiration': this.numberToString (settlementExpiration),
+            'salt': nonce,
+        };
+        let clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
+        if (clientOrderId === undefined) {
+            clientOrderId = this.numberToString (this.convertToBigInt (this.getExtendedOrderMsgHash (settlement)));
+        }
+        const request: Dict = {
+            'id': clientOrderId,
+            'market': market['id'],
+            'type': uppercaseType,
+            'side': uppercaseSide,
+            'qty': amountString,
+            'price': priceString,
+            'timeInForce': timeInForce,
+            'expiryEpochMillis': expiryEpochMillis,
+            'fee': fee,
+            'nonce': nonce,
+            'settlement': settlement,
+            'selfTradeProtectionLevel': this.safeString (params, 'selfTradeProtectionLevel', 'ACCOUNT'),
+        };
+        if (postOnly) {
+            request['postOnly'] = true;
+        }
+        if (reduceOnly) {
+            request['reduceOnly'] = true;
+        }
+        if (builderFee !== undefined) {
+            request['builderFee'] = builderFee;
+        }
+        const builderId = this.safeInteger (params, 'builderId');
+        if (builderId !== undefined) {
+            request['builderId'] = builderId;
+        }
+        params = this.omit (params, [ 'clientOrderId', 'client_id', 'timeInForce', 'postOnly', 'reduceOnly', 'reduce_only', 'fee', 'nonce', 'expiryEpochMillis', 'settlementExpiration', 'starkKey', 'l2Key', 'collateralPosition', 'l2Vault', 'selfTradeProtectionLevel', 'builderFee', 'builderId' ]);
+        const response = await this.v1PrivatePostUserOrder (this.extend (request, params));
+        //
+        //     {
+        //         "status": "OK",
+        //         "data": {
+        //             "id": "2051479786538188800",
+        //             "externalId": "3480985089570526249141260266819446928410958787024864860785196119336740291620"
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.safeOrder ({
+            'info': response,
+            'id': this.safeString (data, 'id'),
+            'clientOrderId': this.safeString (data, 'externalId', clientOrderId),
+            'timestamp': now,
+            'datetime': this.iso8601 (now),
+            'symbol': market['symbol'],
+            'type': type,
+            'side': side,
+            'price': priceString,
+            'amount': amountString,
+            'status': 'open',
+        }, market);
+    }
+
+    getExtendedStringToFelt (value: string) {
+        return this.convertToBigInt ('0x' + this.binaryToBase16 (this.encode (value)));
+    }
+
+    getExtendedEncodeI64 (value) {
+        // Cairo prime for i64 negative encoding: negative n becomes PRIME + n.
+        const PRIME = this.convertToBigInt ('0x800000000000011000000000000000000000000000000000000000000000001');
+        const zero = this.convertToBigInt ('0');
+        if (value < zero) {
+            return PRIME + value;
+        }
+        return value;
+    }
+
+    getExtendedOrderMsgHash (settlement: Dict): string {
+        const orderTypeHash = this.convertToBigInt (this.starknetGetSelectorFromName (
+            '"Order"("position_id":"felt","base_asset_id":"AssetId","base_amount":"i64","quote_asset_id":"AssetId","quote_amount":"i64","fee_asset_id":"AssetId","fee_amount":"u64","expiration":"Timestamp","salt":"felt")"PositionId"("value":"u32")"AssetId"("value":"felt")"Timestamp"("seconds":"u64")'
+        ));
+        const domainTypeHash = this.convertToBigInt (this.starknetGetSelectorFromName (
+            '"StarknetDomain"("name":"shortstring","version":"shortstring","chainId":"shortstring","revision":"shortstring")'
+        ));
+        // Domain: revision is encoded as integer 1, not as shortstring
+        const isTestnet = this.urls['api']['rest'].indexOf ('sepolia') >= 0;
+        const defaultChainId = isTestnet ? 'SN_SEPOLIA' : 'SN_MAIN';
+        const chainId = this.safeString (this.options, 'chainId', defaultChainId);
+        const domainHash = this.convertToBigInt (this.starknetComputePoseidonHashOnElements ([
+            domainTypeHash,
+            this.getExtendedStringToFelt ('Perpetuals'),
+            this.getExtendedStringToFelt ('v0'),
+            this.getExtendedStringToFelt (chainId),
+            this.convertToBigInt ('1'),
+        ]));
+        // Order fields
+        const positionId = this.convertToBigInt (this.safeString (settlement, 'collateralPosition'));
+        const baseAssetId = this.safeString (settlement, 'baseAssetId');
+        const baseAmount = this.convertToBigInt (this.safeString (settlement, 'baseAmount'));
+        const quoteAssetId = this.safeString (settlement, 'quoteAssetId');
+        const quoteAmount = this.convertToBigInt (this.safeString (settlement, 'quoteAmount'));
+        const feeAssetId = this.safeString (settlement, 'feeAssetId');
+        const feeAmount = this.convertToBigInt (this.safeString (settlement, 'feeAmount'));
+        const expiration = this.convertToBigInt (this.safeString2 (settlement, 'expiration', 'expirationTimestamp'));
+        const salt = this.convertToBigInt (this.safeString2 (settlement, 'salt', 'nonce'));
+        const starkKey = this.convertToBigInt (this.safeString (settlement, 'starkKey'));
+        // Order struct hash
+        const orderHash = this.convertToBigInt (this.starknetComputePoseidonHashOnElements ([
+            orderTypeHash,
+            positionId,
+            this.convertToBigInt (baseAssetId),
+            this.getExtendedEncodeI64 (baseAmount),
+            this.convertToBigInt (quoteAssetId),
+            this.getExtendedEncodeI64 (quoteAmount),
+            this.convertToBigInt (feeAssetId),
+            feeAmount,
+            expiration,
+            salt,
+        ]));
+        // SNIP-12 final message hash: poseidon('StarkNet Message', domainHash, starkKey, orderHash)
+        return this.starknetComputePoseidonHashOnElements ([
+            this.getExtendedStringToFelt ('StarkNet Message'),
+            domainHash,
+            starkKey,
+            orderHash,
+        ]);
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = this.safeString (api, 0);
         const accessibility = this.safeString (api, 1);
         const endpoint = '/' + this.implodeParams (path, params);
@@ -1078,15 +1346,31 @@ export default class extended extends Exchange {
         let url = this.implodeHostname (this.urls['api']['rest']);
         if (accessibility === 'private') {
             this.checkRequiredCredentials ();
-        }
-        if (method === 'POST') {
             headers = {
-                'Content-Type': 'application/json',
+                'X-Api-Key': this.apiKey,
             };
-            body = this.json (params);
+            if (method === 'POST') {
+                const settlement = this.safeDict (query, 'settlement');
+                if (settlement !== undefined && this.safeDict (settlement, 'signature') === undefined) {
+                    if ((this.privateKey === undefined) || (this.privateKey === '')) {
+                        throw new ArgumentsRequired (this.id + ' sign() requires a privateKey credential to sign the settlement');
+                    }
+                    const msgHash = this.getExtendedOrderMsgHash (settlement);
+                    const sig = JSON.parse (this.starknetSign (msgHash, this.privateKey));
+                    const r = '0x' + this.intToBase16 (this.convertToBigInt (sig[0]));
+                    const s = '0x' + this.intToBase16 (this.convertToBigInt (sig[1]));
+                    query['settlement'] = {
+                        'signature': { 'r': r, 's': s },
+                        'starkKey': this.safeString (settlement, 'starkKey'),
+                        'collateralPosition': this.safeString (settlement, 'collateralPosition'),
+                    };
+                }
+                body = this.json (query);
+                headers['Content-Type'] = 'application/json';
+            }
         }
         url = url + '/api/' + version + endpoint;
-        if ((method === 'GET') && (Object.keys (query).length > 0)) {
+        if ((method === 'GET') && Object.keys (query).length) {
             url += '?' + this.urlencodeWithArrayRepeat (query);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
