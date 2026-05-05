@@ -787,9 +787,9 @@ export default class upbit extends Exchange {
         } else {
             allIds = this.marketIds (symbols);
         }
-        // upbit accepts a comma-separated `markets` param but its frontend
-        // (Tomcat) rejects URLs >~ 4KB with HTTP 400 — and the full id list
-        // is now ~7KB across BTC/KRW/USDT quotes. Chunk and merge.
+        //  upbit accepts a comma-separated `markets` param but its frontend
+        //  (Tomcat) rejects URLs >~ 4KB with HTTP 400 — and the full id list
+        //  is now ~7KB across BTC/KRW/USDT quotes. Chunk and merge.
         const promises = [];
         const total = allIds.length;
         let start = 0;
