@@ -4229,8 +4229,11 @@ export default class aster extends Exchange {
         if (this.isEmptyString (this.privateKey)) {
             return false;
         }
+        if (!this.isEmptyString (this.apiKey) || !this.isEmptyString (this.secret)) {
+            throw new NotSupported (this.id + 'after the latest upgrade (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.');
+        }
         if (this.privateKey.length > 66) {
-            throw new NotSupported (this.id + ' after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt');
+            throw new NotSupported (this.id + ' after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.');
         }
         await this.initializeClient (params);
         return true;
