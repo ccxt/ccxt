@@ -9079,11 +9079,6 @@ export default class Exchange {
         throw new NotSupported (this.id + ' unWatchBidsAsks () is not supported yet');
     }
 
-    subscriptionExistsForRawHash (url: string, rawHash: string) {
-        const client = this.client (url);
-        return (rawHash in client.subscriptions);
-    }
-
     cleanUnsubscription (client, subHash: string, unsubHash: string, subHashIsPrefix = false) {
         if (unsubHash in client.subscriptions) {
             delete client.subscriptions[unsubHash];

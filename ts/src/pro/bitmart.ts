@@ -2049,6 +2049,11 @@ export default class bitmart extends bitmartRest {
         return this.safeString (types, marketType, marketType);
     }
 
+    subscriptionExistsForRawHash (url: string, rawHash: string) {
+        const client = this.client (url);
+        return (rawHash in client.subscriptions);
+    }
+
     handleMessage (client: Client, message) {
         if (this.handleErrorMessage (client, message)) {
             return;
