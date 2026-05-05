@@ -150,7 +150,6 @@ export default class bitmart extends bitmartRest {
         const actionType = (type === 'spot') ? 'op' : 'action';
         const rawSubscriptions = [];
         const messageHashes = [];
-        const subHashes = [];
         const unsubscribe = this.safeBool (params, 'unsubscribe', false);
         let prefix = '';
         let requestOp = 'subscribe';
@@ -162,10 +161,8 @@ export default class bitmart extends bitmartRest {
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
             const message = channelType + '/' + channel + ':' + market['id'];
-            const subHash = prefix + message;
             const messageHash = prefix + unifiedName + '::' + market['symbol'];
             rawSubscriptions.push (message);
-            subHashes.push (subHash);
             messageHashes.push (messageHash);
         }
         // as an exclusion, futures "tickers" need one generic request for all symbols
@@ -177,7 +174,7 @@ export default class bitmart extends bitmartRest {
             'args': rawSubscriptions,
         };
         request[actionType] = requestOp;
-        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), subHashes);
+        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
     }
 
     /**
