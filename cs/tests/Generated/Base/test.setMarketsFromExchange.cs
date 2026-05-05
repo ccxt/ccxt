@@ -12,7 +12,7 @@ public partial class BaseTest
             var emptyExchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sample0" },
             });
-            Assert("GO_SKIP_START");
+            // @SKIP_START_GO
             object methodName = "setMarketsFromExchange";
             object trueClause = isEqual(emptyExchange.safeString(null, null), null);
             object sampleMarket = new Dictionary<string, object>() {
@@ -78,6 +78,7 @@ public partial class BaseTest
             // Should be very fast since no API call is made
             object timeTaken = subtract(endTime, startTime);
             Assert(isLessThan(timeTaken, 10), "loadMarkets on shared markets should be fast");
-            Assert("GO_SKIP_END");
+            // @SKIP_END_GO
+            emptyExchange.describe(); // avoid unused var
         }
 }

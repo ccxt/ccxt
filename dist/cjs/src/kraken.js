@@ -9,7 +9,7 @@ var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class kraken
@@ -649,6 +649,10 @@ class kraken extends kraken$1["default"] {
         const result = [];
         for (let i = 0; i < keys.length; i++) {
             const id = keys[i];
+            let isSynthetic = false;
+            if (id.indexOf(':BTNL') >= 0) {
+                isSynthetic = true;
+            }
             const market = markets[id];
             const baseIdRaw = this.safeString(market, 'base');
             const quoteIdRaw = this.safeString(market, 'quote');
@@ -686,10 +690,11 @@ class kraken extends kraken$1["default"] {
             }
             const status = this.safeString(market, 'status');
             const isActive = status === 'online';
+            const symbol = (!isSynthetic) ? (base + '/' + quote) : id;
             result.push({
                 'id': id,
                 'wsId': this.safeString(market, 'wsname'),
-                'symbol': base + '/' + quote,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'settle': undefined,

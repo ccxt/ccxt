@@ -293,17 +293,18 @@ console.log(exchange.features);
     createOrder: {
       triggerPrice: true,          // if trigger order is supported
       triggerPriceType: undefined, // if trigger price type is supported (last, mark, index)
-      triggerDirection: false,     // if trigger direction is supported (up, down)
-      stopLossPrice: true,         // if stop-loss order is supported (read "Stop Loss Orders" paragraph) 
-      takeProfitPrice: true,       // if take-profit order is supported
-      attachedStopLossTakeProfit: {       
+      triggerDirection: false,     // if trigger direction is supported (ascending, descending)
+      stopLossPrice: true,         // if you can use createOrder to place a standalone stop-loss order (read "Stop Loss Orders" paragraph) 
+      takeProfitPrice: true,       // ... similar as above
+      stopLoss: {                  // if attached stopLoss can be sent together with an primary entry order
         triggerPriceType: {
             last: true,
             mark: true,
             index: true,
         },
-        price: true,               // whether 'limit' price can be used (instead of market order)
+        price: true,               // if 'limit' price is supported to be set (otherwise only market order would be supported)
       },
+      takeProfit : ...,            // ... similar as above
       marginMode: true,            // if `marginMode` param is supported (cross, isolated)
       timeInForce: {               // supported TIF types
         GTC: true,

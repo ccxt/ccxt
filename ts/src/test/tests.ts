@@ -466,16 +466,17 @@ class testMainClass {
         return true;
     }
 
-    async runPublicTests (exchange, symbol) {
+    async runPublicTests (exchange, symbols) {
+        const primarySymbol = symbols[0];
         let tests = {
             'features': [],
             'fetchCurrencies': [],
-            'fetchTicker': [ symbol ],
-            'fetchTickers': [ symbol ],
-            'fetchLastPrices': [ symbol ],
-            'fetchOHLCV': [ symbol ],
-            'fetchTrades': [ symbol ],
-            'fetchOrderBook': [ symbol ],
+            'fetchTicker': [ primarySymbol ],
+            'fetchTickers': [ primarySymbol ],
+            'fetchLastPrices': [ primarySymbol ],
+            'fetchOHLCV': [ primarySymbol ],
+            'fetchTrades': [ primarySymbol ],
+            'fetchOrderBook': [ primarySymbol ],
             // 'fetchL2OrderBook': [ symbol ],
             'fetchOrderBooks': [],
             'fetchBidsAsks': [],
@@ -485,29 +486,29 @@ class testMainClass {
         if (this.wsTests) {
             tests = {
                 // @ts-ignore
-                'watchOHLCV': [ symbol ],
-                'watchOHLCVForSymbols': [ symbol ], // argument type will be handled inside test
-                'watchTicker': [ symbol ],
-                'watchTickers': [ symbol ],
-                'watchBidsAsks': [ symbol ],
-                'watchOrderBook': [ symbol ],
-                'watchOrderBookForSymbols': [ [ symbol ] ],
-                'watchTrades': [ symbol ],
-                'watchTradesForSymbols': [ [ symbol ] ],
+                'watchOHLCV': [ primarySymbol ],
+                'watchOHLCVForSymbols': [ primarySymbol ], // argument type will be handled inside test
+                'watchTicker': [ primarySymbol ],
+                'watchTickers': [ primarySymbol ],
+                'watchBidsAsks': [ primarySymbol ],
+                'watchOrderBook': [ primarySymbol ],
+                'watchOrderBookForSymbols': [ symbols ],
+                'watchTrades': [ primarySymbol ],
+                'watchTradesForSymbols': [ symbols ],
             };
         }
-        const market = exchange.market (symbol);
+        const market = exchange.market (primarySymbol);
         const isSpot = market['spot'];
         if (!this.wsTests) {
             if (isSpot) {
                 tests['fetchCurrencies'] = [];
             } else {
-                tests['fetchFundingRates'] = [ symbol ];
-                tests['fetchFundingRate'] = [ symbol ];
-                tests['fetchFundingRateHistory'] = [ symbol ];
-                tests['fetchIndexOHLCV'] = [ symbol ];
-                tests['fetchMarkOHLCV'] = [ symbol ];
-                tests['fetchPremiumIndexOHLCV'] = [ symbol ];
+                tests['fetchFundingRates'] = [ primarySymbol ];
+                tests['fetchFundingRate'] = [ primarySymbol ];
+                tests['fetchFundingRateHistory'] = [ primarySymbol ];
+                tests['fetchIndexOHLCV'] = [ primarySymbol ];
+                tests['fetchMarkOHLCV'] = [ primarySymbol ];
+                tests['fetchPremiumIndexOHLCV'] = [ primarySymbol ];
             }
         }
         this.publicTests = tests;
@@ -710,54 +711,58 @@ class testMainClass {
     }
 
     async testExchange (exchange, providedSymbol = undefined) {
-        let spotSymbol = undefined;
-        let swapSymbol = undefined;
+        let spotSymbols = undefined;
+        let swapSymbols = undefined;
         if (providedSymbol !== undefined) {
             const market = exchange.market (providedSymbol);
             if (market['spot']) {
-                spotSymbol = providedSymbol;
+                spotSymbols = [ providedSymbol ];
             } else {
-                swapSymbol = providedSymbol;
+                swapSymbols = [ providedSymbol ];
             }
         } else {
             if (exchange.has['spot']) {
-                spotSymbol = this.getValidSymbol (exchange, true);
+                const primarySymbol = this.getValidSymbol (exchange, true);
+                const secondarySymbol = primarySymbol.replace ('BTC', 'ETH'); // this should work any exchange
+                spotSymbols = [ primarySymbol, secondarySymbol ];
             }
             if (exchange.has['swap']) {
-                swapSymbol = this.getValidSymbol (exchange, false);
+                const primarySymbol = this.getValidSymbol (exchange, false);
+                const secondarySymbol = primarySymbol.replace ('BTC', 'ETH'); // this should work any exchange
+                swapSymbols = [ primarySymbol, secondarySymbol ];
             }
         }
-        if (spotSymbol !== undefined) {
-            dump ('[INFO:MAIN] Selected SPOT SYMBOL:', spotSymbol);
+        if (spotSymbols !== undefined) {
+            dump ('[INFO:MAIN] Selected SPOT SYMBOL:', exchange.json (spotSymbols));
         }
-        if (swapSymbol !== undefined) {
-            dump ('[INFO:MAIN] Selected SWAP SYMBOL:', swapSymbol);
+        if (swapSymbols !== undefined) {
+            dump ('[INFO:MAIN] Selected SWAP SYMBOL:', exchange.json (swapSymbols));
         }
         if (!this.privateTestOnly) {
             // note, spot & swap tests should run sequentially, because of conflicting `exchange.options['defaultType']` setting
-            if (exchange.has['spot'] && spotSymbol !== undefined) {
+            if (exchange.has['spot'] && spotSymbols !== undefined) {
                 if (this.info) {
                     dump ('[INFO] ### SPOT TESTS ###');
                 }
                 exchange.options['defaultType'] = 'spot';
-                await this.runPublicTests (exchange, spotSymbol);
+                await this.runPublicTests (exchange, spotSymbols);
             }
-            if (exchange.has['swap'] && swapSymbol !== undefined) {
+            if (exchange.has['swap'] && swapSymbols !== undefined) {
                 if (this.info) {
                     dump ('[INFO] ### SWAP TESTS ###');
                 }
                 exchange.options['defaultType'] = 'swap';
-                await this.runPublicTests (exchange, swapSymbol);
+                await this.runPublicTests (exchange, swapSymbols);
             }
         }
         if (this.privateTest || this.privateTestOnly) {
-            if (exchange.has['spot'] && spotSymbol !== undefined) {
+            if (exchange.has['spot'] && spotSymbols !== undefined) {
                 exchange.options['defaultType'] = 'spot';
-                await this.runPrivateTests (exchange, spotSymbol);
+                await this.runPrivateTests (exchange, spotSymbols);
             }
-            if (exchange.has['swap'] && swapSymbol !== undefined) {
+            if (exchange.has['swap'] && swapSymbols !== undefined) {
                 exchange.options['defaultType'] = 'swap';
-                await this.runPrivateTests (exchange, swapSymbol);
+                await this.runPrivateTests (exchange, swapSymbols);
             }
         }
         return true;
@@ -913,7 +918,7 @@ class testMainClass {
         return true;
     }
 
-    async startTest (exchange, symbol) {
+    async startTest (exchange, symbolArgv) {
         // we do not need to test aliases
         if (exchange.alias) {
             return true;
@@ -936,7 +941,7 @@ class testMainClass {
             //     // we test proxies functionality just for one random exchange on each build, because proxy functionality is not exchange-specific, instead it's all done from base methods, so just one working sample would mean it works for all ccxt exchanges
             //     // await this.testProxies (exchange);
             // }
-            await this.testExchange (exchange, symbol);
+            await this.testExchange (exchange, symbolArgv);
             if (!isSync ()) {
                 await close (exchange);
             }

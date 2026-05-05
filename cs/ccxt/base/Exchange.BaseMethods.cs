@@ -9,15 +9,16 @@ public partial class Exchange
     public virtual object describe()
     {
         return new Dictionary<string, object>() {
-            { "id", null },
-            { "name", null },
-            { "countries", null },
-            { "enableRateLimit", true },
-            { "rateLimit", 2000 },
+            { "id", this.id },
+            { "name", this.name },
+            { "countries", this.countries },
+            { "enableRateLimit", this.enableRateLimit },
+            { "rateLimit", this.rateLimit },
+            { "rateLimiterAlgorithm", this.rateLimiterAlgorithm },
             { "timeout", this.timeout },
-            { "certified", false },
-            { "pro", false },
-            { "alias", false },
+            { "certified", this.certified },
+            { "pro", this.pro },
+            { "alias", this.alias },
             { "dex", false },
             { "has", new Dictionary<string, object>() {
                 { "publicAPI", true },
@@ -263,9 +264,12 @@ public partial class Exchange
             { "urls", new Dictionary<string, object>() {
                 { "logo", null },
                 { "api", null },
+                { "test", null },
                 { "www", null },
                 { "doc", null },
+                { "api_management", null },
                 { "fees", null },
+                { "referral", null },
             } },
             { "api", null },
             { "requiredCredentials", new Dictionary<string, object>() {
@@ -302,6 +306,7 @@ public partial class Exchange
                 { "updated", null },
                 { "eta", null },
                 { "url", null },
+                { "info", null },
             } },
             { "exceptions", null },
             { "httpExceptions", new Dictionary<string, object>() {
@@ -415,7 +420,7 @@ public partial class Exchange
         {
             return defaultValue;
         }
-        if (isTrue(isTrue(((value is IDictionary<string, object>))) && !isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        if (isTrue(this.isDictionary(value)))
         {
             return value;
         }
@@ -435,7 +440,7 @@ public partial class Exchange
         {
             return defaultValue;
         }
-        if (isTrue(isTrue(((value is IDictionary<string, object>))) && !isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        if (isTrue(this.isDictionary(value)))
         {
             return value;
         }
@@ -471,6 +476,11 @@ public partial class Exchange
             return value;
         }
         return defaultValue;
+    }
+
+    public virtual object isDictionary(object value)
+    {
+        return isTrue(isTrue((!isEqual(value, null))) && isTrue(((value is IDictionary<string, object>)))) && !isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))));
     }
 
     public virtual object safeList2(object dictionaryOrList, object key1, object key2, object defaultValue = null)
@@ -5474,7 +5484,9 @@ public partial class Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createTriggerOrder() requires a triggerPrice argument")) ;
         }
-        ((IDictionary<string,object>)parameters)["triggerPrice"] = triggerPrice;
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "triggerPrice", triggerPrice },
+        });
         if (isTrue(getValue(this.has, "createTriggerOrder")))
         {
             return await this.createOrder(symbol, type, side, amount, price, parameters);
@@ -5502,7 +5514,9 @@ public partial class Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createTriggerOrderWs() requires a triggerPrice argument")) ;
         }
-        ((IDictionary<string,object>)parameters)["triggerPrice"] = triggerPrice;
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "triggerPrice", triggerPrice },
+        });
         if (isTrue(getValue(this.has, "createTriggerOrderWs")))
         {
             return await this.createOrderWs(symbol, type, side, amount, price, parameters);
@@ -5530,7 +5544,9 @@ public partial class Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createStopLossOrder() requires a stopLossPrice argument")) ;
         }
-        ((IDictionary<string,object>)parameters)["stopLossPrice"] = stopLossPrice;
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "stopLossPrice", stopLossPrice },
+        });
         if (isTrue(getValue(this.has, "createStopLossOrder")))
         {
             return await this.createOrder(symbol, type, side, amount, price, parameters);
@@ -5558,7 +5574,9 @@ public partial class Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createStopLossOrderWs() requires a stopLossPrice argument")) ;
         }
-        ((IDictionary<string,object>)parameters)["stopLossPrice"] = stopLossPrice;
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "stopLossPrice", stopLossPrice },
+        });
         if (isTrue(getValue(this.has, "createStopLossOrderWs")))
         {
             return await this.createOrderWs(symbol, type, side, amount, price, parameters);
@@ -5586,7 +5604,9 @@ public partial class Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createTakeProfitOrder() requires a takeProfitPrice argument")) ;
         }
-        ((IDictionary<string,object>)parameters)["takeProfitPrice"] = takeProfitPrice;
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "takeProfitPrice", takeProfitPrice },
+        });
         if (isTrue(getValue(this.has, "createTakeProfitOrder")))
         {
             return await this.createOrder(symbol, type, side, amount, price, parameters);
@@ -5614,7 +5634,9 @@ public partial class Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createTakeProfitOrderWs() requires a takeProfitPrice argument")) ;
         }
-        ((IDictionary<string,object>)parameters)["takeProfitPrice"] = takeProfitPrice;
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "takeProfitPrice", takeProfitPrice },
+        });
         if (isTrue(getValue(this.has, "createTakeProfitOrderWs")))
         {
             return await this.createOrderWs(symbol, type, side, amount, price, parameters);
@@ -6245,7 +6267,7 @@ public partial class Exchange
 
     public virtual object handleWithdrawTagAndParams(object tag, object parameters)
     {
-        if (isTrue(isTrue((!isEqual(tag, null))) && isTrue(((tag is IDictionary<string, object>)))))
+        if (isTrue(this.isDictionary(tag)))
         {
             parameters = this.extend(tag, parameters);
             tag = null;
@@ -6340,7 +6362,7 @@ public partial class Exchange
             return null;
         }
         object market = this.market(symbol);
-        return this.decimalToPrecision(cost, TRUNCATE, getValue(getValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
+        return this.decimalToPrecision(cost, TRUNCATE, this.safeString2(getValue(market, "precision"), "cost", "price"), this.precisionMode, this.paddingMode);
     }
 
     public virtual object priceToPrecision(object symbol, object price)

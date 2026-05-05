@@ -66,16 +66,16 @@ export default class Exchange {
     validateClientSsl: boolean;
     timeout: Int;
     verbose: boolean;
-    twofa: string;
     apiKey: string;
     secret: string;
     uid: string;
-    accountId: string;
     login: string;
     password: string;
     privateKey: string;
     walletAddress: string;
     token: string;
+    twofa: string;
+    accountId: string;
     balance: any;
     liquidations: any;
     orderbooks: Dictionary<Ob>;
@@ -187,11 +187,9 @@ export default class Exchange {
     exceptions: Dictionary<string>;
     timeframes: Dictionary<number | string>;
     version: Str;
-    marketsByAltname: Dictionary<Market>;
     name: Str;
     lastRestRequestTimestamp: int;
     targetAccount: string;
-    stablePairs: Dictionary<boolean>;
     httpProxyAgentModule: any;
     httpsProxyAgentModule: any;
     socksProxyAgentModule: any;
@@ -439,6 +437,7 @@ export default class Exchange {
     safeDict(dictionary: any, key: IndexType, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
     safeDict2(dictionary: any, key1: IndexType, key2: string, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
     safeListN(dictionaryOrList: any, keys: IndexType[], defaultValue?: any[]): any[] | undefined;
+    isDictionary(value: any): boolean;
     safeList2(dictionaryOrList: any, key1: IndexType, key2: string, defaultValue?: any[]): any[] | undefined;
     safeList(dictionaryOrList: any, key: IndexType, defaultValue?: any[]): any[] | undefined;
     handleDeltas(orderbook: any, deltas: any): void;

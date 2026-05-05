@@ -253,17 +253,17 @@ export default class Exchange {
 
     timeout: Int = 10000;  // milliseconds
     verbose: boolean = false;
-    twofa: string = undefined;  // two-factor authentication (2-FA)
 
     apiKey: string;
     secret: string;
     uid: string;
-    accountId: string;
     login: string;
     password: string;
     privateKey: string;  // a "0x"-prefixed hexstring private key for a wallet
     walletAddress: string;  // a wallet address "0x"-prefixed hexstring
     token: string;  // reserved for HTTP auth in some cases
+    twofa: string;
+    accountId: string;
 
     balance: any = {};
     liquidations: any = undefined;
@@ -336,10 +336,10 @@ export default class Exchange {
         token: Bool,  // reserved for HTTP auth in some cases
     };
 
-    rateLimit: Num = undefined; // milliseconds
+    rateLimit: Num = 2000; // milliseconds
     tokenBucket: Dictionary<number> = undefined;
     throttler: any = undefined;
-    enableRateLimit: boolean = undefined;
+    enableRateLimit: boolean = true;
     rollingWindowSize: number = 0.0;  // set to 0.0 to use leaky bucket rate limiter
     rateLimiterAlgorithm: string = 'leakyBucket';
 
@@ -395,15 +395,11 @@ export default class Exchange {
 
     version: Str = undefined;
 
-    marketsByAltname: Dictionary<Market> = undefined;
-
     name: Str = undefined;
 
     lastRestRequestTimestamp: int;
 
     targetAccount: string = undefined;
-
-    stablePairs: Dictionary<boolean> = {};
 
     httpProxyAgentModule: any = undefined;
     httpsProxyAgentModule: any = undefined;
@@ -952,7 +948,7 @@ export default class Exchange {
         if (userAgent && isNode) {
             if (typeof userAgent === 'string') {
                 headers = this.extend ({ 'User-Agent': userAgent }, headers);
-            } else if ((typeof userAgent === 'object') && ('User-Agent' in userAgent)) {
+            } else if (this.isDictionary (userAgent) && ('User-Agent' in userAgent)) {
                 headers = this.extend (userAgent, headers);
             }
         }
@@ -2266,15 +2262,16 @@ export default class Exchange {
 
     describe (): any {
         return {
-            'id': undefined,
-            'name': undefined,
-            'countries': undefined,
-            'enableRateLimit': true,
-            'rateLimit': 2000, // milliseconds = seconds * 1000
+            'id': this.id,
+            'name': this.name,
+            'countries': this.countries,
+            'enableRateLimit': this.enableRateLimit,
+            'rateLimit': this.rateLimit, // milliseconds = seconds * 1000
+            'rateLimiterAlgorithm': this.rateLimiterAlgorithm,
             'timeout': this.timeout, // milliseconds = seconds * 1000
-            'certified': false, // if certified by the CCXT dev team
-            'pro': false, // if it is integrated with CCXT Pro for WebSocket support
-            'alias': false, // whether this exchange is an alias to another exchange
+            'certified': this.certified, // if certified by the CCXT dev team
+            'pro': this.pro, // if it is integrated with CCXT Pro for WebSocket support
+            'alias': this.alias, // whether this exchange is an alias to another exchange
             'dex': false,
             'has': {
                 'publicAPI': true,
@@ -2520,9 +2517,12 @@ export default class Exchange {
             'urls': {
                 'logo': undefined,
                 'api': undefined,
+                'test': undefined,
                 'www': undefined,
                 'doc': undefined,
+                'api_management': undefined,
                 'fees': undefined,
+                'referral': undefined,
             },
             'api': undefined,
             'requiredCredentials': {
@@ -2559,6 +2559,7 @@ export default class Exchange {
                 'updated': undefined,
                 'eta': undefined,
                 'url': undefined,
+                'info': undefined,
             },
             'exceptions': undefined,
             'httpExceptions': {
@@ -2653,7 +2654,7 @@ export default class Exchange {
         if (value === undefined) {
             return defaultValue;
         }
-        if ((typeof value === 'object') && !Array.isArray (value)) {
+        if (this.isDictionary (value)) {
             return value;
         }
         return defaultValue;
@@ -2670,7 +2671,7 @@ export default class Exchange {
         if (value === undefined) {
             return defaultValue;
         }
-        if ((typeof value === 'object') && !Array.isArray (value)) {
+        if (this.isDictionary (value)) {
             return value;
         }
         return defaultValue;
@@ -2701,6 +2702,10 @@ export default class Exchange {
             return value;
         }
         return defaultValue;
+    }
+
+    isDictionary (value: any): boolean {
+        return (value !== undefined) && (typeof value === 'object') && !Array.isArray (value);
     }
 
     safeList2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue: any[] = undefined): any[] | undefined {
@@ -6667,7 +6672,7 @@ export default class Exchange {
         if (triggerPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createTriggerOrder() requires a triggerPrice argument');
         }
-        params['triggerPrice'] = triggerPrice;
+        params = this.extend (params, { 'triggerPrice': triggerPrice });
         if (this.has['createTriggerOrder']) {
             return await this.createOrder (symbol, type, side, amount, price, params);
         }
@@ -6691,7 +6696,7 @@ export default class Exchange {
         if (triggerPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createTriggerOrderWs() requires a triggerPrice argument');
         }
-        params['triggerPrice'] = triggerPrice;
+        params = this.extend (params, { 'triggerPrice': triggerPrice });
         if (this.has['createTriggerOrderWs']) {
             return await this.createOrderWs (symbol, type, side, amount, price, params);
         }
@@ -6715,7 +6720,7 @@ export default class Exchange {
         if (stopLossPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createStopLossOrder() requires a stopLossPrice argument');
         }
-        params['stopLossPrice'] = stopLossPrice;
+        params = this.extend (params, { 'stopLossPrice': stopLossPrice });
         if (this.has['createStopLossOrder']) {
             return await this.createOrder (symbol, type, side, amount, price, params);
         }
@@ -6739,7 +6744,7 @@ export default class Exchange {
         if (stopLossPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createStopLossOrderWs() requires a stopLossPrice argument');
         }
-        params['stopLossPrice'] = stopLossPrice;
+        params = this.extend (params, { 'stopLossPrice': stopLossPrice });
         if (this.has['createStopLossOrderWs']) {
             return await this.createOrderWs (symbol, type, side, amount, price, params);
         }
@@ -6763,7 +6768,7 @@ export default class Exchange {
         if (takeProfitPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createTakeProfitOrder() requires a takeProfitPrice argument');
         }
-        params['takeProfitPrice'] = takeProfitPrice;
+        params = this.extend (params, { 'takeProfitPrice': takeProfitPrice });
         if (this.has['createTakeProfitOrder']) {
             return await this.createOrder (symbol, type, side, amount, price, params);
         }
@@ -6787,7 +6792,7 @@ export default class Exchange {
         if (takeProfitPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createTakeProfitOrderWs() requires a takeProfitPrice argument');
         }
-        params['takeProfitPrice'] = takeProfitPrice;
+        params = this.extend (params, { 'takeProfitPrice': takeProfitPrice });
         if (this.has['createTakeProfitOrderWs']) {
             return await this.createOrderWs (symbol, type, side, amount, price, params);
         }
@@ -7267,7 +7272,7 @@ export default class Exchange {
     }
 
     handleWithdrawTagAndParams (tag, params): any {
-        if ((tag !== undefined) && (typeof tag === 'object')) {
+        if (this.isDictionary (tag)) {
             params = this.extend (tag, params);
             tag = undefined;
         }
@@ -7333,7 +7338,7 @@ export default class Exchange {
             return undefined;
         }
         const market = this.market (symbol);
-        return this.decimalToPrecision (cost, TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
+        return this.decimalToPrecision (cost, TRUNCATE, this.safeString2 (market['precision'], 'cost', 'price'), this.precisionMode, this.paddingMode);
     }
 
     priceToPrecision (symbol: string, price): string {

@@ -49,6 +49,7 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
     log_text = test_shared_methods.log_template(exchange, method, entry)
     # check market
     market = None
+    is_fetch_ticker_called = method == 'fetchTicker'
     symbol_for_market = symbol if (symbol is not None) else exchange.safe_string(entry, 'symbol')
     if symbol_for_market is not None and (symbol_for_market in exchange.markets):
         market = exchange.market(symbol_for_market)
@@ -140,6 +141,13 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
     bid_string = exchange.safe_string(entry, 'bid')
     if (ask_string is not None) and (bid_string is not None) and not ('spread' in skipped_properties):
         test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'ask', exchange.safe_string(entry, 'bid'))
+    # last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
+    allowed_percentage_variation = '0.01'
+    if is_fetch_ticker_called and last_string is not None and bid_string is not None and ask_string is not None and not ('lastBetweenBidAsk' in skipped_properties):
+        median_price = Precise.string_div(Precise.string_add(bid_string, ask_string), '2')
+        median_low = Precise.string_mul(median_price, Precise.string_sub('1', allowed_percentage_variation))
+        median_high = Precise.string_mul(median_price, Precise.string_add('1', allowed_percentage_variation))
+        assert Precise.string_ge(last_string, median_low) and Precise.string_le(last_string, median_high), 'last price should be within 1% of the bid/ask median price' + log_text
     percentage = exchange.safe_string(entry, 'percentage')
     change = exchange.safe_string(entry, 'change')
     if not ('maxIncrease' in skipped_properties):

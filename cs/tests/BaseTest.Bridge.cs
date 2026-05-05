@@ -182,7 +182,7 @@ public partial class BaseTest
     {
         assert(DeepEqual(a, b), add(add(add(add("two dicts do not match: ", Exchange.Json(a)), " != "), Exchange.Json(b)), method));
     }
-    
+
     public object exchangeProp(Exchange exchange, object key, object defaultValue = null)
     {
         object value = exchange.getProperty(exchange, ((object)key).ToString());
@@ -202,10 +202,9 @@ public partial class BaseTest
 {
     public async Task testLanguageSpecific()
     {
-        MultithreadTest().Wait();
+        MultithreadTest().Wait(); // temporary disable here
         
         // Run throttler performance test
-        var baseTest = new BaseTest();
-        await baseTest.testThrottlerPerformance();
+        await testThrottlerPerformance();
     }
 }

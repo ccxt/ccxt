@@ -348,16 +348,17 @@ class testMainClass:
                         return False
         return True
 
-    async def run_public_tests(self, exchange, symbol):
+    async def run_public_tests(self, exchange, symbols):
+        primary_symbol = symbols[0]
         tests = {
             'features': [],
             'fetchCurrencies': [],
-            'fetchTicker': [symbol],
-            'fetchTickers': [symbol],
-            'fetchLastPrices': [symbol],
-            'fetchOHLCV': [symbol],
-            'fetchTrades': [symbol],
-            'fetchOrderBook': [symbol],
+            'fetchTicker': [primary_symbol],
+            'fetchTickers': [primary_symbol],
+            'fetchLastPrices': [primary_symbol],
+            'fetchOHLCV': [primary_symbol],
+            'fetchTrades': [primary_symbol],
+            'fetchOrderBook': [primary_symbol],
             'fetchOrderBooks': [],
             'fetchBidsAsks': [],
             'fetchStatus': [],
@@ -365,28 +366,28 @@ class testMainClass:
         }
         if self.ws_tests:
             tests = {
-                'watchOHLCV': [symbol],
-                'watchOHLCVForSymbols': [symbol],
-                'watchTicker': [symbol],
-                'watchTickers': [symbol],
-                'watchBidsAsks': [symbol],
-                'watchOrderBook': [symbol],
-                'watchOrderBookForSymbols': [[symbol]],
-                'watchTrades': [symbol],
-                'watchTradesForSymbols': [[symbol]],
+                'watchOHLCV': [primary_symbol],
+                'watchOHLCVForSymbols': [primary_symbol],
+                'watchTicker': [primary_symbol],
+                'watchTickers': [primary_symbol],
+                'watchBidsAsks': [primary_symbol],
+                'watchOrderBook': [primary_symbol],
+                'watchOrderBookForSymbols': [symbols],
+                'watchTrades': [primary_symbol],
+                'watchTradesForSymbols': [symbols],
             }
-        market = exchange.market(symbol)
+        market = exchange.market(primary_symbol)
         is_spot = market['spot']
         if not self.ws_tests:
             if is_spot:
                 tests['fetchCurrencies'] = []
             else:
-                tests['fetchFundingRates'] = [symbol]
-                tests['fetchFundingRate'] = [symbol]
-                tests['fetchFundingRateHistory'] = [symbol]
-                tests['fetchIndexOHLCV'] = [symbol]
-                tests['fetchMarkOHLCV'] = [symbol]
-                tests['fetchPremiumIndexOHLCV'] = [symbol]
+                tests['fetchFundingRates'] = [primary_symbol]
+                tests['fetchFundingRate'] = [primary_symbol]
+                tests['fetchFundingRateHistory'] = [primary_symbol]
+                tests['fetchIndexOHLCV'] = [primary_symbol]
+                tests['fetchMarkOHLCV'] = [primary_symbol]
+                tests['fetchPremiumIndexOHLCV'] = [primary_symbol]
         self.public_tests = tests
         await self.run_tests(exchange, tests, True)
         return True
@@ -499,42 +500,46 @@ class testMainClass:
         return symbol
 
     async def test_exchange(self, exchange, provided_symbol=None):
-        spot_symbol = None
-        swap_symbol = None
+        spot_symbols = None
+        swap_symbols = None
         if provided_symbol is not None:
             market = exchange.market(provided_symbol)
             if market['spot']:
-                spot_symbol = provided_symbol
+                spot_symbols = [provided_symbol]
             else:
-                swap_symbol = provided_symbol
+                swap_symbols = [provided_symbol]
         else:
             if exchange.has['spot']:
-                spot_symbol = self.get_valid_symbol(exchange, True)
+                primary_symbol = self.get_valid_symbol(exchange, True)
+                secondary_symbol = primary_symbol.replace('BTC', 'ETH')  # this should work any exchange
+                spot_symbols = [primary_symbol, secondary_symbol]
             if exchange.has['swap']:
-                swap_symbol = self.get_valid_symbol(exchange, False)
-        if spot_symbol is not None:
-            dump('[INFO:MAIN] Selected SPOT SYMBOL:', spot_symbol)
-        if swap_symbol is not None:
-            dump('[INFO:MAIN] Selected SWAP SYMBOL:', swap_symbol)
+                primary_symbol = self.get_valid_symbol(exchange, False)
+                secondary_symbol = primary_symbol.replace('BTC', 'ETH')  # this should work any exchange
+                swap_symbols = [primary_symbol, secondary_symbol]
+        if spot_symbols is not None:
+            dump('[INFO:MAIN] Selected SPOT SYMBOL:', exchange.json(spot_symbols))
+        if swap_symbols is not None:
+            dump('[INFO:MAIN] Selected SWAP SYMBOL:', exchange.json(swap_symbols))
         if not self.private_test_only:
             # note, spot & swap tests should run sequentially, because of conflicting `exchange.options['defaultType']` setting
-            if exchange.has['spot'] and spot_symbol is not None:
+            if exchange.has['spot'] and spot_symbols is not None:
                 if self.info:
                     dump('[INFO] ### SPOT TESTS ###')
                 exchange.options['defaultType'] = 'spot'
-                await self.run_public_tests(exchange, spot_symbol)
-            if exchange.has['swap'] and swap_symbol is not None:
+                await self.run_public_tests(exchange, spot_symbols)
+            if exchange.has['swap'] and swap_symbols is not None:
                 if self.info:
                     dump('[INFO] ### SWAP TESTS ###')
                 exchange.options['defaultType'] = 'swap'
-                await self.run_public_tests(exchange, swap_symbol)
+                await self.run_public_tests(exchange, swap_symbols)
         if self.private_test or self.private_test_only:
-            if exchange.has['spot'] and spot_symbol is not None:
+            if exchange.has['spot'] and spot_symbols is not None:
                 exchange.options['defaultType'] = 'spot'
-                await self.run_private_tests(exchange, spot_symbol)
-            if exchange.has['swap'] and swap_symbol is not None:
+                await self.run_private_tests(exchange, spot_symbols)
+            if exchange.has['swap'] and swap_symbols is not None:
                 exchange.options['defaultType'] = 'swap'
-                await self.run_private_tests(exchange, swap_symbol)
+                await self.run_private_tests(exchange, swap_symbols)
         return True
 
     async def run_private_tests(self, exchange, symbol):
@@ -653,7 +658,7 @@ class testMainClass:
         exchange.return_response_headers = False
         return True
 
-    async def start_test(self, exchange, symbol):
+    async def start_test(self, exchange, symbol_argv):
         # we do not need to test aliases
         if exchange.alias:
             return True
@@ -671,7 +676,7 @@ class testMainClass:
             #     # we test proxies functionality just for one random exchange on each build, because proxy functionality is not exchange-specific, instead it's all done from base methods, so just one working sample would mean it works for all ccxt exchanges
             #     # await this.testProxies (exchange);
             # }
-            await self.test_exchange(exchange, symbol)
+            await self.test_exchange(exchange, symbol_argv)
             if not is_sync():
                 await close(exchange)
         except Exception as e:

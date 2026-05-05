@@ -100,8 +100,14 @@ func  (this *AsterCore) GetAccountTypeFromUrl(url interface{}) interface{}  {
  * @method
  * @name aster#watchTicker
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#full-ticker-per-symbol
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-symbol-ticker-streams
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#simplified-ticker-by-symbol
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#compact-tickers-for-all-symbols-in-the-entire-market
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#full-ticker-per-symbol
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#complete-ticker-for-all-trading-pairs-on-the-entire-market
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#individual-symbol-mini-ticker-stream
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-mini-tickers-stream
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#individual-symbol-ticker-streams
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-tickers-streams
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -115,8 +121,8 @@ func  (this *AsterCore) WatchTicker(symbol interface{}, optionalArgs ...interfac
             _ = params
             ccxt.AddElementToObject(params, "callerMethodName", "watchTicker")
         
-            retRes1058 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1058)
+            retRes1118 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes1118)
             symbol = this.SafeSymbol(symbol)
         
             tickers:= (<-this.WatchTickers([]interface{}{symbol}, params))
@@ -132,8 +138,14 @@ func  (this *AsterCore) WatchTicker(symbol interface{}, optionalArgs ...interfac
  * @method
  * @name aster#unWatchTicker
  * @description unWatches a price ticker
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#full-ticker-per-symbol
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-symbol-ticker-streams
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#simplified-ticker-by-symbol
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#compact-tickers-for-all-symbols-in-the-entire-market
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#full-ticker-per-symbol
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#complete-ticker-for-all-trading-pairs-on-the-entire-market
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#individual-symbol-mini-ticker-stream
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-mini-tickers-stream
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#individual-symbol-ticker-streams
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-tickers-streams
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -147,9 +159,9 @@ func  (this *AsterCore) UnWatchTicker(symbol interface{}, optionalArgs ...interf
             _ = params
             ccxt.AddElementToObject(params, "callerMethodName", "unWatchTicker")
         
-                retRes12315 :=  (<-this.UnWatchTickers([]interface{}{symbol}, params))
-                ccxt.PanicOnError(retRes12315)
-                ch <- retRes12315
+                retRes13515 :=  (<-this.UnWatchTickers([]interface{}{symbol}, params))
+                ccxt.PanicOnError(retRes13515)
+                ch <- retRes13515
                 return nil
         
             }()
@@ -159,8 +171,10 @@ func  (this *AsterCore) UnWatchTicker(symbol interface{}, optionalArgs ...interf
  * @method
  * @name aster#watchTickers
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#full-ticker-per-symbol
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-symbol-ticker-streams
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#compact-tickers-for-all-symbols-in-the-entire-market
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#complete-ticker-for-all-trading-pairs-on-the-entire-market
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-mini-tickers-stream
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-tickers-streams
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -175,8 +189,8 @@ func  (this *AsterCore) WatchTickers(optionalArgs ...interface{}) <- chan interf
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes1378 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1378)
+            retRes1518 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes1518)
             symbols = this.MarketSymbols(symbols, nil, true, true, true)
             var firstMarket interface{} = this.GetMarketFromSymbols(symbols)
             var typeVar interface{} = this.SafeString(firstMarket, "type", "swap")
@@ -223,8 +237,10 @@ func  (this *AsterCore) WatchTickers(optionalArgs ...interface{}) <- chan interf
  * @method
  * @name aster#unWatchTickers
  * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#full-ticker-per-symbol
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-symbol-ticker-streams
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#compact-tickers-for-all-symbols-in-the-entire-market
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#complete-ticker-for-all-trading-pairs-on-the-entire-market
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-mini-tickers-stream
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-tickers-streams
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -239,8 +255,8 @@ func  (this *AsterCore) UnWatchTickers(optionalArgs ...interface{}) <- chan inte
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes1818 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1818)
+            retRes1978 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes1978)
             symbols = this.MarketSymbols(symbols, nil, true, true, true)
             var firstMarket interface{} = this.GetMarketFromSymbols(symbols)
             var typeVar interface{} = this.SafeString(firstMarket, "type", "swap")
@@ -267,9 +283,9 @@ func  (this *AsterCore) UnWatchTickers(optionalArgs ...interface{}) <- chan inte
                 ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:ticker:", ccxt.GetValue(market, "symbol")))
             }
         
-                retRes20515 :=  (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
-                ccxt.PanicOnError(retRes20515)
-                ch <- retRes20515
+                retRes22115 :=  (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
+                ccxt.PanicOnError(retRes22115)
+                ch <- retRes22115
                 return nil
         
             }()
@@ -279,7 +295,8 @@ func  (this *AsterCore) UnWatchTickers(optionalArgs ...interface{}) <- chan inte
  * @method
  * @name aster#watchMarkPrice
  * @description watches a mark price for a specific market
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#mark-price-stream
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream-for-all-market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
@@ -294,8 +311,8 @@ func  (this *AsterCore) WatchMarkPrice(symbol interface{}, optionalArgs ...inter
             _ = params
             ccxt.AddElementToObject(params, "callerMethodName", "watchMarkPrice")
         
-            retRes2208 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2208)
+            retRes2378 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2378)
             symbol = this.SafeSymbol(symbol)
         
             tickers:= (<-this.WatchMarkPrices([]interface{}{symbol}, params))
@@ -311,7 +328,8 @@ func  (this *AsterCore) WatchMarkPrice(symbol interface{}, optionalArgs ...inter
  * @method
  * @name aster#unWatchMarkPrice
  * @description unWatches a mark price for a specific market
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#mark-price-stream
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream-for-all-market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
@@ -326,9 +344,9 @@ func  (this *AsterCore) UnWatchMarkPrice(symbol interface{}, optionalArgs ...int
             _ = params
             ccxt.AddElementToObject(params, "callerMethodName", "unWatchMarkPrice")
         
-                retRes23815 :=  (<-this.UnWatchMarkPrices([]interface{}{symbol}, params))
-                ccxt.PanicOnError(retRes23815)
-                ch <- retRes23815
+                retRes25615 :=  (<-this.UnWatchMarkPrices([]interface{}{symbol}, params))
+                ccxt.PanicOnError(retRes25615)
+                ch <- retRes25615
                 return nil
         
             }()
@@ -338,7 +356,8 @@ func  (this *AsterCore) UnWatchMarkPrice(symbol interface{}, optionalArgs ...int
  * @method
  * @name aster#watchMarkPrices
  * @description watches the mark price for all markets
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#mark-price-stream
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream-for-all-market
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
@@ -354,8 +373,8 @@ func  (this *AsterCore) WatchMarkPrices(optionalArgs ...interface{}) <- chan int
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes2528 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2528)
+            retRes2718 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2718)
             symbols = this.MarketSymbols(symbols, nil, true, true, true)
             var firstMarket interface{} = this.GetMarketFromSymbols(symbols)
             var typeVar interface{} = this.SafeString(firstMarket, "type", "swap")
@@ -404,7 +423,8 @@ func  (this *AsterCore) WatchMarkPrices(optionalArgs ...interface{}) <- chan int
  * @method
  * @name aster#unWatchMarkPrices
  * @description watches the mark price for all markets
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#mark-price-stream
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream-for-all-market
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
@@ -420,8 +440,8 @@ func  (this *AsterCore) UnWatchMarkPrices(optionalArgs ...interface{}) <- chan i
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes2988 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2988)
+            retRes3188 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes3188)
             symbols = this.MarketSymbols(symbols, nil, true, true, true)
             var firstMarket interface{} = this.GetMarketFromSymbols(symbols)
             var typeVar interface{} = this.SafeString(firstMarket, "type", "swap")
@@ -450,9 +470,9 @@ func  (this *AsterCore) UnWatchMarkPrices(optionalArgs ...interface{}) <- chan i
                 ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:ticker:", ccxt.GetValue(market, "symbol")))
             }
         
-                retRes32415 :=  (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
-                ccxt.PanicOnError(retRes32415)
-                ch <- retRes32415
+                retRes34415 :=  (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
+                ccxt.PanicOnError(retRes34415)
+                ch <- retRes34415
                 return nil
         
             }()
@@ -461,8 +481,6 @@ func  (this *AsterCore) UnWatchMarkPrices(optionalArgs ...interface{}) <- chan i
 func  (this *AsterCore) HandleTicker(client interface{}, message interface{})  {
     //
     //     {
-    //         "stream": "trumpusdt@ticker",
-    //         "data": {
     //             "e": "24hrTicker",
     //             "E": 1754451187277,
     //             "s": "CAKEUSDT",
@@ -481,11 +499,8 @@ func  (this *AsterCore) HandleTicker(client interface{}, message interface{})  {
     //             "F": 6571389,
     //             "L": 6574507,
     //             "n": 3119
-    //         }
     //     }
     //     {
-    //         "stream": "btcusdt@markPrice",
-    //         "data": {
     //             "e": "markPriceUpdate",
     //             "E": 1754660466000,
     //             "s": "BTCUSDT",
@@ -494,11 +509,10 @@ func  (this *AsterCore) HandleTicker(client interface{}, message interface{})  {
     //             "i": "116836.93534884",
     //             "r": "0.00010000",
     //             "T": 1754668800000
-    //         }
     //     }
     //
     var marketType interface{} = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
-    var ticker interface{} = this.SafeDict(message, "data")
+    var ticker interface{} = message
     var parsed interface{} = this.ParseWsTicker(ticker, marketType)
     var symbol interface{} = ccxt.GetValue(parsed, "symbol")
     var messageHash interface{} = ccxt.Add("ticker:", symbol)
@@ -550,8 +564,10 @@ func  (this *AsterCore) ParseWsTicker(message interface{}, marketType interface{
  * @method
  * @name aster#watchBidsAsks
  * @description watches best bid & ask for symbols
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#best-order-book-information-by-symbol
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-symbol-book-ticker-streams
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#best-order-book-information-by-symbol
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#best-order-book-information-across-the-entire-market
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#individual-symbol-book-ticker-streams
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-book-tickers-stream
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -566,8 +582,8 @@ func  (this *AsterCore) WatchBidsAsks(optionalArgs ...interface{}) <- chan inter
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes4288 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4288)
+            retRes4448 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes4448)
             symbols = this.MarketSymbols(symbols, nil, true, true, true)
             var firstMarket interface{} = this.GetMarketFromSymbols(symbols)
             var typeVar interface{} = this.SafeString(firstMarket, "type", "swap")
@@ -609,8 +625,10 @@ func  (this *AsterCore) WatchBidsAsks(optionalArgs ...interface{}) <- chan inter
  * @method
  * @name aster#unWatchBidsAsks
  * @description unWatches best bid & ask for symbols
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#best-order-book-information-by-symbol
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-symbol-book-ticker-streams
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#best-order-book-information-by-symbol
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#best-order-book-information-across-the-entire-market
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#individual-symbol-book-ticker-streams
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-book-tickers-stream
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -625,8 +643,8 @@ func  (this *AsterCore) UnWatchBidsAsks(optionalArgs ...interface{}) <- chan int
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes4698 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4698)
+            retRes4878 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes4878)
             symbols = this.MarketSymbols(symbols, nil, true, true, true)
             var firstMarket interface{} = this.GetMarketFromSymbols(symbols)
             var typeVar interface{} = this.SafeString(firstMarket, "type", "swap")
@@ -648,9 +666,9 @@ func  (this *AsterCore) UnWatchBidsAsks(optionalArgs ...interface{}) <- chan int
                 ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:bidask:", ccxt.GetValue(market, "symbol")))
             }
         
-                retRes49015 :=  (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
-                ccxt.PanicOnError(retRes49015)
-                ch <- retRes49015
+                retRes50815 :=  (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
+                ccxt.PanicOnError(retRes50815)
+                ch <- retRes50815
                 return nil
         
             }()
@@ -659,8 +677,6 @@ func  (this *AsterCore) UnWatchBidsAsks(optionalArgs ...interface{}) <- chan int
 func  (this *AsterCore) HandleBidAsk(client interface{}, message interface{})  {
     //
     //     {
-    //         "stream": "btcusdt@bookTicker",
-    //         "data": {
     //             "e": "bookTicker",
     //             "u": 157240846459,
     //             "s": "BTCUSDT",
@@ -670,11 +686,10 @@ func  (this *AsterCore) HandleBidAsk(client interface{}, message interface{})  {
     //             "A": "0.001",
     //             "T": 1754896692922,
     //             "E": 1754896692926
-    //         }
     //     }
     //
     var marketType interface{} = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
-    var data interface{} = this.SafeDict(message, "data", map[string]interface{} {})
+    var data interface{} = message
     var marketId interface{} = this.SafeString(data, "s")
     var market interface{} = this.SafeMarket(marketId, nil, nil, marketType)
     var ticker interface{} = this.ParseWsBidAsk(data, market)
@@ -702,8 +717,9 @@ func  (this *AsterCore) ParseWsBidAsk(message interface{}, optionalArgs ...inter
  * @method
  * @name aster#watchTrades
  * @description watches information on multiple trades made in a market
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#collection-transaction-flow
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#aggregate-trade-streams
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#collection-transaction-flow
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#tick-by-tick-trades
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#aggregate-trade-streams
  * @param {string} symbol unified market symbol of the market trades were made in
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -723,9 +739,9 @@ func  (this *AsterCore) WatchTrades(symbol interface{}, optionalArgs ...interfac
             _ = params
             ccxt.AddElementToObject(params, "callerMethodName", "watchTrades")
         
-                retRes54915 :=  (<-this.WatchTradesForSymbols([]interface{}{symbol}, since, limit, params))
-                ccxt.PanicOnError(retRes54915)
-                ch <- retRes54915
+                retRes56515 :=  (<-this.WatchTradesForSymbols([]interface{}{symbol}, since, limit, params))
+                ccxt.PanicOnError(retRes56515)
+                ch <- retRes56515
                 return nil
         
             }()
@@ -735,8 +751,9 @@ func  (this *AsterCore) WatchTrades(symbol interface{}, optionalArgs ...interfac
  * @method
  * @name aster#unWatchTrades
  * @description unsubscribe from the trades channel
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#collection-transaction-flow
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#aggregate-trade-streams
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#collection-transaction-flow
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#tick-by-tick-trades
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#aggregate-trade-streams
  * @param {string} symbol unified market symbol of the market trades were made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
@@ -750,9 +767,9 @@ func  (this *AsterCore) UnWatchTrades(symbol interface{}, optionalArgs ...interf
             _ = params
             ccxt.AddElementToObject(params, "callerMethodName", "unWatchTrades")
         
-                retRes56415 :=  (<-this.UnWatchTradesForSymbols([]interface{}{symbol}, params))
-                ccxt.PanicOnError(retRes56415)
-                ch <- retRes56415
+                retRes58115 :=  (<-this.UnWatchTradesForSymbols([]interface{}{symbol}, params))
+                ccxt.PanicOnError(retRes58115)
+                ch <- retRes58115
                 return nil
         
             }()
@@ -762,8 +779,9 @@ func  (this *AsterCore) UnWatchTrades(symbol interface{}, optionalArgs ...interf
  * @method
  * @name aster#watchTradesForSymbols
  * @description get the list of most recent trades for a list of symbols
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#collection-transaction-flow
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#aggregate-trade-streams
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#collection-transaction-flow
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#tick-by-tick-trades
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#aggregate-trade-streams
  * @param {string[]} symbols unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
@@ -782,8 +800,8 @@ func  (this *AsterCore) WatchTradesForSymbols(symbols interface{}, optionalArgs 
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes5808 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes5808)
+            retRes5988 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes5988)
             symbols = this.MarketSymbols(symbols, nil, true, true, true)
             var firstMarket interface{} = this.GetMarketFromSymbols(symbols)
             var typeVar interface{} = this.SafeString(firstMarket, "type", "swap")
@@ -802,12 +820,14 @@ func  (this *AsterCore) WatchTradesForSymbols(symbols interface{}, optionalArgs 
             var request interface{} = map[string]interface{} {
                 "method": "SUBSCRIBE",
                 "params": subscriptionArgs,
+                "id": 1,
             }
             for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
                 var symbol interface{} = ccxt.GetValue(symbols, i)
                 var market interface{} = this.Market(symbol)
-                ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(this.SafeStringLower(market, "id"), "@aggTrade"))
-                ccxt.AppendToArray(&messageHashes, ccxt.Add("trade:", ccxt.GetValue(market, "symbol")))
+                var marketId interface{} = this.SafeStringLower(market, "id")
+                ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(marketId, "@aggTrade"))
+                ccxt.AppendToArray(&messageHashes, ccxt.Add("trade::", ccxt.GetValue(market, "symbol")))
             }
         
             trades:= (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
@@ -842,8 +862,8 @@ func  (this *AsterCore) UnWatchTradesForSymbols(symbols interface{}, optionalArg
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes6248 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6248)
+            retRes6448 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6448)
             symbols = this.MarketSymbols(symbols, nil, true, true, true)
             var firstMarket interface{} = this.GetMarketFromSymbols(symbols)
             var typeVar interface{} = this.SafeString(firstMarket, "type", "swap")
@@ -870,9 +890,9 @@ func  (this *AsterCore) UnWatchTradesForSymbols(symbols interface{}, optionalArg
                 ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:trade:", ccxt.GetValue(market, "symbol")))
             }
         
-                retRes64815 :=  (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
-                ccxt.PanicOnError(retRes64815)
-                ch <- retRes64815
+                retRes66815 :=  (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
+                ccxt.PanicOnError(retRes66815)
+                ch <- retRes66815
                 return nil
         
             }()
@@ -881,54 +901,35 @@ func  (this *AsterCore) UnWatchTradesForSymbols(symbols interface{}, optionalArg
 func  (this *AsterCore) HandleTrade(client interface{}, message interface{})  {
     //
     //     {
-    //         "stream": "btcusdt@aggTrade",
-    //         "data": {
-    //             "e": "aggTrade",
-    //             "E": 1754551358681,
-    //             "a": 20505890,
-    //             "s": "BTCUSDT",
-    //             "p": "114783.7",
-    //             "q": "0.020",
-    //             "f": 26024678,
-    //             "l": 26024682,
-    //             "T": 1754551358528,
-    //             "m": false
-    //         }
+    //         "e": "aggTrade",
+    //         "E": 1754551358681,
+    //         "a": 20505890,
+    //         "s": "BTCUSDT",
+    //         "p": "114783.7",
+    //         "q": "0.020",
+    //         "f": 26024678,
+    //         "l": 26024682,
+    //         "T": 1754551358528,
+    //         "m": false
     //     }
     //
     var marketType interface{} = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
-    var trade interface{} = this.SafeDict(message, "data")
+    var trade interface{} = message
     var marketId interface{} = this.SafeString(trade, "s")
     var market interface{} = this.SafeMarket(marketId, nil, nil, marketType)
     var parsed interface{} = this.ParseWsTrade(trade, market)
     var symbol interface{} = ccxt.GetValue(parsed, "symbol")
-    var stored interface{} = this.SafeValue(this.Trades, symbol)
-    if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
+    if !ccxt.IsTrue((ccxt.InOp(this.Trades, symbol))) {
         var limit interface{} = this.SafeInteger(this.Options, "tradesLimit", 1000)
-        stored = ccxt.NewArrayCache(limit)
-        ccxt.AddElementToObject(this.Trades, symbol, stored)
+        ccxt.AddElementToObject(this.Trades, symbol, ccxt.NewArrayCache(limit))
     }
+    var stored interface{} = ccxt.GetValue(this.Trades, symbol)
     stored.(ccxt.Appender).Append(parsed)
-    var messageHash interface{} = ccxt.Add(ccxt.Add("trade", ":"), symbol)
-    client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+    client.(ccxt.ClientInterface).Resolve(stored, ccxt.Add("trade::", symbol))
 }
 func  (this *AsterCore) ParseWsTrade(trade interface{}, optionalArgs ...interface{}) interface{}  {
     //
-    // public watchTrades
-    //
-    //     {
-    //         "e": "trade",       // event type
-    //         "E": 1579481530911, // event time
-    //         "s": "ETHBTC",      // symbol
-    //         "t": 158410082,     // trade id
-    //         "p": "0.01914100",  // price
-    //         "q": "0.00700000",  // quantity
-    //         "b": 586187049,     // buyer order id
-    //         "a": 586186710,     // seller order id
-    //         "T": 1579481530910, // trade time
-    //         "m": false,         // is the buyer the market maker
-    //         "M": true           // binance docs say it should be ignored
-    //     }
+    // public watchTrades (spot)
     //
     //     {
     //        "e": "aggTrade",  // Event type
@@ -1080,8 +1081,10 @@ func  (this *AsterCore) ParseWsTrade(trade interface{}, optionalArgs ...interfac
  * @method
  * @name aster#watchOrderBook
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#limited-depth-information
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#partial-book-depth-streams
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#limited-depth-information
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#incremental-depth-information
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#partial-book-depth-streams
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#diff-book-depth-streams
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1098,9 +1101,9 @@ func  (this *AsterCore) WatchOrderBook(symbol interface{}, optionalArgs ...inter
             _ = params
             ccxt.AddElementToObject(params, "callerMethodName", "watchOrderBook")
         
-                retRes86215 :=  (<-this.WatchOrderBookForSymbols([]interface{}{symbol}, limit, params))
-                ccxt.PanicOnError(retRes86215)
-                ch <- retRes86215
+                retRes86515 :=  (<-this.WatchOrderBookForSymbols([]interface{}{symbol}, limit, params))
+                ccxt.PanicOnError(retRes86515)
+                ch <- retRes86515
                 return nil
         
             }()
@@ -1110,8 +1113,10 @@ func  (this *AsterCore) WatchOrderBook(symbol interface{}, optionalArgs ...inter
  * @method
  * @name aster#unWatchOrderBook
  * @description unsubscribe from the orderbook channel
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#limited-depth-information
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#partial-book-depth-streams
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#limited-depth-information
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#incremental-depth-information
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#partial-book-depth-streams
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#diff-book-depth-streams
  * @param {string} symbol symbol of the market to unwatch the trades for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.limit] orderbook limit, default is undefined
@@ -1126,9 +1131,9 @@ func  (this *AsterCore) UnWatchOrderBook(symbol interface{}, optionalArgs ...int
             _ = params
             ccxt.AddElementToObject(params, "callerMethodName", "unWatchOrderBook")
         
-                retRes87815 :=  (<-this.UnWatchOrderBookForSymbols([]interface{}{symbol}, params))
-                ccxt.PanicOnError(retRes87815)
-                ch <- retRes87815
+                retRes88315 :=  (<-this.UnWatchOrderBookForSymbols([]interface{}{symbol}, params))
+                ccxt.PanicOnError(retRes88315)
+                ch <- retRes88315
                 return nil
         
             }()
@@ -1138,8 +1143,10 @@ func  (this *AsterCore) UnWatchOrderBook(symbol interface{}, optionalArgs ...int
  * @method
  * @name aster#watchOrderBookForSymbols
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#limited-depth-information
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#partial-book-depth-streams
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#limited-depth-information
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#incremental-depth-information
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#partial-book-depth-streams
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#diff-book-depth-streams
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1155,8 +1162,8 @@ func  (this *AsterCore) WatchOrderBookForSymbols(symbols interface{}, optionalAr
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes8938 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes8938)
+            retRes9008 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes9008)
             symbols = this.MarketSymbols(symbols, nil, true, true, true)
             var firstMarket interface{} = this.GetMarketFromSymbols(symbols)
             var typeVar interface{} = this.SafeString(firstMarket, "type", "swap")
@@ -1199,8 +1206,10 @@ func  (this *AsterCore) WatchOrderBookForSymbols(symbols interface{}, optionalAr
  * @method
  * @name aster#unWatchOrderBookForSymbols
  * @description unsubscribe from the orderbook channel
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#limited-depth-information
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#partial-book-depth-streams
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#limited-depth-information
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#incremental-depth-information
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#partial-book-depth-streams
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#diff-book-depth-streams
  * @param {string[]} symbols unified symbol of the market to unwatch the trades for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.limit] orderbook limit, default is undefined
@@ -1214,8 +1223,8 @@ func  (this *AsterCore) UnWatchOrderBookForSymbols(symbols interface{}, optional
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes9368 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes9368)
+            retRes9458 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes9458)
             symbols = this.MarketSymbols(symbols, nil, true, true, true)
             var firstMarket interface{} = this.GetMarketFromSymbols(symbols)
             var typeVar interface{} = this.SafeString(firstMarket, "type", "swap")
@@ -1247,9 +1256,9 @@ func  (this *AsterCore) UnWatchOrderBookForSymbols(symbols interface{}, optional
                 ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:orderbook:", ccxt.GetValue(market, "symbol")))
             }
         
-                retRes96515 :=  (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
-                ccxt.PanicOnError(retRes96515)
-                ch <- retRes96515
+                retRes97415 :=  (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
+                ccxt.PanicOnError(retRes97415)
+                ch <- retRes97415
                 return nil
         
             }()
@@ -1258,8 +1267,6 @@ func  (this *AsterCore) UnWatchOrderBookForSymbols(symbols interface{}, optional
 func  (this *AsterCore) HandleOrderBook(client interface{}, message interface{})  {
     //
     //     {
-    //         "stream": "btcusdt@depth20",
-    //         "data": {
     //             "e": "depthUpdate",
     //             "E": 1754556878284,
     //             "T": 1754556878031,
@@ -1279,11 +1286,10 @@ func  (this *AsterCore) HandleOrderBook(client interface{}, message interface{})
     //                     "1.060"
     //                 ]
     //             ]
-    //         }
     //     }
     //
     var marketType interface{} = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
-    var data interface{} = this.SafeDict(message, "data")
+    var data interface{} = message
     var marketId interface{} = this.SafeString(data, "s")
     var timestamp interface{} = this.SafeInteger(data, "T")
     var market interface{} = this.SafeMarket(marketId, nil, nil, marketType)
@@ -1302,8 +1308,8 @@ func  (this *AsterCore) HandleOrderBook(client interface{}, message interface{})
  * @method
  * @name aster#watchOHLCV
  * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#k-line-streams
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#klinecandlestick-streams
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#k-line-streams
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#klinecandlestick-streams
  * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1326,8 +1332,8 @@ func  (this *AsterCore) WatchOHLCV(symbol interface{}, optionalArgs ...interface
             _ = params
             ccxt.AddElementToObject(params, "callerMethodName", "watchOHLCV")
         
-            retRes10278 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes10278)
+            retRes10338 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes10338)
             symbol = this.SafeSymbol(symbol)
         
             result:= (<-this.WatchOHLCVForSymbols([]interface{}{[]interface{}{symbol, timeframe}}, since, limit, params))
@@ -1343,8 +1349,8 @@ func  (this *AsterCore) WatchOHLCV(symbol interface{}, optionalArgs ...interface
  * @method
  * @name aster#unWatchOHLCV
  * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#k-line-streams
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#klinecandlestick-streams
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#k-line-streams
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#klinecandlestick-streams
  * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1361,9 +1367,9 @@ func  (this *AsterCore) UnWatchOHLCV(symbol interface{}, optionalArgs ...interfa
             _ = params
             ccxt.AddElementToObject(params, "callerMethodName", "unWatchOHLCV")
         
-                retRes104615 :=  (<-this.UnWatchOHLCVForSymbols([]interface{}{[]interface{}{symbol, timeframe}}, params))
-                ccxt.PanicOnError(retRes104615)
-                ch <- retRes104615
+                retRes105215 :=  (<-this.UnWatchOHLCVForSymbols([]interface{}{[]interface{}{symbol, timeframe}}, params))
+                ccxt.PanicOnError(retRes105215)
+                ch <- retRes105215
                 return nil
         
             }()
@@ -1373,8 +1379,8 @@ func  (this *AsterCore) UnWatchOHLCV(symbol interface{}, optionalArgs ...interfa
  * @method
  * @name aster#watchOHLCVForSymbols
  * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#k-line-streams
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#klinecandlestick-streams
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#k-line-streams
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#klinecandlestick-streams
  * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch ccxt.OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
@@ -1393,8 +1399,8 @@ func  (this *AsterCore) WatchOHLCVForSymbols(symbolsAndTimeframes interface{}, o
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes10628 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes10628)
+            retRes10688 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes10688)
             var symbolsLength interface{} =     ccxt.GetArrayLength(symbolsAndTimeframes)
             var methodName interface{} = nil
             methodNameparamsVariable := this.HandleParamString(params, "callerMethodName", "watchOHLCVForSymbols")
@@ -1444,8 +1450,8 @@ func  (this *AsterCore) WatchOHLCVForSymbols(symbolsAndTimeframes interface{}, o
  * @method
  * @name aster#unWatchOHLCVForSymbols
  * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#k-line-streams
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#klinecandlestick-streams
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#k-line-streams
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#klinecandlestick-streams
  * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch ccxt.OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -1458,8 +1464,8 @@ func  (this *AsterCore) UnWatchOHLCVForSymbols(symbolsAndTimeframes interface{},
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes11108 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes11108)
+            retRes11168 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes11168)
             var symbolsLength interface{} =     ccxt.GetArrayLength(symbolsAndTimeframes)
             var methodName interface{} = nil
             methodNameparamsVariable := this.HandleParamString(params, "callerMethodName", "unWatchOHLCVForSymbols")
@@ -1491,9 +1497,9 @@ func  (this *AsterCore) UnWatchOHLCVForSymbols(symbolsAndTimeframes interface{},
                 ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:ohlcv:", ccxt.GetValue(market, "symbol")), ":"), unfiedTimeframe))
             }
         
-                retRes113915 :=  (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
-                ccxt.PanicOnError(retRes113915)
-                ch <- retRes113915
+                retRes114515 :=  (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
+                ccxt.PanicOnError(retRes114515)
+                ch <- retRes114515
                 return nil
         
             }()
@@ -1502,8 +1508,6 @@ func  (this *AsterCore) UnWatchOHLCVForSymbols(symbolsAndTimeframes interface{},
 func  (this *AsterCore) HandleOHLCV(client interface{}, message interface{})  {
     //
     //     {
-    //         "stream": "btcusdt@kline_1m",
-    //         "data": {
     //             "e": "kline",
     //             "E": 1754655777119,
     //             "s": "BTCUSDT",
@@ -1526,11 +1530,10 @@ func  (this *AsterCore) HandleOHLCV(client interface{}, message interface{})  {
     //                 "Q": "0.0000",
     //                 "B": "0"
     //             }
-    //         }
     //     }
     //
     var marketType interface{} = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
-    var data interface{} = this.SafeDict(message, "data")
+    var data interface{} = message
     var marketId interface{} = this.SafeString(data, "s")
     var market interface{} = this.SafeMarket(marketId, nil, nil, marketType)
     var symbol interface{} = ccxt.GetValue(market, "symbol")
@@ -1575,11 +1578,11 @@ func  (this *AsterCore) Authenticate(optionalArgs ...interface{}) <- chan interf
                 var response interface{} = nil
                 if ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) {
                     
-            response = (<-this.SapiPrivatePostV1ListenKey(params))
+            response = (<-this.SapiPrivatePostV3ListenKey(params))
                         ccxt.PanicOnError(response)
                 } else {
                     
-            response = (<-this.FapiPrivatePostV1ListenKey(params))
+            response = (<-this.FapiPrivatePostV3ListenKey(params))
                         ccxt.PanicOnError(response)
                 }
                 ccxt.AddElementToObject(ccxt.GetValue(this.Options, "listenKey"), typeVar, this.SafeString(response, "listenKey"))
@@ -1634,8 +1637,8 @@ func  (this *AsterCore) KeepAliveListenKey(optionalArgs ...interface{}) <- chan 
                         }()
             		    // try block:
                         
-                    retRes123512 := (<-this.SapiPrivatePutV1ListenKey())
-                    ccxt.PanicOnError(retRes123512) // extend the expiry
+                    retRes123812 := (<-this.SapiPrivatePutV3ListenKey())
+                    ccxt.PanicOnError(retRes123812) // extend the expiry
             		    return nil
             	    }(this)
                 
@@ -1660,8 +1663,8 @@ func  (this *AsterCore) GetPrivateUrl(optionalArgs ...interface{}) interface{}  
  * @method
  * @name aster#watchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-account_update
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-balance-and-position-update
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-account-info/#payload-account_update
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/user-data-streams/#event-balance-and-position-update
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] 'spot' or 'swap', default is 'spot'
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -1674,15 +1677,15 @@ func  (this *AsterCore) WatchBalance(optionalArgs ...interface{}) <- chan interf
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes12728 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes12728)
+            retRes12758 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes12758)
             var typeVar interface{} = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params, typeVar)
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
         
-            retRes12758 := (<-this.Authenticate(typeVar, params))
-            ccxt.PanicOnError(retRes12758)
+            retRes12788 := (<-this.Authenticate(typeVar, params))
+            ccxt.PanicOnError(retRes12788)
             var url interface{} = this.GetPrivateUrl(typeVar)
             var client interface{} = this.Client(url)
             this.SetBalanceCache(client, typeVar)
@@ -1691,15 +1694,15 @@ func  (this *AsterCore) WatchBalance(optionalArgs ...interface{}) <- chan interf
             var awaitBalanceSnapshot interface{} = this.SafeBool(options, "awaitBalanceSnapshot", true)
             if ccxt.IsTrue(ccxt.IsTrue(fetchBalanceSnapshot) && ccxt.IsTrue(awaitBalanceSnapshot)) {
         
-                retRes128312 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot")))
-                ccxt.PanicOnError(retRes128312)
+                retRes128612 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot")))
+                ccxt.PanicOnError(retRes128612)
             }
             var messageHash interface{} = ccxt.Add(typeVar, ":balance")
             var message interface{} = nil
         
-                retRes128715 :=  (<-this.Watch(url, messageHash, message, typeVar))
-                ccxt.PanicOnError(retRes128715)
-                ch <- retRes128715
+                retRes129015 :=  (<-this.Watch(url, messageHash, message, typeVar))
+                ccxt.PanicOnError(retRes129015)
+                ch <- retRes129015
                 return nil
         
             }()
@@ -1826,7 +1829,7 @@ func  (this *AsterCore) HandleBalance(client interface{}, message interface{})  
  * @method
  * @name aster#watchPositions
  * @description watch all open positions
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-balance-and-position-update
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/user-data-streams/#event-balance-and-position-update
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {number} [since] since timestamp
  * @param {number} [limit] limit
@@ -1847,12 +1850,12 @@ func  (this *AsterCore) WatchPositions(optionalArgs ...interface{}) <- chan inte
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes14138 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes14138)
+            retRes14168 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes14168)
             var typeVar interface{} = "swap"
         
-            retRes14158 := (<-this.Authenticate(typeVar, params))
-            ccxt.PanicOnError(retRes14158)
+            retRes14188 := (<-this.Authenticate(typeVar, params))
+            ccxt.PanicOnError(retRes14188)
             var url interface{} = this.GetPrivateUrl(typeVar)
             var client interface{} = this.Client(url)
             this.SetPositionsCache(client)
@@ -2055,8 +2058,8 @@ func  (this *AsterCore) ParseWsPosition(position interface{}, optionalArgs ...in
  * @method
  * @name aster#watchOrders
  * @description watches information on multiple orders made by the user
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-order-update
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-order-update
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-account-info/#payload-order-update
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/user-data-streams/#event-order-update
  * @param {string} [symbol] unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2078,8 +2081,8 @@ func  (this *AsterCore) WatchOrders(optionalArgs ...interface{}) <- chan interfa
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes16098 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes16098)
+            retRes16128 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes16128)
             var market interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -2091,8 +2094,8 @@ func  (this *AsterCore) WatchOrders(optionalArgs ...interface{}) <- chan interfa
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
         
-            retRes16188 := (<-this.Authenticate(typeVar, params))
-            ccxt.PanicOnError(retRes16188)
+            retRes16218 := (<-this.Authenticate(typeVar, params))
+            ccxt.PanicOnError(retRes16218)
             if ccxt.IsTrue(!ccxt.IsEqual(market, nil)) {
                 messageHash = ccxt.Add(messageHash, ccxt.Add("::", symbol))
             }
@@ -2116,8 +2119,8 @@ func  (this *AsterCore) WatchOrders(optionalArgs ...interface{}) <- chan interfa
  * @method
  * @name aster#watchMyTrades
  * @description watches information on multiple trades made by the user
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-order-update
- * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-order-update
+ * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-account-info/#payload-order-update
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/user-data-streams/#event-order-update
  * @param {string} [symbol] unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2139,8 +2142,8 @@ func  (this *AsterCore) WatchMyTrades(optionalArgs ...interface{}) <- chan inter
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes16468 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes16468)
+            retRes16498 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes16498)
             var market interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -2152,8 +2155,8 @@ func  (this *AsterCore) WatchMyTrades(optionalArgs ...interface{}) <- chan inter
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
         
-            retRes16558 := (<-this.Authenticate(typeVar, params))
-            ccxt.PanicOnError(retRes16558)
+            retRes16588 := (<-this.Authenticate(typeVar, params))
+            ccxt.PanicOnError(retRes16588)
             if ccxt.IsTrue(!ccxt.IsEqual(market, nil)) {
                 messageHash = ccxt.Add(messageHash, ccxt.Add("::", symbol))
             }
@@ -2217,8 +2220,8 @@ func  (this *AsterCore) HandleMyTrade(client interface{}, message interface{})  
                             }
                         }
                         if ccxt.IsTrue(insertNewFeeCurrency) {
-                            retRes171232 := ccxt.GetValue(order, "fees")
-                            ccxt.AppendToArray(&retRes171232, tradeFee)
+                            retRes171532 := ccxt.GetValue(order, "fees")
+                            ccxt.AppendToArray(&retRes171532, tradeFee)
                         }
                     } else if ccxt.IsTrue(!ccxt.IsEqual(fee, nil)) {
                         if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(fee, "currency"), ccxt.GetValue(tradeFee, "currency"))) {
@@ -2414,38 +2417,30 @@ func  (this *AsterCore) GetMarketFromOrder(client interface{}, order interface{}
     var marketType interface{} = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
     return this.SafeMarket(marketId, nil, nil, marketType)
 }
+func  (this *AsterCore) HandleBalanceAndPosition(client interface{}, message interface{})  {
+    this.HandleBalance(client, message)
+    this.HandlePositions(client, message)
+}
 func  (this *AsterCore) HandleMessage(client interface{}, message interface{})  {
-    var stream interface{} = this.SafeString(message, "stream")
-    if ccxt.IsTrue(!ccxt.IsEqual(stream, nil)) {
-        var part interface{} = ccxt.Split(stream, "@")
-        var topic interface{} = this.SafeString(part, 1, "")
-        var part2 interface{} = ccxt.Split(topic, "_")
-        topic = this.SafeString(part2, 0, "")
-        var methods interface{} = map[string]interface{} {
-            "ticker": this.HandleTicker,
-            "aggTrade": this.HandleTrade,
-            "depth5": this.HandleOrderBook,
-            "depth10": this.HandleOrderBook,
-            "depth20": this.HandleOrderBook,
-            "kline": this.HandleOHLCV,
-            "markPrice": this.HandleTicker,
-            "bookTicker": this.HandleBidAsk,
-        }
-        var method interface{} = this.SafeValue(methods, topic)
-        if ccxt.IsTrue(!ccxt.IsEqual(method, nil)) {
-            ccxt.CallDynamically(method, client, message)
-        }
-    } else {
-        // private messages
-        var event interface{} = this.SafeString(message, "e")
-        if ccxt.IsTrue(ccxt.IsEqual(event, "outboundAccountPosition")) {
-            this.HandleBalance(client, message)
-        } else if ccxt.IsTrue(ccxt.IsEqual(event, "ACCOUNT_UPDATE")) {
-            this.HandleBalance(client, message)
-            this.HandlePositions(client, message)
-        } else if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(event, "ORDER_TRADE_UPDATE"))) || ccxt.IsTrue((ccxt.IsEqual(event, "executionReport")))) {
-            this.HandleOrderUpdate(client, message)
-        }
+    var messageInner interface{} = this.SafeDict(message, "data", message) // can be either wrapped in 'data' or full object itself
+    var event interface{} = this.SafeString(messageInner, "e")
+    var methods interface{} = map[string]interface{} {
+        "ticker": this.HandleTicker,
+        "aggTrade": this.HandleTrade,
+        "depth5": this.HandleOrderBook,
+        "depth10": this.HandleOrderBook,
+        "depth20": this.HandleOrderBook,
+        "kline": this.HandleOHLCV,
+        "markPrice": this.HandleTicker,
+        "bookTicker": this.HandleBidAsk,
+        "outboundAccountPosition": this.HandleBalance,
+        "ACCOUNT_UPDATE": this.HandleBalanceAndPosition,
+        "executionReport": this.HandleOrderUpdate,
+        "ORDER_TRADE_UPDATE": this.HandleOrderUpdate,
+    }
+    var method interface{} = this.SafeValue(methods, event)
+    if ccxt.IsTrue(!ccxt.IsEqual(method, nil)) {
+        ccxt.CallDynamically(method, client, messageInner)
     }
 }
 

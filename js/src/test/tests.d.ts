@@ -34,7 +34,7 @@ declare class testMainClass {
     testMethod(methodName: string, exchange: any, args: any[], isPublic: boolean): Promise<boolean>;
     getSkips(exchange: Exchange, methodName: string): any;
     testSafe(methodName: any, exchange: any, args?: any[], isPublic?: boolean): Promise<any>;
-    runPublicTests(exchange: any, symbol: any): Promise<boolean>;
+    runPublicTests(exchange: any, symbols: any): Promise<boolean>;
     runTests(exchange: any, tests: any, isPublicTest: boolean): Promise<boolean>;
     loadExchange(exchange: any): Promise<boolean>;
     getTestSymbol(exchange: any, isSpot: any, symbols: any): any;
@@ -46,7 +46,7 @@ declare class testMainClass {
     testProxies(exchange: any): Promise<boolean>;
     checkConstructor(exchange: Exchange): void;
     testReturnResponseHeaders(exchange: Exchange): Promise<boolean>;
-    startTest(exchange: any, symbol: any): Promise<boolean>;
+    startTest(exchange: any, symbolArgv: any): Promise<boolean>;
     assertStaticError(cond: boolean, message: string, calculatedOutput: any, storedOutput: any, key?: any): void;
     loadMarketsFromFile(id: string): any;
     loadCurrenciesFromFile(id: string): any;

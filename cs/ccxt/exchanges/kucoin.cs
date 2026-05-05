@@ -9826,7 +9826,7 @@ public partial class kucoin : Exchange
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
         };
-        object response = await ((Task<object>)callDynamically(this, "utaPrivateGetAccountInterestLimits", new object[] { this.extend(request, parameters) }));
+        object response = await this.utaPrivateGetAccountInterestLimits(this.extend(request, parameters));
         //
         //     {
         //         "code": "200000",
@@ -10168,7 +10168,7 @@ public partial class kucoin : Exchange
                 throw new ArgumentsRequired ((string)add(this.id, " setLeverage requires a currency code in the params[\"code\"] for unified trading account")) ;
             }
             ((IDictionary<string,object>)request)["currency"] = this.currencyId(code);
-            response = await ((Task<object>)callDynamically(this, "utaPrivatePostAccountModeAccountModifyLeverageMarginCross", new object[] { this.extend(request, parameters) }));
+            response = await this.utaPrivatePostAccountModeAccountModifyLeverageMarginCross(this.extend(request, parameters));
         } else
         {
             if (isTrue(isEqual(marginMode, null)))
@@ -10554,7 +10554,7 @@ public partial class kucoin : Exchange
             var requestparametersVariable = this.handleUntilOption("endAt", request, parameters);
             request = ((IList<object>)requestparametersVariable)[0];
             parameters = ((IList<object>)requestparametersVariable)[1];
-            object response = await ((Task<object>)callDynamically(this, "utaPrivateGetPositionFundingHistory", new object[] { this.extend(request, parameters) }));
+            object response = await this.utaPrivateGetPositionFundingHistory(this.extend(request, parameters));
             //
             //     {
             //         "code": "200000",

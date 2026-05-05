@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitget
@@ -3596,9 +3596,11 @@ class bitget extends bitget$1["default"] {
         let uta = undefined;
         [uta, params] = this.handleOptionAndParams(params, 'fetchTickers', 'uta', false);
         if (uta) {
-            const symbolsLength = symbols.length;
-            if ((symbols !== undefined) && (symbolsLength === 1)) {
-                request['symbol'] = market['id'];
+            if (symbols !== undefined) {
+                const symbolsLength = symbols.length;
+                if (symbolsLength === 1) {
+                    request['symbol'] = market['id'];
+                }
             }
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketTickers(this.extend(request, params));

@@ -79,8 +79,9 @@ type Exchange struct {
 	Ids                    []string
 	CommonCurrencies       map[string]any
 	PrecisionMode          int
-	Limits                 map[string]any
-	Fees                   map[string]any
+	Limits                 map[string]interface{}
+	Fees                   map[string]interface{}
+	Status                 map[string]interface{}
 	CurrenciesById         *sync.Map
 	ReduceFees             bool
 
@@ -104,47 +105,43 @@ type Exchange struct {
 	// type check this
 	Number any
 	// keys
-	Secret        string
-	ApiKey        string
-	Password      string
-	Uid           string
-	AccountId     string
-	Token         any
-	Login         string
-	PrivateKey    string
-	WalletAddress string
+	Secret        interface{}
+	ApiKey        interface{}
+	Password      interface{}
+	Uid           interface{}
+	AccountId     interface{}
+	Token         interface{}
+	Login         interface{}
+	PrivateKey    interface{}
+	WalletAddress interface{}
+	Twofa         interface{}
 
 	httpClient *http.Client
 
-	HttpProxy            any
-	HttpsProxy           any
-	Http_proxy           any
-	Https_proxy          any
-	Proxy                any
-	ProxyUrl             any
-	ProxyUrlCallback     any
-	Proxy_url            any
-	Proxy_url_callback   any
-	SocksProxy           any
-	Socks_proxy          any
-	SocksProxyCallback   any
-	Socks_proxy_callback any
+	HttpProxy            interface{}
+	Http_proxy           interface{}
+	HttpProxyCallback    interface{}
+	Http_proxy_callback  interface{}
+	HttpsProxy           interface{}
+	Https_proxy          interface{}
+	HttpsProxyCallback   interface{}
+	Https_proxy_callback interface{}
+	Proxy                interface{}
+	ProxyUrl             interface{}
+	ProxyUrlCallback     interface{}
+	Proxy_url            interface{}
+	Proxy_url_callback   interface{}
+	SocksProxy           interface{}
+	Socks_proxy          interface{}
+	SocksProxyCallback   interface{}
+	Socks_proxy_callback interface{}
 
-	HttpsProxyCallback   any
-	Https_proxy_callback any
-
-	HttpProxyCallback   any
-	Http_proxy_callback any
-	SocksroxyCallback   any
-
-	WsSocksProxy   string
-	Ws_socks_proxy string
-
-	WssProxy  string
-	Wss_proxy string
-
-	WsProxy  string
-	Ws_proxy string
+	WsProxy        interface{}
+	Ws_proxy       interface{}
+	WssProxy       interface{}
+	Wss_proxy      interface{}
+	WsSocksProxy   interface{}
+	Ws_socks_proxy interface{}
 
 	HttpProxyAgentModule         any // or any if you don't have a type yet
 	HttpsProxyAgentModule        any
@@ -154,8 +151,6 @@ type Exchange struct {
 	ProxiesModulesLoading        chan struct{} // or something to represent a Promise/future
 
 	SubstituteCommonCurrencyCodes bool
-
-	Twofa string
 
 	// WS - updated to use thread-safe sync.Map (except cache objects)
 	Ohlcvs         any // map[string]map[string]*ArrayCacheByTimestamp
@@ -172,6 +167,10 @@ type Exchange struct {
 	MyLiquidations any // *ArrayCacheBySymbolBySide
 
 	PaddingMode int
+
+	Countries map[string]interface{}
+	Certified bool
+	Pro       bool
 
 	MinFundingAddressLength int
 	MaxEntriesPerRequest    int
@@ -639,6 +638,11 @@ func (this *Exchange) ValueIsDefined(v any) bool {
 	}
 	if str, ok := v.(string); ok {
 		return str != ""
+	}
+	val := reflect.ValueOf(v)
+	switch val.Kind() {
+	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Chan, reflect.Func, reflect.Interface:
+		return !val.IsNil()
 	}
 	return true
 }

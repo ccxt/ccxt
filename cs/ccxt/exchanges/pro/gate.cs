@@ -104,7 +104,6 @@ public partial class gate : ccxt.gate
                     { "name", "tickers" },
                 } },
                 { "watchOrderBook", new Dictionary<string, object>() {
-                    { "interval", "100ms" },
                     { "snapshotDelay", 10 },
                     { "snapshotMaxRetries", 3 },
                     { "checksum", true },
@@ -438,24 +437,36 @@ public partial class gate : ccxt.gate
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object marketId = getValue(market, "id");
-        var intervalqueryVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "interval", "100ms");
+        object intervalDefault = ((bool) isTrue((getValue(market, "spot")))) ? "50" : "100ms";
+        var intervalqueryVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "interval", intervalDefault);
         var interval = ((IList<object>) intervalqueryVariable)[0];
         var query = ((IList<object>) intervalqueryVariable)[1];
         object messageType = this.getTypeByMarket(market);
-        object channel = add(messageType, ".order_book_update");
         object messageHash = add(add("orderbook", ":"), symbol);
         object url = this.getUrlByMarket(market);
-        object payload = new List<object>() {marketId, interval};
         if (isTrue(isEqual(limit, null)))
         {
-            limit = 100; // max 100 atm
+            limit = ((bool) isTrue((getValue(market, "spot")))) ? 50 : 100; // max 100 atm
             if (isTrue(isEqual(messageType, "options")))
             {
                 limit = 50; // max 50 for options
             }
         }
-        if (isTrue(getValue(market, "contract")))
+        object payload = new List<object>() {};
+        object channel = "";
+        if (isTrue(getValue(market, "spot")))
         {
+            channel = "spot.obu";
+            object finalInterval = interval;
+            if (isTrue(isEqual(limit, 400)))
+            {
+                finalInterval = "400";
+            }
+            payload = new List<object>() {add(add(add("ob.", getValue(market, "id")), "."), finalInterval)};
+        } else
+        {
+            channel = add(messageType, ".order_book_update");
+            payload = new List<object>() {marketId, interval};
             object stringLimit = ((object)limit).ToString();
             ((IList<object>)payload).Add(stringLimit);
         }
@@ -506,6 +517,63 @@ public partial class gate : ccxt.gate
         object symbol = this.safeString(subscription, "symbol");
         object limit = this.safeInteger(subscription, "limit");
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+    }
+
+    public virtual void handleNewSpotOrderBook(WebSocketClient client, object message)
+    {
+        //
+        //   {
+        //      "channel":"spot.obu",
+        //      "result":{
+        //         "t":1777275365213,
+        //         "full":true,
+        //         "s":"ob.XRP_USDT.50",
+        //         "u":9649549324,
+        //         "b":[
+        //            [
+        //               "1.414",
+        //               "1397.899"
+        //            ]
+        //         ],
+        //         "a":[
+        //            [
+        //               "1.415",
+        //               "17344.926"
+        //            ]
+        //         ]
+        //      },
+        //      "time_ms":1777275365214,
+        //      "event":"update"
+        //   }
+        object result = this.safeDict(message, "result", new Dictionary<string, object>() {});
+        object full = this.safeBool(result, "full", false);
+        object marketIdWithPrefix = this.safeString(result, "s");
+        object marketIdParts = ((string)marketIdWithPrefix).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        object marketId = this.safeString(marketIdParts, 1);
+        object symbol = this.safeSymbol(marketId, null, "_", "spot");
+        object messageHash = add("orderbook:", symbol);
+        if (isTrue(isEqual(this.safeValue(this.orderbooks, symbol), null)))
+        {
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, 1000);
+        }
+        object orderbook = getValue(this.orderbooks, symbol);
+        if (isTrue(full))
+        {
+            object snapshopt = this.parseOrderBook(result, symbol, null, "b", "a");
+            ((IDictionary<string,object>)snapshopt)["nonce"] = this.safeInteger(result, "u");
+            ((IDictionary<string,object>)snapshopt)["timestamp"] = this.safeInteger(result, "t");
+            (orderbook as IOrderBook).reset(snapshopt);
+        } else
+        {
+            object nonce = this.safeInteger(orderbook, "nonce");
+            object deltaStart = this.safeInteger(result, "u");
+            if (isTrue(isTrue(isEqual(nonce, null)) || isTrue(isGreaterThanOrEqual(nonce, deltaStart))))
+            {
+                return;
+            }
+            this.handleDelta(orderbook, result);
+        }
+        callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
     }
 
     public virtual void handleOrderBook(WebSocketClient client, object message)
@@ -564,6 +632,11 @@ public partial class gate : ccxt.gate
         //     }
         //
         object channel = this.safeString(message, "channel");
+        if (isTrue(isEqual(channel, "spot.obu")))
+        {
+            this.handleNewSpotOrderBook(client as WebSocketClient, message);
+            return;
+        }
         object channelParts = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object rawMarketType = this.safeString(channelParts, 0);
         object isSpot = isEqual(rawMarketType, "spot");
@@ -2170,6 +2243,12 @@ public partial class gate : ccxt.gate
             return;
         }
         object channel = this.safeString(message, "channel", "");
+        // after supporting more method we can create a mapping for this
+        if (isTrue(isEqual(channel, "spot.obu")))
+        {
+            this.handleOrderBook(client as WebSocketClient, message);
+            return;
+        }
         object channelParts = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object channelType = this.safeValue(channelParts, 1);
         object v4Methods = new Dictionary<string, object>() {

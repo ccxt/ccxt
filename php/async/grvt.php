@@ -494,12 +494,17 @@ class grvt extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return response from exchange
              */
-            if ($this->uses_private_key()) {
-                Async\await($this->sign_in_with_private_key($params));
-                Async\await($this->initialize_client($params));
-            } else {
-                Async\await($this->sign_in_with_api_key($params));
+            // if ($this->uses_private_key()) {
+            //     Async\await($this->sign_in_with_private_key($params));
+            //     Async\await($this->initialize_client($params));
+            // } else {
+            //     Async\await($this->sign_in_with_api_key($params));
+            // }
+            if ($this->privateKey === null || $this->privateKey === '') {
+                throw new PermissionDenied('Private key is required for this operation. If you used joined GRVT through email registration instead of Web3 wallet, then read => https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt');
             }
+            Async\await($this->sign_in_with_private_key($params));
+            Async\await($this->initialize_client($params));
             Async\await($this->load_account_infos());
             return true;
         }) ();
@@ -2028,6 +2033,11 @@ class grvt extends Exchange {
             } else {
                 throw new InvalidOrder($this->id . ' createOrder() => order $side must be either "buy" or "sell"');
             }
+            $clientOrderId = $this->safe_string($params, 'clientOrderId');
+            if ($clientOrderId === null) {
+                $clientOrderId = (string) $this->nonce() . '000' . (string) $this->request_id();
+            }
+            $params = $this->omit($params, array( 'clientOrderId' ));
             $isMarketOrder = ($type === 'market');
             $orderRequest = array(
                 'sub_account_id' => $this->get_sub_account_id($params),
@@ -2035,7 +2045,7 @@ class grvt extends Exchange {
                 'legs' => array( $orderLeg ),
                 'signature' => $this->default_signature(),
                 'metadata' => array(
-                    'client_order_id' => (string) $this->nonce() . '000' . (string) $this->request_id(),
+                    'client_order_id' => $clientOrderId,
                 ),
                 'is_market' => $isMarketOrder,
                 'post_only' => false,
@@ -2043,23 +2053,22 @@ class grvt extends Exchange {
                 // 'order_id' => null,
                 // 'state' => null,
             );
-            $timeInForce = $this->safe_string_upper($params, 'timeInForce');
+            $timeInForce = $this->safe_string_upper($params, 'timeInForce', 'GOOD_TILL_TIME');
             $postOnly = $this->is_post_only($isMarketOrder, null, $params);
             if ($postOnly) {
                 $orderRequest['post_only'] = true;
-            } else {
-                if ($timeInForce === null) {
-                    $timeInForce = 'GOOD_TILL_TIME';
-                } else {
-                    $tifMap = array(
-                        'GTC' => 'GOOD_TILL_TIME',
-                        'FOK' => 'FILL_OR_KILL', // tbd => why not 'ALL_OR_NONE'
-                        'IOC' => 'IMMEDIATE_OR_CANCEL',
-                    );
-                    $timeInForce = $this->safe_string($tifMap, $timeInForce, $timeInForce);
-                }
-                $orderRequest['time_in_force'] = $timeInForce;
             }
+            if ($timeInForce === null) {
+                $timeInForce = 'GOOD_TILL_TIME';
+            } else {
+                $tifMap = array(
+                    'GTC' => 'GOOD_TILL_TIME',
+                    'FOK' => 'FILL_OR_KILL', // tbd => why not 'ALL_OR_NONE'
+                    'IOC' => 'IMMEDIATE_OR_CANCEL',
+                );
+                $timeInForce = $this->safe_string($tifMap, $timeInForce, $timeInForce);
+            }
+            $orderRequest['time_in_force'] = $timeInForce;
             if (!$isMarketOrder) {
                 if ($postOnly) {
                     $timeInForce = 'POST_ONLY';

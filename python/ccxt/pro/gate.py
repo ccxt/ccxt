@@ -116,7 +116,6 @@ class gate(ccxt.async_support.gate):
                     'name': 'tickers',  # or book_ticker
                 },
                 'watchOrderBook': {
-                    'interval': '100ms',
                     'snapshotDelay': 10,  # how many deltas to cache before fetching a snapshot
                     'snapshotMaxRetries': 3,
                     'checksum': True,
@@ -398,17 +397,26 @@ class gate(ccxt.async_support.gate):
         market = self.market(symbol)
         symbol = market['symbol']
         marketId = market['id']
-        interval, query = self.handle_option_and_params(params, 'watchOrderBook', 'interval', '100ms')
+        intervalDefault = '50' if (market['spot']) else '100ms'
+        interval, query = self.handle_option_and_params(params, 'watchOrderBook', 'interval', intervalDefault)
         messageType = self.get_type_by_market(market)
-        channel = messageType + '.order_book_update'
         messageHash = 'orderbook' + ':' + symbol
         url = self.get_url_by_market(market)
-        payload = [marketId, interval]
         if limit is None:
-            limit = 100  # max 100 atm
+            limit = 50 if (market['spot']) else 100  # max 100 atm
             if messageType == 'options':
                 limit = 50  # max 50 for options
-        if market['contract']:
+        payload = []
+        channel = ''
+        if market['spot']:
+            channel = 'spot.obu'
+            finalInterval = interval
+            if limit == 400:
+                finalInterval = '400'
+            payload = ['ob.' + market['id'] + '.' + finalInterval]
+        else:
+            channel = messageType + '.order_book_update'
+            payload = [marketId, interval]
             stringLimit = str(limit)
             payload.append(stringLimit)
         subscription: dict = {
@@ -447,6 +455,54 @@ class gate(ccxt.async_support.gate):
         symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit')
         self.orderbooks[symbol] = self.order_book({}, limit)
+
+    def handle_new_spot_order_book(self, client: Client, message):
+        #
+        #   {
+        #      "channel":"spot.obu",
+        #      "result":{
+        #         "t":1777275365213,
+        #         "full":true,
+        #         "s":"ob.XRP_USDT.50",
+        #         "u":9649549324,
+        #         "b":[
+        #            [
+        #               "1.414",
+        #               "1397.899"
+        #            ]
+        #         ],
+        #         "a":[
+        #            [
+        #               "1.415",
+        #               "17344.926"
+        #            ]
+        #         ]
+        #      },
+        #      "time_ms":1777275365214,
+        #      "event":"update"
+        #   }
+        result = self.safe_dict(message, 'result', {})
+        full = self.safe_bool(result, 'full', False)
+        marketIdWithPrefix = self.safe_string(result, 's')
+        marketIdParts = marketIdWithPrefix.split('.')
+        marketId = self.safe_string(marketIdParts, 1)
+        symbol = self.safe_symbol(marketId, None, '_', 'spot')
+        messageHash = 'orderbook:' + symbol
+        if self.safe_value(self.orderbooks, symbol) is None:
+            self.orderbooks[symbol] = self.order_book({}, 1000)
+        orderbook = self.orderbooks[symbol]
+        if full:
+            snapshopt = self.parse_order_book(result, symbol, None, 'b', 'a')
+            snapshopt['nonce'] = self.safe_integer(result, 'u')
+            snapshopt['timestamp'] = self.safe_integer(result, 't')
+            orderbook.reset(snapshopt)
+        else:
+            nonce = self.safe_integer(orderbook, 'nonce')
+            deltaStart = self.safe_integer(result, 'u')
+            if nonce is None or nonce >= deltaStart:
+                return
+            self.handle_delta(orderbook, result)
+        client.resolve(orderbook, messageHash)
 
     def handle_order_book(self, client: Client, message):
         #
@@ -503,6 +559,9 @@ class gate(ccxt.async_support.gate):
         #     }
         #
         channel = self.safe_string(message, 'channel')
+        if channel == 'spot.obu':
+            self.handle_new_spot_order_book(client, message)
+            return
         channelParts = channel.split('.')
         rawMarketType = self.safe_string(channelParts, 0)
         isSpot = rawMarketType == 'spot'
@@ -1811,6 +1870,10 @@ class gate(ccxt.async_support.gate):
             self.handle_un_subscribe(client, message)
             return
         channel = self.safe_string(message, 'channel', '')
+        # after supporting more method we can create a mapping for self
+        if channel == 'spot.obu':
+            self.handle_order_book(client, message)
+            return
         channelParts = channel.split('.')
         channelType = self.safe_value(channelParts, 1)
         v4Methods: dict = {

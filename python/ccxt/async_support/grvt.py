@@ -496,11 +496,16 @@ class grvt(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns: response from exchange
         """
-        if self.uses_private_key():
-            await self.sign_in_with_private_key(params)
-            await self.initialize_client(params)
-        else:
-            await self.sign_in_with_api_key(params)
+        # if self.uses_private_key():
+        #     await self.sign_in_with_private_key(params)
+        #     await self.initialize_client(params)
+        # else:
+        #     await self.sign_in_with_api_key(params)
+        # }
+        if self.privateKey is None or self.privateKey == '':
+            raise PermissionDenied('Private key is required for self operation. If you used joined GRVT through email registration instead of Web3 wallet, then read: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt')
+        await self.sign_in_with_private_key(params)
+        await self.initialize_client(params)
         await self.load_account_infos()
         return True
 
@@ -1905,6 +1910,10 @@ class grvt(Exchange, ImplicitAPI):
             orderLeg['is_buying_asset'] = True
         else:
             raise InvalidOrder(self.id + ' createOrder(): order side must be either "buy" or "sell"')
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is None:
+            clientOrderId = str(self.nonce()) + '000' + str(self.request_id())
+        params = self.omit(params, ['clientOrderId'])
         isMarketOrder = (type == 'market')
         orderRequest = {
             'sub_account_id': self.get_sub_account_id(params),
@@ -1912,7 +1921,7 @@ class grvt(Exchange, ImplicitAPI):
             'legs': [orderLeg],
             'signature': self.default_signature(),
             'metadata': {
-                'client_order_id': str(self.nonce()) + '000' + str(self.request_id()),
+                'client_order_id': clientOrderId,
             },
             'is_market': isMarketOrder,
             'post_only': False,
@@ -1920,21 +1929,20 @@ class grvt(Exchange, ImplicitAPI):
             # 'order_id': null,
             # 'state': null,
         }
-        timeInForce = self.safe_string_upper(params, 'timeInForce')
+        timeInForce = self.safe_string_upper(params, 'timeInForce', 'GOOD_TILL_TIME')
         postOnly = self.is_post_only(isMarketOrder, None, params)
         if postOnly:
             orderRequest['post_only'] = True
+        if timeInForce is None:
+            timeInForce = 'GOOD_TILL_TIME'
         else:
-            if timeInForce is None:
-                timeInForce = 'GOOD_TILL_TIME'
-            else:
-                tifMap = {
-                    'GTC': 'GOOD_TILL_TIME',
-                    'FOK': 'FILL_OR_KILL',  # tbd: why not 'ALL_OR_NONE'
-                    'IOC': 'IMMEDIATE_OR_CANCEL',
-                }
-                timeInForce = self.safe_string(tifMap, timeInForce, timeInForce)
-            orderRequest['time_in_force'] = timeInForce
+            tifMap = {
+                'GTC': 'GOOD_TILL_TIME',
+                'FOK': 'FILL_OR_KILL',  # tbd: why not 'ALL_OR_NONE'
+                'IOC': 'IMMEDIATE_OR_CANCEL',
+            }
+            timeInForce = self.safe_string(tifMap, timeInForce, timeInForce)
+        orderRequest['time_in_force'] = timeInForce
         if not isMarketOrder:
             if postOnly:
                 timeInForce = 'POST_ONLY'
