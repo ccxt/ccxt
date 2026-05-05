@@ -162,7 +162,7 @@ export default class bitmart extends bitmartRest {
             const market = this.market (symbols[i]);
             const message = channelType + '/' + channel + ':' + market['id'];
             const messageHash = prefix + unifiedName + '::' + market['symbol'];
-            if (this.subsciptionExistsForRawHash (url, message)) {
+            if (this.subscriptionExistsForRawHash (url, message)) {
                 continue;
             }
             rawSubscriptions.push (message);
@@ -509,7 +509,7 @@ export default class bitmart extends bitmartRest {
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
             const rawHash = channelType + ':' + market['id'];
-            if (this.subsciptionExistsForRawHash (url, rawHash)) {
+            if (this.subscriptionExistsForRawHash (url, rawHash)) {
                 continue;
             }
             rawSubscriptions.push (rawHash);

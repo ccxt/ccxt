@@ -1512,7 +1512,7 @@ export default class Exchange {
         return future;
     }
 
-    subsciptionExistsForRawHash (url: string, rawHash: string) {
+    subscriptionExistsForRawHash (url: string, rawHash: string) {
         const client = this.client (url);
         return (rawHash in client.subscriptions);
     }
