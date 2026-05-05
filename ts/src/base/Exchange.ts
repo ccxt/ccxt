@@ -1512,11 +1512,6 @@ export default class Exchange {
         return future;
     }
 
-    subscriptionExistsForRawHash (url: string, rawHash: string) {
-        const client = this.client (url);
-        return (rawHash in client.subscriptions);
-    }
-
     onConnected (client, message = undefined) {
         // for user hooks
         // console.log ('Connected to', client.url)
@@ -9082,6 +9077,11 @@ export default class Exchange {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
          */
         throw new NotSupported (this.id + ' unWatchBidsAsks () is not supported yet');
+    }
+
+    subscriptionExistsForRawHash (url: string, rawHash: string) {
+        const client = this.client (url);
+        return (rawHash in client.subscriptions);
     }
 
     cleanUnsubscription (client, subHash: string, unsubHash: string, subHashIsPrefix = false) {
