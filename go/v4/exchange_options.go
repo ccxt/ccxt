@@ -2,8 +2,8 @@ package ccxt
 
 import "sync"
 
-// func (this *Exchange) Describe() map[string]interface{} {
-// 	return map[string]interface{}{
+// func (this *Exchange) Describe() map[string]any {
+// 	return map[string]any{
 // 		"id":              nil,
 // 		"name":            nil,
 // 		"countries":       nil,
@@ -13,7 +13,7 @@ import "sync"
 // 		"pro":             false,
 // 		"alias":           false,
 // 		"dex":             false,
-// 		"has": map[string]interface{}{
+// 		"has": map[string]any{
 // 			"publicAPI":                              true,
 // 			"privateAPI":                             true,
 // 			"CORS":                                   nil,
@@ -229,7 +229,7 @@ import "sync"
 // 			"withdraw":                               nil,
 // 			"ws":                                     nil,
 // 		},
-// 		"urls": map[string]interface{}{
+// 		"urls": map[string]any{
 // 			"logo": nil,
 // 			"api":  nil,
 // 			"www":  nil,
@@ -237,7 +237,7 @@ import "sync"
 // 			"fees": nil,
 // 		},
 // 		"api": nil,
-// 		"requiredCredentials": map[string]interface{}{
+// 		"requiredCredentials": map[string]any{
 // 			"apiKey":        true,
 // 			"secret":        true,
 // 			"uid":           false,
@@ -250,30 +250,30 @@ import "sync"
 // 			"token":         false,
 // 		},
 // 		"markets":    nil,
-// 		"currencies": map[string]interface{}{},
+// 		"currencies": map[string]any{},
 // 		"timeframes": nil,
-// 		"fees": map[string]interface{}{
-// 			"trading": map[string]interface{}{
+// 		"fees": map[string]any{
+// 			"trading": map[string]any{
 // 				"tierBased":  nil,
 // 				"percentage": nil,
 // 				"taker":      nil,
 // 				"maker":      nil,
 // 			},
-// 			"funding": map[string]interface{}{
+// 			"funding": map[string]any{
 // 				"tierBased":  nil,
 // 				"percentage": nil,
-// 				"withdraw":   map[string]interface{}{},
-// 				"deposit":    map[string]interface{}{},
+// 				"withdraw":   map[string]any{},
+// 				"deposit":    map[string]any{},
 // 			},
 // 		},
-// 		"status": map[string]interface{}{
+// 		"status": map[string]any{
 // 			"status":  "ok",
 // 			"updated": nil,
 // 			"eta":     nil,
 // 			"url":     nil,
 // 		},
 // 		"exceptions": nil,
-// 		"httpExceptions": map[string]interface{}{
+// 		"httpExceptions": map[string]any{
 // 			"422": ExchangeError,
 // 			"418": DDoSProtection,
 // 			"429": RateLimitExceeded,
@@ -300,27 +300,27 @@ import "sync"
 // 			"407": AuthenticationError,
 // 			"511": AuthenticationError,
 // 		},
-// 		"commonCurrencies": map[string]interface{}{
+// 		"commonCurrencies": map[string]any{
 // 			"XBT":   "BTC",
 // 			"BCC":   "BCH",
 // 			"BCHSV": "BSV",
 // 		},
 // 		"precisionMode": DECIMAL_PLACES,
 // 		"paddingMode":   NO_PADDING,
-// 		"limits": map[string]interface{}{
-// 			"leverage": map[string]interface{}{
+// 		"limits": map[string]any{
+// 			"leverage": map[string]any{
 // 				"min": nil,
 // 				"max": nil,
 // 			},
-// 			"amount": map[string]interface{}{
+// 			"amount": map[string]any{
 // 				"min": nil,
 // 				"max": nil,
 // 			},
-// 			"price": map[string]interface{}{
+// 			"price": map[string]any{
 // 				"min": nil,
 // 				"max": nil,
 // 			},
-// 			"cost": map[string]interface{}{
+// 			"cost": map[string]any{
 // 				"min": nil,
 // 				"max": nil,
 // 			},
@@ -328,11 +328,11 @@ import "sync"
 // 	} // return
 // }
 
-// type Dict map[string]interface{}
+// type Dict map[string]any
 
-func (this *Exchange) initializeProperties(extendedProperties map[string]interface{}) {
+func (this *Exchange) initializeProperties(extendedProperties map[string]any) {
 
-	this.TransformedApi = map[string]interface{}{}
+	this.TransformedApi = map[string]any{}
 	this.Version = SafeString(extendedProperties, "version", "").(string)
 	this.cacheLoaded = false
 	reqCred := SafeValue(extendedProperties, "requiredCredentials", map[string]interface{}{})
@@ -359,29 +359,29 @@ func (this *Exchange) initializeProperties(extendedProperties map[string]interfa
 	this.Id = SafeString(extendedProperties, "id", "Exchange").(string)
 	this.Alias = SafeValue(extendedProperties, "alias", false).(bool)
 
-	this.Api = SafeValue(extendedProperties, "api", map[string]interface{}{}).(map[string]interface{})
+	this.Api = SafeValue(extendedProperties, "api", map[string]any{}).(map[string]any)
 	this.Hostname = SafeString(extendedProperties, "hostname", "").(string)
-	this.Urls = SafeValue(extendedProperties, "urls", map[string]interface{}{}).(map[string]interface{})
+	this.Urls = SafeValue(extendedProperties, "urls", map[string]any{}).(map[string]any)
 
-	this.Options = this.MapToSafeMap(this.GetDefaultOptions().(map[string]interface{}))
-	extendedOptions := SafeValue(extendedProperties, "options", map[string]interface{}{}).(map[string]interface{})
+	this.Options = this.MapToSafeMap(this.GetDefaultOptions().(map[string]any))
+	extendedOptions := SafeValue(extendedProperties, "options", map[string]any{}).(map[string]any)
 	for k, v := range extendedOptions {
 		// this.Options[k] = v
 		this.Options.Store(k, v)
 	}
 
 	this.Verbose = SafeValue(extendedProperties, "verbose", false).(bool)
-	this.Timeframes = SafeValue(extendedProperties, "timeframes", map[string]interface{}{}).(map[string]interface{})
-	this.Features = SafeValue(extendedProperties, "features", map[string]interface{}{}).(map[string]interface{})
-	this.Fees = SafeValue(extendedProperties, "fees", map[string]interface{}{}).(map[string]interface{})
-	this.Has = SafeValue(extendedProperties, "has", map[string]interface{}{}).(map[string]interface{})
-	// this.httpExceptions = SafeValue(extendedProperties, "httpExceptions",map[string]interface{}{}).(map[string]interface{})
-	this.Exceptions = SafeValue(extendedProperties, "exceptions", map[string]interface{}{}).(map[string]interface{})
+	this.Timeframes = SafeValue(extendedProperties, "timeframes", map[string]any{}).(map[string]any)
+	this.Features = SafeValue(extendedProperties, "features", map[string]any{}).(map[string]any)
+	this.Fees = SafeValue(extendedProperties, "fees", map[string]any{}).(map[string]any)
+	this.Has = SafeValue(extendedProperties, "has", map[string]any{}).(map[string]any)
+	// this.httpExceptions = SafeValue(extendedProperties, "httpExceptions",map[string]any{}).(map[string]any)
+	this.Exceptions = SafeValue(extendedProperties, "exceptions", map[string]any{}).(map[string]any)
 	propertiesMarkets := SafeValue(extendedProperties, "markets", nil)
 	if propertiesMarkets != nil {
-		this.Markets = this.MapToSafeMap(propertiesMarkets.(map[string]interface{}))
+		this.Markets = this.MapToSafeMap(propertiesMarkets.(map[string]any))
 	}
-	propCurrencies := SafeValue(extendedProperties, "currencies", map[string]interface{}{}).(map[string]interface{})
+	propCurrencies := SafeValue(extendedProperties, "currencies", map[string]any{}).(map[string]any)
 	if len(propCurrencies) > 0 {
 		this.Currencies = this.MapToSafeMap(propCurrencies)
 	}
@@ -389,26 +389,26 @@ func (this *Exchange) initializeProperties(extendedProperties map[string]interfa
 	this.RateLimit = SafeFloat(extendedProperties, "rateLimit", -1).(float64)
 	this.RollingWindowSize = SafeFloat(extendedProperties, "rollingWindowSize", 0.0).(float64)
 	this.RateLimiterAlgorithm = SafeString(extendedProperties, "rateLimiterAlgorithm", "leakyBucket").(string)
-	// this.status = SafeValue(extendedProperties, "status",map[string]interface{}{}).(map[string]interface{})
+	// this.status = SafeValue(extendedProperties, "status",map[string]any{}).(map[string]any)
 	this.PrecisionMode = int(SafeInteger(extendedProperties, "precisionMode", this.PrecisionMode).(int64))
 	this.PaddingMode = int(SafeInteger(extendedProperties, "paddingMode", this.PaddingMode).(int64))
-	this.CommonCurrencies = SafeValue(extendedProperties, "commonCurrencies", map[string]interface{}{}).(map[string]interface{})
+	this.CommonCurrencies = SafeValue(extendedProperties, "commonCurrencies", map[string]any{}).(map[string]any)
 	subVal := SafeValue(extendedProperties, "substituteCommonCurrencyCodes", true)
 	this.SubstituteCommonCurrencyCodes = subVal != nil && subVal.(bool)
 	this.Name = SafeString(extendedProperties, "name", "").(string)
 	this.HttpsProxy = SafeString(extendedProperties, "httpsProxy", nil)
 	this.HttpProxy = SafeString(extendedProperties, "httpProxy", nil)
 	this.NewUpdates = SafeValue(extendedProperties, "newUpdates", true).(bool)
-	this.Accounts = SafeValue(extendedProperties, "accounts", []interface{}{}).([]interface{})
+	this.Accounts = SafeValue(extendedProperties, "accounts", []any{}).([]any)
 
-	this.HttpExceptions = SafeValue(extendedProperties, "httpExceptions", map[string]interface{}{}).(map[string]interface{})
-	this.Headers = SafeValue(extendedProperties, "headers", map[string]interface{}{}).(map[string]interface{})
+	this.HttpExceptions = SafeValue(extendedProperties, "httpExceptions", map[string]any{}).(map[string]any)
+	this.Headers = SafeValue(extendedProperties, "headers", map[string]any{}).(map[string]any)
 	this.ReduceFees = SafeValue(extendedProperties, "reduceFees", true).(bool)
 
 	this.ReturnResponseHeaders = SafeValue(extendedProperties, "returnResponseHeaders", false).(bool)
 }
 
-func (this *Exchange) MapToSafeMap(input map[string]interface{}) *sync.Map {
+func (this *Exchange) MapToSafeMap(input map[string]any) *sync.Map {
 	if input == nil {
 		return nil
 	}
@@ -419,12 +419,12 @@ func (this *Exchange) MapToSafeMap(input map[string]interface{}) *sync.Map {
 	return &sm
 }
 
-func (this *Exchange) SafeMapToMap(sm *sync.Map) map[string]interface{} {
+func (this *Exchange) SafeMapToMap(sm *sync.Map) map[string]any {
 	if sm == nil {
 		return nil
 	}
-	result := make(map[string]interface{})
-	sm.Range(func(key, value interface{}) bool {
+	result := make(map[string]any)
+	sm.Range(func(key, value any) bool {
 		if strKey, ok := key.(string); ok {
 			result[strKey] = value
 		}
