@@ -3552,6 +3552,9 @@ export default class binance extends binanceRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrdersWs() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const type = this.getMarketType ('cancelAllOrdersWs', market, params);

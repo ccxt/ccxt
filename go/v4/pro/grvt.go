@@ -400,7 +400,7 @@ func  (this *GrvtCore) WatchTradesForSymbols(symbols interface{}, optionalArgs .
                 var market interface{} = this.Market(symbol)
                 var marketId interface{} = ccxt.GetValue(market, "id")
                 var limitRaw interface{} = this.SafeInteger(params, "limit", 50) // 50, 200, 500, 1000
-                ccxt.AppendToArray(&rawHashes, ccxt.Add(ccxt.Add(marketId, "@"), limitRaw))
+                ccxt.AppendToArray(&rawHashes, ccxt.Add(ccxt.Add(marketId, "@"), ccxt.ToString(limitRaw)))
                 ccxt.AppendToArray(&messageHashes, ccxt.Add("trade::", ccxt.GetValue(market, "symbol")))
             }
             var request interface{} = map[string]interface{} {
@@ -685,14 +685,14 @@ func  (this *GrvtCore) WatchOrderBookForSymbols(symbols interface{}, optionalArg
             interval = ccxt.GetValue(intervalparamsVariable,0)
             params = ccxt.GetValue(intervalparamsVariable,1)
             symbols = this.MarketSymbols(symbols)
-            var extraPart interface{} = ccxt.Ternary(ccxt.IsTrue(isSnapshot), (ccxt.Add(ccxt.Add(interval, "-"), limit)), interval)
+            var extraPart interface{} = ccxt.Ternary(ccxt.IsTrue(isSnapshot), (ccxt.Add(ccxt.Add(ccxt.ToString(interval), "-"), ccxt.ToString(limit))), ccxt.ToString(interval))
             var rawHashes interface{} = []interface{}{}
             var messageHashes interface{} = []interface{}{}
             for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
                 var symbol interface{} = ccxt.GetValue(symbols, i)
                 var market interface{} = this.Market(symbol)
                 var marketId interface{} = ccxt.GetValue(market, "id")
-                ccxt.AppendToArray(&rawHashes, ccxt.Add(ccxt.Add(marketId, "@"), ccxt.ToString(extraPart)))
+                ccxt.AppendToArray(&rawHashes, ccxt.Add(ccxt.Add(marketId, "@"), extraPart))
                 ccxt.AppendToArray(&messageHashes, ccxt.Add("orderbook::", ccxt.GetValue(market, "symbol")))
             }
             var request interface{} = map[string]interface{} {

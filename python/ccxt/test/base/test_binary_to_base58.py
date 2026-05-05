@@ -23,7 +23,7 @@ def test_binary_to_base58():
         'id': 'sampleexchange',
     })
     assert exchange.parse_number(None) is None, 'GO skip trick'
-    assert 'GO_SKIP_START'
+    # @SKIP_START_GO
     # Test 1: Simple string
     binary1 = helper_str_to_binary_5(exchange, 'hello')
     assert exchange.binary_to_base58(binary1) == 'Cn8eVZg'
@@ -45,4 +45,3 @@ def test_binary_to_base58():
     # Test 7: JSON-like binary
     binary7 = helper_str_to_binary_5(exchange, '{"key":"value"}')
     assert exchange.binary_to_base58(binary7) == '4SoiMiEYtTt5tPdi81Fik'
-    assert 'GO_SKIP_END'

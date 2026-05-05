@@ -1,3 +1,38 @@
+<a id="v4.5.52"></a>
+# [v4.5.52](https://github.com/ccxt/ccxt/releases/tag/v4.5.52) - 2026-05-05
+
+## What's Changed
+* feat: isDictionary by [@ttodua](https://github.com/ttodua) in [#28465](https://github.com/ccxt/ccxt/pull/28465)
+* test: watchOrderBookForSymbols & watchTradesForSymbols - ensure all symbols pass by [@ttodua](https://github.com/ttodua) in [#28449](https://github.com/ccxt/ccxt/pull/28449)
+* fix(grvt): fix clientOrderId in python by [@carlosmiei](https://github.com/carlosmiei) in [#28470](https://github.com/ccxt/ccxt/pull/28470)
+* doc: sl tp feature by [@ttodua](https://github.com/ttodua) in [#28468](https://github.com/ccxt/ccxt/pull/28468)
+* feat(kraken): skip synthetic markets unification by [@yzh-pelle](https://github.com/yzh-pelle) in [#28472](https://github.com/ccxt/ccxt/pull/28472)
+* test: fix cs tests by [@ttodua](https://github.com/ttodua) in [#28473](https://github.com/ccxt/ccxt/pull/28473)
+* fix(go): ValueIsDefined by [@ttodua](https://github.com/ttodua) in [#28489](https://github.com/ccxt/ccxt/pull/28489)
+* fix(kraken): fetchMarkets `symbol` in Python fixed by [@yzh-pelle](https://github.com/yzh-pelle) in [#28496](https://github.com/ccxt/ccxt/pull/28496)
+* fix(binanceusdm): inheritance by [@ttodua](https://github.com/ttodua) in [#28493](https://github.com/ccxt/ccxt/pull/28493)
+* fix(bequant): inheritance fix by [@ttodua](https://github.com/ttodua) in [#28495](https://github.com/ccxt/ccxt/pull/28495)
+* doc: grvt authentication related by [@ttodua](https://github.com/ttodua) in [#28491](https://github.com/ccxt/ccxt/pull/28491)
+* test: remove timestamp check by [@ttodua](https://github.com/ttodua) in [#28492](https://github.com/ccxt/ccxt/pull/28492)
+* test: exchange properties tests by [@ttodua](https://github.com/ttodua) in [#27877](https://github.com/ccxt/ccxt/pull/27877)
+* `costToPrecision` - fix by [@ttodua](https://github.com/ttodua) in [#14269](https://github.com/ccxt/ccxt/pull/14269)
+* refactor: c# remove unreached line by [@ttodua](https://github.com/ttodua) in [#28140](https://github.com/ccxt/ccxt/pull/28140)
+* pre push hooks - Windows addition & bash updates by [@ttodua](https://github.com/ttodua) in [#23924](https://github.com/ccxt/ccxt/pull/23924)
+* test: add check that last price is not too far by [@ttodua](https://github.com/ttodua) in [#28102](https://github.com/ccxt/ccxt/pull/28102)
+* test: skip go changes by [@ttodua](https://github.com/ttodua) in [#28237](https://github.com/ccxt/ccxt/pull/28237)
+* fix(binance): fetchCurrencies reorg by [@ttodua](https://github.com/ttodua) in [#25721](https://github.com/ccxt/ccxt/pull/25721)
+* binance cancelAllOrders requires symbol by [@ndubel](https://github.com/ndubel) in [#28507](https://github.com/ccxt/ccxt/pull/28507)
+* test: fix go skip by [@ttodua](https://github.com/ttodua) in [#28512](https://github.com/ccxt/ccxt/pull/28512)
+* fix(grvt): integer to string by [@ttodua](https://github.com/ttodua) in [#28513](https://github.com/ccxt/ccxt/pull/28513)
+* fix(base): avoid params={} mutation in trigger/SL/TP wrappers (Python pollution) by [@pcriadoperez](https://github.com/pcriadoperez) in [#28508](https://github.com/ccxt/ccxt/pull/28508)
+* feat(aster): v3 by [@ttodua](https://github.com/ttodua) in [#28394](https://github.com/ccxt/ccxt/pull/28394)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.51...v4.5.52
+
+[Changes][v4.5.52]
+
+
 <a id="v4.5.51"></a>
 # [v4.5.51](https://github.com/ccxt/ccxt/releases/tag/v4.5.51) - 2026-04-27
 
@@ -12970,6 +13005,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.52]: https://github.com/ccxt/ccxt/compare/v4.5.51...v4.5.52
 [v4.5.51]: https://github.com/ccxt/ccxt/compare/v4.5.50...v4.5.51
 [v4.5.50]: https://github.com/ccxt/ccxt/compare/v4.5.49...v4.5.50
 [v4.5.49]: https://github.com/ccxt/ccxt/compare/v4.5.48...v4.5.49

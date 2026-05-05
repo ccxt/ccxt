@@ -98,8 +98,14 @@ class aster extends \ccxt\async\aster {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#full-ticker-per-$symbol
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-$symbol-ticker-streams
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#simplified-ticker-by-$symbol
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#compact-$tickers-for-all-symbols-in-the-entire-market
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#full-ticker-per-$symbol
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#complete-ticker-for-all-trading-pairs-on-the-entire-market
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#individual-$symbol-mini-ticker-stream
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-mini-$tickers-stream
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#individual-$symbol-ticker-streams
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-$tickers-streams
              *
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -118,8 +124,14 @@ class aster extends \ccxt\async\aster {
             /**
              * unWatches a price ticker
              *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#full-ticker-per-$symbol
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-$symbol-ticker-streams
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#simplified-ticker-by-$symbol
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#compact-tickers-for-all-symbols-in-the-entire-market
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#full-ticker-per-$symbol
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#complete-ticker-for-all-trading-pairs-on-the-entire-market
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#individual-$symbol-mini-ticker-stream
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-mini-tickers-stream
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#individual-$symbol-ticker-streams
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-tickers-streams
              *
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -135,8 +147,10 @@ class aster extends \ccxt\async\aster {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#full-ticker-per-$symbol
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-$symbol-ticker-streams
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#compact-tickers-for-all-$symbols-in-the-entire-$market
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#complete-ticker-for-all-trading-pairs-on-the-entire-$market
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#all-$market-mini-tickers-stream
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#all-$market-tickers-streams
              *
              * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -181,8 +195,10 @@ class aster extends \ccxt\async\aster {
             /**
              * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#full-ticker-per-$symbol
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-$symbol-ticker-streams
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#compact-tickers-for-all-$symbols-in-the-entire-$market
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#complete-ticker-for-all-trading-pairs-on-the-entire-$market
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#all-$market-mini-tickers-stream
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#all-$market-tickers-streams
              *
              * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -221,7 +237,8 @@ class aster extends \ccxt\async\aster {
             /**
              * watches a mark price for a specific market
              *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#mark-price-stream
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream-for-all-market
              *
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -241,7 +258,8 @@ class aster extends \ccxt\async\aster {
             /**
              * unWatches a mark price for a specific market
              *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#mark-price-stream
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream-for-all-market
              *
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -258,7 +276,8 @@ class aster extends \ccxt\async\aster {
             /**
              * watches the mark price for all markets
              *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#mark-price-stream
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#mark-price-stream
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#mark-price-stream-for-all-$market
              *
              * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -306,7 +325,8 @@ class aster extends \ccxt\async\aster {
             /**
              * watches the mark price for all markets
              *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#mark-price-stream
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#mark-price-stream
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#mark-price-stream-for-all-$market
              *
              * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -346,8 +366,6 @@ class aster extends \ccxt\async\aster {
     public function handle_ticker(Client $client, $message) {
         //
         //     {
-        //         "stream" => "trumpusdt@$ticker",
-        //         "data" => {
         //             "e" => "24hrTicker",
         //             "E" => 1754451187277,
         //             "s" => "CAKEUSDT",
@@ -366,11 +384,8 @@ class aster extends \ccxt\async\aster {
         //             "F" => 6571389,
         //             "L" => 6574507,
         //             "n" => 3119
-        //         }
         //     }
         //     {
-        //         "stream" => "btcusdt@markPrice",
-        //         "data" => {
         //             "e" => "markPriceUpdate",
         //             "E" => 1754660466000,
         //             "s" => "BTCUSDT",
@@ -379,11 +394,10 @@ class aster extends \ccxt\async\aster {
         //             "i" => "116836.93534884",
         //             "r" => "0.00010000",
         //             "T" => 1754668800000
-        //         }
         //     }
         //
         $marketType = $this->get_account_type_from_url($client->url);
-        $ticker = $this->safe_dict($message, 'data');
+        $ticker = $message;
         $parsed = $this->parse_ws_ticker($ticker, $marketType);
         $symbol = $parsed['symbol'];
         $messageHash = 'ticker:' . $symbol;
@@ -438,8 +452,10 @@ class aster extends \ccxt\async\aster {
             /**
              * watches best bid & ask for $symbols
              *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#best-order-book-information-by-$symbol
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-$symbol-book-ticker-streams
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#best-order-book-information-by-$symbol
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#best-order-book-information-across-the-entire-$market
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#individual-$symbol-book-ticker-streams
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#all-book-tickers-stream
              *
              * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -481,8 +497,10 @@ class aster extends \ccxt\async\aster {
             /**
              * unWatches best bid & ask for $symbols
              *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#best-order-book-information-by-$symbol
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-$symbol-book-ticker-streams
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#best-order-book-information-by-$symbol
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#best-order-book-information-across-the-entire-$market
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#individual-$symbol-book-ticker-streams
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#all-book-tickers-stream
              *
              * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -516,8 +534,6 @@ class aster extends \ccxt\async\aster {
     public function handle_bid_ask(Client $client, $message) {
         //
         //     {
-        //         "stream" => "btcusdt@bookTicker",
-        //         "data" => {
         //             "e" => "bookTicker",
         //             "u" => 157240846459,
         //             "s" => "BTCUSDT",
@@ -527,11 +543,10 @@ class aster extends \ccxt\async\aster {
         //             "A" => "0.001",
         //             "T" => 1754896692922,
         //             "E" => 1754896692926
-        //         }
         //     }
         //
         $marketType = $this->get_account_type_from_url($client->url);
-        $data = $this->safe_dict($message, 'data', array());
+        $data = $message;
         $marketId = $this->safe_string($data, 's');
         $market = $this->safe_market($marketId, null, null, $marketType);
         $ticker = $this->parse_ws_bid_ask($data, $market);
@@ -560,8 +575,9 @@ class aster extends \ccxt\async\aster {
             /**
              * watches information on multiple trades made in a market
              *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#collection-transaction-flow
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#aggregate-trade-streams
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#collection-transaction-flow
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#tick-by-tick-trades
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#aggregate-trade-streams
              *
              * @param {string} $symbol unified market $symbol of the market trades were made in
              * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -579,8 +595,9 @@ class aster extends \ccxt\async\aster {
             /**
              * unsubscribe from the trades channel
              *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#collection-transaction-flow
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#aggregate-trade-streams
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#collection-transaction-flow
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#tick-by-tick-trades
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#aggregate-trade-streams
              *
              * @param {string} $symbol unified market $symbol of the market trades were made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -596,8 +613,9 @@ class aster extends \ccxt\async\aster {
             /**
              * get the list of most recent $trades for a list of $symbols
              *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#collection-transaction-flow
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#aggregate-trade-streams
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#collection-transaction-flow
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#tick-by-tick-$trades
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#aggregate-trade-streams
              *
              * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -622,12 +640,14 @@ class aster extends \ccxt\async\aster {
             $request = array(
                 'method' => 'SUBSCRIBE',
                 'params' => $subscriptionArgs,
+                'id' => 1,
             );
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
-                $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@aggTrade';
-                $messageHashes[] = 'trade:' . $market['symbol'];
+                $marketId = $this->safe_string_lower($market, 'id');
+                $subscriptionArgs[] = $marketId . '@aggTrade';
+                $messageHashes[] = 'trade::' . $market['symbol'];
             }
             $trades = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
             if ($this->newUpdates) {
@@ -682,55 +702,36 @@ class aster extends \ccxt\async\aster {
     public function handle_trade(Client $client, $message) {
         //
         //     {
-        //         "stream" => "btcusdt@aggTrade",
-        //         "data" => {
-        //             "e" => "aggTrade",
-        //             "E" => 1754551358681,
-        //             "a" => 20505890,
-        //             "s" => "BTCUSDT",
-        //             "p" => "114783.7",
-        //             "q" => "0.020",
-        //             "f" => 26024678,
-        //             "l" => 26024682,
-        //             "T" => 1754551358528,
-        //             "m" => false
-        //         }
+        //         "e" => "aggTrade",
+        //         "E" => 1754551358681,
+        //         "a" => 20505890,
+        //         "s" => "BTCUSDT",
+        //         "p" => "114783.7",
+        //         "q" => "0.020",
+        //         "f" => 26024678,
+        //         "l" => 26024682,
+        //         "T" => 1754551358528,
+        //         "m" => false
         //     }
         //
         $marketType = $this->get_account_type_from_url($client->url);
-        $trade = $this->safe_dict($message, 'data');
+        $trade = $message;
         $marketId = $this->safe_string($trade, 's');
         $market = $this->safe_market($marketId, null, null, $marketType);
         $parsed = $this->parse_ws_trade($trade, $market);
         $symbol = $parsed['symbol'];
-        $stored = $this->safe_value($this->trades, $symbol);
-        if ($stored === null) {
+        if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $stored = new ArrayCache ($limit);
-            $this->trades[$symbol] = $stored;
+            $this->trades[$symbol] = new ArrayCache ($limit);
         }
+        $stored = $this->trades[$symbol];
         $stored->append ($parsed);
-        $messageHash = 'trade' . ':' . $symbol;
-        $client->resolve ($stored, $messageHash);
+        $client->resolve ($stored, 'trade::' . $symbol);
     }
 
     public function parse_ws_trade($trade, $market = null): array {
         //
-        // public watchTrades
-        //
-        //     {
-        //         "e" => "trade",       // event $type
-        //         "E" => 1579481530911, // event time
-        //         "s" => "ETHBTC",      // $symbol
-        //         "t" => 158410082,     // $trade $id
-        //         "p" => "0.01914100",  // $price
-        //         "q" => "0.00700000",  // quantity
-        //         "b" => 586187049,     // buyer order $id
-        //         "a" => 586186710,     // seller order $id
-        //         "T" => 1579481530910, // $trade time
-        //         "m" => false,         // is the buyer the $market maker
-        //         "M" => true           // binance docs say it should be ignored
-        //     }
+        // public watchTrades (spot)
         //
         //     {
         //        "e" => "aggTrade",  // Event $type
@@ -882,8 +883,10 @@ class aster extends \ccxt\async\aster {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#limited-depth-information
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#partial-book-depth-streams
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#limited-depth-information
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#incremental-depth-information
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#partial-book-depth-streams
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#diff-book-depth-streams
              *
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return.
@@ -900,8 +903,10 @@ class aster extends \ccxt\async\aster {
             /**
              * unsubscribe from the orderbook channel
              *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#limited-depth-information
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#partial-book-depth-streams
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#limited-depth-information
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#incremental-depth-information
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#partial-book-depth-streams
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#diff-book-depth-streams
              *
              * @param {string} $symbol symbol of the market to unwatch the trades for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -918,8 +923,10 @@ class aster extends \ccxt\async\aster {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#limited-depth-information
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#partial-book-depth-streams
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#limited-depth-information
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#incremental-depth-information
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#partial-book-depth-streams
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#diff-book-depth-streams
              *
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return.
@@ -963,8 +970,10 @@ class aster extends \ccxt\async\aster {
             /**
              * unsubscribe from the orderbook channel
              *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#limited-depth-information
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#partial-book-depth-streams
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#limited-depth-information
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#incremental-depth-information
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#partial-book-depth-streams
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#diff-book-depth-streams
              *
              * @param {string[]} $symbols unified $symbol of the $market to unwatch the trades for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1007,8 +1016,6 @@ class aster extends \ccxt\async\aster {
     public function handle_order_book(Client $client, $message) {
         //
         //     {
-        //         "stream" => "btcusdt@depth20",
-        //         "data" => {
         //             "e" => "depthUpdate",
         //             "E" => 1754556878284,
         //             "T" => 1754556878031,
@@ -1028,11 +1035,10 @@ class aster extends \ccxt\async\aster {
         //                     "1.060"
         //                 )
         //             )
-        //         }
         //     }
         //
         $marketType = $this->get_account_type_from_url($client->url);
-        $data = $this->safe_dict($message, 'data');
+        $data = $message;
         $marketId = $this->safe_string($data, 's');
         $timestamp = $this->safe_integer($data, 'T');
         $market = $this->safe_market($marketId, null, null, $marketType);
@@ -1053,8 +1059,8 @@ class aster extends \ccxt\async\aster {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
              *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#k-line-streams
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#klinecandlestick-streams
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#k-line-streams
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#klinecandlestick-streams
              *
              * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -1076,8 +1082,8 @@ class aster extends \ccxt\async\aster {
             /**
              * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
              *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#k-line-streams
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#klinecandlestick-streams
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#k-line-streams
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#klinecandlestick-streams
              *
              * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -1094,8 +1100,8 @@ class aster extends \ccxt\async\aster {
             /**
              * watches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
              *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#k-line-streams
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#klinecandlestick-streams
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#k-line-streams
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#klinecandlestick-streams
              *
              * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified $symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -1146,8 +1152,8 @@ class aster extends \ccxt\async\aster {
             /**
              * unWatches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
              *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#k-line-streams
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#klinecandlestick-streams
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-$market-streams/#k-line-streams
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-$market-streams/#klinecandlestick-streams
              *
              * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified $symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1189,8 +1195,6 @@ class aster extends \ccxt\async\aster {
     public function handle_ohlcv(Client $client, $message) {
         //
         //     {
-        //         "stream" => "btcusdt@kline_1m",
-        //         "data" => {
         //             "e" => "kline",
         //             "E" => 1754655777119,
         //             "s" => "BTCUSDT",
@@ -1213,11 +1217,10 @@ class aster extends \ccxt\async\aster {
         //                 "Q" => "0.0000",
         //                 "B" => "0"
         //             }
-        //         }
         //     }
         //
         $marketType = $this->get_account_type_from_url($client->url);
-        $data = $this->safe_dict($message, 'data');
+        $data = $message;
         $marketId = $this->safe_string($data, 's');
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
@@ -1261,9 +1264,9 @@ class aster extends \ccxt\async\aster {
             if ($time - $lastAuthenticatedTime > $listenKeyRefreshRate) {
                 $response = null;
                 if ($type === 'spot') {
-                    $response = Async\await($this->sapiPrivatePostV1ListenKey ($params));
+                    $response = Async\await($this->sapiPrivatePostV3ListenKey ($params));
                 } else {
-                    $response = Async\await($this->fapiPrivatePostV1ListenKey ($params));
+                    $response = Async\await($this->fapiPrivatePostV3ListenKey ($params));
                 }
                 $this->options['listenKey'][$type] = $this->safe_string($response, 'listenKey');
                 $this->options['lastAuthenticatedTime'][$type] = $time;
@@ -1282,7 +1285,7 @@ class aster extends \ccxt\async\aster {
                 return;
             }
             try {
-                Async\await($this->sapiPrivatePutV1ListenKey ()); // extend the expiry
+                Async\await($this->sapiPrivatePutV3ListenKey ()); // extend the expiry
             } catch (Exception $error) {
                 $url = $this->urls['api']['ws']['private'][$type] . '/' . $listenKey;
                 $client = $this->client($url);
@@ -1314,8 +1317,8 @@ class aster extends \ccxt\async\aster {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-account_update
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-balance-and-position-update
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-account-info/#payload-account_update
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/user-data-streams/#event-balance-and-position-update
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] 'spot' or 'swap', default is 'spot'
@@ -1458,7 +1461,7 @@ class aster extends \ccxt\async\aster {
             /**
              * watch all open positions
              *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-balance-and-position-update
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/user-data-streams/#event-balance-and-position-update
              *
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {number} [$since] $since timestamp
@@ -1656,8 +1659,8 @@ class aster extends \ccxt\async\aster {
             /**
              * watches information on multiple $orders made by the user
              *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-order-update
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-order-update
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-account-info/#payload-order-update
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/user-data-streams/#event-order-update
              *
              * @param {string} [$symbol] unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -1695,8 +1698,8 @@ class aster extends \ccxt\async\aster {
             /**
              * watches information on multiple $trades made by the user
              *
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-order-update
-             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-order-update
+             * @see https://asterdex.github.io/aster-api-website/spot-v3/websocket-account-info/#payload-order-update
+             * @see https://asterdex.github.io/aster-api-website/futures-v3/user-data-streams/#event-order-update
              *
              * @param {string} [$symbol] unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -1972,38 +1975,31 @@ class aster extends \ccxt\async\aster {
         return $this->safe_market($marketId, null, null, $marketType);
     }
 
+    public function handle_balance_and_position(Client $client, $message) {
+        $this->handle_balance($client, $message);
+        $this->handle_positions($client, $message);
+    }
+
     public function handle_message(Client $client, $message) {
-        $stream = $this->safe_string($message, 'stream');
-        if ($stream !== null) {
-            $part = explode('@', $stream);
-            $topic = $this->safe_string($part, 1, '');
-            $part2 = explode('_', $topic);
-            $topic = $this->safe_string($part2, 0, '');
-            $methods = array(
-                'ticker' => array($this, 'handle_ticker'),
-                'aggTrade' => array($this, 'handle_trade'),
-                'depth5' => array($this, 'handle_order_book'),
-                'depth10' => array($this, 'handle_order_book'),
-                'depth20' => array($this, 'handle_order_book'),
-                'kline' => array($this, 'handle_ohlcv'),
-                'markPrice' => array($this, 'handle_ticker'),
-                'bookTicker' => array($this, 'handle_bid_ask'),
-            );
-            $method = $this->safe_value($methods, $topic);
-            if ($method !== null) {
-                $method($client, $message);
-            }
-        } else {
-            // private messages
-            $event = $this->safe_string($message, 'e');
-            if ($event === 'outboundAccountPosition') {
-                $this->handle_balance($client, $message);
-            } elseif ($event === 'ACCOUNT_UPDATE') {
-                $this->handle_balance($client, $message);
-                $this->handle_positions($client, $message);
-            } elseif (($event === 'ORDER_TRADE_UPDATE') || ($event === 'executionReport')) {
-                $this->handle_order_update($client, $message);
-            }
+        $messageInner = $this->safe_dict($message, 'data', $message); // can be either wrapped in 'data' or full object itself
+        $event = $this->safe_string($messageInner, 'e');
+        $methods = array(
+            'ticker' => array($this, 'handle_ticker'),
+            'aggTrade' => array($this, 'handle_trade'),
+            'depth5' => array($this, 'handle_order_book'),
+            'depth10' => array($this, 'handle_order_book'),
+            'depth20' => array($this, 'handle_order_book'),
+            'kline' => array($this, 'handle_ohlcv'),
+            'markPrice' => array($this, 'handle_ticker'),
+            'bookTicker' => array($this, 'handle_bid_ask'),
+            'outboundAccountPosition' => array($this, 'handle_balance'),
+            'ACCOUNT_UPDATE' => array($this, 'handle_balance_and_position'),
+            'executionReport' => array($this, 'handle_order_update'),
+            'ORDER_TRADE_UPDATE' => array($this, 'handle_order_update'),
+        );
+        $method = $this->safe_value($methods, $event);
+        if ($method !== null) {
+            $method($client, $messageInner);
         }
     }
 }

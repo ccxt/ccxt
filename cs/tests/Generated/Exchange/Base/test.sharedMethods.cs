@@ -14,7 +14,7 @@ public partial class testMainClass : BaseTest
             // there are cases when exchange is undefined (eg. base tests)
             object id = ((bool) isTrue((!isEqual(exchange, null)))) ? exchange.id : "undefined";
             object methodString = ((bool) isTrue((!isEqual(method, null)))) ? method : "undefined";
-            object entryString = ((bool) isTrue((!isEqual(exchange, null)))) ? exchange.json(entry) : "";
+            object entryString = ((bool) isTrue((isTrue(!isEqual(exchange, null)) && isTrue(!isEqual(entry, null))))) ? exchange.json(entry) : "";
             return add(add(add(add(add(add(" <<< ", id), " "), methodString), " ::: "), entryString), " >>> ");
         }
         public object isTemporaryFailure(object e)

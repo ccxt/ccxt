@@ -20,8 +20,10 @@ func NewBequantCore() *BequantCore {
 
 func  (this *BequantCore) Describe() interface{}  {
     // eslint-disable-next-line new-cap
-    var describeExtended interface{} = this.GetDescribeForExtendedWsExchange(ccxt.NewBequant(nil), ccxt.NewHitbtc(nil), this.base.Describe())
-    return this.DeepExtend(describeExtended, map[string]interface{} {
+    restInstance := ccxt.NewBequant(nil)
+    var restDescribe interface{} = restInstance.Describe()
+    var extended interface{} = this.DeepExtend(this.base.Describe(), restDescribe)
+    return this.DeepExtend(extended, map[string]interface{} {
         "id": "bequant",
         "name": "Bequant",
         "countries": []interface{}{"MT"},

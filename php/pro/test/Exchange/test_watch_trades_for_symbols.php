@@ -41,9 +41,6 @@ function test_watch_trades_for_symbols($exchange, $skipped_properties, $symbols)
                         $returned_symbols[] = $symbol;
                     }
                 }
-                if (!(is_array($skipped_properties) && array_key_exists('timestampSort', $skipped_properties))) {
-                    assert_timestamp_order($exchange, $method, $symbol, $response);
-                }
             }
         }
         return true;

@@ -2400,7 +2400,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 [/Precise\.String/gm, 'ccxt.Precise.String'],
                 [ /testSharedMethods\./gm, '' ], // no need of class reference
                 [ /func Equals\(.+\n.*\n.*\n.*\}/gm, '' ], // remove equals
-                [ /Assert\("GO_SKIP_START"\)[\S\s]+?Assert\("GO_SKIP_END"\)/gm, '' ], // remove equals
+                [ /\@SKIP_START_GO[\s\S]*?\@SKIP_END_GO/gm, '' ],
                 // Match ArrayCache variables and cast to appropriate type based on variable name
                 // Order matters: check most specific types first
                 [/(\w*ArrayCacheBySymbolBySide\w*)\.Hashmap/g, '$1.(*ccxt.ArrayCacheBySymbolBySide).Hashmap'],

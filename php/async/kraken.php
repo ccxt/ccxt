@@ -658,7 +658,6 @@ class kraken extends Exchange {
                 $id = $keys[$i];
                 $isSynthetic = false;
                 if (mb_strpos($id, ':BTNL') !== false) {
-                    // continue; // skip syntetic $markets
                     $isSynthetic = true;
                 }
                 $market = $markets[$id];
@@ -698,7 +697,7 @@ class kraken extends Exchange {
                 }
                 $status = $this->safe_string($market, 'status');
                 $isActive = $status === 'online';
-                $symbol = !$isSynthetic ? ($base . '/' . $quote) : $id;
+                $symbol = (!$isSynthetic) ? ($base . '/' . $quote) : $id;
                 $result[] = array(
                     'id' => $id,
                     'wsId' => $this->safe_string($market, 'wsname'),

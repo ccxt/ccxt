@@ -8,7 +8,7 @@ function testBase64ToBinary () {
         'id': 'sampleexchange',
     });
 
-    assert ('GO_SKIP_START');
+    // @SKIP_START_GO
 
     // Test 1: Simple base64
     const b64_1 = 'aGVsbG8='; // hello
@@ -60,7 +60,7 @@ function testBase64ToBinary () {
     const binary10 = exchange.base64ToBinary (b64_10);
     assert (exchange.binaryToBase64 (binary10) === b64_10);
 
-    assert ('GO_SKIP_END');
+    // @SKIP_END_GO
 
     assert (exchange.safeString (undefined, 'key') === undefined, "GO_WORKAROUND");
 }
