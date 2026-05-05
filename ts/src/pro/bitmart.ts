@@ -136,7 +136,7 @@ export default class bitmart extends bitmartRest {
             }
             request = {
                 'action': requestOp,
-                'args': [ messageHash ],
+                'args': [ rawHash ],
             };
         }
         messageHash = prefix + messageHash;
