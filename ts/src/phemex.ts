@@ -3988,9 +3988,8 @@ export default class phemex extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
-        const positions = this.parsePositions (rows);
+        const data = this.safeList (response, 'data', {});
+        const positions = this.parsePositions (data);
         return this.filterBySymbolSinceLimit (positions, symbol, since, limit);
     }
 
@@ -4085,7 +4084,7 @@ export default class phemex extends Exchange {
         //                "updatedTimeNs": "1777998802592",
         //                "openPrice": "2372.88888889",
         //                "closePrice": "2371.35000000",
-        //                "roi": "-0.09702738",
+        //                "roi": "-0.09702738", // todo: check if percentage or not
         //                "leverage": "-52.5"
         //            },
         //
