@@ -940,6 +940,47 @@
                 ]
             }
         ],
+        "fetchOpenInterestHistory": [
+            {
+                "description": "fetchOpenInterestHistory with since, limit, until",
+                "method": "fetchOpenInterestHistory",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1h",
+                    1777417200000,
+                    1,
+                    {
+                        "until": 1777420800000
+                    }
+                ],
+                "httpResponse": {
+                    "status": "OK",
+                    "data": [
+                        {
+                            "i": "112620590.6060360000000000",
+                            "I": "1473.1408400000000000",
+                            "t": 1777420800000
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "symbol": "BTC/USDC:USDC",
+                        "openInterestAmount": 1473.14084,
+                        "openInterestValue": 112620590.606036,
+                        "baseVolume": 1473.14084,
+                        "quoteVolume": 112620590.606036,
+                        "timestamp": 1777420800000,
+                        "datetime": "2026-04-29T00:00:00.000Z",
+                        "info": {
+                            "i": "112620590.6060360000000000",
+                            "I": "1473.1408400000000000",
+                            "t": 1777420800000
+                        }
+                    }
+                ]
+            }
+        ],
         "createOrder": [
             {
                 "description": "create limit sell order",
@@ -1069,45 +1110,93 @@
                 }
             }
         ],
-        "fetchOpenInterestHistory": [
+        "cancelOrder": [
             {
-                "description": "fetchOpenInterestHistory with since, limit, until",
-                "method": "fetchOpenInterestHistory",
+                "description": "cancel order by id",
+                "method": "cancelOrder",
                 "input": [
+                    "2051479786538188800",
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "status": "OK"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "status": "OK"
+                    },
+                    "id": "2051479786538188800",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "symbol": "BTC/USDC:USDC",
+                    "type": null,
+                    "side": null,
+                    "price": null,
+                    "amount": null,
+                    "status": "canceled",
+                    "fees": [],
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fee": null
+                }
+            },
+            {
+                "description": "cancel order by clientOrderId",
+                "method": "cancelOrder",
+                "input": [
+                    "unused",
                     "BTC/USDC:USDC",
-                    "1h",
-                    1777417200000,
-                    1,
                     {
-                        "until": 1777420800000
+                        "clientOrderId": "3480985089570526249141260266819446928410958787024864860785196119336740291620"
                     }
                 ],
                 "httpResponse": {
-                    "status": "OK",
-                    "data": [
-                        {
-                            "i": "112620590.6060360000000000",
-                            "I": "1473.1408400000000000",
-                            "t": 1777420800000
-                        }
-                    ]
+                    "status": "OK"
                 },
-                "parsedResponse": [
-                    {
-                        "symbol": "BTC/USDC:USDC",
-                        "openInterestAmount": 1473.14084,
-                        "openInterestValue": 112620590.606036,
-                        "baseVolume": 1473.14084,
-                        "quoteVolume": 112620590.606036,
-                        "timestamp": 1777420800000,
-                        "datetime": "2026-04-29T00:00:00.000Z",
-                        "info": {
-                            "i": "112620590.6060360000000000",
-                            "I": "1473.1408400000000000",
-                            "t": 1777420800000
-                        }
-                    }
-                ]
+                "parsedResponse": {
+                    "info": {
+                        "status": "OK"
+                    },
+                    "id": null,
+                    "clientOrderId": "3480985089570526249141260266819446928410958787024864860785196119336740291620",
+                    "timestamp": null,
+                    "datetime": null,
+                    "symbol": "BTC/USDC:USDC",
+                    "type": null,
+                    "side": null,
+                    "price": null,
+                    "amount": null,
+                    "status": "canceled",
+                    "fees": [],
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fee": null
+                }
             }
         ]
     }

@@ -35,7 +35,7 @@ export default class extended extends Exchange {
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
                 'cancelAllOrders': false,
-                'cancelOrder': false,
+                'cancelOrder': true,
                 'cancelOrders': false,
                 'closeAllPositions': false,
                 'closePosition': false,
@@ -1195,7 +1195,7 @@ export default class extended extends Exchange {
         };
         let clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
         if (clientOrderId === undefined) {
-            clientOrderId = this.numberToString (this.convertToBigInt (this.getExtendedOrderMsgHash (settlement)));
+            clientOrderId = this.uuid ();
         }
         const request: Dict = {
             'id': clientOrderId,
@@ -1377,6 +1377,58 @@ export default class extended extends Exchange {
         }, market);
     }
 
+    /**
+     * @method
+     * @name extended#cancelOrder
+     * @description cancels an open order
+     * @see https://api.docs.extended.exchange/#cancel-order-by-id
+     * @see https://api.docs.extended.exchange/#cancel-order-by-external-id
+     * @param {string} id order id assigned by Extended
+     * @param {string} [symbol] unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] user-defined order id, cancels by external id
+     * @param {string} [params.client_id] user-defined order id, cancels by external id
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let response = undefined;
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
+        params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
+        if (clientOrderId !== undefined) {
+            const request: Dict = {
+                'externalId': clientOrderId,
+            };
+            response = await this.v1PrivateDeleteUserOrder (this.extend (request, params));
+        } else {
+            if (id === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires an id argument');
+            }
+            const request: Dict = {
+                'id': id,
+            };
+            response = await this.v1PrivateDeleteUserOrderId (this.extend (request, params));
+        }
+        //
+        //     {
+        //         "status": "OK"
+        //     }
+        //
+        return this.safeOrder ({
+            'info': response,
+            'id': (clientOrderId === undefined) ? id : undefined,
+            'clientOrderId': clientOrderId,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'symbol': (market === undefined) ? symbol : market['symbol'],
+            'status': 'canceled',
+        }, market);
+    }
+
     getExtendedStringToFelt (value: string) {
         return this.convertToBigInt ('0x' + this.binaryToBase16 (this.encode (value)));
     }
@@ -1474,7 +1526,7 @@ export default class extended extends Exchange {
             }
         }
         url = url + '/api/' + version + endpoint;
-        if ((method === 'GET') && Object.keys (query).length) {
+        if ((method === 'GET' || method === 'DELETE') && Object.keys (query).length) {
             url += '?' + this.urlencodeWithArrayRepeat (query);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
