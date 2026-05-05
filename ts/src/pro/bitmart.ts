@@ -120,7 +120,7 @@ export default class bitmart extends bitmartRest {
             prefix = 'unsubscribe::';
             requestOp = 'unsubscribe';
         }
-        messageHash = unifiedName + '::' + market['id'];
+        messageHash = unifiedName + '::' + symbol;
         if (type === 'spot') {
             rawHash = 'spot/' + channel + ':' + market['id'];
             request = {
@@ -1438,7 +1438,7 @@ export default class bitmart extends bitmartRest {
                     this.ohlcvs[symbol][timeframe] = stored;
                 }
                 stored.append (parsed);
-                const messageHash = 'ohlcv::' + marketId;
+                const messageHash = 'ohlcv::' + symbol;
                 client.resolve (stored, messageHash);
             }
         } else {
