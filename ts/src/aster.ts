@@ -905,7 +905,7 @@ export default class aster extends Exchange {
             'optionType': undefined,
             'precision': {
                 'amount': amountPrecision,
-                'price': pricePrecision,
+                'price': precision,
                 'base': this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetPrecision'))),
                 'quote': this.parseNumber (this.parsePrecision (this.safeString (market, 'quotePrecision'))),
             },
