@@ -8,6 +8,7 @@
         "userNonce"
     ],
     "options": {
+        "approvedBuilderFee": true,
         "signerAddress": "0x1230000000000000000000000000000000000123",
         "walletAddress": "0x1230000000000000000000000000000000000123",
         "zeroAddress": "0x0000000000000000000000000000000000000000",
