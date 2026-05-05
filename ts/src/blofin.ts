@@ -2366,7 +2366,6 @@ export default class blofin extends Exchange {
             'liquidationPrice': liquidationPrice,
             'entryPrice': this.parseNumber (entryPriceString),
             'exitPrice': this.safeNumber (position, 'closeAveragePrice'),
-            'fee': this.safeNumber (position, 'fee'),
             'unrealizedPnl': this.parseNumber (unrealizedPnlString),
             'realizedPnl': this.safeNumber (position, 'realizedPnl'),
             'percentage': percentage,
