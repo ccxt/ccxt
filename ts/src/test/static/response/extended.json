@@ -1291,6 +1291,174 @@
                 }
             }
         ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetch open orders with symbol, type and side",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "status": "OK",
+                    "data": [
+                        {
+                            "id": "2051479786538188802",
+                            "externalId": "open-1",
+                            "accountId": 1,
+                            "market": "BTC-USD",
+                            "status": "NEW",
+                            "type": "LIMIT",
+                            "side": "BUY",
+                            "price": "87000",
+                            "averagePrice": null,
+                            "qty": "0.02",
+                            "filledQty": "0",
+                            "payedFee": "0",
+                            "reduceOnly": false,
+                            "postOnly": true,
+                            "createdTime": 1777964689600,
+                            "updatedTime": 1777964689600,
+                            "timeInForce": "GTT",
+                            "expireTime": 1777966055617
+                        },
+                        {
+                            "id": "2051479786538188803",
+                            "externalId": "open-2",
+                            "accountId": 1,
+                            "market": "BTC-USD",
+                            "status": "PARTIALLY_FILLED",
+                            "type": "LIMIT",
+                            "side": "BUY",
+                            "price": "86000",
+                            "averagePrice": "85950",
+                            "qty": "0.03",
+                            "filledQty": "0.01",
+                            "payedFee": "0.00042975",
+                            "reduceOnly": false,
+                            "postOnly": false,
+                            "createdTime": 1777964689700,
+                            "updatedTime": 1777964700000,
+                            "timeInForce": "GTT",
+                            "expireTime": 1777966055617
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "2051479786538188802",
+                            "externalId": "open-1",
+                            "accountId": 1,
+                            "market": "BTC-USD",
+                            "status": "NEW",
+                            "type": "LIMIT",
+                            "side": "BUY",
+                            "price": "87000",
+                            "averagePrice": null,
+                            "qty": "0.02",
+                            "filledQty": "0",
+                            "payedFee": "0",
+                            "reduceOnly": false,
+                            "postOnly": true,
+                            "createdTime": 1777964689600,
+                            "updatedTime": 1777964689600,
+                            "timeInForce": "GTT",
+                            "expireTime": 1777966055617
+                        },
+                        "id": "2051479786538188802",
+                        "clientOrderId": "open-1",
+                        "timestamp": 1777964689600,
+                        "datetime": "2026-05-05T07:04:49.600Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1777964689600,
+                        "symbol": "BTC/USDC:USDC",
+                        "type": "limit",
+                        "timeInForce": "GTT",
+                        "postOnly": true,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 87000,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "amount": 0.02,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.02,
+                        "status": "open",
+                        "fee": {
+                            "cost": "0",
+                            "currency": "USDC"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0,
+                                "currency": "USDC"
+                            }
+                        ],
+                        "trades": [],
+                        "stopPrice": null
+                    },
+                    {
+                        "info": {
+                            "id": "2051479786538188803",
+                            "externalId": "open-2",
+                            "accountId": 1,
+                            "market": "BTC-USD",
+                            "status": "PARTIALLY_FILLED",
+                            "type": "LIMIT",
+                            "side": "BUY",
+                            "price": "86000",
+                            "averagePrice": "85950",
+                            "qty": "0.03",
+                            "filledQty": "0.01",
+                            "payedFee": "0.00042975",
+                            "reduceOnly": false,
+                            "postOnly": false,
+                            "createdTime": 1777964689700,
+                            "updatedTime": 1777964700000,
+                            "timeInForce": "GTT",
+                            "expireTime": 1777966055617
+                        },
+                        "id": "2051479786538188803",
+                        "clientOrderId": "open-2",
+                        "timestamp": 1777964689700,
+                        "datetime": "2026-05-05T07:04:49.700Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1777964700000,
+                        "symbol": "BTC/USDC:USDC",
+                        "type": "limit",
+                        "timeInForce": "GTT",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 86000,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "amount": 0.03,
+                        "cost": 859.5,
+                        "average": 85950,
+                        "filled": 0.01,
+                        "remaining": 0.02,
+                        "status": "open",
+                        "fee": {
+                            "cost": "0.00042975",
+                            "currency": "USDC"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.00042975,
+                                "currency": "USDC"
+                            }
+                        ],
+                        "trades": [],
+                        "stopPrice": null
+                    }
+                ]
+            }
+        ],
         "cancelOrder": [
             {
                 "description": "cancel order by id",

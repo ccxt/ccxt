@@ -107,7 +107,7 @@ export default class extended extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': true,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
@@ -1468,6 +1468,58 @@ export default class extended extends Exchange {
             order = this.safeDict (response, 'data', {});
         }
         return this.parseOrder (order, market);
+    }
+
+    /**
+     * @method
+     * @name extended#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://api.docs.extended.exchange/#get-open-orders
+     * @param {string} [symbol] unified market symbol of the orders
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        let market = undefined;
+        const request: Dict = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        const response = await this.v1PrivateGetUserOrders (this.extend (request, params));
+        //
+        //     {
+        //       "status": "OK",
+        //       "data": [
+        //         {
+        //           "id": 1775511783722512384,
+        //           "accountId": 3017,
+        //           "externalId": "2554612759479898620327573136214120486511160383028978112799136270841501275076",
+        //           "market": "ETH-USD",
+        //           "type": "LIMIT",
+        //           "side": "BUY",
+        //           "status": "PARTIALLY_FILLED",
+        //           "price": "3300",
+        //           "averagePrice": "3297.00",
+        //           "qty": "0.2",
+        //           "filledQty": "0.1",
+        //           "payedFee": "0.0120000000000000",
+        //           "reduceOnly": false,
+        //           "postOnly": false,
+        //           "createdTime": 1701563440000,
+        //           "updatedTime": 1701563440000,
+        //           "timeInForce": "IOC",
+        //           "expireTime": 1712754771819
+        //         }
+        //       ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const orders = this.parseOrders (data, market, since, limit);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     parseOrderStatus (status: Str): Str {

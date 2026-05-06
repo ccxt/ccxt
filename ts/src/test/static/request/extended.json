@@ -229,6 +229,16 @@
                 ]
             }
         ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetch open orders with symbol, type and side",
+                "method": "fetchOpenOrders",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/orders?market=BTC-USD",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
+        ],
         "cancelOrder": [
             {
                 "description": "cancel order by id",
