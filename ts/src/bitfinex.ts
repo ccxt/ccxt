@@ -1218,7 +1218,7 @@ export default class bitfinex extends Exchange {
             const marketId = this.safeString (ticker, 0);
             market = this.safeMarket (marketId, market);
         }
-        const isFundingCurrency = length >= 17; // funding currency ticker has more than this fields, while regular trading pairs have much less
+        const isFundingCurrency = length >= 17;
         symbol = this.safeSymbol (undefined, market);
         let last: Str = undefined;
         let bid: Str = undefined;
