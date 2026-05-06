@@ -3954,6 +3954,7 @@ export default class phemex extends Exchange {
     async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const request: Dict = {
             'symbol': market['id'],
         };
@@ -3988,8 +3989,8 @@ export default class phemex extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeList (response, 'data', {});
-        const positions = this.parsePositions (data);
+        const data = this.safeList (response, 'data', []);
+        const positions = this.parsePositions (data, [ symbol ]);
         return this.filterBySymbolSinceLimit (positions, symbol, since, limit);
     }
 
