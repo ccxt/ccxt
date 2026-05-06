@@ -108,7 +108,7 @@ export default class extended extends Exchange {
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': true,
                 'fetchOpenOrders': false,
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
@@ -1387,7 +1387,6 @@ export default class extended extends Exchange {
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] user-defined order id, cancels by external id
-     * @param {string} [params.client_id] user-defined order id, cancels by external id
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
@@ -1426,6 +1425,149 @@ export default class extended extends Exchange {
             'datetime': undefined,
             'symbol': (market === undefined) ? symbol : market['symbol'],
             'status': 'canceled',
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name extended#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://api.docs.extended.exchange/#get-order-by-id
+     * @see https://api.docs.extended.exchange/#get-orders-by-external-id
+     * @param {string} id order id assigned by Extended
+     * @param {string} [symbol] unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] user-defined order id, fetches by external id
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let response = undefined;
+        let order = undefined;
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
+        params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
+        if (clientOrderId !== undefined) {
+            const request: Dict = {
+                'externalId': clientOrderId,
+            };
+            response = await this.v1PrivateGetUserOrdersExternalExternalId (this.extend (request, params));
+            const data = this.safeList (response, 'data', []);
+            order = this.safeDict (data, 0, {});
+        } else {
+            if (id === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOrder() requires an id argument');
+            }
+            const request: Dict = {
+                'id': id,
+            };
+            response = await this.v1PrivateGetUserOrdersId (this.extend (request, params));
+            order = this.safeDict (response, 'data', {});
+        }
+        return this.parseOrder (order, market);
+    }
+
+    parseOrderStatus (status: Str): Str {
+        const statuses: Dict = {
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'UNTRIGGERED': 'open',
+            'TRIGGERED': 'open',
+            'FILLED': 'closed',
+            'CANCELLED': 'canceled',
+            'REJECTED': 'rejected',
+            'EXPIRED': 'expired',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        //     {
+        //         "id": 1784963886257016832,
+        //         "externalId": "ExtId-1",
+        //         "accountId": 1,
+        //         "market": "BTC-USD",
+        //         "status": "FILLED",
+        //         "type": "LIMIT",
+        //         "side": "BUY",
+        //         "price": "39000",
+        //         "averagePrice": "39000",
+        //         "qty": "0.2",
+        //         "filledQty": "0.1",
+        //         "payedFee": "0.0120000000000000",
+        //         "reduceOnly": false,
+        //         "postOnly": false,
+        //         "trigger": {
+        //             "triggerPrice": "34000",
+        //             "triggerPriceType": "LAST",
+        //             "triggerPriceDirection": "UP",
+        //             "executionPriceType": "MARKET"
+        //         },
+        //         "takeProfit": {
+        //             "triggerPrice": "34000",
+        //             "triggerPriceType": "LAST",
+        //             "price": "35000",
+        //             "priceType": "MARKET"
+        //         },
+        //         "stopLoss": {
+        //             "triggerPrice": "34000",
+        //             "triggerPriceType": "LAST",
+        //             "price": "35000",
+        //             "priceType": "MARKET"
+        //         },
+        //         "createdTime": 1701563440000,
+        //         "updatedTime": 1701563440000,
+        //         "timeInForce": "IOC",
+        //         "expireTime": 1706563440
+        //     }
+        //
+        const marketId = this.safeString (order, 'market');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (order, 'createdTime');
+        const lastUpdateTimestamp = this.safeInteger (order, 'updatedTime');
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const side = this.safeStringLower (order, 'side');
+        const type = this.safeStringLower (order, 'type');
+        const amount = this.safeString (order, 'qty');
+        const filled = this.safeString (order, 'filledQty');
+        const feeCost = this.safeString (order, 'payedFee');
+        const trigger = this.safeDict (order, 'trigger', {});
+        const takeProfit = this.safeDict (order, 'takeProfit', {});
+        const stopLoss = this.safeDict (order, 'stopLoss', {});
+        const fee = {
+            'cost': feeCost,
+            'currency': (market === undefined) ? undefined : market['settle'],
+        };
+        return this.safeOrder ({
+            'info': order,
+            'id': this.safeString (order, 'id'),
+            'clientOrderId': this.safeString (order, 'externalId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
+            'symbol': market['symbol'],
+            'type': type,
+            'timeInForce': this.safeString (order, 'timeInForce'),
+            'postOnly': this.safeBool (order, 'postOnly'),
+            'reduceOnly': this.safeBool (order, 'reduceOnly'),
+            'side': side,
+            'price': this.safeString (order, 'price'),
+            'triggerPrice': this.safeString (trigger, 'triggerPrice'),
+            'takeProfitPrice': this.safeString (takeProfit, 'triggerPrice'),
+            'stopLossPrice': this.safeString (stopLoss, 'triggerPrice'),
+            'amount': amount,
+            'cost': undefined,
+            'average': this.safeString (order, 'averagePrice'),
+            'filled': filled,
+            'remaining': undefined,
+            'status': status,
+            'fee': fee,
+            'trades': undefined,
         }, market);
     }
 

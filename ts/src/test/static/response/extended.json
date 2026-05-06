@@ -1110,6 +1110,187 @@
                 }
             }
         ],
+        "fetchOrder": [
+            {
+                "description": "fetch order by id",
+                "method": "fetchOrder",
+                "input": [
+                    "2051479786538188800",
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "status": "OK",
+                    "data": {
+                        "id": "2051479786538188800",
+                        "externalId": "123456789",
+                        "accountId": 1,
+                        "market": "BTC-USD",
+                        "status": "PARTIALLY_FILLED",
+                        "type": "LIMIT",
+                        "side": "SELL",
+                        "price": "87777",
+                        "averagePrice": "87700",
+                        "qty": "0.01",
+                        "filledQty": "0.004",
+                        "payedFee": "0.0001754",
+                        "reduceOnly": false,
+                        "postOnly": false,
+                        "createdTime": 1777964689506,
+                        "updatedTime": 1777964700000,
+                        "timeInForce": "GTT",
+                        "expireTime": 1777966055617
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "id": "2051479786538188800",
+                        "externalId": "123456789",
+                        "accountId": 1,
+                        "market": "BTC-USD",
+                        "status": "PARTIALLY_FILLED",
+                        "type": "LIMIT",
+                        "side": "SELL",
+                        "price": "87777",
+                        "averagePrice": "87700",
+                        "qty": "0.01",
+                        "filledQty": "0.004",
+                        "payedFee": "0.0001754",
+                        "reduceOnly": false,
+                        "postOnly": false,
+                        "createdTime": 1777964689506,
+                        "updatedTime": 1777964700000,
+                        "timeInForce": "GTT",
+                        "expireTime": 1777966055617
+                    },
+                    "id": "2051479786538188800",
+                    "clientOrderId": "123456789",
+                    "timestamp": 1777964689506,
+                    "datetime": "2026-05-05T07:04:49.506Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1777964700000,
+                    "symbol": "BTC/USDC:USDC",
+                    "type": "limit",
+                    "timeInForce": "GTT",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "side": "sell",
+                    "price": 87777,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": 0.01,
+                    "cost": 350.8,
+                    "average": 87700,
+                    "filled": 0.004,
+                    "remaining": 0.006,
+                    "status": "open",
+                    "fee": {
+                        "cost": "0.0001754",
+                        "currency": "USDC"
+                    },
+                    "fees": [
+                        {
+                            "cost": 0.0001754,
+                            "currency": "USDC"
+                        }
+                    ],
+                    "trades": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "fetch order by clientOrderId",
+                "method": "fetchOrder",
+                "input": [
+                    "unused",
+                    "BTC/USDC:USDC",
+                    {
+                        "clientOrderId": "3480985089570526249141260266819446928410958787024864860785196119336740291620"
+                    }
+                ],
+                "httpResponse": {
+                    "status": "OK",
+                    "data": [
+                        {
+                            "id": "2051479786538188801",
+                            "externalId": "3480985089570526249141260266819446928410958787024864860785196119336740291620",
+                            "accountId": 1,
+                            "market": "BTC-USD",
+                            "status": "FILLED",
+                            "type": "LIMIT",
+                            "side": "SELL",
+                            "price": "85777",
+                            "averagePrice": "85777",
+                            "qty": "0.01",
+                            "filledQty": "0.01",
+                            "payedFee": "0.000428885",
+                            "reduceOnly": false,
+                            "postOnly": false,
+                            "createdTime": 1777964689537,
+                            "updatedTime": 1777964700000,
+                            "timeInForce": "GTT",
+                            "expireTime": 1777966055617
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "id": "2051479786538188801",
+                        "externalId": "3480985089570526249141260266819446928410958787024864860785196119336740291620",
+                        "accountId": 1,
+                        "market": "BTC-USD",
+                        "status": "FILLED",
+                        "type": "LIMIT",
+                        "side": "SELL",
+                        "price": "85777",
+                        "averagePrice": "85777",
+                        "qty": "0.01",
+                        "filledQty": "0.01",
+                        "payedFee": "0.000428885",
+                        "reduceOnly": false,
+                        "postOnly": false,
+                        "createdTime": 1777964689537,
+                        "updatedTime": 1777964700000,
+                        "timeInForce": "GTT",
+                        "expireTime": 1777966055617
+                    },
+                    "id": "2051479786538188801",
+                    "clientOrderId": "3480985089570526249141260266819446928410958787024864860785196119336740291620",
+                    "timestamp": 1777964689537,
+                    "datetime": "2026-05-05T07:04:49.537Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1777964700000,
+                    "symbol": "BTC/USDC:USDC",
+                    "type": "limit",
+                    "timeInForce": "GTT",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "side": "sell",
+                    "price": 85777,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": 0.01,
+                    "cost": 857.77,
+                    "average": 85777,
+                    "filled": 0.01,
+                    "remaining": 0,
+                    "status": "closed",
+                    "fee": {
+                        "cost": "0.000428885",
+                        "currency": "USDC"
+                    },
+                    "fees": [
+                        {
+                            "cost": 0.000428885,
+                            "currency": "USDC"
+                        }
+                    ],
+                    "trades": [],
+                    "stopPrice": null
+                }
+            }
+        ],
         "cancelOrder": [
             {
                 "description": "cancel order by id",

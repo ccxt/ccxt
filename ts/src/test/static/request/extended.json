@@ -206,6 +206,29 @@
                 "output": "{\"id\":\"223456789\",\"market\":\"BTC-USD\",\"type\":\"LIMIT\",\"side\":\"SELL\",\"qty\":\"0.01\",\"price\":\"85777\",\"timeInForce\":\"GTT\",\"expiryEpochMillis\":1777966055617,\"fee\":\"0.0005\",\"nonce\":\"1777964253\",\"settlement\":{\"signature\":{\"r\":\"0x5d1e810d2a0cb80167a52574555a1280d432c005fb4306364733c92be6051d\",\"s\":\"0x5cdc5abdf0d54633a166996bc0a7b79e94589f4550db0cc7e2bd8bd8eee54bb\"},\"starkKey\":\"0x3\",\"collateralPosition\":\"4\"},\"postOnly\":false,\"reduceOnly\":false,\"selfTradeProtectionLevel\":\"ACCOUNT\",\"cancelId\":\"987654321\"}"
             }
         ],
+        "fetchOrder": [
+            {
+                "description": "fetch order by id",
+                "method": "fetchOrder",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/orders/2051479786538188800",
+                "input": [
+                    "2051479786538188800",
+                    "BTC/USDC:USDC"
+                ]
+            },
+            {
+                "description": "fetch order by clientOrderId",
+                "method": "fetchOrder",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/orders/external/3480985089570526249141260266819446928410958787024864860785196119336740291620",
+                "input": [
+                    null,
+                    "BTC/USDC:USDC",
+                    {
+                        "clientOrderId": "3480985089570526249141260266819446928410958787024864860785196119336740291620"
+                    }
+                ]
+            }
+        ],
         "cancelOrder": [
             {
                 "description": "cancel order by id",
@@ -221,7 +244,7 @@
                 "method": "cancelOrder",
                 "url": "https://api.starknet.extended.exchange/api/v1/user/order?externalId=3480985089570526249141260266819446928410958787024864860785196119336740291620",
                 "input": [
-                    "unused",
+                    null,
                     "BTC/USDC:USDC",
                     {
                         "clientOrderId": "3480985089570526249141260266819446928410958787024864860785196119336740291620"
