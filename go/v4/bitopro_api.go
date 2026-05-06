@@ -7,106 +7,106 @@
 
 package ccxt
 
-func (this *BitoproCore) PublicGetOrderBookPair (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetOrderBookPair", args...)
+func (this *BitoproCore) PublicGetOrderBookPair(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetOrderBookPair", args...)
 }
 
-func (this *BitoproCore) PublicGetTickers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTickers", args...)
+func (this *BitoproCore) PublicGetTickers(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTickers", args...)
 }
 
-func (this *BitoproCore) PublicGetTickersPair (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTickersPair", args...)
+func (this *BitoproCore) PublicGetTickersPair(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTickersPair", args...)
 }
 
-func (this *BitoproCore) PublicGetTradesPair (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTradesPair", args...)
+func (this *BitoproCore) PublicGetTradesPair(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTradesPair", args...)
 }
 
-func (this *BitoproCore) PublicGetProvisioningCurrencies (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetProvisioningCurrencies", args...)
+func (this *BitoproCore) PublicGetProvisioningCurrencies(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetProvisioningCurrencies", args...)
 }
 
-func (this *BitoproCore) PublicGetProvisioningTradingPairs (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetProvisioningTradingPairs", args...)
+func (this *BitoproCore) PublicGetProvisioningTradingPairs(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetProvisioningTradingPairs", args...)
 }
 
-func (this *BitoproCore) PublicGetProvisioningLimitationsAndFees (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetProvisioningLimitationsAndFees", args...)
+func (this *BitoproCore) PublicGetProvisioningLimitationsAndFees(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetProvisioningLimitationsAndFees", args...)
 }
 
-func (this *BitoproCore) PublicGetTradingHistoryPair (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTradingHistoryPair", args...)
+func (this *BitoproCore) PublicGetTradingHistoryPair(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTradingHistoryPair", args...)
 }
 
-func (this *BitoproCore) PublicGetPriceOtcCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPriceOtcCurrency", args...)
+func (this *BitoproCore) PublicGetPriceOtcCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPriceOtcCurrency", args...)
 }
 
-func (this *BitoproCore) PrivateGetAccountsBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountsBalance", args...)
+func (this *BitoproCore) PrivateGetAccountsBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountsBalance", args...)
 }
 
-func (this *BitoproCore) PrivateGetOrdersHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrdersHistory", args...)
+func (this *BitoproCore) PrivateGetOrdersHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrdersHistory", args...)
 }
 
-func (this *BitoproCore) PrivateGetOrdersAllPair (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrdersAllPair", args...)
+func (this *BitoproCore) PrivateGetOrdersAllPair(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrdersAllPair", args...)
 }
 
-func (this *BitoproCore) PrivateGetOrdersTradesPair (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrdersTradesPair", args...)
+func (this *BitoproCore) PrivateGetOrdersTradesPair(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrdersTradesPair", args...)
 }
 
-func (this *BitoproCore) PrivateGetOrdersPairOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrdersPairOrderId", args...)
+func (this *BitoproCore) PrivateGetOrdersPairOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrdersPairOrderId", args...)
 }
 
-func (this *BitoproCore) PrivateGetWalletWithdrawCurrencySerial (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletWithdrawCurrencySerial", args...)
+func (this *BitoproCore) PrivateGetWalletWithdrawCurrencySerial(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletWithdrawCurrencySerial", args...)
 }
 
-func (this *BitoproCore) PrivateGetWalletWithdrawCurrencyIdId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletWithdrawCurrencyIdId", args...)
+func (this *BitoproCore) PrivateGetWalletWithdrawCurrencyIdId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletWithdrawCurrencyIdId", args...)
 }
 
-func (this *BitoproCore) PrivateGetWalletDepositHistoryCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletDepositHistoryCurrency", args...)
+func (this *BitoproCore) PrivateGetWalletDepositHistoryCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletDepositHistoryCurrency", args...)
 }
 
-func (this *BitoproCore) PrivateGetWalletWithdrawHistoryCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletWithdrawHistoryCurrency", args...)
+func (this *BitoproCore) PrivateGetWalletWithdrawHistoryCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletWithdrawHistoryCurrency", args...)
 }
 
-func (this *BitoproCore) PrivateGetOrdersOpen (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrdersOpen", args...)
+func (this *BitoproCore) PrivateGetOrdersOpen(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrdersOpen", args...)
 }
 
-func (this *BitoproCore) PrivatePostOrdersPair (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrdersPair", args...)
+func (this *BitoproCore) PrivatePostOrdersPair(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrdersPair", args...)
 }
 
-func (this *BitoproCore) PrivatePostOrdersBatch (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrdersBatch", args...)
+func (this *BitoproCore) PrivatePostOrdersBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrdersBatch", args...)
 }
 
-func (this *BitoproCore) PrivatePostWalletWithdrawCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWalletWithdrawCurrency", args...)
+func (this *BitoproCore) PrivatePostWalletWithdrawCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWalletWithdrawCurrency", args...)
 }
 
-func (this *BitoproCore) PrivatePutOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePutOrders", args...)
+func (this *BitoproCore) PrivatePutOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutOrders", args...)
 }
 
-func (this *BitoproCore) PrivateDeleteOrdersPairId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOrdersPairId", args...)
+func (this *BitoproCore) PrivateDeleteOrdersPairId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteOrdersPairId", args...)
 }
 
-func (this *BitoproCore) PrivateDeleteOrdersAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOrdersAll", args...)
+func (this *BitoproCore) PrivateDeleteOrdersAll(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteOrdersAll", args...)
 }
 
-func (this *BitoproCore) PrivateDeleteOrdersPair (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOrdersPair", args...)
+func (this *BitoproCore) PrivateDeleteOrdersPair(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteOrdersPair", args...)
 }

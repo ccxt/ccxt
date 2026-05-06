@@ -18,15 +18,15 @@ func NewGateioCore() *GateioCore {
     return p
 }
 
-func  (this *GateioCore) Describe() interface{}  {
-    return this.DeepExtend(this.base.Describe(), map[string]interface{} {
+func  (this *GateioCore) Describe() any  {
+    return this.DeepExtend(this.base.Describe(), map[string]any {
         "alias": true,
         "id": "gateio",
     })
 }
 
 
-func (this *GateioCore) Init(userConfig map[string]interface{}) {
+func (this *GateioCore) Init(userConfig map[string]any) {
     this.base.Init(this.DeepExtend(this.Describe(), userConfig))
     this.Itf = this
     this.Exchange.DerivedExchange = this

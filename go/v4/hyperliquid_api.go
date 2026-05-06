@@ -7,10 +7,10 @@
 
 package ccxt
 
-func (this *HyperliquidCore) PublicPostInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicPostInfo", args...)
+func (this *HyperliquidCore) PublicPostInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("publicPostInfo", args...)
 }
 
-func (this *HyperliquidCore) PrivatePostExchange (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostExchange", args...)
+func (this *HyperliquidCore) PrivatePostExchange(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostExchange", args...)
 }

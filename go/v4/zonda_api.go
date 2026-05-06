@@ -7,198 +7,198 @@
 
 package ccxt
 
-func (this *ZondaCore) PublicGetIdAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetIdAll", args...)
+func (this *ZondaCore) PublicGetIdAll(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetIdAll", args...)
 }
 
-func (this *ZondaCore) PublicGetIdMarket (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetIdMarket", args...)
+func (this *ZondaCore) PublicGetIdMarket(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetIdMarket", args...)
 }
 
-func (this *ZondaCore) PublicGetIdOrderbook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetIdOrderbook", args...)
+func (this *ZondaCore) PublicGetIdOrderbook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetIdOrderbook", args...)
 }
 
-func (this *ZondaCore) PublicGetIdTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetIdTicker", args...)
+func (this *ZondaCore) PublicGetIdTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetIdTicker", args...)
 }
 
-func (this *ZondaCore) PublicGetIdTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetIdTrades", args...)
+func (this *ZondaCore) PublicGetIdTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetIdTrades", args...)
 }
 
-func (this *ZondaCore) PrivatePostInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostInfo", args...)
+func (this *ZondaCore) PrivatePostInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostInfo", args...)
 }
 
-func (this *ZondaCore) PrivatePostTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTrade", args...)
+func (this *ZondaCore) PrivatePostTrade(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTrade", args...)
 }
 
-func (this *ZondaCore) PrivatePostCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostCancel", args...)
+func (this *ZondaCore) PrivatePostCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCancel", args...)
 }
 
-func (this *ZondaCore) PrivatePostOrderbook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrderbook", args...)
+func (this *ZondaCore) PrivatePostOrderbook(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderbook", args...)
 }
 
-func (this *ZondaCore) PrivatePostOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrders", args...)
+func (this *ZondaCore) PrivatePostOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrders", args...)
 }
 
-func (this *ZondaCore) PrivatePostTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTransfer", args...)
+func (this *ZondaCore) PrivatePostTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTransfer", args...)
 }
 
-func (this *ZondaCore) PrivatePostWithdraw (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWithdraw", args...)
+func (this *ZondaCore) PrivatePostWithdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWithdraw", args...)
 }
 
-func (this *ZondaCore) PrivatePostHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostHistory", args...)
+func (this *ZondaCore) PrivatePostHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostHistory", args...)
 }
 
-func (this *ZondaCore) PrivatePostTransactions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTransactions", args...)
+func (this *ZondaCore) PrivatePostTransactions(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTransactions", args...)
 }
 
-func (this *ZondaCore) V1_01PublicGetTradingTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PublicGetTradingTicker", args...)
+func (this *ZondaCore) V1_01PublicGetTradingTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PublicGetTradingTicker", args...)
 }
 
-func (this *ZondaCore) V1_01PublicGetTradingTickerSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PublicGetTradingTickerSymbol", args...)
+func (this *ZondaCore) V1_01PublicGetTradingTickerSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PublicGetTradingTickerSymbol", args...)
 }
 
-func (this *ZondaCore) V1_01PublicGetTradingStats (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PublicGetTradingStats", args...)
+func (this *ZondaCore) V1_01PublicGetTradingStats(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PublicGetTradingStats", args...)
 }
 
-func (this *ZondaCore) V1_01PublicGetTradingStatsSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PublicGetTradingStatsSymbol", args...)
+func (this *ZondaCore) V1_01PublicGetTradingStatsSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PublicGetTradingStatsSymbol", args...)
 }
 
-func (this *ZondaCore) V1_01PublicGetTradingOrderbookSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PublicGetTradingOrderbookSymbol", args...)
+func (this *ZondaCore) V1_01PublicGetTradingOrderbookSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PublicGetTradingOrderbookSymbol", args...)
 }
 
-func (this *ZondaCore) V1_01PublicGetTradingTransactionsSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PublicGetTradingTransactionsSymbol", args...)
+func (this *ZondaCore) V1_01PublicGetTradingTransactionsSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PublicGetTradingTransactionsSymbol", args...)
 }
 
-func (this *ZondaCore) V1_01PublicGetTradingCandleHistorySymbolResolution (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PublicGetTradingCandleHistorySymbolResolution", args...)
+func (this *ZondaCore) V1_01PublicGetTradingCandleHistorySymbolResolution(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PublicGetTradingCandleHistorySymbolResolution", args...)
 }
 
-func (this *ZondaCore) V1_01PrivateGetApiPaymentsDepositsCryptoAddresses (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PrivateGetApiPaymentsDepositsCryptoAddresses", args...)
+func (this *ZondaCore) V1_01PrivateGetApiPaymentsDepositsCryptoAddresses(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PrivateGetApiPaymentsDepositsCryptoAddresses", args...)
 }
 
-func (this *ZondaCore) V1_01PrivateGetPaymentsWithdrawalDetailId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PrivateGetPaymentsWithdrawalDetailId", args...)
+func (this *ZondaCore) V1_01PrivateGetPaymentsWithdrawalDetailId(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PrivateGetPaymentsWithdrawalDetailId", args...)
 }
 
-func (this *ZondaCore) V1_01PrivateGetPaymentsDepositDetailId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PrivateGetPaymentsDepositDetailId", args...)
+func (this *ZondaCore) V1_01PrivateGetPaymentsDepositDetailId(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PrivateGetPaymentsDepositDetailId", args...)
 }
 
-func (this *ZondaCore) V1_01PrivateGetTradingOffer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PrivateGetTradingOffer", args...)
+func (this *ZondaCore) V1_01PrivateGetTradingOffer(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PrivateGetTradingOffer", args...)
 }
 
-func (this *ZondaCore) V1_01PrivateGetTradingStopOffer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PrivateGetTradingStopOffer", args...)
+func (this *ZondaCore) V1_01PrivateGetTradingStopOffer(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PrivateGetTradingStopOffer", args...)
 }
 
-func (this *ZondaCore) V1_01PrivateGetTradingConfigSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PrivateGetTradingConfigSymbol", args...)
+func (this *ZondaCore) V1_01PrivateGetTradingConfigSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PrivateGetTradingConfigSymbol", args...)
 }
 
-func (this *ZondaCore) V1_01PrivateGetTradingHistoryTransactions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PrivateGetTradingHistoryTransactions", args...)
+func (this *ZondaCore) V1_01PrivateGetTradingHistoryTransactions(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PrivateGetTradingHistoryTransactions", args...)
 }
 
-func (this *ZondaCore) V1_01PrivateGetBalancesBITBAYHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PrivateGetBalancesBITBAYHistory", args...)
+func (this *ZondaCore) V1_01PrivateGetBalancesBITBAYHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PrivateGetBalancesBITBAYHistory", args...)
 }
 
-func (this *ZondaCore) V1_01PrivateGetBalancesBITBAYBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PrivateGetBalancesBITBAYBalance", args...)
+func (this *ZondaCore) V1_01PrivateGetBalancesBITBAYBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PrivateGetBalancesBITBAYBalance", args...)
 }
 
-func (this *ZondaCore) V1_01PrivateGetFiatCantorRateBaseIdQuoteId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PrivateGetFiatCantorRateBaseIdQuoteId", args...)
+func (this *ZondaCore) V1_01PrivateGetFiatCantorRateBaseIdQuoteId(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PrivateGetFiatCantorRateBaseIdQuoteId", args...)
 }
 
-func (this *ZondaCore) V1_01PrivateGetFiatCantorHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PrivateGetFiatCantorHistory", args...)
+func (this *ZondaCore) V1_01PrivateGetFiatCantorHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PrivateGetFiatCantorHistory", args...)
 }
 
-func (this *ZondaCore) V1_01PrivateGetClientPaymentsV2CustomerCryptoCurrencyChannelsDeposit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PrivateGetClientPaymentsV2CustomerCryptoCurrencyChannelsDeposit", args...)
+func (this *ZondaCore) V1_01PrivateGetClientPaymentsV2CustomerCryptoCurrencyChannelsDeposit(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PrivateGetClientPaymentsV2CustomerCryptoCurrencyChannelsDeposit", args...)
 }
 
-func (this *ZondaCore) V1_01PrivateGetClientPaymentsV2CustomerCryptoCurrencyChannelsWithdrawal (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PrivateGetClientPaymentsV2CustomerCryptoCurrencyChannelsWithdrawal", args...)
+func (this *ZondaCore) V1_01PrivateGetClientPaymentsV2CustomerCryptoCurrencyChannelsWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PrivateGetClientPaymentsV2CustomerCryptoCurrencyChannelsWithdrawal", args...)
 }
 
-func (this *ZondaCore) V1_01PrivateGetClientPaymentsV2CustomerCryptoDepositFee (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PrivateGetClientPaymentsV2CustomerCryptoDepositFee", args...)
+func (this *ZondaCore) V1_01PrivateGetClientPaymentsV2CustomerCryptoDepositFee(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PrivateGetClientPaymentsV2CustomerCryptoDepositFee", args...)
 }
 
-func (this *ZondaCore) V1_01PrivateGetClientPaymentsV2CustomerCryptoWithdrawalFee (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PrivateGetClientPaymentsV2CustomerCryptoWithdrawalFee", args...)
+func (this *ZondaCore) V1_01PrivateGetClientPaymentsV2CustomerCryptoWithdrawalFee(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PrivateGetClientPaymentsV2CustomerCryptoWithdrawalFee", args...)
 }
 
-func (this *ZondaCore) V1_01PrivatePostTradingOfferSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PrivatePostTradingOfferSymbol", args...)
+func (this *ZondaCore) V1_01PrivatePostTradingOfferSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PrivatePostTradingOfferSymbol", args...)
 }
 
-func (this *ZondaCore) V1_01PrivatePostTradingStopOfferSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PrivatePostTradingStopOfferSymbol", args...)
+func (this *ZondaCore) V1_01PrivatePostTradingStopOfferSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PrivatePostTradingStopOfferSymbol", args...)
 }
 
-func (this *ZondaCore) V1_01PrivatePostTradingConfigSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PrivatePostTradingConfigSymbol", args...)
+func (this *ZondaCore) V1_01PrivatePostTradingConfigSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PrivatePostTradingConfigSymbol", args...)
 }
 
-func (this *ZondaCore) V1_01PrivatePostBalancesBITBAYBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PrivatePostBalancesBITBAYBalance", args...)
+func (this *ZondaCore) V1_01PrivatePostBalancesBITBAYBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PrivatePostBalancesBITBAYBalance", args...)
 }
 
-func (this *ZondaCore) V1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination", args...)
+func (this *ZondaCore) V1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination", args...)
 }
 
-func (this *ZondaCore) V1_01PrivatePostFiatCantorExchange (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PrivatePostFiatCantorExchange", args...)
+func (this *ZondaCore) V1_01PrivatePostFiatCantorExchange(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PrivatePostFiatCantorExchange", args...)
 }
 
-func (this *ZondaCore) V1_01PrivatePostApiPaymentsWithdrawalsCrypto (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PrivatePostApiPaymentsWithdrawalsCrypto", args...)
+func (this *ZondaCore) V1_01PrivatePostApiPaymentsWithdrawalsCrypto(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PrivatePostApiPaymentsWithdrawalsCrypto", args...)
 }
 
-func (this *ZondaCore) V1_01PrivatePostApiPaymentsWithdrawalsFiat (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PrivatePostApiPaymentsWithdrawalsFiat", args...)
+func (this *ZondaCore) V1_01PrivatePostApiPaymentsWithdrawalsFiat(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PrivatePostApiPaymentsWithdrawalsFiat", args...)
 }
 
-func (this *ZondaCore) V1_01PrivatePostClientPaymentsV2CustomerCryptoDeposit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PrivatePostClientPaymentsV2CustomerCryptoDeposit", args...)
+func (this *ZondaCore) V1_01PrivatePostClientPaymentsV2CustomerCryptoDeposit(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PrivatePostClientPaymentsV2CustomerCryptoDeposit", args...)
 }
 
-func (this *ZondaCore) V1_01PrivatePostClientPaymentsV2CustomerCryptoWithdrawal (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PrivatePostClientPaymentsV2CustomerCryptoWithdrawal", args...)
+func (this *ZondaCore) V1_01PrivatePostClientPaymentsV2CustomerCryptoWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PrivatePostClientPaymentsV2CustomerCryptoWithdrawal", args...)
 }
 
-func (this *ZondaCore) V1_01PrivateDeleteTradingOfferSymbolIdSidePrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PrivateDeleteTradingOfferSymbolIdSidePrice", args...)
+func (this *ZondaCore) V1_01PrivateDeleteTradingOfferSymbolIdSidePrice(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PrivateDeleteTradingOfferSymbolIdSidePrice", args...)
 }
 
-func (this *ZondaCore) V1_01PrivateDeleteTradingStopOfferSymbolIdSidePrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PrivateDeleteTradingStopOfferSymbolIdSidePrice", args...)
+func (this *ZondaCore) V1_01PrivateDeleteTradingStopOfferSymbolIdSidePrice(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PrivateDeleteTradingStopOfferSymbolIdSidePrice", args...)
 }
 
-func (this *ZondaCore) V1_01PrivatePutBalancesBITBAYBalanceId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1_01PrivatePutBalancesBITBAYBalanceId", args...)
+func (this *ZondaCore) V1_01PrivatePutBalancesBITBAYBalanceId(args ...any) <-chan any {
+	return this.callEndpointAsync("v1_01PrivatePutBalancesBITBAYBalanceId", args...)
 }

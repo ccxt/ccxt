@@ -18,9 +18,9 @@ func NewAftermathCore() *AftermathCore {
     return p
 }
 
-func  (this *AftermathCore) Describe() interface{}  {
-    return this.DeepExtend(this.base.Describe(), map[string]interface{} {
-        "has": map[string]interface{} {
+func  (this *AftermathCore) Describe() any  {
+    return this.DeepExtend(this.base.Describe(), map[string]any {
+        "has": map[string]any {
             "ws": true,
             "watchBalance": false,
             "watchMyTrades": false,
@@ -34,38 +34,38 @@ func  (this *AftermathCore) Describe() interface{}  {
             "watchTradesForSymbols": false,
             "watchPositions": true,
         },
-        "urls": map[string]interface{} {
-            "api": map[string]interface{} {
-                "ws": map[string]interface{} {
+        "urls": map[string]any {
+            "api": map[string]any {
+                "ws": map[string]any {
                     "swap": "wss://aftermath.finance/iperps-api/ccxt/stream",
                 },
             },
-            "test": map[string]interface{} {
-                "ws": map[string]interface{} {
+            "test": map[string]any {
+                "ws": map[string]any {
                     "swap": "wss://testnet.aftermath.finance/iperps-api/ccxt/stream",
                 },
             },
         },
-        "options": map[string]interface{} {
+        "options": map[string]any {
             "tradesLimit": 1000,
             "ordersLimit": 1000,
-            "watchPositions": map[string]interface{} {
+            "watchPositions": map[string]any {
                 "fetchPositionsSnapshot": true,
                 "awaitPositionsSnapshot": true,
             },
         },
-        "streaming": map[string]interface{} {
+        "streaming": map[string]any {
             "keepAlive": 59000,
         },
-        "exceptions": map[string]interface{} {},
+        "exceptions": map[string]any {},
     })
 }
-func  (this *AftermathCore) WatchPublic(suffix interface{}, messageHash interface{}, message interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *AftermathCore) WatchPublic(suffix any, messageHash any, message any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
-                    var url interface{} = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "swap"), "/"), suffix)
+                    var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "swap"), "/"), suffix)
         
                 retRes5715 :=  (<-this.Watch(url, messageHash, this.Json(message), messageHash, message))
                 ccxt.PanicOnError(retRes5715)
@@ -75,12 +75,12 @@ func  (this *AftermathCore) WatchPublic(suffix interface{}, messageHash interfac
             }()
             return ch
         }
-func  (this *AftermathCore) WatchPublicMultiple(suffix interface{}, messageHashes interface{}, message interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *AftermathCore) WatchPublicMultiple(suffix any, messageHashes any, message any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
-                    var url interface{} = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "swap"), "/"), suffix)
+                    var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "swap"), "/"), suffix)
         
                 retRes6215 :=  (<-this.WatchMultiple(url, messageHashes, this.Json(message), messageHashes, message))
                 ccxt.PanicOnError(retRes6215)
@@ -101,27 +101,27 @@ func  (this *AftermathCore) WatchPublicMultiple(suffix interface{}, messageHashe
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
  */
-func  (this *AftermathCore) WatchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *AftermathCore) WatchTrades(symbol any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                     since := ccxt.GetArg(optionalArgs, 0, nil)
             _ = since
             limit := ccxt.GetArg(optionalArgs, 1, nil)
             _ = limit
-            params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
+            params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
             retRes778 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes778)
-            var market interface{} = this.Market(symbol)
+            var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
-            var topic interface{} = ccxt.Add(ccxt.GetValue(market, "id"), "@trade")
-            var request interface{} = map[string]interface{} {
+            var topic any = ccxt.Add(ccxt.GetValue(market, "id"), "@trade")
+            var request any = map[string]any {
                 "chId": ccxt.GetValue(market, "id"),
             }
-            var message interface{} = this.Extend(request, params)
+            var message any = this.Extend(request, params)
         
             trades:= (<-this.WatchPublic("trades", topic, message))
             ccxt.PanicOnError(trades)
@@ -135,7 +135,7 @@ func  (this *AftermathCore) WatchTrades(symbol interface{}, optionalArgs ...inte
             }()
             return ch
         }
-func  (this *AftermathCore) HandleTrade(client interface{}, message interface{})  {
+func  (this *AftermathCore) HandleTrade(client any, message any)  {
     //
     // {
     //     "amount": 0.1,
@@ -152,16 +152,16 @@ func  (this *AftermathCore) HandleTrade(client interface{}, message interface{})
     //     "type": "string"
     // }
     //
-    var trade interface{} = this.ParseTrade(message)
-    var symbol interface{} = ccxt.GetValue(trade, "symbol")
-    var market interface{} = this.Market(symbol)
+    var trade any = this.ParseTrade(message)
+    var symbol any = ccxt.GetValue(trade, "symbol")
+    var market any = this.Market(symbol)
     if !ccxt.IsTrue((ccxt.InOp(this.Trades, symbol))) {
-        var limit interface{} = this.SafeInteger(this.Options, "tradesLimit", 1000)
-        var stored interface{} = ccxt.NewArrayCache(limit)
+        var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
+        var stored any = ccxt.NewArrayCache(limit)
         ccxt.AddElementToObject(this.Trades, symbol, stored)
     }
-    var messageHash interface{} = ccxt.Add(ccxt.GetValue(market, "id"), "@trade")
-    var trades interface{} = ccxt.GetValue(this.Trades, symbol)
+    var messageHash any = ccxt.Add(ccxt.GetValue(market, "id"), "@trade")
+    var trades any = ccxt.GetValue(this.Trades, symbol)
     trades.(ccxt.Appender).Append(trade)
     ccxt.AddElementToObject(this.Trades, symbol, trades)
     client.(ccxt.ClientInterface).Resolve(trades, messageHash)
@@ -176,25 +176,25 @@ func  (this *AftermathCore) HandleTrade(client interface{}, message interface{})
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
  */
-func  (this *AftermathCore) WatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *AftermathCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                     limit := ccxt.GetArg(optionalArgs, 0, nil)
             _ = limit
-            params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
+            params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
             retRes1358 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes1358)
-            var market interface{} = this.Market(symbol)
+            var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
-            var topic interface{} = ccxt.Add(ccxt.GetValue(market, "id"), "@orderbook")
-            var request interface{} = map[string]interface{} {
+            var topic any = ccxt.Add(ccxt.GetValue(market, "id"), "@orderbook")
+            var request any = map[string]any {
                 "chId": ccxt.GetValue(market, "id"),
             }
-            var message interface{} = this.Extend(request, params)
+            var message any = this.Extend(request, params)
         
             orderbook:= (<-this.WatchPublic("orderbook", topic, message))
             ccxt.PanicOnError(orderbook)
@@ -205,7 +205,7 @@ func  (this *AftermathCore) WatchOrderBook(symbol interface{}, optionalArgs ...i
             }()
             return ch
         }
-func  (this *AftermathCore) HandleOrderBook(client interface{}, message interface{})  {
+func  (this *AftermathCore) HandleOrderBook(client any, message any)  {
     //
     // {
     //     "asks": [
@@ -220,43 +220,43 @@ func  (this *AftermathCore) HandleOrderBook(client interface{}, message interfac
     //     "timestamp": 9007199254740991
     // }
     //
-    var symbol interface{} = this.SafeString(message, "symbol")
-    var market interface{} = this.Market(symbol)
-    var topic interface{} = ccxt.Add(ccxt.GetValue(market, "id"), "@orderbook")
+    var symbol any = this.SafeString(message, "symbol")
+    var market any = this.Market(symbol)
+    var topic any = ccxt.Add(ccxt.GetValue(market, "id"), "@orderbook")
     if !ccxt.IsTrue((ccxt.InOp(this.Orderbooks, symbol))) {
-        var defaultLimit interface{} = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
-        var subscription interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), topic)
-        var limit interface{} = this.SafeInteger(subscription, "limit", defaultLimit)
-        ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]interface{} {}, limit))
+        var defaultLimit any = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
+        var subscription any = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), topic)
+        var limit any = this.SafeInteger(subscription, "limit", defaultLimit)
+        ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any {}, limit))
         ccxt.AddElementToObject(subscription, "limit", limit)
         this.Spawn(this.FetchOrderBookSnapshot, client, message, subscription)
     } else {
-        var orderbook interface{} = ccxt.GetValue(this.Orderbooks, symbol)
-        var prevNonce interface{} = this.SafeInteger(orderbook, "nonce")
-        var nonce interface{} = this.SafeInteger(message, "nonce")
+        var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+        var prevNonce any = this.SafeInteger(orderbook, "nonce")
+        var nonce any = this.SafeInteger(message, "nonce")
         if ccxt.IsTrue(ccxt.IsEqual(nonce, (ccxt.Add(prevNonce, 1)))) {
             this.HandleOrderBookMessage(client, message, orderbook)
             client.(ccxt.ClientInterface).Resolve(orderbook, topic)
         }
     }
 }
-func  (this *AftermathCore) FetchOrderBookSnapshot(client interface{}, message interface{}, subscription interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *AftermathCore) FetchOrderBookSnapshot(client any, message any, subscription any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
-                    var symbol interface{} = this.SafeString(message, "symbol")
-            var market interface{} = this.Market(symbol)
-            var messageHash interface{} = ccxt.Add(ccxt.GetValue(market, "id"), "@orderbook")
+                    var symbol any = this.SafeString(message, "symbol")
+            var market any = this.Market(symbol)
+            var messageHash any = ccxt.Add(ccxt.GetValue(market, "id"), "@orderbook")
             
                 {
-                     func(this *AftermathCore) (ret_ interface{}) {
+                     func(this *AftermathCore) (ret_ any) {
             		    defer func() {
                             if e := recover(); e != nil {
                                 if e == "break" {
                                     return
                                 }
-                                ret_ = func(this *AftermathCore) interface{} {
+                                ret_ = func(this *AftermathCore) any {
                                     // catch block:
                                             ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
                     client.(ccxt.ClientInterface).Reject(e, messageHash)
@@ -265,9 +265,9 @@ func  (this *AftermathCore) FetchOrderBookSnapshot(client interface{}, message i
                             }
                         }()
             		    // try block:
-                                var defaultLimit interface{} = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
-                    var limit interface{} = this.SafeInteger(subscription, "limit", defaultLimit)
-                    var params interface{} = this.SafeDict(subscription, "params")
+                                var defaultLimit any = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
+                    var limit any = this.SafeInteger(subscription, "limit", defaultLimit)
+                    var params any = this.SafeDict(subscription, "params")
             
                     snapshot:= (<-this.FetchRestOrderBookSafe(symbol, limit, params))
                     ccxt.PanicOnError(snapshot)
@@ -275,7 +275,7 @@ func  (this *AftermathCore) FetchOrderBookSnapshot(client interface{}, message i
             
                         return nil
                     }
-                    var orderbook interface{} = ccxt.GetValue(this.Orderbooks, symbol)
+                    var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
                     orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
                     ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
                     client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
@@ -287,22 +287,22 @@ func  (this *AftermathCore) FetchOrderBookSnapshot(client interface{}, message i
             }()
             return ch
         }
-func  (this *AftermathCore) HandleOrderBookMessage(client interface{}, message interface{}, orderbook interface{}) interface{}  {
-    this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), this.SafeValue(message, "asks", []interface{}{}))
-    this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), this.SafeValue(message, "bids", []interface{}{}))
-    var timestamp interface{} = this.SafeInteger(message, "timestamp")
-    var nonce interface{} = this.SafeInteger(message, "nonce")
+func  (this *AftermathCore) HandleOrderBookMessage(client any, message any, orderbook any) any  {
+    this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), this.SafeValue(message, "asks", []any{}))
+    this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), this.SafeValue(message, "bids", []any{}))
+    var timestamp any = this.SafeInteger(message, "timestamp")
+    var nonce any = this.SafeInteger(message, "nonce")
     ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
     ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
     ccxt.AddElementToObject(orderbook, "nonce", nonce)
     return orderbook
 }
-func  (this *AftermathCore) HandleDelta(bookside interface{}, delta interface{})  {
-    var price interface{} = this.SafeFloat2(delta, "price", 0)
-    var amount interface{} = this.SafeFloat2(delta, "quantity", 1)
+func  (this *AftermathCore) HandleDelta(bookside any, delta any)  {
+    var price any = this.SafeFloat2(delta, "price", 0)
+    var amount any = this.SafeFloat2(delta, "quantity", 1)
     bookside.(ccxt.IOrderBookSide).Store(price, amount)
 }
-func  (this *AftermathCore) HandleDeltas(bookside interface{}, deltas interface{})  {
+func  (this *AftermathCore) HandleDeltas(bookside any, deltas any)  {
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(deltas)); i++ {
         this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
     }
@@ -319,9 +319,9 @@ func  (this *AftermathCore) HandleDeltas(bookside interface{}, deltas interface{
  * @param {int} [params.accountNumber] account number to query orders for, required
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
  */
-func  (this *AftermathCore) WatchPositions(optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *AftermathCore) WatchPositions(optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                     symbols := ccxt.GetArg(optionalArgs, 0, nil)
@@ -330,32 +330,32 @@ func  (this *AftermathCore) WatchPositions(optionalArgs ...interface{}) <- chan 
             _ = since
             limit := ccxt.GetArg(optionalArgs, 2, nil)
             _ = limit
-            params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
+            params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
             retRes2428 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes2428)
-            var messageHashes interface{} = []interface{}{}
+            var messageHashes any = []any{}
             symbols = this.MarketSymbols(symbols)
             if !ccxt.IsTrue(this.IsEmpty(symbols)) {
                 for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
-                    var symbol interface{} = ccxt.GetValue(symbols, i)
+                    var symbol any = ccxt.GetValue(symbols, i)
                     ccxt.AppendToArray(&messageHashes, ccxt.Add("positions::", symbol))
                 }
             } else {
                 ccxt.AppendToArray(&messageHashes, "positions")
             }
-            var accountNumber interface{} = this.SafeNumber(params, "accountNumber")
-            var request interface{} = map[string]interface{} {
+            var accountNumber any = this.SafeNumber(params, "accountNumber")
+            var request any = map[string]any {
                 "accountNumber": accountNumber,
             }
-            var message interface{} = this.Extend(request, params)
-            var suffix interface{} = "positions"
-            var url interface{} = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "swap"), "/"), suffix)
-            var client interface{} = this.Client(url)
+            var message any = this.Extend(request, params)
+            var suffix any = "positions"
+            var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "swap"), "/"), suffix)
+            var client any = this.Client(url)
             this.SetPositionsCache(client, symbols, params)
-            var fetchPositionsSnapshot interface{} = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
-            var awaitPositionsSnapshot interface{} = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
+            var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
+            var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
             if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(fetchPositionsSnapshot) && ccxt.IsTrue(awaitPositionsSnapshot)) && ccxt.IsTrue(ccxt.IsEqual(this.Positions, nil))) {
         
                 snapshot:= (<-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot"))
@@ -379,14 +379,14 @@ func  (this *AftermathCore) WatchPositions(optionalArgs ...interface{}) <- chan 
             }()
             return ch
         }
-func  (this *AftermathCore) SetPositionsCache(client interface{}, optionalArgs ...interface{})  {
+func  (this *AftermathCore) SetPositionsCache(client any, optionalArgs ...any)  {
     symbols := ccxt.GetArg(optionalArgs, 0, nil)
     _ = symbols
-    params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
     _ = params
-    var fetchPositionsSnapshot interface{} = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
+    var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
     if ccxt.IsTrue(fetchPositionsSnapshot) {
-        var messageHash interface{} = "fetchPositionsSnapshot"
+        var messageHash any = "fetchPositionsSnapshot"
         if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash))) {
             client.(ccxt.ClientInterface).Future(messageHash)
             this.Spawn(this.LoadPositionsSnapshot, client, messageHash, symbols, params)
@@ -395,29 +395,29 @@ func  (this *AftermathCore) SetPositionsCache(client interface{}, optionalArgs .
         this.Positions = ccxt.NewArrayCacheBySymbolBySide()
     }
 }
-func  (this *AftermathCore) LoadPositionsSnapshot(client interface{}, messageHash interface{}, symbols interface{}, params interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *AftermathCore) LoadPositionsSnapshot(client any, messageHash any, symbols any, params any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                 
             positions:= (<-this.FetchPositions(symbols, params))
             ccxt.PanicOnError(positions)
             this.Positions = ccxt.NewArrayCacheBySymbolBySide()
-            var cache interface{} = this.Positions
+            var cache any = this.Positions
             for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(positions)); i++ {
-                var position interface{} = ccxt.GetValue(positions, i)
+                var position any = ccxt.GetValue(positions, i)
                 cache.(ccxt.Appender).Append(position)
             }
             // don't remove the future from the .futures cache
-            var future interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+            var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
             future.(*ccxt.Future).Resolve(cache)
             client.(ccxt.ClientInterface).Resolve(cache, "positions")
                 return nil
             }()
             return ch
         }
-func  (this *AftermathCore) HandlePositions(client interface{}, message interface{})  {
+func  (this *AftermathCore) HandlePositions(client any, message any)  {
     //
     // {
     //     "collateral": 0.1,
@@ -444,16 +444,16 @@ func  (this *AftermathCore) HandlePositions(client interface{}, message interfac
     if ccxt.IsTrue(ccxt.IsEqual(this.Positions, nil)) {
         this.Positions = ccxt.NewArrayCacheBySymbolBySide()
     }
-    var cache interface{} = this.Positions
-    var symbol interface{} = this.SafeString(message, "symbol")
-    var market interface{} = this.SafeMarket(symbol)
-    var position interface{} = this.ParsePosition(message, market)
+    var cache any = this.Positions
+    var symbol any = this.SafeString(message, "symbol")
+    var market any = this.SafeMarket(symbol)
+    var position any = this.ParsePosition(message, market)
     cache.(ccxt.Appender).Append(position)
-    var messageHash interface{} = ccxt.Add("positions::", ccxt.GetValue(market, "symbol"))
+    var messageHash any = ccxt.Add("positions::", ccxt.GetValue(market, "symbol"))
     client.(ccxt.ClientInterface).Resolve(position, messageHash)
-    client.(ccxt.ClientInterface).Resolve([]interface{}{position}, "positions")
+    client.(ccxt.ClientInterface).Resolve([]any{position}, "positions")
 }
-func  (this *AftermathCore) HandleErrorMessage(client interface{}, message interface{}) interface{}  {
+func  (this *AftermathCore) HandleErrorMessage(client any, message any) any  {
     //
     // User error: Expected Message::Text from client, got Ping(b\"\")
     //
@@ -461,16 +461,16 @@ func  (this *AftermathCore) HandleErrorMessage(client interface{}, message inter
         if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(message, "error"), 0)) {
             
                 {
-                     func(this *AftermathCore) (ret_ interface{}) {
+                     func(this *AftermathCore) (ret_ any) {
             		    defer func() {
                             if error := recover(); error != nil {
                                 if error == "break" {
                                     return
                                 }
-                                ret_ = func(this *AftermathCore) interface{} {
+                                ret_ = func(this *AftermathCore) any {
                                     // catch block:
                                                     if ccxt.IsTrue(ccxt.IsInstance(error, ccxt.AuthenticationError)) {
-                                var messageHash interface{} = "authenticated"
+                                var messageHash any = "authenticated"
                                 client.(ccxt.ClientInterface).Reject(error, messageHash)
                                 if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
                                     ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
@@ -484,7 +484,7 @@ func  (this *AftermathCore) HandleErrorMessage(client interface{}, message inter
                             }
                         }()
             		    // try block:
-                                        var feedback interface{} = ccxt.Add(ccxt.Add(this.Id, " "), message)
+                                        var feedback any = ccxt.Add(ccxt.Add(this.Id, " "), message)
                             this.ThrowExactlyMatchedException(ccxt.GetValue(this.Exceptions, "exact"), message, feedback)
                             panic(ccxt.ExchangeError(message))
             		    
@@ -495,7 +495,7 @@ func  (this *AftermathCore) HandleErrorMessage(client interface{}, message inter
     }
     return false
 }
-func  (this *AftermathCore) HandleMessage(client interface{}, message interface{})  {
+func  (this *AftermathCore) HandleMessage(client any, message any)  {
     if ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
         return
     }
@@ -512,7 +512,7 @@ func  (this *AftermathCore) HandleMessage(client interface{}, message interface{
 }
 
 
-func (this *AftermathCore) Init(userConfig map[string]interface{}) {
+func (this *AftermathCore) Init(userConfig map[string]any) {
     this.base.Init(this.DeepExtend(this.Describe(), userConfig))
     this.Itf = this
     this.Exchange.DerivedExchange = this
