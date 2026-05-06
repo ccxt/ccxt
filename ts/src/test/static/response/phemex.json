@@ -2026,6 +2026,7 @@
                         "contracts": 1,
                         "contractSize": 1,
                         "realizedPnl": -0.002946172224,
+                        "exitPrice": null,
                         "unrealizedPnl": 0.0269,
                         "leverage": 10,
                         "liquidationPrice": 0.0001,
