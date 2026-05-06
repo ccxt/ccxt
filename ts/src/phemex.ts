@@ -4136,7 +4136,7 @@ export default class phemex extends Exchange {
         const marginRatio = Precise.stringDiv (maintenanceMarginString, collateral);
         const isCross = this.safeValue (position, 'crossMargin');
         const timestamp = this.safeInteger (position, 'openedTimeNs');
-        const lastUpdateTimestamp = this.safeIntegerProduct (position, 'transactTimeNs', 0.000001, this.safeInteger (position, 'updatedTimeNs'));
+        const lastUpdateTimestamp = this.safeInteger (position, 'updatedTimeNs', this.safeIntegerProduct (position, 'transactTimeNs', 0.000001));
         return this.safePosition ({
             'info': position,
             'id': this.safeString (position, 'execSeq'),
