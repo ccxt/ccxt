@@ -1,6 +1,6 @@
 from typing import Any
 
-from ccxt.base.errors import ExchangeError, OrderNotFound, PermissionDenied
+from ccxt.base.errors import ExchangeError, OrderNotFound, PermissionDenied, RateLimitExceeded
 from ccxt.base.types import Int, Str
 from ccxt.binance_futures_abs import binance_futures_abs
 
@@ -19,6 +19,7 @@ class binance_futures(binance_futures_abs):
                 'linear': {
                     'exact': {
                         '-4109': PermissionDenied,
+                        '-4192': RateLimitExceeded, #  {"code":-4192,"msg":"Trade forbidden due to Cooling-off Period."}
                         '-4400': ExchangeError,
                         '-4401': ExchangeError,
                         '-4402': ExchangeError,
