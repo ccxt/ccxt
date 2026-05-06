@@ -598,7 +598,7 @@
     },
     "btcbox": {
         "skip": "temporary reorg on exchange, lets wait few more weeks",
-        "until":"2026-05-01",
+        "until":"2026-06-01",
         "skipMethods": {
             "loadMarkets": {
                 "precision":"is undefined"
