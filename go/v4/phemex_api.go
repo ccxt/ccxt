@@ -207,6 +207,10 @@ func (this *PhemexCore) PrivateGetApiDataFuturesV2TradeAccountDetail(args ...any
 	return this.callEndpointAsync("privateGetApiDataFuturesV2TradeAccountDetail", args...)
 }
 
+func (this *PhemexCore) PrivateGetApiDataGFuturesClosedPosition(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiDataGFuturesClosedPosition", args...)
+}
+
 func (this *PhemexCore) PrivateGetGOrdersActiveList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGOrdersActiveList", args...)
 }

@@ -34,28 +34,28 @@ function test_create_order($exchange, $skipped_properties, $symbol) {
         $market = $exchange->market($symbol);
         $is_swap_future = $market['swap'] || $market['future'];
         assert($exchange->has['fetchBalance'], $log_prefix . ' does not have fetchBalance() method, which is needed to make tests for `createOrder` method. Skipping the test...');
-        $balance = Async\await($exchange->fetch_balance());
+        $balance = \React\Async\await($exchange->fetch_balance());
         $initial_base_balance = $balance[$market['base']]['free'];
         $initial_quote_balance = $balance[$market['quote']]['free'];
         assert($initial_quote_balance !== null, $log_prefix . ' - testing account not have balance of' . $market['quote'] . ' in fetchBalance() which is required to test');
         tco_debug($exchange, $symbol, 'fetched balance for ' . $symbol . ' : ' . ((string) $initial_base_balance) . ' ' . $market['base'] . '/' . $initial_quote_balance . ' ' . $market['quote']);
-        [$best_bid, $best_ask] = Async\await(fetch_best_bid_ask($exchange, 'createOrder', $symbol));
+        [$best_bid, $best_ask] = \React\Async\await(fetch_best_bid_ask($exchange, 'createOrder', $symbol));
         // **************** [Scenario 1 - START] **************** //
         tco_debug($exchange, $symbol, '### SCENARIO 1 ###');
         // create a "limit order" which IS GUARANTEED not to have a fill (i.e. being far from the real price)
-        Async\await(tco_create_unfillable_order($exchange, $market, $log_prefix, $skipped_properties, $best_bid, $best_ask, $limit_price_safety_multiplier_from_median, 'buy', null));
+        \React\Async\await(tco_create_unfillable_order($exchange, $market, $log_prefix, $skipped_properties, $best_bid, $best_ask, $limit_price_safety_multiplier_from_median, 'buy', null));
         if ($is_swap_future) {
             // for swap markets, we test sell orders too
-            Async\await(tco_create_unfillable_order($exchange, $market, $log_prefix, $skipped_properties, $best_bid, $best_ask, $limit_price_safety_multiplier_from_median, 'sell', null));
+            \React\Async\await(tco_create_unfillable_order($exchange, $market, $log_prefix, $skipped_properties, $best_bid, $best_ask, $limit_price_safety_multiplier_from_median, 'sell', null));
         }
         tco_debug($exchange, $symbol, '### SCENARIO 1 PASSED ###');
         // **************** [Scenario 2 - START] **************** //
         tco_debug($exchange, $symbol, '### SCENARIO 2 ###');
         // create an order which IS GUARANTEED to have a fill (full or partial)
-        Async\await(tco_create_fillable_order($exchange, $market, $log_prefix, $skipped_properties, $best_bid, $best_ask, $limit_price_safety_multiplier_from_median, 'buy', null));
+        \React\Async\await(tco_create_fillable_order($exchange, $market, $log_prefix, $skipped_properties, $best_bid, $best_ask, $limit_price_safety_multiplier_from_median, 'buy', null));
         if ($is_swap_future) {
             // for swap markets, we test sell orders too
-            Async\await(tco_create_fillable_order($exchange, $market, $log_prefix, $skipped_properties, $best_bid, $best_ask, $limit_price_safety_multiplier_from_median, 'sell', null));
+            \React\Async\await(tco_create_fillable_order($exchange, $market, $log_prefix, $skipped_properties, $best_bid, $best_ask, $limit_price_safety_multiplier_from_median, 'sell', null));
         }
         tco_debug($exchange, $symbol, '### SCENARIO 2 PASSED ###');
         // **************** [Scenario 3 - START] **************** //
@@ -88,12 +88,12 @@ function tco_create_unfillable_order($exchange, $market, $log_prefix, $skipped_p
             $created_order = null;
             if ($buy_or_sell === 'buy') {
                 $order_amount = tco_get_minimum_amount_for_limit_price($exchange, $market, $limit_buy_price_non_fillable, $predefined_amount);
-                $created_order = Async\await(tco_create_order_safe($exchange, $symbol, 'limit', 'buy', $order_amount, $limit_buy_price_non_fillable, array(), $skipped_properties));
+                $created_order = \React\Async\await(tco_create_order_safe($exchange, $symbol, 'limit', 'buy', $order_amount, $limit_buy_price_non_fillable, array(), $skipped_properties));
             } else {
                 $order_amount = tco_get_minimum_amount_for_limit_price($exchange, $market, $limit_sell_price_non_fillable, $predefined_amount);
-                $created_order = Async\await(tco_create_order_safe($exchange, $symbol, 'limit', 'sell', $order_amount, $limit_sell_price_non_fillable, array(), $skipped_properties));
+                $created_order = \React\Async\await(tco_create_order_safe($exchange, $symbol, 'limit', 'sell', $order_amount, $limit_sell_price_non_fillable, array(), $skipped_properties));
             }
-            $fetched_order = Async\await(fetch_order($exchange, $symbol, $created_order['id'], $skipped_properties));
+            $fetched_order = \React\Async\await(fetch_order($exchange, $symbol, $created_order['id'], $skipped_properties));
             if ($fetched_order !== null) {
                 test_order($exchange, $skipped_properties, 'createOrder', $fetched_order, $symbol, $exchange->milliseconds());
             }
@@ -101,7 +101,7 @@ function tco_create_unfillable_order($exchange, $market, $log_prefix, $skipped_p
             assert_order_state($exchange, $skipped_properties, 'fetchedOrder', $fetched_order, 'open', true);
             assert_in_array($exchange, $skipped_properties, 'createdOrder', $created_order, 'side', [null, $buy_or_sell]);
             assert_in_array($exchange, $skipped_properties, 'fetchedOrder', $fetched_order, 'side', [null, $buy_or_sell]);
-            Async\await(tco_cancel_order($exchange, $symbol, $created_order['id']));
+            \React\Async\await(tco_cancel_order($exchange, $symbol, $created_order['id']));
         } catch(\Throwable $e) {
             throw new Error($log_prefix . ' failed for Scenario 1: ' . ((string) $e));
         }
@@ -129,17 +129,17 @@ function tco_create_fillable_order($exchange, $market, $log_prefix, $skipped_pro
             $exitorder_price = $is_buy ? $best_bid / $limit_price_safety_multiplier_from_median : $best_ask * $limit_price_safety_multiplier_from_median; // todo revise: (tcoMininumCost (exchange, market) / amountToClose) / limitPriceSafetyMultiplierFromMedian;
             $symbol = $market['symbol'];
             $entry_amount = tco_get_minimum_amount_for_limit_price($exchange, $market, $entryorder_price);
-            $entryorder_filled = Async\await(tco_create_order_safe($exchange, $symbol, 'limit', $entry_side, $entry_amount, $entryorder_price, array(), $skipped_properties));
-            Async\await(tco_try_cancel_order($exchange, $symbol, $entryorder_filled, $skipped_properties));
-            $entryorder_fetched = Async\await(fetch_order($exchange, $symbol, $entryorder_filled['id'], $skipped_properties));
+            $entryorder_filled = \React\Async\await(tco_create_order_safe($exchange, $symbol, 'limit', $entry_side, $entry_amount, $entryorder_price, array(), $skipped_properties));
+            \React\Async\await(tco_try_cancel_order($exchange, $symbol, $entryorder_filled, $skipped_properties));
+            $entryorder_fetched = \React\Async\await(fetch_order($exchange, $symbol, $entryorder_filled['id'], $skipped_properties));
             tco_assert_filled_order($exchange, $market, $log_prefix, $skipped_properties, $entryorder_filled, $entryorder_fetched, $entry_side, $entry_amount);
             $amount_to_close = $exchange->parse_to_numeric($exchange->safe_string($entryorder_fetched, 'filled'));
             $params = array();
             if ($is_swap_future) {
                 $params['reduceOnly'] = true;
             }
-            $exitorder_filled = Async\await(tco_create_order_safe($exchange, $symbol, 'market', $exit_side, $amount_to_close, ($market['spot'] ? null : $exitorder_price), $params, $skipped_properties));
-            $exitorder_fetched = Async\await(fetch_order($exchange, $symbol, $exitorder_filled['id'], $skipped_properties));
+            $exitorder_filled = \React\Async\await(tco_create_order_safe($exchange, $symbol, 'market', $exit_side, $amount_to_close, ($market['spot'] ? null : $exitorder_price), $params, $skipped_properties));
+            $exitorder_fetched = \React\Async\await(fetch_order($exchange, $symbol, $exitorder_filled['id'], $skipped_properties));
             tco_assert_filled_order($exchange, $market, $log_prefix, $skipped_properties, $exitorder_filled, $exitorder_fetched, $exit_side, $amount_to_close);
         } catch(\Throwable $e) {
             throw new Error('failed for Scenario 2: ' . ((string) $e));
@@ -179,10 +179,10 @@ function tco_cancel_order($exchange, $symbol, $order_id = null) {
         $cancel_result = null;
         if ($exchange->has['cancelOrder'] && $order_id !== null) {
             $used_method = 'cancelOrder';
-            $cancel_result = Async\await($exchange->cancel_order($order_id, $symbol));
+            $cancel_result = \React\Async\await($exchange->cancel_order($order_id, $symbol));
         } elseif ($exchange->has['cancelAllOrders']) {
             $used_method = 'cancelAllOrders';
-            $cancel_result = Async\await($exchange->cancel_all_orders($symbol));
+            $cancel_result = \React\Async\await($exchange->cancel_all_orders($symbol));
         } elseif ($exchange->has['cancelOrders']) {
             throw new Error($log_prefix . ' cancelOrders method is not unified yet, coming soon...');
         }
@@ -200,13 +200,13 @@ function tco_cancel_order($exchange, $symbol, $order_id = null) {
 function tco_create_order_safe($exchange, $symbol, $order_type, $side, $amount, $price = null, $params = array(), $skipped_properties = array()) {
     return Async\async(function () use ($exchange, $symbol, $order_type, $side, $amount, $price, $params, $skipped_properties) {
         tco_debug($exchange, $symbol, 'Executing createOrder ' . $order_type . ' ' . $side . ' ' . $amount . ' ' . $price . ' ' . $exchange->json($params));
-        $order = Async\await($exchange->create_order($symbol, $order_type, $side, $amount, $price, $params));
+        $order = \React\Async\await($exchange->create_order($symbol, $order_type, $side, $amount, $price, $params));
         try {
             test_order($exchange, $skipped_properties, 'createOrder', $order, $symbol, round(microtime(true) * 1000));
         } catch(\Throwable $e) {
             if ($order_type !== 'market') {
                 // if it was limit order, try to cancel it before exiting the script
-                Async\await(tco_try_cancel_order($exchange, $symbol, $order, $skipped_properties));
+                \React\Async\await(tco_try_cancel_order($exchange, $symbol, $order, $skipped_properties));
             }
             throw $e;
         }
@@ -267,13 +267,13 @@ function tco_get_minimum_amount_for_limit_price($exchange, $market, $price, $pre
 
 function tco_try_cancel_order($exchange, $symbol, $order, $skipped_properties) {
     return Async\async(function () use ($exchange, $symbol, $order, $skipped_properties) {
-        $order_fetched = Async\await(fetch_order($exchange, $symbol, $order['id'], $skipped_properties));
+        $order_fetched = \React\Async\await(fetch_order($exchange, $symbol, $order['id'], $skipped_properties));
         $needs_cancel = $exchange->in_array($order_fetched['status'], ['open', 'pending', null]);
         // if it was not reported as closed/filled, then try to cancel it
         if ($needs_cancel) {
             tco_debug($exchange, $symbol, 'trying to cancel the remaining amount of partially filled order...');
             try {
-                Async\await(tco_cancel_order($exchange, $symbol, $order['id']));
+                \React\Async\await(tco_cancel_order($exchange, $symbol, $order['id']));
             } catch(\Throwable $e) {
                 // order might have been closed/filled already, before 'cancelOrder' call reaches server, so it is tolerable, we don't throw exception
                 tco_debug($exchange, $symbol, ' a moment ago order was reported as pending, but could not be cancelled at this moment. Exception message: ' . ((string) $e));

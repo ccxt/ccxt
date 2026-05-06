@@ -837,6 +837,54 @@ func (this *Blofin) FetchPositions(options ...FetchPositionsOptions) ([]Position
 
 /**
  * @method
+ * @name blofin#fetchPositionsHistory
+ * @description fetches historical positions
+ * @see https://docs.blofin.com/index.html#get-positions-history
+ * @param {string[]} [symbols] unified contract symbols
+ * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
+ * @param {int} [limit] the maximum amount of records to fetch, default=20, max=100
+ * @param {object} params extra parameters specific to the exchange api endpoint
+ * @param {int} [params.until] timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
+ * @param {string} [params.productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+ */
+func (this *Blofin) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
+
+	opts := FetchPositionsHistoryOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchPositionsHistory(symbols, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewPositionArray(res), nil
+}
+
+/**
+ * @method
  * @name blofin#fetchLeverages
  * @description fetch the set leverage for all contract markets
  * @see https://docs.blofin.com/index.html#get-multiple-leverage
@@ -1409,9 +1457,6 @@ func (this *Blofin) FetchPositionHistory(symbol string, options ...FetchPosition
 }
 func (this *Blofin) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionsForSymbol(symbol, options...)
-}
-func (this *Blofin) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsHistory(options...)
 }
 func (this *Blofin) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionsRisk(options...)

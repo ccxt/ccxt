@@ -21,7 +21,7 @@ function test_watch_order_book_for_symbols($exchange, $skipped_properties, $symb
             $response = null;
             $success = true;
             try {
-                $response = Async\await($exchange->watch_order_book_for_symbols($symbols));
+                $response = \React\Async\await($exchange->watch_order_book_for_symbols($symbols));
             } catch(\Throwable $e) {
                 // temporary fix for InvalidNonce for c#
                 if (!is_temporary_failure($e) && !($e instanceof InvalidNonce)) {

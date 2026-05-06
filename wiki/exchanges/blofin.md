@@ -27,6 +27,7 @@
 * [transfer](#transfer)
 * [fetchPosition](#fetchposition)
 * [fetchPositions](#fetchpositions)
+* [fetchPositionsHistory](#fetchpositionshistory)
 * [fetchLeverages](#fetchleverages)
 * [fetchLeverage](#fetchleverage)
 * [setLeverage](#setleverage)
@@ -592,6 +593,32 @@ fetch data on a single open contract trade position
 
 ```javascript
 blofin.fetchPositions ([symbols, params])
+```
+
+
+<a name="fetchPositionsHistory" id="fetchpositionshistory"></a>
+
+### fetchPositionsHistory{docsify-ignore}
+fetches historical positions
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
+
+**See**: https://docs.blofin.com/index.html#get-positions-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified contract symbols |
+| since | <code>int</code> | No | timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months |
+| limit | <code>int</code> | No | the maximum amount of records to fetch, default=20, max=100 |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange api endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months |
+| params.productType | <code>string</code> | No | USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+
+
+```javascript
+blofin.fetchPositionsHistory ([symbols, since, limit, params])
 ```
 
 

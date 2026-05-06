@@ -20,7 +20,7 @@ function test_watch_balance($exchange, $skipped_properties, $code) {
             $response = null;
             $success = true;
             try {
-                $response = Async\await($exchange->watch_balance());
+                $response = \React\Async\await($exchange->watch_balance());
             } catch(\Throwable $e) {
                 if (!is_temporary_failure($e)) {
                     throw $e;

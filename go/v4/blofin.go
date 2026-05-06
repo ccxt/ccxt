@@ -2648,6 +2648,94 @@ func (this *BlofinCore) FetchPositions(optionalArgs ...any) <-chan any {
 	}()
 	return ch
 }
+
+/**
+ * @method
+ * @name blofin#fetchPositionsHistory
+ * @description fetches historical positions
+ * @see https://docs.blofin.com/index.html#get-positions-history
+ * @param {string[]} [symbols] unified contract symbols
+ * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
+ * @param {int} [limit] the maximum amount of records to fetch, default=20, max=100
+ * @param {object} params extra parameters specific to the exchange api endpoint
+ * @param {int} [params.until] timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
+ * @param {string} [params.productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+ */
+func (this *BlofinCore) FetchPositionsHistory(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		symbols := GetArg(optionalArgs, 0, nil)
+		_ = symbols
+		since := GetArg(optionalArgs, 1, nil)
+		_ = since
+		limit := GetArg(optionalArgs, 2, nil)
+		_ = limit
+		params := GetArg(optionalArgs, 3, map[string]any{})
+		_ = params
+
+		retRes22038 := (<-this.LoadMarkets())
+		PanicOnError(retRes22038)
+		var request any = map[string]any{}
+		var market any = nil
+		if IsTrue(!IsEqual(symbols, nil)) {
+			var symbolsLength any = GetArrayLength(symbols)
+			if IsTrue(IsEqual(symbolsLength, 0)) {
+				market = this.Market(GetValue(symbols, 0))
+				AddElementToObject(request, "instId", GetValue(market, "id"))
+			}
+		}
+		if IsTrue(!IsEqual(limit, nil)) {
+			AddElementToObject(request, "limit", mathMin(limit, 100))
+		}
+		if IsTrue(!IsEqual(since, nil)) {
+			AddElementToObject(request, "begin", since)
+		}
+		requestparamsVariable := this.HandleUntilOption("end", request, params)
+		request = GetValue(requestparamsVariable, 0)
+		params = GetValue(requestparamsVariable, 1)
+
+		response := (<-this.PrivateGetAccountPositionsHistory(this.Extend(request, params)))
+		PanicOnError(response)
+		//
+		//    {
+		//        "code": "0",
+		//        "msg": "success",
+		//        "data": [
+		//            {
+		//                "historyId": "110307402",
+		//                "positionId": "1000000722711",
+		//                "instId": "BTC-USDT",
+		//                "instType": "SWAP",
+		//                "marginMode": "cross",
+		//                "positionSide": "net",
+		//                "closePositions": "0.0006",
+		//                "maxPositions": "0.0006",
+		//                "liquidationPositions": "0",
+		//                "openAveragePrice": "81550.1",
+		//                "closeAveragePrice": "81550",
+		//                "createTime": "1777995583329",
+		//                "updateTime": "1777995588333",
+		//                "leverage": "50",
+		//                "realizedPnl": "-0.058776036",
+		//                "realizedPnlRatio": "-0.060061275216094155",
+		//                "fee": "-0.058716036"
+		//            },
+		//        ]
+		//    }
+		//
+		var data any = this.SafeList(response, "data", []any{})
+		var positions any = this.ParsePositions(data, symbols, params)
+
+		ch <- this.FilterBySinceLimit(positions, since, limit)
+		return nil
+
+	}()
+	return ch
+}
 func (this *BlofinCore) ParsePosition(position any, optionalArgs ...any) any {
 	//
 	// response similar for REST & WS
@@ -2674,6 +2762,29 @@ func (this *BlofinCore) ParsePosition(position any, optionalArgs ...any) any {
 	//         createTime: '1707235776528',
 	//         updateTime: '1707235776528'
 	//     }
+	//
+	//
+	//    positions-history
+	//
+	//            {
+	//                "positionId": "1000000722711",
+	//                "instId": "BTC-USDT",
+	//                "instType": "SWAP",
+	//                "marginMode": "cross",
+	//                "positionSide": "net",
+	//                "createTime": "1777995583329",
+	//                "updateTime": "1777995588333",
+	//                "leverage": "50",
+	//                "realizedPnl": "-0.058776036",
+	//                "realizedPnlRatio": "-0.060061275216094155",
+	//                "fee": "-0.058716036"
+	//                "historyId": "110307402",
+	//                "closePositions": "0.0006",
+	//                "maxPositions": "0.0006",
+	//                "liquidationPositions": "0",
+	//                "openAveragePrice": "81550.1",
+	//                "closeAveragePrice": "81550",
+	//            },
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
@@ -2706,7 +2817,7 @@ func (this *BlofinCore) ParsePosition(position any, optionalArgs ...any) any {
 	var notional any = this.ParseNumber(notionalString)
 	var marginMode any = this.SafeString(position, "marginMode")
 	var initialMarginString any = nil
-	var entryPriceString any = this.SafeString(position, "averagePrice")
+	var entryPriceString any = this.SafeString2(position, "averagePrice", "openAveragePrice")
 	var unrealizedPnlString any = this.SafeString(position, "unrealizedPnl")
 	var leverageString any = this.SafeString(position, "leverage")
 	var initialMarginPercentage any = nil
@@ -2741,7 +2852,9 @@ func (this *BlofinCore) ParsePosition(position any, optionalArgs ...any) any {
 		"marginMode":                  marginMode,
 		"liquidationPrice":            liquidationPrice,
 		"entryPrice":                  this.ParseNumber(entryPriceString),
+		"exitPrice":                   this.SafeNumber(position, "closeAveragePrice"),
 		"unrealizedPnl":               this.ParseNumber(unrealizedPnlString),
+		"realizedPnl":                 this.SafeNumber(position, "realizedPnl"),
 		"percentage":                  percentage,
 		"contracts":                   contracts,
 		"contractSize":                contractSize,
@@ -2784,8 +2897,8 @@ func (this *BlofinCore) FetchLeverages(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes23138 := (<-this.LoadMarkets())
-		PanicOnError(retRes23138)
+		retRes24038 := (<-this.LoadMarkets())
+		PanicOnError(retRes24038)
 		if IsTrue(IsEqual(symbols, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchLeverages() requires a symbols argument")))
 		}
@@ -2857,8 +2970,8 @@ func (this *BlofinCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan an
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes23698 := (<-this.LoadMarkets())
-		PanicOnError(retRes23698)
+		retRes24598 := (<-this.LoadMarkets())
+		PanicOnError(retRes24598)
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchLeverage", params)
 		marginMode = GetValue(marginModeparamsVariable, 0)
@@ -2940,8 +3053,8 @@ func (this *BlofinCore) SetLeverage(leverage any, optionalArgs ...any) <-chan an
 			panic(BadRequest(Add(this.Id, " setLeverage() leverage should be between 1 and 125")))
 		}
 
-		retRes24328 := (<-this.LoadMarkets())
-		PanicOnError(retRes24328)
+		retRes25228 := (<-this.LoadMarkets())
+		PanicOnError(retRes25228)
 		var market any = this.Market(symbol)
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("setLeverage", params, "cross")
@@ -2993,8 +3106,8 @@ func (this *BlofinCore) ClosePosition(symbol any, optionalArgs ...any) <-chan an
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes24668 := (<-this.LoadMarkets())
-		PanicOnError(retRes24668)
+		retRes25568 := (<-this.LoadMarkets())
+		PanicOnError(retRes25568)
 		var market any = this.Market(symbol)
 		var clientOrderId any = this.SafeString(params, "clientOrderId")
 		var marginMode any = nil
@@ -3047,17 +3160,17 @@ func (this *BlofinCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes24978 := (<-this.LoadMarkets())
-		PanicOnError(retRes24978)
+		retRes25878 := (<-this.LoadMarkets())
+		PanicOnError(retRes25878)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes250119 := (<-this.FetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params))
-			PanicOnError(retRes250119)
-			ch <- retRes250119
+			retRes259119 := (<-this.FetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params))
+			PanicOnError(retRes259119)
+			ch <- retRes259119
 			return nil
 		}
 		var request any = map[string]any{}
@@ -3114,8 +3227,8 @@ func (this *BlofinCore) FetchMarginMode(symbol any, optionalArgs ...any) <-chan 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes25408 := (<-this.LoadMarkets())
-		PanicOnError(retRes25408)
+		retRes26308 := (<-this.LoadMarkets())
+		PanicOnError(retRes26308)
 		var market any = this.Market(symbol)
 
 		response := (<-this.PrivateGetAccountMarginMode(params))
@@ -3168,8 +3281,8 @@ func (this *BlofinCore) SetMarginMode(marginMode any, optionalArgs ...any) <-cha
 		_ = params
 		this.CheckRequiredArgument("setMarginMode", marginMode, "marginMode", []any{"cross", "isolated"})
 
-		retRes25768 := (<-this.LoadMarkets())
-		PanicOnError(retRes25768)
+		retRes26668 := (<-this.LoadMarkets())
+		PanicOnError(retRes26668)
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -3264,8 +3377,8 @@ func (this *BlofinCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan 
 			"positionMode": Ternary(IsTrue(hedged), "long_short_mode", "net_mode"),
 		}
 
-		retRes264915 := (<-this.PrivatePostAccountSetPositionMode(this.Extend(request, params)))
-		PanicOnError(retRes264915)
+		retRes273915 := (<-this.PrivatePostAccountSetPositionMode(this.Extend(request, params)))
+		PanicOnError(retRes273915)
 		//
 		//     {
 		//         "code": "0",
@@ -3275,7 +3388,7 @@ func (this *BlofinCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan 
 		//         }
 		//     }
 		//
-		ch <- retRes264915
+		ch <- retRes273915
 		return nil
 
 	}()
@@ -3301,8 +3414,8 @@ func (this *BlofinCore) FetchPositionsADLRank(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes26628 := (<-this.LoadMarkets())
-		PanicOnError(retRes26628)
+		retRes27528 := (<-this.LoadMarkets())
+		PanicOnError(retRes27528)
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 
 		response := (<-this.PrivateGetAccountPositions(params))

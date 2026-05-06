@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
 var number = require('./base/functions/number.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class wavesexchange

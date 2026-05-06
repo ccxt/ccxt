@@ -796,6 +796,47 @@ func (this *Phemex) FetchPositions(options ...FetchPositionsOptions) ([]Position
 
 /**
  * @method
+ * @name phemex#fetchPositionHistory
+ * @description fetches historical positions
+ * @see https://phemex-docs.github.io/#query-closed-positions
+ * @param {string} symbol unified contract symbol
+ * @param {int} [since] the earliest time in ms to fetch positions for
+ * @param {int} [limit] the maximum amount of records to fetch
+ * @param {object} [params] extra parameters specific to the exchange api endpoint
+ * @param {int} [params.until] the latest time in ms to fetch positions for
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+ */
+func (this *Phemex) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
+
+	opts := FetchPositionHistoryOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchPositionHistory(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewPositionArray(res), nil
+}
+
+/**
+ * @method
  * @name phemex#fetchFundingHistory
  * @description fetch the history of funding payments paid and received on this account
  * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#futureDataFundingFeesHist
@@ -1611,9 +1652,6 @@ func (this *Phemex) FetchPaymentMethods(params ...any) (map[string]any, error) {
 }
 func (this *Phemex) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
 	return this.exchangeTyped.FetchPosition(symbol, options...)
-}
-func (this *Phemex) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
 func (this *Phemex) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)

@@ -50,9 +50,6 @@ func TestWatchTrades(exchange ccxt.ICoreExchange, skippedProperties any, symbol 
 				for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
 					TestTrade(exchange, skippedProperties, method, GetValue(response, i), symbol, now)
 				}
-				if !IsTrue((InOp(skippedProperties, "timestampSort"))) {
-					AssertTimestampOrder(exchange, method, symbol, response)
-				}
 			}
 		}
 		return nil

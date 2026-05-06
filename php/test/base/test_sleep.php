@@ -17,7 +17,7 @@ function test_sleep() {
         ));
         $start = $exchange->milliseconds();
         $sleep_amount = 100; // milliseconds
-        Async\await($exchange->sleep($sleep_amount));
+        \React\Async\await($exchange->sleep($sleep_amount));
         $end = $exchange->milliseconds();
         $elapsed = $end - $start;
         // Allow a small margin of error due to execution time

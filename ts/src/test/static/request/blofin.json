@@ -3,6 +3,15 @@
     "skipKeys": [],
     "outputType": "both",
     "methods": {
+        "fetchPositionsHistory": [
+            {
+                "description": "default",
+                "method": "fetchPositionsHistory",
+                "url": "https://openapi.blofin.com/api/v1/account/positions-history",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchOpenOrders": [
             {
                 "description": "fetch tpsl  orders",

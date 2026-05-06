@@ -20,7 +20,7 @@ function test_watch_positions($exchange, $skipped_properties, $symbol) {
             $response = null;
             $success = true;
             try {
-                $response = Async\await($exchange->watch_positions([$symbol]));
+                $response = \React\Async\await($exchange->watch_positions([$symbol]));
             } catch(\Throwable $e) {
                 if (!is_temporary_failure($e)) {
                     throw $e;
@@ -43,7 +43,7 @@ function test_watch_positions($exchange, $skipped_properties, $symbol) {
             $positions_for_symbols = null;
             $success2 = true;
             try {
-                $positions_for_symbols = Async\await($exchange->watch_positions([$symbol]));
+                $positions_for_symbols = \React\Async\await($exchange->watch_positions([$symbol]));
             } catch(\Throwable $e) {
                 if (!is_temporary_failure($e)) {
                     throw $e;

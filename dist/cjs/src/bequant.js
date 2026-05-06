@@ -4,7 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var hitbtc = require('./hitbtc.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 class bequant extends hitbtc["default"] {
     describe() {
@@ -14,7 +14,12 @@ class bequant extends hitbtc["default"] {
             'pro': true,
             'countries': ['MT'],
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined,
                 'swap': false,
+                'future': undefined,
+                'option': undefined,
             },
             'urls': {
                 'logo': 'https://github.com/user-attachments/assets/0583ef1f-29fe-4b7c-8189-63565a0e2867',
