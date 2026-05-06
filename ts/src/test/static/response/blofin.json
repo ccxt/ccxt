@@ -61,7 +61,6 @@
                         "liquidationPrice": null,
                         "entryPrice": 81550.1,
                         "exitPrice": 81550,
-                        "fee": -0.058716036,
                         "unrealizedPnl": null,
                         "realizedPnl": -0.058776036,
                         "percentage": null,
