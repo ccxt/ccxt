@@ -251,6 +251,30 @@
                 ]
             }
         ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetch closed orders without sending limit",
+                "method": "fetchClosedOrders",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/orders/history?market=BTC-USD",
+                "input": [
+                    "BTC/USDC:USDC",
+                    null,
+                    1
+                ]
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "fetch canceled orders without sending limit",
+                "method": "fetchCanceledOrders",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/orders/history?market=BTC-USD",
+                "input": [
+                    "BTC/USDC:USDC",
+                    null,
+                    1
+                ]
+            }
+        ],
         "cancelOrder": [
             {
                 "description": "cancel order by id",

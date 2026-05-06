@@ -64,8 +64,8 @@ export default class extended extends Exchange {
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchCanceledAndClosedOrders': false,
-                'fetchCanceledOrders': false,
-                'fetchClosedOrders': false,
+                'fetchCanceledOrders': true,
+                'fetchClosedOrders': true,
                 'fetchConvertCurrencies': false,
                 'fetchConvertQuote': false,
                 'fetchConvertTrade': false,
@@ -1591,6 +1591,42 @@ export default class extended extends Exchange {
         }
         const orders = this.parseOrders (data, market, since, limit);
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+    }
+
+    /**
+     * @method
+     * @name extended#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://api.docs.extended.exchange/#get-orders-history
+     * @param {string} [symbol] unified market symbol of the orders
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        const orders = await this.fetchOrders (symbol, since, undefined, params);
+        const closedOrders = this.filterBy (orders, 'status', 'closed') as Order[];
+        return this.filterBySymbolSinceLimit (closedOrders, symbol, since, limit);
+    }
+
+    /**
+     * @method
+     * @name extended#fetchCanceledOrders
+     * @description fetches information on multiple canceled orders made by the user
+     * @see https://api.docs.extended.exchange/#get-orders-history
+     * @param {string} [symbol] unified market symbol of the orders
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        const orders = await this.fetchOrders (symbol, since, undefined, params);
+        const canceledOrders = this.filterBy (orders, 'status', 'canceled') as Order[];
+        return this.filterBySymbolSinceLimit (canceledOrders, symbol, since, limit);
     }
 
     parseOrderStatus (status: Str): Str {
