@@ -111,7 +111,7 @@ export default class extended extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
@@ -1518,6 +1518,77 @@ export default class extended extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
+        const orders = this.parseOrders (data, market, since, limit);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+    }
+
+    /**
+     * @method
+     * @name extended#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://api.docs.extended.exchange/#get-orders-history
+     * @param {string} [symbol] unified market symbol of the orders
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100) as Order[];
+        }
+        let market = undefined;
+        const request: Dict = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.v1PrivateGetUserOrdersHistory (this.extend (params, request));
+        //
+        //     {
+        //       "status": "OK",
+        //       "data": [
+        //         {
+        //           "id": 1784963886257016832,
+        //           "externalId": "ExtId-1",
+        //           "accountId": 1,
+        //           "market": "BTC-USD",
+        //           "status": "FILLED",
+        //           "type": "LIMIT",
+        //           "side": "BUY",
+        //           "price": "39000",
+        //           "averagePrice": "39000",
+        //           "qty": "0.2",
+        //           "filledQty": "0.1",
+        //           "payedFee": "0.0120000000000000",
+        //           "reduceOnly": false,
+        //           "postOnly": false,
+        //           "createdTime": 1701563440000,
+        //           "updatedTime": 1701563440000,
+        //           "timeInForce": "IOC",
+        //           "expireTime": 1706563440
+        //         }
+        //       ],
+        //       "pagination": {
+        //         "cursor": 1784963886257016832,
+        //         "count": 1
+        //       }
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const pagination = this.safeDict (response, 'pagination', {});
+        const cursor = this.safeValue (pagination, 'cursor');
+        if ((cursor !== undefined) && (data.length > 0)) {
+            const lastIndex = data.length - 1;
+            data[lastIndex] = this.extend (data[lastIndex], { 'cursor': cursor });
+        }
         const orders = this.parseOrders (data, market, since, limit);
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
