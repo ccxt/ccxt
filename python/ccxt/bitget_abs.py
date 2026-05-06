@@ -1,6 +1,6 @@
 from typing import Any
 
-from ccxt import PermissionDenied
+from ccxt.base.errors import PermissionDenied, ExchangeError
 from ccxt.bitget import bitget
 
 
@@ -14,6 +14,7 @@ class bitget_abs(bitget):
         return self.deep_extend(super().describe(), {
             'exceptions': {
                 'exact': {
+                    '32038': ExchangeError,  # {"code":"32038","msg":"The sell price cannot be lower than the trigger price percentX%","requestTime":1778044519615,"data":null}
                     '40013': PermissionDenied,  # {"code":"40013","msg":"User status is abnormal","requestTime":1768398859928,"data":null}
                 }
             }
