@@ -1363,7 +1363,7 @@ export default class lighter extends Exchange {
         //                 "initial_base_amount": "0.2000",
         //                 "remaining_base_amount": "0.2000",
         //                 "price": "3430.00",
-        //                 "order_expiry": 1765419046807
+        //                 "order_expiry": 1765419046808
         //             }
         //         ],
         //         "total_bids": 1,
