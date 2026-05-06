@@ -2174,7 +2174,7 @@ class testMainClass {
 
     async testWoofiPro () {
         if (this.lang === 'java') {
-            return false; // skip for java for now due to issues with the starknet lib
+            return false;
         }
         const exchange = this.initOfflineExchange ('woofipro');
         exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets';
@@ -2239,7 +2239,6 @@ class testMainClass {
 
     async testParadex () {
         if (this.lang === 'java') {
-            // skip for java for now due to issues with the required lib
             return false;
         }
         const exchange = this.initOfflineExchange ('paradex');
@@ -2299,7 +2298,6 @@ class testMainClass {
 
     async testDerive () {
         if (this.lang === 'java') {
-            // skip for java for now due to issues with the required lib
             return false;
         }
         const exchange = this.initOfflineExchange ('derive');
@@ -2327,7 +2325,6 @@ class testMainClass {
 
     async testModeTrade () {
         if (this.lang === 'java') {
-            // skip for java for now due to issues with the required lib
             return false;
         }
         const exchange = this.initOfflineExchange ('modetrade');

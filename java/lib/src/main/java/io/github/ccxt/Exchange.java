@@ -65,6 +65,10 @@ public class Exchange {
     public volatile long lastRestRequestTimestamp = 0L;
     public String url = "";
     public String hostname = "";
+    public List<Object> countries = new ArrayList<>();
+    public String name = "";
+    public boolean pro = false;
+    public boolean certified = false;
 
     // Currencies/markets API structures
     public Map<String, Object> baseCurrencies = new HashMap<>();
@@ -12836,7 +12840,7 @@ public Object describe()
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             (Helpers.promiseAll(new java.util.ArrayList<Object>(java.util.Arrays.asList(this.loadMarkets(), this.signIn())))).join();
-            return true;
+            return null;
         });
 
     }

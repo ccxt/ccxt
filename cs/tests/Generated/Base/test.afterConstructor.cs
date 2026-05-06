@@ -200,7 +200,7 @@ public partial class BaseTest
             //
             // common props
             //
-            Assert("GO_SKIP_START");
+            // @SKIP_START_GO
             Assert(isEqual(exchange.id, add("Exch", "ange")), "id should be \"Exchange\"");
             Assert(!isEqual(exchange.has, null), "has should not be undefined");
             Assert(isEqual(exchange.api, null), "api should be undefined");
@@ -325,11 +325,11 @@ public partial class BaseTest
             Assert(isEqual(exchange.codes, null), "codes should be undefined");
             Assert(isEqual(exchange.accounts, null), "accounts should be undefined");
             Assert(isEqual(exchangeProp(exchange, "accountsById"), null), "accountsById should be undefined");
+            // @SKIP_END_GO
             AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "commonCurrencies", exchangeProp(exchange, "commonCurrencies"), new Dictionary<string, object>() {
                 { "XBT", "BTC" },
                 { "BCHSV", "BSV" },
             });
-            Assert("GO_SKIP_END");
         }
         public void testAfterConstructor()
         {

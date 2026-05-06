@@ -8,22 +8,22 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestClone() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
-	var obj1 map[string]interface{} = map[string]interface{}{
+	}, map[string]any{}, exchange)
+	var obj1 map[string]any = map[string]any{
 		"a": 1,
-		"b": []interface{}{1, 2, 3},
-		"c": []interface{}{map[string]interface{}{
+		"b": []any{1, 2, 3},
+		"c": []any{map[string]any{
 			"test1": 1,
 			"test2": 1,
 		}},
 		"d": nil,
 		"e": "not_undefined",
-		"sub": map[string]interface{}{
+		"sub": map[string]any{
 			"a": 1,
-			"b": []interface{}{1, 2},
-			"c": []interface{}{map[string]interface{}{
+			"b": []any{1, 2},
+			"c": []any{map[string]any{
 				"test1": 1,
 				"test2": 2,
 			}},
@@ -33,19 +33,19 @@ func TestClone() {
 		},
 		"other1": "x",
 	}
-	var obj2 map[string]interface{} = map[string]interface{}{
+	var obj2 map[string]any = map[string]any{
 		"a": 2,
-		"b": []interface{}{3, 4},
-		"c": []interface{}{map[string]interface{}{
+		"b": []any{3, 4},
+		"c": []any{map[string]any{
 			"test1": 2,
 			"test3": 3,
 		}},
 		"d": "not_undefined",
 		"e": nil,
-		"sub": map[string]interface{}{
+		"sub": map[string]any{
 			"a": 2,
-			"b": []interface{}{3, 4},
-			"c": []interface{}{map[string]interface{}{
+			"b": []any{3, 4},
+			"c": []any{map[string]any{
 				"test1": 2,
 				"test3": 3,
 			}},
@@ -56,20 +56,20 @@ func TestClone() {
 		"other2": "y",
 	}
 	// deepExtend
-	var deepExtended interface{} = exchange.DeepExtend(obj1, obj2)
-	var compareTo map[string]interface{} = map[string]interface{}{
+	var deepExtended any = exchange.DeepExtend(obj1, obj2)
+	var compareTo map[string]any = map[string]any{
 		"a": 2,
-		"b": []interface{}{3, 4},
-		"c": []interface{}{map[string]interface{}{
+		"b": []any{3, 4},
+		"c": []any{map[string]any{
 			"test1": 2,
 			"test3": 3,
 		}},
 		"d": "not_undefined",
 		"e": nil,
-		"sub": map[string]interface{}{
+		"sub": map[string]any{
 			"a": 2,
-			"b": []interface{}{3, 4},
-			"c": []interface{}{map[string]interface{}{
+			"b": []any{3, 4},
+			"c": []any{map[string]any{
 				"test1": 2,
 				"test3": 3,
 			}},
@@ -88,12 +88,12 @@ func TestClone() {
 	// test immutability / no cross-mutation between clone and original
 	// -------------------------------------------------------------------------
 	// --- test A: shallow-object clone – mutating the clone must not affect original ---
-	var simpleOrig map[string]interface{} = map[string]interface{}{
+	var simpleOrig map[string]any = map[string]any{
 		"x": 1,
 		"y": "hello",
 		"z": nil,
 	}
-	var simpleClone interface{} = exchange.Clone(simpleOrig)
+	var simpleClone any = exchange.Clone(simpleOrig)
 	assert(ccxt.IsEqual(ccxt.GetValue(simpleClone, "x"), 1), "clone A: x")
 	assert(ccxt.IsEqual(ccxt.GetValue(simpleClone, "y"), "hello"), "clone A: y")
 	assert(ccxt.IsEqual(ccxt.GetValue(simpleClone, "z"), nil), "clone A: z")
@@ -106,14 +106,14 @@ func TestClone() {
 	assert(ccxt.IsEqual(ccxt.GetValue(simpleClone, "x"), 999), "clone A: mutating original must not change clone x")
 	// -------------------------------------------------------------------------
 	// --- test B: nested object – verify clone is a shallow copy (top-level keys independent) ---
-	var nestedOrig map[string]interface{} = map[string]interface{}{
+	var nestedOrig map[string]any = map[string]any{
 		"top": "original",
-		"arr": []interface{}{10, 20, 30},
-		"sub": map[string]interface{}{
+		"arr": []any{10, 20, 30},
+		"sub": map[string]any{
 			"inner": "original",
 		},
 	}
-	var nestedClone interface{} = exchange.Clone(nestedOrig)
+	var nestedClone any = exchange.Clone(nestedOrig)
 	// top-level scalar: independent
 	ccxt.AddElementToObject(nestedClone, "top", "cloned")
 	assert(ccxt.IsEqual(ccxt.GetValue(nestedOrig, "top"), "original"), "clone B: top-level scalar independence – original unchanged")
@@ -122,18 +122,18 @@ func TestClone() {
 	assert(ccxt.IsEqual(ccxt.GetValue(nestedClone, "top"), "cloned"), "clone B: changing original top must not affect clone")
 	// -------------------------------------------------------------------------
 	// --- test C: cloning an empty object ---
-	var emptyClone interface{} = exchange.Clone(map[string]interface{}{})
+	var emptyClone any = exchange.Clone(map[string]any{})
 	assert(ccxt.IsEqual(ccxt.GetArrayLength(ccxt.ObjectKeys(emptyClone)), 0), "clone C: cloning empty object gives empty object")
 	ccxt.AddElementToObject(emptyClone, "newKey", "injected")
 	// confirm the operation didn't throw and the value was set
 	assert(ccxt.IsEqual(ccxt.GetValue(emptyClone, "newKey"), "injected"), "clone C: can add key to clone of empty object")
 	// -------------------------------------------------------------------------
 	// --- test D: cloning an object with undefined values preserves those keys ---
-	var withUndef map[string]interface{} = map[string]interface{}{
+	var withUndef map[string]any = map[string]any{
 		"present": "yes",
 		"absent":  nil,
 	}
-	var undefClone interface{} = exchange.Clone(withUndef)
+	var undefClone any = exchange.Clone(withUndef)
 	assert(ccxt.InOp(undefClone, "present"), "clone D: present key must exist in clone")
 	assert(ccxt.IsEqual(ccxt.GetValue(undefClone, "present"), "yes"), "clone D: present value preserved")
 	assert(ccxt.InOp(undefClone, "absent"), "clone D: undefined key must still exist in clone")
@@ -143,19 +143,19 @@ func TestClone() {
 	assert(ccxt.IsEqual(ccxt.GetValue(withUndef, "present"), "yes"), "clone D: mutating clone must not change original")
 	// -------------------------------------------------------------------------
 	// --- test E: multi-step: clone → mutate clone → re-clone original → compare ---
-	var masterOrig map[string]interface{} = map[string]interface{}{
+	var masterOrig map[string]any = map[string]any{
 		"a": 1,
 		"b": 2,
 		"c": 3,
 	}
-	var clone1 interface{} = exchange.Clone(masterOrig)
+	var clone1 any = exchange.Clone(masterOrig)
 	ccxt.AddElementToObject(clone1, "a", 100)
 	ccxt.AddElementToObject(clone1, "d", 999) // add extra key
 	// original still pristine
 	assert(ccxt.IsEqual(ccxt.GetValue(masterOrig, "a"), 1), "clone E: original a untouched after clone1 mutation")
 	assert(!ccxt.IsTrue((ccxt.InOp(masterOrig, "d"))), "clone E: extra key must not appear in original")
 	// second independent clone from the still-pristine original
-	var clone2 interface{} = exchange.Clone(masterOrig)
+	var clone2 any = exchange.Clone(masterOrig)
 	assert(ccxt.IsEqual(ccxt.GetValue(clone2, "a"), 1), "clone E: clone2 starts from pristine original")
 	assert(!ccxt.IsTrue((ccxt.InOp(clone2, "d"))), "clone E: clone2 must not inherit clone1 extra key")
 	// mutate clone2 differently

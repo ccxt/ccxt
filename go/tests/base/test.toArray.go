@@ -8,20 +8,20 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestToArray() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
-	var obj1 map[string]interface{} = map[string]interface{}{
+	}, map[string]any{}, exchange)
+	var obj1 map[string]any = map[string]any{
 		"a": 1,
 		"b": 3,
 		"c": 2,
 	}
-	var obj2 map[string]interface{} = map[string]interface{}{
+	var obj2 map[string]any = map[string]any{
 		"a": "x",
 		"b": 2,
 	}
-	var result1 interface{} = exchange.ToArray(obj1)
-	var result2 interface{} = exchange.ToArray(obj2)
+	var result1 any = exchange.ToArray(obj1)
+	var result2 any = exchange.ToArray(obj2)
 	// we can't guarantee order of values in GO lang
 	// assertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj1), [ 1, 3, 2 ]);
 	// assertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj2), [ 'x', 2 ]);

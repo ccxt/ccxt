@@ -5484,7 +5484,9 @@ public partial class Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createTriggerOrder() requires a triggerPrice argument")) ;
         }
-        ((IDictionary<string,object>)parameters)["triggerPrice"] = triggerPrice;
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "triggerPrice", triggerPrice },
+        });
         if (isTrue(getValue(this.has, "createTriggerOrder")))
         {
             return await this.createOrder(symbol, type, side, amount, price, parameters);
@@ -5512,7 +5514,9 @@ public partial class Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createTriggerOrderWs() requires a triggerPrice argument")) ;
         }
-        ((IDictionary<string,object>)parameters)["triggerPrice"] = triggerPrice;
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "triggerPrice", triggerPrice },
+        });
         if (isTrue(getValue(this.has, "createTriggerOrderWs")))
         {
             return await this.createOrderWs(symbol, type, side, amount, price, parameters);
@@ -5540,7 +5544,9 @@ public partial class Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createStopLossOrder() requires a stopLossPrice argument")) ;
         }
-        ((IDictionary<string,object>)parameters)["stopLossPrice"] = stopLossPrice;
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "stopLossPrice", stopLossPrice },
+        });
         if (isTrue(getValue(this.has, "createStopLossOrder")))
         {
             return await this.createOrder(symbol, type, side, amount, price, parameters);
@@ -5568,7 +5574,9 @@ public partial class Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createStopLossOrderWs() requires a stopLossPrice argument")) ;
         }
-        ((IDictionary<string,object>)parameters)["stopLossPrice"] = stopLossPrice;
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "stopLossPrice", stopLossPrice },
+        });
         if (isTrue(getValue(this.has, "createStopLossOrderWs")))
         {
             return await this.createOrderWs(symbol, type, side, amount, price, parameters);
@@ -5596,7 +5604,9 @@ public partial class Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createTakeProfitOrder() requires a takeProfitPrice argument")) ;
         }
-        ((IDictionary<string,object>)parameters)["takeProfitPrice"] = takeProfitPrice;
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "takeProfitPrice", takeProfitPrice },
+        });
         if (isTrue(getValue(this.has, "createTakeProfitOrder")))
         {
             return await this.createOrder(symbol, type, side, amount, price, parameters);
@@ -5624,7 +5634,9 @@ public partial class Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createTakeProfitOrderWs() requires a takeProfitPrice argument")) ;
         }
-        ((IDictionary<string,object>)parameters)["takeProfitPrice"] = takeProfitPrice;
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "takeProfitPrice", takeProfitPrice },
+        });
         if (isTrue(getValue(this.has, "createTakeProfitOrderWs")))
         {
             return await this.createOrderWs(symbol, type, side, amount, price, parameters);

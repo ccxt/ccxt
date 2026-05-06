@@ -201,7 +201,7 @@ function helper_test_properties() {
     //
     // common props
     //
-    assert('GO_SKIP_START');
+    // @SKIP_START_GO
     assert($exchange->id === 'Exch' . 'ange', 'id should be "Exchange"');
     assert($exchange->has !== null, 'has should not be undefined');
     assert($exchange->api === null, 'api should be undefined');
@@ -326,11 +326,11 @@ function helper_test_properties() {
     assert($exchange->codes === null, 'codes should be undefined');
     assert($exchange->accounts === null, 'accounts should be undefined');
     assert(exchange_prop($exchange, 'accountsById') === null, 'accountsById should be undefined');
+    // @SKIP_END_GO
     assert_deep_equal($exchange, array(), 'commonCurrencies', exchange_prop($exchange, 'commonCurrencies'), array(
         'XBT' => 'BTC',
         'BCHSV' => 'BSV',
     ));
-    assert('GO_SKIP_END');
 }
 
 
