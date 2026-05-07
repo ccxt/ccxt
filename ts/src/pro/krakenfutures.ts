@@ -1517,7 +1517,8 @@ export default class krakenfutures extends krakenfuturesRest {
             }
         }
         let request: Dict = {};
-        if (rawSubs.length) {
+        const length = rawSubs.length;
+        if (length > 0) {
             request = {
                 'event': 'subscribe',
                 'feed': channelName,
