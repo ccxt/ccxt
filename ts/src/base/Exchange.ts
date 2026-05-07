@@ -3552,6 +3552,16 @@ export default class Exchange {
         this.initThrottler ();
     }
 
+    setRateLimit (rateLimit: number) {
+        const oldThrottler = this.throttler;
+        this.rateLimit = rateLimit;
+        this.tokenBucket = undefined;
+        this.initRestRateLimiter ();
+        if (oldThrottler !== undefined && oldThrottler !== this.throttler) {
+            oldThrottler.drain (this.throttler);
+        }
+    }
+
     featuresGenerator () {
         //
         // in the exchange-specific features can be something like this, where we support 'string' aliases too:
