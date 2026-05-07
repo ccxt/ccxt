@@ -17,4 +17,5 @@ plugins {
 dependencies {
     implementation(project(":lib"))
     implementation(libs.jackson.databind)
+    implementation("com.google.code.gson:gson:2.11.0")
 }

@@ -8,6 +8,9 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -23,21 +26,21 @@ import io.github.ccxt.Exchanges;
 import io.github.ccxt.Version;
 
 
-class First {
+class PrettyPrinter {
 
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object a, Object b) {
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-            return null;
-        });
+    private static final Gson gson = new GsonBuilder()
+            .setPrettyPrinting()
+            .create();
+
+    static void prettyPrintData(Object data) {
+        try {
+            String json = gson.toJson(data);
+            System.out.println(json);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
-
-class Second extends First {
-    public String createOrder (Long a, Long b, Long c) {
-        return String.valueOf(a);
-    }
-}
-
 
 
 public class Main {
@@ -273,13 +276,21 @@ public class Main {
         System.out.println("[java][" + Version.VERSION +"] CCXT CLI");
         // System.out.println("User Directory: " + userDirectory);
 
+        args = new String[] {
+                "binance",
+                "watchTrades",
+                "BTC/USDT"
+        };
+
         if (args.length < 2) {
             System.out.println("Usage: java -cp <classpath> cli.Main [--verbose] [--sandbox] <exchange-id> [arg1 arg2 ...]");
             return;
         }
 
-       var exchangeName = args[0];
-       var methodName = args[1];
+        var exchangeName = args[0];
+        var methodName = args[1];
+
+        var isWsMethod = methodName.startsWith("watch");
 
         var params = getParamsFromArgs(args);
 
@@ -297,15 +308,23 @@ public class Main {
             if (Main.verbose) {
                 instance.verbose = true;
             }
-            // instance.enableDemoTrading(true); // tmp remove
-//            var currencies = instance.fetchCurrencies().get();
-//            System.out.println("Currencies: " + currencies);
             instance.loadMarkets().get();
-            // instance.verbose = true;
-            CompletableFuture<?> f = (CompletableFuture<?>) callDynamic(instance, methodName, params);
-            var response = f.get();
-            System.out.println(response);
-        } catch (Exception e) {
+
+            while (true) {
+                var f = callDynamic(instance, methodName, params);
+                Object response;
+                if (f instanceof CompletableFuture) {
+                    response =  ((CompletableFuture<?>) f).get();
+                } else {
+                    response = f;
+                }
+                PrettyPrinter.prettyPrintData(response);
+
+                if (!isWsMethod) {
+                    break;
+                }
+            }
+       } catch (Exception e) {
         	System.out.println(e);
         }
     }
