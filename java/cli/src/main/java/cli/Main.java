@@ -15,8 +15,30 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-// import io.github.ccxt.exchanges.Binance;
+import io.github.ccxt.errors.AuthenticationError;
+
+// import io.github.ccxt.wrappers.Binance;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.Exchanges;
+import io.github.ccxt.Version;
+
+
+class First {
+
+    public java.util.concurrent.CompletableFuture<Object> createOrder(Object a, Object b) {
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            return null;
+        });
+    }
+}
+
+class Second extends First {
+    public String createOrder (Long a, Long b, Long c) {
+        return String.valueOf(a);
+    }
+}
+
+
 
 public class Main {
 
@@ -88,7 +110,7 @@ public class Main {
         var prefix = (basePath.endsWith("cli")) ? "/../../" : "/../";
         var keysJsonPath = basePath + prefix + "keys.json";
 
-//        System.out.println("Looking for keys.json at: " + keysJsonPath);
+//        System.out.perintln("Looking for keys.json at: " + keysJsonPath);
 
         Map<String, Object> keysJsonContent = null;
         if (FileSystems.getDefault().getPath(keysJsonPath).toFile().exists()) {
@@ -221,11 +243,34 @@ public class Main {
         }
     }
 
+
+
+//     public static void Main2() {
+//         var second = new Second();
+//         var res = second.createOrder(1,2,4);
+// //        var exchange = new Binance();
+// //        exchange.apiKey = "HEREHjhMFvuF1veWQVdUbLIy7TiCYe9fj4W6sEukmddD8TM9kPVRHMK6nS2SdV5mwE5u";
+// //        exchange.secret = "Suu9pWcO9zbvVuc6cSQsVuiiw2DmmA8DgHrUfePF9s2RtaHa0zxK3eAF4MfIk7Pd";
+// //        exchange.enableDemoTrading(true);
+//         try {
+// //            var balance = exchange.fetchBalance();
+// //            System.out.println(balance);
+//         } catch (Exception e) {
+//             Throwable cause = e.getCause();
+//             if (cause instanceof io.github.ccxt.errors.ExchangeError ae) {
+//                 // throw ae; // or handle it
+//                 System.out.println("Working Authentication error: " + ae.getMessage());
+//             }
+//             // if (e instanceof AuthenticationError) {
+//             //     System.out.println("Authentication error: " + e.getMessage());
+//             // } else {
+//             //     System.out.println("Error fetching balance: " + e.getMessage());
+//             // }
+//         }
+//     }
+
     public static void main(String[] args) throws IOException, InterruptedException {
-        System.out.println("[java] CCXT CLI");
-
-
-
+        System.out.println("[java][" + Version.VERSION +"] CCXT CLI");
         // System.out.println("User Directory: " + userDirectory);
 
         if (args.length < 2) {
@@ -234,13 +279,13 @@ public class Main {
         }
 
        var exchangeName = args[0];
-        //  var exchangeName = "binance";
        var methodName = args[1];
-        //  var methodName = "fetchBalance";
 
         var params = getParamsFromArgs(args);
 
-        var instance = Exchange.dynamicallyCreateInstance(exchangeName, null);
+        var isProExchange = Exchanges.ProExchanges.contains(exchangeName);
+
+        var instance = Exchange.dynamicallyCreateInstance(exchangeName,  null, isProExchange);
 
         var callExpressionString = instance.id + "." + methodName + "(" + java.util.Arrays.toString(params) + ")";
         System.out.println(callExpressionString);

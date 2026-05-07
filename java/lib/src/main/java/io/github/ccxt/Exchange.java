@@ -476,6 +476,10 @@ public class Exchange {
         return dynamicallyCreateInstance(className, args, false);
     }
 
+    public static Exchange dynamicallyCreateInstance(String className, Object args, Boolean isWs) {
+        return dynamicallyCreateInstance(className, args, isWs);
+    }
+
     private double toDoubleSafe(Object val, double defaultValue) {
         if (val == null) {
             return defaultValue;
@@ -2563,11 +2567,13 @@ public class Exchange {
 
         String EXCHANGES_PKG = "io.github.ccxt.exchanges.";
 
+        String EXCHANGES_PKG_PRO = "io.github.ccxt.exchanges.pro.";
+
         String name = className.trim();
 
         name = name.substring(0, 1).toUpperCase() + name.substring(1);
 
-        String fqcn = EXCHANGES_PKG + name;
+        String fqcn = (isWs ? EXCHANGES_PKG_PRO : EXCHANGES_PKG) + name;
 
         if (args == null) args = new HashMap<String, Object>();
 
