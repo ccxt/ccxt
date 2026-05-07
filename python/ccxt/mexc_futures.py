@@ -59,13 +59,9 @@ class mexc_futures(mexc_abs):
         return str(float(Precise.string_div(str(precise_amount), str(contract_size))))
 
     def create_swap_order(self, market, type, side, amount, price=None, marginMode=None, params={}):
-        hedged = self.safe_bool(params, 'hedged', False)
-        reduceOnly = self.safe_bool(params, 'reduceOnly', False)
-        if hedged and reduceOnly:
+        if 'hedged' in params:
             params = self.omit(params, 'hedged')
-            params = self.extend(params, {'positionMode': 1})
-        elif not hedged:
-            params = self.extend(params, {'positionMode': 2})
+        params = self.extend(params, {'positionMode': 1})
         contract_size = market.get('contractSize')
         if contract_size:
             amount = float(Precise.string_div(str(amount), str(contract_size)))
