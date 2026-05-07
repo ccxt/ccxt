@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/extended.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currencies, Currency, Dict, FundingRateHistory, Int, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 import { ArgumentsRequired, BadRequest } from './base/errors.js';
 import { DECIMAL_PLACES, NO_PADDING, TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 
@@ -81,7 +81,7 @@ export default class extended extends Exchange {
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
-                'fetchFundingHistory': false,
+                'fetchFundingHistory': true,
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
@@ -894,6 +894,112 @@ export default class extended extends Exchange {
             data[lastIndex] = this.extend (data[lastIndex], { 'cursor': cursor });
         }
         return this.parseTrades (data, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name extended#fetchFundingHistory
+     * @description fetch the funding payments history
+     * @see https://api.docs.extended.exchange/#get-funding-payments
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {FundingHistory[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     */
+    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingHistory[]> {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchFundingHistory', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100) as FundingHistory[];
+        }
+        let market = undefined;
+        const request: Dict = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.v1PrivateGetUserFundingHistory (this.extend (params, request));
+        //
+        //     {
+        //         "status": "OK",
+        //         "data": [
+        //             {
+        //                 "id": 8341,
+        //                 "accountId": 3137,
+        //                 "market": "BNB-USD",
+        //                 "positionId": 1821237954501148672,
+        //                 "side": "LONG",
+        //                 "size": "1.116",
+        //                 "value": "560.77401888",
+        //                 "markPrice": "502.48568",
+        //                 "fundingFee": "0",
+        //                 "fundingRate": "0",
+        //                 "paidTime": 1723147241346
+        //             }
+        //         ],
+        //         "pagination": {
+        //             "cursor": 8341,
+        //             "count": 1
+        //         }
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const pagination = this.safeDict (response, 'pagination', {});
+        const cursor = this.safeValue (pagination, 'cursor');
+        if ((cursor !== undefined) && (data.length > 0)) {
+            const lastIndex = data.length - 1;
+            data[lastIndex] = this.extend (data[lastIndex], { 'cursor': cursor });
+        }
+        return this.parseFundingHistories (data, market, since, limit);
+    }
+
+    parseFundingHistory (history: Dict, market: Market = undefined): FundingHistory {
+        //
+        //     {
+        //         "id": 8341,
+        //         "accountId": 3137,
+        //         "market": "BNB-USD",
+        //         "positionId": 1821237954501148672,
+        //         "side": "LONG",
+        //         "size": "1.116",
+        //         "value": "560.77401888",
+        //         "markPrice": "502.48568",
+        //         "fundingFee": "0",
+        //         "fundingRate": "0",
+        //         "paidTime": 1723147241346
+        //     }
+        //
+        const marketId = this.safeString (history, 'market');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (history, 'paidTime');
+        return {
+            'info': history,
+            'symbol': market['symbol'],
+            'code': market['settle'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': this.safeString (history, 'id'),
+            'amount': this.safeNumber (history, 'fundingFee'),
+            'rate': this.safeNumber (history, 'fundingRate'),
+        } as FundingHistory;
+    }
+
+    parseFundingHistories (histories, market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
+        const result: FundingHistory[] = [];
+        for (let i = 0; i < histories.length; i++) {
+            result.push (this.parseFundingHistory (histories[i], market));
+        }
+        const symbol = (market === undefined) ? undefined : market['symbol'];
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit) as FundingHistory[];
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {

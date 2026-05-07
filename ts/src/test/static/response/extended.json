@@ -913,6 +913,99 @@
                 ]
             }
         ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetch funding history with symbol, since and limit",
+                "method": "fetchFundingHistory",
+                "input": [
+                    "BTC/USDC:USDC",
+                    1778133600000,
+                    2
+                ],
+                "httpResponse": {
+                    "status": "OK",
+                    "data": [
+                        {
+                            "id": 3950,
+                            "accountId": 3342,
+                            "market": "BTC-USD",
+                            "positionId": "2052253880279891968",
+                            "side": "LONG",
+                            "size": "0.0001",
+                            "value": "8.135119",
+                            "markPrice": "81351.193188999997",
+                            "fundingFee": "0",
+                            "fundingRate": "0",
+                            "paidTime": 1778137201792
+                        },
+                        {
+                            "id": 3920,
+                            "accountId": 3342,
+                            "market": "BTC-USD",
+                            "positionId": "2052253880279891968",
+                            "side": "LONG",
+                            "size": "0.0001",
+                            "value": "8.100323",
+                            "markPrice": "81003.230560249998",
+                            "fundingFee": "0",
+                            "fundingRate": "0",
+                            "paidTime": 1778133601792
+                        }
+                    ],
+                    "pagination": {
+                        "cursor": 3920,
+                        "count": 2
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": 3950,
+                            "accountId": 3342,
+                            "market": "BTC-USD",
+                            "positionId": "2052253880279891968",
+                            "side": "LONG",
+                            "size": "0.0001",
+                            "value": "8.135119",
+                            "markPrice": "81351.193188999997",
+                            "fundingFee": "0",
+                            "fundingRate": "0",
+                            "paidTime": 1778137201792
+                        },
+                        "symbol": "BTC/USDC:USDC",
+                        "code": "USDC",
+                        "timestamp": 1778137201792,
+                        "datetime": "2026-05-07T07:00:01.792Z",
+                        "id": "3950",
+                        "amount": 0,
+                        "rate": 0
+                    },
+                    {
+                        "info": {
+                            "id": 3920,
+                            "accountId": 3342,
+                            "market": "BTC-USD",
+                            "positionId": "2052253880279891968",
+                            "side": "LONG",
+                            "size": "0.0001",
+                            "value": "8.100323",
+                            "markPrice": "81003.230560249998",
+                            "fundingFee": "0",
+                            "fundingRate": "0",
+                            "paidTime": 1778133601792,
+                            "cursor": 3920
+                        },
+                        "symbol": "BTC/USDC:USDC",
+                        "code": "USDC",
+                        "timestamp": 1778133601792,
+                        "datetime": "2026-05-07T06:00:01.792Z",
+                        "id": "3920",
+                        "amount": 0,
+                        "rate": 0
+                    }
+                ]
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "fetchOHLCV with until",

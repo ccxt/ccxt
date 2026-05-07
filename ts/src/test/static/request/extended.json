@@ -287,6 +287,18 @@
                 ]
             }
         ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetch funding history with symbol, since and limit",
+                "method": "fetchFundingHistory",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/funding/history?market=BTC-USD&startTime=1778133600000&limit=2",
+                "input": [
+                    "BTC/USDC:USDC",
+                    1778133600000,
+                    2
+                ]
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "fetch balance",
