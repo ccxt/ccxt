@@ -113,7 +113,7 @@ export default class extended extends Exchange {
                 'fetchOrderBooks': false,
                 'fetchOrders': true,
                 'fetchOrderTrades': false,
-                'fetchPosition': false,
+                'fetchPosition': true,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
@@ -1223,6 +1223,20 @@ export default class extended extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         return this.parsePositions (data, symbols);
+    }
+
+    /**
+     * @method
+     * @name extended#fetchPosition
+     * @description fetch data on an open position
+     * @see https://api.docs.extended.exchange/#get-positions
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPosition (symbol: string, params = {}): Promise<Position> {
+        const positions = await this.fetchPositions ([ symbol ], params);
+        return this.safeDict (positions, 0) as Position;
     }
 
     parsePosition (position: Dict, market: Market = undefined): Position {

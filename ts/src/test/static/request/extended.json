@@ -295,6 +295,16 @@
                 ]
             }
         ],
+        "fetchPosition": [
+            {
+                "description": "fetch position with symbol",
+                "method": "fetchPosition",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/positions?market=BTC-USD",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
+        ],
         "cancelOrder": [
             {
                 "description": "cancel order by id",
