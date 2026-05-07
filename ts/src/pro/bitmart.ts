@@ -83,7 +83,6 @@ export default class bitmart extends bitmartRest {
                 },
                 'ws': {
                     'inflate': true,
-                    'excludeDuplicates': true,
                 },
                 'timeframes': {
                     '1m': '1m',
@@ -163,6 +162,9 @@ export default class bitmart extends bitmartRest {
             const market = this.market (symbols[i]);
             const rawHash = channelType + '/' + channel + ':' + market['id'];
             const messageHash = prefix + unifiedName + '::' + market['symbol'];
+            if (this.subscriptionExistsForHash (url, messageHash)) {
+                continue;
+            }
             rawSubscriptions.push (rawHash);
             messageHashes.push (messageHash);
         }
@@ -175,7 +177,7 @@ export default class bitmart extends bitmartRest {
             'args': rawSubscriptions,
         };
         request[actionType] = requestOp;
-        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), rawSubscriptions);
+        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
     }
 
     /**
@@ -507,8 +509,12 @@ export default class bitmart extends bitmartRest {
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
             const rawHash = channelType + ':' + market['id'];
+            const messageHash = 'bidask::' + market['symbol'];
+            if (this.subscriptionExistsForHash (url, messageHash)) {
+                continue;
+            }
             rawSubscriptions.push (rawHash);
-            messageHashes.push ('bidask::' + market['symbol']);
+            messageHashes.push (messageHash);
         }
         if (marketType !== 'spot') {
             rawSubscriptions = [ channelType ];
@@ -517,7 +523,7 @@ export default class bitmart extends bitmartRest {
             'args': rawSubscriptions,
         };
         request[actionType] = 'subscribe';
-        const newTickers = await this.watchMultiple (url, messageHashes, request, rawSubscriptions);
+        const newTickers = await this.watchMultiple (url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
             const tickers: Dict = {};
             tickers[newTickers['symbol']] = newTickers;
@@ -2042,6 +2048,11 @@ export default class bitmart extends bitmartRest {
             'futures': 'swap',
         };
         return this.safeString (types, marketType, marketType);
+    }
+
+    subscriptionExistsForHash (url: string, hash: string) {
+        const client = this.client (url);
+        return (hash in client.subscriptions);
     }
 
     handleMessage (client: Client, message) {
