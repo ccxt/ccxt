@@ -784,6 +784,135 @@
                 ]
             }
         ],
+        "fetchMyTrades": [
+            {
+                "description": "fetch my trades with symbol and limit",
+                "method": "fetchMyTrades",
+                "input": [
+                    "BTC/USDC:USDC",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "status": "OK",
+                    "data": [
+                        {
+                            "id": "2052253880279891969",
+                            "orderId": "2052253880279891968",
+                            "externalId": "client-order-1",
+                            "accountId": "3342",
+                            "market": "BTC-USD",
+                            "side": "BUY",
+                            "price": "81000",
+                            "qty": "0.00010",
+                            "value": "8.1",
+                            "fee": "0.00405",
+                            "tradeType": "TRADE",
+                            "isTaker": true,
+                            "createdTime": 1778131656790
+                        },
+                        {
+                            "id": "2052253880279891970",
+                            "orderId": "2052253880279891968",
+                            "externalId": "client-order-1",
+                            "accountId": "3342",
+                            "market": "BTC-USD",
+                            "side": "SELL",
+                            "price": "81500",
+                            "qty": "0.00020",
+                            "value": "16.3",
+                            "fee": "0.00326",
+                            "tradeType": "TRADE",
+                            "isTaker": false,
+                            "createdTime": 1778131657000
+                        }
+                    ],
+                    "pagination": {
+                        "cursor": "2052253880279891970",
+                        "count": 2
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "2052253880279891969",
+                        "info": {
+                            "id": "2052253880279891969",
+                            "orderId": "2052253880279891968",
+                            "externalId": "client-order-1",
+                            "accountId": "3342",
+                            "market": "BTC-USD",
+                            "side": "BUY",
+                            "price": "81000",
+                            "qty": "0.00010",
+                            "value": "8.1",
+                            "fee": "0.00405",
+                            "tradeType": "TRADE",
+                            "isTaker": true,
+                            "createdTime": 1778131656790
+                        },
+                        "timestamp": 1778131656790,
+                        "datetime": "2026-05-07T05:27:36.790Z",
+                        "symbol": "BTC/USDC:USDC",
+                        "order": "2052253880279891968",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 81000,
+                        "amount": 0.0001,
+                        "cost": 8.1,
+                        "fee": {
+                            "cost": 0.00405,
+                            "currency": "USDC"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.00405,
+                                "currency": "USDC"
+                            }
+                        ]
+                    },
+                    {
+                        "id": "2052253880279891970",
+                        "info": {
+                            "id": "2052253880279891970",
+                            "orderId": "2052253880279891968",
+                            "externalId": "client-order-1",
+                            "accountId": "3342",
+                            "market": "BTC-USD",
+                            "side": "SELL",
+                            "price": "81500",
+                            "qty": "0.00020",
+                            "value": "16.3",
+                            "fee": "0.00326",
+                            "tradeType": "TRADE",
+                            "isTaker": false,
+                            "createdTime": 1778131657000,
+                            "cursor": "2052253880279891970"
+                        },
+                        "timestamp": 1778131657000,
+                        "datetime": "2026-05-07T05:27:37.000Z",
+                        "symbol": "BTC/USDC:USDC",
+                        "order": "2052253880279891968",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "maker",
+                        "price": 81500,
+                        "amount": 0.0002,
+                        "cost": 16.3,
+                        "fee": {
+                            "cost": 0.00326,
+                            "currency": "USDC"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.00326,
+                                "currency": "USDC"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "fetchOHLCV with until",

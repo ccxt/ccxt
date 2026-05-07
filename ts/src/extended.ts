@@ -103,7 +103,7 @@ export default class extended extends Exchange {
                 'fetchMarkOHLCV': true,
                 'fetchMarkPrice': false,
                 'fetchMyLiquidations': false,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': true,
@@ -831,7 +831,74 @@ export default class extended extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name extended#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://api.docs.extended.exchange/#get-trades
+     * @param {string} [symbol] unified market symbol of the trades
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100) as Trade[];
+        }
+        let market = undefined;
+        const request: Dict = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.v1PrivateGetUserTrades (this.extend (params, request));
+        //
+        //     {
+        //         "status": "OK",
+        //         "data": [
+        //             {
+        //                 "id": 1,
+        //                 "orderId": 1784980437895231232,
+        //                 "externalId": "ExtId-1",
+        //                 "accountId": 1,
+        //                 "market": "BTC-USD",
+        //                 "side": "BUY",
+        //                 "price": "39000",
+        //                 "qty": "0.2",
+        //                 "value": "7800",
+        //                 "fee": "1.3",
+        //                 "tradeType": "TRADE",
+        //                 "isTaker": true,
+        //                 "createdTime": 1701563440000
+        //             }
+        //         ],
+        //         "pagination": {
+        //             "cursor": 1784963886257016832,
+        //             "count": 1
+        //         }
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const pagination = this.safeDict (response, 'pagination', {});
+        const cursor = this.safeValue (pagination, 'cursor');
+        if ((cursor !== undefined) && (data.length > 0)) {
+            const lastIndex = data.length - 1;
+            data[lastIndex] = this.extend (data[lastIndex], { 'cursor': cursor });
+        }
+        return this.parseTrades (data, market, since, limit);
+    }
+
     parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        // fetchTrades
         //
         //     {
         //       "i": 2.049676905958871e+18,
@@ -843,27 +910,55 @@ export default class extended extends Exchange {
         //       "q": "0.00165"
         //     }
         //
-        const marketId = this.safeString (trade, 'm');
+        // fetchMyTrades
+        //
+        //     {
+        //         "id": 1,
+        //         "orderId": 1784980437895231232,
+        //         "externalId": "ExtId-1",
+        //         "accountId": 1,
+        //         "market": "BTC-USD",
+        //         "side": "BUY",
+        //         "price": "39000",
+        //         "qty": "0.2",
+        //         "value": "7800",
+        //         "fee": "1.3",
+        //         "tradeType": "TRADE",
+        //         "isTaker": true,
+        //         "createdTime": 1701563440000
+        //     }
+        //
+        const marketId = this.safeString2 (trade, 'm', 'market');
         market = this.safeMarket (marketId, market);
-        const timestamp = this.safeInteger (trade, 'T');
-        const priceString = this.safeString (trade, 'p');
-        const amountString = this.safeString (trade, 'q');
-        const sideRaw = this.safeString (trade, 'S');
+        const timestamp = this.safeInteger2 (trade, 'T', 'createdTime');
+        const priceString = this.safeString2 (trade, 'p', 'price');
+        const amountString = this.safeString2 (trade, 'q', 'qty');
+        const sideRaw = this.safeString2 (trade, 'S', 'side');
         const side = (sideRaw !== undefined) ? sideRaw.toLowerCase () : undefined;
+        const feeCost = this.safeString (trade, 'fee');
+        const fee = (feeCost === undefined) ? undefined : {
+            'cost': feeCost,
+            'currency': (market === undefined) ? undefined : market['settle'],
+        };
+        const isTaker = this.safeBool (trade, 'isTaker');
+        let takerOrMaker = undefined;
+        if (isTaker !== undefined) {
+            takerOrMaker = isTaker ? 'taker' : 'maker';
+        }
         return this.safeTrade ({
-            'id': this.safeString (trade, 'i'),
+            'id': this.safeString2 (trade, 'i', 'id'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'order': undefined,
+            'order': this.safeString (trade, 'orderId'),
             'type': undefined,
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': priceString,
             'amount': amountString,
-            'cost': undefined,
-            'fee': undefined,
+            'cost': this.safeString (trade, 'value'),
+            'fee': fee,
         }, market);
     }
 

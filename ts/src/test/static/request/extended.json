@@ -275,6 +275,18 @@
                 ]
             }
         ],
+        "fetchMyTrades": [
+            {
+                "description": "fetch my trades with symbol and limit",
+                "method": "fetchMyTrades",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/trades?market=BTC-USD&limit=2",
+                "input": [
+                    "BTC/USDC:USDC",
+                    null,
+                    2
+                ]
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "fetch balance",
