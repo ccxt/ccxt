@@ -12,10 +12,10 @@ use React\Promise;
 
 function test_proxies($exchange, $skipped_properties) {
     return Async\async(function () use ($exchange, $skipped_properties) {
-        Async\await(test_proxy_url($exchange, $skipped_properties));
-        Async\await(test_http_proxy($exchange, $skipped_properties));
+        \React\Async\await(test_proxy_url($exchange, $skipped_properties));
+        \React\Async\await(test_http_proxy($exchange, $skipped_properties));
         // 'httpsProxy', 'socksProxy'
-        Async\await(test_proxy_for_exceptions($exchange, $skipped_properties));
+        \React\Async\await(test_proxy_for_exceptions($exchange, $skipped_properties));
     }) ();
 }
 
@@ -29,7 +29,7 @@ function test_proxy_url($exchange, $skipped_properties) {
         $encoded_colon = '%3A';
         $encoded_slash = '%2F';
         $ip_check_url = 'https' . $encoded_colon . $encoded_slash . $encoded_slash . 'api.ipify.org';
-        $response = Async\await($exchange->fetch($ip_check_url));
+        $response = \React\Async\await($exchange->fetch($ip_check_url));
         assert($response === $proxy_server_ip, $exchange->id . ' ' . $method . ' test failed. Returned response is ' . $response . ' while it should be "' . $proxy_server_ip . '"');
         // reset the instance property
         set_proxy_options($exchange, $skipped_properties, $proxy_url, $http_proxy, $https_proxy, $socks_proxy);
@@ -45,7 +45,7 @@ function test_http_proxy($exchange, $skipped_properties) {
         [$proxy_url, $http_proxy, $https_proxy, $socks_proxy] = remove_proxy_options($exchange, $skipped_properties);
         $exchange->http_proxy = 'http://' . $proxy_server_ip . ':8911';
         $ip_check_url = 'https://api.ipify.org/';
-        $response = Async\await($exchange->fetch($ip_check_url));
+        $response = \React\Async\await($exchange->fetch($ip_check_url));
         assert($response === $proxy_server_ip, $exchange->id . ' ' . $method . ' test failed. Returned response is ' . $response . ' while it should be "' . $proxy_server_ip . '"');
         // reset the instance property
         set_proxy_options($exchange, $skipped_properties, $proxy_url, $http_proxy, $https_proxy, $socks_proxy);
@@ -68,7 +68,7 @@ function test_proxy_for_exceptions($exchange, $skipped_properties) {
                     $exchange->set_property($exchange, $proxy_second, '0.0.0.0'); // actual value does not matter
                     $exception_caught = false;
                     try {
-                        Async\await($exchange->fetch('http://example.com')); // url does not matter, it will not be called
+                        \React\Async\await($exchange->fetch('http://example.com')); // url does not matter, it will not be called
                     } catch(\Throwable $e) {
                         $exception_caught = true;
                     }

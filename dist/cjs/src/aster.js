@@ -6,7 +6,6 @@ var aster$1 = require('./abstract/aster.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var crypto = require('./base/functions/crypto.js');
 var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
 var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
@@ -188,169 +187,217 @@ class aster extends aster$1["default"] {
                 'setMargin': false,
                 'setMarginMode': true,
                 'setPositionMode': true,
-                'signIn': false,
+                'signIn': true,
                 'transfer': true,
                 'withdraw': true,
             },
             'api': {
                 'fapiPublic': {
-                    'get': [
-                        'v1/ping',
-                        'v3/ping',
-                        'v1/time',
-                        'v3/time',
-                        'v1/exchangeInfo',
-                        'v3/exchangeInfo',
-                        'v1/depth',
-                        'v3/depth',
-                        'v1/trades',
-                        'v3/trades',
-                        'v1/historicalTrades',
-                        'v3/historicalTrades',
-                        'v1/aggTrades',
-                        'v3/aggTrades',
-                        'v1/klines',
-                        'v3/klines',
-                        'v1/indexPriceKlines',
-                        'v3/indexPriceKlines',
-                        'v1/markPriceKlines',
-                        'v3/markPriceKlines',
-                        'v1/premiumIndex',
-                        'v3/premiumIndex',
-                        'v1/fundingRate',
-                        'v3/fundingRate',
-                        'v1/fundingInfo',
-                        'v3/fundingInfo',
-                        'v1/ticker/24hr',
-                        'v3/ticker/24hr',
-                        'v1/ticker/price',
-                        'v3/ticker/price',
-                        'v1/ticker/bookTicker',
-                        'v3/ticker/bookTicker',
-                        'v3/indexreferences',
-                        'v1/adlQuantile',
-                        'v1/forceOrders',
-                    ],
+                    'get': {
+                        'v1/ping': 1,
+                        'v3/ping': 1,
+                        'v1/time': 1,
+                        'v3/time': 1,
+                        'v1/exchangeInfo': 1,
+                        'v3/exchangeInfo': 1,
+                        'v1/depth': 1,
+                        'v3/depth': 2,
+                        'v1/trades': 1,
+                        'v3/trades': 1,
+                        'v1/historicalTrades': 1,
+                        'v3/historicalTrades': 20,
+                        'v1/aggTrades': 1,
+                        'v3/aggTrades': 20,
+                        'v1/klines': 1,
+                        'v3/klines': 1,
+                        'v1/indexPriceKlines': 1,
+                        'v3/indexPriceKlines': 1,
+                        'v1/markPriceKlines': 1,
+                        'v3/markPriceKlines': 1,
+                        'v1/premiumIndex': 1,
+                        'v3/premiumIndex': 1,
+                        'v1/fundingRate': 1,
+                        'v3/fundingRate': 1,
+                        'v1/fundingInfo': 1,
+                        'v3/fundingInfo': 1,
+                        'v1/ticker/24hr': 1,
+                        'v3/ticker/24hr': 1,
+                        'v1/ticker/price': 1,
+                        'v3/ticker/price': 1,
+                        'v1/ticker/bookTicker': 1,
+                        'v3/ticker/bookTicker': 1,
+                        // different endpoints
+                        'v1/adlQuantile': 1,
+                        'v1/forceOrders': 1,
+                        'v3/indexreferences': 1,
+                    },
                 },
                 'fapiPrivate': {
-                    'get': [
-                        'v1/positionSide/dual',
-                        'v3/positionSide/dual',
-                        'v1/multiAssetsMargin',
-                        'v3/multiAssetsMargin',
-                        'v1/order',
-                        'v3/order',
-                        'v1/openOrder',
-                        'v3/openOrder',
-                        'v1/openOrders',
-                        'v3/openOrders',
-                        'v1/allOrders',
-                        'v3/allOrders',
-                        'v2/balance',
-                        'v3/balance',
-                        'v3/account',
-                        'v3/accountWithJoinMargin',
-                        'v4/account',
-                        'v1/positionMargin/history',
-                        'v3/positionMargin/history',
-                        'v2/positionRisk',
-                        'v3/positionRisk',
-                        'v1/userTrades',
-                        'v3/userTrades',
-                        'v1/income',
-                        'v3/income',
-                        'v1/leverageBracket',
-                        'v3/leverageBracket',
-                        'v3/adlQuantile',
-                        'v3/forceOrders',
-                        'v1/commissionRate',
-                        'v3/commissionRate',
-                        'v3/mmp',
-                    ],
-                    'post': [
-                        'v3/noop',
-                        'v1/positionSide/dual',
-                        'v3/positionSide/dual',
-                        'v1/multiAssetsMargin',
-                        'v3/multiAssetsMargin',
-                        'v1/order',
-                        'v3/order',
-                        'v1/order/test',
-                        'v3/order/test',
-                        'v1/batchOrders',
-                        'v3/batchOrders',
-                        'v1/asset/wallet/transfer',
-                        'v3/asset/wallet/transfer',
-                        'v1/countdownCancelAll',
-                        'v3/countdownCancelAll',
-                        'v1/leverage',
-                        'v3/leverage',
-                        'v1/marginType',
-                        'v3/marginType',
-                        'v1/positionMargin',
-                        'v3/positionMargin',
-                        'v3/mmp',
-                        'v3/mmpReset',
-                        'v1/listenKey',
-                        'v3/listenKey',
-                    ],
-                    'put': [
-                        'v1/listenKey',
-                        'v3/listenKey',
-                    ],
-                    'delete': [
-                        'v1/order',
-                        'v3/order',
-                        'v1/allOpenOrders',
-                        'v3/allOpenOrders',
-                        'v1/batchOrders',
-                        'v3/batchOrders',
-                        'v3/mmp',
-                        'v1/listenKey',
-                        'v3/listenKey',
-                    ],
+                    'get': {
+                        'v1/positionSide/dual': 1,
+                        'v3/positionSide/dual': 30,
+                        'v1/multiAssetsMargin': 1,
+                        'v3/multiAssetsMargin': 1,
+                        'v1/order': 1,
+                        'v3/order': 1,
+                        'v1/openOrder': 1,
+                        'v3/openOrder': 1,
+                        'v1/openOrders': 1,
+                        'v3/openOrders': 1,
+                        'v1/allOrders': 1,
+                        'v3/allOrders': 1,
+                        'v2/balance': 1,
+                        'v3/balance': 1,
+                        'v3/account': 1,
+                        'v1/positionMargin/history': 1,
+                        'v3/positionMargin/history': 1,
+                        'v2/positionRisk': 1,
+                        'v3/positionRisk': 1,
+                        'v1/userTrades': 1,
+                        'v3/userTrades': 5,
+                        'v1/income': 1,
+                        'v3/income': 1,
+                        'v1/leverageBracket': 1,
+                        'v3/leverageBracket': 1,
+                        'v1/commissionRate': 1,
+                        'v3/commissionRate': 1,
+                        // others
+                        'v3/adlQuantile': 1,
+                        'v3/forceOrders': 1,
+                        'v3/mmp': 1,
+                        'v3/accountWithJoinMargin': 1,
+                        'v4/account': 1,
+                        // builder
+                        'v3/agent': 1,
+                        'v3/builder': 1,
+                    },
+                    'post': {
+                        'v1/positionSide/dual': 1,
+                        'v3/positionSide/dual': 1,
+                        'v1/multiAssetsMargin': 1,
+                        'v3/multiAssetsMargin': 1,
+                        'v1/order': 1,
+                        'v3/order': 1,
+                        'v1/order/test': 1,
+                        'v3/order/test': 1,
+                        'v1/batchOrders': 1,
+                        'v3/batchOrders': 1,
+                        'v1/asset/wallet/transfer': 1,
+                        'v3/asset/wallet/transfer': 1,
+                        'v1/countdownCancelAll': 1,
+                        'v3/countdownCancelAll': 1,
+                        'v1/leverage': 1,
+                        'v3/leverage': 1,
+                        'v1/marginType': 1,
+                        'v3/marginType': 1,
+                        'v1/positionMargin': 1,
+                        'v3/positionMargin': 1,
+                        'v1/listenKey': 1,
+                        'v3/listenKey': 1,
+                        // others
+                        'v3/mmp': 1,
+                        'v3/mmpReset': 1,
+                        'v3/noop': 1,
+                        // builder
+                        'v3/approveAgent': 1,
+                        'v3/updateAgent': 1,
+                        'v3/approveBuilder': 1,
+                        'v3/updateBuilder': 1,
+                    },
+                    'put': {
+                        'v1/listenKey': 1,
+                        'v3/listenKey': 1,
+                    },
+                    'delete': {
+                        'v1/order': 1,
+                        'v3/order': 1,
+                        'v1/allOpenOrders': 1,
+                        'v3/allOpenOrders': 1,
+                        'v1/batchOrders': 1,
+                        'v3/batchOrders': 1,
+                        'v3/mmp': 1,
+                        'v1/listenKey': 1,
+                        'v3/listenKey': 1,
+                        // builder
+                        'v3/agent': 1,
+                        'v3/builder': 1,
+                    },
                 },
                 'sapiPublic': {
-                    'get': [
-                        'v1/ping',
-                        'v1/time',
-                        'v1/exchangeInfo',
-                        'v1/depth',
-                        'v1/trades',
-                        'v1/historicalTrades',
-                        'v1/aggTrades',
-                        'v1/klines',
-                        'v1/ticker/24hr',
-                        'v1/ticker/price',
-                        'v1/ticker/bookTicker',
-                        'v1/aster/withdraw/estimateFee',
-                    ],
+                    'get': {
+                        // v1
+                        'v1/ping': 1,
+                        'v1/time': 1,
+                        'v1/exchangeInfo': 1,
+                        'v1/depth': 1,
+                        'v1/trades': 1,
+                        'v1/historicalTrades': 1,
+                        'v1/aggTrades': 1,
+                        'v1/klines': 1,
+                        'v1/ticker/24hr': 1,
+                        'v1/ticker/price': 1,
+                        'v1/ticker/bookTicker': 1,
+                        'v1/aster/withdraw/estimateFee': 1,
+                        // v3
+                        'v3/ping': 1,
+                        'v3/time': 1,
+                        'v3/exchangeInfo': 1,
+                        'v3/depth': { 'cost': 2, 'byLimit': [[50, 2], [100, 5], [500, 10], [1000, 20]] },
+                        'v3/trades': 1,
+                        'v3/historicalTrades': 20,
+                        'v3/aggTrades': 20,
+                        'v3/klines': { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] },
+                        'v3/ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
+                        'v3/ticker/price': { 'cost': 1, 'noSymbol': 2 },
+                        'v3/ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
+                        'v3/aster/withdraw/estimateFee': 1,
+                    },
                 },
                 'sapiPrivate': {
-                    'get': [
-                        'v1/commissionRate',
-                        'v1/order',
-                        'v1/openOrders',
-                        'v1/allOrders',
-                        'v1/transactionHistory',
-                        'v1/account',
-                        'v1/userTrades',
-                    ],
-                    'post': [
-                        'v1/order',
-                        'v1/asset/wallet/transfer',
-                        'v1/asset/sendToAddress',
-                        'v1/aster/user-withdraw',
-                        'v1/listenKey',
-                    ],
+                    'get': {
+                        // v1
+                        'v1/commissionRate': 1,
+                        'v1/order': 1,
+                        'v1/openOrders': 1,
+                        'v1/allOrders': 1,
+                        'v1/transactionHistory': 1,
+                        'v1/account': 1,
+                        'v1/userTrades': 1,
+                        // v3
+                        'v3/commissionRate': { 'cost': 1, 'noSymbol': 2 },
+                        'v3/order': 1,
+                        'v3/openOrders': 1,
+                        'v3/allOrders': 5,
+                        'v3/account': 5,
+                        'v3/userTrades': 5,
+                        'v3/openOrder': 1,
+                    },
+                    'post': {
+                        // v1
+                        'v1/order': 1,
+                        'v1/asset/wallet/transfer': 5,
+                        'v1/asset/sendToAddress': 1,
+                        'v1/listenKey': 1,
+                        // v3
+                        'v3/order': 1,
+                        'v3/asset/wallet/transfer': 5,
+                        'v3/aster/user-withdraw': 1,
+                        'v3/listenKey': 1,
+                    },
                     'put': [
                         'v1/listenKey',
+                        'v3/listenKey',
                     ],
-                    'delete': [
-                        'v1/order',
-                        'v1/allOpenOrders',
-                        'v1/listenKey',
-                    ],
+                    'delete': {
+                        // v1
+                        'v1/order': 1,
+                        'v1/allOpenOrders': 1,
+                        'v1/listenKey': 1,
+                        // v3
+                        'v3/allOpenOrders': 1,
+                        'v3/order': 1,
+                        'v3/listenKey': 1,
+                    },
                 },
             },
             'timeframes': {
@@ -372,8 +419,9 @@ class aster extends aster$1["default"] {
             },
             'precisionMode': number.TICK_SIZE,
             'requiredCredentials': {
-                'apiKey': true,
-                'secret': true,
+                'apiKey': false,
+                'secret': false,
+                'privateKey': true,
             },
             'fees': {
                 'trading': {
@@ -388,28 +436,35 @@ class aster extends aster$1["default"] {
                 'recvWindow': 10 * 1000,
                 'defaultTimeInForce': 'GTC',
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
+                'v3ChainId': 1666,
                 'quoteOrderQty': true,
                 'accountsByType': {
                     'spot': 'SPOT',
+                    'swap': 'FUTURE',
                     'future': 'FUTURE',
                     'linear': 'FUTURE',
-                    'swap': 'FUTURE',
                 },
                 'networks': {
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
-                    'ARB': 'Arbitrum',
+                    'ARBONE': 'Arbitrum',
                 },
                 'networksToChainId': {
                     'ETH': 1,
                     'BSC': 56,
                     'Arbitrum': 42161,
                 },
+                'fetchOpenOrders': {
+                    'warnIfNoSymbol': true, // set to false to suppress warning when calling fetchOpenOrders without symbol
+                },
+                'builderFee': true,
+                'builder': '0x1F5877C19e3777Cfd15F9d57253eA4aA5254Ec39',
+                'builderRate': '0.001',
             },
             'exceptions': {
                 'exact': {
                     // 10xx - General Server or Network issues
-                    '-1000': errors.OperationFailed,
+                    '-1000': errors.OperationRejected,
                     '-1001': errors.NetworkError,
                     '-1002': errors.AuthenticationError,
                     '-1003': errors.RateLimitExceeded,
@@ -417,7 +472,7 @@ class aster extends aster$1["default"] {
                     '-1005': errors.BadRequest,
                     '-1006': errors.BadResponse,
                     '-1007': errors.RequestTimeout,
-                    '-1010': errors.OperationFailed,
+                    '-1010': errors.OperationRejected,
                     '-1011': errors.PermissionDenied,
                     '-1013': errors.BadRequest,
                     '-1014': errors.OrderNotFillable,
@@ -571,7 +626,9 @@ class aster extends aster$1["default"] {
                     '-4183': errors.InvalidOrder,
                     '-4184': errors.InvalidOrder,
                     '-5060': errors.OperationRejected,
-                    '-5076': errors.OperationRejected, // {"code":-5076,"msg":"Total order value should be more than 5 USDT"}
+                    '-5076': errors.OperationRejected,
+                    // occured errors:
+                    '-4168': errors.OperationRejected, // Unable to adjust to isolated-margin mode under the Multi-Assets mode.
                 },
                 'broad': {},
             },
@@ -597,15 +654,15 @@ class aster extends aster$1["default"] {
      * @method
      * @name aster#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#trading-specification-information
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#exchange-information
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#trading-specification-information
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#exchange-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies(params = {}) {
         const promises = [
-            this.sapiPublicGetV1ExchangeInfo(params),
-            this.fapiPublicGetV1ExchangeInfo(params),
+            this.sapiPublicGetV3ExchangeInfo(params),
+            this.fapiPublicGetV3ExchangeInfo(params),
         ];
         const results = await Promise.all(promises);
         const sapiResult = this.safeDict(results, 0, {});
@@ -617,8 +674,8 @@ class aster extends aster$1["default"] {
         //     [
         //         {
         //             "asset": "USDT",
-        //             "marginAvailable": true,
-        //             "autoAssetExchange": "-10000"
+        //             "marginAvailable": true,           // only in PERP
+        //             "autoAssetExchange": "-10000"      // only in PERP
         //         }
         //     ]
         //
@@ -661,263 +718,267 @@ class aster extends aster$1["default"] {
      * @method
      * @name aster#fetchMarkets
      * @description retrieves data on all markets for bigone
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#trading-specification-information
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#exchange-information
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#trading-specification-information
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#exchange-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
         const promises = [
-            this.sapiPublicGetV1ExchangeInfo(params),
-            this.fapiPublicGetV1ExchangeInfo(params),
+            this.sapiPublicGetV3ExchangeInfo(params),
+            this.fapiPublicGetV3ExchangeInfo(params),
         ];
+        promises.push(this.signIn());
         const results = await Promise.all(promises);
         const sapiResult = this.safeDict(results, 0, {});
         const sapiRows = this.safeList(sapiResult, 'symbols', []);
         const fapiResult = this.safeDict(results, 1, {});
         const fapiRows = this.safeList(fapiResult, 'symbols', []);
-        const rows = this.arrayConcat(sapiRows, fapiRows);
+        //
+        // example:
         //
         //     [
-        //         {
-        //             "symbol": "BTCUSDT",
-        //             "pair": "BTCUSDT",
-        //             "contractType": "PERPETUAL",
-        //             "deliveryDate": 4133404800000,
-        //             "onboardDate": 1627628400000,
-        //             "status": "TRADING",
-        //             "maintMarginPercent": "2.5000",
-        //             "requiredMarginPercent": "5.0000",
-        //             "baseAsset": "BTC",
-        //             "quoteAsset": "USDT",
-        //             "marginAsset": "USDT",
-        //             "pricePrecision": 1,
-        //             "quantityPrecision": 3,
-        //             "baseAssetPrecision": 8,
-        //             "quotePrecision": 8,
-        //             "underlyingType": "COIN",
-        //             "underlyingSubType": [],
-        //             "settlePlan": 0,
-        //             "triggerProtect": "0.0200",
-        //             "liquidationFee": "0.025000",
-        //             "marketTakeBound": "0.02",
-        //             "filters": [
-        //                 {
-        //                     "minPrice": "1",
-        //                     "maxPrice": "1000000",
-        //                     "filterType": "PRICE_FILTER",
-        //                     "tickSize": "0.1"
-        //                 },
-        //                 {
-        //                     "stepSize": "0.001",
-        //                     "filterType": "LOT_SIZE",
-        //                     "maxQty": "100",
-        //                     "minQty": "0.001"
-        //                 },
-        //                 {
-        //                     "stepSize": "0.001",
-        //                     "filterType": "MARKET_LOT_SIZE",
-        //                     "maxQty": "10",
-        //                     "minQty": "0.001"
-        //                 },
-        //                 {
-        //                     "limit": 200,
-        //                     "filterType": "MAX_NUM_ORDERS"
-        //                 },
-        //                 {
-        //                     "limit": 10,
-        //                     "filterType": "MAX_NUM_ALGO_ORDERS"
-        //                 },
-        //                 {
-        //                     "notional": "5",
-        //                     "filterType": "MIN_NOTIONAL"
-        //                 },
-        //                 {
-        //                     "multiplierDown": "0.9800",
-        //                     "multiplierUp": "1.0200",
-        //                     "multiplierDecimal": "4",
-        //                     "filterType": "PERCENT_PRICE"
-        //                 }
-        //             ],
-        //             "orderTypes": [
-        //                 "LIMIT",
-        //                 "MARKET",
-        //                 "STOP",
-        //                 "STOP_MARKET",
-        //                 "TAKE_PROFIT",
-        //                 "TAKE_PROFIT_MARKET",
-        //                 "TRAILING_STOP_MARKET"
-        //             ],
-        //             "timeInForce": [
-        //                 "GTC",
-        //                 "IOC",
-        //                 "FOK",
-        //                 "GTX",
-        //                 "RPI"
-        //             ]
-        //         }
+        //       {
+        //         symbol: "TESTUSDT",
+        //         status: "TRADING",
+        //         baseAsset: "TEST",
+        //         quoteAsset: "USDT",
+        //         pricePrecision: "2",
+        //         quantityPrecision: "5",
+        //         baseAssetPrecision: "8",
+        //         quotePrecision: "8",
+        //         listingTime: "1756289680210",      // only in SPOT
+        //         baseAssetAddress: null,            // only in SPOT
+        //         ocoAllowed: false,                 // only in SPOT
+        //         pair: "ASTERUSDT",                 // only in PERP
+        //         contractType: "PERPETUAL",         // only in PERP
+        //         deliveryDate: "4133404800000",     // only in PERP
+        //         onboardDate: "1758178800000",      // only in PERP
+        //         maintMarginPercent: "12.5000",     // only in PERP
+        //         requiredMarginPercent: "25.0000",  // only in PERP
+        //         marginAsset: "USDT",               // only in PERP
+        //         underlyingType: "COIN",            // only in PERP
+        //         underlyingSubType: [ "Top", ],     // only in PERP
+        //         symbolType: "0",                   // only in PERP
+        //         tradingMode: "0",                  // only in PERP
+        //         name: "",                          // only in PERP
+        //         channel: "{}",                     // only in PERP
+        //         sequenceNo: "100",                 // only in PERP
+        //         twapMinNotional: "1000",           // only in PERP
+        //         imn: "4000.00",                    // only in PERP
+        //         tags: [],                          // only in PERP
+        //         settlePlan: "0",                   // only in PERP
+        //         triggerProtect: "0.1500",          // only in PERP
+        //         liquidationFee: "0.025000",        // only in PERP
+        //         marketTakeBound: "0.05",           // only in PERP
+        //         createTime: "1758215451058",       // only in PERP
+        //         filters: [
+        //           {
+        //             minPrice: "0.01",
+        //             maxPrice: "1000000",
+        //             filterType: "PRICE_FILTER",
+        //             tickSize: "0.01",
+        //           },
+        //           {
+        //             stepSize: "0.00001",
+        //             filterType: "LOT_SIZE",
+        //             maxQty: "9000",
+        //             minQty: "0.00001",
+        //           },
+        //           {
+        //             stepSize: "0.00001",
+        //             filterType: "MARKET_LOT_SIZE",
+        //             maxQty: "9000",
+        //             minQty: "0.00001",
+        //           },
+        //           {
+        //             limit: "200",
+        //             filterType: "MAX_NUM_ORDERS",
+        //           },
+        //           {
+        //             minNotional: "5",
+        //             filterType: "MIN_NOTIONAL",
+        //           },
+        //           {
+        //             minNotional: "5",
+        //             avgPriceMins: "5",
+        //             applyMinToMarket: true,
+        //             filterType: "NOTIONAL",            // only in SPOT
+        //             applyMaxToMarket: true,
+        //           },
+        //           {
+        //             multiplierDown: "0.2",
+        //             multiplierUp: "5",
+        //             multiplierDecimal: "1",
+        //             filterType: "PERCENT_PRICE",
+        //           },
+        //           {
+        //             bidMultiplierUp: "5",
+        //             askMultiplierUp: "5",
+        //             bidMultiplierDown: "0.2",
+        //             avgPriceMins: "5",
+        //             multiplierDecimal: "1",
+        //             filterType: "PERCENT_PRICE_BY_SIDE",  // only in SPOT
+        //             askMultiplierDown: "0.2",
+        //           },
+        //         ],
+        //         orderTypes: [ "LIMIT", "MARKET", "STOP", "STOP_MARKET", "TAKE_PROFIT", "TAKE_PROFIT_MARKET", "TRAILING_STOP_MARKET", ],
+        //         timeInForce: [ "GTC", "IOC", "FOK", "GTX", "HIDDEN", ],
+        //       }
         //     ]
         //
-        const fees = this.fees;
-        const result = [];
-        for (let i = 0; i < rows.length; i++) {
-            let swap = false;
-            const market = rows[i];
-            const id = this.safeString(market, 'symbol');
-            const baseId = this.safeString(market, 'baseAsset');
-            const quoteId = this.safeString(market, 'quoteAsset');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const contractType = this.safeString(market, 'contractType');
-            const contract = contractType !== undefined;
-            let spot = true;
-            if (contractType === 'PERPETUAL') {
-                swap = true;
-                spot = false;
-            }
-            let contractSize = undefined;
-            let linear = undefined;
-            let inverse = undefined;
-            let symbol = base + '/' + quote;
-            let settle = undefined;
-            let settleId = undefined;
-            if (contract) {
-                settleId = this.safeString(market, 'marginAsset');
-                settle = this.safeCurrencyCode(settleId);
-                if (swap) {
-                    symbol = symbol + ':' + settle;
-                }
-                linear = settle === quote;
-                inverse = settle === base;
-                contractSize = this.safeNumber2(market, 'contractSize', 'unit', this.parseNumber('1'));
-            }
-            let unifiedType = undefined;
-            if (spot) {
-                unifiedType = 'spot';
-            }
-            else if (swap) {
-                unifiedType = 'swap';
-            }
-            const status = this.safeString(market, 'status');
-            const active = status === 'TRADING';
-            const filters = this.safeList(market, 'filters', []);
-            const filtersByType = this.indexBy(filters, 'filterType');
-            const entry = this.safeMarketStructure({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': unifiedType,
-                'spot': spot,
-                'margin': false,
-                'swap': swap,
-                'future': false,
-                'option': false,
-                'active': active,
-                'contract': contract,
-                'linear': linear,
-                'inverse': inverse,
-                'taker': fees['trading']['taker'],
-                'maker': fees['trading']['maker'],
-                'contractSize': contractSize,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityPrecision'))),
-                    'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'pricePrecision'))),
-                    'base': this.parseNumber(this.parsePrecision(this.safeString(market, 'baseAssetPrecision'))),
-                    'quote': this.parseNumber(this.parsePrecision(this.safeString(market, 'quotePrecision'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': this.safeInteger(market, 'onboardDate'),
-                'info': market,
-            });
-            if ('PRICE_FILTER' in filtersByType) {
-                const filter = this.safeDict(filtersByType, 'PRICE_FILTER', {});
-                entry['limits']['price'] = {
-                    'min': this.safeNumber(filter, 'minPrice'),
-                    'max': this.safeNumber(filter, 'maxPrice'),
-                };
-                entry['precision']['price'] = this.safeNumber(filter, 'tickSize');
-            }
-            if ('LOT_SIZE' in filtersByType) {
-                const filter = this.safeDict(filtersByType, 'LOT_SIZE', {});
-                entry['precision']['amount'] = this.safeNumber(filter, 'stepSize');
-                entry['limits']['amount'] = {
-                    'min': this.safeNumber(filter, 'minQty'),
-                    'max': this.safeNumber(filter, 'maxQty'),
-                };
-            }
-            if ('MARKET_LOT_SIZE' in filtersByType) {
-                const filter = this.safeDict(filtersByType, 'MARKET_LOT_SIZE', {});
-                entry['limits']['market'] = {
-                    'min': this.safeNumber(filter, 'minQty'),
-                    'max': this.safeNumber(filter, 'maxQty'),
-                };
-            }
-            if (('MIN_NOTIONAL' in filtersByType) || ('NOTIONAL' in filtersByType)) {
-                const filter = this.safeDict2(filtersByType, 'MIN_NOTIONAL', 'NOTIONAL', {});
-                entry['limits']['cost']['min'] = this.safeNumber(filter, 'notional');
-            }
-            result.push(entry);
+        //
+        const rows = this.arrayConcat(sapiRows, fapiRows);
+        return this.parseMarkets(rows);
+    }
+    parseMarket(market) {
+        const id = this.safeString(market, 'symbol');
+        const baseId = this.safeString(market, 'baseAsset');
+        const quoteId = this.safeString(market, 'quoteAsset');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const active = this.safeString(market, 'status') === 'TRADING';
+        let spot = undefined;
+        let symbol = undefined;
+        let settle = undefined;
+        let settleId = undefined;
+        let swap = undefined;
+        let linear = undefined;
+        let inverse = undefined;
+        let contractSize = undefined;
+        const contractType = this.safeString(market, 'contractType');
+        const isContract = contractType !== undefined;
+        if (isContract) {
+            // currently, there is only perpetuals, not futures
+            spot = false;
+            swap = true;
+            settleId = this.safeString(market, 'marginAsset');
+            settle = this.safeCurrencyCode(settleId);
+            symbol = base + '/' + quote + ':' + settle;
+            linear = settle === quote;
+            inverse = settle === base;
+            contractSize = this.safeNumber2(market, 'contractSize', 'unit', this.parseNumber('1'));
         }
-        return result;
+        else {
+            spot = true;
+            swap = false;
+            symbol = base + '/' + quote;
+        }
+        // filters
+        const filters = this.safeList(market, 'filters', []);
+        const filtersByType = this.indexBy(filters, 'filterType');
+        const filterNotional = this.safeDict2(filtersByType, 'MIN_NOTIONAL', 'NOTIONAL');
+        const filterPrice = this.safeDict(filtersByType, 'PRICE_FILTER');
+        const filterLotSize = this.safeDict(filtersByType, 'LOT_SIZE');
+        const filterMarketLotSize = this.safeDict(filtersByType, 'MARKET_LOT_SIZE', {});
+        let pricePrecision = this.safeNumber(filterPrice, 'tickSize');
+        if (pricePrecision === undefined) {
+            pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'pricePrecision')));
+        }
+        const amountPrecision = (filterLotSize !== undefined) ? this.safeNumber(filterLotSize, 'stepSize') : this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityPrecision')));
+        return this.safeMarketStructure({
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': isContract ? 'swap' : 'spot',
+            'spot': spot,
+            'margin': false,
+            'swap': swap,
+            'future': false,
+            'option': false,
+            'active': active,
+            'contract': isContract,
+            'linear': linear,
+            'inverse': inverse,
+            'taker': this.fees['trading']['taker'],
+            'maker': this.fees['trading']['maker'],
+            'contractSize': contractSize,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': amountPrecision,
+                'price': pricePrecision,
+                'base': this.parseNumber(this.parsePrecision(this.safeString(market, 'baseAssetPrecision'))),
+                'quote': this.parseNumber(this.parsePrecision(this.safeString(market, 'quotePrecision'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.safeNumber(filterLotSize, 'minQty'),
+                    'max': this.safeNumber(filterLotSize, 'maxQty'),
+                },
+                'price': {
+                    'min': this.safeNumber(filterPrice, 'minPrice'),
+                    'max': this.safeNumber(filterPrice, 'maxPrice'),
+                },
+                'cost': {
+                    'min': this.safeNumber2(filterNotional, 'notional', 'minNotional'),
+                    'max': undefined,
+                },
+                'market': {
+                    'min': this.safeNumber(filterMarketLotSize, 'minQty'),
+                    'max': this.safeNumber(filterMarketLotSize, 'maxQty'),
+                },
+            },
+            'created': this.safeInteger2(market, 'listingTime', 'createTime'),
+            'info': market,
+        });
     }
     /**
      * @method
      * @name aster#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#check-server-time
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#get-server-time
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#check-server-time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     async fetchTime(params = {}) {
-        const response = await this.fapiPublicGetV1Time(params);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchTime', undefined, params);
+        let response = undefined;
+        if (marketType === 'swap') {
+            response = await this.fapiPublicGetV3Time(params);
+        }
+        else {
+            response = await this.sapiPublicGetV3Time(params);
+        }
         //
-        //     {
-        //         "serverTime": 1499827319559
-        //     }
+        // both SPOT & PERP has same format
+        //
+        // {
+        //     "serverTime": 1499827319559
+        // }
         //
         return this.safeInteger(response, 'serverTime');
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
+        // spot:
+        //
         //     [
-        //         1631158560000,
-        //         "208.1850",
-        //         "208.1850",
-        //         "208.1850",
-        //         "208.1850",
-        //         "11.84",
-        //         1631158619999,
-        //         "2464.910400",
-        //         1,
-        //         "11.84",
-        //         "2464.910400",
-        //         "0"
+        //         1499040000000, // Open time
+        //         "0.01634790", // Open
+        //         "0.80000000", // High
+        //         "0.01575800", // Low
+        //         "0.01577100", // Close
+        //         "148976.11427815", // Volume
+        //         1499644799999, // Close time
+        //         "2434.19055334", // Quote asset volume
+        //         308, // Number of trades
+        //         "1756.87402397", // Taker buy base asset volume
+        //         "28.46694368", // Taker buy quote asset volume
+        //         "0"  // ??
         //     ]
         //
         return [
@@ -933,8 +994,10 @@ class aster extends aster$1["default"] {
      * @method
      * @name aster#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#k-line-data
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#klinecandlestick-data
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#k-line-data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#klinecandlestick-data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#index-price-klinecandlestick-data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#mark-price-klinecandlestick-data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -945,9 +1008,6 @@ class aster extends aster$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOHLCV() requires a symbol argument');
-        }
         await this.loadMarkets();
         const market = this.market(symbol);
         let request = {};
@@ -955,10 +1015,7 @@ class aster extends aster$1["default"] {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            if (limit > 1500) {
-                limit = 1500; // Default 500; max 1500.
-            }
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 1500);
         }
         [request, params] = this.handleUntilOption('endTime', request, params);
         request['interval'] = this.safeString(this.timeframes, timeframe, timeframe);
@@ -969,97 +1026,116 @@ class aster extends aster$1["default"] {
         let response = undefined;
         if (isMark) {
             request['symbol'] = market['id'];
-            response = await this.fapiPublicGetV1MarkPriceKlines(this.extend(request, params));
+            response = await this.fapiPublicGetV3MarkPriceKlines(this.extend(request, params));
         }
         else if (isIndex) {
             request['pair'] = market['id'];
-            response = await this.fapiPublicGetV1IndexPriceKlines(this.extend(request, params));
+            response = await this.fapiPublicGetV3IndexPriceKlines(this.extend(request, params));
         }
         else {
             request['symbol'] = market['id'];
             if (market['linear']) {
-                response = await this.fapiPublicGetV1Klines(this.extend(request, params));
+                response = await this.fapiPublicGetV3Klines(this.extend(request, params));
             }
             else {
-                response = await this.sapiPublicGetV1Klines(this.extend(request, params));
+                response = await this.sapiPublicGetV3Klines(this.extend(request, params));
             }
+            //
+            // both SPOT & PERP has same format
+            //
+            //  [
+            //     [
+            //         1499040000000, // Open time
+            //         "0.01634790", // Open
+            //         "0.80000000", // High
+            //         "0.01575800", // Low
+            //         "0.01577100", // Close
+            //         "148976.11427815", // Volume
+            //         1499644799999, // Close time
+            //         "2434.19055334", // Quote asset volume
+            //         308, // Number of trades
+            //         "1756.87402397", // Taker buy base asset volume
+            //         "28.46694368", // Taker buy quote asset volume,
+            //         "0"
+            //     ]
+            //  ]
+            //
         }
-        //
-        //     [
-        //         [
-        //             1631158560000,
-        //             "208.1850",
-        //             "208.1850",
-        //             "208.1850",
-        //             "208.1850",
-        //             "11.84",
-        //             1631158619999,
-        //             "2464.910400",
-        //             1,
-        //             "11.84",
-        //             "2464.910400",
-        //             "0"
-        //         ]
-        //     ]
-        //
         return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
     parseTrade(trade, market = undefined) {
         //
         // fetchTrades
         //
+        //     recent trades:
+        //
         //     {
         //         "id": 3913206,
         //         "price": "644.100",
         //         "qty": "0.08",
-        //         "quoteQty": "51.528",
+        //         "quoteQty": "51.528",      // present in PERP
+        //         "baseQty": "4.95049505",   // present in SPOT
         //         "time": 1749784506633,
         //         "isBuyerMaker": true
         //     }
         //
-        //     {
-        //         "id": 657,
-        //         "price": "1.01000000",
-        //         "qty": "5.00000000",
-        //         "baseQty": "4.95049505",
-        //         "time": 1755156533943,
-        //         "isBuyerMaker": false
-        //     }
-        //
-        // fetchMyTrades
+        //     aggrTrades
         //
         //     {
-        //         "buyer": false,
-        //         "commission": "-0.07819010",
-        //         "commissionAsset": "USDT",
-        //         "id": 698759,
-        //         "maker": false,
-        //         "orderId": 25851813,
-        //         "price": "7819.01",
-        //         "qty": "0.002",
-        //         "quoteQty": "15.63802",
-        //         "realizedPnl": "-0.91539999",
-        //         "side": "SELL",
-        //         "positionSide": "SHORT",
-        //         "symbol": "BTCUSDT",
-        //         "time": 1569514978020
+        //         "a": 26129, // Aggregate tradeId
+        //         "p": "0.01633102", // Price
+        //         "q": "4.70443515", // Quantity
+        //         "f": 27781, // First tradeId
+        //         "l": 27781, // Last tradeId
+        //         "T": 1498793709153, // Timestamp
+        //         "m": true, // Was the buyer the maker?
         //     }
         //
-        const id = this.safeString(trade, 'id');
-        const symbol = market['symbol'];
-        const currencyId = this.safeString(trade, 'commissionAsset');
+        // fetchMyTrades  (SPOT & PERP have similar format)
+        //
+        // {
+        //     "symbol": "ETHUSDT",
+        //     "id": 2583152,
+        //     "orderId": 418588675,
+        //     "side": "SELL",
+        //     "price": "2330.04",
+        //     "qty": "0.0030",
+        //     "quoteQty": "6.99000000",
+        //     "commission": "0.00279605",
+        //     "commissionAsset": "USDT",
+        //     "time": 1776409179230,
+        //     "counterpartyId": 5143150,   // only in SPOT
+        //     "createUpdateId": null,      // only in SPOT
+        //     "maker": false,              // only in SPOT
+        //     "buyer": false,              // only in SPOT
+        //     "realizedPnl": "0.00029999", // only in PERP
+        //     "marginAsset": "USDT",       // only in PERP
+        //     "positionSide": "BOTH",      // only in PERP
+        // }
+        //
+        const id = this.safeString2(trade, 'id', 'a');
+        const marketId = this.safeString(trade, 'symbol');
+        const marketType = ('positionSide' in trade) ? 'swap' : 'spot';
+        market = this.safeMarket(marketId, market, undefined, marketType);
+        const currencyId = this.safeString2(trade, 'commissionAsset', 'marginAsset');
         const currencyCode = this.safeCurrencyCode(currencyId);
-        const amountString = this.safeString(trade, 'qty');
-        const priceString = this.safeString(trade, 'price');
+        const amountString = this.safeString2(trade, 'qty', 'q');
+        const priceString = this.safeString2(trade, 'price', 'p');
         const costString = this.safeString2(trade, 'quoteQty', 'baseQty');
-        const timestamp = this.safeInteger(trade, 'time');
+        const timestamp = this.safeInteger2(trade, 'time', 'T');
         let side = this.safeStringLower(trade, 'side');
         const isMaker = this.safeBool(trade, 'maker');
         let takerOrMaker = undefined;
         if (isMaker !== undefined) {
             takerOrMaker = isMaker ? 'maker' : 'taker';
+            if (side === undefined) {
+                const isBuyer = this.safeBool(trade, 'buyer');
+                if (isBuyer !== undefined) {
+                    side = isBuyer ? 'buy' : 'sell';
+                }
+            }
         }
-        const isBuyerMaker = this.safeBool(trade, 'isBuyerMaker');
+        const isBuyerMaker = this.safeBool2(trade, 'isBuyerMaker', 'm');
         if (isBuyerMaker !== undefined) {
             side = isBuyerMaker ? 'sell' : 'buy';
         }
@@ -1068,7 +1144,7 @@ class aster extends aster$1["default"] {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': this.safeString(trade, 'orderId'),
             'type': undefined,
             'side': side,
@@ -1086,8 +1162,10 @@ class aster extends aster$1["default"] {
      * @method
      * @name aster#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#recent-trades-list
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#recent-trades-list
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#recent-trades-list
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#recent-trades-aggregated
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#recent-trades-list
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#compressedaggregate-trades-list
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -1095,48 +1173,68 @@ class aster extends aster$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchTrades() requires a symbol argument');
-        }
         await this.loadMarkets();
         const market = this.market(symbol);
-        const request = {
+        let request = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            if (limit > 1000) {
-                limit = 1000; // Default 500; max 1000.
-            }
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 1000);
         }
         let response = undefined;
-        if (market['swap']) {
-            response = await this.fapiPublicGetV1Trades(this.extend(request, params));
+        const sinceDefined = since !== undefined;
+        const untilDefined = ('until' in params);
+        if (sinceDefined) {
+            request['startTime'] = since;
+        }
+        if (untilDefined) {
+            request = this.handleUntilOption('endTime', request, params);
+        }
+        // use historical endpoint for targeted requests
+        if ('startTime' in request) {
+            if (market['swap']) {
+                response = await this.fapiPublicGetV3AggTrades(this.extend(request, params));
+            }
+            else {
+                response = await this.sapiPublicGetV3AggTrades(this.extend(request, params));
+            }
             //
-            //     [
-            //         {
-            //             "id": 3913206,
-            //             "price": "644.100",
-            //             "qty": "0.08",
-            //             "quoteQty": "51.528",
-            //             "time": 1749784506633,
-            //             "isBuyerMaker": true
-            //         }
-            //     ]
+            // both FAPI and SAPI have same response format
+            //
+            // [
+            //     {
+            //         "a": 26129, // Aggregate tradeId
+            //         "p": "0.01633102", // Price
+            //         "q": "4.70443515", // Quantity
+            //         "f": 27781, // First tradeId
+            //         "l": 27781, // Last tradeId
+            //         "T": 1498793709153, // Timestamp
+            //         "m": true, // Was the buyer the maker?
+            //     }
+            // ]
             //
         }
         else {
-            response = await this.sapiPublicGetV1Trades(this.extend(request, params));
-            //     [
-            //         {
-            //             "id": 657,
-            //             "price": "1.01000000",
-            //             "qty": "5.00000000",
-            //             "baseQty": "4.95049505",
-            //             "time": 1755156533943,
-            //             "isBuyerMaker": false
-            //         }
-            //     ]
+            if (market['swap']) {
+                response = await this.fapiPublicGetV3Trades(this.extend(request, params));
+            }
+            else {
+                response = await this.sapiPublicGetV3Trades(this.extend(request, params));
+            }
+            //
+            // SAPI & FAPI have only one field difference
+            //
+            //    [
+            //        {
+            //            "id": "73620768",
+            //            "price": "2324.07",
+            //            "qty": "0.430",
+            //            "quoteQty": "999.35",      // only in PERP
+            //             "baseQty": "4.95049505",  // only in SPOT
+            //            "time": "1776407252900",
+            //            "isBuyerMaker": false
+            //        }, ...
+            //
         }
         return this.parseTrades(response, market, since, limit);
     }
@@ -1144,8 +1242,8 @@ class aster extends aster$1["default"] {
      * @method
      * @name aster#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#account-trade-history-user_data
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#account-trade-list-user_data
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#account-trade-history-user_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#account-trade-list-user_data
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -1154,50 +1252,51 @@ class aster extends aster$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
+        await this.loadMarketsAndSignIn();
+        let request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            request['symbol'] = market['id'];
         }
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        let request = {
-            'symbol': market['id'],
-        };
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
         if (since !== undefined) {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            if (limit > 1000) {
-                limit = 1000; // Default 500; max 1000.
-            }
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 1000);
         }
         [request, params] = this.handleUntilOption('endTime', request, params);
         let response = undefined;
-        if (market['swap']) {
-            response = await this.fapiPrivateGetV1UserTrades(this.extend(request, params));
+        if (marketType === 'swap') {
+            response = await this.fapiPrivateGetV3UserTrades(this.extend(request, params));
         }
         else {
-            response = await this.sapiPrivateGetV1UserTrades(this.extend(request, params));
+            response = await this.sapiPrivateGetV3UserTrades(this.extend(request, params));
         }
         //
-        //     [
-        //         {
-        //             "buyer": false,
-        //             "commission": "-0.07819010",
-        //             "commissionAsset": "USDT",
-        //             "id": 698759,
-        //             "maker": false,
-        //             "orderId": 25851813,
-        //             "price": "7819.01",
-        //             "qty": "0.002",
-        //             "quoteQty": "15.63802",
-        //             "realizedPnl": "-0.91539999",
-        //             "side": "SELL",
-        //             "positionSide": "SHORT",
-        //             "symbol": "BTCUSDT",
-        //             "time": 1569514978020
-        //         }
-        //     ]
+        // SPOT & PERP have similar format
+        //
+        // {
+        //     "symbol": "ETHUSDT",
+        //     "id": 2583152,
+        //     "orderId": 418588675,
+        //     "side": "SELL",
+        //     "price": "2330.04",
+        //     "qty": "0.0030",
+        //     "quoteQty": "6.99000000",
+        //     "commission": "0.00279605",
+        //     "commissionAsset": "USDT",
+        //     "time": 1776409179230,
+        //     "counterpartyId": 5143150,   // only in PERP
+        //     "createUpdateId": null,      // only in PERP
+        //     "maker": false,              // only in PERP
+        //     "buyer": false,              // only in PERP
+        //     "realizedPnl": "0.00029999", // only in SPOT
+        //     "marginAsset": "USDT",       // only in SPOT
+        //     "positionSide": "BOTH",      // only in SPOT
+        // }
         //
         return this.parseTrades(response, market, since, limit, params);
     }
@@ -1205,36 +1304,31 @@ class aster extends aster$1["default"] {
      * @method
      * @name aster#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#depth-information
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#order-book
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#depth-information
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOrderBook() requires a symbol argument');
-        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
         };
-        if (limit !== undefined) {
-            // limit: [5, 10, 20, 50, 100, 500, 1000]. Default: 500
-            if (limit > 1000) {
-                limit = 1000; // Default 500; max 1000.
-            }
-            request['limit'] = limit;
-        }
         let response = undefined;
+        if (limit !== undefined) {
+            request['limit'] = this.findNearestCeiling([5, 10, 20, 50, 100, 500, 1000], limit);
+        }
         if (market['swap']) {
-            response = await this.fapiPublicGetV1Depth(this.extend(request, params));
+            response = await this.fapiPublicGetV3Depth(this.extend(request, params));
         }
         else {
-            response = await this.sapiPublicGetV1Depth(this.extend(request, params));
+            response = await this.sapiPublicGetV3Depth(this.extend(request, params));
         }
+        //
+        // both SPOT & PERP has same format
         //
         //     {
         //         "lastUpdateId": 1027024,
@@ -1257,118 +1351,50 @@ class aster extends aster$1["default"] {
         const timestamp = this.safeInteger(response, 'T');
         return this.parseOrderBook(response, symbol, timestamp, 'bids', 'asks');
     }
-    /**
-     * @method
-     * @name aster#fetchFundingRateHistory
-     * @description fetches historical funding rate prices
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-funding-rate-history
-     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] timestamp in ms of the latest funding rate
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
-     */
-    async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        let request = {};
-        if (symbol !== undefined) {
-            const market = this.market(symbol);
-            request['symbol'] = market['id'];
-        }
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
-        if (limit !== undefined) {
-            if (limit > 1000) {
-                limit = 1000; // Default 100; max 1000
-            }
-            request['limit'] = limit;
-        }
-        [request, params] = this.handleUntilOption('endTime', request, params);
-        const response = await this.fapiPublicGetV1FundingRate(this.extend(request, params));
-        //
-        //     [
-        //         {
-        //             "symbol": "BTCUSDT",
-        //             "fundingTime": 1747209600000,
-        //             "fundingRate": "0.00010000"
-        //         }
-        //     ]
-        //
-        const rates = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const timestamp = this.safeInteger(entry, 'fundingTime');
-            rates.push({
-                'info': entry,
-                'symbol': this.safeSymbol(this.safeString(entry, 'symbol'), undefined, undefined, 'swap'),
-                'fundingRate': this.safeNumber(entry, 'fundingRate'),
-                'timestamp': timestamp,
-                'datetime': this.iso8601(timestamp),
-            });
-        }
-        const sorted = this.sortBy(rates, 'timestamp');
-        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
-    }
     parseTicker(ticker, market = undefined) {
         //
-        // spot
-        //     {
-        //         "symbol": "BTCUSDT",
-        //         "priceChange": "-2274.38",
-        //         "priceChangePercent": "-2.049",
-        //         "weightedAvgPrice": "109524.37084136",
-        //         "lastPrice": "108738.78",
-        //         "lastQty": "0.00034",
-        //         "openPrice": "111013.16",
-        //         "highPrice": "111975.81",
-        //         "lowPrice": "107459.25",
-        //         "volume": "28.67876",
-        //         "quoteVolume": "3141023.14551030",
-        //         "openTime": "1760578800000",
-        //         "closeTime": "1760665024749",
-        //         "firstId": "37447",
-        //         "lastId": "39698",
-        //         "count": "2252",
-        //         "baseAsset": "BTC",
-        //         "quoteAsset": "USDT",
-        //         "bidPrice": "108705.11",
-        //         "bidQty": "0.03351",
-        //         "askPrice": "108725.99",
-        //         "askQty": "0.08724"
-        //     }
-        // swap
-        //     {
-        //         "symbol": "BTCUSDT",
-        //         "priceChange": "1845.7",
-        //         "priceChangePercent": "1.755",
-        //         "weightedAvgPrice": "105515.5",
-        //         "lastPrice": "107037.7",
-        //         "lastQty": "0.004",
-        //         "openPrice": "105192.0",
-        //         "highPrice": "107223.5",
-        //         "lowPrice": "104431.6",
-        //         "volume": "8753.286",
-        //         "quoteVolume": "923607368.61",
-        //         "openTime": 1749976620000,
-        //         "closeTime": 1750063053754,
-        //         "firstId": 24195078,
-        //         "lastId": 24375783,
-        //         "count": 180706
-        //     }
+        // fetchTicker & fetchTickers: both SPOT & PERP has similar format
+        //
+        //    {
+        //        "symbol": "ETHUSDT",
+        //        "priceChange": "6.54",
+        //        "priceChangePercent": "0.279",
+        //        "weightedAvgPrice": "2330.70",
+        //        "lastPrice": "2350.00",
+        //        "lastQty": "4.437",
+        //        "openPrice": "2343.46",
+        //        "highPrice": "2363.20",
+        //        "lowPrice": "2283.86",
+        //        "volume": "267154.248",
+        //        "quoteVolume": "622657018.70",
+        //        "openTime": "1776329400000",
+        //        "closeTime": "1776415832593",
+        //        "firstId": "73520536",
+        //        "lastId": "73630176",
+        //        "count": "109640",
+        //        "baseAsset": "BTC",            // only in SPOT
+        //        "quoteAsset": "USDT",          // only in SPOT
+        //        "bidPrice": "71125.98",        // only in SPOT
+        //        "bidQty": "0.00737",           // only in SPOT
+        //        "askPrice": "71152.10",        // only in SPOT
+        //        "askQty": "0.32399"            // only in SPOT
+        //    }
+        //
+        //
+        // fetchBidsAsks: SPOT & PERP have only one field difference
+        //
+        //     [
+        //        {
+        //            "symbol": "BMTUSDT",
+        //            "bidPrice": "0.004000",
+        //            "bidQty": "1250.0",
+        //            "askPrice": "0.000000",
+        //            "askQty": "0.0",
+        //            "time": "1776411276072",
+        //            "lastUpdateId": "453174307613"   // only in PERP
+        //        }, ...
         //
         const timestamp = this.safeInteger(ticker, 'closeTime');
-        let marketType = undefined;
-        if ('bidQty' in ticker) {
-            marketType = 'spot';
-        }
-        else {
-            marketType = 'contract';
-        }
-        const marketId = this.safeString(ticker, 'symbol');
-        market = this.safeMarket(marketId, market, undefined, marketType);
-        const symbol = market['symbol'];
         const last = this.safeString(ticker, 'lastPrice');
         const open = this.safeString(ticker, 'openPrice');
         let percentage = this.safeString(ticker, 'priceChangePercent');
@@ -1377,8 +1403,18 @@ class aster extends aster$1["default"] {
         const baseVolume = this.safeString(ticker, 'volume');
         const high = this.safeString(ticker, 'highPrice');
         const low = this.safeString(ticker, 'lowPrice');
+        const isTickerResponse = ('priceChange' in ticker);
+        let marketType = undefined;
+        if (isTickerResponse) {
+            marketType = ('baseAsset' in ticker) ? 'spot' : 'swap';
+        }
+        else {
+            marketType = ('lastUpdateId' in ticker) ? 'swap' : 'spot';
+        }
+        const marketId = this.safeString(ticker, 'symbol');
+        market = this.safeMarket(marketId, market, undefined, marketType);
         return this.safeTicker({
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'high': high,
@@ -1406,16 +1442,13 @@ class aster extends aster$1["default"] {
      * @method
      * @name aster#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#24h-price-change
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#24hr-ticker-price-change-statistics
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#24h-price-change
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#24hr-ticker-price-change-statistics
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchTicker() requires a symbol argument');
-        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1423,63 +1456,47 @@ class aster extends aster$1["default"] {
         };
         let response = undefined;
         if (market['swap']) {
-            response = await this.fapiPublicGetV1Ticker24hr(this.extend(request, params));
-            //
-            //     {
-            //         "symbol": "BTCUSDT",
-            //         "priceChange": "1845.7",
-            //         "priceChangePercent": "1.755",
-            //         "weightedAvgPrice": "105515.5",
-            //         "lastPrice": "107037.7",
-            //         "lastQty": "0.004",
-            //         "openPrice": "105192.0",
-            //         "highPrice": "107223.5",
-            //         "lowPrice": "104431.6",
-            //         "volume": "8753.286",
-            //         "quoteVolume": "923607368.61",
-            //         "openTime": 1749976620000,
-            //         "closeTime": 1750063053754,
-            //         "firstId": 24195078,
-            //         "lastId": 24375783,
-            //         "count": 180706
-            //     }
-            //
+            response = await this.fapiPublicGetV3Ticker24hr(this.extend(request, params));
         }
         else {
-            response = await this.sapiPublicGetV1Ticker24hr(this.extend(request, params));
-            //     {
-            //         "symbol": "BTCUSDT",
-            //         "priceChange": "-2274.38",
-            //         "priceChangePercent": "-2.049",
-            //         "weightedAvgPrice": "109524.37084136",
-            //         "lastPrice": "108738.78",
-            //         "lastQty": "0.00034",
-            //         "openPrice": "111013.16",
-            //         "highPrice": "111975.81",
-            //         "lowPrice": "107459.25",
-            //         "volume": "28.67876",
-            //         "quoteVolume": "3141023.14551030",
-            //         "openTime": "1760578800000",
-            //         "closeTime": "1760665024749",
-            //         "firstId": "37447",
-            //         "lastId": "39698",
-            //         "count": "2252",
-            //         "baseAsset": "BTC",
-            //         "quoteAsset": "USDT",
-            //         "bidPrice": "108705.11",
-            //         "bidQty": "0.03351",
-            //         "askPrice": "108725.99",
-            //         "askQty": "0.08724"
-            //     }
+            response = await this.sapiPublicGetV3Ticker24hr(this.extend(request, params));
         }
+        //
+        // both SPOT & PERP has same format
+        //
+        //    {
+        //        "symbol": "ETHUSDT",
+        //        "priceChange": "6.54",
+        //        "priceChangePercent": "0.279",
+        //        "weightedAvgPrice": "2330.70",
+        //        "lastPrice": "2350.00",
+        //        "lastQty": "4.437",
+        //        "openPrice": "2343.46",
+        //        "highPrice": "2363.20",
+        //        "lowPrice": "2283.86",
+        //        "volume": "267154.248",
+        //        "quoteVolume": "622657018.70",
+        //        "openTime": "1776329400000",
+        //        "closeTime": "1776415832593",
+        //        "firstId": "73520536",
+        //        "lastId": "73630176",
+        //        "count": "109640",
+        //        "baseAsset": "BTC",            // only in SPOT
+        //        "quoteAsset": "USDT",          // only in SPOT
+        //        "bidPrice": "71125.98",        // only in SPOT
+        //        "bidQty": "0.00737",           // only in SPOT
+        //        "askPrice": "71152.10",        // only in SPOT
+        //        "askQty": "0.32399"            // only in SPOT
+        //    }
+        //
         return this.parseTicker(response, market);
     }
     /**
      * @method
      * @name aster#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#24h-price-change
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#24hr-ticker-price-change-statistics
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#24h-price-change
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#24hr-ticker-price-change-statistics
      * @param {string[]} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
@@ -1490,19 +1507,14 @@ class aster extends aster$1["default"] {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols(symbols);
-        let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
-        let subType = undefined;
-        [subType, params] = this.handleSubTypeAndParams('fetchTickers', market, params);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
         let response = undefined;
-        if (this.isLinear(type, subType)) {
-            response = await this.fapiPublicGetV1Ticker24hr(params);
+        if (marketType === 'swap') {
+            response = await this.fapiPublicGetV3Ticker24hr(params);
         }
-        else if (type === 'spot') {
-            response = await this.sapiPublicGetV1Ticker24hr(params);
-        }
-        else {
-            throw new errors.NotSupported(this.id + ' fetchTickers() does not support ' + type + ' markets yet');
+        else if (marketType === 'spot') {
+            response = await this.sapiPublicGetV3Ticker24hr(params);
         }
         //
         //     [
@@ -1522,13 +1534,127 @@ class aster extends aster$1["default"] {
         //             "closeTime": 1750063053754,
         //             "firstId": 24195078,
         //             "lastId": 24375783,
-        //             "count": 180706
+        //             "count": 180706,
+        //             "baseAsset": "BTC",              // only in SPOT
+        //             "quoteAsset": "USDT",            // only in SPOT
+        //             "bidPrice": "71125.98",          // only in SPOT
+        //             "bidQty": "0.00737",             // only in SPOT
+        //             "askPrice": "71152.10",          // only in SPOT
+        //             "askQty": "0.32399"              // only in SPOT
         //         }
         //     ]
         //
         return this.parseTickers(response, symbols);
     }
+    /**
+     * @method
+     * @name aster#fetchLastPrices
+     * @description fetches the last price for multiple markets
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#latest-price
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-price-ticker
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subType] "linear" or "inverse"
+     * @returns {object} a dictionary of lastprices structures
+     */
+    async fetchLastPrices(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, true, true, true);
+        const market = this.getMarketFromSymbols(symbols);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchLastPrices', market, params);
+        let response = undefined;
+        if (marketType === 'swap') {
+            response = await this.fapiPublicGetV3TickerPrice(params);
+        }
+        else if (marketType === 'spot') {
+            response = await this.sapiPublicGetV3TickerPrice(params);
+        }
+        //
+        // both SPOT & SWAP has same format
+        //
+        //     [
+        //         {
+        //             "symbol": "LTCBTC",
+        //             "price": "4.00000200"
+        //             "time": "1649666690902"
+        //         },
+        //         ...
+        //     ]
+        //
+        const results = [];
+        for (let i = 0; i < response.length; i++) {
+            const marketId = this.safeString(response[i], 'symbol');
+            const safeMarket = this.safeMarket(marketId, undefined, undefined, marketType);
+            const priceData = this.extend(this.parseLastPrice(response[i], safeMarket), params);
+            results.push(priceData);
+        }
+        symbols = this.marketSymbols(symbols);
+        return this.filterByArray(results, 'symbol', symbols);
+    }
+    parseLastPrice(entry, market = undefined) {
+        //
+        // spot & swap
+        //
+        //     {
+        //         "symbol": "LTCBTC",
+        //         "price": "4.00000200"
+        //         "time": "1649666690902"
+        //     }
+        //
+        const timestamp = this.safeInteger(entry, 'time');
+        return {
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'price': this.safeNumberOmitZero(entry, 'price'),
+            'side': undefined,
+            'info': entry,
+        };
+    }
+    /**
+     * @method
+     * @name aster#fetchBidsAsks
+     * @description fetches the bid and ask price and volume for multiple markets
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#current-best-order
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-order-book-ticker
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subType] "linear" or "inverse"
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async fetchBidsAsks(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, true, true, true);
+        const market = this.getMarketFromSymbols(symbols);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchBidsAsks', market, params);
+        let response = undefined;
+        if (marketType === 'swap') {
+            response = await this.fapiPublicGetV3TickerBookTicker(params);
+        }
+        else if (marketType === 'spot') {
+            response = await this.sapiPublicGetV3TickerBookTicker(params);
+        }
+        //
+        // SPOT & PERP have only one field difference
+        //
+        //     [
+        //        {
+        //            "symbol": "BMTUSDT",
+        //            "bidPrice": "0.004000",
+        //            "bidQty": "1250.0",
+        //            "askPrice": "0.000000",
+        //            "askQty": "0.0",
+        //            "time": "1776411276072",
+        //            "lastUpdateId": "453174307613"   // only in PERP
+        //        }, ...
+        //
+        return this.parseTickers(response, symbols);
+    }
     parseFundingRate(contract, market = undefined) {
+        //
+        // fundingRate
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -1540,6 +1666,9 @@ class aster extends aster$1["default"] {
         //         "nextFundingTime": 1750147200000,
         //         "time": 1750146970000
         //     }
+        //
+        // funding interval
+        //
         //     {
         //         "symbol": "INJUSDT",
         //         "interestRate": "0.00010000",
@@ -1582,7 +1711,7 @@ class aster extends aster$1["default"] {
      * @method
      * @name aster#fetchFundingRate
      * @description fetch the current funding rate
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#mark-price
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-price-ticker
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -1596,7 +1725,7 @@ class aster extends aster$1["default"] {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.fapiPublicGetV1PremiumIndex(this.extend(request, params));
+        const response = await this.fapiPublicGetV3PremiumIndex(this.extend(request, params));
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -1615,7 +1744,7 @@ class aster extends aster$1["default"] {
      * @method
      * @name aster#fetchFundingRates
      * @description fetch the current funding rate for multiple symbols
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#24hr-ticker-price-change-statistics
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-price-ticker
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -1623,7 +1752,7 @@ class aster extends aster$1["default"] {
     async fetchFundingRates(symbols = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        const response = await this.fapiPublicGetV1PremiumIndex(this.extend(params));
+        const response = await this.fapiPublicGetV3PremiumIndex(this.extend(params));
         //
         //     [
         //         {
@@ -1644,7 +1773,7 @@ class aster extends aster$1["default"] {
      * @method
      * @name aster#fetchFundingIntervals
      * @description fetch the funding rate interval for multiple markets
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-funding-rate-config
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#get-funding-rate-config
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -1654,7 +1783,7 @@ class aster extends aster$1["default"] {
         if (symbols !== undefined) {
             symbols = this.marketSymbols(symbols);
         }
-        const response = await this.fapiPublicGetV1FundingInfo(params);
+        const response = await this.fapiPublicGetV3FundingInfo(params);
         //
         //     [
         //         {
@@ -1669,64 +1798,98 @@ class aster extends aster$1["default"] {
         //
         return this.parseFundingRates(response, symbols);
     }
-    parseBalance(response) {
-        const result = { 'info': response };
-        for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
-            const currencyId = this.safeString(balance, 'asset');
-            const code = this.safeCurrencyCode(currencyId);
-            const account = this.account();
-            account['free'] = this.safeString2(balance, 'free', 'maxWithdrawAmount');
-            account['used'] = this.safeString(balance, 'locked');
-            account['total'] = this.safeString(balance, 'walletBalance');
-            result[code] = account;
+    /**
+     * @method
+     * @name aster#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#get-funding-rate-history
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
+    async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            request['symbol'] = market['id'];
         }
-        return this.safeBalance(result);
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = Math.min(limit, 1000);
+        }
+        [request, params] = this.handleUntilOption('endTime', request, params);
+        const response = await this.fapiPublicGetV3FundingRate(this.extend(request, params));
+        //
+        //     [
+        //         {
+        //             "symbol": "BTCUSDT",
+        //             "fundingTime": 1747209600000,
+        //             "fundingRate": "0.00010000"
+        //         }
+        //     ]
+        //
+        return this.parseFundingRateHistories(response, market);
+    }
+    parseFundingRateHistory(contract, market = undefined) {
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "fundingRate": "0.00063521",
+        //         "fundingTime": "1621267200000",
+        //     }
+        //
+        const timestamp = this.safeInteger(contract, 'fundingTime');
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol(this.safeString(contract, 'symbol'), undefined, undefined, 'swap'),
+            'fundingRate': this.safeNumber(contract, 'fundingRate'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+        };
     }
     /**
      * @method
      * @name aster#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#account-information-v4-user_data
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#account-information-user_data
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#account-information-user_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#futures-account-balance-v3-user_data
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
      * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
-        let subType = undefined;
-        [subType, params] = this.handleSubTypeAndParams('fetchBalance', undefined, params);
+        await this.loadMarketsAndSignIn();
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         let response = undefined;
         let data = undefined;
-        if (this.isLinear(type, subType)) {
-            response = await this.fapiPrivateGetV4Account(params);
-            data = this.safeList(response, 'assets', []);
+        if (marketType === 'swap') {
+            data = await this.fapiPrivateGetV3Balance(params);
             //
-            //     [
-            //         {
-            //             "asset": "USDT", // asset name
-            //             "walletBalance": "23.72469206", // wallet balance
-            //             "unrealizedProfit": "0.00000000", // unrealized profit
-            //             "marginBalance": "23.72469206", // margin balance
-            //             "maintMargin": "0.00000000", // maintenance margin required
-            //             "initialMargin": "0.00000000", // total initial margin required with current mark price
-            //             "positionInitialMargin": "0.00000000", //initial margin required for positions with current mark price
-            //             "openOrderInitialMargin": "0.00000000", // initial margin required for open orders with current mark price
-            //             "crossWalletBalance": "23.72469206", // crossed wallet balance
-            //             "crossUnPnl": "0.00000000", // unrealized profit of crossed positions
-            //             "availableBalance": "23.72469206", // available balance
-            //             "maxWithdrawAmount": "23.72469206", // maximum amount for transfer out
-            //             "marginAvailable": true, // whether the asset can be used as margin in Multi-Assets mode
-            //             "updateTime": 1625474304765 // last update time
-            //         }
-            //     ]
+            //    [
+            //        {
+            //            "accountAlias": "FzXquXsRFzXqAufW",
+            //            "asset": "CDL",
+            //            "balance": "0.00000000",
+            //            "crossWalletBalance": "0.00000000",
+            //            "crossUnPnl": "0.00000000",
+            //            "availableBalance": "878.90500233",
+            //            "maxWithdrawAmount": "0.00000000",
+            //            "marginAvailable": true,
+            //            "updateTime": "0"
+            //        }, ...
             //
         }
-        else if (type === 'spot') {
-            response = await this.sapiPrivateGetV1Account(params);
+        else if (marketType === 'spot') {
+            response = await this.sapiPrivateGetV3Account(params);
             data = this.safeList(response, 'balances', []);
             //
             //     [
@@ -1738,16 +1901,27 @@ class aster extends aster$1["default"] {
             //     ]
             //
         }
-        else {
-            throw new errors.NotSupported(this.id + ' fetchBalance() does not support ' + type + ' markets yet');
-        }
         return this.parseBalance(data);
+    }
+    parseBalance(response) {
+        const result = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString(balance, 'asset');
+            const code = this.safeCurrencyCode(currencyId);
+            const account = this.account();
+            account['free'] = this.safeString2(balance, 'free', 'availableBalance');
+            account['used'] = this.safeString(balance, 'locked');
+            account['total'] = this.safeString(balance, 'balance');
+            result[code] = account;
+        }
+        return this.safeBalance(result);
     }
     /**
      * @method
      * @name aster#setMarginMode
      * @description set margin mode to 'cross' or 'isolated'
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#change-margin-type-trade
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-margin-type-trade
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1764,20 +1938,15 @@ class aster extends aster$1["default"] {
         if ((marginMode !== 'ISOLATED') && (marginMode !== 'CROSSED')) {
             throw new errors.BadRequest(this.id + ' marginMode must be either isolated or cross');
         }
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
             'marginType': marginMode,
         };
-        const response = await this.fapiPrivatePostV1MarginType(this.extend(request, params));
+        const response = await this.fapiPrivatePostV3MarginType(this.extend(request, params));
         //
-        //     {
-        //         "amount": 100.0,
-        //         "code": 200,
-        //         "msg": "Successfully modify position margin.",
-        //         "type": 1
-        //     }
+        //     { "code": 200,"msg": "success" }
         //
         return response;
     }
@@ -1785,37 +1954,37 @@ class aster extends aster$1["default"] {
      * @method
      * @name aster#fetchPositionMode
      * @description fetchs the position mode, hedged or one way, hedged for aster is set identically for all linear markets or all inverse markets
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-current-position-modeuser_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-current-position-modeuser_data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
     async fetchPositionMode(symbol = undefined, params = {}) {
-        const response = await this.fapiPrivateGetV1PositionSideDual(params);
+        const response = await this.fapiPrivateGetV3PositionSideDual(params);
         //
         //     {
         //         "dualSidePosition": true // "true": Hedge Mode; "false": One-way Mode
         //     }
         //
-        const dualSidePosition = this.safeBool(response, 'dualSidePosition');
         return {
             'info': response,
-            'hedged': (dualSidePosition === true),
+            'hedged': this.safeBool(response, 'dualSidePosition'),
         };
     }
     /**
      * @method
      * @name aster#setPositionMode
      * @description set hedged to true or false for a market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#change-position-modetrade
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-position-modetrade
      * @param {bool} hedged set to true to use dualSidePosition
      * @param {string} symbol not used by bingx setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
     async setPositionMode(hedged, symbol = undefined, params = {}) {
+        const strValue = hedged ? 'true' : 'false';
         const request = {
-            'dualSidePosition': hedged,
+            'dualSidePosition': strValue,
         };
         //
         //     {
@@ -1823,7 +1992,7 @@ class aster extends aster$1["default"] {
         //         "msg": "success"
         //     }
         //
-        return await this.fapiPrivatePostV1PositionSideDual(this.extend(request, params));
+        return await this.fapiPrivatePostV3PositionSideDual(this.extend(request, params));
     }
     parseTradingFee(fee, market = undefined) {
         const marketId = this.safeString(fee, 'symbol');
@@ -1842,25 +2011,27 @@ class aster extends aster$1["default"] {
      * @method
      * @name aster#fetchTradingFee
      * @description fetch the trading fees for a market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#get-symbol-fees
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#user-commission-rate-user_data
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/market-data/#get-symbol-fees
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#user-commission-rate-user_data
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
         };
         let response = undefined;
         if (market['swap']) {
-            response = await this.fapiPrivateGetV1CommissionRate(this.extend(request, params));
+            response = await this.fapiPrivateGetV3CommissionRate(this.extend(request, params));
         }
         else {
-            response = await this.sapiPrivateGetV1CommissionRate(this.extend(request, params));
+            response = await this.sapiPrivateGetV3CommissionRate(this.extend(request, params));
         }
+        //
+        // both SPOT & SWAP has same format
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -1921,32 +2092,36 @@ class aster extends aster$1["default"] {
         //         "workingType": "CONTRACT_PRICE",
         //         "priceProtect": false
         //     }
+        //
         // spot
-        //     {
-        //         "orderId": 38,
-        //         "symbol": "ADA25SLP25",
-        //         "status": "FILLED",
-        //         "clientOrderId": "afMd4GBQyHkHpGWdiy34Li",
-        //         "price": "20",
-        //         "avgPrice": "12.0000000000000000",
-        //         "origQty": "10",
-        //         "executedQty": "10",
-        //         "cumQuote": "120",
-        //         "timeInForce": "GTC",
-        //         "type": "LIMIT",
-        //         "side": "BUY",
-        //         "stopPrice": "0",
-        //         "origType": "LIMIT",
-        //         "time": 1649913186270,
-        //         "updateTime": 1649913186297
-        //     }
+        //
+        //   fetchOrders, fetchOpenOrders, fetchOpenOrder, fetchOrder, cancelOrder, createOrder
+        //
+        //        {
+        //            "orderId": "417594542",
+        //            "symbol": "ETHUSDT",
+        //            "status": "FILLED",
+        //            "clientOrderId": "web_qnvMAhOJsiVbSyu0BdKG",
+        //            "price": "0",                     // value set for unfilled
+        //            "avgPrice": "2351.580000",        // value zero for unfilled
+        //            "origQty": "0.0054",
+        //            "executedQty": "0.0054",          // value zero for unfilled
+        //            "cumQuote": "12.69853200",        // value zero for unfilled
+        //            "timeInForce": "GTC",
+        //            "type": "MARKET",
+        //            "side": "SELL",
+        //            "stopPrice": "0",
+        //            "origType": "MARKET",
+        //            "time": "1776274219582",
+        //            "updateTime": "1776274219609",
+        //            "orderListId": "-1"
+        //        }
         //
         const info = order;
         const marketId = this.safeString(order, 'symbol');
         market = this.safeMarket(marketId, market);
         const side = this.safeStringLower(order, 'side');
         const timestamp = this.safeInteger(order, 'time');
-        const lastTradeTimestamp = this.safeInteger(order, 'updateTime');
         const statusId = this.safeStringUpper(order, 'status');
         const rawType = this.safeStringUpper(order, 'type');
         const stopPriceString = this.safeString(order, 'stopPrice');
@@ -1958,7 +2133,7 @@ class aster extends aster$1["default"] {
             'symbol': this.safeSymbol(marketId, market),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': this.safeInteger(order, 'updateTime'),
             'type': this.parseOrderType(rawType),
             'timeInForce': this.safeString(order, 'timeInForce'),
@@ -1981,8 +2156,8 @@ class aster extends aster$1["default"] {
      * @method
      * @name aster#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#query-order-user_data
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#query-order-user_data
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#query-order-user_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#query-order-user_data
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1993,7 +2168,7 @@ class aster extends aster$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -2008,18 +2183,48 @@ class aster extends aster$1["default"] {
         }
         let response = undefined;
         if (market['swap']) {
-            response = await this.fapiPrivateGetV1Order(this.extend(request, params));
+            response = await this.fapiPrivateGetV3Order(this.extend(request, params));
         }
         else {
-            response = await this.sapiPrivateGetV1Order(this.extend(request, params));
+            response = await this.sapiPrivateGetV3Order(this.extend(request, params));
         }
+        //
+        // SPOT & SWAP has similar formats
+        //
+        //    {
+        //        "orderId": "17338441758",
+        //        "symbol": "ETHUSDT",
+        //        "status": "FILLED",
+        //        "clientOrderId": "727Wt3TIUgkUCxXp20E543",
+        //        "price": "0",
+        //        "avgPrice": "2304.56000",
+        //        "origQty": "0.010",
+        //        "executedQty": "0.010",
+        //        "cumQuote": "23.04560",
+        //        "timeInForce": "GTC",
+        //        "type": "MARKET",
+        //        "side": "BUY",
+        //        "stopPrice": "0",
+        //        "origType": "MARKET",
+        //        "time": "1776800300736",
+        //        "updateTime": "1776800300700",
+        //        "orderListId": "-1"                                   // only in SPOT
+        //        "positionSide": "BOTH",                               // only in SWAP
+        //        "reduceOnly": false,                                  // only in SWAP
+        //        "closePosition": false,                               // only in SWAP
+        //        "workingType": "CONTRACT_PRICE",                      // only in SWAP
+        //        "priceProtect": false,                                // only in SWAP
+        //        "newChainData": { "hash": "0x46aed5...67bdbec8ba" }   // only in SWAP
+        //    }
+        //
         return this.parseOrder(response, market);
     }
     /**
      * @method
      * @name aster#fetchOpenOrder
      * @description fetch an open order by the id
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#query-current-open-order-user_data
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#query-current-open-order-user_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#query-current-open-order-user_data
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2029,7 +2234,7 @@ class aster extends aster$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -2042,15 +2247,50 @@ class aster extends aster$1["default"] {
         else {
             request['orderId'] = id;
         }
-        const response = await this.fapiPrivateGetV1OpenOrder(this.extend(request, params));
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.sapiPrivateGetV3OpenOrder(this.extend(request, params));
+        }
+        else {
+            response = await this.fapiPrivateGetV3OpenOrder(this.extend(request, params));
+        }
+        //
+        // SPOT & SWAP has similar formats
+        //
+        //    {
+        //        "orderId": "17338441758",
+        //        "symbol": "ETHUSDT",
+        //        "status": "FILLED",
+        //        "clientOrderId": "727Wt3TIUgkUCxXp20E543",
+        //        "price": "0",
+        //        "avgPrice": "2304.56000",
+        //        "origQty": "0.010",
+        //        "executedQty": "0.010",
+        //        "cumQuote": "23.04560",
+        //        "timeInForce": "GTC",
+        //        "type": "MARKET",
+        //        "side": "BUY",
+        //        "stopPrice": "0",
+        //        "origType": "MARKET",
+        //        "time": "1776800300736",
+        //        "updateTime": "1776800300700",
+        //        "orderListId": "-1"                                   // only in SPOT
+        //        "positionSide": "BOTH",                               // only in SWAP
+        //        "reduceOnly": false,                                  // only in SWAP
+        //        "closePosition": false,                               // only in SWAP
+        //        "workingType": "CONTRACT_PRICE",                      // only in SWAP
+        //        "priceProtect": false,                                // only in SWAP
+        //        "newChainData": { "hash": "0x46aed5...67bdbec8ba" }   // only in SWAP
+        //    }
+        //
         return this.parseOrder(response, market);
     }
     /**
      * @method
      * @name aster#fetchOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#query-all-orders-user_data
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#all-orders-user_data
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#query-all-orders-user_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#all-orders-user_data
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2059,39 +2299,66 @@ class aster extends aster$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
         }
+        await this.loadMarketsAndSignIn();
         const market = this.market(symbol);
         let request = {
             'symbol': market['id'],
         };
+        if (limit !== undefined) {
+            request['limit'] = Math.min(limit, 1000);
+        }
         if (since !== undefined) {
             request['startTime'] = since;
-        }
-        if (limit !== undefined) {
-            if (limit > 1000) {
-                limit = 1000; // Default 500; max 1000
-            }
-            request['limit'] = limit;
         }
         [request, params] = this.handleUntilOption('endTime', request, params);
         let response = undefined;
         if (market['swap']) {
-            response = await this.fapiPrivateGetV1AllOrders(this.extend(request, params));
+            response = await this.fapiPrivateGetV3AllOrders(this.extend(request, params));
         }
         else {
-            response = await this.sapiPrivateGetV1AllOrders(this.extend(request, params));
+            response = await this.sapiPrivateGetV3AllOrders(this.extend(request, params));
         }
+        //
+        // SPOT & SWAP has similar responses
+        //
+        //    [
+        //        {
+        //            "orderId": "417594542",
+        //            "symbol": "ETHUSDT",
+        //            "status": "FILLED",
+        //            "clientOrderId": "web_qnvMAhOJsiVbSyu0BdKG",
+        //            "price": "0",                     // value set for unfilled
+        //            "avgPrice": "2351.580000",        // value zero for unfilled
+        //            "origQty": "0.0054",
+        //            "executedQty": "0.0054",          // value zero for unfilled
+        //            "cumQuote": "12.69853200",        // value zero for unfilled
+        //            "timeInForce": "GTC",
+        //            "type": "MARKET",
+        //            "side": "SELL",
+        //            "stopPrice": "0",
+        //            "origType": "MARKET",
+        //            "time": "1776274219582",
+        //            "updateTime": "1776274219609",
+        //            "orderListId": "-1",                                     // only in SPOT
+        //            "reduceOnly": false,                                     // only in PERP
+        //            "closePosition": false,                                  // only in PERP
+        //            "positionSide": "BOTH",                                  // only in PERP
+        //            "workingType": "CONTRACT_PRICE",                         // only in PERP
+        //            "priceProtect": false,                                   // only in PERP
+        //            "newChainData": { "hash": "0xe17d3d5b...dbca8b01" }      // only in PERP
+        //        }, ...
+        //
         return this.parseOrders(response, market, since, limit);
     }
     /**
      * @method
      * @name aster#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#current-open-orders-user_data
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#current-all-open-orders-user_data
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#current-open-orders-user_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#current-all-open-orders-user_data
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -2101,55 +2368,63 @@ class aster extends aster$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         const request = {};
         let market = undefined;
-        let type = undefined;
-        let subType = undefined;
-        [subType, params] = this.handleSubTypeAndParams('fetchOpenOrders', market, params);
+        let marketType = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
-        [type, params] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
-        let response = undefined;
-        if (this.isLinear(type, subType)) {
-            response = await this.fapiPrivateGetV1OpenOrders(this.extend(request, params));
-        }
-        else if (type === 'spot') {
-            response = await this.sapiPrivateGetV1OpenOrders(this.extend(request, params));
+        if (symbol === undefined) {
+            if (this.options['fetchOpenOrders']['warnIfNoSymbol']) {
+                throw new errors.ExchangeError(this.id + ' fetchOpenOrders(): WARNING - this method without providing "symbol" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set ' + this.id + '.options["fetchOpenOrders"]["warnIfNoSymbol"] = false to suppress this warning message.');
+            }
         }
         else {
-            throw new errors.NotSupported(this.id + ' fetchOpenOrders() does not support ' + type + ' markets yet');
+            market = this.market(symbol);
+            request['symbol'] = market['id'];
+        }
+        [marketType, params] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchOpenOrders', market, params);
+        let response = undefined;
+        if (this.isLinear(marketType, subType)) {
+            response = await this.fapiPrivateGetV3OpenOrders(this.extend(request, params));
+        }
+        else if (marketType === 'spot') {
+            response = await this.sapiPrivateGetV3OpenOrders(this.extend(request, params));
         }
         //
-        //     [
-        //         {
-        //             "avgPrice": "0.00000",
-        //             "clientOrderId": "abc",
-        //             "cumQuote": "0",
-        //             "executedQty": "0",
-        //             "orderId": 1917641,
-        //             "origQty": "0.40",
-        //             "origType": "TRAILING_STOP_MARKET",
-        //             "price": "0",
-        //             "reduceOnly": false,
-        //             "side": "BUY",
-        //             "positionSide": "SHORT",
-        //             "status": "NEW",
-        //             "stopPrice": "9300",
-        //             "closePosition": false,
-        //             "symbol": "BTCUSDT",
-        //             "time": 1579276756075,
-        //             "timeInForce": "GTC",
-        //             "type": "TRAILING_STOP_MARKET",
-        //             "activatePrice": "9020",
-        //             "priceRate": "0.3",
-        //             "updateTime": 1579276756075,
-        //             "workingType": "CONTRACT_PRICE",
-        //             "priceProtect": false
-        //         }
-        //     ]
+        // SPOT & SWAP has similar responses
+        //
+        //    [
+        //        {
+        //            "orderId": "17338239315",
+        //            "symbol": "ETHUSDT",
+        //            "status": "NEW",
+        //            "clientOrderId": "web_AD_mbhgla7k15gptmwyr_x",
+        //            "price": "2216.62",
+        //            "avgPrice": "0",
+        //            "origQty": "0.012",
+        //            "executedQty": "0",
+        //            "cumQuote": "0",
+        //            "timeInForce": "GTC",
+        //            "type": "LIMIT",
+        //            "side": "BUY",
+        //            "stopPrice": "0",
+        //            "origType": "LIMIT",
+        //            "time": "1776798208476",
+        //            "updateTime": "1776798208450",
+        //            "orderListId": "-1"                                   // only in SPOT
+        //            "reduceOnly": false,                                  // only in PERP
+        //            "closePosition": false,                               // only in PERP
+        //            "positionSide": "BOTH",                               // only in PERP
+        //            "workingType": "CONTRACT_PRICE",                      // only in PERP
+        //            "priceProtect": false,                                // only in PERP
+        //            "newChainData": { "hash": "0xf8a496....a7fd5" }       // only in PERP
+        //        }
+        //    ]
         //
         return this.parseOrders(response, market, since, limit);
     }
@@ -2157,8 +2432,8 @@ class aster extends aster$1["default"] {
      * @method
      * @name aster#createOrder
      * @description create a trade order
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#place-order-trade
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#new-order--trade
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#place-order-trade
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#new-order-trade
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit' or 'STOP' or 'STOP_MARKET' or 'TAKE_PROFIT' or 'TAKE_PROFIT_MARKET' or 'TRAILING_STOP_MARKET'
      * @param {string} side 'buy' or 'sell'
@@ -2176,36 +2451,59 @@ class aster extends aster$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         const market = this.market(symbol);
-        const test = this.safeBool(params, 'test', false);
-        params = this.omit(params, 'test');
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         let response = undefined;
         if (market['swap']) {
-            if (test) {
-                response = await this.fapiPrivatePostV1OrderTest(request);
-            }
-            else {
-                response = await this.fapiPrivatePostV1Order(request);
-            }
+            response = await this.fapiPrivatePostV3Order(request);
         }
         else {
-            response = await this.sapiPrivatePostV1Order(request);
+            response = await this.sapiPrivatePostV3Order(request);
         }
+        //
+        // SPOT & SWAP has similar responses
+        //
+        //    {
+        //        "orderId": "17338441758",
+        //        "symbol": "ETHUSDT",
+        //        "status": "NEW",
+        //        "clientOrderId": "727Wt3TIUgkUCxXp20E543",
+        //        "price": "0",
+        //        "avgPrice": "0.00000",
+        //        "origQty": "0.010",
+        //        "executedQty": "0",
+        //        "cumQty": "0",
+        //        "cumQuote": "0",
+        //        "timeInForce": "GTC",
+        //        "type": "MARKET",
+        //        "side": "BUY",
+        //        "stopPrice": "0",
+        //        "origType": "MARKET",
+        //        "time": "1776800300700",
+        //        "updateTime": "1776800300700",
+        //        "orderListId": "-1",                              // only in SPOT
+        //        "workingType": "CONTRACT_PRICE",                  // only in PERP
+        //        "positionSide": "BOTH",                           // only in PERP
+        //        "reduceOnly": false,                              // only in PERP
+        //        "closePosition": false,                           // only in PERP
+        //        "priceProtect": false,                            // only in PERP
+        //        "newChainData": { "hash": "0x46ae....c8ba" }      // only in PERP
+        //    }
+        //
         return this.parseOrder(response, market);
     }
     /**
      * @method
      * @name aster#createOrders
      * @description create a list of trade orders
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#place-multiple-orders--trade
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#new-order-trade
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         const ordersRequests = [];
         let orderSymbols = [];
         if (orders.length > 5) {
@@ -2214,6 +2512,8 @@ class aster extends aster$1["default"] {
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString(rawOrder, 'symbol');
+            const currentMarket = this.market(marketId);
+            orderSymbols.push(currentMarket['symbol']);
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
             const amount = this.safeValue(rawOrder, 'amount');
@@ -2230,7 +2530,37 @@ class aster extends aster$1["default"] {
         const request = {
             'batchOrders': ordersRequests,
         };
-        const response = await this.fapiPrivatePostV1BatchOrders(this.extend(request, params));
+        const response = await this.fapiPrivatePostV3BatchOrders(this.extend(request, params));
+        //
+        //    [
+        //        {
+        //            "orderId": 17338699853,
+        //            "symbol": "ETHUSDT",
+        //            "status": "NEW",
+        //            "clientOrderId": "NxMWPvOEyiF6TWh5UB8BQf0",
+        //            "price": "0",
+        //            "avgPrice": "0.00000",
+        //            "origQty": "0.010",
+        //            "executedQty": "0",
+        //            "cumQty": "0",
+        //            "cumQuote": "0",
+        //            "timeInForce": "GTC",
+        //            "type": "MARKET",
+        //            "reduceOnly": false,
+        //            "closePosition": false,
+        //            "side": "BUY",
+        //            "positionSide": "BOTH",
+        //            "stopPrice": "0",
+        //            "workingType": "CONTRACT_PRICE",
+        //            "priceProtect": false,
+        //            "origType": "MARKET",
+        //            "updateTime": 1776802276050,
+        //            "newChainData": {
+        //                "hash": "0x5e569d9794cf726f72c2d000d401d20315e78e4df7b58023a489864624527dfe"
+        //            }
+        //        }
+        //    ]
+        //
         return this.parseOrders(response);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
@@ -2405,14 +2735,18 @@ class aster extends aster$1["default"] {
             request['timeInForce'] = this.safeString(this.options, 'defaultTimeInForce'); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         const requestParams = this.omit(params, ['newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta', 'stopPrice', 'stopLossPrice', 'takeProfitPrice']);
+        if (this.safeBool(this.options, 'builderFee') && market['swap']) {
+            request['builder'] = this.safeString(this.options, 'builder');
+            request['feeRate'] = this.safeString(this.options, 'builderRate');
+        }
         return this.extend(request, requestParams);
     }
     /**
      * @method
      * @name aster#cancelAllOrders
      * @description cancel all open orders in a market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#cancel-all-open-orders-trade
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#cancel-all-open-orders-trade
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#cancel-all-open-orders-trade
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#current-all-open-orders-user_data
      * @param {string} symbol unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2421,18 +2755,20 @@ class aster extends aster$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
         };
         let response = undefined;
         if (market['swap']) {
-            response = await this.fapiPrivateDeleteV1AllOpenOrders(this.extend(request, params));
+            response = await this.fapiPrivateDeleteV3AllOpenOrders(this.extend(request, params));
         }
         else {
-            response = await this.sapiPrivateDeleteV1AllOpenOrders(this.extend(request, params));
+            response = await this.sapiPrivateDeleteV3AllOpenOrders(this.extend(request, params));
         }
+        //
+        // SPOT & SWAP has same response
         //
         //     {
         //         "code": "200",
@@ -2449,8 +2785,8 @@ class aster extends aster$1["default"] {
      * @method
      * @name aster#cancelOrder
      * @description cancels an open order
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#cancel-order-trade
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#cancel-order-trade
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#cancel-order-trade
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#cancel-order-trade
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2460,25 +2796,25 @@ class aster extends aster$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
         };
-        const clientOrderId = this.safeStringN(params, ['origClientOrderId', 'clientOrderId', 'newClientStrategyId']);
+        const clientOrderId = this.safeStringN(params, ['origClientOrderId', 'clientOrderId']);
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
         }
         else {
             request['orderId'] = id;
         }
-        params = this.omit(params, ['origClientOrderId', 'clientOrderId', 'newClientStrategyId']);
+        params = this.omit(params, ['origClientOrderId', 'clientOrderId']);
         let response = undefined;
         if (market['swap']) {
-            response = await this.fapiPrivateDeleteV1Order(this.extend(request, params));
+            response = await this.fapiPrivateDeleteV3Order(this.extend(request, params));
         }
         else {
-            response = await this.sapiPrivateDeleteV1Order(this.extend(request, params));
+            response = await this.sapiPrivateDeleteV3Order(this.extend(request, params));
         }
         return this.parseOrder(response, market);
     }
@@ -2486,7 +2822,8 @@ class aster extends aster$1["default"] {
      * @method
      * @name aster#cancelOrders
      * @description cancel multiple orders
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#cancel-multiple-orders-trade
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#cancel-all-open-orders-trade
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#cancel-multiple-orders-trade
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2500,11 +2837,8 @@ class aster extends aster$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         const market = this.market(symbol);
-        if (market['spot']) {
-            throw new errors.NotSupported(this.id + ' cancelOrders() does not support ' + market['type'] + ' orders');
-        }
         const request = {
             'symbol': market['id'],
         };
@@ -2515,46 +2849,55 @@ class aster extends aster$1["default"] {
         else {
             request['orderIdList'] = ids;
         }
-        const response = await this.fapiPrivateDeleteV1BatchOrders(this.extend(request, params));
-        //
-        //    [
-        //        {
-        //            "clientOrderId": "myOrder1",
-        //            "cumQty": "0",
-        //            "cumQuote": "0",
-        //            "executedQty": "0",
-        //            "orderId": 283194212,
-        //            "origQty": "11",
-        //            "origType": "TRAILING_STOP_MARKET",
-        //            "price": "0",
-        //            "reduceOnly": false,
-        //            "side": "BUY",
-        //            "positionSide": "SHORT",
-        //            "status": "CANCELED",
-        //            "stopPrice": "9300",                  // please ignore when order type is TRAILING_STOP_MARKET
-        //            "closePosition": false,               // if Close-All
-        //            "symbol": "BTCUSDT",
-        //            "timeInForce": "GTC",
-        //            "type": "TRAILING_STOP_MARKET",
-        //            "activatePrice": "9020",              // activation price, only return with TRAILING_STOP_MARKET order
-        //            "priceRate": "0.3",                   // callback rate, only return with TRAILING_STOP_MARKET order
-        //            "updateTime": 1571110484038,
-        //            "workingType": "CONTRACT_PRICE",
-        //            "priceProtect": false,                // if conditional order trigger is protected
-        //        },
-        //        {
-        //            "code": -2011,
-        //            "msg": "Unknown order sent."
-        //        }
-        //    ]
-        //
+        let response = undefined;
+        if (market['swap']) {
+            response = await this.fapiPrivateDeleteV3BatchOrders(this.extend(request, params));
+            //
+            //    [
+            //        {
+            //            "clientOrderId": "myOrder1",
+            //            "cumQty": "0",
+            //            "cumQuote": "0",
+            //            "executedQty": "0",
+            //            "orderId": 283194212,
+            //            "origQty": "11",
+            //            "origType": "TRAILING_STOP_MARKET",
+            //            "price": "0",
+            //            "reduceOnly": false,
+            //            "side": "BUY",
+            //            "positionSide": "SHORT",
+            //            "status": "CANCELED",
+            //            "stopPrice": "9300",                  // please ignore when order type is TRAILING_STOP_MARKET
+            //            "closePosition": false,               // if Close-All
+            //            "symbol": "BTCUSDT",
+            //            "timeInForce": "GTC",
+            //            "type": "TRAILING_STOP_MARKET",
+            //            "activatePrice": "9020",              // activation price, only return with TRAILING_STOP_MARKET order
+            //            "priceRate": "0.3",                   // callback rate, only return with TRAILING_STOP_MARKET order
+            //            "updateTime": 1571110484038,
+            //            "workingType": "CONTRACT_PRICE",
+            //            "priceProtect": false,                // if conditional order trigger is protected
+            //        },
+            //        {
+            //            "code": -2011,
+            //            "msg": "Unknown order sent."
+            //        }
+            //    ]
+            //
+        }
+        else {
+            response = await this.sapiPrivateDeleteV3AllOpenOrders(this.extend(request, params));
+            //
+            //  {"code": 200,"msg": "The operation of cancel all open order is done."}
+            //
+        }
         return this.parseOrders(response, market);
     }
     /**
      * @method
      * @name aster#setLeverage
      * @description set the level of leverage for a market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#change-initial-leverage-trade
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-initial-leverage-trade
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2567,13 +2910,13 @@ class aster extends aster$1["default"] {
         if ((leverage < 1) || (leverage > 125)) {
             throw new errors.BadRequest(this.id + ' leverage should be between 1 and 125');
         }
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
             'leverage': leverage,
         };
-        const response = await this.fapiPrivatePostV1Leverage(this.extend(request, params));
+        const response = await this.fapiPrivatePostV3Leverage(this.extend(request, params));
         //
         //     {
         //         "leverage": 21,
@@ -2587,14 +2930,14 @@ class aster extends aster$1["default"] {
      * @method
      * @name aster#fetchLeverages
      * @description fetch the set leverage for all markets
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#position-information-v2-user_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
      * @param {string[]} [symbols] a list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
     async fetchLeverages(symbols = undefined, params = {}) {
-        await this.loadMarkets();
-        const response = await this.fapiPrivateGetV2PositionRisk(params);
+        await this.loadMarketsAndSignIn();
+        const response = await this.fapiPrivateGetV3PositionRisk(params);
         //
         //     [
         //         {
@@ -2666,14 +3009,14 @@ class aster extends aster$1["default"] {
      * @method
      * @name aster#fetchMarginModes
      * @description fetches margin mode of the user
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#position-information-v2-user_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
      * @param {string[]} symbols unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
      */
     async fetchMarginModes(symbols = undefined, params = {}) {
-        await this.loadMarkets();
-        const response = await this.fapiPrivateGetV2PositionRisk(params);
+        await this.loadMarketsAndSignIn();
+        const response = await this.fapiPrivateGetV3PositionRisk(params);
         //
         //
         //     [
@@ -2731,7 +3074,7 @@ class aster extends aster$1["default"] {
      * @method
      * @name aster#fetchMarginAdjustmentHistory
      * @description fetches the history of margin added or reduced from contract isolated positions
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-position-margin-change-history-trade
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-position-margin-change-history-trade
      * @param {string} symbol unified market symbol
      * @param {string} [type] "add" or "reduce"
      * @param {int} [since] timestamp in ms of the earliest change to fetch
@@ -2741,10 +3084,10 @@ class aster extends aster$1["default"] {
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
      */
     async fetchMarginAdjustmentHistory(symbol = undefined, type = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMarginAdjustmentHistory () requires a symbol argument');
         }
+        await this.loadMarketsAndSignIn();
         const market = this.market(symbol);
         const until = this.safeInteger(params, 'until');
         params = this.omit(params, 'until');
@@ -2754,16 +3097,16 @@ class aster extends aster$1["default"] {
         if (type !== undefined) {
             request['type'] = (type === 'add') ? 1 : 2;
         }
+        if (limit !== undefined) {
+            request['limit'] = Math.min(limit, 1000);
+        }
         if (since !== undefined) {
             request['startTime'] = since;
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
         }
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.fapiPrivateGetV1PositionMarginHistory(this.extend(request, params));
+        const response = await this.fapiPrivateGetV3PositionMarginHistory(this.extend(request, params));
         //
         //     [
         //         {
@@ -2818,7 +3161,7 @@ class aster extends aster$1["default"] {
         };
     }
     async modifyMarginHelper(symbol, amount, addOrReduce, params = {}) {
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         const market = this.market(symbol);
         amount = this.amountToPrecision(symbol, amount);
         const request = {
@@ -2827,7 +3170,7 @@ class aster extends aster$1["default"] {
             'amount': amount,
         };
         const code = market['quote'];
-        const response = await this.fapiPrivatePostV1PositionMargin(this.extend(request, params));
+        const response = await this.fapiPrivatePostV3PositionMargin(this.extend(request, params));
         //
         //     {
         //         "amount": 100.0,
@@ -2836,15 +3179,13 @@ class aster extends aster$1["default"] {
         //         "type": 1
         //     }
         //
-        return this.extend(this.parseMarginModification(response, market), {
-            'code': code,
-        });
+        return this.extend(this.parseMarginModification(response, market), { 'code': code });
     }
     /**
      * @method
      * @name aster#reduceMargin
      * @description remove margin from a position
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#modify-isolated-position-margin-trade
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#modify-isolated-position-margin-trade
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2857,7 +3198,7 @@ class aster extends aster$1["default"] {
      * @method
      * @name aster#addMargin
      * @description add margin
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#modify-isolated-position-margin-trade
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#modify-isolated-position-margin-trade
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2896,7 +3237,7 @@ class aster extends aster$1["default"] {
      * @method
      * @name aster#fetchFundingHistory
      * @description fetch the history of funding payments paid and received on this account
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-income-historyuser_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-income-historyuser_data
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -2907,7 +3248,7 @@ class aster extends aster$1["default"] {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
      */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         let market = undefined;
         let request = {
             'incomeType': 'FUNDING_FEE', // "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION", "INSURANCE_CLEAR", and "MARKET_MERCHANT_RETURN_REWARD"
@@ -2923,7 +3264,7 @@ class aster extends aster$1["default"] {
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000); // max 1000
         }
-        const response = await this.fapiPrivateGetV1Income(this.extend(request, params));
+        const response = await this.fapiPrivateGetV3Income(this.extend(request, params));
         return this.parseIncomes(response, market, since, limit);
     }
     parseLedgerEntry(item, currency = undefined) {
@@ -2987,7 +3328,7 @@ class aster extends aster$1["default"] {
      * @method
      * @name aster#fetchLedger
      * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-income-historyuser_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-income-historyuser_data
      * @param {string} [code] unified currency code
      * @param {int} [since] timestamp in ms of the earliest ledger entry
      * @param {int} [limit] max number of ledger entries to return
@@ -2996,7 +3337,7 @@ class aster extends aster$1["default"] {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -3013,7 +3354,7 @@ class aster extends aster$1["default"] {
             params = this.omit(params, 'until');
             request['endTime'] = until;
         }
-        const response = await this.fapiPrivateGetV1Income(this.extend(request, params));
+        const response = await this.fapiPrivateGetV3Income(this.extend(request, params));
         //
         //     [
         //         {
@@ -3209,7 +3550,7 @@ class aster extends aster$1["default"] {
      * @method
      * @name aster#fetchPositionsRisk
      * @description fetch positions risk
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#position-information-v2-user_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} data on the positions risk
@@ -3220,10 +3561,10 @@ class aster extends aster$1["default"] {
                 throw new errors.ArgumentsRequired(this.id + ' fetchPositionsRisk() requires an array argument for symbols');
             }
         }
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         await this.loadLeverageBrackets(false, params);
         const request = {};
-        const response = await this.fapiPrivateGetV2PositionRisk(this.extend(request, params));
+        const response = await this.fapiPrivateGetV3PositionRisk(this.extend(request, params));
         //
         //     [
         //         {
@@ -3258,7 +3599,7 @@ class aster extends aster$1["default"] {
      * @method
      * @name aster#fetchPositions
      * @description fetch all open positions
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#position-information-v2-user_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
@@ -3495,7 +3836,7 @@ class aster extends aster$1["default"] {
      * @name aster#fetchAccountPositions
      * @ignore
      * @description fetch account positions
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#position-information-v2-user_data
+     https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} data on account positions
@@ -3506,7 +3847,7 @@ class aster extends aster$1["default"] {
                 throw new errors.ArgumentsRequired(this.id + ' fetchPositions() requires an array argument for symbols');
             }
         }
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         await this.loadLeverageBrackets(false, params);
         const response = await this.fapiPrivateGetV4Account(params);
         let filterClosed = undefined;
@@ -3516,12 +3857,35 @@ class aster extends aster$1["default"] {
         return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     async loadLeverageBrackets(reload = false, params = {}) {
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
         const leverageBrackets = this.safeDict(this.options, 'leverageBrackets');
         if ((leverageBrackets === undefined) || (reload)) {
-            const response = await this.fapiPrivateGetV1LeverageBracket(params);
+            const response = await this.fapiPrivateGetV3LeverageBracket(params);
+            //
+            //    [
+            //        {
+            //            "symbol": "TRUTHUSDT",
+            //            "brackets": [
+            //                {
+            //                    "bracket": "1",
+            //                    "initialLeverage": "50",
+            //                    "notionalCap": "5000",
+            //                    "notionalFloor": "0",
+            //                    "maintMarginRatio": "0.01",
+            //                    "cum": "0.0"
+            //                },
+            //                {
+            //                    "bracket": "2",
+            //                    "initialLeverage": "20",
+            //                    "notionalCap": "10000",
+            //                    "notionalFloor": "5000",
+            //                    "maintMarginRatio": "0.025",
+            //                    "cum": "75.0"
+            //                },
+            //                ...
+            //
             this.options['leverageBrackets'] = this.createSafeDictionary();
             for (let i = 0; i < response.length; i++) {
                 const entry = response[i];
@@ -3547,12 +3911,11 @@ class aster extends aster$1["default"] {
         return this.signHash(this.keccakMessage(message), privateKey.slice(-64));
     }
     signWithdrawPayload(withdrawPayload, network) {
-        const zeroAddress = this.safeString(this.options, 'zeroAddress');
         const chainId = this.safeInteger(withdrawPayload, 'chainId');
         const domain = {
             'chainId': chainId,
             'name': 'Aster',
-            'verifyingContract': zeroAddress,
+            'verifyingContract': this.safeString(this.options, 'zeroAddress'),
             'version': '1',
         };
         const messageTypes = {
@@ -3567,17 +3930,17 @@ class aster extends aster$1["default"] {
                 { 'name': 'aster chain', 'type': 'string' },
             ],
         };
-        const withdraw = {
+        const request = {
             'type': 'Withdraw',
             'destination': this.safeString(withdrawPayload, 'receiver'),
             'destination Chain': network,
             'token': this.safeString(withdrawPayload, 'asset'),
             'amount': this.safeString(withdrawPayload, 'amount'),
             'fee': this.safeString(withdrawPayload, 'fee'),
-            'nonce': this.safeInteger(withdrawPayload, 'nonce'),
+            'nonce': this.safeInteger(withdrawPayload, 'userNonce'),
             'aster chain': 'Mainnet',
         };
-        const msg = this.ethEncodeStructuredData(domain, messageTypes, withdraw);
+        const msg = this.ethEncodeStructuredData(domain, messageTypes, request);
         const signature = this.signMessage(msg, this.privateKey);
         return signature;
     }
@@ -3585,7 +3948,9 @@ class aster extends aster$1["default"] {
      * @method
      * @name aster#withdraw
      * @description make a withdrawal
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#withdraw-user_data
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#withdraw-user_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/deposit%26withdrawal/#withdraw-by-fapiv3-evm-futures
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/deposit%26withdrawal/#withdraw-by-fapiv3-evm-spot
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
@@ -3596,12 +3961,13 @@ class aster extends aster$1["default"] {
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         const currency = this.currency(code);
+        const nonce = this.milliseconds() * 1000;
         const request = {
             'asset': currency['id'],
             'receiver': address,
-            'nonce': this.milliseconds() * 1000,
+            'userNonce': nonce.toString(),
         };
         let chainId = this.safeInteger(params, 'chainId');
         // TODO: check how ARBI signature would work
@@ -3624,23 +3990,32 @@ class aster extends aster$1["default"] {
         params = this.omit(params, ['chainId', 'network', 'fee']);
         request['amount'] = this.currencyToPrecision(code, amount, network);
         request['userSignature'] = this.signWithdrawPayload(request, network);
-        const response = await this.sapiPrivatePostV1AsterUserWithdraw(this.extend(request, params));
+        const response = await this.sapiPrivatePostV3AsterUserWithdraw(this.extend(request, params));
+        //
+        //   {
+        //       "withdrawId": "1097219372504338432",
+        //       "hash": "0x9e6baa3eb75d92a1164eef51a0cc97b9591930518ba3e8e5ab40ce524ba4e463"
+        //   }
+        //
+        return this.parseTransaction(response, currency);
+    }
+    parseTransaction(transaction, currency = undefined) {
         return {
-            'info': response,
-            'id': this.safeString(response, 'withdrawId'),
-            'txid': this.safeString(response, 'hash'),
+            'info': transaction,
+            'id': this.safeString(transaction, 'withdrawId'),
+            'txid': this.safeString(transaction, 'hash'),
             'timestamp': undefined,
             'datetime': undefined,
-            'network': network,
-            'address': address,
-            'addressTo': address,
+            'network': undefined,
+            'address': undefined,
+            'addressTo': undefined,
             'addressFrom': undefined,
-            'tag': tag,
-            'tagTo': tag,
+            'tag': undefined,
+            'tagTo': undefined,
             'tagFrom': undefined,
             'type': 'withdrawal',
-            'amount': amount,
-            'currency': code,
+            'amount': undefined,
+            'currency': undefined,
             'status': undefined,
             'updated': undefined,
             'internal': undefined,
@@ -3652,8 +4027,8 @@ class aster extends aster$1["default"] {
      * @method
      * @name aster#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#transfer-asset-to-other-address-trade
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#transfer-between-futures-and-spot-user_data
+     * @see https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#perp-spot-transfer-trade
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#transfer-between-futures-and-spot-transfer
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
@@ -3662,7 +4037,7 @@ class aster extends aster$1["default"] {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        await this.loadMarketsAndSignIn();
         const currency = this.currency(code);
         const request = {
             'asset': currency['id'],
@@ -3683,47 +4058,36 @@ class aster extends aster$1["default"] {
         else if (fromId === 'FUTURE' && toId === 'SPOT') {
             type = 'FUTURE_SPOT';
         }
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE');
+        }
         let response = undefined;
-        if (type !== undefined) {
-            const defaultClientTranId = this.numberToString(this.milliseconds());
-            const clientTranId = this.safeString(params, 'clientTranId', defaultClientTranId);
-            request['kindType'] = type;
-            request['clientTranId'] = clientTranId;
-            response = await this.fapiPrivatePostV1AssetWalletTransfer(this.extend(request, params));
-        }
-        else {
-            // transfer asset to other address
-            request['toAddress'] = toAccount;
-            response = await this.sapiPrivatePostV1AssetSendToAddress(this.extend(request, params));
-        }
-        //
-        //     {
-        //         "tranId":13526853623,
-        //         "status": "SUCCESS"
-        //     }
-        //
+        const defaultClientTranId = this.numberToString(this.milliseconds());
+        const clientTranId = this.safeString(params, 'clientTranId', defaultClientTranId);
+        request['kindType'] = type;
+        request['clientTranId'] = clientTranId;
+        response = await this.sapiPrivatePostV3AssetWalletTransfer(this.extend(request, params));
+        return this.parseTransfer(response, currency);
+    }
+    parseTransfer(transfer, currency = undefined) {
+        const currencyId = this.safeString(transfer, 'code');
         return {
-            'info': response,
-            'id': this.safeString(response, 'tranId'),
-            'txid': undefined,
+            'info': transfer,
+            'id': this.safeString(transfer, 'tranId'),
             'timestamp': undefined,
             'datetime': undefined,
-            'network': undefined,
-            'address': undefined,
-            'addressTo': fromAccount,
-            'addressFrom': toAccount,
-            'tag': undefined,
-            'tagTo': undefined,
-            'tagFrom': undefined,
-            'type': 'transfer',
-            'amount': amount,
-            'currency': code,
-            'status': undefined,
-            'updated': undefined,
-            'internal': undefined,
-            'comment': undefined,
-            'fee': undefined,
+            'currency': this.safeCurrencyCode(currencyId, currency),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': this.parseTransferStatus(this.safeString(transfer, 'status')),
         };
+    }
+    parseTransferStatus(status) {
+        const statuses = {
+            'SUCCESS': 'ok',
+        };
+        return this.safeString(statuses, status, status);
     }
     hashMessage(binaryMessage) {
         // const binaryMessage = this.encode (message);
@@ -3750,77 +4114,173 @@ class aster extends aster$1["default"] {
         }
         else if (api === 'fapiPrivate' || api === 'sapiPrivate') {
             this.checkRequiredCredentials();
-            headers = {
-                'X-MBX-APIKEY': this.apiKey,
+            const nonce = this.milliseconds() * 1000;
+            // Sign using EIP-712 typed data per the AsterSignTransaction spec
+            const zeroAddress = this.safeString(this.options, 'zeroAddress', '0x0000000000000000000000000000000000000000');
+            const v3ChainId = this.safeInteger(this.options, 'v3ChainId', 1666);
+            const signerAddress = this.safeString(this.options, 'signerAddress');
+            if (signerAddress === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' requires signerAddress in options when use v3 api');
+            }
+            const domain = {
+                'name': 'AsterSignTransaction',
+                'version': '1',
+                'chainId': v3ChainId,
+                'verifyingContract': zeroAddress,
             };
-            const timestamp = this.milliseconds();
-            // Nonce is in microseconds
-            const nonce = this.microseconds();
-            const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
-            let extendedParams = this.extend({
-                'timestamp': timestamp,
+            let messageTypes = {
+                'Message': [
+                    { 'name': 'msg', 'type': 'string' },
+                ],
+            };
+            // Build v3 params: original endpoint params + nonce (macroseconds) + user + signer
+            // Note: timestamp and recvWindow are not used for v3; nonce replaces timestamp
+            const finalParams = this.extend({
+                'nonce': nonce.toString(),
+                'user': this.walletAddress,
+                'signer': signerAddress,
             }, params);
-            if (defaultRecvWindow !== undefined) {
-                extendedParams['recvWindow'] = defaultRecvWindow;
-            }
-            const recvWindow = this.safeInteger(params, 'recvWindow');
-            if (recvWindow !== undefined) {
-                extendedParams['recvWindow'] = recvWindow;
-            }
-            let query = undefined;
-            if ((method === 'DELETE') && (path === 'v1/batchOrders')) {
-                const orderidlist = this.safeList(extendedParams, 'orderIdList', []);
-                const origclientorderidlist = this.safeList(extendedParams, 'origClientOrderIdList', []);
-                extendedParams = this.omit(extendedParams, ['orderIdList', 'origClientOrderIdList']);
-                query = this.rawencode(extendedParams);
-                const orderidlistLength = orderidlist.length;
-                const origclientorderidlistLength = origclientorderidlist.length;
-                if (orderidlistLength > 0) {
-                    query = query + '&' + 'orderidlist=%5B' + orderidlist.join('%2C') + '%5D';
-                }
-                if (origclientorderidlistLength > 0) {
-                    query = query + '&' + 'origclientorderidlist=%5B' + origclientorderidlist.join('%2C') + '%5D';
-                }
+            let paramString = undefined;
+            let paramsToEncode = undefined;
+            const isApproveBuilder = (path.indexOf('/approveBuilder') >= 0);
+            if (isApproveBuilder) {
+                // domain['name'] = 'Aster';
+                messageTypes = {
+                    'ApproveBuilder': [
+                        { 'name': 'Builder', 'type': 'string' },
+                        { 'name': 'MaxFeeRate', 'type': 'string' },
+                        { 'name': 'BuilderName', 'type': 'string' },
+                        { 'name': 'AsterChain', 'type': 'string' },
+                        { 'name': 'User', 'type': 'string' },
+                        { 'name': 'Nonce', 'type': 'uint256' },
+                    ],
+                };
+                delete finalParams['signer']; // signer is not needed for approveBuilder endpoint
+                paramString = this.encodeValuesWithJson(finalParams);
+                paramsToEncode = this.capitalizeKeys(finalParams);
             }
             else {
-                query = this.rawencode(extendedParams);
+                paramString = this.encodeValuesWithJson(finalParams);
+                paramsToEncode = { 'msg': paramString };
             }
-            let signature = '';
-            if (path.indexOf('v3') >= 0) {
-                const signerAddress = this.options['signerAddress'];
-                if (signerAddress === undefined) {
-                    throw new errors.ArgumentsRequired(this.id + ' requires signerAddress in options when use v3 api');
-                }
-                // the keys order matter
-                const keys = Object.keys(extendedParams);
-                const sortedKeys = this.sort(keys);
-                const signingPayload = {};
-                for (let i = 0; i < sortedKeys.length; i++) {
-                    const key = sortedKeys[i];
-                    signingPayload[key] = extendedParams[key].toString();
-                }
-                const signingHash = this.hashMessage(this.hash(this.ethAbiEncode([
-                    'string', 'address', 'address', 'uint256',
-                ], [this.json(signingPayload), this.walletAddress, signerAddress, nonce]), sha3.keccak_256, 'binary'));
-                signature = this.signHash(signingHash, this.privateKey);
-                extendedParams['user'] = this.walletAddress;
-                extendedParams['signer'] = signerAddress;
-                extendedParams['nonce'] = nonce;
-                query = this.rawencode(extendedParams);
-            }
-            else {
-                signature = this.hmac(this.encode(query), this.encode(this.secret), sha256.sha256);
-            }
-            query += '&' + 'signature=' + signature;
+            const encodedMessage = this.ethEncodeStructuredData(domain, messageTypes, paramsToEncode);
+            const signature = this.signMessage(encodedMessage, this.privateKey);
+            const queryString = paramString + '&' + 'signature=' + signature;
             if (method === 'GET') {
-                url += '?' + query;
+                url += '?' + queryString;
             }
             else {
-                body = query;
+                headers = {};
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                body = queryString;
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+    encodeValuesWithJson(values) {
+        let encodedString = '';
+        const keys = Object.keys(values);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const value = values[key];
+            const isObj = Array.isArray(value) || this.isDictionary(value);
+            const valueJsonified = isObj ? this.json(value) : value.toString();
+            const encoded = this.encodeURIComponent(valueJsonified);
+            encodedString += key + '=' + encoded + '&';
+        }
+        return encodedString.slice(0, -1);
+    }
+    capitalizeKeys(dict) {
+        const capitalized = {};
+        const keys = Object.keys(dict);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const value = dict[key];
+            const capitalizedKey = this.capitalize(key);
+            capitalized[capitalizedKey] = value;
+        }
+        return capitalized;
+    }
+    async loadMarketsAndSignIn() {
+        await Promise.all([this.loadMarkets(), this.signIn()]);
+    }
+    /**
+     * @method
+     * @name aster#signIn
+     * @description sign in, must be called prior to using other authenticated methods
+     * @see https://asterdex.github.io/aster-api-website/asterCode/integration-flow/
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns response from exchange
+     */
+    async signIn(params = {}) {
+        if (this.isEmptyString(this.privateKey)) {
+            if (!this.isEmptyString(this.apiKey) || !this.isEmptyString(this.secret)) {
+                throw new errors.NotSupported(this.id + 'after the latest upgrade (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.');
+            }
+            return false;
+        }
+        if (this.privateKey.length > 66) {
+            throw new errors.NotSupported(this.id + ' after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.');
+        }
+        await this.initializeClient(params);
+        return true;
+    }
+    async initializeClient(params = {}) {
+        const builderFee = this.safeBool(params, 'builderFee', this.safeBool(this.options, 'builderFee', true)); // we shouldn't omit here
+        if (!builderFee) {
+            return false; // skip if builder fee is not enabled
+        }
+        const approvedBuilderFee = this.safeBool(this.options, 'approvedBuilderFee', false);
+        if (approvedBuilderFee) {
+            return true; // skip if builder fee is already approved
+        }
+        const result = await this.fapiPrivateGetV3Builder();
+        //
+        //    [
+        //        {
+        //            "userAddress": "0x35a5B33Be664B09F78b5089eb6185f71c8a7f11f",
+        //            "builderAddress": "0x1F5877C19e3777Cfd15F9d57253eA4aA5254Ec39",
+        //            "maxFeeRate": "0.001",
+        //            "builderName": "ccxt"
+        //        }
+        //    ]
+        //
+        const approvedBuilders = result;
+        const length = approvedBuilders.length;
+        let found = false;
+        for (let i = 0; i < length; i++) {
+            const builderInfo = this.safeDict(approvedBuilders, i, {});
+            const builderAccountId = this.safeString(builderInfo, 'builderAddress');
+            if (builderAccountId === this.safeString(this.options, 'builder')) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            this.options['approvedBuilderFee'] = true;
+            try {
+                const request = {
+                    'builder': this.safeString(this.options, 'builder'),
+                    'builderName': this.safeString(this.options, 'builderName', 'ccxt'),
+                    'maxFeeRate': this.safeString(this.options, 'builderRate'),
+                    'signatureChainId': this.safeInteger(this.options, 'v3ChainId', 1666),
+                    'asterChain': 'Mainnet',
+                };
+                const authResponse = await this.fapiPrivatePostV3ApproveBuilder(this.extend(request, params));
+                //
+                // {"code": 200,"msg": "success"}
+                //
+                const codeRes = this.safeInteger(authResponse, 'code');
+                if (codeRes !== 200) {
+                    throw new errors.ExchangeError('Builder authorization failed, ' + this.json(authResponse));
+                }
+            }
+            catch (e) {
+                this.options['approvedBuilderFee'] = false;
+                this.options['builderFee'] = false; // disable if err
+            }
+        }
+        return undefined; // just c#
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

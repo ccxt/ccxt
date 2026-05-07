@@ -20,7 +20,7 @@ function test_watch_ticker($exchange, $skipped_properties, $symbol) {
             $response = null;
             $success = true;
             try {
-                $response = Async\await($exchange->watch_ticker($symbol));
+                $response = \React\Async\await($exchange->watch_ticker($symbol));
             } catch(\Throwable $e) {
                 if (!is_temporary_failure($e)) {
                     throw $e;

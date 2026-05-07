@@ -220,6 +220,7 @@ class phemex extends phemex$1["default"] {
                         'api-data/futures/trading-fees': 5,
                         'api-data/g-futures/trading-fees': 5,
                         'api-data/futures/v2/tradeAccountDetail': 5,
+                        'api-data/g-futures/closedPosition': 5,
                         'g-orders/activeList': 1,
                         'orders/activeList': 1,
                         'exchange/order/list': 5,
@@ -3970,6 +3971,60 @@ class phemex extends phemex$1["default"] {
         }
         return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
+    /**
+     * @method
+     * @name phemex#fetchPositionHistory
+     * @description fetches historical positions
+     * @see https://phemex-docs.github.io/#query-closed-positions
+     * @param {string} symbol unified contract symbol
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum amount of records to fetch
+     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {int} [params.until] the latest time in ms to fetch positions for
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    async fetchPositionHistory(symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        symbol = market['symbol'];
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = Math.min(200, limit);
+        }
+        const response = await this.privateGetApiDataGFuturesClosedPosition(this.extend(request, params));
+        //
+        //    {
+        //        "code": "0",
+        //        "msg": "OK",
+        //        "data": [
+        //            {
+        //                "symbol": "ETHUSDT",
+        //                "currency": "USDT",
+        //                "term": "0",
+        //                "closedSizeRq": "0.09",
+        //                "side": "1",
+        //                "cumEntryValueRv": null,
+        //                "closedPnlRv": "-0.1385",
+        //                "exchangeFeeRv": "0.2561889",
+        //                "fundingFeeRv": "0",
+        //                "realizedPnlRv": "-0.3946889",
+        //                "finished": "0",
+        //                "openedTimeNs": "1777998771316",
+        //                "updatedTimeNs": "1777998802592",
+        //                "openPrice": "2372.88888889",
+        //                "closePrice": "2371.35000000",
+        //                "roi": "-0.09702738",
+        //                "leverage": "-52.5"
+        //            },
+        //        ]
+        //    }
+        //
+        const data = this.safeList(response, 'data', []);
+        const positions = this.parsePositions(data, [symbol]);
+        return this.filterBySymbolSinceLimit(positions, symbol, since, limit);
+    }
     parsePosition(position, market = undefined) {
         //
         //    {
@@ -4042,6 +4097,29 @@ class phemex extends phemex$1["default"] {
         //        "execSeq": "12112761561"
         //    }
         //
+        //
+        // fetchPositionsHistory
+        //
+        //            {
+        //                "symbol": "ETHUSDT",
+        //                "currency": "USDT",
+        //                "term": "0",
+        //                "closedSizeRq": "0.09",
+        //                "side": "1",
+        //                "cumEntryValueRv": null,
+        //                "closedPnlRv": "-0.1385",
+        //                "exchangeFeeRv": "0.2561889",
+        //                "fundingFeeRv": "0",
+        //                "realizedPnlRv": "-0.3946889",
+        //                "finished": "0",
+        //                "openedTimeNs": "1777998771316",
+        //                "updatedTimeNs": "1777998802592",
+        //                "openPrice": "2372.88888889",
+        //                "closePrice": "2371.35000000",
+        //                "roi": "-0.09702738", // todo: check if percentage or not
+        //                "leverage": "-52.5"
+        //            },
+        //
         const marketId = this.safeString(position, 'symbol');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
@@ -4053,15 +4131,16 @@ class phemex extends phemex$1["default"] {
         const initialMarginPercentageString = Precise["default"].stringDiv(initialMarginString, notionalString);
         const liquidationPrice = this.safeNumber2(position, 'liquidationPrice', 'liquidationPriceRp');
         const markPriceString = this.safeString2(position, 'markPrice', 'markPriceRp');
-        const contracts = this.safeString2(position, 'size', 'sizeRq');
+        const contracts = this.safeStringN(position, ['size', 'sizeRq', 'closedSizeRq']);
         const contractSize = this.safeValue(market, 'contractSize');
         const contractSizeString = this.numberToString(contractSize);
         const leverage = this.parseNumber(Precise["default"].stringAbs((this.safeString2(position, 'leverage', 'leverageRr'))));
-        const entryPriceString = this.safeString2(position, 'avgEntryPrice', 'avgEntryPriceRp');
+        const entryPriceString = this.safeStringN(position, ['avgEntryPrice', 'avgEntryPriceRp', 'openPrice']);
         const rawSide = this.safeString(position, 'side');
         let side = undefined;
         if (rawSide !== undefined) {
-            side = (rawSide === 'Buy') ? 'long' : 'short';
+            const isLong = (rawSide === 'Buy' || rawSide === '1');
+            side = isLong ? 'long' : 'short';
         }
         // Inverse long contract: unRealizedPnl = (posSize * contractSize) / avgEntryPrice - (posSize * contractSize) / markPrice
         // Inverse short contract: unRealizedPnl =  (posSize *contractSize) / markPrice - (posSize * contractSize) / avgEntryPrice
@@ -4090,13 +4169,15 @@ class phemex extends phemex$1["default"] {
         const apiUnrealizedPnl = this.safeString(position, 'unRealisedPnlRv', unrealizedPnl);
         const marginRatio = Precise["default"].stringDiv(maintenanceMarginString, collateral);
         const isCross = this.safeValue(position, 'crossMargin');
+        const timestamp = this.safeInteger(position, 'openedTimeNs');
+        const lastUpdateTimestamp = this.safeInteger(position, 'updatedTimeNs', this.safeIntegerProduct(position, 'transactTimeNs', 0.000001));
         return this.safePosition({
             'info': position,
             'id': this.safeString(position, 'execSeq'),
             'symbol': symbol,
             'contracts': this.parseNumber(contracts),
             'contractSize': contractSize,
-            'realizedPnl': this.safeNumber(position, 'curTermRealisedPnlRv'),
+            'realizedPnl': this.safeNumber2(position, 'curTermRealisedPnlRv', 'realizedPnlRv'),
             'unrealizedPnl': this.parseNumber(apiUnrealizedPnl),
             'leverage': leverage,
             'liquidationPrice': liquidationPrice,
@@ -4105,14 +4186,15 @@ class phemex extends phemex$1["default"] {
             'markPrice': this.parseNumber(markPriceString),
             'lastPrice': undefined,
             'entryPrice': this.parseNumber(entryPriceString),
-            'timestamp': undefined,
-            'lastUpdateTimestamp': this.safeIntegerProduct(position, 'transactTimeNs', 0.000001),
+            'exitPrice': this.safeNumber(position, 'closePrice'),
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'initialMargin': this.parseNumber(initialMarginString),
             'initialMarginPercentage': this.parseNumber(initialMarginPercentageString),
             'maintenanceMargin': this.parseNumber(maintenanceMarginString),
             'maintenanceMarginPercentage': this.parseNumber(maintenanceMarginPercentageString),
             'marginRatio': this.parseNumber(marginRatio),
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
             'marginMode': isCross ? 'cross' : 'isolated',
             'side': side,
             'hedged': this.safeString(position, 'posMode') === 'Hedged',

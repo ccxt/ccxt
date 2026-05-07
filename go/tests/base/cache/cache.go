@@ -7,64 +7,64 @@ package cache
 
 func TestWsCache()  {
     arrayCache := NewArrayCache(3)
-    arrayCache.Append(map[string]interface{} {
+    arrayCache.Append(map[string]any {
         "symbol": "BTC/USDT",
         "data": 1,
     })
-    arrayCache.Append(map[string]interface{} {
+    arrayCache.Append(map[string]any {
         "symbol": "BTC/USDT",
         "data": 2,
     })
-    arrayCache.Append(map[string]interface{} {
+    arrayCache.Append(map[string]any {
         "symbol": "BTC/USDT",
         "data": 3,
     })
-    arrayCache.Append(map[string]interface{} {
+    arrayCache.Append(map[string]any {
         "symbol": "BTC/USDT",
         "data": 4,
     })
-    Assert(Equals(arrayCache, []interface{}{map[string]interface{} {
+    Assert(Equals(arrayCache, []any{map[string]any {
     "symbol": "BTC/USDT",
     "data": 2,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "data": 3,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "data": 4,
 }}))
-    arrayCache.Append(map[string]interface{} {
+    arrayCache.Append(map[string]any {
         "symbol": "BTC/USDT",
         "data": 5,
     })
-    arrayCache.Append(map[string]interface{} {
+    arrayCache.Append(map[string]any {
         "symbol": "BTC/USDT",
         "data": 6,
     })
-    arrayCache.Append(map[string]interface{} {
+    arrayCache.Append(map[string]any {
         "symbol": "BTC/USDT",
         "data": 7,
     })
-    arrayCache.Append(map[string]interface{} {
+    arrayCache.Append(map[string]any {
         "symbol": "BTC/USDT",
         "data": 8,
     })
-    Assert(Equals(arrayCache, []interface{}{map[string]interface{} {
+    Assert(Equals(arrayCache, []any{map[string]any {
     "symbol": "BTC/USDT",
     "data": 6,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "data": 7,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "data": 8,
 }}))
     arrayCache.Clear()
-    arrayCache.Append(map[string]interface{} {
+    arrayCache.Append(map[string]any {
         "symbol": "BTC/USDT",
         "data": 1,
     })
-    Assert(Equals(arrayCache, []interface{}{map[string]interface{} {
+    Assert(Equals(arrayCache, []any{map[string]any {
     "symbol": "BTC/USDT",
     "data": 1,
 }}))
@@ -72,15 +72,15 @@ func TestWsCache()  {
 // ----------------------------------------------------------------------------
 
     arraycache2 := NewArrayCache(1)
-    arraycache2.Append(map[string]interface{} {
+    arraycache2.Append(map[string]any {
         "symbol": "BTC/USDT",
         "data": 1,
     })
-    arraycache2.Append(map[string]interface{} {
+    arraycache2.Append(map[string]any {
         "symbol": "BTC/USDT",
         "data": 2,
     })
-    Assert(Equals(arraycache2, []interface{}{map[string]interface{} {
+    Assert(Equals(arraycache2, []any{map[string]any {
     "symbol": "BTC/USDT",
     "data": 2,
 }}))
@@ -88,29 +88,29 @@ func TestWsCache()  {
 // ----------------------------------------------------------------------------
 
     timestampCache := NewArrayCacheByTimestamp()
-    var ohlcv1 interface{} = []interface{}{100, 1, 2, 3}
-    var ohlcv2 interface{} = []interface{}{200, 5, 6, 7}
+    var ohlcv1 any = []any{100, 1, 2, 3}
+    var ohlcv2 any = []any{200, 5, 6, 7}
     timestampCache.Append(ohlcv1)
     timestampCache.Append(ohlcv2)
-    Assert(Equals(timestampCache, []interface{}{ohlcv1, ohlcv2}))
-    var modify2 interface{} = []interface{}{200, 10, 11, 12}
+    Assert(Equals(timestampCache, []any{ohlcv1, ohlcv2}))
+    var modify2 any = []any{200, 10, 11, 12}
     timestampCache.Append(modify2)
-    Assert(Equals(timestampCache, []interface{}{ohlcv1, modify2}))
+    Assert(Equals(timestampCache, []any{ohlcv1, modify2}))
     
 // ----------------------------------------------------------------------------
 
     cacheSymbolId := NewArrayCacheBySymbolById()
-    var object1 interface{} = map[string]interface{} {
+    var object1 any = map[string]any {
         "symbol": "BTC/USDT",
         "id": "abcdef",
         "i": 1,
     }
-    var object2 interface{} = map[string]interface{} {
+    var object2 any = map[string]any {
         "symbol": "ETH/USDT",
         "id": "qwerty",
         "i": 2,
     }
-    var object3 interface{} = map[string]interface{} {
+    var object3 any = map[string]any {
         "symbol": "BTC/USDT",
         "id": "abcdef",
         "i": 3,
@@ -118,199 +118,199 @@ func TestWsCache()  {
     cacheSymbolId.Append(object1)
     cacheSymbolId.Append(object2)
     cacheSymbolId.Append(object3) // should update index 0
-    Assert(Equals(cacheSymbolId, []interface{}{object2, object3}))
+    Assert(Equals(cacheSymbolId, []any{object2, object3}))
     
 // ----------------------------------------------------------------------------
 
     cacheSymbolId5 := NewArrayCacheBySymbolById(5)
     for i := 1; IsLessThan(i, 11); i++ {
-        cacheSymbolId5.Append(map[string]interface{} {
+        cacheSymbolId5.Append(map[string]any {
             "symbol": "BTC/USDT",
             "id": ToString(i),
             "i": i,
         })
     }
-    Assert(Equals(cacheSymbolId5, []interface{}{map[string]interface{} {
+    Assert(Equals(cacheSymbolId5, []any{map[string]any {
     "symbol": "BTC/USDT",
     "id": "6",
     "i": 6,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "id": "7",
     "i": 7,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "id": "8",
     "i": 8,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "id": "9",
     "i": 9,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "id": "10",
     "i": 10,
 }}))
     for i := 1; IsLessThan(i, 11); i++ {
-        cacheSymbolId5.Append(map[string]interface{} {
+        cacheSymbolId5.Append(map[string]any {
             "symbol": "BTC/USDT",
             "id": ToString(i),
             "i": Add(i, 10),
         })
     }
-    Assert(Equals(cacheSymbolId5, []interface{}{map[string]interface{} {
+    Assert(Equals(cacheSymbolId5, []any{map[string]any {
     "symbol": "BTC/USDT",
     "id": "6",
     "i": 16,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "id": "7",
     "i": 17,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "id": "8",
     "i": 18,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "id": "9",
     "i": 19,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "id": "10",
     "i": 20,
 }}))
-    var middle interface{} = map[string]interface{} {
+    var middle any = map[string]any {
         "symbol": "BTC/USDT",
         "id": "8",
         "i": 28,
     }
     cacheSymbolId5.Append(middle)
-    Assert(Equals(cacheSymbolId5, []interface{}{map[string]interface{} {
+    Assert(Equals(cacheSymbolId5, []any{map[string]any {
     "symbol": "BTC/USDT",
     "id": "6",
     "i": 16,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "id": "7",
     "i": 17,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "id": "9",
     "i": 19,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "id": "10",
     "i": 20,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "id": "8",
     "i": 28,
 }}))
-    var otherMiddle interface{} = map[string]interface{} {
+    var otherMiddle any = map[string]any {
         "symbol": "BTC/USDT",
         "id": "7",
         "i": 27,
     }
     cacheSymbolId5.Append(otherMiddle)
-    Assert(Equals(cacheSymbolId5, []interface{}{map[string]interface{} {
+    Assert(Equals(cacheSymbolId5, []any{map[string]any {
     "symbol": "BTC/USDT",
     "id": "6",
     "i": 16,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "id": "9",
     "i": 19,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "id": "10",
     "i": 20,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "id": "8",
     "i": 28,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "id": "7",
     "i": 27,
 }}))
     for i := 30; IsLessThan(i, 33); i++ {
-        cacheSymbolId5.Append(map[string]interface{} {
+        cacheSymbolId5.Append(map[string]any {
             "symbol": "BTC/USDT",
             "id": ToString(i),
             "i": Add(i, 10),
         })
     }
-    Assert(Equals(cacheSymbolId5, []interface{}{map[string]interface{} {
+    Assert(Equals(cacheSymbolId5, []any{map[string]any {
     "symbol": "BTC/USDT",
     "id": "8",
     "i": 28,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "id": "7",
     "i": 27,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "id": "30",
     "i": 40,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "id": "31",
     "i": 41,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "id": "32",
     "i": 42,
 }}))
-    var first interface{} = map[string]interface{} {
+    var first any = map[string]any {
         "symbol": "BTC/USDT",
         "id": "8",
         "i": 38,
     }
     cacheSymbolId5.Append(first)
-    Assert(Equals(cacheSymbolId5, []interface{}{map[string]interface{} {
+    Assert(Equals(cacheSymbolId5, []any{map[string]any {
     "symbol": "BTC/USDT",
     "id": "7",
     "i": 27,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "id": "30",
     "i": 40,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "id": "31",
     "i": 41,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "id": "32",
     "i": 42,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "id": "8",
     "i": 38,
 }}))
-    var another interface{} = map[string]interface{} {
+    var another any = map[string]any {
         "symbol": "BTC/USDT",
         "id": "30",
         "i": 50,
     }
     cacheSymbolId5.Append(another)
-    Assert(Equals(cacheSymbolId5, []interface{}{map[string]interface{} {
+    Assert(Equals(cacheSymbolId5, []any{map[string]any {
     "symbol": "BTC/USDT",
     "id": "7",
     "i": 27,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "id": "31",
     "i": 41,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "id": "32",
     "i": 42,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "id": "8",
     "i": 38,
-}, map[string]interface{} {
+}, map[string]any {
     "symbol": "BTC/USDT",
     "id": "30",
     "i": 50,
@@ -319,31 +319,31 @@ func TestWsCache()  {
 // ----------------------------------------------------------------------------
 
     // test ArrayCacheBySymbolById limit with symbol set
-    var symbol interface{} = "BTC/USDT"
+    var symbol any = "BTC/USDT"
     cacheSymbolId2 := NewArrayCacheBySymbolById()
-    var initialLength interface{} = 5
+    var initialLength any = 5
     for i := 0; IsLessThan(i, initialLength); i++ {
-        cacheSymbolId2.Append(map[string]interface{} {
+        cacheSymbolId2.Append(map[string]any {
             "symbol": symbol,
             "id": ToString(i),
             "i": i,
         })
     }
-    var limited interface{} = cacheSymbolId2.GetLimit(symbol, nil)
+    var limited any = cacheSymbolId2.GetLimit(symbol, nil)
     Assert(IsEqual(initialLength, limited))
     
 // ----------------------------------------------------------------------------
 
     cacheSymbolId3 := NewArrayCacheBySymbolById()
-    var appendItemsLength interface{} = 3
+    var appendItemsLength any = 3
     for i := 0; IsLessThan(i, appendItemsLength); i++ {
-        cacheSymbolId3.Append(map[string]interface{} {
+        cacheSymbolId3.Append(map[string]any {
             "symbol": symbol,
             "id": ToString(i),
             "i": i,
         })
     }
-    var outsideLimit interface{} = 5
+    var outsideLimit any = 5
     limited = cacheSymbolId3.GetLimit(symbol, outsideLimit)
     Assert(IsEqual(appendItemsLength, limited))
     outsideLimit = 2 // if limit < newsUpdate that should be returned
@@ -357,7 +357,7 @@ func TestWsCache()  {
     cacheSymbolId4 := NewArrayCacheBySymbolById()
     initialLength = 5
     for i := 0; IsLessThan(i, initialLength); i++ {
-        cacheSymbolId4.Append(map[string]interface{} {
+        cacheSymbolId4.Append(map[string]any {
             "symbol": symbol,
             "id": ToString(i),
             "i": i,
@@ -371,7 +371,7 @@ func TestWsCache()  {
     cacheSymbolId6 := NewArrayCacheBySymbolById()
     appendItemsLength = 3
     for i := 0; IsLessThan(i, appendItemsLength); i++ {
-        cacheSymbolId6.Append(map[string]interface{} {
+        cacheSymbolId6.Append(map[string]any {
             "symbol": symbol,
             "id": ToString(i),
             "i": i,
@@ -389,25 +389,25 @@ func TestWsCache()  {
     // test ArrayCacheBySymbolById, same order should not increase the limit
     cacheSymbolId7 := NewArrayCacheBySymbolById()
     symbol = "BTC/USDT"
-    var otherSymbol interface{} = "ETH/USDT"
-    cacheSymbolId7.Append(map[string]interface{} {
+    var otherSymbol any = "ETH/USDT"
+    cacheSymbolId7.Append(map[string]any {
         "symbol": symbol,
         "id": "singleId",
         "i": 3,
     })
-    cacheSymbolId7.Append(map[string]interface{} {
+    cacheSymbolId7.Append(map[string]any {
         "symbol": symbol,
         "id": "singleId",
         "i": 3,
     })
-    cacheSymbolId7.Append(map[string]interface{} {
+    cacheSymbolId7.Append(map[string]any {
         "symbol": otherSymbol,
         "id": "singleId",
         "i": 3,
     })
     outsideLimit = 5
     limited = cacheSymbolId7.GetLimit(symbol, outsideLimit)
-    var limited2 interface{} = cacheSymbolId7.GetLimit(nil, outsideLimit)
+    var limited2 any = cacheSymbolId7.GetLimit(nil, outsideLimit)
     Assert(IsEqual(limited, 1))
     Assert(IsEqual(limited2, 2))
     
@@ -417,13 +417,13 @@ func TestWsCache()  {
     timestampCache2 := NewArrayCacheByTimestamp()
     initialLength = 5
     for i := 0; IsLessThan(i, initialLength); i++ {
-        timestampCache2.Append([]interface{}{Multiply(i, 10), Multiply(i, 10), Multiply(i, 10), Multiply(i, 10)})
+        timestampCache2.Append([]any{Multiply(i, 10), Multiply(i, 10), Multiply(i, 10), Multiply(i, 10)})
     }
     limited = timestampCache2.GetLimit(nil, nil)
     Assert(IsEqual(initialLength, limited))
     appendItemsLength = 3
     for i := 0; IsLessThan(i, appendItemsLength); i++ {
-        timestampCache2.Append([]interface{}{Multiply(i, 4), Multiply(i, 4), Multiply(i, 4), Multiply(i, 4)})
+        timestampCache2.Append([]any{Multiply(i, 4), Multiply(i, 4), Multiply(i, 4), Multiply(i, 4)})
     }
     outsideLimit = 5
     limited = timestampCache2.GetLimit(nil, outsideLimit)
@@ -438,25 +438,25 @@ func TestWsCache()  {
     cacheSymbolId8 := NewArrayCacheBySymbolById()
     symbol = "BTC/USDT"
     outsideLimit = 5
-    cacheSymbolId8.Append(map[string]interface{} {
+    cacheSymbolId8.Append(map[string]any {
         "symbol": symbol,
         "id": "oneId",
         "i": 3,
     }) // create first order
     cacheSymbolId8.GetLimit(nil, outsideLimit) // watch all orders
-    cacheSymbolId8.Append(map[string]interface{} {
+    cacheSymbolId8.Append(map[string]any {
         "symbol": symbol,
         "id": "oneId",
         "i": 4,
     }) // first order is closed
     cacheSymbolId8.GetLimit(nil, outsideLimit) // watch all orders
-    cacheSymbolId8.Append(map[string]interface{} {
+    cacheSymbolId8.Append(map[string]any {
         "symbol": symbol,
         "id": "twoId",
         "i": 5,
     }) // create second order
     cacheSymbolId8.GetLimit(nil, outsideLimit) // watch all orders
-    cacheSymbolId8.Append(map[string]interface{} {
+    cacheSymbolId8.Append(map[string]any {
         "symbol": symbol,
         "id": "twoId",
         "i": 6,
@@ -469,38 +469,38 @@ func TestWsCache()  {
     // test ArrayCacheBySymbolById, watch all orders, and watchOrders (symbol) work independently
     cacheSymbolId9 := NewArrayCacheBySymbolById()
     symbol = "BTC/USDT"
-    var symbol2 interface{} = "ETH/USDT"
+    var symbol2 any = "ETH/USDT"
     outsideLimit = 5
-    cacheSymbolId9.Append(map[string]interface{} {
+    cacheSymbolId9.Append(map[string]any {
         "symbol": symbol,
         "id": "one",
         "i": 1,
     }) // create first order
-    cacheSymbolId9.Append(map[string]interface{} {
+    cacheSymbolId9.Append(map[string]any {
         "symbol": symbol2,
         "id": "two",
         "i": 1,
     }) // create second order
     Assert(IsEqual(cacheSymbolId9.GetLimit(nil, outsideLimit), 2)) // watch all orders
     Assert(IsEqual(cacheSymbolId9.GetLimit(symbol, outsideLimit), 1)) // watch by symbol
-    cacheSymbolId9.Append(map[string]interface{} {
+    cacheSymbolId9.Append(map[string]any {
         "symbol": symbol,
         "id": "one",
         "i": 2,
     }) // update first order
-    cacheSymbolId9.Append(map[string]interface{} {
+    cacheSymbolId9.Append(map[string]any {
         "symbol": symbol2,
         "id": "two",
         "i": 2,
     }) // update second order
     Assert(IsEqual(cacheSymbolId9.GetLimit(symbol, outsideLimit), 1)) // watch by symbol
     Assert(IsEqual(cacheSymbolId9.GetLimit(nil, outsideLimit), 2)) // watch all orders
-    cacheSymbolId9.Append(map[string]interface{} {
+    cacheSymbolId9.Append(map[string]any {
         "symbol": symbol2,
         "id": "two",
         "i": 3,
     }) // update second order
-    cacheSymbolId9.Append(map[string]interface{} {
+    cacheSymbolId9.Append(map[string]any {
         "symbol": symbol2,
         "id": "three",
         "i": 3,
@@ -513,18 +513,18 @@ func TestWsCache()  {
     cacheSymbolSide := NewArrayCacheBySymbolBySide()
     symbol = "BTC/USDT"
     outsideLimit = 5
-    cacheSymbolSide.Append(map[string]interface{} {
+    cacheSymbolSide.Append(map[string]any {
         "symbol": symbol,
         "side": "short",
         "contracts": 1,
     }) // create first position
-    cacheSymbolSide.Append(map[string]interface{} {
+    cacheSymbolSide.Append(map[string]any {
         "symbol": symbol,
         "side": "short",
         "contracts": 0,
     }) // first position is closed
     Assert(IsEqual(cacheSymbolSide.GetLimit(symbol, outsideLimit), 1)) // limit position
-    cacheSymbolSide.Append(map[string]interface{} {
+    cacheSymbolSide.Append(map[string]any {
         "symbol": symbol,
         "side": "short",
         "contracts": 1,
@@ -537,30 +537,30 @@ func TestWsCache()  {
     cacheSymbolSide2 := NewArrayCacheBySymbolBySide()
     symbol = "BTC/USDT"
     outsideLimit = 5
-    cacheSymbolSide2.Append(map[string]interface{} {
+    cacheSymbolSide2.Append(map[string]any {
         "symbol": symbol,
         "side": "short",
         "contracts": 1,
     }) // create first position
     Assert(IsEqual(cacheSymbolSide2.GetLimit(nil, outsideLimit), 1)) // watch all positions
-    cacheSymbolSide2.Append(map[string]interface{} {
+    cacheSymbolSide2.Append(map[string]any {
         "symbol": symbol,
         "side": "short",
         "contracts": 0,
     }) // first position is closed
     Assert(IsEqual(cacheSymbolSide2.GetLimit(nil, outsideLimit), 1)) // watch all positions
-    cacheSymbolSide2.Append(map[string]interface{} {
+    cacheSymbolSide2.Append(map[string]any {
         "symbol": symbol,
         "side": "long",
         "contracts": 3,
     }) // create second position
     Assert(IsEqual(cacheSymbolSide2.GetLimit(nil, outsideLimit), 1)) // watch all positions
-    cacheSymbolSide2.Append(map[string]interface{} {
+    cacheSymbolSide2.Append(map[string]any {
         "symbol": symbol,
         "side": "long",
         "contracts": 2,
     }) // second position is reduced
-    cacheSymbolSide2.Append(map[string]interface{} {
+    cacheSymbolSide2.Append(map[string]any {
         "symbol": symbol,
         "side": "long",
         "contracts": 1,
@@ -573,31 +573,31 @@ func TestWsCache()  {
     cacheSymbolSide3 := NewArrayCacheBySymbolBySide()
     symbol = "BTC/USDT"
     symbol2 = "ETH/USDT"
-    cacheSymbolSide3.Append(map[string]interface{} {
+    cacheSymbolSide3.Append(map[string]any {
         "symbol": symbol,
         "side": "short",
         "contracts": 1,
     }) // create first position
-    cacheSymbolSide3.Append(map[string]interface{} {
+    cacheSymbolSide3.Append(map[string]any {
         "symbol": symbol2,
         "side": "long",
         "contracts": 1,
     }) // create second position
     Assert(IsEqual(cacheSymbolSide3.GetLimit(nil, outsideLimit), 2)) // watch all positions
     Assert(IsEqual(cacheSymbolSide3.GetLimit(symbol, outsideLimit), 1)) // watch by symbol
-    cacheSymbolSide3.Append(map[string]interface{} {
+    cacheSymbolSide3.Append(map[string]any {
         "symbol": symbol,
         "side": "short",
         "contracts": 2,
     }) // update first position
-    cacheSymbolSide3.Append(map[string]interface{} {
+    cacheSymbolSide3.Append(map[string]any {
         "symbol": symbol2,
         "side": "long",
         "contracts": 2,
     }) // update second position
     Assert(IsEqual(cacheSymbolSide3.GetLimit(symbol, outsideLimit), 1)) // watch by symbol
     Assert(IsEqual(cacheSymbolSide3.GetLimit(nil, outsideLimit), 2)) // watch all positions
-    cacheSymbolSide3.Append(map[string]interface{} {
+    cacheSymbolSide3.Append(map[string]any {
         "symbol": symbol2,
         "side": "long",
         "contracts": 3,
@@ -610,25 +610,25 @@ func TestWsCache()  {
     cacheSymbolSide4 := NewArrayCacheBySymbolBySide()
     symbol = "BTC/USDT"
     symbol2 = "ETH/USDT"
-    var symbol3 interface{} = "XRP/USDT"
-    cacheSymbolSide4.Append(map[string]interface{} {
+    var symbol3 any = "XRP/USDT"
+    cacheSymbolSide4.Append(map[string]any {
         "symbol": symbol,
         "side": "long",
         "contracts": 1,
     }) // create first position
-    cacheSymbolSide4.Append(map[string]interface{} {
+    cacheSymbolSide4.Append(map[string]any {
         "symbol": symbol2,
         "side": "long",
         "contracts": 2,
     }) // create second position
-    cacheSymbolSide4.Append(map[string]interface{} {
+    cacheSymbolSide4.Append(map[string]any {
         "symbol": symbol3,
         "side": "long",
         "contracts": 3,
     }) // create short position
     Assert(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 0), "symbol"), symbol))
     Assert(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 1), "symbol"), symbol2))
-    cacheSymbolSide4.Append(map[string]interface{} {
+    cacheSymbolSide4.Append(map[string]any {
         "symbol": symbol2,
         "side": "long",
         "contracts": 4,
@@ -636,6 +636,6 @@ func TestWsCache()  {
     Assert(IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 0), "contracts"), 1)) && IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 0), "symbol"), symbol)))
     Assert(IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 1), "contracts"), 3)) && IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 1), "symbol"), symbol3)))
     Assert(IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 2), "contracts"), 4)) && IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 2), "symbol"), symbol2)))
-    var arrayLength interface{} =     GetArrayLength(cacheSymbolSide4.ToArray())
+    var arrayLength any =     GetArrayLength(cacheSymbolSide4.ToArray())
     Assert(IsEqual(arrayLength, 3))
 }

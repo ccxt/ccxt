@@ -71,7 +71,7 @@ function test_set_markets_from_exchange() {
         // assert ('ETH/USD' in exchange2.markets, 'Modifying exchange1 markets should reflect in exchange2');
         // Test 2: loadMarkets on shared markets should not make API call and be very fast
         $start_time = $empty_exchange->milliseconds();
-        Async\await($exchange2->load_markets());
+        \React\Async\await($exchange2->load_markets());
         $end_time = $empty_exchange->milliseconds();
         // Should be very fast since no API call is made
         $time_taken = $end_time - $start_time;

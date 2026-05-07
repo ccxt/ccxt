@@ -2179,6 +2179,71 @@ class blofin extends Exchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
+    public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+        /**
+         * fetches historical $positions
+         *
+         * @see https://docs.blofin.com/index.html#get-$positions-history
+         *
+         * @param {string[]} [$symbols] unified contract $symbols
+         * @param {int} [$since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for $params["until"] - $since is 3 months
+         * @param {int} [$limit] the maximum amount of records to fetch, default=20, max=100
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest position to fetch, max range for $params["until"] - $since is 3 months
+         * @param {string} [$params->productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
+         * @param {boolean} [$params->uta] set to true for the unified trading account (uta), defaults to false
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
+         */
+        $this->load_markets();
+        $request = array();
+        $market = null;
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 0) {
+                $market = $this->market($symbols[0]);
+                $request['instId'] = $market['id'];
+            }
+        }
+        if ($limit !== null) {
+            $request['limit'] = min ($limit, 100);
+        }
+        if ($since !== null) {
+            $request['begin'] = $since;
+        }
+        list($request, $params) = $this->handle_until_option('end', $request, $params);
+        $response = $this->privateGetAccountPositionsHistory ($this->extend($request, $params));
+        //
+        //    {
+        //        "code" => "0",
+        //        "msg" => "success",
+        //        "data" => array(
+        //            array(
+        //                "historyId" => "110307402",
+        //                "positionId" => "1000000722711",
+        //                "instId" => "BTC-USDT",
+        //                "instType" => "SWAP",
+        //                "marginMode" => "cross",
+        //                "positionSide" => "net",
+        //                "closePositions" => "0.0006",
+        //                "maxPositions" => "0.0006",
+        //                "liquidationPositions" => "0",
+        //                "openAveragePrice" => "81550.1",
+        //                "closeAveragePrice" => "81550",
+        //                "createTime" => "1777995583329",
+        //                "updateTime" => "1777995588333",
+        //                "leverage" => "50",
+        //                "realizedPnl" => "-0.058776036",
+        //                "realizedPnlRatio" => "-0.060061275216094155",
+        //                "fee" => "-0.058716036"
+        //            ),
+        //        )
+        //    }
+        //
+        $data = $this->safe_list($response, 'data', array());
+        $positions = $this->parse_positions($data, $symbols, $params);
+        return $this->filter_by_since_limit($positions, $since, $limit);
+    }
+
     public function parse_position(array $position, ?array $market = null) {
         //
         // response similar for REST & WS
@@ -2205,6 +2270,29 @@ class blofin extends Exchange {
         //         createTime => '1707235776528',
         //         updateTime => '1707235776528'
         //     }
+        //
+        //
+        //    positions-history
+        //
+        //            array(
+        //                "positionId" => "1000000722711",
+        //                "instId" => "BTC-USDT",
+        //                "instType" => "SWAP",
+        //                "marginMode" => "cross",
+        //                "positionSide" => "net",
+        //                "createTime" => "1777995583329",
+        //                "updateTime" => "1777995588333",
+        //                "leverage" => "50",
+        //                "realizedPnl" => "-0.058776036",
+        //                "realizedPnlRatio" => "-0.060061275216094155",
+        //                "fee" => "-0.058716036"
+        //                "historyId" => "110307402",
+        //                "closePositions" => "0.0006",
+        //                "maxPositions" => "0.0006",
+        //                "liquidationPositions" => "0",
+        //                "openAveragePrice" => "81550.1",
+        //                "closeAveragePrice" => "81550",
+        //            ),
         //
         $marketId = $this->safe_string($position, 'instId');
         $market = $this->safe_market($marketId, $market);
@@ -2235,7 +2323,7 @@ class blofin extends Exchange {
         $notional = $this->parse_number($notionalString);
         $marginMode = $this->safe_string($position, 'marginMode');
         $initialMarginString = null;
-        $entryPriceString = $this->safe_string($position, 'averagePrice');
+        $entryPriceString = $this->safe_string_2($position, 'averagePrice', 'openAveragePrice');
         $unrealizedPnlString = $this->safe_string($position, 'unrealizedPnl');
         $leverageString = $this->safe_string($position, 'leverage');
         $initialMarginPercentage = null;
@@ -2270,7 +2358,9 @@ class blofin extends Exchange {
             'marginMode' => $marginMode,
             'liquidationPrice' => $liquidationPrice,
             'entryPrice' => $this->parse_number($entryPriceString),
+            'exitPrice' => $this->safe_number($position, 'closeAveragePrice'),
             'unrealizedPnl' => $this->parse_number($unrealizedPnlString),
+            'realizedPnl' => $this->safe_number($position, 'realizedPnl'),
             'percentage' => $percentage,
             'contracts' => $contracts,
             'contractSize' => $contractSize,
