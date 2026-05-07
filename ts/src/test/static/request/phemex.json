@@ -5,6 +5,17 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchPositionHistory": [
+            {
+                "description": "default",
+                "method": "fetchPositionHistory",
+                "url": "https://api.phemex.com/api-data/g-futures/closedPosition?symbol=ETHUSDT",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "setMarginMode": [
             {
                 "description": "cross",
@@ -962,6 +973,24 @@
                   "USDT",
                   null,
                   1
+                ]
+            }
+        ],
+        "fetchPositionADLRank": [
+            {
+                "description": "linear swap fetchPositionADLRank",
+                "method": "fetchPositionADLRank",
+                "url": "https://testnet-api.phemex.com/g-accounts/accountPositions?currency=USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "inverse swap fetchPositionADLRank",
+                "method": "fetchPositionADLRank",
+                "url": "https://testnet-api.phemex.com/accounts/accountPositions?currency=BTC",
+                "input": [
+                    "BTC/USD:BTC"
                 ]
             }
         ]

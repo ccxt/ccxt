@@ -437,7 +437,8 @@ class lbank extends \ccxt\async\lbank {
             );
             $request = $this->deep_extend($message, $params);
             $trades = Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            $result = $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            return $this->sort_by($result, 'timestamp'); // needed bcz of https://github.com/ccxt/ccxt/actions/runs/21364685870/job/61493905690?pr=27750#step:11:1067
         }) ();
     }
 

@@ -32,10 +32,10 @@ class htx extends htx$1["default"] {
                 'watchMyTrades': true,
                 'watchBalance': true,
                 'watchOHLCV': true,
-                'unwatchTicker': true,
-                'unwatchOHLCV': true,
-                'unwatchTrades': true,
-                'unwatchOrderBook': true,
+                'unWatchTicker': true,
+                'unWatchOHLCV': true,
+                'unWatchTrades': true,
+                'unWatchOrderBook': true,
             },
             'urls': {
                 'api': {
@@ -48,22 +48,22 @@ class htx extends htx$1["default"] {
                             },
                             'future': {
                                 'linear': {
-                                    'public': 'wss://api.hbdm.com/linear-swap-ws',
-                                    'private': 'wss://api.hbdm.com/linear-swap-notification',
+                                    'public': 'wss://api.hbdm.vn/linear-swap-ws',
+                                    'private': 'wss://api.hbdm.vn/linear-swap-notification',
                                 },
                                 'inverse': {
-                                    'public': 'wss://api.hbdm.com/ws',
-                                    'private': 'wss://api.hbdm.com/notification',
+                                    'public': 'wss://api.hbdm.vn/ws',
+                                    'private': 'wss://api.hbdm.vn/notification',
                                 },
                             },
                             'swap': {
                                 'inverse': {
-                                    'public': 'wss://api.hbdm.com/swap-ws',
-                                    'private': 'wss://api.hbdm.com/swap-notification',
+                                    'public': 'wss://api.hbdm.vn/swap-ws',
+                                    'private': 'wss://api.hbdm.vn/swap-notification',
                                 },
                                 'linear': {
-                                    'public': 'wss://api.hbdm.com/linear-swap-ws',
-                                    'private': 'wss://api.hbdm.com/linear-swap-notification',
+                                    'public': 'wss://api.hbdm.vn/linear-swap-ws',
+                                    'private': 'wss://api.hbdm.vn/linear-swap-notification',
                                 },
                             },
                         },

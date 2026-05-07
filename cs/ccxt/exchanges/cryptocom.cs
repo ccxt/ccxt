@@ -445,6 +445,7 @@ public partial class cryptocom : Exchange
                     { "219", typeof(InvalidOrder) },
                     { "306", typeof(InsufficientFunds) },
                     { "314", typeof(InvalidOrder) },
+                    { "315", typeof(InvalidOrder) },
                     { "325", typeof(InvalidOrder) },
                     { "415", typeof(InvalidOrder) },
                     { "10001", typeof(ExchangeError) },

@@ -8,7 +8,7 @@ from ccxt.abstract.phemex import ImplicitAPI
 import asyncio
 import hashlib
 import numbers
-from ccxt.base.types import Any, Balances, Conversion, Currencies, Currency, DepositAddress, Int, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, TransferEntry
+from ccxt.base.types import Any, ADL, Balances, Conversion, Currencies, Currency, DepositAddress, Int, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -48,6 +48,9 @@ class phemex(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': False,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': False,
+                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'closePosition': False,
@@ -58,9 +61,14 @@ class phemex(Exchange, ImplicitAPI):
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
                 'editOrder': True,
+                'fetchAllGreeks': False,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchConvertQuote': True,
                 'fetchConvertTrade': False,
@@ -77,6 +85,7 @@ class phemex(Exchange, ImplicitAPI):
                 'fetchFundingRateHistories': False,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
@@ -89,10 +98,14 @@ class phemex(Exchange, ImplicitAPI):
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPositionADLRank': True,
                 'fetchPositions': True,
+                'fetchPositionsADLRank': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -101,8 +114,11 @@ class phemex(Exchange, ImplicitAPI):
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchTransfers': True,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'sandbox': True,
                 'setLeverage': True,
                 'setMargin': True,
@@ -219,6 +235,7 @@ class phemex(Exchange, ImplicitAPI):
                         'api-data/futures/trading-fees': 5,  # ?symbol=<symbol>
                         'api-data/g-futures/trading-fees': 5,  # ?symbol=<symbol>
                         'api-data/futures/v2/tradeAccountDetail': 5,  # ?currency=<currecny>&type=<type>&limit=<limit>&offset=<offset>&start=<start>&end=<end>&withCount=<withCount>
+                        'api-data/g-futures/closedPosition': 5,
                         'g-orders/activeList': 1,  # ?symbol=<symbol>
                         'orders/activeList': 1,  # ?symbol=<symbol>
                         'exchange/order/list': 5,  # ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
@@ -3721,6 +3738,59 @@ class phemex(Exchange, ImplicitAPI):
             result.append(self.parse_position(position))
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
+    async def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+        """
+        fetches historical positions
+
+        https://phemex-docs.github.io/#query-closed-positions
+
+        :param str symbol: unified contract symbol
+        :param int [since]: the earliest time in ms to fetch positions for
+        :param int [limit]: the maximum amount of records to fetch
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param int [params.until]: the latest time in ms to fetch positions for
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        symbol = market['symbol']
+        request: dict = {
+            'symbol': market['id'],
+        }
+        if limit is not None:
+            request['limit'] = min(200, limit)
+        response = await self.privateGetApiDataGFuturesClosedPosition(self.extend(request, params))
+        #
+        #    {
+        #        "code": "0",
+        #        "msg": "OK",
+        #        "data": [
+        #            {
+        #                "symbol": "ETHUSDT",
+        #                "currency": "USDT",
+        #                "term": "0",
+        #                "closedSizeRq": "0.09",
+        #                "side": "1",
+        #                "cumEntryValueRv": null,
+        #                "closedPnlRv": "-0.1385",
+        #                "exchangeFeeRv": "0.2561889",
+        #                "fundingFeeRv": "0",
+        #                "realizedPnlRv": "-0.3946889",
+        #                "finished": "0",
+        #                "openedTimeNs": "1777998771316",
+        #                "updatedTimeNs": "1777998802592",
+        #                "openPrice": "2372.88888889",
+        #                "closePrice": "2371.35000000",
+        #                "roi": "-0.09702738",
+        #                "leverage": "-52.5"
+        #            },
+        #        ]
+        #    }
+        #
+        data = self.safe_list(response, 'data', [])
+        positions = self.parse_positions(data, [symbol])
+        return self.filter_by_symbol_since_limit(positions, symbol, since, limit)
+
     def parse_position(self, position: dict, market: Market = None):
         #
         #    {
@@ -3793,6 +3863,29 @@ class phemex(Exchange, ImplicitAPI):
         #        "execSeq": "12112761561"
         #    }
         #
+        #
+        # fetchPositionsHistory
+        #
+        #            {
+        #                "symbol": "ETHUSDT",
+        #                "currency": "USDT",
+        #                "term": "0",
+        #                "closedSizeRq": "0.09",
+        #                "side": "1",
+        #                "cumEntryValueRv": null,
+        #                "closedPnlRv": "-0.1385",
+        #                "exchangeFeeRv": "0.2561889",
+        #                "fundingFeeRv": "0",
+        #                "realizedPnlRv": "-0.3946889",
+        #                "finished": "0",
+        #                "openedTimeNs": "1777998771316",
+        #                "updatedTimeNs": "1777998802592",
+        #                "openPrice": "2372.88888889",
+        #                "closePrice": "2371.35000000",
+        #                "roi": "-0.09702738",  # todo: check if percentage or not
+        #                "leverage": "-52.5"
+        #            },
+        #
         marketId = self.safe_string(position, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
@@ -3804,15 +3897,16 @@ class phemex(Exchange, ImplicitAPI):
         initialMarginPercentageString = Precise.string_div(initialMarginString, notionalString)
         liquidationPrice = self.safe_number_2(position, 'liquidationPrice', 'liquidationPriceRp')
         markPriceString = self.safe_string_2(position, 'markPrice', 'markPriceRp')
-        contracts = self.safe_string_2(position, 'size', 'sizeRq')
+        contracts = self.safe_string_n(position, ['size', 'sizeRq', 'closedSizeRq'])
         contractSize = self.safe_value(market, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
         leverage = self.parse_number(Precise.string_abs((self.safe_string_2(position, 'leverage', 'leverageRr'))))
-        entryPriceString = self.safe_string_2(position, 'avgEntryPrice', 'avgEntryPriceRp')
+        entryPriceString = self.safe_string_n(position, ['avgEntryPrice', 'avgEntryPriceRp', 'openPrice'])
         rawSide = self.safe_string(position, 'side')
         side = None
         if rawSide is not None:
-            side = 'long' if (rawSide == 'Buy') else 'short'
+            isLong = (rawSide == 'Buy' or rawSide == '1')
+            side = 'long' if isLong else 'short'
         # Inverse long contract: unRealizedPnl = (posSize * contractSize) / avgEntryPrice - (posSize * contractSize) / markPrice
         # Inverse short contract: unRealizedPnl =  (posSize *contractSize) / markPrice - (posSize * contractSize) / avgEntryPrice
         # Linear long contract:  unRealizedPnl = (posSize * contractSize) * markPrice - (posSize * contractSize) * avgEntryPrice
@@ -3834,13 +3928,15 @@ class phemex(Exchange, ImplicitAPI):
         apiUnrealizedPnl = self.safe_string(position, 'unRealisedPnlRv', unrealizedPnl)
         marginRatio = Precise.string_div(maintenanceMarginString, collateral)
         isCross = self.safe_value(position, 'crossMargin')
+        timestamp = self.safe_integer(position, 'openedTimeNs')
+        lastUpdateTimestamp = self.safe_integer(position, 'updatedTimeNs', self.safe_integer_product(position, 'transactTimeNs', 0.000001))
         return self.safe_position({
             'info': position,
             'id': self.safe_string(position, 'execSeq'),
             'symbol': symbol,
             'contracts': self.parse_number(contracts),
             'contractSize': contractSize,
-            'realizedPnl': self.safe_number(position, 'curTermRealisedPnlRv'),
+            'realizedPnl': self.safe_number_2(position, 'curTermRealisedPnlRv', 'realizedPnlRv'),
             'unrealizedPnl': self.parse_number(apiUnrealizedPnl),
             'leverage': leverage,
             'liquidationPrice': liquidationPrice,
@@ -3849,14 +3945,15 @@ class phemex(Exchange, ImplicitAPI):
             'markPrice': self.parse_number(markPriceString),  # markPrice lags a bit ¯\_(ツ)_/¯
             'lastPrice': None,
             'entryPrice': self.parse_number(entryPriceString),
-            'timestamp': None,
-            'lastUpdateTimestamp': self.safe_integer_product(position, 'transactTimeNs', 0.000001),
+            'exitPrice': self.safe_number(position, 'closePrice'),
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'initialMargin': self.parse_number(initialMarginString),
             'initialMarginPercentage': self.parse_number(initialMarginPercentageString),
             'maintenanceMargin': self.parse_number(maintenanceMarginString),
             'maintenanceMarginPercentage': self.parse_number(maintenanceMarginPercentageString),
             'marginRatio': self.parse_number(marginRatio),
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'marginMode': 'cross' if isCross else 'isolated',
             'side': side,
             'hedged': self.safe_string(position, 'posMode') == 'Hedged',
@@ -5009,6 +5106,339 @@ class phemex(Exchange, ImplicitAPI):
             'toAmount': self.parse_number(toAmount),
             'price': self.safe_number(quoteArgs, 'price'),
             'fee': None,
+        }
+
+    async def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> List[ADL]:
+        """
+        fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+        https://phemex-docs.github.io/#query-account-positions
+        https://phemex-docs.github.io/#query-trading-account-and-positions
+        https://phemex-docs.github.io/#query-account-positions-with-unrealized-pnl
+
+        :param str[] [symbols]: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.code]: the currency code to fetch ranks for, USD, BTC or USDT, USDT is the default
+        :param str [params.method]: *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
+        :returns dict: an array of `auto de leverage structures <https://docs.ccxt.com/?id=auto-de-leverage-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True, True)
+        subType = None
+        code = self.safe_string_2(params, 'currency', 'code', 'USDT')
+        params = self.omit(params, ['currency', 'code'])
+        settle = None
+        market = None
+        firstSymbol = self.safe_string(symbols, 0)
+        if firstSymbol is not None:
+            market = self.market(firstSymbol)
+            settle = market['settle']
+            code = market['settle']
+        else:
+            settle, params = self.handle_option_and_params(params, 'fetchPositionsADLRank', 'settle', code)
+        subType, params = self.handle_sub_type_and_params('fetchPositionsADLRank', market, params)
+        isUSDTSettled = settle == 'USDT'
+        if isUSDTSettled:
+            code = 'USDT'
+        elif settle == 'BTC':
+            code = 'BTC'
+        elif code is None:
+            code = 'USD' if (subType == 'linear') else 'BTC'
+        currency = self.currency(code)
+        request: dict = {
+            'currency': currency['id'],
+        }
+        response = None
+        if isUSDTSettled:
+            method = None
+            method, params = self.handle_option_and_params(params, 'fetchPositionsADLRank', 'method', 'privateGetGAccountsAccountPositions')
+            if method == 'privateGetGAccountsAccountPositions':
+                response = await self.privateGetGAccountsAccountPositions(self.extend(request, params))
+            else:
+                response = await self.privateGetGAccountsPositions(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "data": {
+            #             "account": {
+            #                 "userID": 940666,
+            #                 "accountId": 9406660003,
+            #                 "currency": "USDT",
+            #                 "accountBalanceRv": "439.96184445932",
+            #                 "totalUsedBalanceRv": "89.22502732",
+            #                 "bonusBalanceRv": "0",
+            #                 "status": 0,
+            #                 "userMode": 1
+            #             },
+            #             "positions": [
+            #                 {
+            #                     "userID": 940666,
+            #                     "accountID": 9406660003,
+            #                     "symbol": "BTCUSDT",
+            #                     "currency": "USDT",
+            #                     "side": "Buy",
+            #                     "positionStatus": "Normal",
+            #                     "crossMargin": True,
+            #                     "leverageRr": "-10",
+            #                     "initMarginReqRr": "0.1",
+            #                     "maintMarginReqRr": "0.005",
+            #                     "riskLimitRv": "20000000",
+            #                     "size": "0.01",
+            #                     "valueRv": "887.531",
+            #                     "avgEntryPriceRp": "88753.1",
+            #                     "avgEntryPrice": "88753.1",
+            #                     "posCostRv": "89.22502732",
+            #                     "assignedPosBalanceRv": "89.29802732",
+            #                     "bankruptCommRv": "0.529812426",
+            #                     "bankruptPriceRp": "44783.79",
+            #                     "positionMarginRv": "88.695214894",
+            #                     "liquidationPriceRp": "45009",
+            #                     "deleveragePercentileRr": "0",
+            #                     "buyValueToCostRr": "0.10114",
+            #                     "sellValueToCostRr": "0.10126",
+            #                     "markPriceRp": "88747.2",
+            #                     "estimatedOrdLossRv": "0",
+            #                     "usedBalanceRv": "89.22502732",
+            #                     "cumClosedPnlRv": "425.97796",
+            #                     "cumFundingFeeRv": "54.892930099379",
+            #                     "cumTransactFeeRv": "1.288782144",
+            #                     "transactTimeNs": 1767176685241254818,
+            #                     "takerFeeRateRr": "-1",
+            #                     "makerFeeRateRr": "-1",
+            #                     "term": 6,
+            #                     "lastTermEndTimeNs": 1759835547751667598,
+            #                     "lastFundingTimeNs": 1759824000000000000,
+            #                     "curTermRealisedPnlRv": "-0.5325186",
+            #                     "execSeq": 47732822790,
+            #                     "posSide": "Long",
+            #                     "posMode": "Hedged",
+            #                     "buyLeavesValueRv": "0",
+            #                     "buyLeavesQtyRq": "0",
+            #                     "sellLeavesValueRv": "0",
+            #                     "sellLeavesQtyRq": "0"
+            #                 },
+            #             ]
+            #         }
+            #     }
+            #
+        else:
+            response = await self.privateGetAccountsAccountPositions(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "data": {
+            #             "account": {
+            #                 "userID": 940666,
+            #                 "accountId": 9406660001,
+            #                 "currency": "BTC",
+            #                 "accountBalanceEv": 50050270,
+            #                 "totalUsedBalanceEv": 58,
+            #                 "bonusBalanceEv": 0
+            #             },
+            #             "positions": [
+            #                 {
+            #                     "userID": 940666,
+            #                     "accountID": 9406660001,
+            #                     "symbol": "BTCUSD",
+            #                     "currency": "BTC",
+            #                     "side": "Buy",
+            #                     "positionStatus": "Normal",
+            #                     "crossMargin": False,
+            #                     "leverageEr": -2000000000,
+            #                     "leverage": -20.00000000,
+            #                     "initMarginReqEr": 5000000,
+            #                     "initMarginReq": 0.05000000,
+            #                     "maintMarginReqEr": 500000,
+            #                     "maintMarginReq": 0.00500000,
+            #                     "riskLimitEv": 150000000000,
+            #                     "riskLimit": 1500.00000000,
+            #                     "size": 1,
+            #                     "value": 0.00001128,
+            #                     "valueEv": 1128,
+            #                     "avgEntryPriceEp": 886524823,
+            #                     "avgEntryPrice": 88652.48230000,
+            #                     "posCostEv": 58,
+            #                     "posCost": 5.8E-7,
+            #                     "assignedPosBalanceEv": 58,
+            #                     "assignedPosBalance": 5.8E-7,
+            #                     "bankruptCommEv": 1,
+            #                     "bankruptComm": 1E-8,
+            #                     "bankruptPriceEp": 100000,
+            #                     "bankruptPrice": 10.00000000,
+            #                     "positionMarginEv": 57,
+            #                     "positionMargin": 5.7E-7,
+            #                     "liquidationPriceEp": 100000,
+            #                     "liquidationPrice": 10.00000000,
+            #                     "deleveragePercentileEr": 0,
+            #                     "deleveragePercentile": 0E-8,
+            #                     "buyValueToCostEr": 5123000,
+            #                     "buyValueToCost": 0.05123000,
+            #                     "sellValueToCostEr": 5117000,
+            #                     "sellValueToCost": 0.05117000,
+            #                     "markPriceEp": 886028000,
+            #                     "markPrice": 88602.80000000,
+            #                     "estimatedOrdLossEv": 0,
+            #                     "estimatedOrdLoss": 0E-8,
+            #                     "usedBalanceEv": 58,
+            #                     "usedBalance": 5.8E-7,
+            #                     "cumClosedPnlEv": 127,
+            #                     "cumFundingFeeEv": -146,
+            #                     "cumTransactFeeEv": 3,
+            #                     "transactTimeNs": 1767177964554892106,
+            #                     "takerFeeRateEr": 60000,
+            #                     "makerFeeRateEr": 10000,
+            #                     "term": 2,
+            #                     "lastTermEndTimeNs": 1716225275381802994,
+            #                     "lastFundingTimeNs": 1767168000000000000,
+            #                     "curTermRealisedPnlEv": -1,
+            #                     "execSeq": 1104909332,
+            #                     "freeQty": -1,
+            #                     "freeCostEv": 0,
+            #                     "buyLeavesValueEv": 0,
+            #                     "sellLeavesValueEv": 0,
+            #                     "buyLeavesQty": 0,
+            #                     "sellLeavesQty": 0
+            #                 }
+            #             ]
+            #         }
+            #     }
+            #
+        data = self.safe_value(response, 'data', {})
+        ranks = self.safe_value(data, 'positions', [])
+        result = []
+        for i in range(0, len(ranks)):
+            rank = ranks[i]
+            result.append(self.parse_adl_rank(rank))
+        return self.filter_by_array_adl_ranks(result, 'symbol', symbols, False)
+
+    def parse_adl_rank(self, info: dict, market: Market = None) -> ADL:
+        #
+        # fetchPositionADLRank: linear
+        #
+        #     {
+        #         "userID": 940666,
+        #         "accountID": 9406660003,
+        #         "symbol": "BTCUSDT",
+        #         "currency": "USDT",
+        #         "side": "Buy",
+        #         "positionStatus": "Normal",
+        #         "crossMargin": True,
+        #         "leverageRr": "-10",
+        #         "initMarginReqRr": "0.1",
+        #         "maintMarginReqRr": "0.005",
+        #         "riskLimitRv": "20000000",
+        #         "size": "0.01",
+        #         "valueRv": "887.531",
+        #         "avgEntryPriceRp": "88753.1",
+        #         "avgEntryPrice": "88753.1",
+        #         "posCostRv": "89.22502732",
+        #         "assignedPosBalanceRv": "89.29802732",
+        #         "bankruptCommRv": "0.529812426",
+        #         "bankruptPriceRp": "44783.79",
+        #         "positionMarginRv": "88.695214894",
+        #         "liquidationPriceRp": "45009",
+        #         "deleveragePercentileRr": "0",
+        #         "buyValueToCostRr": "0.10114",
+        #         "sellValueToCostRr": "0.10126",
+        #         "markPriceRp": "88747.2",
+        #         "estimatedOrdLossRv": "0",
+        #         "usedBalanceRv": "89.22502732",
+        #         "cumClosedPnlRv": "425.97796",
+        #         "cumFundingFeeRv": "54.892930099379",
+        #         "cumTransactFeeRv": "1.288782144",
+        #         "transactTimeNs": 1767176685241254818,
+        #         "takerFeeRateRr": "-1",
+        #         "makerFeeRateRr": "-1",
+        #         "term": 6,
+        #         "lastTermEndTimeNs": 1759835547751667598,
+        #         "lastFundingTimeNs": 1759824000000000000,
+        #         "curTermRealisedPnlRv": "-0.5325186",
+        #         "execSeq": 47732822790,
+        #         "posSide": "Long",
+        #         "posMode": "Hedged",
+        #         "buyLeavesValueRv": "0",
+        #         "buyLeavesQtyRq": "0",
+        #         "sellLeavesValueRv": "0",
+        #         "sellLeavesQtyRq": "0"
+        #     }
+        #
+        # fetchPositionADLRank: inverse
+        #
+        #     {
+        #         "userID": 940666,
+        #         "accountID": 9406660001,
+        #         "symbol": "BTCUSD",
+        #         "currency": "BTC",
+        #         "side": "Buy",
+        #         "positionStatus": "Normal",
+        #         "crossMargin": False,
+        #         "leverageEr": -2000000000,
+        #         "leverage": -20.00000000,
+        #         "initMarginReqEr": 5000000,
+        #         "initMarginReq": 0.05000000,
+        #         "maintMarginReqEr": 500000,
+        #         "maintMarginReq": 0.00500000,
+        #         "riskLimitEv": 150000000000,
+        #         "riskLimit": 1500.00000000,
+        #         "size": 1,
+        #         "value": 0.00001128,
+        #         "valueEv": 1128,
+        #         "avgEntryPriceEp": 886524823,
+        #         "avgEntryPrice": 88652.48230000,
+        #         "posCostEv": 58,
+        #         "posCost": 5.8E-7,
+        #         "assignedPosBalanceEv": 58,
+        #         "assignedPosBalance": 5.8E-7,
+        #         "bankruptCommEv": 1,
+        #         "bankruptComm": 1E-8,
+        #         "bankruptPriceEp": 100000,
+        #         "bankruptPrice": 10.00000000,
+        #         "positionMarginEv": 57,
+        #         "positionMargin": 5.7E-7,
+        #         "liquidationPriceEp": 100000,
+        #         "liquidationPrice": 10.00000000,
+        #         "deleveragePercentileEr": 0,
+        #         "deleveragePercentile": 0E-8,
+        #         "buyValueToCostEr": 5123000,
+        #         "buyValueToCost": 0.05123000,
+        #         "sellValueToCostEr": 5117000,
+        #         "sellValueToCost": 0.05117000,
+        #         "markPriceEp": 886028000,
+        #         "markPrice": 88602.80000000,
+        #         "estimatedOrdLossEv": 0,
+        #         "estimatedOrdLoss": 0E-8,
+        #         "usedBalanceEv": 58,
+        #         "usedBalance": 5.8E-7,
+        #         "cumClosedPnlEv": 127,
+        #         "cumFundingFeeEv": -146,
+        #         "cumTransactFeeEv": 3,
+        #         "transactTimeNs": 1767177964554892106,
+        #         "takerFeeRateEr": 60000,
+        #         "makerFeeRateEr": 10000,
+        #         "term": 2,
+        #         "lastTermEndTimeNs": 1716225275381802994,
+        #         "lastFundingTimeNs": 1767168000000000000,
+        #         "curTermRealisedPnlEv": -1,
+        #         "execSeq": 1104909332,
+        #         "freeQty": -1,
+        #         "freeCostEv": 0,
+        #         "buyLeavesValueEv": 0,
+        #         "sellLeavesValueEv": 0,
+        #         "buyLeavesQty": 0,
+        #         "sellLeavesQty": 0
+        #     }
+        #
+        marketId = self.safe_string(info, 'symbol')
+        return {
+            'info': info,
+            'symbol': self.safe_symbol(marketId, market, None, 'contract'),
+            'rank': None,
+            'rating': None,
+            'percentage': self.safe_number_2(info, 'deleveragePercentileRr', 'deleveragePercentileEr'),
+            'timestamp': None,
+            'datetime': None,
         }
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):

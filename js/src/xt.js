@@ -1903,8 +1903,8 @@ export default class xt extends Exchange {
             'change': this.safeNumber(ticker, 'cv'),
             'percentage': this.parseNumber(percentage),
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': this.safeNumber2(ticker, 'a', 'v'),
+            'baseVolume': this.safeNumber(ticker, 'a'),
+            'quoteVolume': this.safeNumber(ticker, 'v'),
             'info': ticker,
         }, market);
     }
@@ -3742,7 +3742,7 @@ export default class xt extends Exchange {
         //             "hasNext": false,
         //             "items": [
         //                 {
-        //                     "id": "207260567109387524",
+        //                     "id": "207260567109387525",
         //                     "coin": "usdt",
         //                     "symbol": "btc_usdt",
         //                     "type": "FEE",

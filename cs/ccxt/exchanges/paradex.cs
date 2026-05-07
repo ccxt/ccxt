@@ -542,7 +542,9 @@ public partial class paradex : Exchange
         //  }
         //
         object assetKind = this.safeString(market, "asset_kind");
-        object isOption = (isEqual(assetKind, "PERP_OPTION"));
+        object isOptionPerpetual = (isEqual(assetKind, "PERP_OPTION"));
+        object isOptionDelivery = (isEqual(assetKind, "OPTION"));
+        object isOption = isTrue(isOptionPerpetual) || isTrue(isOptionDelivery);
         object type = ((bool) isTrue((isOption))) ? "option" : "swap";
         object isSwap = (isEqual(type, "swap"));
         object marketId = this.safeString(market, "symbol");
@@ -561,7 +563,8 @@ public partial class paradex : Exchange
         if (isTrue(isOption))
         {
             object optionTypeSuffix = ((bool) isTrue((isEqual(optionType, "CALL")))) ? "C" : "P";
-            symbol = add(add(add(add(symbol, "-"), strikePrice), "-"), optionTypeSuffix);
+            object deliveryValue = ((bool) isTrue((isEqual(expiry, 0)))) ? "" : add(this.yymmdd(expiry), "-");
+            symbol = add(add(add(add(add(symbol, "-"), deliveryValue), strikePrice), "-"), optionTypeSuffix);
             makerFee = this.parseNumber("0.0003");
         } else
         {
@@ -1428,12 +1431,6 @@ public partial class paradex : Exchange
         return this.safeStringLower(types, type, type);
     }
 
-    public virtual object convertShortString(object str)
-    {
-        // TODO: add stringToBase16 in exchange
-        return add("0x", this.binaryToBase16(this.base64ToBinary(this.stringToBase64(str))));
-    }
-
     public virtual object scaleNumber(object num)
     {
         return Precise.stringMul(num, "100000000");
@@ -1562,9 +1559,9 @@ public partial class paradex : Exchange
         object now = this.nonce();
         object orderReq = new Dictionary<string, object>() {
             { "timestamp", multiply(now, 1000) },
-            { "market", this.convertShortString(getValue(request, "market")) },
+            { "market", this.stringToBase16(getValue(request, "market")) },
             { "side", ((bool) isTrue((isEqual(orderSide, "BUY")))) ? "1" : "2" },
-            { "orderType", this.convertShortString(getValue(request, "type")) },
+            { "orderType", this.stringToBase16(getValue(request, "type")) },
             { "size", this.scaleNumber(getValue(request, "size")) },
             { "price", ((bool) isTrue((isMarket))) ? "0" : this.scaleNumber(getValue(request, "price")) },
         };

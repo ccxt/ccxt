@@ -9,7 +9,7 @@ import Exchange from './abstract/deepcoin.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
-import { ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, NullResponse } from '../ccxt.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, NullResponse } from './base/errors.js';
 // ---------------------------------------------------------------------------
 /**
  * @class deepcoin
@@ -916,7 +916,7 @@ export default class deepcoin extends Exchange {
      */
     async fetchBalance(params = {}) {
         await this.loadMarkets();
-        let marketType = 'spot';
+        let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params, marketType);
         const request = {
             'instType': this.convertToInstrumentType(marketType),

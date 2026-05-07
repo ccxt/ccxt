@@ -4,7 +4,6 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-// AUTO_TRANSPILE_ENABLED
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../../base/ws/Cache.js';
@@ -38,6 +37,7 @@ function testSafeMethods() {
         'emptyString': '',
         'floatNumeric': 0.123,
         'floatString': '0.123',
+        'longInt': 123456789012345,
     };
     const inputList = ['Hi', 2];
     const compareDict = {
@@ -192,6 +192,7 @@ function testSafeMethods() {
     assert(exchange.safeIntegerProduct(inputDict, 'f', factor) === 1); // NB the result is 1
     assert(exchange.safeIntegerProduct(inputDict, 'strNumber', factor) === 30);
     assert(exchange.safeIntegerProduct(inputList, 1, factor) === 20);
+    assert(exchange.safeIntegerProduct(inputDict, 'longInt', 0.000001) === 123456789);
     // safeIntegerProduct2
     assert(exchange.safeIntegerProduct2(inputDict, 'a', 'i', factor) === 10);
     assert(exchange.safeIntegerProduct2(inputDict, 'a', 'f', factor) === 1); // NB the result is 1

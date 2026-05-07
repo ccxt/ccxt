@@ -30,7 +30,7 @@ function test_watch_ohlcv_for_symbols($exchange, $skipped_properties, $symbol) {
             $response = null;
             $success = true;
             try {
-                $response = Async\await($exchange->watch_ohlcv_for_symbols([[$symbol, $chosen_timeframe_key]], $since, $limit));
+                $response = \React\Async\await($exchange->watch_ohlcv_for_symbols([[$symbol, $chosen_timeframe_key]], $since, $limit));
             } catch(\Throwable $e) {
                 if (!is_temporary_failure($e)) {
                     throw $e;

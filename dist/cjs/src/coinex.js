@@ -420,6 +420,8 @@ class coinex extends coinex$1["default"] {
                             'futures/stop-order': 20,
                             'futures/batch-order': 1,
                             'futures/batch-stop-order': 1,
+                            'futures/cancel-position-stop-loss': 20,
+                            'futures/cancel-position-take-profit': 20,
                             'futures/modify-order': 20,
                             'futures/modify-stop-order': 20,
                             'futures/batch-modify-order': 20,
@@ -679,6 +681,7 @@ class coinex extends coinex$1["default"] {
                     'Service is not available during funding fee settlement': errors.OperationFailed,
                 },
             },
+            'rollingWindowSize': 1000.0, // docs say 1000.0: https://docs.coinex.com/api/v2/rate-limit#ip-rate-limit, tested with 60000.0 and received no errors
         });
     }
     /**

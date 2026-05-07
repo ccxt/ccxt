@@ -32,6 +32,9 @@ class bitmex extends Exchange {
                 'future' => true,
                 'option' => false,
                 'addMargin' => null,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
@@ -44,8 +47,17 @@ class bitmex extends Exchange {
                 'createTrailingAmountOrder' => true,
                 'createTriggerOrder' => true,
                 'editOrder' => true,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
@@ -57,7 +69,10 @@ class bitmex extends Exchange {
                 'fetchFundingRate' => 'emulated', // emulated in exchange
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchLedger' => true,
                 'fetchLeverage' => 'emulated',
                 'fetchLeverages' => true,
@@ -70,24 +85,34 @@ class bitmex extends Exchange {
                 'fetchMyLiquidations' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => 'emulated',
+                'fetchOpenInterests' => true,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionADLRank' => true,
                 'fetchPositionHistory' => false,
                 'fetchPositions' => true,
+                'fetchPositionsADLRank' => true,
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTransactions' => 'emulated',
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
+                'fetchVolatilityHistory' => false,
                 'index' => true,
                 'reduceMargin' => null,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'sandbox' => true,
                 'setLeverage' => true,
                 'setMargin' => null,
@@ -1891,10 +1916,12 @@ class bitmex extends Exchange {
         } else {
             $filled = $cumQty;
         }
-        $execInst = $this->safe_string($order, 'execInst');
+        $execInst = $this->safe_string($order, 'execInst', '');
         $postOnly = null;
-        if ($execInst !== null) {
-            $postOnly = ($execInst === 'ParticipateDoNotInitiate');
+        $reduceOnly = null;
+        if (strlen($execInst) > 0) {
+            $postOnly = (mb_strpos($execInst, 'ParticipateDoNotInitiate') !== false);
+            $reduceOnly = ((mb_strpos($execInst, 'ReduceOnly') !== false) || (mb_strpos($execInst, 'Close') !== false));
         }
         $timestamp = $this->parse8601($this->safe_string($order, 'timestamp'));
         $triggerPrice = $this->safe_number($order, 'stopPx');
@@ -1910,6 +1937,7 @@ class bitmex extends Exchange {
             'type' => $this->safe_string_lower($order, 'ordType'),
             'timeInForce' => $this->parse_time_in_force($this->safe_string($order, 'timeInForce')),
             'postOnly' => $postOnly,
+            'reduceOnly' => $reduceOnly,
             'side' => $this->safe_string_lower($order, 'side'),
             'price' => $this->safe_string($order, 'price'),
             'triggerPrice' => $triggerPrice,
@@ -2019,6 +2047,8 @@ class bitmex extends Exchange {
                 throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $market['type'] . ' orders, $reduceOnly orders are supported for swap and future markets only');
             }
         }
+        $postOnly = $this->safe_bool($params, 'postOnly');
+        $params = $this->omit($params, array( 'reduceOnly', 'postOnly' ));
         $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXT');
         $qty = $this->parse_to_int($this->amount_to_precision($symbol, $amount));
         $request = array(
@@ -2028,6 +2058,17 @@ class bitmex extends Exchange {
             'ordType' => $orderType,
             'text' => $brokerId,
         );
+        $execInstructions = array();
+        if ($reduceOnly === true) {
+            $execInstructions[] = 'ReduceOnly';
+        }
+        if ($postOnly === true) {
+            $execInstructions[] = 'ParticipateDoNotInitiate';
+        }
+        $execInstLength = count($execInstructions);
+        if ($execInstLength > 0) {
+            $request['execInst'] = implode(',', $execInstructions);
+        }
         // support for unified trigger format
         $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPx', 'stopPrice' ));
         $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'pegOffsetValue');
@@ -2964,6 +3005,72 @@ class bitmex extends Exchange {
         return $this->parse_deposit_withdraw_fees($assets, $codes, 'asset');
     }
 
+    public function fetch_open_interests(?array $symbols = null, $params = array ()) {
+        /**
+         * Retrieves the open interest for a list of $symbols
+         *
+         * @see https://docs.bitmex.com/api-explorer/get-stats
+         *
+         * @param {string[]} [$symbols] a list of unified CCXT market $symbols
+         * @param {array} [$params] exchange specific parameters
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structures~
+         */
+        $this->load_markets();
+        $request = array();
+        $response = null;
+        $response = $this->publicGetStats ($this->extend($request, $params));
+        //
+        //    array(
+        //        {
+        //            currency => 'XBt',
+        //            openInterest => '0',
+        //            openValue => '323890820079',
+        //            rootSymbol => 'Total',
+        //            turnover24h => '447088001322',
+        //            volume24h => '0'
+        //        }
+        //        ...
+        //    )
+        //
+        $symbols = $this->market_symbols($symbols);
+        return $this->parse_open_interests($response, $symbols);
+    }
+
+    public function parse_open_interest($interest, ?array $market = null) {
+        //
+        // fetchOpenInterest
+        //
+        //    {
+        //        currency => 'XBt',
+        //        $openInterest => '0',
+        //        $openValue => '323890820079',
+        //        rootSymbol => 'Total',
+        //        turnover24h => '447088001322',
+        //        volume24h => '0'
+        //    }
+        //
+        $quoteId = $this->safe_string($interest, 'currency');
+        $baseId = $this->safe_string($interest, 'rootSymbol');
+        $quoteSymbol = $this->safe_currency_code($quoteId);
+        $baseSymbol = $this->safe_currency_code($baseId);
+        $symbol = $baseSymbol;
+        if ($quoteSymbol !== null) {
+            $symbol = $baseSymbol . '/' . $quoteSymbol . ':' . $quoteSymbol;
+        }
+        $openInterest = $this->safe_number($interest, 'openInterest');
+        $openValue = $this->safe_number($interest, 'openValue');
+        return $this->safe_open_interest(array(
+            'info' => $interest,
+            'symbol' => $symbol,
+            'baseVolume' => $openInterest,  // deprecated
+            'quoteVolume' => $openValue,  // deprecated
+            'openInterestAmount' => $openInterest,
+            'openInterestValue' => $openValue,
+            'timestamp' => null,
+            'datetime' => null,
+        ), $market);
+    }
+
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {
         $isAuthenticated = $this->check_required_credentials(false);
         $cost = $this->safe_value($config, 'cost', 1);
@@ -3046,6 +3153,405 @@ class bitmex extends Exchange {
             'timestamp' => null,
             'datetime' => null,
         ));
+    }
+
+    public function fetch_positions_adl_rank(?array $symbols = null, $params = array ()): array {
+        /**
+         * fetches the auto deleveraging rank and risk percentage for a list of $symbols
+         *
+         * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
+         *
+         * @param {string[]} [$symbols] list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structure~
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        $response = $this->privateGetPosition ($params);
+        //
+        //     array(
+        //         {
+        //             "account" => 395724,
+        //             "symbol" => "XBTUSDT",
+        //             "strategy" => "OneWay",
+        //             "currency" => "USDt",
+        //             "underlying" => "XBT",
+        //             "quoteCurrency" => "USDT",
+        //             "commission" => 0.0005,
+        //             "initMarginReq" => 0.01,
+        //             "maintMarginReq" => 0.005,
+        //             "riskLimit" => 1000000000000,
+        //             "leverage" => 100,
+        //             "crossMargin" => true,
+        //             "deleveragePercentile" => 1,
+        //             "rebalancedPnl" => -4319,
+        //             "prevRealisedPnl" => 0,
+        //             "prevUnrealisedPnl" => null,
+        //             "openingQty" => null,
+        //             "openOrderBuyQty" => 0,
+        //             "openOrderBuyCost" => 0,
+        //             "openOrderBuyPremium" => 0,
+        //             "openOrderSellQty" => 0,
+        //             "openOrderSellCost" => 0,
+        //             "openOrderSellPremium" => 0,
+        //             "currentQty" => 100,
+        //             "currentCost" => 8639330,
+        //             "currentComm" => 0,
+        //             "realisedCost" => 0,
+        //             "unrealisedCost" => 8639330,
+        //             "grossOpenPremium" => 0,
+        //             "isOpen" => true,
+        //             "markPrice" => 88636.92,
+        //             "markValue" => 8863692,
+        //             "riskValue" => 8863692,
+        //             "homeNotional" => 0.0001,
+        //             "foreignNotional" => -8.863692,
+        //             "posCost" => 8639330,
+        //             "posCross" => 0,
+        //             "posComm" => 0,
+        //             "posLoss" => 0,
+        //             "posMargin" => 44061,
+        //             "posMaint" => 44061,
+        //             "posInit" => 0,
+        //             "initMargin" => 0,
+        //             "maintMargin" => 44061,
+        //             "realisedPnl" => 0,
+        //             "unrealisedPnl" => 224362,
+        //             "unrealisedPnlPcnt" => 0.026,
+        //             "unrealisedRoePcnt" => 2.597,
+        //             "avgCostPrice" => 86393.3,
+        //             "avgEntryPrice" => 86393.3,
+        //             "breakEvenPrice" => 86436.5,
+        //             "marginCallPrice" => null,
+        //             "liquidationPrice" => 0,
+        //             "bankruptPrice" => 0,
+        //             "timestamp" => "2025-12-31T07:55:50.505Z",
+        //             "positionReport" => {
+        //                 "account" => 395724,
+        //                 "avgCostPrice" => 86393.3,
+        //                 "avgEntryPrice" => 86393.3,
+        //                 "bankruptPrice" => 0,
+        //                 "breakEvenPrice" => 86436.5,
+        //                 "commission" => 0.0005,
+        //                 "crossMargin" => true,
+        //                 "currency" => "USDt",
+        //                 "currentComm" => 0,
+        //                 "currentCost" => 8639330,
+        //                 "currentQty" => 100,
+        //                 "deleveragePercentile" => 1,
+        //                 "foreignNotional" => -8.863692,
+        //                 "grossOpenPremium" => 0,
+        //                 "homeNotional" => 0.0001,
+        //                 "initMargin" => 0,
+        //                 "initMarginReq" => 0.01,
+        //                 "isOpen" => true,
+        //                 "leverage" => 100,
+        //                 "liquidationPrice" => 0,
+        //                 "maintMargin" => 44061,
+        //                 "maintMarginReq" => 0.005,
+        //                 "markPrice" => 88636.92,
+        //                 "markValue" => 8863692,
+        //                 "openOrderBuyCost" => 0,
+        //                 "openOrderBuyPremium" => 0,
+        //                 "openOrderBuyQty" => 0,
+        //                 "openOrderRealisedPnl" => 0,
+        //                 "openOrderSellCost" => 0,
+        //                 "openOrderSellPremium" => 0,
+        //                 "openOrderSellQty" => 0,
+        //                 "posComm" => 0,
+        //                 "posCost" => 8639330,
+        //                 "posCross" => 0,
+        //                 "posInit" => 0,
+        //                 "posLoss" => 0,
+        //                 "posMaint" => 44061,
+        //                 "posMargin" => 44061,
+        //                 "prevRealisedPnl" => 0,
+        //                 "quoteCurrency" => "USDT",
+        //                 "realisedCost" => 0,
+        //                 "realisedPnl" => 0,
+        //                 "rebalancedPnl" => -4319,
+        //                 "riskLimit" => 1000000000000,
+        //                 "riskValue" => 8863692,
+        //                 "strategy" => "OneWay",
+        //                 "symbol" => "XBTUSDT",
+        //                 "timestamp" => "2025-12-31T07:55:50.505Z",
+        //                 "underlying" => "XBT",
+        //                 "unrealisedCost" => 8639330,
+        //                 "unrealisedPnl" => 224362,
+        //                 "unrealisedPnlPcnt" => 0.026,
+        //                 "unrealisedRoePcnt" => 2.597
+        //             }
+        //         }
+        //     )
+        //
+        return $this->parse_adl_ranks($response, $symbols);
+    }
+
+    public function parse_adl_rank(array $info, ?array $market = null): array {
+        //
+        // fetchPositionsADLRank
+        //
+        //     {
+        //         "account" => 395724,
+        //         "symbol" => "XBTUSDT",
+        //         "strategy" => "OneWay",
+        //         "currency" => "USDt",
+        //         "underlying" => "XBT",
+        //         "quoteCurrency" => "USDT",
+        //         "commission" => 0.0005,
+        //         "initMarginReq" => 0.01,
+        //         "maintMarginReq" => 0.005,
+        //         "riskLimit" => 1000000000000,
+        //         "leverage" => 100,
+        //         "crossMargin" => true,
+        //         "deleveragePercentile" => 1,
+        //         "rebalancedPnl" => -4319,
+        //         "prevRealisedPnl" => 0,
+        //         "prevUnrealisedPnl" => null,
+        //         "openingQty" => null,
+        //         "openOrderBuyQty" => 0,
+        //         "openOrderBuyCost" => 0,
+        //         "openOrderBuyPremium" => 0,
+        //         "openOrderSellQty" => 0,
+        //         "openOrderSellCost" => 0,
+        //         "openOrderSellPremium" => 0,
+        //         "currentQty" => 100,
+        //         "currentCost" => 8639330,
+        //         "currentComm" => 0,
+        //         "realisedCost" => 0,
+        //         "unrealisedCost" => 8639330,
+        //         "grossOpenPremium" => 0,
+        //         "isOpen" => true,
+        //         "markPrice" => 88636.92,
+        //         "markValue" => 8863692,
+        //         "riskValue" => 8863692,
+        //         "homeNotional" => 0.0001,
+        //         "foreignNotional" => -8.863692,
+        //         "posCost" => 8639330,
+        //         "posCross" => 0,
+        //         "posComm" => 0,
+        //         "posLoss" => 0,
+        //         "posMargin" => 44061,
+        //         "posMaint" => 44061,
+        //         "posInit" => 0,
+        //         "initMargin" => 0,
+        //         "maintMargin" => 44061,
+        //         "realisedPnl" => 0,
+        //         "unrealisedPnl" => 224362,
+        //         "unrealisedPnlPcnt" => 0.026,
+        //         "unrealisedRoePcnt" => 2.597,
+        //         "avgCostPrice" => 86393.3,
+        //         "avgEntryPrice" => 86393.3,
+        //         "breakEvenPrice" => 86436.5,
+        //         "marginCallPrice" => null,
+        //         "liquidationPrice" => 0,
+        //         "bankruptPrice" => 0,
+        //         "timestamp" => "2025-12-31T07:55:50.505Z",
+        //         "positionReport" => {
+        //             "account" => 395724,
+        //             "avgCostPrice" => 86393.3,
+        //             "avgEntryPrice" => 86393.3,
+        //             "bankruptPrice" => 0,
+        //             "breakEvenPrice" => 86436.5,
+        //             "commission" => 0.0005,
+        //             "crossMargin" => true,
+        //             "currency" => "USDt",
+        //             "currentComm" => 0,
+        //             "currentCost" => 8639330,
+        //             "currentQty" => 100,
+        //             "deleveragePercentile" => 1,
+        //             "foreignNotional" => -8.863692,
+        //             "grossOpenPremium" => 0,
+        //             "homeNotional" => 0.0001,
+        //             "initMargin" => 0,
+        //             "initMarginReq" => 0.01,
+        //             "isOpen" => true,
+        //             "leverage" => 100,
+        //             "liquidationPrice" => 0,
+        //             "maintMargin" => 44061,
+        //             "maintMarginReq" => 0.005,
+        //             "markPrice" => 88636.92,
+        //             "markValue" => 8863692,
+        //             "openOrderBuyCost" => 0,
+        //             "openOrderBuyPremium" => 0,
+        //             "openOrderBuyQty" => 0,
+        //             "openOrderRealisedPnl" => 0,
+        //             "openOrderSellCost" => 0,
+        //             "openOrderSellPremium" => 0,
+        //             "openOrderSellQty" => 0,
+        //             "posComm" => 0,
+        //             "posCost" => 8639330,
+        //             "posCross" => 0,
+        //             "posInit" => 0,
+        //             "posLoss" => 0,
+        //             "posMaint" => 44061,
+        //             "posMargin" => 44061,
+        //             "prevRealisedPnl" => 0,
+        //             "quoteCurrency" => "USDT",
+        //             "realisedCost" => 0,
+        //             "realisedPnl" => 0,
+        //             "rebalancedPnl" => -4319,
+        //             "riskLimit" => 1000000000000,
+        //             "riskValue" => 8863692,
+        //             "strategy" => "OneWay",
+        //             "symbol" => "XBTUSDT",
+        //             "timestamp" => "2025-12-31T07:55:50.505Z",
+        //             "underlying" => "XBT",
+        //             "unrealisedCost" => 8639330,
+        //             "unrealisedPnl" => 224362,
+        //             "unrealisedPnlPcnt" => 0.026,
+        //             "unrealisedRoePcnt" => 2.597
+        //         }
+        //     }
+        //
+        $marketId = $this->safe_string($info, 'symbol');
+        $datetime = $this->safe_string($info, 'timestamp');
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
+            'rank' => $this->safe_integer($info, 'deleveragePercentile'),
+            'rating' => null,
+            'percentage' => null,
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
+        );
+    }
+
+    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches historical settlement records
+         *
+         * @see https://docs.bitmex.com/api-explorer/get-settlements
+         *
+         * @param {string} $symbol unified $market $symbol of the settlement history
+         * @param {int} [$since] timestamp in ms
+         * @param {int} [$limit] number of records
+         * @param {array} [$params] exchange specific $params
+         * @param {int} [$params->until] timestamp in ms
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [$params->filter] generic table filter, send json key/value pairs, such as array("key" => "value"), you can key on individual fields, and do more advanced querying on timestamps, see the timestamp docs for more details, default value = array()
+         * @param {string} [$params->columns] array of column names to fetch, if omitted, will return all columns, note that this method will always return item keys, even when not specified, so you may receive more columns that you expect
+         * @param {int} [$params->start] possible values are >= 0 starting point for results, default value = 0
+         * @param {boolean} [$params->reverse] if true, will sort results newest first, default value = false
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=settlement-history-structure settlement history objects~
+         */
+        $this->load_markets();
+        $request = array(
+            // $symbol string Instrument $symbol-> Send a bare series (e.g. XBT) to get data for the nearest expiring contract in that series. You can also send a timeframe, e.g. XBT:quarterly. Timeframes are nearest, daily, weekly, monthly, quarterly, biquarterly, and perpetual. Symbols are case-insensitive.
+            // filter string Generic table filter. Send JSON key/value pairs, such as array("key" => "value"). You can key on individual fields, and do more advanced querying on timestamps. See the Timestamp Docs for more details. Default value => array()
+            // columns string Array of column names to fetch. If omitted, will return all columns. Note that this method will always return item keys, even when not specified, so you may receive more columns that you expect.
+            // count int32 Possible values => >= 1 and <= 500 Number of results to fetch. Must be a positive integer. Default value => 100
+            // start int32 Possible values => >= 0 Starting point for results. Default value => 0
+            // reverse boolean If true, will sort results newest first. Default value => false
+            // startTime string Starting time filter for results.
+            // endTime string Ending time filter for results.
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $this->iso8601($since);
+        }
+        if ($limit !== null) {
+            $request['count'] = $limit;
+        }
+        $until = $this->safe_string($params, 'until');
+        if ($until !== null) {
+            $request['endTime'] = $this->iso8601($since);
+            $params = $this->omit($params, 'until');
+        }
+        $response = $this->publicGetSettlement ($this->extend($request, $params));
+        //
+        //    array(
+        //        {
+        //            timestamp => '2025-03-28T12:00:00.000Z',
+        //            $symbol => 'ETHUSDH25',
+        //            settlementType => 'Settlement',
+        //            settledPrice => '1897.53'
+        //        }
+        //    )
+        //
+        return $this->parse_settlements($response, $market, $since, $limit);
+    }
+
+    public function parse_settlements($settlements, $market = null, $since = null, $limit = null) {
+        $result = array();
+        for ($i = 0; $i < count($settlements); $i++) {
+            $result[] = $this->parse_settlement($settlements[$i], $market);
+        }
+        $sorted = $this->sort_by($result, 'timestamp');
+        $symbol = $this->safe_string($market, 'symbol');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function parse_settlement($settlement, $market = null) {
+        //
+        //    {
+        //        timestamp => '2025-03-28T12:00:00.000Z',
+        //        symbol => 'ETHUSDH25',
+        //        settlementType => 'Settlement',
+        //        settledPrice => '1897.53'
+        //    }
+        //
+        $datetime = $this->safe_string($settlement, 'timestamp');
+        $marketId = $this->safe_string($settlement, 'symbol');
+        return array(
+            'info' => $settlement,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'price' => $this->safe_number($settlement, 'settledPrice'),
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
+        );
+    }
+
+    public function close_position(string $symbol, ?string $side = null, $params = array ()): array {
+        /**
+         * closes open positions for a $market
+         *
+         * @see https://docs.bitmex.com/api-explorer/order-new
+         * @see https://docs.bitmex.com/api-explorer/order-close-position
+         *
+         * @param {string} $symbol Unified CCXT $market $symbol
+         * @param {string} $side the buy or sell $side of the closing order, if the position is long set the $side to sell, reduceOnly is implied
+         * @param {array} [$params] extra parameters specific to the bingx api endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'side' => $this->capitalize($side),
+            'execInst' => 'Close',
+        );
+        $response = $this->privatePostOrder ($this->extend($request, $params));
+        //
+        //     {
+        //         "account" => 395724,
+        //         "avgPx" => 66358.8,
+        //         "cumQty" => 200,
+        //         "currency" => "USDT",
+        //         "execInst" => "Close",
+        //         "leavesQty" => 0,
+        //         "ordStatus" => "Filled",
+        //         "ordType" => "Market",
+        //         "orderID" => "4e1ef998-33c1-4736-b58b-9d8b4d085c49",
+        //         "orderQty" => 200,
+        //         "pool" => "Primary",
+        //         "settlCurrency" => "USDt",
+        //         "side" => "Sell",
+        //         "strategy" => "OneWay",
+        //         "symbol" => "XBTUSDT",
+        //         "text" => "Submitted via API.",
+        //         "timeInForce" => "ImmediateOrCancel",
+        //         "timestamp" => "2026-04-02T05:20:26.607Z",
+        //         "transactTime" => "2026-04-02T05:20:26.606Z",
+        //         "workingIndicator" => false
+        //     }
+        //
+        return $this->parse_order($response, $market);
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {

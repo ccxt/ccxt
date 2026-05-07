@@ -217,9 +217,9 @@ function createImplicitMethodsGo(){
         const methodNames = storedCamelCaseMethods[exchange];
 
         // const reusableMethod = [
-        //     `func (this *${exchange}) callEndpointAsync(endpointName string, args ...interface{}) <-chan interface{} {`,
+        //     `func (this *${exchange}) callEndpointAsync(endpointName string, args ...any) <-chan any {`,
         //     `   parameters := GetArg(args, 0, nil)`,
-        //     `   ch := make(chan interface{})`,
+        //     `   ch := make(chan any)`,
         //     `   go func() {`,
         //     `       defer close(ch)`,
         //     `       defer func() {`,
@@ -237,13 +237,13 @@ function createImplicitMethodsGo(){
 
         const methods = methodNames.map(method=> {
             return [
-                `func (this *${capitalize(exchange)}Core) ${capitalize(method)} (args ...interface{}) <-chan interface{} {`,
+                `func (this *${capitalize(exchange)}Core) ${capitalize(method)} (args ...any) <-chan any {`,
                 `   return this.callEndpointAsync("${method}", args...)`,
                 `}`,
                 ``,
             ].join('\n')
             // return [
-            //     `${IDEN}func (this *${exchange}) ${capitalize(method)} (args ...interface{}) <-chan interface{} {`,
+            //     `${IDEN}func (this *${exchange}) ${capitalize(method)} (args ...any) <-chan any {`,
             //     `${IDEN}${IDEN}parameters := GetArg(args, 0, nil)`,
             //     `${IDEN}${IDEN}return this.callEndpoint ("${method}", parameters);`,
             //     `${IDEN}}`,

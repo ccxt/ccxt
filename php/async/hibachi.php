@@ -1805,7 +1805,7 @@ class hibachi extends Exchange {
             //             "status" => "pending",
             //             "timestampSec" => 1752692872,
             //             "token" => "USDT",
-            //             "transactionHash" => "0x408e48881e0ba77d8638e3fe57bc06bdec513ddaa8b672e0aefa7e22e2f18b5e",
+            //             "transactionHash" => "0x408e48881e0ba77d8638e3fe57bc06bdec513ddaa8b672e0aefa7e22e2f18b4e",
             //             "transactionType" => "deposit"
             //         ),
             //         array(

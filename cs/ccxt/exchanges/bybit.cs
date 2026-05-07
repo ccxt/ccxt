@@ -106,8 +106,10 @@ public partial class bybit : Exchange
                 { "fetchOrders", false },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", true },
+                { "fetchPositionADLRank", true },
                 { "fetchPositionHistory", "emulated" },
                 { "fetchPositions", true },
+                { "fetchPositionsADLRank", true },
                 { "fetchPositionsHistory", true },
                 { "fetchPremiumIndexOHLCV", true },
                 { "fetchSettlementHistory", true },
@@ -315,7 +317,7 @@ public partial class bybit : Exchange
                         { "v5/asset/coin-greeks", 1 },
                         { "v5/account/fee-rate", 10 },
                         { "v5/account/info", 5 },
-                        { "v5/account/transaction-log", 1 },
+                        { "v5/account/transaction-log", 1.66 },
                         { "v5/account/contract-transaction-log", 1 },
                         { "v5/account/smp-group", 1 },
                         { "v5/account/mmp-state", 5 },
@@ -491,6 +493,7 @@ public partial class bybit : Exchange
                         { "v5/account/borrow", 5 },
                         { "v5/account/repay", 5 },
                         { "v5/account/no-convert-repay", 5 },
+                        { "v5/account/set-limit-px-action", 5 },
                         { "v5/asset/exchange/quote-apply", 1 },
                         { "v5/asset/exchange/convert-execute", 1 },
                         { "v5/asset/transfer/inter-transfer", 50 },
@@ -833,6 +836,7 @@ public partial class bybit : Exchange
                     { "170203", typeof(InvalidOrder) },
                     { "170204", typeof(InvalidOrder) },
                     { "170206", typeof(InvalidOrder) },
+                    { "170209", typeof(RestrictedLocation) },
                     { "170210", typeof(InvalidOrder) },
                     { "170213", typeof(OrderNotFound) },
                     { "170217", typeof(InvalidOrder) },
@@ -1054,8 +1058,12 @@ public partial class bybit : Exchange
                     { "FUND", "fund" },
                 } },
                 { "networks", new Dictionary<string, object>() {
+                    { "BTC", "BTC" },
+                    { "ETH", "ETH" },
                     { "ERC20", "ETH" },
+                    { "TRX", "TRX" },
                     { "TRC20", "TRX" },
+                    { "BSC", "BSC" },
                     { "BEP20", "BSC" },
                     { "SOL", "SOL" },
                     { "ACA", "ACA" },
@@ -1102,6 +1110,7 @@ public partial class bybit : Exchange
                     { "OASIS", "ROSE" },
                     { "OMNI", "OMNI" },
                     { "ONE", "ONE" },
+                    { "OP", "OP" },
                     { "OPTIMISM", "OP" },
                     { "POKT", "POKT" },
                     { "QTUM", "QTUM" },
@@ -1127,8 +1136,7 @@ public partial class bybit : Exchange
                     { "ETH", "ERC20" },
                     { "TRX", "TRC20" },
                     { "BSC", "BEP20" },
-                    { "OMNI", "OMNI" },
-                    { "SPL", "SOL" },
+                    { "OP", "OP" },
                 } },
                 { "defaultNetwork", "ERC20" },
                 { "defaultNetworks", new Dictionary<string, object>() {
@@ -1268,6 +1276,7 @@ public partial class bybit : Exchange
                     { "deposit", new Dictionary<string, object>() {} },
                 } },
             } },
+            { "rollingWindowSize", 5000 },
         });
     }
 
@@ -1674,70 +1683,69 @@ public partial class bybit : Exchange
         //
         object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object rows = this.safeList(data, "rows", new List<object>() {});
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        return this.parseCurrencies(rows);
+    }
+
+    public override object parseCurrency(object currency)
+    {
+        object currencyId = this.safeString(currency, "coin");
+        object code = this.safeCurrencyCode(currencyId);
+        object name = this.safeString(currency, "name");
+        object chains = this.safeList(currency, "chains", new List<object>() {});
+        object networks = new Dictionary<string, object>() {};
+        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
-            object currency = getValue(rows, i);
-            object currencyId = this.safeString(currency, "coin");
-            object code = this.safeCurrencyCode(currencyId);
-            object name = this.safeString(currency, "name");
-            object chains = this.safeList(currency, "chains", new List<object>() {});
-            object networks = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
-            {
-                object chain = getValue(chains, j);
-                object networkId = this.safeString(chain, "chain");
-                object networkCode = this.networkIdToCode(networkId);
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "info", chain },
-                    { "id", networkId },
-                    { "network", networkCode },
-                    { "active", null },
-                    { "deposit", isEqual(this.safeInteger(chain, "chainDeposit"), 1) },
-                    { "withdraw", isEqual(this.safeInteger(chain, "chainWithdraw"), 1) },
-                    { "fee", this.safeNumber(chain, "withdrawFee") },
-                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "minAccuracy"))) },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(chain, "withdrawMin") },
-                            { "max", null },
-                        } },
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(chain, "depositMin") },
-                            { "max", null },
-                        } },
-                    } },
-                };
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "info", currency },
-                { "code", code },
-                { "id", currencyId },
-                { "name", name },
+            object chain = getValue(chains, j);
+            object networkId = this.safeString(chain, "chain");
+            object networkCode = this.networkIdToCode(networkId, code);
+            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "info", chain },
+                { "id", networkId },
+                { "network", networkCode },
                 { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
-                { "precision", null },
+                { "deposit", isEqual(this.safeInteger(chain, "chainDeposit"), 1) },
+                { "withdraw", isEqual(this.safeInteger(chain, "chainWithdraw"), 1) },
+                { "fee", this.safeNumber(chain, "withdrawFee") },
+                { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "minAccuracy"))) },
                 { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
+                        { "min", this.safeNumber(chain, "withdrawMin") },
                         { "max", null },
                     } },
                     { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
+                        { "min", this.safeNumber(chain, "depositMin") },
                         { "max", null },
                     } },
                 } },
-                { "networks", networks },
-                { "type", "crypto" },
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "info", currency },
+            { "code", code },
+            { "id", currencyId },
+            { "name", name },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "precision", null },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", networks },
+            { "type", "crypto" },
+        });
     }
 
     /**
@@ -2968,7 +2976,7 @@ public partial class bybit : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 200);
+            return await this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, parameters, 200);
         }
         if (isTrue(isEqual(limit, null)))
         {
@@ -2978,6 +2986,7 @@ public partial class bybit : Exchange
             { "limit", limit },
         };
         object market = this.market(symbol);
+        object fundingTimeFrameMins = this.safeInteger(getValue(market, "info"), "fundingInterval");
         symbol = getValue(market, "symbol");
         ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         object type = null;
@@ -3005,7 +3014,11 @@ public partial class bybit : Exchange
             {
                 // end time is required when since is not empty
                 object fundingInterval = multiply(multiply(multiply(60, 60), 8), 1000);
-                ((IDictionary<string,object>)request)["endTime"] = add(since, multiply(limit, fundingInterval));
+                if (isTrue(!isEqual(fundingTimeFrameMins, null)))
+                {
+                    fundingInterval = multiply(multiply(fundingTimeFrameMins, 60), 1000);
+                }
+                ((IDictionary<string,object>)request)["endTime"] = this.sum(since, multiply(limit, fundingInterval));
             }
         }
         object response = await this.publicGetV5MarketFundingHistory(this.extend(request, parameters));
@@ -4332,12 +4345,18 @@ public partial class bybit : Exchange
                         }
                     }
                 }
-                if (isTrue(!isEqual(tpslModeSl, tpslModeTp)))
+                if (isTrue(isTrue(isTrue(isTakeProfitOrder) && isTrue(isStopLossOrder)) && isTrue(!isEqual(tpslModeSl, tpslModeTp))))
                 {
                     throw new InvalidOrder ((string)add(this.id, " createOrder() requires both stopLoss and takeProfit to be full or partial when using as OCO combination")) ;
                 }
-                ((IDictionary<string,object>)request)["tpslMode"] = tpslModeSl; // same as tpslModeTp
-                parameters = this.omit(parameters, new List<object>() {"stopLossLimitPrice", "takeProfitLimitPrice"});
+                if (isTrue(!isEqual(tpslModeSl, null)))
+                {
+                    ((IDictionary<string,object>)request)["tpslMode"] = tpslModeSl;
+                } else
+                {
+                    ((IDictionary<string,object>)request)["tpslMode"] = tpslModeTp;
+                }
+                parameters = this.omit(parameters, new List<object>() {"stopLossLimitPrice", "takeProfitLimitPrice", "tradingStopEndpoint"});
             }
         } else
         {
@@ -6451,7 +6470,7 @@ public partial class bybit : Exchange
             { "txid", this.safeString(transaction, "txID") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "network", this.networkIdToCode(this.safeString(transaction, "chain")) },
+            { "network", this.networkIdToCode(this.safeString(transaction, "chain"), code) },
             { "address", null },
             { "addressTo", toAddress },
             { "addressFrom", null },
@@ -6801,7 +6820,7 @@ public partial class bybit : Exchange
         var networkCodequeryVariable = this.handleNetworkCodeAndParams(parameters);
         var networkCode = ((IList<object>) networkCodequeryVariable)[0];
         var query = ((IList<object>) networkCodequeryVariable)[1];
-        object networkId = this.networkCodeToId(networkCode);
+        object networkId = this.networkCodeToId(networkCode, code);
         if (isTrue(!isEqual(networkId, null)))
         {
             ((IDictionary<string,object>)request)["chain"] = ((string)networkId).ToUpper();
@@ -7278,7 +7297,7 @@ public partial class bybit : Exchange
             { "notional", this.parseNumber(notional) },
             { "leverage", this.parseNumber(leverage) },
             { "unrealizedPnl", this.parseNumber(unrealisedPnl) },
-            { "realizedPnl", this.safeNumber(position, "closedPnl") },
+            { "realizedPnl", this.safeNumber2(position, "curRealisedPnl", "closedPnl") },
             { "contracts", this.parseNumber(size) },
             { "contractSize", this.safeNumber(market, "contractSize") },
             { "marginRatio", this.parseNumber(marginRatio) },
@@ -10155,6 +10174,148 @@ public partial class bybit : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "timeframe", null },
             { "longShortRatio", this.parseToNumeric(Precise.stringDiv(longString, shortString)) },
+        };
+    }
+
+    /**
+     * @method
+     * @name bybit#fetchPositionsADLRank
+     * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
+     * @see https://bybit-exchange.github.io/docs/v5/position#response-parameters
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+     */
+    public async override Task<object> fetchPositionsADLRank(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbols, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchPositionsADLRank() requires a symbols argument")) ;
+        }
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, true, true, true);
+        object market = this.getMarketFromSymbols(symbols);
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(market, null)))
+        {
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+        }
+        object type = null;
+        var typeparametersVariable = this.getBybitType("fetchPositionsADLRank", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        ((IDictionary<string,object>)request)["category"] = type;
+        object response = await this.privateGetV5PositionList(this.extend(request, parameters));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "nextPageCursor": "BTCUSDT%2C1767085496112%2C0",
+        //             "category": "linear",
+        //             "list": [
+        //                 {
+        //                     "symbol": "BTCUSDT",
+        //                     "leverage": "",
+        //                     "autoAddMargin": 0,
+        //                     "avgPrice": "177489.6",
+        //                     "liqPrice": "",
+        //                     "riskLimitValue": "",
+        //                     "takeProfit": "",
+        //                     "positionValue": "1774.896",
+        //                     "isReduceOnly": false,
+        //                     "positionIMByMp": "",
+        //                     "tpslMode": "Full",
+        //                     "riskId": 0,
+        //                     "trailingStop": "0",
+        //                     "unrealisedPnl": "-3.016",
+        //                     "markPrice": "177188",
+        //                     "adlRankIndicator": 2,
+        //                     "cumRealisedPnl": "-9782.391468",
+        //                     "positionMM": "",
+        //                     "createdTime": "1699928551230",
+        //                     "positionIdx": 0,
+        //                     "positionIM": "",
+        //                     "positionMMByMp": "",
+        //                     "seq": 9558506126,
+        //                     "updatedTime": "1767085496112",
+        //                     "side": "Buy",
+        //                     "bustPrice": "",
+        //                     "positionBalance": "",
+        //                     "leverageSysUpdatedTime": "",
+        //                     "curRealisedPnl": "-0.9761928",
+        //                     "size": "0.01",
+        //                     "positionStatus": "Normal",
+        //                     "mmrSysUpdatedTime": "",
+        //                     "stopLoss": "",
+        //                     "tradeMode": 0,
+        //                     "sessionAvgPrice": ""
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1767085741416
+        //     }
+        //
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object ranks = this.safeList(result, "list", new List<object>() {});
+        return this.parseADLRanks(ranks, symbols);
+    }
+
+    public override object parseADLRank(object info, object market = null)
+    {
+        //
+        // fetchPositionsADLRank
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "leverage": "",
+        //         "autoAddMargin": 0,
+        //         "avgPrice": "177489.6",
+        //         "liqPrice": "",
+        //         "riskLimitValue": "",
+        //         "takeProfit": "",
+        //         "positionValue": "1774.896",
+        //         "isReduceOnly": false,
+        //         "positionIMByMp": "",
+        //         "tpslMode": "Full",
+        //         "riskId": 0,
+        //         "trailingStop": "0",
+        //         "unrealisedPnl": "-3.016",
+        //         "markPrice": "177188",
+        //         "adlRankIndicator": 2,
+        //         "cumRealisedPnl": "-9782.391468",
+        //         "positionMM": "",
+        //         "createdTime": "1699928551230",
+        //         "positionIdx": 0,
+        //         "positionIM": "",
+        //         "positionMMByMp": "",
+        //         "seq": 9558506126,
+        //         "updatedTime": "1767085496112",
+        //         "side": "Buy",
+        //         "bustPrice": "",
+        //         "positionBalance": "",
+        //         "leverageSysUpdatedTime": "",
+        //         "curRealisedPnl": "-0.9761928",
+        //         "size": "0.01",
+        //         "positionStatus": "Normal",
+        //         "mmrSysUpdatedTime": "",
+        //         "stopLoss": "",
+        //         "tradeMode": 0,
+        //         "sessionAvgPrice": ""
+        //     }
+        //
+        object marketId = this.safeString(info, "symbol");
+        object timestamp = this.safeInteger(info, "updatedTime");
+        return new Dictionary<string, object>() {
+            { "info", info },
+            { "symbol", this.safeSymbol(marketId, market, null, "contract") },
+            { "rank", this.safeInteger(info, "adlRankIndicator") },
+            { "rating", null },
+            { "percentage", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
         };
     }
 

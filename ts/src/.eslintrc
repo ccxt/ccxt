@@ -3,6 +3,9 @@
     "es2021": true,
     "node": true
   },
+  "globals": {
+    "WebAssembly": "readonly"
+  },
   "parserOptions": {
     "ecmaVersion": 2020,
     "sourceType": "module"

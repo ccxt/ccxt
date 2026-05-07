@@ -1,6 +1,6 @@
 import sys
 import types
-from typing import Union, List, Optional, Any as PythonAny
+from typing import Type, Union, List, Optional, Any as PythonAny
 from decimal import Decimal
 
 
@@ -48,6 +48,7 @@ class Entry:
 
 IndexType = Union[str, int]
 Num = Union[None, str, float, int, Decimal]
+NumType = Union[Type[str], Type[float], Type[int], Type[Decimal]]
 Str = Optional[str]
 Strings = Optional[List[str]]
 Int = Optional[int]
@@ -563,6 +564,16 @@ class LongShortRatio:
     datetime: Optional[Str]
     timeframe: Optional[Str]
     longShortRatio: float
+
+
+class ADL:
+    info: Any
+    symbol: Str
+    rank: Optional[Int]
+    rating: Optional[Str]
+    percentage: Optional[Num]
+    timestamp: Optional[Int]
+    datetime: Optional[Str]
 
 
 class BorrowInterest:

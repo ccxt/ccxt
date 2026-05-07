@@ -705,7 +705,7 @@ public partial class bitrue : Exchange
         //                 {
         //                     "chain": "BEP20",
         //                     "enableWithdraw": true,
-        //                     "enableDeposit": true,
+        //                     "enableDeposit": false,
         //                     "withdrawFee": "0.2000",
         //                     "minWithdraw": "5.0000",
         //                     "maxWithdraw": "1000000000000000.0000",
@@ -2459,7 +2459,7 @@ public partial class bitrue : Exchange
         //         "code": "0",
         //         "msg": "Success",
         //         "data": {
-        //             "orderId": 1690615847831143159
+        //             "orderId": 1690615847831143154
         //         }
         //     }
         //

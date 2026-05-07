@@ -164,8 +164,8 @@ class mexc(Exchange, ImplicitAPI):
                         'private': 'https://www.mexc.com/open/api/v2',
                     },
                     'contract': {
-                        'public': 'https://contract.mexc.com/api/v1/contract',
-                        'private': 'https://contract.mexc.com/api/v1/private',
+                        'public': 'https://api.mexc.com/api/v1/contract',
+                        'private': 'https://api.mexc.com/api/v1/private',
                     },
                     'broker': {
                         'private': 'https://api.mexc.com/api/v3/broker',
@@ -187,6 +187,7 @@ class mexc(Exchange, ImplicitAPI):
                             'ping': 1,
                             'time': 1,
                             'defaultSymbols': 1,
+                            'symbol/offline': 10,
                             'exchangeInfo': 10,
                             'depth': 1,
                             'trades': 5,
@@ -247,6 +248,9 @@ class mexc(Exchange, ImplicitAPI):
                             'rebate/affiliate/commission': 1,
                             'rebate/affiliate/withdraw': 1,
                             'rebate/affiliate/commission/detail': 1,
+                            'rebate/affiliate/campaign': 1,
+                            'rebate/affiliate/referral': 1,
+                            'rebate/affiliate/subaffiliates': 1,
                             'mxDeduct/enable': 1,
                             'userDataStream': 1,
                             'selfSymbols': 1,
@@ -278,6 +282,8 @@ class mexc(Exchange, ImplicitAPI):
                             'order': 1,
                             'openOrders': 1,
                             'sub-account/apiKey': 1,
+                            'strategy/group': 1,
+                            'strategy/group/uid': 1,
                             'margin/order': 1,
                             'margin/openOrders': 1,
                             'userDataStream': 1,
@@ -311,41 +317,82 @@ class mexc(Exchange, ImplicitAPI):
                             'account/assets': 2,
                             'account/asset/{currency}': 2,
                             'account/transfer_record': 2,
+                            'account/profit_rate/{type}': 2,
+                            'account/asset/analysis/{type}': 2,
+                            'account/feeDeductConfigs': 2,
+                            'account/asset/analysis/yesterday_pnl': 2,
+                            'account/asset/analysis/today_pnl': 2,
+                            'account/config/contractFeeDiscountConfig': 2,
+                            'order/fee_details': 2,
+                            'account/discountType': 2,
+                            'account/asset/analysis/export': 2,
+                            'account/asset_book/order_deal_fee/total': 2,
+                            'account/contract/fee_rate': 2,
+                            'account/contract/zero_fee_rate': 2,
                             'position/list/history_positions': 2,
                             'position/open_positions': 2,
                             'position/funding_records': 2,
                             'position/position_mode': 2,
                             'order/list/open_orders/{symbol}': 2,
                             'order/list/history_orders': 2,
+                            'order/list/order_deals/v3': 2,
                             'order/external/{symbol}/{external_oid}': 2,
                             'order/get/{order_id}': 2,
                             'order/batch_query': 8,
                             'order/deal_details/{order_id}': 2,
                             'order/list/order_deals': 2,
+                            'order/list/close_orders': 2,
                             'planorder/list/orders': 2,
                             'stoporder/list/orders': 2,
+                            'stoporder/open_orders': 2,
                             'stoporder/order_details/{stop_order_id}': 2,
                             'account/risk_limit': 2,  # TO_DO: gets max/min position size, allowed sides, leverage, maintenance margin, initial margin, etc...
                             'account/tiered_fee_rate': 2,  # TO_DO: taker/maker fees for account
                             'position/leverage': 2,
+                            'account/tiered_fee_rate/v2': 2,
+                            'trackorder/list/orders': 2,
+                            'market_maker/self_trade/blacklist': 2,
+                            'market_maker/self_trade/blacklist/search': 2,
                         },
                         'post': {
+                            'account/asset/analysis/v3': 2,
+                            'account/asset/analysis/calendar/daily/v3': 2,
+                            'account/asset/analysis/calendar/monthly/v3': 2,
+                            'account/asset/analysis/recent/v3': 2,
                             'position/change_margin': 2,
+                            'position/change_auto_add_im': 2,
                             'position/change_leverage': 2,
                             'position/change_position_mode': 2,
+                            'position/reverse': 2,
+                            'position/close_all': 2,
+                            'order/create': 2,
                             'order/submit': 2,
                             'order/submit_batch': 40,
+                            'order/chase_limit_order': 40,
+                            'order/change_limit_order': 40,
                             'order/cancel': 2,
+                            'order/batch_cancel_with_external': 2,
                             'order/cancel_with_external': 2,
                             'order/cancel_all': 2,
+                            'order/open_order_total_count': 2,
+                            'order/batch_query_with_external': 2,
                             'account/change_risk_level': 2,
                             'planorder/place': 2,
+                            'planorder/place/v2': 2,
                             'planorder/cancel': 2,
                             'planorder/cancel_all': 2,
+                            'planorder/change_stop_order': 2,
+                            'stoporder/place': 2,
                             'stoporder/cancel': 2,
                             'stoporder/cancel_all': 2,
                             'stoporder/change_price': 2,
                             'stoporder/change_plan_price': 2,
+                            'trackorder/place': 2,
+                            'trackorder/cancel': 2,
+                            'trackorder/change_order': 2,
+                            'market_maker/self_trade/blacklist/create': 2,
+                            'market_maker/self_trade/blacklist/update': 2,
+                            'market_maker/self_trade/blacklist/delete': 2,
                         },
                     },
                 },
@@ -399,10 +446,12 @@ class mexc(Exchange, ImplicitAPI):
                         'get': {
                             'sub-account/universalTransfer': 1,
                             'sub-account/list': 1,
+                            'sub-account/status': 1,
                             'sub-account/apiKey': 1,
                             'capital/deposit/subAddress': 1,
                             'capital/deposit/subHisrec': 1,
                             'capital/deposit/subHisrec/getall': 1,
+                            'rebate/taxQuery': 1,
                         },
                         'post': {
                             'sub-account/virtualSubAccount': 1,
@@ -442,11 +491,6 @@ class mexc(Exchange, ImplicitAPI):
             'options': {
                 'adjustForTimeDifference': False,
                 'timeDifference': 0,
-                'unavailableContracts': {
-                    'BTC/USDT:USDT': True,
-                    'LTC/USDT:USDT': True,
-                    'ETH/USDT:USDT': True,
-                },
                 'fetchMarkets': {
                     'types': {
                         'spot': True,
@@ -2201,6 +2245,7 @@ class mexc(Exchange, ImplicitAPI):
         create a trade order
 
         https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+        https://www.mexc.com/api-docs/futures/account-and-trading-endpoints#place-order
         https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
         https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
 
@@ -2338,6 +2383,7 @@ class mexc(Exchange, ImplicitAPI):
  @ignore
         create a trade order
 
+        https://www.mexc.com/api-docs/futures/account-and-trading-endpoints#place-order
         https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
         https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
         https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
@@ -2363,10 +2409,6 @@ class mexc(Exchange, ImplicitAPI):
         """
         self.load_markets()
         symbol = market['symbol']
-        unavailableContracts = self.safe_value(self.options, 'unavailableContracts', {})
-        isContractUnavaiable = self.safe_bool(unavailableContracts, symbol, False)
-        if isContractUnavaiable:
-            raise NotSupported(self.id + ' createSwapOrder() does not support yet self symbol:' + symbol)
         openType = None
         if marginMode is not None:
             if marginMode == 'cross':
@@ -2425,12 +2467,14 @@ class mexc(Exchange, ImplicitAPI):
         if hedged:
             if reduceOnly:
                 params = self.omit(params, 'reduceOnly')  # hedged mode does not accept self parameter
-                side = 'sell' if (side == 'buy') else 'buy'
-            sideInteger = 1 if (side == 'buy') else 3
+                sideInteger = 4 if (side == 'buy') else 2  # close short, close long
+            else:
+                sideInteger = 1 if (side == 'buy') else 3
             request['positionMode'] = 1
         else:
             if reduceOnly:
                 sideInteger = 2 if (side == 'buy') else 4
+                params = self.omit(params, 'reduceOnly')
             else:
                 sideInteger = 1 if (side == 'buy') else 3
         request['side'] = sideInteger
@@ -4196,7 +4240,15 @@ class mexc(Exchange, ImplicitAPI):
         #         "timestamp": 1643240373359
         #     }
         #
-        nextFundingRate = self.safe_number(contract, 'fundingRate')
+        # watchFundingRate
+        #
+        #     {
+        #         "symbol": "BTC_USDT",
+        #         "rate": -0.000021,
+        #         "nextSettleTime": 1771084800000
+        #     }
+        #
+        nextFundingRate = self.safe_number_2(contract, 'fundingRate', 'rate')
         nextFundingTimestamp = self.safe_integer(contract, 'nextSettleTime')
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market, None, 'contract')
@@ -4490,7 +4542,6 @@ class mexc(Exchange, ImplicitAPI):
         address = self.safe_string(depositAddress, 'address')
         currencyId = self.safe_string(depositAddress, 'coin')
         networkId = self.safe_string(depositAddress, 'netWork')
-        self.check_address(address)
         return {
             'info': depositAddress,
             'currency': self.safe_currency_code(currencyId, currency),

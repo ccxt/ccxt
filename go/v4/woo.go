@@ -13,17 +13,17 @@ func NewWooCore() *WooCore {
 	return p
 }
 
-func (this *WooCore) Describe() interface{} {
-	return this.DeepExtend(this.Exchange.Describe(), map[string]interface{}{
+func (this *WooCore) Describe() any {
+	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "woo",
 		"name":      "WOO X",
-		"countries": []interface{}{"KY"},
+		"countries": []any{"KY"},
 		"rateLimit": 100,
 		"version":   "v1",
 		"certified": true,
 		"pro":       true,
 		"hostname":  "woox.io",
-		"has": map[string]interface{}{
+		"has": map[string]any{
 			"CORS":                                 nil,
 			"spot":                                 true,
 			"margin":                               true,
@@ -92,9 +92,11 @@ func (this *WooCore) Describe() interface{} {
 			"fetchOrders":                          true,
 			"fetchOrderTrades":                     true,
 			"fetchPosition":                        true,
+			"fetchPositionADLRank":                 true,
 			"fetchPositionHistory":                 false,
 			"fetchPositionMode":                    false,
 			"fetchPositions":                       true,
+			"fetchPositionsADLRank":                true,
 			"fetchPositionsHistory":                false,
 			"fetchPremiumIndexOHLCV":               false,
 			"fetchStatus":                          true,
@@ -115,7 +117,7 @@ func (this *WooCore) Describe() interface{} {
 			"transfer":                             true,
 			"withdraw":                             true,
 		},
-		"timeframes": map[string]interface{}{
+		"timeframes": map[string]any{
 			"1m":  "1m",
 			"5m":  "5m",
 			"15m": "15m",
@@ -128,36 +130,36 @@ func (this *WooCore) Describe() interface{} {
 			"1M":  "1mon",
 			"1y":  "1y",
 		},
-		"urls": map[string]interface{}{
+		"urls": map[string]any{
 			"logo": "https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg",
-			"api": map[string]interface{}{
+			"api": map[string]any{
 				"pub":     "https://api-pub.woox.io",
 				"public":  "https://api.{hostname}",
 				"private": "https://api.{hostname}",
 			},
-			"test": map[string]interface{}{
+			"test": map[string]any{
 				"pub":     "https://api-pub.staging.woox.io",
 				"public":  "https://api.staging.woox.io",
 				"private": "https://api.staging.woox.io",
 			},
 			"www":  "https://woox.io/",
-			"doc":  []interface{}{"https://docs.woox.io/"},
-			"fees": []interface{}{"https://support.woox.io/hc/en-001/articles/4404611795353--Trading-Fees"},
-			"referral": map[string]interface{}{
+			"doc":  []any{"https://docs.woox.io/"},
+			"fees": []any{"https://support.woox.io/hc/en-001/articles/4404611795353--Trading-Fees"},
+			"referral": map[string]any{
 				"url":      "https://woox.io/register?ref=DIJT0CNL",
 				"discount": 0.35,
 			},
 		},
-		"api": map[string]interface{}{
-			"v1": map[string]interface{}{
-				"pub": map[string]interface{}{
-					"get": map[string]interface{}{
+		"api": map[string]any{
+			"v1": map[string]any{
+				"pub": map[string]any{
+					"get": map[string]any{
 						"hist/kline":  10,
 						"hist/trades": 10,
 					},
 				},
-				"public": map[string]interface{}{
-					"get": map[string]interface{}{
+				"public": map[string]any{
+					"get": map[string]any{
 						"info":                  1,
 						"info/{symbol}":         1,
 						"system_info":           1,
@@ -173,8 +175,8 @@ func (this *WooCore) Describe() interface{} {
 						"kline":                 1,
 					},
 				},
-				"private": map[string]interface{}{
-					"get": map[string]interface{}{
+				"private": map[string]any{
+					"get": map[string]any{
 						"client/token":                    1,
 						"order/{oid}":                     1,
 						"client/order/{client_order_id}":  1,
@@ -202,7 +204,7 @@ func (this *WooCore) Describe() interface{} {
 						"client/transaction_history":      60,
 						"client/futures_leverage":         60,
 					},
-					"post": map[string]interface{}{
+					"post": map[string]any{
 						"order":                   1,
 						"order/cancel_all_after":  1,
 						"asset/ltv":               30,
@@ -214,7 +216,7 @@ func (this *WooCore) Describe() interface{} {
 						"client/futures_leverage": 30,
 						"client/isolated_margin":  30,
 					},
-					"delete": map[string]interface{}{
+					"delete": map[string]any{
 						"order":          1,
 						"client/order":   1,
 						"orders":         1,
@@ -222,16 +224,16 @@ func (this *WooCore) Describe() interface{} {
 					},
 				},
 			},
-			"v2": map[string]interface{}{
-				"private": map[string]interface{}{
-					"get": map[string]interface{}{
+			"v2": map[string]any{
+				"private": map[string]any{
+					"get": map[string]any{
 						"client/holding": 1,
 					},
 				},
 			},
-			"v3": map[string]interface{}{
-				"public": map[string]interface{}{
-					"get": map[string]interface{}{
+			"v3": map[string]any{
+				"public": map[string]any{
+					"get": map[string]any{
 						"systemInfo":          1,
 						"instruments":         1,
 						"token":               1,
@@ -248,8 +250,8 @@ func (this *WooCore) Describe() interface{} {
 						"insuranceFund":       1,
 					},
 				},
-				"private": map[string]interface{}{
-					"get": map[string]interface{}{
+				"private": map[string]any{
+					"get": map[string]any{
 						"trade/order":                    2,
 						"trade/orders":                   1,
 						"trade/algoOrder":                1,
@@ -287,7 +289,7 @@ func (this *WooCore) Describe() interface{} {
 						"convert/trade":                  1,
 						"convert/trades":                 1,
 					},
-					"post": map[string]interface{}{
+					"post": map[string]any{
 						"trade/order":              2,
 						"trade/algoOrder":          5,
 						"trade/cancelAllAfter":     1,
@@ -300,7 +302,7 @@ func (this *WooCore) Describe() interface{} {
 						"algo/order":               5,
 						"convert/rft":              60,
 					},
-					"put": map[string]interface{}{
+					"put": map[string]any{
 						"trade/order":                         2,
 						"trade/algoOrder":                     2,
 						"futures/leverage":                    60,
@@ -310,7 +312,7 @@ func (this *WooCore) Describe() interface{} {
 						"algo/order/{oid}":                    2,
 						"algo/order/client/{client_order_id}": 2,
 					},
-					"delete": map[string]interface{}{
+					"delete": map[string]any{
 						"trade/order":                  1,
 						"trade/orders":                 1,
 						"trade/algoOrder":              1,
@@ -324,49 +326,49 @@ func (this *WooCore) Describe() interface{} {
 				},
 			},
 		},
-		"fees": map[string]interface{}{
-			"trading": map[string]interface{}{
+		"fees": map[string]any{
+			"trading": map[string]any{
 				"tierBased":  true,
 				"percentage": true,
 				"maker":      this.ParseNumber("0.0002"),
 				"taker":      this.ParseNumber("0.0005"),
 			},
 		},
-		"options": map[string]interface{}{
+		"options": map[string]any{
 			"timeDifference":                    0,
 			"adjustForTimeDifference":           false,
 			"sandboxMode":                       false,
 			"createMarketBuyOrderRequiresPrice": true,
-			"network-aliases-for-tokens": map[string]interface{}{
+			"network-aliases-for-tokens": map[string]any{
 				"HT":    "ERC20",
 				"OMG":   "ERC20",
 				"UATOM": "ATOM",
 				"ZRX":   "ZRX",
 			},
-			"networks": map[string]interface{}{
+			"networks": map[string]any{
 				"TRX":   "TRON",
 				"TRC20": "TRON",
 				"ERC20": "ETH",
 				"BEP20": "BSC",
 				"ARB":   "Arbitrum",
 			},
-			"networksById": map[string]interface{}{
+			"networksById": map[string]any{
 				"TRX":  "TRC20",
 				"TRON": "TRC20",
 			},
-			"defaultNetworkCodeForCurrencies": map[string]interface{}{},
-			"transfer": map[string]interface{}{
+			"defaultNetworkCodeForCurrencies": map[string]any{},
+			"transfer": map[string]any{
 				"fillResponseFromRequest": true,
 			},
 			"brokerId": "bc830de7-50f3-460b-9ee0-f430f83f9dad",
 		},
-		"features": map[string]interface{}{
-			"default": map[string]interface{}{
+		"features": map[string]any{
+			"default": map[string]any{
 				"sandbox": true,
-				"createOrder": map[string]interface{}{
+				"createOrder": map[string]any{
 					"marginMode":   true,
 					"triggerPrice": true,
-					"triggerPriceType": map[string]interface{}{
+					"triggerPriceType": map[string]any{
 						"last":  true,
 						"mark":  true,
 						"index": false,
@@ -375,7 +377,7 @@ func (this *WooCore) Describe() interface{} {
 					"stopLossPrice":              false,
 					"takeProfitPrice":            false,
 					"attachedStopLossTakeProfit": nil,
-					"timeInForce": map[string]interface{}{
+					"timeInForce": map[string]any{
 						"IOC": true,
 						"FOK": true,
 						"PO":  true,
@@ -390,27 +392,27 @@ func (this *WooCore) Describe() interface{} {
 					"iceberg":                true,
 				},
 				"createOrders": nil,
-				"fetchMyTrades": map[string]interface{}{
+				"fetchMyTrades": map[string]any{
 					"marginMode":     false,
 					"limit":          500,
 					"daysBack":       90,
 					"untilDays":      10000,
 					"symbolRequired": false,
 				},
-				"fetchOrder": map[string]interface{}{
+				"fetchOrder": map[string]any{
 					"marginMode":     false,
 					"trigger":        true,
 					"trailing":       false,
 					"symbolRequired": false,
 				},
-				"fetchOpenOrders": map[string]interface{}{
+				"fetchOpenOrders": map[string]any{
 					"marginMode":     false,
 					"limit":          500,
 					"trigger":        true,
 					"trailing":       true,
 					"symbolRequired": false,
 				},
-				"fetchOrders": map[string]interface{}{
+				"fetchOrders": map[string]any{
 					"marginMode":     false,
 					"limit":          500,
 					"daysBack":       nil,
@@ -419,7 +421,7 @@ func (this *WooCore) Describe() interface{} {
 					"trailing":       true,
 					"symbolRequired": false,
 				},
-				"fetchClosedOrders": map[string]interface{}{
+				"fetchClosedOrders": map[string]any{
 					"marginMode":       false,
 					"limit":            500,
 					"daysBack":         nil,
@@ -429,33 +431,33 @@ func (this *WooCore) Describe() interface{} {
 					"trailing":         true,
 					"symbolRequired":   false,
 				},
-				"fetchOHLCV": map[string]interface{}{
+				"fetchOHLCV": map[string]any{
 					"limit": 1000,
 				},
 			},
-			"spot": map[string]interface{}{
+			"spot": map[string]any{
 				"extends": "default",
 			},
-			"forSwap": map[string]interface{}{
+			"forSwap": map[string]any{
 				"extends": "default",
-				"createOrder": map[string]interface{}{
+				"createOrder": map[string]any{
 					"hedged": true,
 				},
 			},
-			"swap": map[string]interface{}{
-				"linear": map[string]interface{}{
+			"swap": map[string]any{
+				"linear": map[string]any{
 					"extends": "forSwap",
 				},
 				"inverse": nil,
 			},
-			"future": map[string]interface{}{
+			"future": map[string]any{
 				"linear":  nil,
 				"inverse": nil,
 			},
 		},
-		"commonCurrencies": map[string]interface{}{},
-		"exceptions": map[string]interface{}{
-			"exact": map[string]interface{}{
+		"commonCurrencies": map[string]any{},
+		"exceptions": map[string]any{
+			"exact": map[string]any{
 				"-1000": OperationFailed,
 				"-1001": AuthenticationError,
 				"-1002": AuthenticationError,
@@ -473,7 +475,7 @@ func (this *WooCore) Describe() interface{} {
 				"-1104": InvalidOrder,
 				"-1105": InvalidOrder,
 			},
-			"broad": map[string]interface{}{
+			"broad": map[string]any{
 				"Can not place":              ExchangeError,
 				"maintenance":                OnMaintenance,
 				"symbol must not be blank":   BadRequest,
@@ -494,12 +496,12 @@ func (this *WooCore) Describe() interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *WooCore) FetchStatus(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchStatus(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		response := (<-this.V3PublicGetSystemInfo(params))
@@ -515,8 +517,8 @@ func (this *WooCore) FetchStatus(optionalArgs ...interface{}) <-chan interface{}
 		//         "timestamp": 1751442989564
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var status interface{} = this.SafeString(data, "status")
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var status any = this.SafeString(data, "status")
 		if IsTrue(IsEqual(status, nil)) {
 			status = "error"
 		} else if IsTrue(IsEqual(status, "0")) {
@@ -525,7 +527,7 @@ func (this *WooCore) FetchStatus(optionalArgs ...interface{}) <-chan interface{}
 			status = "maintenance"
 		}
 
-		ch <- map[string]interface{}{
+		ch <- map[string]any{
 			"status":  status,
 			"updated": nil,
 			"eta":     nil,
@@ -546,12 +548,12 @@ func (this *WooCore) FetchStatus(optionalArgs ...interface{}) <-chan interface{}
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *WooCore) FetchTime(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchTime(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		response := (<-this.V3PublicGetSystemInfo(params))
@@ -583,17 +585,17 @@ func (this *WooCore) FetchTime(optionalArgs ...interface{}) <-chan interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *WooCore) FetchMarkets(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchMarkets(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 		if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
 
-			retRes57212 := (<-this.LoadTimeDifference())
-			PanicOnError(retRes57212)
+			retRes57412 := (<-this.LoadTimeDifference())
+			PanicOnError(retRes57412)
 		}
 
 		response := (<-this.V3PublicGetInstruments(params))
@@ -630,8 +632,8 @@ func (this *WooCore) FetchMarkets(optionalArgs ...interface{}) <-chan interface{
 		//         "timestamp": 1751512951338
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var rows interface{} = this.SafeList(data, "rows", []interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var rows any = this.SafeList(data, "rows", []any{})
 
 		ch <- this.ParseMarkets(rows)
 		return nil
@@ -639,13 +641,13 @@ func (this *WooCore) FetchMarkets(optionalArgs ...interface{}) <-chan interface{
 	}()
 	return ch
 }
-func (this *WooCore) ParseMarket(market interface{}) interface{} {
-	var marketId interface{} = this.SafeString(market, "symbol")
-	var parts interface{} = Split(marketId, "_")
-	var first interface{} = this.SafeString(parts, 0)
-	var marketType interface{} = nil
-	var spot interface{} = false
-	var swap interface{} = false
+func (this *WooCore) ParseMarket(market any) any {
+	var marketId any = this.SafeString(market, "symbol")
+	var parts any = Split(marketId, "_")
+	var first any = this.SafeString(parts, 0)
+	var marketType any = nil
+	var spot any = false
+	var swap any = false
 	if IsTrue(IsEqual(first, "SPOT")) {
 		spot = true
 		marketType = "spot"
@@ -653,18 +655,18 @@ func (this *WooCore) ParseMarket(market interface{}) interface{} {
 		swap = true
 		marketType = "swap"
 	}
-	var baseId interface{} = this.SafeString(parts, 1)
-	var quoteId interface{} = this.SafeString(parts, 2)
-	var base interface{} = this.SafeCurrencyCode(baseId)
-	var quote interface{} = this.SafeCurrencyCode(quoteId)
-	var settleId interface{} = nil
-	var settle interface{} = nil
-	var symbol interface{} = Add(Add(base, "/"), quote)
-	var contractSize interface{} = nil
-	var linear interface{} = nil
-	var inverse interface{} = nil
-	var margin interface{} = true
-	var contract interface{} = swap
+	var baseId any = this.SafeString(parts, 1)
+	var quoteId any = this.SafeString(parts, 2)
+	var base any = this.SafeCurrencyCode(baseId)
+	var quote any = this.SafeCurrencyCode(quoteId)
+	var settleId any = nil
+	var settle any = nil
+	var symbol any = Add(Add(base, "/"), quote)
+	var contractSize any = nil
+	var linear any = nil
+	var inverse any = nil
+	var margin any = true
+	var contract any = swap
 	if IsTrue(contract) {
 		margin = false
 		settleId = this.SafeString(parts, 2)
@@ -674,8 +676,8 @@ func (this *WooCore) ParseMarket(market interface{}) interface{} {
 		linear = true
 		inverse = false
 	}
-	var active interface{} = IsEqual(this.SafeString(market, "status"), "TRADING")
-	return map[string]interface{}{
+	var active any = IsEqual(this.SafeString(market, "status"), "TRADING")
+	return map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
 		"base":           base,
@@ -699,24 +701,24 @@ func (this *WooCore) ParseMarket(market interface{}) interface{} {
 		"expiryDatetime": nil,
 		"strike":         nil,
 		"optionType":     nil,
-		"precision": map[string]interface{}{
+		"precision": map[string]any{
 			"amount": this.SafeNumber(market, "baseTick"),
 			"price":  this.SafeNumber(market, "quoteTick"),
 		},
-		"limits": map[string]interface{}{
-			"leverage": map[string]interface{}{
+		"limits": map[string]any{
+			"leverage": map[string]any{
 				"min": nil,
 				"max": nil,
 			},
-			"amount": map[string]interface{}{
+			"amount": map[string]any{
 				"min": this.SafeNumber(market, "baseMin"),
 				"max": this.SafeNumber(market, "baseMax"),
 			},
-			"price": map[string]interface{}{
+			"price": map[string]any{
 				"min": this.SafeNumber(market, "quoteMin"),
 				"max": this.SafeNumber(market, "quoteMax"),
 			},
-			"cost": map[string]interface{}{
+			"cost": map[string]any{
 				"min": this.SafeNumber(market, "minNotional"),
 				"max": nil,
 			},
@@ -737,22 +739,22 @@ func (this *WooCore) ParseMarket(market interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *WooCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		since := GetArg(optionalArgs, 0, nil)
 		_ = since
 		limit := GetArg(optionalArgs, 1, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]interface{}{})
+		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes7118 := (<-this.LoadMarkets())
-		PanicOnError(retRes7118)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		retRes7138 := (<-this.LoadMarkets())
+		PanicOnError(retRes7138)
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -779,8 +781,8 @@ func (this *WooCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}
 		//         "timestamp": 1751513988543
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var rows interface{} = this.SafeList(data, "rows", []interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var rows any = this.SafeList(data, "rows", []any{})
 
 		ch <- this.ParseTrades(rows, market, since, limit)
 		return nil
@@ -788,7 +790,7 @@ func (this *WooCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}
 	}()
 	return ch
 }
-func (this *WooCore) ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WooCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	// public/market_trades
 	//
@@ -820,9 +822,9 @@ func (this *WooCore) ParseTrade(trade interface{}, optionalArgs ...interface{}) 
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var isFromFetchOrder interface{} = (InOp(trade, "id"))
-	var timestampString interface{} = this.SafeString2(trade, "executed_timestamp", "executedTimestamp")
-	var timestamp interface{} = nil
+	var isFromFetchOrder any = (InOp(trade, "id"))
+	var timestampString any = this.SafeString2(trade, "executed_timestamp", "executedTimestamp")
+	var timestamp any = nil
 	if IsTrue(!IsEqual(timestampString, nil)) {
 		if IsTrue(IsGreaterThan(GetIndexOf(timestampString, "."), OpNeg(1))) {
 			timestamp = this.SafeTimestamp2(trade, "executed_timestamp", "executedTimestamp")
@@ -830,26 +832,26 @@ func (this *WooCore) ParseTrade(trade interface{}, optionalArgs ...interface{}) 
 			timestamp = this.SafeInteger(trade, "executedTimestamp")
 		}
 	}
-	var marketId interface{} = this.SafeString(trade, "symbol")
+	var marketId any = this.SafeString(trade, "symbol")
 	market = this.SafeMarket(marketId, market)
-	var symbol interface{} = GetValue(market, "symbol")
-	var price interface{} = this.SafeString2(trade, "executed_price", "executedPrice")
-	var amount interface{} = this.SafeString2(trade, "executed_quantity", "executedQuantity")
-	var order_id interface{} = this.SafeString2(trade, "order_id", "orderId")
-	var fee interface{} = this.ParseTokenAndFeeTemp(trade, []interface{}{"fee_asset", "feeAsset"}, []interface{}{"fee"})
-	var feeCost interface{} = this.SafeString(fee, "cost")
+	var symbol any = GetValue(market, "symbol")
+	var price any = this.SafeString2(trade, "executed_price", "executedPrice")
+	var amount any = this.SafeString2(trade, "executed_quantity", "executedQuantity")
+	var order_id any = this.SafeString2(trade, "order_id", "orderId")
+	var fee any = this.ParseTokenAndFeeTemp(trade, []any{"fee_asset", "feeAsset"}, []any{"fee"})
+	var feeCost any = this.SafeString(fee, "cost")
 	if IsTrue(!IsEqual(feeCost, nil)) {
 		AddElementToObject(fee, "cost", feeCost)
 	}
-	var cost interface{} = Precise.StringMul(price, amount)
-	var side interface{} = this.SafeStringLower(trade, "side")
-	var id interface{} = this.SafeString(trade, "id")
-	var takerOrMaker interface{} = nil
+	var cost any = Precise.StringMul(price, amount)
+	var side any = this.SafeStringLower(trade, "side")
+	var id any = this.SafeString(trade, "id")
+	var takerOrMaker any = nil
 	if IsTrue(isFromFetchOrder) {
-		var isMaker interface{} = IsEqual(this.SafeString2(trade, "is_maker", "isMaker"), "1")
+		var isMaker any = IsEqual(this.SafeString2(trade, "is_maker", "isMaker"), "1")
 		takerOrMaker = Ternary(IsTrue(isMaker), "maker", "taker")
 	}
-	return this.SafeTrade(map[string]interface{}{
+	return this.SafeTrade(map[string]any{
 		"id":           id,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -865,25 +867,25 @@ func (this *WooCore) ParseTrade(trade interface{}, optionalArgs ...interface{}) 
 		"info":         trade,
 	}, market)
 }
-func (this *WooCore) ParseTokenAndFeeTemp(item interface{}, feeTokenKeys interface{}, feeAmountKeys interface{}) interface{} {
-	var feeCost interface{} = this.SafeStringN(item, feeAmountKeys)
-	var fee interface{} = nil
+func (this *WooCore) ParseTokenAndFeeTemp(item any, feeTokenKeys any, feeAmountKeys any) any {
+	var feeCost any = this.SafeStringN(item, feeAmountKeys)
+	var fee any = nil
 	if IsTrue(!IsEqual(feeCost, nil)) {
-		var feeCurrencyId interface{} = this.SafeStringN(item, feeTokenKeys)
-		var feeCurrencyCode interface{} = this.SafeCurrencyCode(feeCurrencyId)
-		fee = map[string]interface{}{
+		var feeCurrencyId any = this.SafeStringN(item, feeTokenKeys)
+		var feeCurrencyCode any = this.SafeCurrencyCode(feeCurrencyId)
+		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": feeCurrencyCode,
 		}
 	}
 	return fee
 }
-func (this *WooCore) ParseTradingFee(fee interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WooCore) ParseTradingFee(fee any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(fee, "symbol")
-	var symbol interface{} = this.SafeSymbol(marketId, market)
-	return map[string]interface{}{
+	var marketId any = this.SafeString(fee, "symbol")
+	var symbol any = this.SafeSymbol(marketId, market)
+	return map[string]any{
 		"info":       fee,
 		"symbol":     symbol,
 		"maker":      this.ParseNumber(Precise.StringDiv(this.SafeString(fee, "makerFee"), "100")),
@@ -904,18 +906,18 @@ func (this *WooCore) ParseTradingFee(fee interface{}, optionalArgs ...interface{
  * @param {string} [params.subType] "linear" or "inverse"
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *WooCore) FetchTradingFee(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes8588 := (<-this.LoadMarkets())
-		PanicOnError(retRes8588)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		retRes8608 := (<-this.LoadMarkets())
+		PanicOnError(retRes8608)
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 
@@ -932,7 +934,7 @@ func (this *WooCore) FetchTradingFee(symbol interface{}, optionalArgs ...interfa
 		//         "timestamp": 1751858977368
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 
 		ch <- this.ParseTradingFee(data, market)
 		return nil
@@ -949,16 +951,16 @@ func (this *WooCore) FetchTradingFee(symbol interface{}, optionalArgs ...interfa
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func (this *WooCore) FetchTradingFees(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchTradingFees(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes8888 := (<-this.LoadMarkets())
-		PanicOnError(retRes8888)
+		retRes8908 := (<-this.LoadMarkets())
+		PanicOnError(retRes8908)
 
 		response := (<-this.V3PrivateGetAccountInfo(params))
 		PanicOnError(response)
@@ -993,13 +995,13 @@ func (this *WooCore) FetchTradingFees(optionalArgs ...interface{}) <-chan interf
 		//         "timestamp": 1752062807915
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var maker interface{} = this.SafeString(data, "makerFeeRate")
-		var taker interface{} = this.SafeString(data, "takerFeeRate")
-		var result interface{} = map[string]interface{}{}
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var maker any = this.SafeString(data, "makerFeeRate")
+		var taker any = this.SafeString(data, "takerFeeRate")
+		var result any = map[string]any{}
 		for i := 0; IsLessThan(i, GetArrayLength(this.Symbols)); i++ {
-			var symbol interface{} = GetValue(this.Symbols, i)
-			AddElementToObject(result, symbol, map[string]interface{}{
+			var symbol any = GetValue(this.Symbols, i)
+			AddElementToObject(result, symbol, map[string]any{
 				"info":       response,
 				"symbol":     symbol,
 				"maker":      this.ParseNumber(Precise.StringDiv(maker, "10000")),
@@ -1024,15 +1026,15 @@ func (this *WooCore) FetchTradingFees(optionalArgs ...interface{}) <-chan interf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *WooCore) FetchCurrencies(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchCurrencies(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var result interface{} = map[string]interface{}{}
-		var tokenResponsePromise interface{} = this.V1PublicGetToken(params)
+		var result any = map[string]any{}
+		var tokenResponsePromise any = this.V1PublicGetToken(params)
 		//
 		//    {
 		//      "rows": [
@@ -1078,7 +1080,7 @@ func (this *WooCore) FetchCurrencies(optionalArgs ...interface{}) <-chan interfa
 		// }
 		//
 		// only make one request for currrencies...
-		var tokenNetworkResponsePromise interface{} = this.V1PublicGetTokenNetwork(params)
+		var tokenNetworkResponsePromise any = this.V1PublicGetTokenNetwork(params)
 		//
 		// {
 		//     "rows": [
@@ -1107,28 +1109,28 @@ func (this *WooCore) FetchCurrencies(optionalArgs ...interface{}) <-chan interfa
 		//     "success": true
 		// }
 		//
-		tokenResponsetokenNetworkResponseVariable := (<-promiseAll([]interface{}{tokenResponsePromise, tokenNetworkResponsePromise}))
+		tokenResponsetokenNetworkResponseVariable := (<-promiseAll([]any{tokenResponsePromise, tokenNetworkResponsePromise}))
 		tokenResponse := GetValue(tokenResponsetokenNetworkResponseVariable, 0)
 		tokenNetworkResponse := GetValue(tokenResponsetokenNetworkResponseVariable, 1)
-		var tokenRows interface{} = this.SafeList(tokenResponse, "rows", []interface{}{})
-		var tokenNetworkRows interface{} = this.SafeList(tokenNetworkResponse, "rows", []interface{}{})
-		var networksById interface{} = this.GroupBy(tokenNetworkRows, "token")
-		var tokensById interface{} = this.GroupBy(tokenRows, "balance_token")
-		var currencyIds interface{} = ObjectKeys(tokensById)
+		var tokenRows any = this.SafeList(tokenResponse, "rows", []any{})
+		var tokenNetworkRows any = this.SafeList(tokenNetworkResponse, "rows", []any{})
+		var networksById any = this.GroupBy(tokenNetworkRows, "token")
+		var tokensById any = this.GroupBy(tokenRows, "balance_token")
+		var currencyIds any = ObjectKeys(tokensById)
 		for i := 0; IsLessThan(i, GetArrayLength(currencyIds)); i++ {
-			var currencyId interface{} = GetValue(currencyIds, i)
-			var code interface{} = this.SafeCurrencyCode(currencyId)
-			var tokensByNetworkId interface{} = this.IndexBy(GetValue(tokensById, currencyId), "network")
-			var chainsByNetworkId interface{} = this.IndexBy(GetValue(networksById, currencyId), "network")
-			var keys interface{} = ObjectKeys(chainsByNetworkId)
-			var resultingNetworks interface{} = map[string]interface{}{}
+			var currencyId any = GetValue(currencyIds, i)
+			var code any = this.SafeCurrencyCode(currencyId)
+			var tokensByNetworkId any = this.IndexBy(GetValue(tokensById, currencyId), "network")
+			var chainsByNetworkId any = this.IndexBy(GetValue(networksById, currencyId), "network")
+			var keys any = ObjectKeys(chainsByNetworkId)
+			var resultingNetworks any = map[string]any{}
 			for j := 0; IsLessThan(j, GetArrayLength(keys)); j++ {
-				var networkId interface{} = GetValue(keys, j)
-				var tokenEntry interface{} = this.SafeDict(tokensByNetworkId, networkId, map[string]interface{}{})
-				var networkEntry interface{} = this.SafeDict(chainsByNetworkId, networkId, map[string]interface{}{})
-				var networkCode interface{} = this.NetworkIdToCode(networkId, code)
-				var specialNetworkId interface{} = this.SafeString(tokenEntry, "token")
-				AddElementToObject(resultingNetworks, networkCode, map[string]interface{}{
+				var networkId any = GetValue(keys, j)
+				var tokenEntry any = this.SafeDict(tokensByNetworkId, networkId, map[string]any{})
+				var networkEntry any = this.SafeDict(chainsByNetworkId, networkId, map[string]any{})
+				var networkCode any = this.NetworkIdToCode(networkId, code)
+				var specialNetworkId any = this.SafeString(tokenEntry, "token")
+				AddElementToObject(resultingNetworks, networkCode, map[string]any{
 					"id":                networkId,
 					"currencyNetworkId": specialNetworkId,
 					"network":           networkCode,
@@ -1137,20 +1139,20 @@ func (this *WooCore) FetchCurrencies(optionalArgs ...interface{}) <-chan interfa
 					"withdraw":          IsEqual(this.SafeString(networkEntry, "allow_withdraw"), "1"),
 					"fee":               this.SafeNumber(networkEntry, "withdrawal_fee"),
 					"precision":         this.ParseNumber(this.ParsePrecision(this.SafeString(tokenEntry, "decimals"))),
-					"limits": map[string]interface{}{
-						"withdraw": map[string]interface{}{
+					"limits": map[string]any{
+						"withdraw": map[string]any{
 							"min": this.SafeNumber(networkEntry, "minimum_withdrawal"),
 							"max": nil,
 						},
-						"deposit": map[string]interface{}{
+						"deposit": map[string]any{
 							"min": nil,
 							"max": nil,
 						},
 					},
-					"info": []interface{}{networkEntry, tokenEntry},
+					"info": []any{networkEntry, tokenEntry},
 				})
 			}
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]interface{}{
+			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
 				"id":        currencyId,
 				"name":      nil,
 				"code":      code,
@@ -1161,17 +1163,17 @@ func (this *WooCore) FetchCurrencies(optionalArgs ...interface{}) <-chan interfa
 				"deposit":   nil,
 				"withdraw":  nil,
 				"type":      "crypto",
-				"limits": map[string]interface{}{
-					"deposit": map[string]interface{}{
+				"limits": map[string]any{
+					"deposit": map[string]any{
 						"min": nil,
 						"max": nil,
 					},
-					"withdraw": map[string]interface{}{
+					"withdraw": map[string]any{
 						"min": nil,
 						"max": nil,
 					},
 				},
-				"info": []interface{}{tokensByNetworkId, chainsByNetworkId},
+				"info": []any{tokensByNetworkId, chainsByNetworkId},
 			}))
 		}
 
@@ -1192,24 +1194,24 @@ func (this *WooCore) FetchCurrencies(optionalArgs ...interface{}) <-chan interfa
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *WooCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes11038 := (<-this.LoadMarkets())
-		PanicOnError(retRes11038)
-		var market interface{} = this.Market(symbol)
+		retRes11058 := (<-this.LoadMarkets())
+		PanicOnError(retRes11058)
+		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot orders only")))
 		}
 
-		retRes110815 := (<-this.CreateOrder(symbol, "market", "buy", cost, 1, params))
-		PanicOnError(retRes110815)
-		ch <- retRes110815
+		retRes111015 := (<-this.CreateOrder(symbol, "market", "buy", cost, 1, params))
+		PanicOnError(retRes111015)
+		ch <- retRes111015
 		return nil
 
 	}()
@@ -1226,24 +1228,24 @@ func (this *WooCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost inter
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *WooCore) CreateMarketSellOrderWithCost(symbol interface{}, cost interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) CreateMarketSellOrderWithCost(symbol any, cost any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes11228 := (<-this.LoadMarkets())
-		PanicOnError(retRes11228)
-		var market interface{} = this.Market(symbol)
+		retRes11248 := (<-this.LoadMarkets())
+		PanicOnError(retRes11248)
+		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " createMarketSellOrderWithCost() supports spot orders only")))
 		}
 
-		retRes112715 := (<-this.CreateOrder(symbol, "market", "sell", cost, 1, params))
-		PanicOnError(retRes112715)
-		ch <- retRes112715
+		retRes112915 := (<-this.CreateOrder(symbol, "market", "sell", cost, 1, params))
+		PanicOnError(retRes112915)
+		ch <- retRes112915
 		return nil
 
 	}()
@@ -1265,9 +1267,9 @@ func (this *WooCore) CreateMarketSellOrderWithCost(symbol interface{}, cost inte
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *WooCore) CreateTrailingAmountOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) CreateTrailingAmountOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		price := GetArg(optionalArgs, 0, nil)
@@ -1276,7 +1278,7 @@ func (this *WooCore) CreateTrailingAmountOrder(symbol interface{}, typeVar inter
 		_ = trailingAmount
 		trailingTriggerPrice := GetArg(optionalArgs, 2, nil)
 		_ = trailingTriggerPrice
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 		if IsTrue(IsEqual(trailingAmount, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " createTrailingAmountOrder() requires a trailingAmount argument")))
@@ -1287,9 +1289,9 @@ func (this *WooCore) CreateTrailingAmountOrder(symbol interface{}, typeVar inter
 		AddElementToObject(params, "trailingAmount", trailingAmount)
 		AddElementToObject(params, "trailingTriggerPrice", trailingTriggerPrice)
 
-		retRes115415 := (<-this.CreateOrder(symbol, typeVar, side, amount, price, params))
-		PanicOnError(retRes115415)
-		ch <- retRes115415
+		retRes115615 := (<-this.CreateOrder(symbol, typeVar, side, amount, price, params))
+		PanicOnError(retRes115615)
+		ch <- retRes115615
 		return nil
 
 	}()
@@ -1311,9 +1313,9 @@ func (this *WooCore) CreateTrailingAmountOrder(symbol interface{}, typeVar inter
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *WooCore) CreateTrailingPercentOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) CreateTrailingPercentOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		price := GetArg(optionalArgs, 0, nil)
@@ -1322,7 +1324,7 @@ func (this *WooCore) CreateTrailingPercentOrder(symbol interface{}, typeVar inte
 		_ = trailingPercent
 		trailingTriggerPrice := GetArg(optionalArgs, 2, nil)
 		_ = trailingTriggerPrice
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 		if IsTrue(IsEqual(trailingPercent, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " createTrailingPercentOrder() requires a trailingPercent argument")))
@@ -1333,9 +1335,9 @@ func (this *WooCore) CreateTrailingPercentOrder(symbol interface{}, typeVar inte
 		AddElementToObject(params, "trailingPercent", trailingPercent)
 		AddElementToObject(params, "trailingTriggerPrice", trailingTriggerPrice)
 
-		retRes118115 := (<-this.CreateOrder(symbol, typeVar, side, amount, price, params))
-		PanicOnError(retRes118115)
-		ch <- retRes118115
+		retRes118315 := (<-this.CreateOrder(symbol, typeVar, side, amount, price, params))
+		PanicOnError(retRes118315)
+		ch <- retRes118315
 		return nil
 
 	}()
@@ -1368,51 +1370,51 @@ func (this *WooCore) CreateTrailingPercentOrder(symbol interface{}, typeVar inte
  * @param {string} [params.position_side] 'SHORT' or 'LONG' - if position mode is HEDGE_MODE and the trading involves futures, then is required, otherwise this parameter is not required
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *WooCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		price := GetArg(optionalArgs, 0, nil)
 		_ = price
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
-		var reduceOnly interface{} = this.SafeBool2(params, "reduceOnly", "reduce_only")
-		params = this.Omit(params, []interface{}{"reduceOnly", "reduce_only"})
-		var orderType interface{} = ToUpper(typeVar)
+		var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only")
+		params = this.Omit(params, []any{"reduceOnly", "reduce_only"})
+		var orderType any = ToUpper(typeVar)
 
-		retRes12148 := (<-this.LoadMarkets())
-		PanicOnError(retRes12148)
-		var market interface{} = this.Market(symbol)
-		var orderSide interface{} = ToUpper(side)
-		var request interface{} = map[string]interface{}{
+		retRes12168 := (<-this.LoadMarkets())
+		PanicOnError(retRes12168)
+		var market any = this.Market(symbol)
+		var orderSide any = ToUpper(side)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 			"side":   orderSide,
 		}
-		var marginMode interface{} = nil
+		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("createOrder", params)
 		marginMode = GetValue(marginModeparamsVariable, 0)
 		params = GetValue(marginModeparamsVariable, 1)
 		if IsTrue(!IsEqual(marginMode, nil)) {
 			AddElementToObject(request, "marginMode", this.EncodeMarginMode(marginMode))
 		}
-		var triggerPrice interface{} = this.SafeString2(params, "triggerPrice", "stopPrice")
-		var stopLoss interface{} = this.SafeValue(params, "stopLoss")
-		var takeProfit interface{} = this.SafeValue(params, "takeProfit")
-		var hasStopLoss interface{} = (!IsEqual(stopLoss, nil))
-		var hasTakeProfit interface{} = (!IsEqual(takeProfit, nil))
-		var algoType interface{} = this.SafeString(params, "algoType")
-		var trailingTriggerPrice interface{} = this.SafeString2(params, "trailingTriggerPrice", "activatedPrice", this.NumberToString(price))
-		var trailingAmount interface{} = this.SafeString2(params, "trailingAmount", "callbackValue")
-		var trailingPercent interface{} = this.SafeString2(params, "trailingPercent", "callbackRate")
-		var isTrailingAmountOrder interface{} = !IsEqual(trailingAmount, nil)
-		var isTrailingPercentOrder interface{} = !IsEqual(trailingPercent, nil)
-		var isTrailing interface{} = IsTrue(isTrailingAmountOrder) || IsTrue(isTrailingPercentOrder)
-		var isConditional interface{} = IsTrue(IsTrue(IsTrue(IsTrue(isTrailing) || IsTrue(!IsEqual(triggerPrice, nil))) || IsTrue(hasStopLoss)) || IsTrue(hasTakeProfit)) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
-		var isMarket interface{} = IsEqual(orderType, "MARKET")
-		var timeInForce interface{} = this.SafeStringLower(params, "timeInForce")
-		var postOnly interface{} = this.IsPostOnly(isMarket, nil, params)
-		var clientOrderIdKey interface{} = Ternary(IsTrue(isConditional), "clientAlgoOrderId", "clientOrderId")
+		var triggerPrice any = this.SafeString2(params, "triggerPrice", "stopPrice")
+		var stopLoss any = this.SafeValue(params, "stopLoss")
+		var takeProfit any = this.SafeValue(params, "takeProfit")
+		var hasStopLoss any = (!IsEqual(stopLoss, nil))
+		var hasTakeProfit any = (!IsEqual(takeProfit, nil))
+		var algoType any = this.SafeString(params, "algoType")
+		var trailingTriggerPrice any = this.SafeString2(params, "trailingTriggerPrice", "activatedPrice", this.NumberToString(price))
+		var trailingAmount any = this.SafeString2(params, "trailingAmount", "callbackValue")
+		var trailingPercent any = this.SafeString2(params, "trailingPercent", "callbackRate")
+		var isTrailingAmountOrder any = !IsEqual(trailingAmount, nil)
+		var isTrailingPercentOrder any = !IsEqual(trailingPercent, nil)
+		var isTrailing any = IsTrue(isTrailingAmountOrder) || IsTrue(isTrailingPercentOrder)
+		var isConditional any = IsTrue(IsTrue(IsTrue(IsTrue(isTrailing) || IsTrue(!IsEqual(triggerPrice, nil))) || IsTrue(hasStopLoss)) || IsTrue(hasTakeProfit)) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
+		var isMarket any = IsEqual(orderType, "MARKET")
+		var timeInForce any = this.SafeStringLower(params, "timeInForce")
+		var postOnly any = this.IsPostOnly(isMarket, nil, params)
+		var clientOrderIdKey any = Ternary(IsTrue(isConditional), "clientAlgoOrderId", "clientOrderId")
 		AddElementToObject(request, "type", orderType) // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
 		if !IsTrue(isConditional) {
 			if IsTrue(postOnly) {
@@ -1431,17 +1433,17 @@ func (this *WooCore) CreateOrder(symbol interface{}, typeVar interface{}, side i
 		}
 		if IsTrue(IsTrue(isMarket) && !IsTrue(isConditional)) {
 			// for market buy it requires the amount of quote currency to spend
-			var cost interface{} = this.SafeStringN(params, []interface{}{"cost", "order_amount", "orderAmount"})
-			params = this.Omit(params, []interface{}{"cost", "order_amount", "orderAmount"})
-			var isPriceProvided interface{} = !IsEqual(price, nil)
+			var cost any = this.SafeStringN(params, []any{"cost", "order_amount", "orderAmount"})
+			params = this.Omit(params, []any{"cost", "order_amount", "orderAmount"})
+			var isPriceProvided any = !IsEqual(price, nil)
 			if IsTrue(IsTrue(GetValue(market, "spot")) && IsTrue((IsTrue(isPriceProvided) || IsTrue((!IsEqual(cost, nil)))))) {
-				var quoteAmount interface{} = nil
+				var quoteAmount any = nil
 				if IsTrue(!IsEqual(cost, nil)) {
 					quoteAmount = this.CostToPrecision(symbol, cost)
 				} else {
-					var amountString interface{} = this.NumberToString(amount)
-					var priceString interface{} = this.NumberToString(price)
-					var costRequest interface{} = Precise.StringMul(amountString, priceString)
+					var amountString any = this.NumberToString(amount)
+					var priceString any = this.NumberToString(price)
+					var costRequest any = Precise.StringMul(amountString, priceString)
 					quoteAmount = this.CostToPrecision(symbol, costRequest)
 				}
 				AddElementToObject(request, "amount", quoteAmount)
@@ -1451,7 +1453,7 @@ func (this *WooCore) CreateOrder(symbol interface{}, typeVar interface{}, side i
 		} else if IsTrue(!IsEqual(algoType, "POSITIONAL_TP_SL")) {
 			AddElementToObject(request, "quantity", this.AmountToPrecision(symbol, amount))
 		}
-		var clientOrderId interface{} = this.SafeStringN(params, []interface{}{"clOrdID", "clientOrderId", "client_order_id"})
+		var clientOrderId any = this.SafeStringN(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
 		if IsTrue(!IsEqual(clientOrderId, nil)) {
 			AddElementToObject(request, clientOrderIdKey, clientOrderId)
 		}
@@ -1464,7 +1466,7 @@ func (this *WooCore) CreateOrder(symbol interface{}, typeVar interface{}, side i
 			if IsTrue(isTrailingAmountOrder) {
 				AddElementToObject(request, "callbackValue", trailingAmount)
 			} else if IsTrue(isTrailingPercentOrder) {
-				var convertedTrailingPercent interface{} = Precise.StringDiv(trailingPercent, "100")
+				var convertedTrailingPercent any = Precise.StringDiv(trailingPercent, "100")
 				AddElementToObject(request, "callbackRate", convertedTrailingPercent)
 			}
 		} else if IsTrue(!IsEqual(triggerPrice, nil)) {
@@ -1474,17 +1476,17 @@ func (this *WooCore) CreateOrder(symbol interface{}, typeVar interface{}, side i
 			}
 		} else if IsTrue(IsTrue(hasStopLoss) || IsTrue(hasTakeProfit)) {
 			AddElementToObject(request, "algoType", "BRACKET")
-			var outterOrder interface{} = map[string]interface{}{
+			var outterOrder any = map[string]any{
 				"symbol":      GetValue(market, "id"),
 				"reduceOnly":  false,
 				"algoType":    "POSITIONAL_TP_SL",
-				"childOrders": []interface{}{},
+				"childOrders": []any{},
 			}
-			var childOrders interface{} = GetValue(outterOrder, "childOrders")
-			var closeSide interface{} = Ternary(IsTrue((IsEqual(orderSide, "BUY"))), "SELL", "BUY")
+			var childOrders any = GetValue(outterOrder, "childOrders")
+			var closeSide any = Ternary(IsTrue((IsEqual(orderSide, "BUY"))), "SELL", "BUY")
 			if IsTrue(hasStopLoss) {
-				var stopLossPrice interface{} = this.SafeString(stopLoss, "triggerPrice", stopLoss)
-				var stopLossOrder interface{} = map[string]interface{}{
+				var stopLossPrice any = this.SafeString(stopLoss, "triggerPrice", stopLoss)
+				var stopLossOrder any = map[string]any{
 					"side":         closeSide,
 					"algoType":     "STOP_LOSS",
 					"triggerPrice": this.PriceToPrecision(symbol, stopLossPrice),
@@ -1494,8 +1496,8 @@ func (this *WooCore) CreateOrder(symbol interface{}, typeVar interface{}, side i
 				AppendToArray(&childOrders, stopLossOrder)
 			}
 			if IsTrue(hasTakeProfit) {
-				var takeProfitPrice interface{} = this.SafeString(takeProfit, "triggerPrice", takeProfit)
-				var takeProfitOrder interface{} = map[string]interface{}{
+				var takeProfitPrice any = this.SafeString(takeProfit, "triggerPrice", takeProfit)
+				var takeProfitOrder any = map[string]any{
 					"side":         closeSide,
 					"algoType":     "TAKE_PROFIT",
 					"triggerPrice": this.PriceToPrecision(symbol, takeProfitPrice),
@@ -1504,10 +1506,10 @@ func (this *WooCore) CreateOrder(symbol interface{}, typeVar interface{}, side i
 				}
 				AppendToArray(&childOrders, takeProfitOrder)
 			}
-			AddElementToObject(request, "childOrders", []interface{}{outterOrder})
+			AddElementToObject(request, "childOrders", []any{outterOrder})
 		}
-		params = this.Omit(params, []interface{}{"clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "trailingPercent", "trailingAmount", "trailingTriggerPrice"})
-		var response interface{} = nil
+		params = this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "trailingPercent", "trailingAmount", "trailingTriggerPrice"})
+		var response any = nil
 		if IsTrue(isConditional) {
 
 			response = (<-this.V3PrivatePostTradeAlgoOrder(this.Extend(request, params)))
@@ -1517,7 +1519,7 @@ func (this *WooCore) CreateOrder(symbol interface{}, typeVar interface{}, side i
 			response = (<-this.V3PrivatePostTradeOrder(this.Extend(request, params)))
 			PanicOnError(response)
 		}
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 		data = this.SafeDict(this.SafeList(data, "rows"), 0, data)
 		AddElementToObject(data, "timestamp", this.SafeString(response, "timestamp"))
 
@@ -1527,8 +1529,8 @@ func (this *WooCore) CreateOrder(symbol interface{}, typeVar interface{}, side i
 	}()
 	return ch
 }
-func (this *WooCore) EncodeMarginMode(mode interface{}) interface{} {
-	var modes interface{} = map[string]interface{}{
+func (this *WooCore) EncodeMarginMode(mode any) any {
+	var modes any = map[string]any{
 		"cross":    "CROSS",
 		"isolated": "ISOLATED",
 	}
@@ -1558,41 +1560,41 @@ func (this *WooCore) EncodeMarginMode(mode interface{}) interface{} {
  * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *WooCore) EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		amount := GetArg(optionalArgs, 0, nil)
 		_ = amount
 		price := GetArg(optionalArgs, 1, nil)
 		_ = price
-		params := GetArg(optionalArgs, 2, map[string]interface{}{})
+		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes14128 := (<-this.LoadMarkets())
-		PanicOnError(retRes14128)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{}
+		retRes14148 := (<-this.LoadMarkets())
+		PanicOnError(retRes14148)
+		var market any = this.Market(symbol)
+		var request any = map[string]any{}
 		if IsTrue(!IsEqual(price, nil)) {
 			AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 		}
 		if IsTrue(!IsEqual(amount, nil)) {
 			AddElementToObject(request, "quantity", this.AmountToPrecision(symbol, amount))
 		}
-		var clientOrderIdUnified interface{} = this.SafeString2(params, "clOrdID", "clientOrderId")
-		var clientOrderIdExchangeSpecific interface{} = this.SafeString(params, "client_order_id", clientOrderIdUnified)
-		var isByClientOrder interface{} = !IsEqual(clientOrderIdExchangeSpecific, nil)
-		var triggerPrice interface{} = this.SafeNumberN(params, []interface{}{"triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice"})
+		var clientOrderIdUnified any = this.SafeString2(params, "clOrdID", "clientOrderId")
+		var clientOrderIdExchangeSpecific any = this.SafeString(params, "client_order_id", clientOrderIdUnified)
+		var isByClientOrder any = !IsEqual(clientOrderIdExchangeSpecific, nil)
+		var triggerPrice any = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice"})
 		if IsTrue(!IsEqual(triggerPrice, nil)) {
 			AddElementToObject(request, "triggerPrice", this.PriceToPrecision(symbol, triggerPrice))
 		}
-		var trailingTriggerPrice interface{} = this.SafeString2(params, "trailingTriggerPrice", "activatedPrice", this.NumberToString(price))
-		var trailingAmount interface{} = this.SafeString2(params, "trailingAmount", "callbackValue")
-		var trailingPercent interface{} = this.SafeString2(params, "trailingPercent", "callbackRate")
-		var isTrailingAmountOrder interface{} = !IsEqual(trailingAmount, nil)
-		var isTrailingPercentOrder interface{} = !IsEqual(trailingPercent, nil)
-		var isTrailing interface{} = IsTrue(isTrailingAmountOrder) || IsTrue(isTrailingPercentOrder)
+		var trailingTriggerPrice any = this.SafeString2(params, "trailingTriggerPrice", "activatedPrice", this.NumberToString(price))
+		var trailingAmount any = this.SafeString2(params, "trailingAmount", "callbackValue")
+		var trailingPercent any = this.SafeString2(params, "trailingPercent", "callbackRate")
+		var isTrailingAmountOrder any = !IsEqual(trailingAmount, nil)
+		var isTrailingPercentOrder any = !IsEqual(trailingPercent, nil)
+		var isTrailing any = IsTrue(isTrailingAmountOrder) || IsTrue(isTrailingPercentOrder)
 		if IsTrue(isTrailing) {
 			if IsTrue(!IsEqual(trailingTriggerPrice, nil)) {
 				AddElementToObject(request, "activatedPrice", this.PriceToPrecision(symbol, trailingTriggerPrice))
@@ -1600,13 +1602,13 @@ func (this *WooCore) EditOrder(id interface{}, symbol interface{}, typeVar inter
 			if IsTrue(isTrailingAmountOrder) {
 				AddElementToObject(request, "callbackValue", trailingAmount)
 			} else if IsTrue(isTrailingPercentOrder) {
-				var convertedTrailingPercent interface{} = Precise.StringDiv(trailingPercent, "100")
+				var convertedTrailingPercent any = Precise.StringDiv(trailingPercent, "100")
 				AddElementToObject(request, "callbackRate", convertedTrailingPercent)
 			}
 		}
-		params = this.Omit(params, []interface{}{"clOrdID", "clientOrderId", "client_order_id", "stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"})
-		var isConditional interface{} = IsTrue(IsTrue(isTrailing) || IsTrue((!IsEqual(triggerPrice, nil)))) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
-		var response interface{} = nil
+		params = this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id", "stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"})
+		var isConditional any = IsTrue(IsTrue(isTrailing) || IsTrue((!IsEqual(triggerPrice, nil)))) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
+		var response any = nil
 		if IsTrue(isByClientOrder) {
 			AddElementToObject(request, "client_order_id", clientOrderIdExchangeSpecific)
 			if IsTrue(isConditional) {
@@ -1642,7 +1644,7 @@ func (this *WooCore) EditOrder(id interface{}, symbol interface{}, typeVar inter
 		//         "timestamp": 0
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 
 		ch <- this.ParseOrder(data, market)
 		return nil
@@ -1663,33 +1665,33 @@ func (this *WooCore) EditOrder(id interface{}, symbol interface{}, typeVar inter
  * @param {boolean} [params.trigger] whether the order is a trigger/algo order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *WooCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
-		var isTrigger interface{} = this.SafeBool2(params, "trigger", "stop", false)
-		params = this.Omit(params, []interface{}{"trigger", "stop"})
+		var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
+		params = this.Omit(params, []any{"trigger", "stop"})
 		if IsTrue(!IsTrue(isTrigger) && IsTrue((IsEqual(symbol, nil)))) {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
 
-		retRes15008 := (<-this.LoadMarkets())
-		PanicOnError(retRes15008)
-		var market interface{} = nil
+		retRes15028 := (<-this.LoadMarkets())
+		PanicOnError(retRes15028)
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
-		var request interface{} = map[string]interface{}{}
-		var clientOrderIdUnified interface{} = this.SafeString2(params, "clOrdID", "clientOrderId")
-		var clientOrderIdExchangeSpecific interface{} = this.SafeString(params, "client_order_id", clientOrderIdUnified)
-		params = this.Omit(params, []interface{}{"clOrdID", "clientOrderId", "client_order_id"})
-		var isByClientOrder interface{} = !IsEqual(clientOrderIdExchangeSpecific, nil)
-		var response interface{} = nil
+		var request any = map[string]any{}
+		var clientOrderIdUnified any = this.SafeString2(params, "clOrdID", "clientOrderId")
+		var clientOrderIdExchangeSpecific any = this.SafeString(params, "client_order_id", clientOrderIdUnified)
+		params = this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
+		var isByClientOrder any = !IsEqual(clientOrderIdExchangeSpecific, nil)
+		var response any = nil
 		if IsTrue(isTrigger) {
 			if IsTrue(isByClientOrder) {
 				AddElementToObject(request, "clientAlgoOrderId", clientOrderIdExchangeSpecific)
@@ -1719,7 +1721,7 @@ func (this *WooCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-
 		//         "timestamp": 1751940315838
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 		AddElementToObject(data, "timestamp", this.SafeString(response, "timestamp"))
 		if IsTrue(isByClientOrder) {
 			AddElementToObject(data, "clientOrderId", clientOrderIdExchangeSpecific)
@@ -1745,26 +1747,26 @@ func (this *WooCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-
  * @param {boolean} [params.trigger] whether the order is a trigger/algo order
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *WooCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) CancelAllOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes15588 := (<-this.LoadMarkets())
-		PanicOnError(retRes15588)
-		var trigger interface{} = this.SafeBool2(params, "stop", "trigger")
-		params = this.Omit(params, []interface{}{"stop", "trigger"})
-		var request interface{} = map[string]interface{}{}
+		retRes15608 := (<-this.LoadMarkets())
+		PanicOnError(retRes15608)
+		var trigger any = this.SafeBool2(params, "stop", "trigger")
+		params = this.Omit(params, []any{"stop", "trigger"})
+		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
-			var market interface{} = this.Market(symbol)
+			var market any = this.Market(symbol)
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
 		}
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(trigger) {
 
 			response = (<-this.V3PrivateDeleteTradeAlgoOrders(params))
@@ -1783,9 +1785,9 @@ func (this *WooCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interfa
 		//         "timestamp": 1751941988134
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 
-		ch <- []interface{}{this.SafeOrder(map[string]interface{}{
+		ch <- []any{this.SafeOrder(map[string]any{
 			"info": data,
 		})}
 		return nil
@@ -1803,17 +1805,17 @@ func (this *WooCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interfa
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
  */
-func (this *WooCore) CancelAllOrdersAfter(timeout interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) CancelAllOrdersAfter(timeout any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes15958 := (<-this.LoadMarkets())
-		PanicOnError(retRes15958)
-		var request interface{} = map[string]interface{}{
+		retRes15978 := (<-this.LoadMarkets())
+		PanicOnError(retRes15978)
+		var request any = map[string]any{
 			"triggerAfter": Ternary(IsTrue((IsGreaterThan(timeout, 0))), mathMin(timeout, 900000), 0),
 		}
 
@@ -1848,27 +1850,27 @@ func (this *WooCore) CancelAllOrdersAfter(timeout interface{}, optionalArgs ...i
  * @param {boolean} [params.trigger] whether the order is a trigger/algo order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *WooCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes16258 := (<-this.LoadMarkets())
-		PanicOnError(retRes16258)
-		var market interface{} = nil
+		retRes16278 := (<-this.LoadMarkets())
+		PanicOnError(retRes16278)
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
-		var trigger interface{} = this.SafeBool2(params, "stop", "trigger")
-		params = this.Omit(params, []interface{}{"stop", "trigger"})
-		var request interface{} = map[string]interface{}{}
-		var clientOrderId interface{} = this.SafeString2(params, "clOrdID", "clientOrderId")
-		var response interface{} = nil
+		var trigger any = this.SafeBool2(params, "stop", "trigger")
+		params = this.Omit(params, []any{"stop", "trigger"})
+		var request any = map[string]any{}
+		var clientOrderId any = this.SafeString2(params, "clOrdID", "clientOrderId")
+		var response any = nil
 		if IsTrue(trigger) {
 			if IsTrue(!IsEqual(clientOrderId, nil)) {
 				AddElementToObject(request, "clientAlgoOrderId", id)
@@ -1888,7 +1890,7 @@ func (this *WooCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-c
 			response = (<-this.V3PrivateGetTradeOrder(this.Extend(request, params)))
 			PanicOnError(response)
 		}
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 
 		ch <- this.ParseOrder(data, market)
 		return nil
@@ -1913,9 +1915,9 @@ func (this *WooCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-c
  * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *WooCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -1924,26 +1926,26 @@ func (this *WooCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{}
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes17388 := (<-this.LoadMarkets())
-		PanicOnError(retRes17388)
-		var paginate interface{} = false
+		retRes17408 := (<-this.LoadMarkets())
+		PanicOnError(retRes17408)
+		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes174219 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", 500))
-			PanicOnError(retRes174219)
-			ch <- retRes174219
+			retRes174419 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", 500))
+			PanicOnError(retRes174419)
+			ch <- retRes174419
 			return nil
 		}
-		var request interface{} = map[string]interface{}{}
-		var market interface{} = nil
-		var trigger interface{} = this.SafeBool2(params, "stop", "trigger")
-		params = this.Omit(params, []interface{}{"stop", "trigger"})
+		var request any = map[string]any{}
+		var market any = nil
+		var trigger any = this.SafeBool2(params, "stop", "trigger")
+		params = this.Omit(params, []any{"stop", "trigger"})
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -1951,15 +1953,15 @@ func (this *WooCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{}
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "startTime", since)
 		}
-		var until interface{} = this.SafeInteger(params, "until") // unified in milliseconds
-		params = this.Omit(params, []interface{}{"until"})
+		var until any = this.SafeInteger(params, "until") // unified in milliseconds
+		params = this.Omit(params, []any{"until"})
 		if IsTrue(!IsEqual(until, nil)) {
 			AddElementToObject(request, "endTime", until)
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "size", mathMin(limit, 500))
 		}
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(trigger) {
 
 			response = (<-this.V3PrivateGetTradeAlgoOrders(this.Extend(request, params)))
@@ -1969,8 +1971,8 @@ func (this *WooCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{}
 			response = (<-this.V3PrivateGetTradeOrders(this.Extend(request, params)))
 			PanicOnError(response)
 		}
-		var data interface{} = this.SafeValue(response, "data", map[string]interface{}{})
-		var orders interface{} = this.SafeList(data, "rows", []interface{}{})
+		var data any = this.SafeValue(response, "data", map[string]any{})
+		var orders any = this.SafeList(data, "rows", []any{})
 
 		ch <- this.ParseOrders(orders, market, since, limit)
 		return nil
@@ -1996,9 +1998,9 @@ func (this *WooCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{}
  * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *WooCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -2007,18 +2009,18 @@ func (this *WooCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interfa
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes18778 := (<-this.LoadMarkets())
-		PanicOnError(retRes18778)
-		var extendedParams interface{} = this.Extend(params, map[string]interface{}{
+		retRes18798 := (<-this.LoadMarkets())
+		PanicOnError(retRes18798)
+		var extendedParams any = this.Extend(params, map[string]any{
 			"status": "INCOMPLETE",
 		})
 
-		retRes187915 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-		PanicOnError(retRes187915)
-		ch <- retRes187915
+		retRes188115 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+		PanicOnError(retRes188115)
+		ch <- retRes188115
 		return nil
 
 	}()
@@ -2042,9 +2044,9 @@ func (this *WooCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interfa
  * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *WooCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -2053,32 +2055,32 @@ func (this *WooCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan inter
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes19008 := (<-this.LoadMarkets())
-		PanicOnError(retRes19008)
-		var extendedParams interface{} = this.Extend(params, map[string]interface{}{
+		retRes19028 := (<-this.LoadMarkets())
+		PanicOnError(retRes19028)
+		var extendedParams any = this.Extend(params, map[string]any{
 			"status": "COMPLETED",
 		})
 
-		retRes190215 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-		PanicOnError(retRes190215)
-		ch <- retRes190215
+		retRes190415 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+		PanicOnError(retRes190415)
+		ch <- retRes190415
 		return nil
 
 	}()
 	return ch
 }
-func (this *WooCore) ParseTimeInForce(timeInForce interface{}) interface{} {
-	var timeInForces interface{} = map[string]interface{}{
+func (this *WooCore) ParseTimeInForce(timeInForce any) any {
+	var timeInForces any = map[string]any{
 		"ioc":       "IOC",
 		"fok":       "FOK",
 		"post_only": "PO",
 	}
 	return this.SafeString(timeInForces, timeInForce, nil)
 }
-func (this *WooCore) ParseOrder(order interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WooCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	// createOrder
 	//     {
@@ -2162,8 +2164,8 @@ func (this *WooCore) ParseOrder(order interface{}, optionalArgs ...interface{}) 
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp interface{} = nil
-	var timestrampString interface{} = this.SafeString(order, "createdTime")
+	var timestamp any = nil
+	var timestrampString any = this.SafeString(order, "createdTime")
 	if IsTrue(!IsEqual(timestrampString, nil)) {
 		if IsTrue(IsGreaterThanOrEqual(GetIndexOf(timestrampString, "."), 0)) {
 			timestamp = this.SafeTimestamp(order, "createdTime") // algo orders
@@ -2174,25 +2176,25 @@ func (this *WooCore) ParseOrder(order interface{}, optionalArgs ...interface{}) 
 	if IsTrue(IsEqual(timestamp, nil)) {
 		timestamp = this.SafeInteger(order, "timestamp")
 	}
-	var orderId interface{} = this.SafeString2(order, "orderId", "algoOrderId")
-	var clientOrderId interface{} = this.OmitZero(this.SafeString2(order, "clientOrderId", "clientAlgoOrderId")) // Somehow, this always returns 0 for limit order
-	var marketId interface{} = this.SafeString(order, "symbol")
+	var orderId any = this.SafeString2(order, "orderId", "algoOrderId")
+	var clientOrderId any = this.OmitZero(this.SafeString2(order, "clientOrderId", "clientAlgoOrderId")) // Somehow, this always returns 0 for limit order
+	var marketId any = this.SafeString(order, "symbol")
 	market = this.SafeMarket(marketId, market)
-	var symbol interface{} = GetValue(market, "symbol")
-	var price interface{} = this.SafeString(order, "price")
-	var amount interface{} = this.SafeString(order, "quantity") // This is base amount
-	var cost interface{} = this.SafeString(order, "amount")     // This is quote amount
-	var orderType interface{} = this.SafeStringLower(order, "type")
-	var status interface{} = this.SafeValue2(order, "status", "algoStatus")
-	var side interface{} = this.SafeStringLower(order, "side")
-	var filled interface{} = this.OmitZero(this.SafeValue2(order, "executed", "totalExecutedQuantity"))
-	var average interface{} = this.OmitZero(this.SafeString(order, "averageExecutedPrice"))
+	var symbol any = GetValue(market, "symbol")
+	var price any = this.SafeString(order, "price")
+	var amount any = this.SafeString(order, "quantity") // This is base amount
+	var cost any = this.SafeString(order, "amount")     // This is quote amount
+	var orderType any = this.SafeStringLower(order, "type")
+	var status any = this.SafeValue2(order, "status", "algoStatus")
+	var side any = this.SafeStringLower(order, "side")
+	var filled any = this.OmitZero(this.SafeValue2(order, "executed", "totalExecutedQuantity"))
+	var average any = this.OmitZero(this.SafeString(order, "averageExecutedPrice"))
 	// const remaining = Precise.stringSub (cost, filled);
-	var fee interface{} = this.SafeNumber(order, "totalFee")
-	var feeCurrency interface{} = this.SafeString(order, "feeAsset")
-	var triggerPrice interface{} = this.SafeNumber(order, "triggerPrice")
-	var lastUpdateTimestampString interface{} = this.SafeString(order, "updatedTime")
-	var lastUpdateTimestamp interface{} = nil
+	var fee any = this.SafeNumber(order, "totalFee")
+	var feeCurrency any = this.SafeString(order, "feeAsset")
+	var triggerPrice any = this.SafeNumber(order, "triggerPrice")
+	var lastUpdateTimestampString any = this.SafeString(order, "updatedTime")
+	var lastUpdateTimestamp any = nil
 	if IsTrue(!IsEqual(lastUpdateTimestampString, nil)) {
 		if IsTrue(IsGreaterThanOrEqual(GetIndexOf(lastUpdateTimestampString, "."), 0)) {
 			lastUpdateTimestamp = this.SafeTimestamp(order, "updatedTime") // algo orders
@@ -2200,7 +2202,7 @@ func (this *WooCore) ParseOrder(order interface{}, optionalArgs ...interface{}) 
 			lastUpdateTimestamp = this.SafeInteger(order, "updatedTime") // regular orders
 		}
 	}
-	return this.SafeOrder(map[string]interface{}{
+	return this.SafeOrder(map[string]any{
 		"id":                  orderId,
 		"clientOrderId":       clientOrderId,
 		"timestamp":           timestamp,
@@ -2224,16 +2226,16 @@ func (this *WooCore) ParseOrder(order interface{}, optionalArgs ...interface{}) 
 		"remaining":           nil,
 		"cost":                cost,
 		"trades":              nil,
-		"fee": map[string]interface{}{
+		"fee": map[string]any{
 			"cost":     fee,
 			"currency": feeCurrency,
 		},
 		"info": order,
 	}, market)
 }
-func (this *WooCore) ParseOrderStatus(status interface{}) interface{} {
+func (this *WooCore) ParseOrderStatus(status any) any {
 	if IsTrue(!IsEqual(status, nil)) {
-		var statuses interface{} = map[string]interface{}{
+		var statuses any = map[string]any{
 			"NEW":             "open",
 			"FILLED":          "closed",
 			"CANCEL_SENT":     "canceled",
@@ -2259,20 +2261,20 @@ func (this *WooCore) ParseOrderStatus(status interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
-func (this *WooCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		limit := GetArg(optionalArgs, 0, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes20958 := (<-this.LoadMarkets())
-		PanicOnError(retRes20958)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		retRes20978 := (<-this.LoadMarkets())
+		PanicOnError(retRes20978)
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -2302,8 +2304,8 @@ func (this *WooCore) FetchOrderBook(symbol interface{}, optionalArgs ...interfac
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var timestamp interface{} = this.SafeInteger(response, "timestamp")
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var timestamp any = this.SafeInteger(response, "timestamp")
 
 		ch <- this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity")
 		return nil
@@ -2325,9 +2327,9 @@ func (this *WooCore) FetchOrderBook(symbol interface{}, optionalArgs ...interfac
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *WooCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		timeframe := GetArg(optionalArgs, 0, "1m")
@@ -2336,13 +2338,13 @@ func (this *WooCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{})
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes21448 := (<-this.LoadMarkets())
-		PanicOnError(retRes21448)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		retRes21468 := (<-this.LoadMarkets())
+		PanicOnError(retRes21468)
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 			"type":   this.SafeString(this.Timeframes, timeframe, timeframe),
 		}
@@ -2350,9 +2352,9 @@ func (this *WooCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{})
 			AddElementToObject(request, "limit", mathMin(limit, 1000))
 		}
 		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "after", since)
+			AddElementToObject(request, "after", Subtract(since, 1)) // #27793
 		}
-		var until interface{} = this.SafeInteger(params, "until")
+		var until any = this.SafeInteger(params, "until")
 		params = this.Omit(params, "until")
 		if IsTrue(!IsEqual(until, nil)) {
 			AddElementToObject(request, "before", until)
@@ -2382,8 +2384,8 @@ func (this *WooCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{})
 		//         "timestamp": 1751622205410
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var rows interface{} = this.SafeList(data, "rows", []interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var rows any = this.SafeList(data, "rows", []any{})
 
 		ch <- this.ParseOHLCVs(rows, market, timeframe, since, limit)
 		return nil
@@ -2391,10 +2393,10 @@ func (this *WooCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{})
 	}()
 	return ch
 }
-func (this *WooCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WooCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	return []interface{}{this.SafeInteger(ohlcv, "startTimestamp"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")}
+	return []any{this.SafeInteger(ohlcv, "startTimestamp"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")}
 }
 
 /**
@@ -2409,9 +2411,9 @@ func (this *WooCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *WooCore) FetchOrderTrades(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -2420,16 +2422,16 @@ func (this *WooCore) FetchOrderTrades(id interface{}, optionalArgs ...interface{
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes22138 := (<-this.LoadMarkets())
-		PanicOnError(retRes22138)
-		var market interface{} = nil
+		retRes22158 := (<-this.LoadMarkets())
+		PanicOnError(retRes22158)
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"oid": id,
 		}
 
@@ -2453,7 +2455,7 @@ func (this *WooCore) FetchOrderTrades(id interface{}, optionalArgs ...interface{
 		//       }
 		//     ]
 		// }
-		var trades interface{} = this.SafeList(response, "rows", []interface{}{})
+		var trades any = this.SafeList(response, "rows", []any{})
 
 		ch <- this.ParseTrades(trades, market, since, limit, params)
 		return nil
@@ -2474,9 +2476,9 @@ func (this *WooCore) FetchOrderTrades(id interface{}, optionalArgs ...interface{
  * @param {boolean} [params.paginate] set to true if you want to fetch trades with pagination
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *WooCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchMyTrades(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -2485,24 +2487,24 @@ func (this *WooCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes22578 := (<-this.LoadMarkets())
-		PanicOnError(retRes22578)
-		var paginate interface{} = false
+		retRes22598 := (<-this.LoadMarkets())
+		PanicOnError(retRes22598)
+		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes226119 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
-			PanicOnError(retRes226119)
-			ch <- retRes226119
+			retRes226319 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
+			PanicOnError(retRes226319)
+			ch <- retRes226319
 			return nil
 		}
-		var request interface{} = map[string]interface{}{}
-		var market interface{} = nil
+		var request any = map[string]any{}
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -2510,8 +2512,8 @@ func (this *WooCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "startTime", since)
 		}
-		var until interface{} = this.SafeInteger(params, "until") // unified in milliseconds
-		params = this.Omit(params, []interface{}{"until"})
+		var until any = this.SafeInteger(params, "until") // unified in milliseconds
+		params = this.Omit(params, []any{"until"})
 		if IsTrue(!IsEqual(until, nil)) {
 			AddElementToObject(request, "endTime", until)
 		}
@@ -2550,8 +2552,8 @@ func (this *WooCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface
 		//         "timestamp": 1752055545121
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var trades interface{} = this.SafeList(data, "rows", []interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var trades any = this.SafeList(data, "rows", []any{})
 
 		ch <- this.ParseTrades(trades, market, since, limit, params)
 		return nil
@@ -2569,14 +2571,14 @@ func (this *WooCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
-func (this *WooCore) FetchAccounts(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchAccounts(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var mainAccountPromise interface{} = this.V3PrivateGetAccountInfo(params)
+		var mainAccountPromise any = this.V3PrivateGetAccountInfo(params)
 		//
 		//     {
 		//         "success": true,
@@ -2606,7 +2608,7 @@ func (this *WooCore) FetchAccounts(optionalArgs ...interface{}) <-chan interface
 		//         "timestamp": 1752062807915
 		//     }
 		//
-		var subAccountPromise interface{} = this.V3PrivateGetAccountSubAccountsAll(params)
+		var subAccountPromise any = this.V3PrivateGetAccountSubAccountsAll(params)
 		//
 		//     {
 		//         "success": true,
@@ -2622,14 +2624,14 @@ func (this *WooCore) FetchAccounts(optionalArgs ...interface{}) <-chan interface
 		//         "timestamp": 1721295317627
 		//     }
 		//
-		mainAccountResponsesubAccountResponseVariable := (<-promiseAll([]interface{}{mainAccountPromise, subAccountPromise}))
+		mainAccountResponsesubAccountResponseVariable := (<-promiseAll([]any{mainAccountPromise, subAccountPromise}))
 		mainAccountResponse := GetValue(mainAccountResponsesubAccountResponseVariable, 0)
 		subAccountResponse := GetValue(mainAccountResponsesubAccountResponseVariable, 1)
-		var mainData interface{} = this.SafeDict(mainAccountResponse, "data", map[string]interface{}{})
-		var mainRows interface{} = []interface{}{mainData}
-		var subData interface{} = this.SafeDict(subAccountResponse, "data", map[string]interface{}{})
-		var subRows interface{} = this.SafeList(subData, "rows", []interface{}{})
-		var rows interface{} = this.ArrayConcat(mainRows, subRows)
+		var mainData any = this.SafeDict(mainAccountResponse, "data", map[string]any{})
+		var mainRows any = []any{mainData}
+		var subData any = this.SafeDict(subAccountResponse, "data", map[string]any{})
+		var subRows any = this.SafeList(subData, "rows", []any{})
+		var rows any = this.ArrayConcat(mainRows, subRows)
 
 		ch <- this.ParseAccounts(rows, params)
 		return nil
@@ -2637,7 +2639,7 @@ func (this *WooCore) FetchAccounts(optionalArgs ...interface{}) <-chan interface
 	}()
 	return ch
 }
-func (this *WooCore) ParseAccount(account interface{}) interface{} {
+func (this *WooCore) ParseAccount(account any) any {
 	//
 	//     {
 	//         "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
@@ -2669,10 +2671,10 @@ func (this *WooCore) ParseAccount(account interface{}) interface{} {
 	//         "createdTime": "1606897264.994"
 	//     }
 	//
-	return map[string]interface{}{
+	return map[string]any{
 		"info": account,
 		"id":   this.SafeString(account, "applicationId"),
-		"name": this.SafeStringN(account, []interface{}{"name", "account", "alias"}),
+		"name": this.SafeStringN(account, []any{"name", "account", "alias"}),
 		"code": nil,
 		"type": this.SafeStringLower(account, "accountType", "subaccount"),
 	}
@@ -2686,16 +2688,16 @@ func (this *WooCore) ParseAccount(account interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *WooCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchBalance(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes24308 := (<-this.LoadMarkets())
-		PanicOnError(retRes24308)
+		retRes24328 := (<-this.LoadMarkets())
+		PanicOnError(retRes24328)
 
 		response := (<-this.V3PrivateGetAssetBalances(params))
 		PanicOnError(response)
@@ -2722,7 +2724,7 @@ func (this *WooCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{
 		//         "timestamp": 1673323746259
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data")
+		var data any = this.SafeDict(response, "data")
 
 		ch <- this.ParseBalance(data)
 		return nil
@@ -2730,15 +2732,15 @@ func (this *WooCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{
 	}()
 	return ch
 }
-func (this *WooCore) ParseBalance(response interface{}) interface{} {
-	var result interface{} = map[string]interface{}{
+func (this *WooCore) ParseBalance(response any) any {
+	var result any = map[string]any{
 		"info": response,
 	}
-	var balances interface{} = this.SafeList(response, "holding", []interface{}{})
+	var balances any = this.SafeList(response, "holding", []any{})
 	for i := 0; IsLessThan(i, GetArrayLength(balances)); i++ {
-		var balance interface{} = GetValue(balances, i)
-		var code interface{} = this.SafeCurrencyCode(this.SafeString(balance, "token"))
-		var account interface{} = this.Account()
+		var balance any = GetValue(balances, i)
+		var code any = this.SafeCurrencyCode(this.SafeString(balance, "token"))
+		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString(balance, "holding"))
 		AddElementToObject(account, "free", this.SafeString(balance, "availableBalance"))
 		AddElementToObject(result, code, account)
@@ -2755,23 +2757,23 @@ func (this *WooCore) ParseBalance(response interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *WooCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		// this method is TODO because of networks unification
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes24868 := (<-this.LoadMarkets())
-		PanicOnError(retRes24868)
-		var currency interface{} = this.Currency(code)
-		var networkCode interface{} = nil
+		retRes24888 := (<-this.LoadMarkets())
+		PanicOnError(retRes24888)
+		var currency any = this.Currency(code)
+		var networkCode any = nil
 		networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 		networkCode = GetValue(networkCodeparamsVariable, 0)
 		params = GetValue(networkCodeparamsVariable, 1)
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"token":   GetValue(currency, "id"),
 			"network": this.NetworkCodeToId(networkCode),
 		}
@@ -2788,7 +2790,7 @@ func (this *WooCore) FetchDepositAddress(code interface{}, optionalArgs ...inter
 		//         "timestamp": 1721300689532
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 
 		ch <- this.ParseDepositAddress(data, currency)
 		return nil
@@ -2796,26 +2798,26 @@ func (this *WooCore) FetchDepositAddress(code interface{}, optionalArgs ...inter
 	}()
 	return ch
 }
-func (this *WooCore) GetDedicatedNetworkId(currency interface{}, params interface{}) interface{} {
-	var networkCode interface{} = nil
+func (this *WooCore) GetDedicatedNetworkId(currency any, params any) any {
+	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
 	params = GetValue(networkCodeparamsVariable, 1)
 	networkCode = this.NetworkIdToCode(networkCode, GetValue(currency, "code"))
-	var networkEntry interface{} = this.SafeDict(GetValue(currency, "networks"), networkCode)
+	var networkEntry any = this.SafeDict(GetValue(currency, "networks"), networkCode)
 	if IsTrue(IsEqual(networkEntry, nil)) {
-		var supportedNetworks interface{} = ObjectKeys(GetValue(currency, "networks"))
+		var supportedNetworks any = ObjectKeys(GetValue(currency, "networks"))
 		panic(BadRequest(Add(Add(this.Id, "  can not determine a network code, please provide unified \"network\" param, one from the following: "), this.Json(supportedNetworks))))
 	}
-	var currentyNetworkId interface{} = this.SafeString(networkEntry, "currencyNetworkId")
-	return []interface{}{currentyNetworkId, params}
+	var currentyNetworkId any = this.SafeString(networkEntry, "currencyNetworkId")
+	return []any{currentyNetworkId, params}
 }
-func (this *WooCore) ParseDepositAddress(depositEntry interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WooCore) ParseDepositAddress(depositEntry any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var address interface{} = this.SafeString(depositEntry, "address")
+	var address any = this.SafeString(depositEntry, "address")
 	this.CheckAddress(address)
-	return map[string]interface{}{
+	return map[string]any{
 		"info":     depositEntry,
 		"currency": this.SafeString(currency, "code"),
 		"network":  nil,
@@ -2823,9 +2825,9 @@ func (this *WooCore) ParseDepositAddress(depositEntry interface{}, optionalArgs 
 		"tag":      this.SafeString(depositEntry, "extra"),
 	}
 }
-func (this *WooCore) GetAssetHistoryRows(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) GetAssetHistoryRows(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -2834,18 +2836,18 @@ func (this *WooCore) GetAssetHistoryRows(optionalArgs ...interface{}) <-chan int
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes25358 := (<-this.LoadMarkets())
-		PanicOnError(retRes25358)
-		var request interface{} = map[string]interface{}{}
-		var currency interface{} = nil
+		retRes25378 := (<-this.LoadMarkets())
+		PanicOnError(retRes25378)
+		var request any = map[string]any{}
+		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
 			AddElementToObject(request, "token", GetValue(currency, "id"))
 		}
-		var networkCode interface{} = nil
+		var networkCode any = nil
 		networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 		networkCode = GetValue(networkCodeparamsVariable, 0)
 		params = GetValue(networkCodeparamsVariable, 1)
@@ -2858,7 +2860,7 @@ func (this *WooCore) GetAssetHistoryRows(optionalArgs ...interface{}) <-chan int
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "size", mathMin(limit, 1000))
 		}
-		var transactionType interface{} = this.SafeString(params, "type")
+		var transactionType any = this.SafeString(params, "type")
 		params = this.Omit(params, "type")
 		if IsTrue(!IsEqual(transactionType, nil)) {
 			AddElementToObject(request, "type", transactionType)
@@ -2901,9 +2903,9 @@ func (this *WooCore) GetAssetHistoryRows(optionalArgs ...interface{}) <-chan int
 		//         "timestamp": 1752485344719
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 
-		ch <- []interface{}{currency, this.SafeList(data, "rows", []interface{}{})}
+		ch <- []any{currency, this.SafeList(data, "rows", []any{})}
 		return nil
 
 	}()
@@ -2921,9 +2923,9 @@ func (this *WooCore) GetAssetHistoryRows(optionalArgs ...interface{}) <-chan int
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
-func (this *WooCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchLedger(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -2932,13 +2934,13 @@ func (this *WooCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{}
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
 		currencyRows := (<-this.GetAssetHistoryRows(code, since, limit, params))
 		PanicOnError(currencyRows)
-		var currency interface{} = this.SafeValue(currencyRows, 0)
-		var rows interface{} = this.SafeList(currencyRows, 1)
+		var currency any = this.SafeValue(currencyRows, 0)
+		var rows any = this.SafeList(currencyRows, 1)
 
 		ch <- this.ParseLedger(rows, currency, since, limit, params)
 		return nil
@@ -2946,7 +2948,7 @@ func (this *WooCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{}
 	}()
 	return ch
 }
-func (this *WooCore) ParseLedgerEntry(item interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WooCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "createdTime": "1734964440.523",
@@ -2971,15 +2973,15 @@ func (this *WooCore) ParseLedgerEntry(item interface{}, optionalArgs ...interfac
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var networkizedCode interface{} = this.SafeString(item, "token")
-	var code interface{} = this.SafeCurrencyCode(networkizedCode, currency)
+	var networkizedCode any = this.SafeString(item, "token")
+	var code any = this.SafeCurrencyCode(networkizedCode, currency)
 	currency = this.SafeCurrency(code, currency)
-	var amount interface{} = this.SafeNumber(item, "amount")
-	var side interface{} = this.SafeString(item, "tokenSide")
-	var direction interface{} = Ternary(IsTrue((IsEqual(side, "DEPOSIT"))), "in", "out")
-	var timestamp interface{} = this.SafeTimestamp(item, "createdTime")
-	var fee interface{} = this.ParseTokenAndFeeTemp(item, []interface{}{"feeToken"}, []interface{}{"feeAmount"})
-	return this.SafeLedgerEntry(map[string]interface{}{
+	var amount any = this.SafeNumber(item, "amount")
+	var side any = this.SafeString(item, "tokenSide")
+	var direction any = Ternary(IsTrue((IsEqual(side, "DEPOSIT"))), "in", "out")
+	var timestamp any = this.SafeTimestamp(item, "createdTime")
+	var fee any = this.ParseTokenAndFeeTemp(item, []any{"feeToken"}, []any{"feeAmount"})
+	return this.SafeLedgerEntry(map[string]any{
 		"info":             item,
 		"id":               this.SafeString(item, "id"),
 		"currency":         code,
@@ -2997,21 +2999,21 @@ func (this *WooCore) ParseLedgerEntry(item interface{}, optionalArgs ...interfac
 		"fee":              fee,
 	}, currency)
 }
-func (this *WooCore) ParseLedgerEntryType(typeVar interface{}) interface{} {
-	var types interface{} = map[string]interface{}{
+func (this *WooCore) ParseLedgerEntryType(typeVar any) any {
+	var types any = map[string]any{
 		"BALANCE":    "transaction",
 		"COLLATERAL": "transfer",
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *WooCore) GetCurrencyFromChaincode(networkizedCode interface{}, currency interface{}) interface{} {
+func (this *WooCore) GetCurrencyFromChaincode(networkizedCode any, currency any) any {
 	if IsTrue(!IsEqual(currency, nil)) {
 		return currency
 	} else {
-		var parts interface{} = Split(networkizedCode, "_")
-		var partsLength interface{} = GetArrayLength(parts)
-		var firstPart interface{} = this.SafeString(parts, 0)
-		var currencyId interface{} = this.SafeString(parts, 1, firstPart)
+		var parts any = Split(networkizedCode, "_")
+		var partsLength any = GetArrayLength(parts)
+		var firstPart any = this.SafeString(parts, 0)
+		var currencyId any = this.SafeString(parts, 1, firstPart)
 		if IsTrue(IsGreaterThan(partsLength, 2)) {
 			currencyId = Add(currencyId, Add("_", this.SafeString(parts, 2)))
 		}
@@ -3031,9 +3033,9 @@ func (this *WooCore) GetCurrencyFromChaincode(networkizedCode interface{}, curre
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *WooCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchDeposits(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -3042,15 +3044,15 @@ func (this *WooCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"tokenSide": "DEPOSIT",
 		}
 
-		retRes270515 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes270515)
-		ch <- retRes270515
+		retRes270715 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes270715)
+		ch <- retRes270715
 		return nil
 
 	}()
@@ -3068,9 +3070,9 @@ func (this *WooCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *WooCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -3079,15 +3081,15 @@ func (this *WooCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interf
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"tokenSide": "WITHDRAW",
 		}
 
-		retRes272315 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes272315)
-		ch <- retRes272315
+		retRes272515 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes272515)
+		ch <- retRes272515
 		return nil
 
 	}()
@@ -3105,9 +3107,9 @@ func (this *WooCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *WooCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -3116,16 +3118,16 @@ func (this *WooCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) <-cha
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"type": "BALANCE",
 		}
 
 		currencyRows := (<-this.GetAssetHistoryRows(code, since, limit, this.Extend(request, params)))
 		PanicOnError(currencyRows)
-		var currency interface{} = this.SafeValue(currencyRows, 0)
-		var rows interface{} = this.SafeList(currencyRows, 1)
+		var currency any = this.SafeValue(currencyRows, 0)
+		var rows any = this.SafeList(currencyRows, 1)
 
 		ch <- this.ParseTransactions(rows, currency, since, limit, params)
 		return nil
@@ -3133,7 +3135,7 @@ func (this *WooCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) <-cha
 	}()
 	return ch
 }
-func (this *WooCore) ParseTransaction(transaction interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WooCore) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "createdTime": "1734964440.523",
@@ -3158,20 +3160,20 @@ func (this *WooCore) ParseTransaction(transaction interface{}, optionalArgs ...i
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var networkizedCode interface{} = this.SafeString(transaction, "token")
-	var currencyDefined interface{} = this.GetCurrencyFromChaincode(networkizedCode, currency)
-	var code interface{} = GetValue(currencyDefined, "code")
-	var movementDirection interface{} = this.SafeStringLowerN(transaction, []interface{}{"token_side", "tokenSide", "type"})
+	var networkizedCode any = this.SafeString(transaction, "token")
+	var currencyDefined any = this.GetCurrencyFromChaincode(networkizedCode, currency)
+	var code any = GetValue(currencyDefined, "code")
+	var movementDirection any = this.SafeStringLowerN(transaction, []any{"token_side", "tokenSide", "type"})
 	if IsTrue(IsEqual(movementDirection, "withdraw")) {
 		movementDirection = "withdrawal"
 	}
-	var fee interface{} = this.ParseTokenAndFeeTemp(transaction, []interface{}{"fee_token", "feeToken"}, []interface{}{"fee_amount", "feeAmount"})
-	var addressTo interface{} = this.SafeStringN(transaction, []interface{}{"target_address", "targetAddress", "addressTo"})
-	var addressFrom interface{} = this.SafeString2(transaction, "source_address", "sourceAddress")
-	var timestamp interface{} = this.SafeTimestampN(transaction, []interface{}{"created_time", "createdTime"}, this.SafeInteger(transaction, "timestamp"))
-	return map[string]interface{}{
+	var fee any = this.ParseTokenAndFeeTemp(transaction, []any{"fee_token", "feeToken"}, []any{"fee_amount", "feeAmount"})
+	var addressTo any = this.SafeStringN(transaction, []any{"target_address", "targetAddress", "addressTo"})
+	var addressFrom any = this.SafeString2(transaction, "source_address", "sourceAddress")
+	var timestamp any = this.SafeTimestampN(transaction, []any{"created_time", "createdTime"}, this.SafeInteger(transaction, "timestamp"))
+	return map[string]any{
 		"info":        transaction,
-		"id":          this.SafeStringN(transaction, []interface{}{"id", "withdraw_id", "withdrawId"}),
+		"id":          this.SafeStringN(transaction, []any{"id", "withdraw_id", "withdrawId"}),
 		"txid":        this.SafeString2(transaction, "tx_id", "txId"),
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
@@ -3192,8 +3194,8 @@ func (this *WooCore) ParseTransaction(transaction interface{}, optionalArgs ...i
 		"network":     this.NetworkIdToCode(this.SafeString(transaction, "network")),
 	}
 }
-func (this *WooCore) ParseTransactionStatus(status interface{}) interface{} {
-	var statuses interface{} = map[string]interface{}{
+func (this *WooCore) ParseTransactionStatus(status any) any {
+	var statuses any = map[string]any{
 		"NEW":        "pending",
 		"CONFIRMING": "pending",
 		"PROCESSING": "pending",
@@ -3215,24 +3217,24 @@ func (this *WooCore) ParseTransactionStatus(status interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *WooCore) Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes28298 := (<-this.LoadMarkets())
-		PanicOnError(retRes28298)
-		var currency interface{} = this.Currency(code)
-		var request interface{} = map[string]interface{}{
+		retRes28318 := (<-this.LoadMarkets())
+		PanicOnError(retRes28318)
+		var currency any = this.Currency(code)
+		var request any = map[string]any{
 			"token":  GetValue(currency, "id"),
 			"amount": this.ParseToNumeric(amount),
-			"from": map[string]interface{}{
+			"from": map[string]any{
 				"applicationId": fromAccount,
 			},
-			"to": map[string]interface{}{
+			"to": map[string]any{
 				"applicationId": toAccount,
 			},
 		}
@@ -3245,13 +3247,13 @@ func (this *WooCore) Transfer(code interface{}, amount interface{}, fromAccount 
 		//         "id": 200
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 		AddElementToObject(data, "timestamp", this.SafeInteger(response, "timestamp"))
 		AddElementToObject(data, "token", GetValue(currency, "id"))
 		AddElementToObject(data, "status", "ok")
-		var transfer interface{} = this.ParseTransfer(data, currency)
-		var transferOptions interface{} = this.SafeDict(this.Options, "transfer", map[string]interface{}{})
-		var fillResponseFromRequest interface{} = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
+		var transfer any = this.ParseTransfer(data, currency)
+		var transferOptions any = this.SafeDict(this.Options, "transfer", map[string]any{})
+		var fillResponseFromRequest any = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
 		if IsTrue(fillResponseFromRequest) {
 			AddElementToObject(transfer, "amount", amount)
 			AddElementToObject(transfer, "fromAccount", fromAccount)
@@ -3277,9 +3279,9 @@ func (this *WooCore) Transfer(code interface{}, amount interface{}, fromAccount 
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *WooCore) FetchTransfers(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchTransfers(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -3288,10 +3290,10 @@ func (this *WooCore) FetchTransfers(optionalArgs ...interface{}) <-chan interfac
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
-		var request interface{} = map[string]interface{}{}
-		var currency interface{} = nil
+		var request any = map[string]any{}
+		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
 		}
@@ -3301,8 +3303,8 @@ func (this *WooCore) FetchTransfers(optionalArgs ...interface{}) <-chan interfac
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "startTime", since)
 		}
-		var until interface{} = this.SafeInteger(params, "until") // unified in milliseconds
-		params = this.Omit(params, []interface{}{"until"})
+		var until any = this.SafeInteger(params, "until") // unified in milliseconds
+		params = this.Omit(params, []any{"until"})
 		if IsTrue(!IsEqual(until, nil)) {
 			AddElementToObject(request, "endTime", until)
 		}
@@ -3340,8 +3342,8 @@ func (this *WooCore) FetchTransfers(optionalArgs ...interface{}) <-chan interfac
 		//         "timestamp": 1721295317627
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var rows interface{} = this.SafeList(data, "rows", []interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var rows any = this.SafeList(data, "rows", []any{})
 
 		ch <- this.ParseTransfers(rows, currency, since, limit, params)
 		return nil
@@ -3349,7 +3351,7 @@ func (this *WooCore) FetchTransfers(optionalArgs ...interface{}) <-chan interfac
 	}()
 	return ch
 }
-func (this *WooCore) ParseTransfer(transfer interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WooCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	//
 	//    fetchTransfers
 	//     {
@@ -3389,16 +3391,16 @@ func (this *WooCore) ParseTransfer(transfer interface{}, optionalArgs ...interfa
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var code interface{} = this.SafeCurrencyCode(this.SafeString(transfer, "token"), currency)
-	var timestamp interface{} = this.SafeTimestamp2(transfer, "createdTime", "timestamp")
-	var success interface{} = this.SafeBool(transfer, "success")
-	var status interface{} = nil
+	var code any = this.SafeCurrencyCode(this.SafeString(transfer, "token"), currency)
+	var timestamp any = this.SafeTimestamp2(transfer, "createdTime", "timestamp")
+	var success any = this.SafeBool(transfer, "success")
+	var status any = nil
 	if IsTrue(!IsEqual(success, nil)) {
 		status = Ternary(IsTrue(success), "ok", "failed")
 	}
-	var fromAccount interface{} = this.SafeDict(transfer, "from", map[string]interface{}{})
-	var toAccount interface{} = this.SafeDict(transfer, "to", map[string]interface{}{})
-	return map[string]interface{}{
+	var fromAccount any = this.SafeDict(transfer, "from", map[string]any{})
+	var toAccount any = this.SafeDict(transfer, "to", map[string]any{})
+	return map[string]any{
 		"id":          this.SafeString(transfer, "id"),
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
@@ -3410,8 +3412,8 @@ func (this *WooCore) ParseTransfer(transfer interface{}, optionalArgs ...interfa
 		"info":        transfer,
 	}
 }
-func (this *WooCore) ParseTransferStatus(status interface{}) interface{} {
-	var statuses interface{} = map[string]interface{}{
+func (this *WooCore) ParseTransferStatus(status any) any {
+	var statuses any = map[string]any{
 		"NEW":        "pending",
 		"CONFIRMING": "pending",
 		"PROCESSING": "pending",
@@ -3433,31 +3435,31 @@ func (this *WooCore) ParseTransferStatus(status interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *WooCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		tag := GetArg(optionalArgs, 0, nil)
 		_ = tag
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
 
-		retRes30148 := (<-this.LoadMarkets())
-		PanicOnError(retRes30148)
+		retRes30168 := (<-this.LoadMarkets())
+		PanicOnError(retRes30168)
 		this.CheckAddress(address)
-		var currency interface{} = this.Currency(code)
-		var request interface{} = map[string]interface{}{
+		var currency any = this.Currency(code)
+		var request any = map[string]any{
 			"amount":  amount,
 			"address": address,
 		}
 		if IsTrue(!IsEqual(tag, nil)) {
 			AddElementToObject(request, "extra", tag)
 		}
-		var network interface{} = this.SafeString(params, "network")
+		var network any = this.SafeString(params, "network")
 		if IsTrue(IsEqual(network, nil)) {
 			panic(ArgumentsRequired(Add(Add(this.Id, " withdraw() requires a network parameter for "), code)))
 		}
@@ -3473,8 +3475,8 @@ func (this *WooCore) Withdraw(code interface{}, amount interface{}, address inte
 		//         "withdraw_id": "20200119145703654"
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var transactionData interface{} = this.Extend(data, map[string]interface{}{
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var transactionData any = this.Extend(data, map[string]any{
 			"id":        this.SafeString(data, "withdrawId"),
 			"timestamp": this.SafeInteger(response, "timestamp"),
 			"currency":  code,
@@ -3504,25 +3506,25 @@ func (this *WooCore) Withdraw(code interface{}, amount interface{}, address inte
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func (this *WooCore) RepayMargin(code interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) RepayMargin(code any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes30658 := (<-this.LoadMarkets())
-		PanicOnError(retRes30658)
-		var market interface{} = nil
+		retRes30678 := (<-this.LoadMarkets())
+		PanicOnError(retRes30678)
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			symbol = GetValue(market, "symbol")
 		}
-		var currency interface{} = this.Currency(code)
-		var request interface{} = map[string]interface{}{
+		var currency any = this.Currency(code)
+		var request any = map[string]any{
 			"token":  GetValue(currency, "id"),
 			"amount": this.CurrencyToPrecision(code, amount),
 		}
@@ -3534,9 +3536,9 @@ func (this *WooCore) RepayMargin(code interface{}, amount interface{}, optionalA
 		//         "success": true,
 		//     }
 		//
-		var transaction interface{} = this.ParseMarginLoan(response, currency)
+		var transaction any = this.ParseMarginLoan(response, currency)
 
-		ch <- this.Extend(transaction, map[string]interface{}{
+		ch <- this.Extend(transaction, map[string]any{
 			"amount": amount,
 			"symbol": symbol,
 		})
@@ -3545,7 +3547,7 @@ func (this *WooCore) RepayMargin(code interface{}, amount interface{}, optionalA
 	}()
 	return ch
 }
-func (this *WooCore) ParseMarginLoan(info interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WooCore) ParseMarginLoan(info any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "success": true,
@@ -3553,7 +3555,7 @@ func (this *WooCore) ParseMarginLoan(info interface{}, optionalArgs ...interface
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	return map[string]interface{}{
+	return map[string]any{
 		"id":        nil,
 		"currency":  this.SafeCurrencyCode(nil, currency),
 		"amount":    nil,
@@ -3563,24 +3565,24 @@ func (this *WooCore) ParseMarginLoan(info interface{}, optionalArgs ...interface
 		"info":      info,
 	}
 }
-func (this *WooCore) Nonce() interface{} {
+func (this *WooCore) Nonce() any {
 	return Subtract(this.Milliseconds(), GetValue(this.Options, "timeDifference"))
 }
-func (this *WooCore) Sign(path interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WooCore) Sign(path any, optionalArgs ...any) any {
 	section := GetArg(optionalArgs, 0, "public")
 	_ = section
 	method := GetArg(optionalArgs, 1, "GET")
 	_ = method
-	params := GetArg(optionalArgs, 2, map[string]interface{}{})
+	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var version interface{} = GetValue(section, 0)
-	var access interface{} = GetValue(section, 1)
-	var pathWithParams interface{} = this.ImplodeParams(path, params)
-	var url interface{} = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), access))
+	var version any = GetValue(section, 0)
+	var access any = GetValue(section, 1)
+	var pathWithParams any = this.ImplodeParams(path, params)
+	var url any = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), access))
 	url = Add(url, Add(Add("/", version), "/"))
 	params = this.Omit(params, this.ExtractParams(path))
 	params = this.Keysort(params)
@@ -3597,11 +3599,11 @@ func (this *WooCore) Sign(path interface{}, optionalArgs ...interface{}) interfa
 	} else {
 		this.CheckRequiredCredentials()
 		if IsTrue(IsTrue(IsEqual(method, "POST")) && IsTrue((IsTrue(IsEqual(path, "trade/algoOrder")) || IsTrue(IsEqual(path, "trade/order"))))) {
-			var isSandboxMode interface{} = this.SafeBool(this.Options, "sandboxMode", false)
+			var isSandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
 			if !IsTrue(isSandboxMode) {
-				var applicationId interface{} = "bc830de7-50f3-460b-9ee0-f430f83f9dad"
-				var brokerId interface{} = this.SafeString(this.Options, "brokerId", applicationId)
-				var isTrigger interface{} = IsGreaterThan(GetIndexOf(path, "algo"), OpNeg(1))
+				var applicationId any = "bc830de7-50f3-460b-9ee0-f430f83f9dad"
+				var brokerId any = this.SafeString(this.Options, "brokerId", applicationId)
+				var isTrigger any = IsGreaterThan(GetIndexOf(path, "algo"), OpNeg(1))
 				if IsTrue(isTrigger) {
 					AddElementToObject(params, "brokerId", brokerId)
 				} else {
@@ -3610,10 +3612,10 @@ func (this *WooCore) Sign(path interface{}, optionalArgs ...interface{}) interfa
 			}
 			params = this.Keysort(params)
 		}
-		var auth interface{} = ""
-		var ts interface{} = ToString(this.Nonce())
+		var auth any = ""
+		var ts any = ToString(this.Nonce())
 		url = Add(url, pathWithParams)
-		headers = map[string]interface{}{
+		headers = map[string]any{
 			"x-api-key":       this.ApiKey,
 			"x-api-timestamp": ts,
 		}
@@ -3625,7 +3627,7 @@ func (this *WooCore) Sign(path interface{}, optionalArgs ...interface{}) interfa
 				AddElementToObject(headers, "content-type", "application/json")
 			} else {
 				if IsTrue(GetArrayLength(ObjectKeys(params))) {
-					var query interface{} = this.Urlencode(params)
+					var query any = this.Urlencode(params)
 					url = Add(url, Add("?", query))
 					auth = Add(auth, Add("?", query))
 				}
@@ -3644,14 +3646,14 @@ func (this *WooCore) Sign(path interface{}, optionalArgs ...interface{}) interfa
 		}
 		AddElementToObject(headers, "x-api-signature", this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256))
 	}
-	return map[string]interface{}{
+	return map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    body,
 		"headers": headers,
 	}
 }
-func (this *WooCore) HandleErrors(httpCode interface{}, reason interface{}, url interface{}, method interface{}, headers interface{}, body interface{}, response interface{}, requestHeaders interface{}, requestBody interface{}) interface{} {
+func (this *WooCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if !IsTrue(response) {
 		return nil // fallback to default error handler
 	}
@@ -3659,16 +3661,16 @@ func (this *WooCore) HandleErrors(httpCode interface{}, reason interface{}, url 
 	//     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
 	//                     {"code":"-1011","message":"The system is under maintenance.","success":false}
 	//
-	var success interface{} = this.SafeBool(response, "success")
-	var errorCode interface{} = this.SafeString(response, "code")
+	var success any = this.SafeBool(response, "success")
+	var errorCode any = this.SafeString(response, "code")
 	if !IsTrue(success) {
-		var feedback interface{} = Add(Add(this.Id, " "), this.Json(response))
+		var feedback any = Add(Add(this.Id, " "), this.Json(response))
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), body, feedback)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
 	}
 	return nil
 }
-func (this *WooCore) ParseIncome(income interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WooCore) ParseIncome(income any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "id": 1286360,
@@ -3685,16 +3687,16 @@ func (this *WooCore) ParseIncome(income interface{}, optionalArgs ...interface{}
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(income, "symbol")
-	var symbol interface{} = this.SafeSymbol(marketId, market)
-	var amount interface{} = this.SafeString(income, "fundingFee")
-	var code interface{} = this.SafeCurrencyCode("USD")
-	var id interface{} = this.SafeString(income, "id")
-	var timestamp interface{} = this.SafeInteger(income, "updatedTime")
-	var rate interface{} = this.SafeNumber(income, "fundingRate")
-	var paymentType interface{} = this.SafeString(income, "paymentType")
+	var marketId any = this.SafeString(income, "symbol")
+	var symbol any = this.SafeSymbol(marketId, market)
+	var amount any = this.SafeString(income, "fundingFee")
+	var code any = this.SafeCurrencyCode("USD")
+	var id any = this.SafeString(income, "id")
+	var timestamp any = this.SafeInteger(income, "updatedTime")
+	var rate any = this.SafeNumber(income, "fundingRate")
+	var paymentType any = this.SafeString(income, "paymentType")
 	amount = Ternary(IsTrue((IsEqual(paymentType, "Pay"))), Precise.StringNeg(amount), amount)
-	return map[string]interface{}{
+	return map[string]any{
 		"info":      income,
 		"symbol":    symbol,
 		"code":      code,
@@ -3718,9 +3720,9 @@ func (this *WooCore) ParseIncome(income interface{}, optionalArgs ...interface{}
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
-func (this *WooCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -3729,24 +3731,24 @@ func (this *WooCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan int
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes32488 := (<-this.LoadMarkets())
-		PanicOnError(retRes32488)
-		var paginate interface{} = false
+		retRes32508 := (<-this.LoadMarkets())
+		PanicOnError(retRes32508)
+		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes325219 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
-			PanicOnError(retRes325219)
-			ch <- retRes325219
+			retRes325419 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
+			PanicOnError(retRes325419)
+			ch <- retRes325419
 			return nil
 		}
-		var request interface{} = map[string]interface{}{}
-		var market interface{} = nil
+		var request any = map[string]any{}
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -3754,8 +3756,8 @@ func (this *WooCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan int
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "startTime", since)
 		}
-		var until interface{} = this.SafeInteger(params, "until") // unified in milliseconds
-		params = this.Omit(params, []interface{}{"until"})
+		var until any = this.SafeInteger(params, "until") // unified in milliseconds
+		params = this.Omit(params, []any{"until"})
 		if IsTrue(!IsEqual(until, nil)) {
 			AddElementToObject(request, "endTime", until)
 		}
@@ -3792,8 +3794,8 @@ func (this *WooCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan int
 		//         "timestamp": 1721351502594
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var rows interface{} = this.SafeList(data, "rows", []interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var rows any = this.SafeList(data, "rows", []any{})
 
 		ch <- this.ParseIncomes(rows, market, since, limit)
 		return nil
@@ -3801,7 +3803,7 @@ func (this *WooCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan int
 	}()
 	return ch
 }
-func (this *WooCore) ParseFundingRate(fundingRate interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WooCore) ParseFundingRate(fundingRate any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "symbol": "PERP_BTC_USDT",
@@ -3814,15 +3816,27 @@ func (this *WooCore) ParseFundingRate(fundingRate interface{}, optionalArgs ...i
 	//         "estFundingIntervalHours": 8
 	//     }
 	//
+	// watchFundingRate
+	//
+	//     {
+	//         "symbol": "PERP_BTC_USDT",
+	//         "fundingRate": 0.0001,
+	//         "fundingTs": 1771488000000
+	//     }
+	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var symbol interface{} = this.SafeString(fundingRate, "symbol")
+	var symbol any = this.SafeString(fundingRate, "symbol")
 	market = this.Market(symbol)
-	var nextFundingTimestamp interface{} = this.SafeInteger(fundingRate, "nextFundingTime")
-	var estFundingRateTimestamp interface{} = this.SafeInteger(fundingRate, "estFundingRateTimestamp")
-	var lastFundingRateTimestamp interface{} = this.SafeInteger(fundingRate, "lastFundingRateTimestamp")
-	var intervalString interface{} = this.SafeString(fundingRate, "estFundingIntervalHours")
-	return map[string]interface{}{
+	var nextFundingTimestamp any = this.SafeInteger2(fundingRate, "nextFundingTime", "fundingTs")
+	var estFundingRateTimestamp any = this.SafeInteger(fundingRate, "estFundingRateTimestamp")
+	var lastFundingRateTimestamp any = this.SafeInteger(fundingRate, "lastFundingRateTimestamp")
+	var intervalString any = this.SafeString(fundingRate, "estFundingIntervalHours")
+	var interval any = nil
+	if IsTrue(!IsEqual(intervalString, nil)) {
+		interval = Add(intervalString, "h")
+	}
+	return map[string]any{
 		"info":                     fundingRate,
 		"symbol":                   GetValue(market, "symbol"),
 		"markPrice":                nil,
@@ -3831,7 +3845,7 @@ func (this *WooCore) ParseFundingRate(fundingRate interface{}, optionalArgs ...i
 		"estimatedSettlePrice":     nil,
 		"timestamp":                estFundingRateTimestamp,
 		"datetime":                 this.Iso8601(estFundingRateTimestamp),
-		"fundingRate":              this.SafeNumber(fundingRate, "estFundingRate"),
+		"fundingRate":              this.SafeNumber2(fundingRate, "estFundingRate", "fundingRate"),
 		"fundingTimestamp":         nextFundingTimestamp,
 		"fundingDatetime":          this.Iso8601(nextFundingTimestamp),
 		"nextFundingRate":          nil,
@@ -3840,7 +3854,7 @@ func (this *WooCore) ParseFundingRate(fundingRate interface{}, optionalArgs ...i
 		"previousFundingRate":      this.SafeNumber(fundingRate, "lastFundingRate"),
 		"previousFundingTimestamp": lastFundingRateTimestamp,
 		"previousFundingDatetime":  this.Iso8601(lastFundingRateTimestamp),
-		"interval":                 Add(intervalString, "h"),
+		"interval":                 interval,
 	}
 }
 
@@ -3853,17 +3867,17 @@ func (this *WooCore) ParseFundingRate(fundingRate interface{}, optionalArgs ...i
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *WooCore) FetchFundingInterval(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchFundingInterval(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes335515 := (<-this.FetchFundingRate(symbol, params))
-		PanicOnError(retRes335515)
-		ch <- retRes335515
+		retRes336915 := (<-this.FetchFundingRate(symbol, params))
+		PanicOnError(retRes336915)
+		ch <- retRes336915
 		return nil
 
 	}()
@@ -3879,18 +3893,18 @@ func (this *WooCore) FetchFundingInterval(symbol interface{}, optionalArgs ...in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *WooCore) FetchFundingRate(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes33688 := (<-this.LoadMarkets())
-		PanicOnError(retRes33688)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		retRes33828 := (<-this.LoadMarkets())
+		PanicOnError(retRes33828)
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 
@@ -3916,9 +3930,9 @@ func (this *WooCore) FetchFundingRate(symbol interface{}, optionalArgs ...interf
 		//         "timestamp": 1751624037798
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var rows interface{} = this.SafeList(data, "rows", []interface{}{})
-		var first interface{} = this.SafeDict(rows, 0, map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var rows any = this.SafeList(data, "rows", []any{})
+		var first any = this.SafeDict(rows, 0, map[string]any{})
 
 		ch <- this.ParseFundingRate(first, market)
 		return nil
@@ -3936,18 +3950,18 @@ func (this *WooCore) FetchFundingRate(symbol interface{}, optionalArgs ...interf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
  */
-func (this *WooCore) FetchFundingRates(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchFundingRates(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes34108 := (<-this.LoadMarkets())
-		PanicOnError(retRes34108)
+		retRes34248 := (<-this.LoadMarkets())
+		PanicOnError(retRes34248)
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.V3PublicGetFundingRate(params))
@@ -3972,8 +3986,8 @@ func (this *WooCore) FetchFundingRates(optionalArgs ...interface{}) <-chan inter
 		//         "timestamp": 1751624037798
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var rows interface{} = this.SafeList(data, "rows", []interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var rows any = this.SafeList(data, "rows", []any{})
 
 		ch <- this.ParseFundingRates(rows, symbols)
 		return nil
@@ -3995,9 +4009,9 @@ func (this *WooCore) FetchFundingRates(optionalArgs ...interface{}) <-chan inter
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func (this *WooCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -4006,28 +4020,28 @@ func (this *WooCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes34528 := (<-this.LoadMarkets())
-		PanicOnError(retRes34528)
-		var paginate interface{} = false
+		retRes34668 := (<-this.LoadMarkets())
+		PanicOnError(retRes34668)
+		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes345619 := (<-this.FetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
-			PanicOnError(retRes345619)
-			ch <- retRes345619
+			retRes347019 := (<-this.FetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
+			PanicOnError(retRes347019)
+			ch <- retRes347019
 			return nil
 		}
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
-		var market interface{} = this.Market(symbol)
+		var market any = this.Market(symbol)
 		symbol = GetValue(market, "symbol")
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(since, nil)) {
@@ -4061,14 +4075,14 @@ func (this *WooCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan
 		//         "timestamp": 1751632390031
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var rows interface{} = this.SafeList(data, "rows", []interface{}{})
-		var rates interface{} = []interface{}{}
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var rows any = this.SafeList(data, "rows", []any{})
+		var rates any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
-			var entry interface{} = GetValue(rows, i)
-			var marketId interface{} = this.SafeString(entry, "symbol")
-			var timestamp interface{} = this.SafeInteger(entry, "fundingRateTimestamp")
-			AppendToArray(&rates, map[string]interface{}{
+			var entry any = GetValue(rows, i)
+			var marketId any = this.SafeString(entry, "symbol")
+			var timestamp any = this.SafeInteger(entry, "fundingRateTimestamp")
+			AppendToArray(&rates, map[string]any{
 				"info":        entry,
 				"symbol":      this.SafeSymbol(marketId),
 				"fundingRate": this.SafeNumber(entry, "fundingRate"),
@@ -4076,7 +4090,7 @@ func (this *WooCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan
 				"datetime":    this.Iso8601(timestamp),
 			})
 		}
-		var sorted interface{} = this.SortBy(rates, "timestamp")
+		var sorted any = this.SortBy(rates, "timestamp")
 
 		ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 		return nil
@@ -4095,22 +4109,22 @@ func (this *WooCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *WooCore) SetPositionMode(hedged interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
-		var hedgeMode interface{} = nil
+		var hedgeMode any = nil
 		if IsTrue(hedged) {
 			hedgeMode = "HEDGE_MODE"
 		} else {
 			hedgeMode = "ONE_WAY"
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"positionMode": hedgeMode,
 		}
 
@@ -4142,27 +4156,27 @@ func (this *WooCore) SetPositionMode(hedged interface{}, optionalArgs ...interfa
  * @param {string} [params.positionMode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *WooCore) FetchLeverage(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes35558 := (<-this.LoadMarkets())
-		PanicOnError(retRes35558)
-		var market interface{} = this.Market(symbol)
-		var response interface{} = nil
+		retRes35698 := (<-this.LoadMarkets())
+		PanicOnError(retRes35698)
+		var market any = this.Market(symbol)
+		var response any = nil
 		if IsTrue(GetValue(market, "spot")) {
 
 			response = (<-this.V3PrivateGetAccountInfo(params))
 			PanicOnError(response)
 		} else if IsTrue(GetValue(market, "swap")) {
-			var request interface{} = map[string]interface{}{
+			var request any = map[string]any{
 				"symbol": GetValue(market, "id"),
 			}
-			var marginMode interface{} = nil
+			var marginMode any = nil
 			marginModeparamsVariable := this.HandleMarginModeAndParams("fetchLeverage", params, "cross")
 			marginMode = GetValue(marginModeparamsVariable, 0)
 			params = GetValue(marginModeparamsVariable, 1)
@@ -4173,7 +4187,7 @@ func (this *WooCore) FetchLeverage(symbol interface{}, optionalArgs ...interface
 		} else {
 			panic(NotSupported(Add(Add(Add(this.Id, " fetchLeverage() is not supported for "), GetValue(market, "type")), " markets")))
 		}
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 
 		ch <- this.ParseLeverage(data, market)
 		return nil
@@ -4181,23 +4195,23 @@ func (this *WooCore) FetchLeverage(symbol interface{}, optionalArgs ...interface
 	}()
 	return ch
 }
-func (this *WooCore) ParseLeverage(leverage interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WooCore) ParseLeverage(leverage any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(leverage, "symbol")
+	var marketId any = this.SafeString(leverage, "symbol")
 	market = this.SafeMarket(marketId, market)
-	var marginMode interface{} = this.SafeStringLower(leverage, "marginMode")
-	var spotLeverage interface{} = this.SafeInteger(leverage, "leverage")
+	var marginMode any = this.SafeStringLower(leverage, "marginMode")
+	var spotLeverage any = this.SafeInteger(leverage, "leverage")
 	if IsTrue(IsEqual(spotLeverage, 0)) {
 		spotLeverage = nil
 	}
-	var longLeverage interface{} = spotLeverage
-	var shortLeverage interface{} = spotLeverage
-	var details interface{} = this.SafeList(leverage, "details", []interface{}{})
+	var longLeverage any = spotLeverage
+	var shortLeverage any = spotLeverage
+	var details any = this.SafeList(leverage, "details", []any{})
 	for i := 0; IsLessThan(i, GetArrayLength(details)); i++ {
-		var position interface{} = this.SafeDict(details, i, map[string]interface{}{})
-		var positionLeverage interface{} = this.SafeInteger(position, "leverage")
-		var side interface{} = this.SafeString(position, "positionSide")
+		var position any = this.SafeDict(details, i, map[string]any{})
+		var positionLeverage any = this.SafeInteger(position, "leverage")
+		var side any = this.SafeString(position, "positionSide")
 		if IsTrue(IsEqual(side, "BOTH")) {
 			longLeverage = positionLeverage
 			shortLeverage = positionLeverage
@@ -4207,7 +4221,7 @@ func (this *WooCore) ParseLeverage(leverage interface{}, optionalArgs ...interfa
 			shortLeverage = positionLeverage
 		}
 	}
-	return map[string]interface{}{
+	return map[string]any{
 		"info":          leverage,
 		"symbol":        GetValue(market, "symbol"),
 		"marginMode":    marginMode,
@@ -4229,42 +4243,42 @@ func (this *WooCore) ParseLeverage(leverage interface{}, optionalArgs ...interfa
  * @param {string} [params.positionMode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
  * @returns {object} response from the exchange
  */
-func (this *WooCore) SetLeverage(leverage interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes36918 := (<-this.LoadMarkets())
-		PanicOnError(retRes36918)
-		var request interface{} = map[string]interface{}{
+		retRes37058 := (<-this.LoadMarkets())
+		PanicOnError(retRes37058)
+		var request any = map[string]any{
 			"leverage": leverage,
 		}
-		var market interface{} = nil
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
 		if IsTrue(IsTrue((IsEqual(symbol, nil))) || IsTrue(GetValue(market, "spot"))) {
 
-			retRes370019 := (<-this.V3PrivatePostSpotMarginLeverage(this.Extend(request, params)))
-			PanicOnError(retRes370019)
-			ch <- retRes370019
+			retRes371419 := (<-this.V3PrivatePostSpotMarginLeverage(this.Extend(request, params)))
+			PanicOnError(retRes371419)
+			ch <- retRes371419
 			return nil
 		} else if IsTrue(GetValue(market, "swap")) {
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
-			var marginMode interface{} = nil
+			var marginMode any = nil
 			marginModeparamsVariable := this.HandleMarginModeAndParams("fetchLeverage", params, "cross")
 			marginMode = GetValue(marginModeparamsVariable, 0)
 			params = GetValue(marginModeparamsVariable, 1)
 			AddElementToObject(request, "marginMode", this.EncodeMarginMode(marginMode))
 
-			retRes370619 := (<-this.V3PrivatePutFuturesLeverage(this.Extend(request, params)))
-			PanicOnError(retRes370619)
-			ch <- retRes370619
+			retRes372019 := (<-this.V3PrivatePutFuturesLeverage(this.Extend(request, params)))
+			PanicOnError(retRes372019)
+			ch <- retRes372019
 			return nil
 		} else {
 			panic(NotSupported(Add(Add(Add(this.Id, " fetchLeverage() is not supported for "), GetValue(market, "type")), " markets")))
@@ -4285,17 +4299,17 @@ func (this *WooCore) SetLeverage(leverage interface{}, optionalArgs ...interface
  * @param {string} [params.position_side] 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *WooCore) AddMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes372415 := (<-this.ModifyMarginHelper(symbol, amount, "ADD", params))
-		PanicOnError(retRes372415)
-		ch <- retRes372415
+		retRes373815 := (<-this.ModifyMarginHelper(symbol, amount, "ADD", params))
+		PanicOnError(retRes373815)
+		ch <- retRes373815
 		return nil
 
 	}()
@@ -4313,43 +4327,43 @@ func (this *WooCore) AddMargin(symbol interface{}, amount interface{}, optionalA
  * @param {string} [params.position_side] 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *WooCore) ReduceMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) ReduceMargin(symbol any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes373915 := (<-this.ModifyMarginHelper(symbol, amount, "REDUCE", params))
-		PanicOnError(retRes373915)
-		ch <- retRes373915
+		retRes375315 := (<-this.ModifyMarginHelper(symbol, amount, "REDUCE", params))
+		PanicOnError(retRes375315)
+		ch <- retRes375315
 		return nil
 
 	}()
 	return ch
 }
-func (this *WooCore) ModifyMarginHelper(symbol interface{}, amount interface{}, typeVar interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) ModifyMarginHelper(symbol any, amount any, typeVar any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes37438 := (<-this.LoadMarkets())
-		PanicOnError(retRes37438)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		retRes37578 := (<-this.LoadMarkets())
+		PanicOnError(retRes37578)
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol":        GetValue(market, "id"),
 			"adjust_token":  "USDT",
 			"adjust_amount": amount,
 			"action":        typeVar,
 		}
 
-		retRes375115 := (<-this.V1PrivatePostClientIsolatedMargin(this.Extend(request, params)))
-		PanicOnError(retRes375115)
-		ch <- retRes375115
+		retRes376515 := (<-this.V1PrivatePostClientIsolatedMargin(this.Extend(request, params)))
+		PanicOnError(retRes376515)
+		ch <- retRes376515
 		return nil
 
 	}()
@@ -4365,18 +4379,18 @@ func (this *WooCore) ModifyMarginHelper(symbol interface{}, amount interface{}, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *WooCore) FetchPosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes37648 := (<-this.LoadMarkets())
-		PanicOnError(retRes37648)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		retRes37788 := (<-this.LoadMarkets())
+		PanicOnError(retRes37788)
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 
@@ -4413,9 +4427,9 @@ func (this *WooCore) FetchPosition(symbol interface{}, optionalArgs ...interface
 		//         "timestamp": 1752500579848
 		//     }
 		//
-		var result interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var positions interface{} = this.SafeList(result, "positions", []interface{}{})
-		var first interface{} = this.SafeDict(positions, 0, map[string]interface{}{})
+		var result any = this.SafeDict(response, "data", map[string]any{})
+		var positions any = this.SafeList(result, "positions", []any{})
+		var first any = this.SafeDict(positions, 0, map[string]any{})
 
 		ch <- this.ParsePosition(first, market)
 		return nil
@@ -4433,18 +4447,18 @@ func (this *WooCore) FetchPosition(symbol interface{}, optionalArgs ...interface
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *WooCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchPositions(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes38178 := (<-this.LoadMarkets())
-		PanicOnError(retRes38178)
+		retRes38318 := (<-this.LoadMarkets())
+		PanicOnError(retRes38318)
 
 		response := (<-this.V3PrivateGetFuturesPositions(params))
 		PanicOnError(response)
@@ -4479,8 +4493,8 @@ func (this *WooCore) FetchPositions(optionalArgs ...interface{}) <-chan interfac
 		//         "timestamp": 1752500579848
 		//     }
 		//
-		var result interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var positions interface{} = this.SafeList(result, "positions", []interface{}{})
+		var result any = this.SafeDict(response, "data", map[string]any{})
+		var positions any = this.SafeList(result, "positions", []any{})
 
 		ch <- this.ParsePositions(positions, symbols)
 		return nil
@@ -4488,7 +4502,7 @@ func (this *WooCore) FetchPositions(optionalArgs ...interface{}) <-chan interfac
 	}()
 	return ch
 }
-func (this *WooCore) ParsePosition(position interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WooCore) ParsePosition(position any, optionalArgs ...any) any {
 	//
 	// v1PrivateGetPositionSymbol
 	//     {
@@ -4539,19 +4553,19 @@ func (this *WooCore) ParsePosition(position interface{}, optionalArgs ...interfa
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var contract interface{} = this.SafeString(position, "symbol")
+	var contract any = this.SafeString(position, "symbol")
 	market = this.SafeMarket(contract, market)
-	var size interface{} = this.SafeString(position, "holding")
-	var side interface{} = nil
+	var size any = this.SafeString(position, "holding")
+	var side any = nil
 	if IsTrue(Precise.StringGt(size, "0")) {
 		side = "long"
 	} else {
 		side = "short"
 	}
-	var contractSize interface{} = this.SafeString(market, "contractSize")
-	var markPrice interface{} = this.SafeString2(position, "markPrice", "mark_price")
-	var timestampString interface{} = this.SafeString(position, "timestamp")
-	var timestamp interface{} = nil
+	var contractSize any = this.SafeString(market, "contractSize")
+	var markPrice any = this.SafeString2(position, "markPrice", "mark_price")
+	var timestampString any = this.SafeString(position, "timestamp")
+	var timestamp any = nil
 	if IsTrue(!IsEqual(timestampString, nil)) {
 		if IsTrue(IsGreaterThan(GetIndexOf(timestampString, "."), OpNeg(1))) {
 			timestamp = this.SafeTimestamp(position, "timestamp")
@@ -4559,13 +4573,13 @@ func (this *WooCore) ParsePosition(position interface{}, optionalArgs ...interfa
 			timestamp = this.SafeInteger(position, "timestamp")
 		}
 	}
-	var entryPrice interface{} = this.SafeString2(position, "averageOpenPrice", "average_open_price")
-	var priceDifference interface{} = Precise.StringSub(markPrice, entryPrice)
-	var unrealisedPnl interface{} = Precise.StringMul(priceDifference, size)
+	var entryPrice any = this.SafeString2(position, "averageOpenPrice", "average_open_price")
+	var priceDifference any = Precise.StringSub(markPrice, entryPrice)
+	var unrealisedPnl any = Precise.StringMul(priceDifference, size)
 	size = Precise.StringAbs(size)
-	var notional interface{} = Precise.StringMul(size, markPrice)
-	var positionSide interface{} = this.SafeString(position, "positionSide") // 'SHORT' or 'LONG' for hedged, 'BOTH' for non-hedged
-	return this.SafePosition(map[string]interface{}{
+	var notional any = Precise.StringMul(size, markPrice)
+	var positionSide any = this.SafeString(position, "positionSide") // 'SHORT' or 'LONG' for hedged, 'BOTH' for non-hedged
+	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
 		"symbol":                      this.SafeString(market, "symbol"),
@@ -4607,19 +4621,19 @@ func (this *WooCore) ParsePosition(position interface{}, optionalArgs ...interfa
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
-func (this *WooCore) FetchConvertQuote(fromCode interface{}, toCode interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchConvertQuote(fromCode any, toCode any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		amount := GetArg(optionalArgs, 0, nil)
 		_ = amount
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes39738 := (<-this.LoadMarkets())
-		PanicOnError(retRes39738)
-		var request interface{} = map[string]interface{}{
+		retRes39878 := (<-this.LoadMarkets())
+		PanicOnError(retRes39878)
+		var request any = map[string]any{
 			"sellToken":    ToUpper(fromCode),
 			"buyToken":     ToUpper(toCode),
 			"sellQuantity": this.NumberToString(amount),
@@ -4643,11 +4657,11 @@ func (this *WooCore) FetchConvertQuote(fromCode interface{}, toCode interface{},
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var fromCurrencyId interface{} = this.SafeString(data, "sellToken", fromCode)
-		var fromCurrency interface{} = this.Currency(fromCurrencyId)
-		var toCurrencyId interface{} = this.SafeString(data, "buyToken", toCode)
-		var toCurrency interface{} = this.Currency(toCurrencyId)
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var fromCurrencyId any = this.SafeString(data, "sellToken", fromCode)
+		var fromCurrency any = this.Currency(fromCurrencyId)
+		var toCurrencyId any = this.SafeString(data, "buyToken", toCode)
+		var toCurrency any = this.Currency(toCurrencyId)
 
 		ch <- this.ParseConversion(data, fromCurrency, toCurrency)
 		return nil
@@ -4668,19 +4682,19 @@ func (this *WooCore) FetchConvertQuote(fromCode interface{}, toCode interface{},
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
-func (this *WooCore) CreateConvertTrade(id interface{}, fromCode interface{}, toCode interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) CreateConvertTrade(id any, fromCode any, toCode any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		amount := GetArg(optionalArgs, 0, nil)
 		_ = amount
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes40178 := (<-this.LoadMarkets())
-		PanicOnError(retRes40178)
-		var request interface{} = map[string]interface{}{
+		retRes40318 := (<-this.LoadMarkets())
+		PanicOnError(retRes40318)
+		var request any = map[string]any{
 			"quoteId": id,
 		}
 
@@ -4696,7 +4710,7 @@ func (this *WooCore) CreateConvertTrade(id interface{}, fromCode interface{}, to
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
 
 		ch <- this.ParseConversion(data)
 		return nil
@@ -4715,19 +4729,19 @@ func (this *WooCore) CreateConvertTrade(id interface{}, fromCode interface{}, to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
-func (this *WooCore) FetchConvertTrade(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchConvertTrade(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
 		_ = code
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes40478 := (<-this.LoadMarkets())
-		PanicOnError(retRes40478)
-		var request interface{} = map[string]interface{}{
+		retRes40618 := (<-this.LoadMarkets())
+		PanicOnError(retRes40618)
+		var request any = map[string]any{
 			"quoteId": id,
 		}
 
@@ -4747,11 +4761,11 @@ func (this *WooCore) FetchConvertTrade(id interface{}, optionalArgs ...interface
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var fromCurrencyId interface{} = this.SafeString(data, "sellAsset")
-		var toCurrencyId interface{} = this.SafeString(data, "buyAsset")
-		var fromCurrency interface{} = nil
-		var toCurrency interface{} = nil
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var fromCurrencyId any = this.SafeString(data, "sellAsset")
+		var toCurrencyId any = this.SafeString(data, "buyAsset")
+		var fromCurrency any = nil
+		var toCurrency any = nil
 		if IsTrue(!IsEqual(fromCurrencyId, nil)) {
 			fromCurrency = this.Currency(fromCurrencyId)
 		}
@@ -4778,9 +4792,9 @@ func (this *WooCore) FetchConvertTrade(id interface{}, optionalArgs ...interface
  * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
  * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
-func (this *WooCore) FetchConvertTradeHistory(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchConvertTradeHistory(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -4789,12 +4803,12 @@ func (this *WooCore) FetchConvertTradeHistory(optionalArgs ...interface{}) <-cha
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes40938 := (<-this.LoadMarkets())
-		PanicOnError(retRes40938)
-		var request interface{} = map[string]interface{}{}
+		retRes41078 := (<-this.LoadMarkets())
+		PanicOnError(retRes41078)
+		var request any = map[string]any{}
 		requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 		request = GetValue(requestparamsVariable, 0)
 		params = GetValue(requestparamsVariable, 1)
@@ -4827,8 +4841,8 @@ func (this *WooCore) FetchConvertTradeHistory(optionalArgs ...interface{}) <-cha
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-		var rows interface{} = this.SafeList(data, "tradeVos", []interface{}{})
+		var data any = this.SafeDict(response, "data", map[string]any{})
+		var rows any = this.SafeList(data, "tradeVos", []any{})
 
 		ch <- this.ParseConversions(rows, code, "sellAsset", "buyAsset", since, limit)
 		return nil
@@ -4836,7 +4850,7 @@ func (this *WooCore) FetchConvertTradeHistory(optionalArgs ...interface{}) <-cha
 	}()
 	return ch
 }
-func (this *WooCore) ParseConversion(conversion interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WooCore) ParseConversion(conversion any, optionalArgs ...any) any {
 	//
 	// fetchConvertQuote
 	//
@@ -4876,12 +4890,12 @@ func (this *WooCore) ParseConversion(conversion interface{}, optionalArgs ...int
 	_ = fromCurrency
 	toCurrency := GetArg(optionalArgs, 1, nil)
 	_ = toCurrency
-	var timestamp interface{} = this.SafeInteger2(conversion, "expireTimestamp", "createdTime")
-	var fromCurr interface{} = this.SafeString2(conversion, "sellToken", "buyAsset")
-	var fromCode interface{} = this.SafeCurrencyCode(fromCurr, fromCurrency)
-	var to interface{} = this.SafeString2(conversion, "buyToken", "sellAsset")
-	var toCode interface{} = this.SafeCurrencyCode(to, toCurrency)
-	return map[string]interface{}{
+	var timestamp any = this.SafeInteger2(conversion, "expireTimestamp", "createdTime")
+	var fromCurr any = this.SafeString2(conversion, "sellToken", "buyAsset")
+	var fromCode any = this.SafeCurrencyCode(fromCurr, fromCurrency)
+	var to any = this.SafeString2(conversion, "buyToken", "sellAsset")
+	var toCode any = this.SafeCurrencyCode(to, toCurrency)
+	return map[string]any{
 		"info":         conversion,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -4903,16 +4917,16 @@ func (this *WooCore) ParseConversion(conversion interface{}, optionalArgs ...int
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *WooCore) FetchConvertCurrencies(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WooCore) FetchConvertCurrencies(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes41928 := (<-this.LoadMarkets())
-		PanicOnError(retRes41928)
+		retRes42068 := (<-this.LoadMarkets())
+		PanicOnError(retRes42068)
 
 		response := (<-this.V3PrivateGetConvertAssetInfo(params))
 		PanicOnError(response)
@@ -4929,13 +4943,13 @@ func (this *WooCore) FetchConvertCurrencies(optionalArgs ...interface{}) <-chan 
 		//         ]
 		//     }
 		//
-		var result interface{} = map[string]interface{}{}
-		var data interface{} = this.SafeList(response, "rows", []interface{}{})
+		var result any = map[string]any{}
+		var data any = this.SafeList(response, "rows", []any{})
 		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-			var entry interface{} = GetValue(data, i)
-			var id interface{} = this.SafeString(entry, "token")
-			var code interface{} = this.SafeCurrencyCode(id)
-			AddElementToObject(result, code, map[string]interface{}{
+			var entry any = GetValue(data, i)
+			var id any = this.SafeString(entry, "token")
+			var code any = this.SafeCurrencyCode(id)
+			AddElementToObject(result, code, map[string]any{
 				"info":      entry,
 				"id":        id,
 				"code":      code,
@@ -4947,16 +4961,16 @@ func (this *WooCore) FetchConvertCurrencies(optionalArgs ...interface{}) <-chan 
 				"withdraw":  nil,
 				"fee":       nil,
 				"precision": this.SafeNumber(entry, "tick"),
-				"limits": map[string]interface{}{
-					"amount": map[string]interface{}{
+				"limits": map[string]any{
+					"amount": map[string]any{
 						"min": nil,
 						"max": nil,
 					},
-					"withdraw": map[string]interface{}{
+					"withdraw": map[string]any{
 						"min": nil,
 						"max": nil,
 					},
-					"deposit": map[string]interface{}{
+					"deposit": map[string]any{
 						"min": nil,
 						"max": nil,
 					},
@@ -4971,12 +4985,118 @@ func (this *WooCore) FetchConvertCurrencies(optionalArgs ...interface{}) <-chan 
 	}()
 	return ch
 }
-func (this *WooCore) DefaultNetworkCodeForCurrency(code interface{}) interface{} {
-	var currencyItem interface{} = this.Currency(code)
-	var networks interface{} = GetValue(currencyItem, "networks")
-	var networkKeys interface{} = ObjectKeys(networks)
+
+/**
+ * @method
+ * @name woo#fetchPositionsADLRank
+ * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
+ * @see https://docs.woox.io/#get-all-position-info-new
+ * @param {string[]} [symbols] a list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+ */
+func (this *WooCore) FetchPositionsADLRank(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		symbols := GetArg(optionalArgs, 0, nil)
+		_ = symbols
+		params := GetArg(optionalArgs, 1, map[string]any{})
+		_ = params
+
+		retRes42698 := (<-this.LoadMarkets())
+		PanicOnError(retRes42698)
+		symbols = this.MarketSymbols(symbols, nil, true, true, true)
+
+		response := (<-this.V3PrivateGetFuturesPositions(params))
+		PanicOnError(response)
+		//
+		//     {
+		//         "success": true,
+		//         "data": {
+		//             "positions": [
+		//                 {
+		//                     "symbol": "PERP_BTC_USDT",
+		//                     "holding": "0.001",
+		//                     "pendingLongQty": "0",
+		//                     "pendingShortQty": "0",
+		//                     "settlePrice": "90732",
+		//                     "averageOpenPrice": "90732",
+		//                     "pnl24H": "-0.001",
+		//                     "fee24H": "0.1360115",
+		//                     "markPrice": "90736",
+		//                     "estLiqPrice": "0",
+		//                     "timestamp": 1768049379264,
+		//                     "adlQuantile": 3,
+		//                     "positionSide": "BOTH",
+		//                     "marginMode": "CROSS",
+		//                     "isolatedMarginToken": "",
+		//                     "isolatedMarginAmount": "0",
+		//                     "isolatedFrozenLong": "0",
+		//                     "isolatedFrozenShort": "0",
+		//                     "leverage": 10
+		//                 },
+		//             ]
+		//         },
+		//         "timestamp": 1768049428472
+		//     }
+		//
+		var result any = this.SafeDict(response, "data", map[string]any{})
+		var positions any = this.SafeList(result, "positions", []any{})
+
+		ch <- this.ParseADLRanks(positions, symbols)
+		return nil
+
+	}()
+	return ch
+}
+func (this *WooCore) ParseADLRank(info any, optionalArgs ...any) any {
+	//
+	// fetchPositionsADLRank
+	//
+	//     {
+	//         "symbol": "PERP_BTC_USDT",
+	//         "holding": "0.001",
+	//         "pendingLongQty": "0",
+	//         "pendingShortQty": "0",
+	//         "settlePrice": "90732",
+	//         "averageOpenPrice": "90732",
+	//         "pnl24H": "-0.001",
+	//         "fee24H": "0.1360115",
+	//         "markPrice": "90736",
+	//         "estLiqPrice": "0",
+	//         "timestamp": 1768049379264,
+	//         "adlQuantile": 3,
+	//         "positionSide": "BOTH",
+	//         "marginMode": "CROSS",
+	//         "isolatedMarginToken": "",
+	//         "isolatedMarginAmount": "0",
+	//         "isolatedFrozenLong": "0",
+	//         "isolatedFrozenShort": "0",
+	//         "leverage": 10
+	//     }
+	//
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	var marketId any = this.SafeString(info, "symbol")
+	var timestamp any = this.SafeInteger(info, "timestamp")
+	return map[string]any{
+		"info":       info,
+		"symbol":     this.SafeSymbol(marketId, market, nil, "contract"),
+		"rank":       this.SafeNumber(info, "adlQuantile"),
+		"rating":     nil,
+		"percentage": nil,
+		"timestamp":  timestamp,
+		"datetime":   this.Iso8601(timestamp),
+	}
+}
+func (this *WooCore) DefaultNetworkCodeForCurrency(code any) any {
+	var currencyItem any = this.Currency(code)
+	var networks any = GetValue(currencyItem, "networks")
+	var networkKeys any = ObjectKeys(networks)
 	for i := 0; IsLessThan(i, GetArrayLength(networkKeys)); i++ {
-		var network interface{} = GetValue(networkKeys, i)
+		var network any = GetValue(networkKeys, i)
 		if IsTrue(IsEqual(network, "ETH")) {
 			return network
 		}
@@ -4984,13 +5104,13 @@ func (this *WooCore) DefaultNetworkCodeForCurrency(code interface{}) interface{}
 	// if it was not returned according to above options, then return the first network of currency
 	return this.SafeValue(networkKeys, 0)
 }
-func (this *WooCore) SetSandboxMode(enable interface{}) {
+func (this *WooCore) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)
 	AddElementToObject(this.Options, "sandboxMode", enable)
 }
 
-func (this *WooCore) Init(userConfig map[string]interface{}) {
+func (this *WooCore) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
+	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
 }

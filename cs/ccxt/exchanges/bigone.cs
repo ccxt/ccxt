@@ -59,6 +59,9 @@ public partial class bigone : Exchange
                 { "fetchMarkets", true },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
+                { "fetchOpenInterest", false },
+                { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", false },
                 { "fetchOpenOrders", true },
                 { "fetchOption", false },
                 { "fetchOptionChain", false },
@@ -1426,7 +1429,7 @@ public partial class bigone : Exchange
     {
         //
         //    {
-        //        "id": "42154072251",
+        //        "id": "42154072252",
         //        "asset_pair_name": "SOL-USDT",
         //        "price": "20",
         //        "amount": "0.5",

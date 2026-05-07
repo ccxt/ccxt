@@ -22,6 +22,8 @@ public partial class mexc : ccxt.mexc
                 { "fetchOrderWs", false },
                 { "fetchTradesWs", false },
                 { "watchBalance", true },
+                { "watchFundingRate", true },
+                { "watchFundingRates", false },
                 { "watchMyTrades", true },
                 { "watchOHLCV", true },
                 { "watchOrderBook", true },
@@ -749,7 +751,14 @@ public partial class mexc : ccxt.mexc
         //       "amount":"366804.43",
         //       "windowEnd":"1754737980"
         //
-        return new List<object> {this.safeTimestamp2(ohlcv, "t", "windowStart"), this.safeNumber2(ohlcv, "o", "openingPrice"), this.safeNumber2(ohlcv, "h", "highestPrice"), this.safeNumber2(ohlcv, "l", "lowestPrice"), this.safeNumber2(ohlcv, "c", "closingPrice"), this.safeNumber2(ohlcv, "v", "volume")};
+        object volume = this.safeNumber2(ohlcv, "v", "volume");
+        // MEXC swap websocket klines publish contracts volume in `q`,
+        // while spot/protobuf uses `v`/`volume`.
+        if (isTrue(isTrue(isTrue((!isEqual(market, null))) && isTrue((!isTrue(this.safeBool(market, "spot"))))) && isTrue((isEqual(volume, null)))))
+        {
+            volume = this.safeNumber2(ohlcv, "q", "v");
+        }
+        return new List<object> {this.safeTimestamp2(ohlcv, "t", "windowStart"), this.safeNumber2(ohlcv, "o", "openingPrice"), this.safeNumber2(ohlcv, "h", "highestPrice"), this.safeNumber2(ohlcv, "l", "lowestPrice"), this.safeNumber2(ohlcv, "c", "closingPrice"), volume};
     }
 
     /**
@@ -1511,7 +1520,7 @@ public partial class mexc : ccxt.mexc
         //
         object timestamp = this.safeInteger(order, "createTime");
         object side = this.safeString(order, "tradeType");
-        object status = this.safeString(order, "status");
+        object status = this.safeString2(order, "status", "state");
         object type = this.safeString(order, "orderType");
         object fee = null;
         object feeCurrency = this.safeString(order, "N");
@@ -1534,8 +1543,8 @@ public partial class mexc : ccxt.mexc
             { "timeInForce", this.parseWsTimeInForce(type) },
             { "side", ((bool) isTrue((isEqual(side, "1")))) ? "buy" : "sell" },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", null },
-            { "triggerPrice", null },
+            { "stopPrice", this.safeString2(order, "triggerPrice", "P") },
+            { "triggerPrice", this.safeString2(order, "triggerPrice", "P") },
             { "average", this.safeString(order, "avgPrice") },
             { "amount", this.safeString(order, "quantity") },
             { "cost", this.safeString(order, "amount") },
@@ -1550,6 +1559,7 @@ public partial class mexc : ccxt.mexc
     public virtual object parseWsOrderStatus(object status, object market = null)
     {
         object statuses = new Dictionary<string, object>() {
+            { "0", "open" },
             { "1", "open" },
             { "2", "closed" },
             { "3", "open" },
@@ -1572,6 +1582,8 @@ public partial class mexc : ccxt.mexc
             { "4", null },
             { "5", "market" },
             { "100", "limit" },
+            { "101", "limit" },
+            { "102", "limit" },
         };
         return this.safeString(types, type);
     }
@@ -1585,6 +1597,8 @@ public partial class mexc : ccxt.mexc
             { "4", "FOK" },
             { "5", "GTC" },
             { "100", "GTC" },
+            { "101", "GTC" },
+            { "102", "GTC" },
         };
         return this.safeString(timeInForceIds, timeInForce);
     }
@@ -1649,7 +1663,7 @@ public partial class mexc : ccxt.mexc
         //             "frozenBalance": 0,
         //             "positionMargin": 1.36945756
         //         },
-        //         "ts": 1680059188190
+        //         "ts": 1680059188191
         //     }
         //
         object channel = this.safeString(message, "channel");
@@ -1673,6 +1687,77 @@ public partial class mexc : ccxt.mexc
         ((IDictionary<string,object>)getValue(this.balance, type))[(string)code] = account;
         ((IDictionary<string,object>)this.balance)[(string)type] = this.safeBalance(getValue(this.balance, type));
         callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, type), messageHash});
+    }
+
+    /**
+     * @method
+     * @name mexc#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://www.mexc.com/api-docs/futures/websocket-api#funding-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    public async override Task<object> watchFundingRate(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object messageHash = add("fundingRate:", getValue(market, "symbol"));
+        object channel = "sub.funding.rate";
+        object requestParams = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        return await this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+    }
+
+    /**
+     * @method
+     * @name mexc#unWatchFundingRate
+     * @description unWatches the current funding rate for a symbol
+     * @see https://www.mexc.com/api-docs/futures/websocket-api#funding-rate
+     * @param {string} symbol unified symbol of the market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    public async override Task<object> unWatchFundingRate(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object messageHash = add("unsubscribe:fundingRate:", getValue(market, "symbol"));
+        object url = null;
+        object channel = "unsub.funding.rate";
+        object requestParams = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        url = getValue(getValue(getValue(this.urls, "api"), "ws"), "swap");
+        this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+        var client = this.client(url);
+        this.handleUnsubscriptions(client as WebSocketClient, new List<object>() {messageHash});
+        return null;
+    }
+
+    public virtual void handleFundingRate(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "symbol": "BTC_USDT",
+        //         "data": {
+        //             "symbol": "BTC_USDT",
+        //             "rate": -0.000021,
+        //             "nextSettleTime": 1771084800000
+        //         },
+        //         "channel": "push.funding.rate",
+        //         "ts": 1771069020506
+        //     }
+        //
+        object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        object fundingRate = this.parseFundingRate(data);
+        object symbol = getValue(fundingRate, "symbol");
+        ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
+        object messageHash = add("fundingRate:", symbol);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {fundingRate, messageHash});
     }
 
     /**
@@ -1977,6 +2062,13 @@ public partial class mexc : ccxt.mexc
                 {
                     ((IDictionary<string,object>)this.trades).Remove((string)symbol);
                 }
+            } else if (isTrue(isGreaterThanOrEqual(getIndexOf(messageHash, "fundingRate"), 0)))
+            {
+                object symbol = ((string)messageHash).Replace((string)"unsubscribe:fundingRate:", (string)"");
+                if (isTrue(inOp(this.fundingRates, symbol)))
+                {
+                    ((IDictionary<string,object>)this.fundingRates).Remove((string)symbol);
+                }
             }
         }
     }
@@ -2162,6 +2254,7 @@ public partial class mexc : ccxt.mexc
             { "private.deals.v3.api", this.handleMyTrade },
             { "push.personal.order.deal", this.handleMyTrade },
             { "pong", this.handlePong },
+            { "push.funding.rate", this.handleFundingRate },
         };
         if (isTrue(inOp(methods, channel)))
         {

@@ -487,6 +487,12 @@ public partial class krakenfutures
     /// object : Exchange specific parameters
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// bool : set to true if you wish to fetch only trigger orders
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>undefined</term> undefined.</returns>
@@ -519,6 +525,12 @@ public partial class krakenfutures
     /// <term>params</term>
     /// <description>
     /// object : Exchange specific parameters
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// bool : set to true if you wish to fetch only trigger orders
     /// </description>
     /// </item>
     /// </list>
