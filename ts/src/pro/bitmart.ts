@@ -83,6 +83,7 @@ export default class bitmart extends bitmartRest {
                 },
                 'ws': {
                     'inflate': true,
+                    'excludeDuplicates': true,
                 },
                 'timeframes': {
                     '1m': '1m',
@@ -160,12 +161,9 @@ export default class bitmart extends bitmartRest {
         }
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
-            const message = channelType + '/' + channel + ':' + market['id'];
+            const rawHash = channelType + '/' + channel + ':' + market['id'];
             const messageHash = prefix + unifiedName + '::' + market['symbol'];
-            if (this.subscriptionExistsForRawHash (url, message)) {
-                continue;
-            }
-            rawSubscriptions.push (message);
+            rawSubscriptions.push (rawHash);
             messageHashes.push (messageHash);
         }
         // as an exclusion, futures "tickers" need one generic request for all symbols
@@ -177,7 +175,7 @@ export default class bitmart extends bitmartRest {
             'args': rawSubscriptions,
         };
         request[actionType] = requestOp;
-        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
+        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), rawSubscriptions);
     }
 
     /**
@@ -509,9 +507,6 @@ export default class bitmart extends bitmartRest {
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
             const rawHash = channelType + ':' + market['id'];
-            if (this.subscriptionExistsForRawHash (url, rawHash)) {
-                continue;
-            }
             rawSubscriptions.push (rawHash);
             messageHashes.push ('bidask::' + market['symbol']);
         }
@@ -2047,11 +2042,6 @@ export default class bitmart extends bitmartRest {
             'futures': 'swap',
         };
         return this.safeString (types, marketType, marketType);
-    }
-
-    subscriptionExistsForRawHash (url: string, rawHash: string) {
-        const client = this.client (url);
-        return (rawHash in client.subscriptions);
     }
 
     handleMessage (client: Client, message) {

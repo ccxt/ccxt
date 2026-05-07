@@ -1385,6 +1385,24 @@ export default class Exchange {
                 }
             }
         }
+        const excludeDuplicates = this.safeBool (this.safeDict (this.options, 'ws'), 'excludeDuplicates');
+        if (excludeDuplicates && missingSubscriptions.length) {
+            const newMessage = this.clone (message);
+            const keys = Object.keys (newMessage);
+            for (let i = 0; i < keys.length; i++) {
+                const key = keys[i];
+                const value = newMessage[key];
+                if (Array.isArray (value)) {
+                    for (let k = 0; k < missingSubscriptions.length; k++) {
+                        const subscribeHash = missingSubscriptions[k];
+                        if (this.inArray (subscribeHash, value)) {
+                            // this is the correct place
+                            newMessage[key] = missingSubscriptions;
+                        }
+                    }
+                }
+            }
+        }
         // we intentionally do not use await here to avoid unhandled exceptions
         // the policy is to make sure that 100% of promises are resolved or rejected
         // either with a call to client.resolve or client.reject with
