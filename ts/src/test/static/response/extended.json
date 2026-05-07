@@ -1202,7 +1202,7 @@
                 "description": "fetch order by clientOrderId",
                 "method": "fetchOrder",
                 "input": [
-                    "unused",
+                    null,
                     "BTC/USDC:USDC",
                     {
                         "clientOrderId": "3480985089570526249141260266819446928410958787024864860785196119336740291620"
@@ -1862,6 +1862,118 @@
                 ]
             }
         ],
+        "fetchBalance": [
+            {
+                "description": "fetch balance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "status": "OK",
+                    "data": [
+                        {
+                            "accountId": 123,
+                            "asset": "USDC",
+                            "balance": "2000",
+                            "indexPrice": "1",
+                            "notionalValue": "2000",
+                            "contributionFactor": "1",
+                            "equityContribution": "2000",
+                            "availableToWithdraw": "2000",
+                            "updatedAt": 1778124335048
+                        },
+                        {
+                            "accountId": 123,
+                            "asset": "WETH",
+                            "balance": "0.2",
+                            "indexPrice": "4000",
+                            "notionalValue": "800",
+                            "contributionFactor": "0.95",
+                            "equityContribution": "760",
+                            "availableToWithdraw": "0.2",
+                            "updatedAt": 1778124335048
+                        },
+                        {
+                            "accountId": 123,
+                            "asset": "WBTC",
+                            "balance": "0.028",
+                            "indexPrice": "100000",
+                            "notionalValue": "2800",
+                            "contributionFactor": "0.95",
+                            "equityContribution": "2660",
+                            "availableToWithdraw": "0.028",
+                            "updatedAt": 1778124335048
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "accountId": 123,
+                            "asset": "USDC",
+                            "balance": "2000",
+                            "indexPrice": "1",
+                            "notionalValue": "2000",
+                            "contributionFactor": "1",
+                            "equityContribution": "2000",
+                            "availableToWithdraw": "2000",
+                            "updatedAt": 1778124335048
+                        },
+                        {
+                            "accountId": 123,
+                            "asset": "WETH",
+                            "balance": "0.2",
+                            "indexPrice": "4000",
+                            "notionalValue": "800",
+                            "contributionFactor": "0.95",
+                            "equityContribution": "760",
+                            "availableToWithdraw": "0.2",
+                            "updatedAt": 1778124335048
+                        },
+                        {
+                            "accountId": 123,
+                            "asset": "WBTC",
+                            "balance": "0.028",
+                            "indexPrice": "100000",
+                            "notionalValue": "2800",
+                            "contributionFactor": "0.95",
+                            "equityContribution": "2660",
+                            "availableToWithdraw": "0.028",
+                            "updatedAt": 1778124335048
+                        }
+                    ],
+                    "USDC": {
+                        "free": 2000,
+                        "used": 0,
+                        "total": 2000
+                    },
+                    "WETH": {
+                        "free": 0.2,
+                        "used": 0,
+                        "total": 0.2
+                    },
+                    "WBTC": {
+                        "free": 0.028,
+                        "used": 0,
+                        "total": 0.028
+                    },
+                    "free": {
+                        "USDC": 2000,
+                        "WETH": 0.2,
+                        "WBTC": 0.028
+                    },
+                    "used": {
+                        "USDC": 0,
+                        "WETH": 0,
+                        "WBTC": 0
+                    },
+                    "total": {
+                        "USDC": 2000,
+                        "WETH": 0.2,
+                        "WBTC": 0.028
+                    }
+                }
+            }
+        ],
         "cancelOrder": [
             {
                 "description": "cancel order by id",
@@ -1909,7 +2021,7 @@
                 "description": "cancel order by clientOrderId",
                 "method": "cancelOrder",
                 "input": [
-                    "unused",
+                    null,
                     "BTC/USDC:USDC",
                     {
                         "clientOrderId": "3480985089570526249141260266819446928410958787024864860785196119336740291620"

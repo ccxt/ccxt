@@ -275,6 +275,14 @@
                 ]
             }
         ],
+        "fetchBalance": [
+            {
+                "description": "fetch balance",
+                "method": "fetchBalance",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/spot/balances",
+                "input": []
+            }
+        ],
         "cancelOrder": [
             {
                 "description": "cancel order by id",

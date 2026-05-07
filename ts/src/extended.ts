@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/extended.js';
 import { Precise } from './base/Precise.js';
-import type { Currencies, Currency, Dict, FundingRateHistory, Int, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingRateHistory, Int, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 import { ArgumentsRequired, BadRequest } from './base/errors.js';
 import { DECIMAL_PLACES, NO_PADDING, TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 
@@ -59,7 +59,7 @@ export default class extended extends Exchange {
                 'createTriggerOrder': false,
                 'editOrder': true,
                 'fetchAccounts': false,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
@@ -1114,6 +1114,64 @@ export default class extended extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'info': interest,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name extended#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://api.docs.extended.exchange/#get-spot-balances
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    async fetchBalance (params = {}): Promise<Balances> {
+        await this.loadMarkets ();
+        const response = await this.v1PrivateGetUserSpotBalances (params);
+        //
+        //     {
+        //         "status": "OK",
+        //         "data": [
+        //             {
+        //                 "accountId": 123,
+        //                 "asset": "USDC",
+        //                 "balance": "13500",
+        //                 "indexPrice": "1",
+        //                 "notionalValue": "13500",
+        //                 "contributionFactor": "1",
+        //                 "equityContribution": "13500",
+        //                 "availableToWithdraw": "100",
+        //                 "updatedAt": 1701563440
+        //             },
+        //             {
+        //                 "accountId": 123,
+        //                 "asset": "BTC",
+        //                 "balance": "0.5",
+        //                 "indexPrice": "65000",
+        //                 "notionalValue": "32500",
+        //                 "contributionFactor": "0.95",
+        //                 "equityContribution": "30875",
+        //                 "availableToWithdraw": "0.5",
+        //                 "updatedAt": 1701563440
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseBalance (data);
+    }
+
+    parseBalance (response): Balances {
+        const result: Dict = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const balance = this.safeDict (response, i, {});
+            const currencyId = this.safeString (balance, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'availableToWithdraw');
+            account['total'] = this.safeString (balance, 'balance');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
     }
 
     getExtendedStarkAmount (amount: string, resolution, roundUp = false): string {
