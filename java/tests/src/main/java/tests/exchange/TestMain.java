@@ -2632,7 +2632,7 @@ public class TestMain extends BaseTest
 
             if (Helpers.isTrue(Helpers.isEqual(this.lang, "java")))
             {
-                return false;  // skip for java for now due to issues with the starknet lib
+                return false;
             }
             Exchange exchange = this.initOfflineExchange("woofipro");
             exchange.secret = "secretsecretsecretsecretsecretsecretsecrets";
@@ -2726,7 +2726,6 @@ public class TestMain extends BaseTest
 
             if (Helpers.isTrue(Helpers.isEqual(this.lang, "java")))
             {
-                // skip for java for now due to issues with the required lib
                 return false;
             }
             Exchange exchange = this.initOfflineExchange("paradex");
@@ -2836,7 +2835,6 @@ public class TestMain extends BaseTest
 
             if (Helpers.isTrue(Helpers.isEqual(this.lang, "java")))
             {
-                // skip for java for now due to issues with the required lib
                 return false;
             }
             Exchange exchange = this.initOfflineExchange("derive");
@@ -2874,7 +2872,6 @@ public class TestMain extends BaseTest
 
             if (Helpers.isTrue(Helpers.isEqual(this.lang, "java")))
             {
-                // skip for java for now due to issues with the required lib
                 return false;
             }
             Exchange exchange = this.initOfflineExchange("modetrade");

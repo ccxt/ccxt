@@ -52,10 +52,6 @@ public class Exchange {
 
     // Basic info
     public String id = "Exchange";
-    public String name = "";
-    public Object countries = new java.util.ArrayList<>();
-    public boolean certified = false;
-    public boolean pro = false;
     public boolean alias = false;
     public String version = "";
     public String userAgent;                              // null by default

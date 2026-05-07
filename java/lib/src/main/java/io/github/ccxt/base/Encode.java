@@ -322,12 +322,18 @@ public final class Encode {
                     if (v2 instanceof Boolean) {
                         finalValue = finalValue.toLowerCase(Locale.ROOT);
                     }
-                    // keep brackets like the C# HttpUtility output (don’t encode '[' and ']')
-                    String composedKey = key + "[" + k2 + "]";
-                    parts.add(encodeURIComponent(composedKey) + "=" + encodeURIComponent(finalValue));
+                    // qs.stringify({encodeValuesOnly:true}) emits `key[subkey]=value`
+                    // with the brackets unencoded and the value URL-encoded
+                    // using qs's stricter set (e.g. `(` `)` → `%28` `%29`).
+                    // Use urlEncode (java.net.URLEncoder) for both name segments
+                    // and the value so brackets stay literal but parens encode.
+                    parts.add(urlEncode(key) + "[" + urlEncode(k2) + "]" + "=" + urlEncode(finalValue));
                 }
             } else {
-                parts.add(encodeURIComponent(key) + "=" + encodeURIComponent(String.valueOf(value)));
+                // Use urlEncode (qs-style stricter set: encodes `()`, `[]`,
+                // matches Python qs.stringify default and what kraken's
+                // signature-included body expects).
+                parts.add(urlEncode(key) + "=" + urlEncode(String.valueOf(value)));
             }
         }
         return String.join("&", parts);
@@ -382,7 +388,12 @@ public final class Encode {
 
     public static String encodeURIComponent(Object str2) {
         String str = (String) str2;
-        String unreserved = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.~[]";
+        // Match JS encodeURIComponent: unreserved set is A-Z a-z 0-9 - _ . ~ ! * ' ( )
+        // Brackets `[` `]` ARE encoded. (The previous version included them in
+        // the unreserved set to mimic C# HttpUtility output, but TS sources
+        // call encodeURIComponent expecting JS semantics — e.g. aster.cancelOrders
+        // produces `orderIdList=%5B...%5D`.)
+        String unreserved = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.~!*'()";
 
         StringBuilder result = new StringBuilder(str.length() * 3);
 

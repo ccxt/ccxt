@@ -20,6 +20,12 @@ public class Generic {
     public static double toDouble(Object o) {
         if (o == null) return 0.0;
         if (o instanceof Number n) return n.doubleValue();
+        // JS coerces booleans to 0/1 in arithmetic (e.g. `true + 1 == 2`).
+        // bitget.createOrderRequest does `this.sum(isTriggerOrder, isStopLoss…) > 1`
+        // with boolean inputs; Java's strict typing means we have to handle the
+        // bool→double coercion ourselves here, otherwise String.valueOf(false)
+        // → "false" → Double.parseDouble throws NumberFormatException.
+        if (o instanceof Boolean b) return b ? 1.0 : 0.0;
         return Double.parseDouble(String.valueOf(o));
     }
 
