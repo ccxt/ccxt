@@ -86,3 +86,22 @@ class Throttler:
             self.running = True
             asyncio.ensure_future(self.looper(), loop=self.loop)
         return future
+
+    def drain(self, target_throttler):
+        self.running = False
+        while self.queue:
+            future, cost = self.queue.popleft()
+            if not future.done():
+                migrated = target_throttler(cost)
+                migrated.add_done_callback(lambda f, orig=future: _settle_future_helper(f, orig))
+
+
+def _settle_future_helper(src, dst):
+    if dst.done():
+        return
+    if src.cancelled():
+        dst.cancel()
+    elif src.exception():
+        dst.set_exception(src.exception())
+    else:
+        dst.set_result(src.result())
