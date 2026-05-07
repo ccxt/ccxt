@@ -2,6 +2,7 @@ import assert from 'assert';
 import { Exchange } from "../../../ccxt";
 import testTicker from './base/test.ticker.js';
 import testSharedMethods from './base/test.sharedMethods.js';
+import { Any } from '../../static_dependencies/dydx-v4-client/google/protobuf/any';
 
 async function testFetchTickers (exchange: Exchange, skippedProperties: object, symbol: string) {
     const withoutSymbol = testFetchTickersHelper (exchange, skippedProperties, undefined);
@@ -27,30 +28,33 @@ async function testFetchTickersHelper (exchange: Exchange, skippedProperties: ob
         try {
             testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
         } catch (ex) {
-            // only skip cases when it's the first day of listing, otherwise rethrow abnormality
-            const eMessage = exchange.exceptionMessage (ex, false);
-            const triggerError = eMessage === '';
-            if (eMessage.indexOf ('percentage should be above') >= 0 || eMessage.indexOf ('percentage should be below') >= 0) {
-                const symbol = ticker['symbol'];
-                if (symbol !== undefined) {
-                    // if it's not in markets, then maybe newly added symbol, so can can compromise there
-                    if (!(symbol in exchange.markets)) {
-                        continue;
-                    }
-                    // if OHLCV supported
-                    if (exchange.featureValue (symbol, 'fetchOHLCV') !== undefined) {
-                        const ohlcv = await exchange.fetchOHLCV (symbol, '1d', undefined, 5);
-                        if (ohlcv.length <= 1) {
-                            // if only 1 day, then allow it
-                            continue;
-                        }
-                    }
-                }
-            }
-            assert (triggerError, eMessage);
+            await validateTickerException (ex, exchange, ticker);
         }
     }
     return response;
+}
+
+async function validateTickerException (ex: any, exchange: Exchange, ticker: any) {
+    // only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
+    const eMessage = exchange.exceptionMessage (ex, false);
+    if (eMessage.indexOf ('percentage should be above') >= 0 || eMessage.indexOf ('percentage should be below') >= 0) {
+        const symbol = ticker['symbol'];
+        if (symbol !== undefined) {
+            // if it's not in markets, then maybe newly added symbol, so can can compromise there
+            if (!(symbol in exchange.markets)) {
+                return;
+            }
+            // if OHLCV supported
+            if (exchange.featureValue (symbol, 'fetchOHLCV') !== undefined) {
+                const ohlcv = await exchange.fetchOHLCV (symbol, '1d', undefined, 5);
+                if (ohlcv.length <= 1) {
+                    // if only 1 day, then allow it
+                    return;
+                }
+            }
+        }
+    }
+    assert (eMessage === '', eMessage); // trigger error
 }
 
 function testFetchTickersAmounts (exchange: Exchange, skippedProperties: object, tickers: any) {
