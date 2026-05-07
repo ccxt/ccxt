@@ -125,7 +125,6 @@ class Throttler {
         }
         return promise;
     }
-}
 
     drain (targetThrottler) {
         this.running = false;
