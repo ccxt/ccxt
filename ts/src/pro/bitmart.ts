@@ -162,11 +162,10 @@ export default class bitmart extends bitmartRest {
             const market = this.market (symbols[i]);
             const rawHash = channelType + '/' + channel + ':' + market['id'];
             const messageHash = prefix + unifiedName + '::' + market['symbol'];
-            if (this.subscriptionExistsForHash (url, messageHash)) {
-                continue;
-            }
-            rawSubscriptions.push (rawHash);
             messageHashes.push (messageHash);
+            if (!this.subscriptionExistsForHash (url, messageHash)) {
+                rawSubscriptions.push (rawHash);
+            }
         }
         // as an exclusion, futures "tickers" need one generic request for all symbols
         // if ((type !== 'spot') && (channel === 'ticker')) {
@@ -510,11 +509,10 @@ export default class bitmart extends bitmartRest {
             const market = this.market (symbols[i]);
             const rawHash = channelType + ':' + market['id'];
             const messageHash = 'bidask::' + market['symbol'];
-            if (this.subscriptionExistsForHash (url, messageHash)) {
-                continue;
-            }
-            rawSubscriptions.push (rawHash);
             messageHashes.push (messageHash);
+            if (!this.subscriptionExistsForHash (url, messageHash)) {
+                rawSubscriptions.push (rawHash);
+            }
         }
         if (marketType !== 'spot') {
             rawSubscriptions = [ channelType ];
