@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/extended.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currencies, Currency, Dict, FundingRateHistory, Int, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingRateHistory, Int, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 import { ArgumentsRequired, BadRequest } from './base/errors.js';
 import { DECIMAL_PLACES, NO_PADDING, TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 
@@ -116,7 +116,7 @@ export default class extended extends Exchange {
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
-                'fetchPositions': false,
+                'fetchPositions': true,
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -1174,6 +1174,121 @@ export default class extended extends Exchange {
         return this.safeBalance (result);
     }
 
+    /**
+     * @method
+     * @name extended#fetchPositions
+     * @description fetch all open positions
+     * @see https://api.docs.extended.exchange/#get-positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        if (symbols !== undefined) {
+            const marketIds = this.marketIds (symbols);
+            request['market'] = (marketIds.length === 1) ? marketIds[0] : marketIds;
+        }
+        const response = await this.v1PrivateGetUserPositions (this.extend (request, params));
+        //
+        //     {
+        //         "status": "OK",
+        //         "data": [
+        //             {
+        //                 "id": 1,
+        //                 "accountId": 1,
+        //                 "market": "BTC-USD",
+        //                 "side": "LONG",
+        //                 "leverage": "10",
+        //                 "size": "0.1",
+        //                 "value": "4000",
+        //                 "openPrice": "39000",
+        //                 "markPrice": "40000",
+        //                 "liquidationPrice": "38200",
+        //                 "margin": "20",
+        //                 "unrealisedPnl": "1000",
+        //                 "realisedPnl": "1.2",
+        //                 "tpTriggerPrice": "41000",
+        //                 "tpLimitPrice": "41500",
+        //                 "slTriggerPrice": "39500",
+        //                 "slLimitPrice": "39000",
+        //                 "adl": "2.5",
+        //                 "maxPositionSize": "0.2",
+        //                 "createdAt": 1701563440000,
+        //                 "updatedAt": 1701563440000
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parsePositions (data, symbols);
+    }
+
+    parsePosition (position: Dict, market: Market = undefined): Position {
+        //
+        //     {
+        //         "id": 1,
+        //         "accountId": 1,
+        //         "market": "BTC-USD",
+        //         "side": "LONG",
+        //         "leverage": "10",
+        //         "size": "0.1",
+        //         "value": "4000",
+        //         "openPrice": "39000",
+        //         "markPrice": "40000",
+        //         "liquidationPrice": "38200",
+        //         "margin": "20",
+        //         "unrealisedPnl": "1000",
+        //         "realisedPnl": "1.2",
+        //         "tpTriggerPrice": "41000",
+        //         "tpLimitPrice": "41500",
+        //         "slTriggerPrice": "39500",
+        //         "slLimitPrice": "39000",
+        //         "adl": "2.5",
+        //         "maxPositionSize": "0.2",
+        //         "createdAt": 1701563440000,
+        //         "updatedAt": 1701563440000
+        //     }
+        //
+        const marketId = this.safeString (position, 'market');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger2 (position, 'createdAt', 'createdTime');
+        const lastUpdateTimestamp = this.safeInteger2 (position, 'updatedAt', 'updatedTime');
+        const side = this.safeStringLower (position, 'side');
+        const margin = this.safeString (position, 'margin');
+        return this.safePosition ({
+            'info': position,
+            'id': this.safeString (position, 'id'),
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastUpdateTimestamp': lastUpdateTimestamp,
+            'initialMargin': margin,
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'entryPrice': this.safeString (position, 'openPrice'),
+            'notional': this.safeString (position, 'value'),
+            'leverage': this.safeString (position, 'leverage'),
+            'unrealizedPnl': this.safeString (position, 'unrealisedPnl'),
+            'realizedPnl': this.safeString (position, 'realisedPnl'),
+            'contracts': this.safeString (position, 'size'),
+            'contractSize': this.safeString (market, 'contractSize'),
+            'marginRatio': undefined,
+            'liquidationPrice': this.safeString (position, 'liquidationPrice'),
+            'markPrice': this.safeString (position, 'markPrice'),
+            'lastPrice': undefined,
+            'collateral': margin,
+            'marginMode': undefined,
+            'side': side,
+            'percentage': undefined,
+            'hedged': undefined,
+            'stopLossPrice': this.safeString (position, 'slTriggerPrice'),
+            'takeProfitPrice': this.safeString (position, 'tpTriggerPrice'),
+        });
+    }
+
     getExtendedStarkAmount (amount: string, resolution, roundUp = false): string {
         const resolutionString = this.numberToString (resolution);
         const precise = Precise.stringMul (amount, resolutionString);
@@ -1475,13 +1590,15 @@ export default class extended extends Exchange {
         //         "status": "OK"
         //     }
         //
+        const orderId = (clientOrderId === undefined) ? id : undefined;
+        const orderSymbol = (market === undefined) ? symbol : market['symbol'];
         return this.safeOrder ({
             'info': response,
-            'id': (clientOrderId === undefined) ? id : undefined,
+            'id': orderId,
             'clientOrderId': clientOrderId,
             'timestamp': undefined,
             'datetime': undefined,
-            'symbol': (market === undefined) ? symbol : market['symbol'],
+            'symbol': orderSymbol,
             'status': 'canceled',
         }, market);
     }

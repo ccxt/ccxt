@@ -1974,6 +1974,91 @@
                 }
             }
         ],
+        "fetchPositions": [
+            {
+                "description": "fetch positions with symbol",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "BTC/USDC:USDC"
+                    ]
+                ],
+                "httpResponse": {
+                    "status": "OK",
+                    "data": [
+                        {
+                            "id": "2052253880279891968",
+                            "accountId": "3342",
+                            "market": "BTC-USD",
+                            "status": "OPENED",
+                            "side": "LONG",
+                            "leverage": "10",
+                            "size": "0.00010",
+                            "value": "8.100330",
+                            "openPrice": "81500.0",
+                            "markPrice": "81003.306447000009",
+                            "liquidationPrice": "0",
+                            "margin": "0.081003",
+                            "unrealisedPnl": "-0.049670",
+                            "midPriceUnrealisedPnl": "-0.195000",
+                            "realisedPnl": "-0.004075",
+                            "createdAt": 1778130428762,
+                            "updatedAt": 1778131656790
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "2052253880279891968",
+                            "accountId": "3342",
+                            "market": "BTC-USD",
+                            "status": "OPENED",
+                            "side": "LONG",
+                            "leverage": "10",
+                            "size": "0.00010",
+                            "value": "8.100330",
+                            "openPrice": "81500.0",
+                            "markPrice": "81003.306447000009",
+                            "liquidationPrice": "0",
+                            "margin": "0.081003",
+                            "unrealisedPnl": "-0.049670",
+                            "midPriceUnrealisedPnl": "-0.195000",
+                            "realisedPnl": "-0.004075",
+                            "createdAt": 1778130428762,
+                            "updatedAt": 1778131656790
+                        },
+                        "id": "2052253880279891968",
+                        "symbol": "BTC/USDC:USDC",
+                        "timestamp": 1778130428762,
+                        "datetime": "2026-05-07T05:07:08.762Z",
+                        "lastUpdateTimestamp": 1778131656790,
+                        "initialMargin": "0.081003",
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": "81500.0",
+                        "notional": "8.100330",
+                        "leverage": "10",
+                        "unrealizedPnl": "-0.049670",
+                        "realizedPnl": "-0.004075",
+                        "contracts": "0.00010",
+                        "contractSize": "1",
+                        "marginRatio": null,
+                        "liquidationPrice": "0",
+                        "markPrice": "81003.306447000009",
+                        "lastPrice": null,
+                        "collateral": "0.081003",
+                        "marginMode": null,
+                        "side": "long",
+                        "percentage": null,
+                        "hedged": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    }
+                ]
+            }
+        ],
         "cancelOrder": [
             {
                 "description": "cancel order by id",
