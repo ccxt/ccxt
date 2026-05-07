@@ -127,6 +127,15 @@ class Throttler {
     }
 }
 
+    drain (targetThrottler: Throttler) {
+        this.running = false;
+        while (this.queue.length > 0) {
+            const { resolver, cost } = this.queue.shift ();
+            targetThrottler.throttle (cost).then (resolver);
+        }
+    }
+}
+
 export {
     Throttler,
 };
