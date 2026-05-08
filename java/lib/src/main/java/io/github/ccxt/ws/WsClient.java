@@ -418,7 +418,7 @@ public class WsClient {
                             // callback was not overriden we still need to send the frame
                             if (this.channel != null && this.channel.isActive()) {
                                 if (this.verbose) {
-                                    System.out.println(getFormattedDate() + " Ping Frame: " + this.lastPong);
+                                    System.out.println(getFormattedDate() + "Ping Frame: " + this.lastPong);
                                 }
                                 this.channel.writeAndFlush(new PingWebSocketFrame());
                             }
@@ -429,7 +429,7 @@ public class WsClient {
                     }
                 } else if (this.channel != null && this.channel.isActive()) {
                     if (this.verbose) {
-                        System.out.println(getFormattedDate() + " Ping Frame: " + this.lastPong);
+                        System.out.println(getFormattedDate() + "Ping Frame: " + this.lastPong);
                     }
                     this.channel.writeAndFlush(new PingWebSocketFrame());
                 }
@@ -658,6 +658,12 @@ public class WsClient {
 
             } else if (frame instanceof CloseWebSocketFrame closeFrame) {
                 wsClient.onClose("Server closed: " + closeFrame.statusCode() + " " + closeFrame.reasonText());
+            } else if (frame instanceof PingWebSocketFrame pingFrame) {
+                if (wsClient.verbose) {
+                    System.out.println(getFormattedDate() + "Received Ping Frame will respond with Pong");
+                }
+//                wsClient.channel.writeAndFlush(new PingWebSocketFrame());
+                wsClient.channel.writeAndFlush(new PongWebSocketFrame(pingFrame.content().retain()));
             }
         }
 
