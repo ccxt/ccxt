@@ -172,6 +172,25 @@ public class Throttler
         return t;
     }
 
+    public void drain(Throttler targetThrottler)
+    {
+        this.running = false;
+        lock (queueLock)
+        {
+            while (this.queue.Count > 0)
+            {
+                var item = this.queue.Dequeue();
+                var task = item.Item1;
+                var cost = item.Item2;
+                _ = targetThrottler.throttle(cost).ContinueWith(t =>
+                {
+                    var inner = t.Result;
+                    if (task != null && task.Status == TaskStatus.Created)
+                        task.Start();
+                });
+            }
+        }
+    }
 
     // move this elsewhere later
     private dict extend(object aa, object bb)
