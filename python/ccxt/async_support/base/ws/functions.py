@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from zlib import decompress, MAX_WBITS
-from base64 import b64decode
 from gzip import GzipFile
 from io import BytesIO
 import time
@@ -9,11 +8,7 @@ import datetime
 
 
 def inflate(data):
-    return decompress(data, -MAX_WBITS).decode('utf-8')
-
-
-def inflate64(data):
-    return inflate(b64decode(data))
+    return decompress(data, -MAX_WBITS)
 
 
 def gunzip(data):
@@ -34,7 +29,7 @@ def iso8601(timestamp=None):
     if int(timestamp) < 0:
         return None
     try:
-        utc = datetime.datetime.utcfromtimestamp(timestamp // 1000)
+        utc = datetime.datetime.fromtimestamp(timestamp // 1000, datetime.timezone.utc)
         return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:03d}".format(int(timestamp) % 1000) + 'Z'
     except (TypeError, OverflowError, OSError):
         return None

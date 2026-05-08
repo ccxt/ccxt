@@ -9,7 +9,12 @@ import Exchange from './abstract/coinspot.js';
 import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
+import { Precise } from './base/Precise.js';
 //  ---------------------------------------------------------------------------
+/**
+ * @class coinspot
+ * @augments Exchange
+ */
 export default class coinspot extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -17,6 +22,7 @@ export default class coinspot extends Exchange {
             'name': 'CoinSpot',
             'countries': ['AU'],
             'rateLimit': 1000,
+            'pro': false,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -25,44 +31,86 @@ export default class coinspot extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createMarketOrder': false,
                 'createOrder': true,
+                'createOrderWithTakeProfitAndStopLoss': false,
+                'createOrderWithTakeProfitAndStopLossWs': false,
+                'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
+                'fetchMyTrades': true,
+                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
+                'fetchVolatilityHistory': false,
                 'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
+                'repayMargin': false,
                 'setLeverage': false,
+                'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'ws': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg',
@@ -107,28 +155,146 @@ export default class coinspot extends Exchange {
                         'ro/my/referralpayments',
                     ],
                 },
+                'v2': {
+                    'public': {
+                        'get': [
+                            'latest',
+                            'latest/{cointype}',
+                            'latest/{cointype}/{markettype}',
+                            'buyprice/{cointype}',
+                            'buyprice/{cointype}/{markettype}',
+                            'sellprice/{cointype}',
+                            'sellprice/{cointype}/{markettype}',
+                            'orders/open/{cointype}',
+                            'orders/open/{cointype}/{markettype}',
+                            'orders/completed/{cointype}',
+                            'orders/completed/{cointype}/{markettype}',
+                            'orders/summary/completed/{cointype}',
+                            'orders/summary/completed/{cointype}/{markettype}',
+                        ],
+                    },
+                    'private': {
+                        'post': [
+                            // Status & Account
+                            'status',
+                            'my/coin/deposit',
+                            // Quotes
+                            'quote/buy/now',
+                            'quote/sell/now',
+                            'quote/swap/now',
+                            // Market Orders
+                            'my/buy',
+                            'my/buy/edit',
+                            'my/sell',
+                            'my/sell/edit',
+                            // Instant Orders
+                            'my/buy/now',
+                            'my/sell/now',
+                            'my/swap/now',
+                            // Cancel Orders
+                            'my/buy/cancel',
+                            'my/buy/cancel/all',
+                            'my/sell/cancel',
+                            'my/sell/cancel/all',
+                            // Withdrawals
+                            'my/coin/withdraw/senddetails',
+                            'my/coin/withdraw/send',
+                            // Read Only Status
+                            'ro/status',
+                            // Read Only Market Orders
+                            'ro/orders/market/open',
+                            'ro/orders/market/completed',
+                            // Read Only Balances
+                            'ro/my/balances',
+                            'ro/my/balance/{cointype}',
+                            // Read Only Orders
+                            'ro/my/orders/market/open',
+                            'ro/my/orders/limit/open',
+                            'ro/my/orders/completed',
+                            'ro/my/orders/market/completed',
+                            // Read Only Transactions
+                            'ro/my/sendreceive',
+                            'ro/my/deposits',
+                            'ro/my/withdrawals',
+                            // Read Only Payments
+                            'ro/my/affiliatepayments',
+                            'ro/my/referralpayments',
+                        ],
+                    },
+                },
             },
             'markets': {
-                'ADA/AUD': { 'id': 'ada', 'symbol': 'ADA/AUD', 'base': 'ADA', 'quote': 'AUD', 'baseId': 'ada', 'quoteId': 'aud', 'type': 'spot', 'spot': true },
-                'BTC/AUD': { 'id': 'btc', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', 'baseId': 'btc', 'quoteId': 'aud', 'type': 'spot', 'spot': true },
-                'ETH/AUD': { 'id': 'eth', 'symbol': 'ETH/AUD', 'base': 'ETH', 'quote': 'AUD', 'baseId': 'eth', 'quoteId': 'aud', 'type': 'spot', 'spot': true },
-                'XRP/AUD': { 'id': 'xrp', 'symbol': 'XRP/AUD', 'base': 'XRP', 'quote': 'AUD', 'baseId': 'xrp', 'quoteId': 'aud', 'type': 'spot', 'spot': true },
-                'LTC/AUD': { 'id': 'ltc', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD', 'baseId': 'ltc', 'quoteId': 'aud', 'type': 'spot', 'spot': true },
-                'DOGE/AUD': { 'id': 'doge', 'symbol': 'DOGE/AUD', 'base': 'DOGE', 'quote': 'AUD', 'baseId': 'doge', 'quoteId': 'aud', 'type': 'spot', 'spot': true },
-                'RFOX/AUD': { 'id': 'rfox', 'symbol': 'RFOX/AUD', 'base': 'RFOX', 'quote': 'AUD', 'baseId': 'rfox', 'quoteId': 'aud', 'type': 'spot', 'spot': true },
-                'POWR/AUD': { 'id': 'powr', 'symbol': 'POWR/AUD', 'base': 'POWR', 'quote': 'AUD', 'baseId': 'powr', 'quoteId': 'aud', 'type': 'spot', 'spot': true },
-                'NEO/AUD': { 'id': 'neo', 'symbol': 'NEO/AUD', 'base': 'NEO', 'quote': 'AUD', 'baseId': 'neo', 'quoteId': 'aud', 'type': 'spot', 'spot': true },
-                'TRX/AUD': { 'id': 'trx', 'symbol': 'TRX/AUD', 'base': 'TRX', 'quote': 'AUD', 'baseId': 'trx', 'quoteId': 'aud', 'type': 'spot', 'spot': true },
-                'EOS/AUD': { 'id': 'eos', 'symbol': 'EOS/AUD', 'base': 'EOS', 'quote': 'AUD', 'baseId': 'eos', 'quoteId': 'aud', 'type': 'spot', 'spot': true },
-                'XLM/AUD': { 'id': 'xlm', 'symbol': 'XLM/AUD', 'base': 'XLM', 'quote': 'AUD', 'baseId': 'xlm', 'quoteId': 'aud', 'type': 'spot', 'spot': true },
-                'RHOC/AUD': { 'id': 'rhoc', 'symbol': 'RHOC/AUD', 'base': 'RHOC', 'quote': 'AUD', 'baseId': 'rhoc', 'quoteId': 'aud', 'type': 'spot', 'spot': true },
-                'GAS/AUD': { 'id': 'gas', 'symbol': 'GAS/AUD', 'base': 'GAS', 'quote': 'AUD', 'baseId': 'gas', 'quoteId': 'aud', 'type': 'spot', 'spot': true },
+                'BTC/AUD': this.safeMarketStructure({ 'id': 'btc', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', 'baseId': 'btc', 'quoteId': 'aud', 'type': 'spot', 'spot': true }),
+                'BTC/USDT': this.safeMarketStructure({ 'id': 'btc', 'symbol': 'BTC/USDT', 'base': 'BTC', 'quote': 'USDT', 'baseId': 'btc', 'quoteId': 'usdt', 'type': 'spot', 'spot': true }),
+                'USDT/AUD': this.safeMarketStructure({ 'id': 'usdt', 'symbol': 'USDT/AUD', 'base': 'USDT', 'quote': 'AUD', 'baseId': 'usdt', 'quoteId': 'aud', 'type': 'spot', 'spot': true }),
+                'ETH/AUD': this.safeMarketStructure({ 'id': 'eth', 'symbol': 'ETH/AUD', 'base': 'ETH', 'quote': 'AUD', 'baseId': 'eth', 'quoteId': 'aud', 'type': 'spot', 'spot': true }),
+                'ADA/AUD': this.safeMarketStructure({ 'id': 'ada', 'symbol': 'ADA/AUD', 'base': 'ADA', 'quote': 'AUD', 'baseId': 'ada', 'quoteId': 'aud', 'type': 'spot', 'spot': true }),
+                'SOL/AUD': this.safeMarketStructure({ 'id': 'sol', 'symbol': 'SOL/AUD', 'base': 'SOL', 'quote': 'AUD', 'baseId': 'sol', 'quoteId': 'aud', 'type': 'spot', 'spot': true }),
+                'XRP/AUD': this.safeMarketStructure({ 'id': 'xrp', 'symbol': 'XRP/AUD', 'base': 'XRP', 'quote': 'AUD', 'baseId': 'xrp', 'quoteId': 'aud', 'type': 'spot', 'spot': true }),
+                'DOGE/AUD': this.safeMarketStructure({ 'id': 'doge', 'symbol': 'DOGE/AUD', 'base': 'DOGE', 'quote': 'AUD', 'baseId': 'doge', 'quoteId': 'aud', 'type': 'spot', 'spot': true }),
+                'LTC/AUD': this.safeMarketStructure({ 'id': 'ltc', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD', 'baseId': 'ltc', 'quoteId': 'aud', 'type': 'spot', 'spot': true }),
+                'XLM/AUD': this.safeMarketStructure({ 'id': 'xlm', 'symbol': 'XLM/AUD', 'base': 'XLM', 'quote': 'AUD', 'baseId': 'xlm', 'quoteId': 'aud', 'type': 'spot', 'spot': true }),
+                'TRX/AUD': this.safeMarketStructure({ 'id': 'trx', 'symbol': 'TRX/AUD', 'base': 'TRX', 'quote': 'AUD', 'baseId': 'trx', 'quoteId': 'aud', 'type': 'spot', 'spot': true }),
+                'EOS/AUD': this.safeMarketStructure({ 'id': 'eos', 'symbol': 'EOS/AUD', 'base': 'EOS', 'quote': 'AUD', 'baseId': 'eos', 'quoteId': 'aud', 'type': 'spot', 'spot': true }),
+                'A/AUD': this.safeMarketStructure({ 'id': 'eos', 'symbol': 'A/AUD', 'base': 'A', 'quote': 'AUD', 'baseId': 'eos', 'quoteId': 'aud', 'type': 'spot', 'spot': true }),
+                'NEO/AUD': this.safeMarketStructure({ 'id': 'neo', 'symbol': 'NEO/AUD', 'base': 'NEO', 'quote': 'AUD', 'baseId': 'ans', 'quoteId': 'aud', 'type': 'spot', 'spot': true }),
+                'POWR/AUD': this.safeMarketStructure({ 'id': 'powr', 'symbol': 'POWR/AUD', 'base': 'POWR', 'quote': 'AUD', 'baseId': 'powr', 'quoteId': 'aud', 'type': 'spot', 'spot': true }),
+                'GAS/AUD': this.safeMarketStructure({ 'id': 'gas', 'symbol': 'GAS/AUD', 'base': 'GAS', 'quote': 'AUD', 'baseId': 'gas', 'quoteId': 'aud', 'type': 'spot', 'spot': true }),
+                'RHOC/AUD': this.safeMarketStructure({ 'id': 'rhoc', 'symbol': 'RHOC/AUD', 'base': 'RHOC', 'quote': 'AUD', 'baseId': 'rhoc', 'quoteId': 'aud', 'type': 'spot', 'spot': true }),
             },
             'commonCurrencies': {
                 'DRK': 'DASH',
             },
             'options': {
                 'fetchBalance': 'private_post_my_balances',
+            },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': undefined,
+                    'fetchOpenOrders': undefined,
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': undefined,
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
             },
             'precisionMode': TICK_SIZE,
         });
@@ -162,14 +328,15 @@ export default class coinspot extends Exchange {
         }
         return this.safeBalance(result);
     }
+    /**
+     * @method
+     * @name coinspot#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.coinspot.com.au/api#listmybalance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
     async fetchBalance(params = {}) {
-        /**
-         * @method
-         * @name coinspot#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the coinspot api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
-         */
         await this.loadMarkets();
         const method = this.safeString(this.options, 'fetchBalance', 'private_post_my_balances');
         const response = await this[method](params);
@@ -191,16 +358,17 @@ export default class coinspot extends Exchange {
         //
         return this.parseBalance(response);
     }
+    /**
+     * @method
+     * @name coinspot#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.coinspot.com.au/api#listopenorders
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinspot#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the coinspot api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -244,21 +412,22 @@ export default class coinspot extends Exchange {
             'info': ticker,
         }, market);
     }
+    /**
+     * @method
+     * @name coinspot#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://www.coinspot.com.au/api#latestprices
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
     async fetchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name coinspot#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the coinspot api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const response = await this.publicGetLatest(params);
         let id = market['id'];
         id = id.toLowerCase();
-        const prices = this.safeValue(response, 'prices');
+        const prices = this.safeDict(response, 'prices', {});
         //
         //     {
         //         "status":"ok",
@@ -271,40 +440,40 @@ export default class coinspot extends Exchange {
         //         }
         //     }
         //
-        const ticker = this.safeValue(prices, id);
+        const ticker = this.safeDict(prices, id);
         return this.parseTicker(ticker, market);
     }
+    /**
+     * @method
+     * @name coinspot#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://www.coinspot.com.au/api#latestprices
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
     async fetchTickers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinspot#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @see https://www.coinspot.com.au/api#latestprices
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the coinspot api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const response = await this.publicGetLatest(params);
         //
         //    {
         //        "status": "ok",
-        //        "prices": {
-        //        "btc": {
-        //        "bid": "25050",
-        //        "ask": "25370",
-        //        "last": "25234"
-        //        },
-        //        "ltc": {
-        //        "bid": "79.39192993",
-        //        "ask": "87.98",
-        //        "last": "87.95"
+        //        "prices":   {
+        //            "btc":   {
+        //                "bid": "25050",
+        //                "ask": "25370",
+        //                "last": "25234"
+        //            },
+        //            "ltc":   {
+        //                "bid": "79.39192993",
+        //                "ask": "87.98",
+        //                "last": "87.95"
+        //            }
         //        }
-        //      }
         //    }
         //
         const result = {};
-        const prices = this.safeValue(response, 'prices');
+        const prices = this.safeDict(response, 'prices', {});
         const ids = Object.keys(prices);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
@@ -315,19 +484,20 @@ export default class coinspot extends Exchange {
                 result[symbol] = this.parseTicker(ticker, market);
             }
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
+    /**
+     * @method
+     * @name coinspot#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://www.coinspot.com.au/api#orderhistory
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinspot#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the coinspot api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -342,7 +512,66 @@ export default class coinspot extends Exchange {
         //         ],
         //     }
         //
-        const trades = this.safeValue(response, 'orders', []);
+        const trades = this.safeList(response, 'orders', []);
+        return this.parseTrades(trades, market, since, limit);
+    }
+    /**
+     * @method
+     * @name coinspot#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://www.coinspot.com.au/api#rotransaction
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        if (since !== undefined) {
+            request['startdate'] = this.yyyymmdd(since);
+        }
+        const response = await this.privatePostRoMyTransactions(this.extend(request, params));
+        //  {
+        //      "status": "ok",
+        //      "buyorders": [
+        //          {
+        //              "otc": false,
+        //              "market": "ALGO/AUD",
+        //              "amount": 386.95197925,
+        //              "created": "2022-10-20T09:56:44.502Z",
+        //              "audfeeExGst": 1.80018002,
+        //              "audGst": 0.180018,
+        //              "audtotal": 200
+        //          },
+        //      ],
+        //      "sellorders": [
+        //          {
+        //              "otc": false,
+        //              "market": "SOLO/ALGO",
+        //              "amount": 154.52345614,
+        //              "total": 115.78858204658796,
+        //              "created": "2022-04-16T09:36:43.698Z",
+        //              "audfeeExGst": 1.08995731,
+        //              "audGst": 0.10899573,
+        //              "audtotal": 118.7
+        //          },
+        //      ]
+        // }
+        const buyTrades = this.safeList(response, 'buyorders', []);
+        for (let i = 0; i < buyTrades.length; i++) {
+            buyTrades[i]['side'] = 'buy';
+        }
+        const sellTrades = this.safeList(response, 'sellorders', []);
+        for (let i = 0; i < sellTrades.length; i++) {
+            sellTrades[i]['side'] = 'sell';
+        }
+        const trades = this.arrayConcat(buyTrades, sellTrades);
         return this.parseTrades(trades, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
@@ -358,12 +587,47 @@ export default class coinspot extends Exchange {
         //         "market":"BTC/AUD"
         //     }
         //
-        const priceString = this.safeString(trade, 'rate');
+        // private fetchMyTrades
+        //     {
+        //       "otc": false,
+        //       "market": "ALGO/AUD",
+        //       "amount": 386.95197925,
+        //       "created": "2022-10-20T09:56:44.502Z",
+        //       "audfeeExGst": 1.80018002,
+        //       "audGst": 0.180018,
+        //       "audtotal": 200,
+        //       "total": 200,
+        //       "side": "buy",
+        //       "price": 0.5168600000125209
+        //     }
+        let timestamp = undefined;
+        let priceString = undefined;
+        let fee = undefined;
+        const audTotal = this.safeString(trade, 'audtotal');
+        const costString = this.safeString(trade, 'total', audTotal);
+        const side = this.safeString(trade, 'side');
         const amountString = this.safeString(trade, 'amount');
-        const costString = this.safeNumber(trade, 'total');
-        const timestamp = this.safeInteger(trade, 'solddate');
         const marketId = this.safeString(trade, 'market');
         const symbol = this.safeSymbol(marketId, market, '/');
+        const solddate = this.safeInteger(trade, 'solddate');
+        if (solddate !== undefined) {
+            priceString = this.safeString(trade, 'rate');
+            timestamp = solddate;
+        }
+        else {
+            priceString = Precise.stringDiv(costString, amountString);
+            const createdString = this.safeString(trade, 'created');
+            timestamp = this.parse8601(createdString);
+            const audfeeExGst = this.safeString(trade, 'audfeeExGst');
+            const audGst = this.safeString(trade, 'audGst');
+            // The transaction fee which consumers pay is inclusive of GST by default
+            const feeCost = Precise.stringAdd(audfeeExGst, audGst);
+            const feeCurrencyId = 'AUD';
+            fee = {
+                'cost': this.parseNumber(feeCost),
+                'currency': this.safeCurrencyCode(feeCurrencyId),
+            };
+        }
         return this.safeTrade({
             'info': trade,
             'id': undefined,
@@ -372,28 +636,28 @@ export default class coinspot extends Exchange {
             'datetime': this.iso8601(timestamp),
             'order': undefined,
             'type': undefined,
-            'side': undefined,
+            'side': side,
             'takerOrMaker': undefined,
-            'price': priceString,
-            'amount': amountString,
-            'cost': costString,
-            'fee': undefined,
+            'price': this.parseNumber(priceString),
+            'amount': this.parseNumber(amountString),
+            'cost': this.parseNumber(costString),
+            'fee': fee,
         }, market);
     }
+    /**
+     * @method
+     * @name coinspot#createOrder
+     * @description create a trade order
+     * @see https://www.coinspot.com.au/api#placebuyorder
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type must be 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinspot#createOrder
-         * @description create a trade order
-         * @see https://www.coinspot.com.au/api#placebuyorder
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type must be 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the coinspot api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const method = 'privatePostMy' + this.capitalize(side);
         if (type === 'market') {
@@ -405,32 +669,51 @@ export default class coinspot extends Exchange {
             'amount': amount,
             'rate': price,
         };
-        return await this[method](this.extend(request, params));
+        const response = await this[method](this.extend(request, params));
+        return this.parseOrder(response);
     }
+    /**
+     * @method
+     * @name coinspot#cancelOrder
+     * @description cancels an open order
+     * @see https://www.coinspot.com.au/api#cancelbuyorder
+     * @see https://www.coinspot.com.au/api#cancelsellorder
+     * @param {string} id order id
+     * @param {string} symbol not used by coinspot cancelOrder ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinspot#cancelOrder
-         * @description cancels an open order
-         * @param {string} id order id
-         * @param {string|undefined} symbol not used by coinspot cancelOrder ()
-         * @param {object} params extra parameters specific to the coinspot api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         const side = this.safeString(params, 'side');
         if (side !== 'buy' && side !== 'sell') {
             throw new ArgumentsRequired(this.id + ' cancelOrder() requires a side parameter, "buy" or "sell"');
         }
         params = this.omit(params, 'side');
-        const method = 'privatePostMy' + this.capitalize(side) + 'Cancel';
         const request = {
             'id': id,
         };
-        return await this[method](this.extend(request, params));
+        let response = undefined;
+        if (side === 'buy') {
+            response = await this.privatePostMyBuyCancel(this.extend(request, params));
+        }
+        else {
+            response = await this.privatePostMySellCancel(this.extend(request, params));
+        }
+        //
+        // status - ok, error
+        //
+        return this.safeOrder({
+            'info': response,
+        });
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const url = this.urls['api'][api] + '/' + path;
-        if (api === 'private') {
+        const isVersionedApi = Array.isArray(api);
+        const version = isVersionedApi ? api[0] : undefined;
+        const accessType = isVersionedApi ? api[1] : api;
+        const endpoint = '/' + this.implodeParams(path, params);
+        const fullPath = (version !== undefined) ? '/' + version + endpoint : endpoint;
+        const url = this.urls['api'][accessType] + fullPath;
+        if (accessType === 'private') {
             this.checkRequiredCredentials();
             const nonce = this.nonce();
             body = this.json(this.extend({ 'nonce': nonce }, params));

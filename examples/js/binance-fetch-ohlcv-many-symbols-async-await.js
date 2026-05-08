@@ -1,6 +1,6 @@
 'use strict';
 
-const ccxt = require ('../../ccxt.js')
+const ccxt = require ('../../js/ccxt.js')
 
 console.log('CCXT Version:', ccxt.version)
 
@@ -23,7 +23,7 @@ async function main () {
     const symbols = [
         'BTC/USDT', // unified symbols used here as opposed to exchange-specific market ids
         'ETH/USDT', // more about unified symbols vs exchange-specific ids here:
-        'ADA/USDT', // https://docs.ccxt.com/#/?id=markets
+        'ADA/USDT', // https://github.com/ccxt/ccxt/wiki/Manual#markets
     ]
     const timeframe = '1m'
     const loops = symbols.map (symbol => symbolLoop (exchange, symbol, timeframe))

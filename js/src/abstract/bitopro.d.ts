@@ -9,6 +9,7 @@ interface Exchange {
     publicGetProvisioningTradingPairs(params?: {}): Promise<implicitReturnType>;
     publicGetProvisioningLimitationsAndFees(params?: {}): Promise<implicitReturnType>;
     publicGetTradingHistoryPair(params?: {}): Promise<implicitReturnType>;
+    publicGetPriceOtcCurrency(params?: {}): Promise<implicitReturnType>;
     privateGetAccountsBalance(params?: {}): Promise<implicitReturnType>;
     privateGetOrdersHistory(params?: {}): Promise<implicitReturnType>;
     privateGetOrdersAllPair(params?: {}): Promise<implicitReturnType>;
@@ -18,6 +19,7 @@ interface Exchange {
     privateGetWalletWithdrawCurrencyIdId(params?: {}): Promise<implicitReturnType>;
     privateGetWalletDepositHistoryCurrency(params?: {}): Promise<implicitReturnType>;
     privateGetWalletWithdrawHistoryCurrency(params?: {}): Promise<implicitReturnType>;
+    privateGetOrdersOpen(params?: {}): Promise<implicitReturnType>;
     privatePostOrdersPair(params?: {}): Promise<implicitReturnType>;
     privatePostOrdersBatch(params?: {}): Promise<implicitReturnType>;
     privatePostWalletWithdrawCurrency(params?: {}): Promise<implicitReturnType>;

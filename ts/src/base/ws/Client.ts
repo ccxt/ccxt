@@ -1,6 +1,6 @@
-import { RequestTimeout, NetworkError ,NotSupported, BaseError } from '../../base/errors.js';
+import { RequestTimeout, NetworkError, NotSupported, BaseError, ExchangeClosedByUser } from '../../base/errors.js';
 import { inflateSync, gunzipSync } from '../../static_dependencies/fflake/browser.js';
-import { createFuture } from './Future.js';
+import { Future } from './Future.js';
 
 import {
     isNode,
@@ -9,33 +9,70 @@ import {
     milliseconds,
 } from '../../base/functions.js';
 import { utf8 } from '../../static_dependencies/scure-base/index.js';
+import { Dictionary, Str } from '../types.js';
 
 export default class Client {
     connected: Promise<any>
-    futures: {}
-    rejections: {}
+
+    // @ts-ignore: 2564
+    disconnected: ReturnType<typeof Future>
+
+    // @ts-ignore: 2564
+    futures: Dictionary<any>
+
+    // @ts-ignore: 2564
+    rejections: Dictionary<any>
+
+    // @ts-ignore: 2564
     keepAlive: number
+
     connection: any
+
     connectionTimeout: any
-    verbose: boolean
+
+    verbose: boolean = false
+
     connectionTimer: any
+
     lastPong: any
+
     maxPingPongMisses: any
+
     pingInterval: any
+
     connectionEstablished: any
+
     gunzip: any
+
     error: any
+
     inflate: any
+
+    // @ts-ignore: 2564
     url: string
+
     isConnected: any
+
     onConnectedCallback: any
+
     onMessageCallback: any
+
     onErrorCallback: any
+
     onCloseCallback: any
+
     ping: any
-    subscriptions: {}
+
+    // @ts-ignore: 2564
+    subscriptions: Dictionary<any>
+
     throttle: any
-    constructor (url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
+
+    cookies: Dictionary<any>
+
+    decompressBinary = true
+
+    constructor (url: string, onMessageCallback: Function | undefined, onErrorCallback: Function | undefined, onCloseCallback: Function | undefined, onConnectedCallback: Function | undefined, config = {}) {
         const defaults = {
             url,
             onMessageCallback,
@@ -68,12 +105,17 @@ export default class Client {
         }
         Object.assign (this, deepExtend (defaults, config))
         // connection-related Future
-        this.connected = createFuture ()
+        this.connected = Future ()
     }
 
-    future (messageHash) {
+    reusableFuture (messageHash: string) {
+        // only used in go
+        return this.future (messageHash)
+    }
+
+    future (messageHash: string) {
         if (!(messageHash in this.futures)) {
-            this.futures[messageHash] = createFuture ()
+            this.futures[messageHash] = Future ()
         }
         const future = this.futures[messageHash]
         if (messageHash in this.rejections) {
@@ -83,11 +125,11 @@ export default class Client {
         return future
     }
 
-    resolve (result, messageHash) {
+    resolve (result: any, messageHash: Str) {
         if (this.verbose && (messageHash === undefined)) {
             this.log (new Date (), 'resolve received undefined messageHash');
         }
-        if (messageHash in this.futures) {
+        if ((messageHash !== undefined) && (messageHash in this.futures)) {
             const promise = this.futures[messageHash]
             promise.resolve (result)
             delete this.futures[messageHash]
@@ -95,7 +137,7 @@ export default class Client {
         return result
     }
 
-    reject (result, messageHash = undefined) {
+    reject (result: any, messageHash: Str = undefined) {
         if (messageHash) {
             if (messageHash in this.futures) {
                 const promise = this.futures[messageHash]
@@ -118,7 +160,7 @@ export default class Client {
         return result
     }
 
-    log (... args) {
+    log (... args: any[]) {
         console.log (... args)
         // console.dir (args, { depth: null })
     }
@@ -131,7 +173,7 @@ export default class Client {
         throw new NotSupported ('isOpen() not implemented yet');
     }
 
-    reset (error) {
+    reset (error: any) {
         this.clearConnectionTimeout ()
         this.clearPingInterval ()
         this.reject (error)
@@ -178,8 +220,17 @@ export default class Client {
             if ((this.lastPong + this.keepAlive * this.maxPingPongMisses) < now) {
                 this.onError (new RequestTimeout ('Connection to ' + this.url + ' timed out due to a ping-pong keepalive missing on time'))
             } else {
+                let message: any;
                 if (this.ping) {
-                    this.send (this.ping (this))
+                    message = this.ping (this);
+                }
+                if (this.verbose) {
+                    this.log (new Date (), 'onPingInterval', '|', this.url);
+                }
+                if (message) {
+                    this.send (message).catch ((error) => {
+                        this.onError (error);
+                    });
                 } else if (isNode) {
                     // can't do this inside browser
                     // https://stackoverflow.com/questions/10585355/sending-websocket-ping-pong-frame-from-browser
@@ -197,7 +248,7 @@ export default class Client {
 
     onOpen () {
         if (this.verbose) {
-            this.log (new Date (), 'onOpen')
+            this.log (new Date (), 'onOpen', '|', this.url)
         }
         this.connectionEstablished = milliseconds ()
         this.isConnected = true;
@@ -213,20 +264,20 @@ export default class Client {
     // however, some devs may want to track connection states in their app
     onPing () {
         if (this.verbose) {
-            this.log (new Date (), 'onPing')
+            this.log (new Date (), 'onPing', '|', this.url)
         }
     }
 
     onPong () {
         this.lastPong = milliseconds ()
         if (this.verbose) {
-            this.log (new Date (), 'onPong')
+            this.log (new Date (), 'onPong', '|', this.url)
         }
     }
 
-    onError (error) {
+    onError (error: any) {
         if (this.verbose) {
-            this.log (new Date (), 'onError', error.message)
+            this.log (new Date (), 'onError', error.message, '|', this.url)
         }
         if (!(error instanceof BaseError)) {
             // in case of ErrorEvent from node_modules/ws/lib/event-target.js
@@ -237,33 +288,42 @@ export default class Client {
         this.onErrorCallback (this, this.error)
     }
 
-    onClose (event) {
+    /* eslint-disable no-shadow */
+    onClose (event: any) {
         if (this.verbose) {
-            this.log (new Date (), 'onClose', event)
+            this.log (new Date (), 'onClose', event, '|', this.url)
         }
         if (!this.error) {
             // todo: exception types for server-side disconnects
             this.reset (new NetworkError ('connection closed by remote server, closing code ' + String (event.code)))
+        }
+        if (this.error instanceof ExchangeClosedByUser) {
+            this.reset (this.error);
+        }
+        if (this.disconnected !== undefined) {
+            this.disconnected.resolve (true);
         }
         this.onCloseCallback (this, event)
     }
 
     // this method is not used at this time
     // but may be used to read protocol-level data like cookies, headers, etc
-    onUpgrade (message) {
+    onUpgrade (message: any) {
         if (this.verbose) {
-            this.log (new Date (), 'onUpgrade')
+            this.log (new Date (), 'onUpgrade', '|', this.url)
         }
     }
 
-    async send (message) {
+    async send (message: any) {
         if (this.verbose) {
             this.log (new Date (), 'sending', message)
         }
         message = (typeof message === 'string') ? message : JSON.stringify (message)
-        const future = createFuture ()
+        const future = Future ()
         if (isNode) {
-            function onSendComplete (error) {
+            /* eslint-disable no-inner-declarations */
+            /* eslint-disable jsdoc/require-jsdoc */
+            function onSendComplete (error: any) {
                 if (error) {
                     future.reject (error)
                 } else {
@@ -288,24 +348,24 @@ export default class Client {
 
         let message : Buffer | string = messageEvent.data
         let arrayBuffer : Uint8Array
-        if (this.gunzip || this.inflate) {
-            if (typeof message === 'string') {
-                arrayBuffer = utf8.decode (message)
-            } else {
-                arrayBuffer = new Uint8Array (message.buffer.slice (message.byteOffset, message.byteOffset + message.byteLength))
-            }
-            if (this.gunzip) {
-                arrayBuffer = gunzipSync (arrayBuffer)
-            } else if (this.inflate) {
-                arrayBuffer = inflateSync (arrayBuffer)
-            }
-            message = utf8.encode (arrayBuffer)
-        }
         if (typeof message !== 'string') {
-            message = message.toString ()
+            if (this.gunzip || this.inflate) {
+                arrayBuffer = new Uint8Array (message.buffer.slice (message.byteOffset, message.byteOffset + message.byteLength))
+                if (this.gunzip) {
+                    arrayBuffer = gunzipSync (arrayBuffer)
+                } else if (this.inflate) {
+                    arrayBuffer = inflateSync (arrayBuffer)
+                }
+                message = utf8.encode (arrayBuffer)
+            } else {
+                if (this.decompressBinary) {
+                    message = message.toString ()
+                }
+            }
         }
         try {
             if (isJsonEncodedObject (message)) {
+                message = message.toString ()
                 message = JSON.parse (message.replace (/:(\d{15,}),/g, ':"$1",'))
             }
             if (this.verbose) {
@@ -315,7 +375,7 @@ export default class Client {
                 // this.log (new Date (), 'onMessage', JSON.stringify (message, null, 4))
             }
         } catch (e) {
-            this.log (new Date (), 'onMessage JSON.parse', e)
+            this.log (new Date (), 'onMessage JSON.parse', e, '|', this.url)
             // reset with a json encoding error ?
         }
         try {

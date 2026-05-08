@@ -1,6 +1,10 @@
-import ccxt from '../../ccxt.js';
-import { noLocate as log } from 'ololog';
+import ccxt from '../../js/ccxt.js';
+import ololog from 'ololog';
 import asTable from 'as-table';
+
+
+const { noLocate } = ololog;
+const log = noLocate;
 
 const exchange = new ccxt.bittrex ({
         'enableRateLimit': true,

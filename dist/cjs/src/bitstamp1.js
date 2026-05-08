@@ -8,6 +8,10 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+/**
+ * @class bitstamp1
+ * @extends Exchange
+ */
 class bitstamp1 extends bitstamp1$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -104,18 +108,18 @@ class bitstamp1 extends bitstamp1$1 {
             },
             'precisionMode': number.TICK_SIZE,
             'markets': {
-                'BTC/USD': { 'id': 'btcusd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'baseId': 'btc', 'quoteId': 'usd', 'maker': 0.005, 'taker': 0.005, 'type': 'spot', 'spot': true },
-                'BTC/EUR': { 'id': 'btceur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'btc', 'quoteId': 'eur', 'maker': 0.005, 'taker': 0.005, 'type': 'spot', 'spot': true },
-                'EUR/USD': { 'id': 'eurusd', 'symbol': 'EUR/USD', 'base': 'EUR', 'quote': 'USD', 'baseId': 'eur', 'quoteId': 'usd', 'maker': 0.005, 'taker': 0.005, 'type': 'spot', 'spot': true },
-                'XRP/USD': { 'id': 'xrpusd', 'symbol': 'XRP/USD', 'base': 'XRP', 'quote': 'USD', 'baseId': 'xrp', 'quoteId': 'usd', 'maker': 0.005, 'taker': 0.005, 'type': 'spot', 'spot': true },
-                'XRP/EUR': { 'id': 'xrpeur', 'symbol': 'XRP/EUR', 'base': 'XRP', 'quote': 'EUR', 'baseId': 'xrp', 'quoteId': 'eur', 'maker': 0.005, 'taker': 0.005, 'type': 'spot', 'spot': true },
-                'XRP/BTC': { 'id': 'xrpbtc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'baseId': 'xrp', 'quoteId': 'btc', 'maker': 0.005, 'taker': 0.005, 'type': 'spot', 'spot': true },
-                'LTC/USD': { 'id': 'ltcusd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD', 'baseId': 'ltc', 'quoteId': 'usd', 'maker': 0.005, 'taker': 0.005, 'type': 'spot', 'spot': true },
-                'LTC/EUR': { 'id': 'ltceur', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR', 'baseId': 'ltc', 'quoteId': 'eur', 'maker': 0.005, 'taker': 0.005, 'type': 'spot', 'spot': true },
-                'LTC/BTC': { 'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc', 'maker': 0.005, 'taker': 0.005, 'type': 'spot', 'spot': true },
-                'ETH/USD': { 'id': 'ethusd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'baseId': 'eth', 'quoteId': 'usd', 'maker': 0.005, 'taker': 0.005, 'type': 'spot', 'spot': true },
-                'ETH/EUR': { 'id': 'etheur', 'symbol': 'ETH/EUR', 'base': 'ETH', 'quote': 'EUR', 'baseId': 'eth', 'quoteId': 'eur', 'maker': 0.005, 'taker': 0.005, 'type': 'spot', 'spot': true },
-                'ETH/BTC': { 'id': 'ethbtc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc', 'maker': 0.005, 'taker': 0.005, 'type': 'spot', 'spot': true },
+                'BTC/USD': this.safeMarketStructure({ 'id': 'btcusd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'baseId': 'btc', 'quoteId': 'usd', 'maker': 0.005, 'taker': 0.005, 'type': 'spot', 'spot': true }),
+                'BTC/EUR': this.safeMarketStructure({ 'id': 'btceur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'btc', 'quoteId': 'eur', 'maker': 0.005, 'taker': 0.005, 'type': 'spot', 'spot': true }),
+                'EUR/USD': this.safeMarketStructure({ 'id': 'eurusd', 'symbol': 'EUR/USD', 'base': 'EUR', 'quote': 'USD', 'baseId': 'eur', 'quoteId': 'usd', 'maker': 0.005, 'taker': 0.005, 'type': 'spot', 'spot': true }),
+                'XRP/USD': this.safeMarketStructure({ 'id': 'xrpusd', 'symbol': 'XRP/USD', 'base': 'XRP', 'quote': 'USD', 'baseId': 'xrp', 'quoteId': 'usd', 'maker': 0.005, 'taker': 0.005, 'type': 'spot', 'spot': true }),
+                'XRP/EUR': this.safeMarketStructure({ 'id': 'xrpeur', 'symbol': 'XRP/EUR', 'base': 'XRP', 'quote': 'EUR', 'baseId': 'xrp', 'quoteId': 'eur', 'maker': 0.005, 'taker': 0.005, 'type': 'spot', 'spot': true }),
+                'XRP/BTC': this.safeMarketStructure({ 'id': 'xrpbtc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'baseId': 'xrp', 'quoteId': 'btc', 'maker': 0.005, 'taker': 0.005, 'type': 'spot', 'spot': true }),
+                'LTC/USD': this.safeMarketStructure({ 'id': 'ltcusd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD', 'baseId': 'ltc', 'quoteId': 'usd', 'maker': 0.005, 'taker': 0.005, 'type': 'spot', 'spot': true }),
+                'LTC/EUR': this.safeMarketStructure({ 'id': 'ltceur', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR', 'baseId': 'ltc', 'quoteId': 'eur', 'maker': 0.005, 'taker': 0.005, 'type': 'spot', 'spot': true }),
+                'LTC/BTC': this.safeMarketStructure({ 'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc', 'maker': 0.005, 'taker': 0.005, 'type': 'spot', 'spot': true }),
+                'ETH/USD': this.safeMarketStructure({ 'id': 'ethusd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'baseId': 'eth', 'quoteId': 'usd', 'maker': 0.005, 'taker': 0.005, 'type': 'spot', 'spot': true }),
+                'ETH/EUR': this.safeMarketStructure({ 'id': 'etheur', 'symbol': 'ETH/EUR', 'base': 'ETH', 'quote': 'EUR', 'baseId': 'eth', 'quoteId': 'eur', 'maker': 0.005, 'taker': 0.005, 'type': 'spot', 'spot': true }),
+                'ETH/BTC': this.safeMarketStructure({ 'id': 'ethbtc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc', 'maker': 0.005, 'taker': 0.005, 'type': 'spot', 'spot': true }),
             },
         });
     }
@@ -125,9 +129,9 @@ class bitstamp1 extends bitstamp1$1 {
          * @name bitstamp1#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the bitstamp1 api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the bitstamp1 api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         if (symbol !== 'BTC/USD') {
             throw new errors.ExchangeError(this.id + ' ' + this.version + " fetchOrderBook doesn't support " + symbol + ', use it for BTC/USD only');
@@ -186,8 +190,8 @@ class bitstamp1 extends bitstamp1$1 {
          * @name bitstamp1#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the bitstamp1 api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @param {object} [params] extra parameters specific to the bitstamp1 api endpoint
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         if (symbol !== 'BTC/USD') {
             throw new errors.ExchangeError(this.id + ' ' + this.version + " fetchTicker doesn't support " + symbol + ', use it for BTC/USD only');
@@ -211,6 +215,17 @@ class bitstamp1 extends bitstamp1$1 {
         return this.parseTicker(ticker, market);
     }
     parseTrade(trade, market = undefined) {
+        //
+        // public trade
+        //
+        //        {
+        //            "amount": "0.00114000",
+        //            "date": "1694287856",
+        //            "price": "25865",
+        //            "tid": 298730788,
+        //            "type": 0
+        //        }
+        //
         const timestamp = this.safeTimestamp2(trade, 'date', 'datetime');
         const side = (trade['type'] === 0) ? 'buy' : 'sell';
         const orderId = this.safeString(trade, 'order_id');
@@ -241,10 +256,10 @@ class bitstamp1 extends bitstamp1$1 {
          * @name bitstamp1#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the bitstamp1 api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the bitstamp1 api endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         if (symbol !== 'BTC/USD') {
             throw new errors.BadSymbol(this.id + ' ' + this.version + " fetchTrades doesn't support " + symbol + ', use it for BTC/USD only');
@@ -255,6 +270,17 @@ class bitstamp1 extends bitstamp1$1 {
             'time': 'minute',
         };
         const response = await this.publicGetTransactions(this.extend(request, params));
+        //
+        //    [
+        //        {
+        //            "amount": "0.00114000",
+        //            "date": "1694287856",
+        //            "price": "25865",
+        //            "tid": 298730788,
+        //            "type": 0
+        //        },
+        //    ]
+        //
         return this.parseTrades(response, market, since, limit);
     }
     parseBalance(response) {
@@ -277,8 +303,8 @@ class bitstamp1 extends bitstamp1$1 {
          * @method
          * @name bitstamp1#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the bitstamp1 api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} [params] extra parameters specific to the bitstamp1 api endpoint
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         const response = await this.privatePostBalance(params);
         return this.parseBalance(response);
@@ -292,9 +318,9 @@ class bitstamp1 extends bitstamp1$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the bitstamp1 api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the bitstamp1 api endpoint
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         if (type !== 'limit') {
             throw new errors.ExchangeError(this.id + ' ' + this.version + ' accepts limit orders only');
@@ -321,9 +347,9 @@ class bitstamp1 extends bitstamp1$1 {
          * @name bitstamp1#cancelOrder
          * @description cancels an open order
          * @param {string} id order id
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the bitstamp1 api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the bitstamp1 api endpoint
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         return await this.privatePostCancelOrder({ 'id': id });
     }
@@ -349,11 +375,11 @@ class bitstamp1 extends bitstamp1$1 {
          * @method
          * @name bitstamp1#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {object} params extra parameters specific to the bitstamp1 api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {object} [params] extra parameters specific to the bitstamp1 api endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets();
         let market = undefined;

@@ -5,17 +5,26 @@ import hitbtc from './hitbtc.js';
 // ---------------------------------------------------------------------------
 
 export default class bequant extends hitbtc {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bequant',
             'name': 'Bequant',
-            'countries': [ 'MT' ], // Malta
             'pro': true,
+            'countries': [ 'MT' ], // Malta
+            'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined,
+                'swap': false,
+                'future': undefined,
+                'option': undefined,
+            },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg',
+                'logo': 'https://github.com/user-attachments/assets/0583ef1f-29fe-4b7c-8189-63565a0e2867',
                 'api': {
-                    'public': 'https://api.bequant.io',
-                    'private': 'https://api.bequant.io',
+                    // v3
+                    'public': 'https://api.bequant.io/api/3',
+                    'private': 'https://api.bequant.io/api/3',
                 },
                 'www': 'https://bequant.io',
                 'doc': [
@@ -24,7 +33,7 @@ export default class bequant extends hitbtc {
                 'fees': [
                     'https://bequant.io/fees-and-limits',
                 ],
-                'referral': 'https://bequant.io',
+                'referral': 'https://bequant.io/referral/dd104e3bee7634ec',
             },
         });
     }

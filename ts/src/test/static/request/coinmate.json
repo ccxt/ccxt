@@ -1,0 +1,33 @@
+{
+    "exchange": "coinmate",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://coinmate.io/api/system/time",
+                "input": []
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "url": "https://coinmate.io/api/ticker?currencyPair=BTC_EUR",
+                "input": [
+                    "BTC/EUR"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers",
+                "method": "fetchTickers",
+                "url": "https://coinmate.io/api/tickerAll",
+                "input": []
+            }
+        ]
+    }
+}

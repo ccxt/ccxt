@@ -1,38 +1,27 @@
-import kucoinfuturesRest from '../kucoinfutures.js';
-import { Int } from '../base/types.js';
-import Client from '../base/ws/Client.js';
-export default class kucoinfutures extends kucoinfuturesRest {
+import kucoin from './kucoin.js';
+import type { Strings, TransferEntry } from '../base/types.js';
+export default class kucoinfutures extends kucoin {
     describe(): any;
-    negotiate(privateChannel: any, params?: {}): any;
-    negotiateHelper(privateChannel: any, params?: {}): Promise<string>;
-    requestId(): any;
-    subscribe(url: any, messageHash: any, subscriptionHash: any, subscription: any, params?: {}): Promise<any>;
-    watchTicker(symbol: string, params?: {}): Promise<any>;
-    handleTicker(client: Client, message: any): any;
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    handleTrade(client: Client, message: any): any;
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
-    handleDelta(orderbook: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
-    handleOrderBook(client: Client, message: any): void;
-    getCacheIndex(orderbook: any, cache: any): any;
-    handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
-    handleSubscriptionStatus(client: Client, message: any): any;
-    handleSystemStatus(client: Client, message: any): any;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseWsOrderStatus(status: any): string;
-    parseWsOrder(order: any, market?: any): any;
-    handleOrder(client: Client, message: any): void;
-    watchBalance(params?: {}): Promise<any>;
-    handleBalance(client: Client, message: any): void;
-    handleBalanceSubscription(client: Client, message: any, subscription: any): void;
-    fetchBalanceSnapshot(client: any, message: any): Promise<void>;
-    handleSubject(client: Client, message: any): any;
-    ping(client: any): {
-        id: any;
-        type: string;
-    };
-    handlePong(client: Client, message: any): any;
-    handleErrorMessage(client: Client, message: any): any;
-    handleMessage(client: Client, message: any): any;
+    /**
+     * @method
+     * @name kucoinfutures#fetchBidsAsks
+     * @description fetches the bid and ask price and volume for multiple markets
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    fetchBidsAsks(symbols?: Strings, params?: {}): Promise<import("../base/types.js").Tickers>;
+    /**
+     * @method
+     * @name kucoinfutures#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
+    parseTransferType(transferType: any): string;
 }

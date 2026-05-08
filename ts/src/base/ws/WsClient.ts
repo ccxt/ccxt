@@ -1,29 +1,55 @@
+// eslint-disable-next-line no-shadow
+import WebSocket from 'ws';
 import Client from './Client.js';
 
 import {
     sleep,
     isNode,
     milliseconds,
+    selfIsDefined,
 } from '../../base/functions.js';
-import WebSocket from 'ws';
+import { Future } from './Future.js';
 
-const WebSocketPlatform = isNode ? WebSocket : self.WebSocket;
+// eslint-disable-next-line no-restricted-globals
+const WebSocketPlatform = isNode || !selfIsDefined () ? WebSocket : self.WebSocket;
 
 export default class WsClient extends Client {
-    connectionStarted:number;
+
+    connectionStarted: number | undefined;
+
     protocols: any;
+
     options: any;
-    startedConnecting: boolean;
+
+    startedConnecting: boolean = false;
+
     createConnection () {
         if (this.verbose) {
             this.log (new Date (), 'connecting to', this.url)
         }
         this.connectionStarted = milliseconds ()
         this.setConnectionTimeout ()
+
+        const connectionHeaders = {};
+        if (this.cookies !== undefined) {
+            let cookieStr = '';
+            const cookiesKeys = Object.keys (this.cookies);
+            for (let i = 0; i < cookiesKeys.length; i++) {
+                const key = cookiesKeys[i];
+                const value = this.cookies[key];
+                cookieStr += key + '=' + value;
+                if (i < cookiesKeys.length - 1) {
+                    cookieStr += '; ';
+                }
+            }
+            connectionHeaders['Cookie'] = cookieStr;
+            this.options['headers'] = Object.assign (this.options['headers'] || {}, connectionHeaders);
+        }
         if (isNode) {
             this.connection = new WebSocketPlatform (this.url, this.protocols, this.options)
         } else {
             this.connection = new WebSocketPlatform (this.url, this.protocols)
+            this.connection.binaryType = "arraybuffer"; // for browsers not to use blob by default
         }
 
         this.connection.onopen = this.onOpen.bind (this)
@@ -59,8 +85,12 @@ export default class WsClient extends Client {
 
     close () {
         if (this.connection instanceof WebSocketPlatform) {
-            return this.connection.close ()
+            if (this.disconnected === undefined) {
+                this.disconnected = Future ();
+            }
+            this.connection.close ();
         }
+        return this.disconnected;
     }
 
-};
+}

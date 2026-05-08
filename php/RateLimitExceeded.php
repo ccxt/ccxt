@@ -2,6 +2,6 @@
 
 namespace ccxt;
 
-require_once PATH_TO_CCXT . 'DDoSProtection.php';
+require_once PATH_TO_CCXT . 'NetworkError.php';
 
-class RateLimitExceeded extends DDoSProtection {};
+class RateLimitExceeded extends NetworkError {};

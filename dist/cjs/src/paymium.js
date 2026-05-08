@@ -1,14 +1,20 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var paymium$1 = require('./abstract/paymium.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-//  ---------------------------------------------------------------------------
-class paymium extends paymium$1 {
+/**
+ * @class paymium
+ * @augments Exchange
+ */
+class paymium extends paymium$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'paymium',
@@ -29,6 +35,7 @@ class paymium extends paymium$1 {
                 'fetchBalance': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -62,6 +69,7 @@ class paymium extends paymium$1 {
                 'public': {
                     'get': [
                         'countries',
+                        'currencies',
                         'data/{currency}/ticker',
                         'data/{currency}/trades',
                         'data/{currency}/depth',
@@ -96,7 +104,7 @@ class paymium extends paymium$1 {
                 },
             },
             'markets': {
-                'BTC/EUR': { 'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'btc', 'quoteId': 'eur', 'type': 'spot', 'spot': true },
+                'BTC/EUR': this.safeMarketStructure({ 'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'btc', 'quoteId': 'eur', 'type': 'spot', 'spot': true }),
             },
             'fees': {
                 'trading': {
@@ -105,6 +113,48 @@ class paymium extends paymium$1 {
                 },
             },
             'precisionMode': number.TICK_SIZE,
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerDirection': false,
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': undefined,
+                    'fetchOrder': undefined,
+                    'fetchOpenOrders': undefined,
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': undefined, // todo
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
         });
     }
     parseBalance(response) {
@@ -125,28 +175,30 @@ class paymium extends paymium$1 {
         }
         return this.safeBalance(result);
     }
+    /**
+     * @method
+     * @name paymium#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://paymium.github.io/api-documentation/#tag/User/operation/get-user-info
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
     async fetchBalance(params = {}) {
-        /**
-         * @method
-         * @name paymium#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the paymium api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
-         */
         await this.loadMarkets();
         const response = await this.privateGetUser(params);
         return this.parseBalance(response);
     }
+    /**
+     * @method
+     * @name paymium#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-market-depth
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name paymium#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the paymium api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -203,15 +255,16 @@ class paymium extends paymium$1 {
             'info': ticker,
         }, market);
     }
+    /**
+     * @method
+     * @name paymium#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-latest-ticker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
     async fetchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name paymium#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the paymium api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -262,17 +315,18 @@ class paymium extends paymium$1 {
             'fee': undefined,
         }, market);
     }
+    /**
+     * @method
+     * @name paymium#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-latest-trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name paymium#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the paymium api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -281,15 +335,16 @@ class paymium extends paymium$1 {
         const response = await this.publicGetDataCurrencyTrades(this.extend(request, params));
         return this.parseTrades(response, market, since, limit);
     }
+    /**
+     * @method
+     * @name paymium#createDepositAddress
+     * @description create a currency deposit address
+     * @see https://paymium.github.io/api-documentation/#tag/User/operation/create-deposit-address
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
     async createDepositAddress(code, params = {}) {
-        /**
-         * @method
-         * @name paymium#createDepositAddress
-         * @description create a currency deposit address
-         * @param {string} code unified currency code of the currency for the deposit address
-         * @param {object} params extra parameters specific to the paymium api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-         */
         await this.loadMarkets();
         const response = await this.privatePostUserAddresses(params);
         //
@@ -302,15 +357,16 @@ class paymium extends paymium$1 {
         //
         return this.parseDepositAddress(response);
     }
+    /**
+     * @method
+     * @name paymium#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://paymium.github.io/api-documentation/#tag/User/operation/get-deposit-address
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
     async fetchDepositAddress(code, params = {}) {
-        /**
-         * @method
-         * @name paymium#fetchDepositAddress
-         * @description fetch the deposit address for a currency associated with this account
-         * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the paymium api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-         */
         await this.loadMarkets();
         const request = {
             'address': code,
@@ -326,15 +382,16 @@ class paymium extends paymium$1 {
         //
         return this.parseDepositAddress(response);
     }
+    /**
+     * @method
+     * @name paymium#fetchDepositAddresses
+     * @description fetch deposit addresses for multiple currencies and chain types
+     * @see https://paymium.github.io/api-documentation/#tag/User/operation/get-deposit-addresses
+     * @param {string[]|undefined} codes list of unified currency codes, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
+     */
     async fetchDepositAddresses(codes = undefined, params = {}) {
-        /**
-         * @method
-         * @name paymium#fetchDepositAddresses
-         * @description fetch deposit addresses for multiple currencies and chain types
-         * @param {[string]|undefined} codes list of unified currency codes, default is undefined
-         * @param {object} params extra parameters specific to the paymium api endpoint
-         * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
-         */
         await this.loadMarkets();
         const response = await this.privateGetUserAddresses(params);
         //
@@ -363,24 +420,25 @@ class paymium extends paymium$1 {
         return {
             'info': depositAddress,
             'currency': this.safeCurrencyCode(currencyId, currency),
+            'network': undefined,
             'address': address,
             'tag': undefined,
-            'network': undefined,
         };
     }
+    /**
+     * @method
+     * @name paymium#createOrder
+     * @description create a trade order
+     * @see https://paymium.github.io/api-documentation/#tag/Order/operation/create-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name paymium#createOrder
-         * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the paymium api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -398,33 +456,38 @@ class paymium extends paymium$1 {
             'id': response['uuid'],
         }, market);
     }
+    /**
+     * @method
+     * @name paymium#cancelOrder
+     * @description cancels an open order
+     * @see https://paymium.github.io/api-documentation/#tag/Order/operation/cancel-order
+     * @param {string} id order id
+     * @param {string} symbol not used by paymium cancelOrder ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name paymium#cancelOrder
-         * @description cancels an open order
-         * @param {string} id order id
-         * @param {string|undefined} symbol not used by paymium cancelOrder ()
-         * @param {object} params extra parameters specific to the paymium api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         const request = {
             'uuid': id,
         };
-        return await this.privateDeleteUserOrdersUuidCancel(this.extend(request, params));
+        const response = await this.privateDeleteUserOrdersUuidCancel(this.extend(request, params));
+        return this.safeOrder({
+            'info': response,
+        });
     }
+    /**
+     * @method
+     * @name paymium#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://paymium.github.io/api-documentation/#tag/Transfer/operation/create-email-transfer
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        /**
-         * @method
-         * @name paymium#transfer
-         * @description transfer currency internally between wallets on the same account
-         * @param {string} code unified currency code
-         * @param {float} amount amount to transfer
-         * @param {string} fromAccount account to transfer from
-         * @param {string} toAccount account to transfer to
-         * @param {object} params extra parameters specific to the paymium api endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-         */
         await this.loadMarkets();
         const currency = this.currency(code);
         if (toAccount.indexOf('@') < 0) {
@@ -578,4 +641,4 @@ class paymium extends paymium$1 {
     }
 }
 
-module.exports = paymium;
+exports["default"] = paymium;

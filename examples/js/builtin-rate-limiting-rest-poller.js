@@ -1,6 +1,6 @@
 
 
-import ccxt from '../../ccxt.js';
+import ccxt from '../../js/ccxt.js';
 import log from 'ololog';
 import { nice as ansi } from 'ansicolor';
 import asTable from 'as-table';

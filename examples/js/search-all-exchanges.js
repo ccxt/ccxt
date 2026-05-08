@@ -1,10 +1,12 @@
-
 import asTable from 'as-table';
-import { noLocate as log } from 'ololog';
+import ololog from 'ololog';
 import path from 'path';
 import fs from 'fs';
 import ansicolor from 'ansicolor';
-import ccxt from '../../ccxt.js';
+import ccxt from '../../js/ccxt.js';
+
+const { noLocate } = ololog;
+const log = noLocate;
 
 ansicolor.nice
 /*  ------------------------------------------------------------------------ */
@@ -12,7 +14,7 @@ ansicolor.nice
 const [processPath, , argument = null] = process.argv.filter (x => !x.startsWith ('--'))
     , verbose = process.argv.includes ('--verbose')
     , strict  = process.argv.includes ('--strict')
-    , compact = process.argv.includes ('--compact')
+    , detailed = process.argv.includes ('--detailed') || process.argv.includes ('-v')
     , debug = process.argv.includes ('--debug')
     , marketsOnly = process.argv.includes ('--markets')
     , currenciesOnly = process.argv.includes ('--currencies')
@@ -49,15 +51,15 @@ const keysLocal = path.resolve ('keys.local.json')
 let globalKeysFile = fs.existsSync (keysGlobal) ? keysGlobal : false
 let localKeysFile = fs.existsSync (keysLocal) ? keysLocal : globalKeysFile
 
-const keys = require (localKeysFile)
+const keys = JSON.parse (fs.readFileSync (localKeysFile))
 
 /*  ------------------------------------------------------------------------ */
 
 log ('Looking up for:', argument.bright, strict ? '(strict search)' : '(non-strict search)')
 
 const checkAgainst = strict ?
-    (a, b) => (a ||'').toUpperCase ().includes ((b || '').toUpperCase ()) :
-    (a, b) => (a || '').toLowerCase ().includes ((b || '').toLowerCase ())
+    (a, b) => (a.toString () || '').toUpperCase ().includes ((b.toString () || '').toUpperCase ()) :
+    (a, b) => (a.toString () || '').toLowerCase ().includes ((b.toString () || '').toLowerCase ())
 
 ;(async function test () {
 
@@ -106,8 +108,8 @@ const checkAgainst = strict ?
                     return (
                         checkAgainst (market['base'],  argument) ||
                         checkAgainst (market['quote'], argument) ||
-                        (market['baseId']  ? checkAgainst (market['baseId'],  argument) : false) ||
-                        (market['quoteId'] ? checkAgainst (market['quoteId'], argument) : false) ||
+                        (market['baseId']  ? checkAgainst (market['baseId'].toString (),  argument) : false) ||
+                        (market['quoteId'] ? checkAgainst (market['quoteId'].toString (), argument) : false) ||
                         checkAgainst (market['symbol'], argument) ||
                         checkAgainst (market['id'].toString (), argument) ||
                         checkAgainst (market['type'], argument)
@@ -122,7 +124,7 @@ const checkAgainst = strict ?
 
         log (asTable (markets.map (market => {
             market = ccxt.omit (market, [ 'info', 'limits', 'precision', 'tiers' ])
-            return (!compact) ? market : {
+            return (detailed) ? market : {
                 'symbol': market['symbol'],
                 'exchange': market['exchange'],
             };
@@ -143,11 +145,18 @@ const checkAgainst = strict ?
                     exchange.extend (currency, {
                         exchange: exchange.id[(currency.active !== false) ? 'green' : 'yellow'],
                     }))))
-            .filter (currency =>
-                checkAgainst (currency['code'], argument) ||
-                checkAgainst (currency['id'], argument))
+            .filter (currency => (
+                checkAgainst (currency['code'], argument) || 
+                checkAgainst (currency['id'], argument)
+            ))
 
-        log (asTable (currencies.map (currency => ccxt.omit (currency, [ 'info', 'limits', 'precision' ]))))
+        log (asTable (currencies.map (currency => {
+            currency = ccxt.omit (currency, [ 'info', 'limits', 'precision' ]) 
+            return (detailed) ? currency : {
+                'code': currency['code'],
+                'exchange': currency['exchange'],
+            };
+        })))
 
         log (currencies.length.toString ().yellow, 'currencies')
     }

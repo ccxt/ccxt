@@ -7,31 +7,8 @@
 
 ## How To Submit An Issue
 
-If you want to submit an issue and you want your issue to be resolved quickly, here's a checklist for you:
+Read the notes when opening a [new issue on github](https://github.com/ccxt/ccxt/issues/new/choose) and provide the requested details, so we can assist you better. You can also read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section.
 
-- Read the [Manual](https://github.com/ccxt/ccxt/wiki/Manual), and especially carefully read the following sections:
-  - [Exchange Properties](https://github.com/ccxt/ccxt/wiki/Manual#exchange-properties)
-  - [Rate Limit](https://github.com/ccxt/ccxt/wiki/Manual#rate-limit)
-  - [DDoS Protection](https://github.com/ccxt/ccxt/wiki/Manual#ddos-protection-by-cloudflare--incapsula)
-  - [Authentication](https://github.com/ccxt/ccxt/wiki/Manual#authentication)
-  - [API Keys Setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup)
-- Read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section and follow troubleshooting steps.
-- Read the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) for most frequently asked questions.
-- Read the [API docs](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) for your exchange.
-- Search for similar issues first to avoid duplicates.
-- If your issue is unique, along with a basic description of the failure, the following **IS REQUIRED**:
-  - **set `exchange.verbose = true` property on the exchange instance before calling its functions or methods**
-  - **DON'T POST SCREENSHOTS OF CODE OR ERRORS, POST THE OUTPUT AND CODE IN PLAIN TEXT!**
-  - **surround code and output with triple backticks: &#096;&#096;&#096;GOOD&#096;&#096;&#096;**
-  - don't confuse the backtick symbol (&#096;) with the quote symbol (\'): '''BAD'''
-  - don't confuse a single backtick with triple backticks: &#096;BAD&#096;
-  - paste a complete code snippet you're having difficulties with, avoid one-liners
-  - paste the **full verbose output** of the failing method without your keys
-  - the verbose output should include the request and response from the exchange (not just an error callstack)
-  - write your language **and version**
-  - write ccxt library version
-  - which exchange it is
-  - which method you're trying to call
 
 ### Reporting Vulnerabilities And Critical Issues
 
@@ -43,12 +20,15 @@ If you found a security issue or a critical vulnerability and reporting it in pu
 
   **↑ This is the most important rule of all!!!**
 
+- **BEFORE ANY PUSH MAKE SURE YOU RUN THIS COMMAND LOCALLY: `git config core.hooksPath .git-templates/hooks`**
+
 - **PLEASE, DO NOT COMMIT THE FOLLOWING FILES IN PULL REQUESTS:**
 
   - `/build/*` (these are generated automatically)
   - `/js/*` (these are compiled from the typescript version)
   - `/php/*` (except for base classes)
   - `/python/*` (except for base classes)
+  - `/cs/*` (except for base classes)
   - `/ccxt.js`
   - `/README.md` (exchange lists are generated automatically)
   - `/package.json`
@@ -117,6 +97,13 @@ If you're not going to develop CCXT and contribute code to the CCXT library, the
   composer install ccxt
   ```
 
+- [C# / Nugget](https://github.com/ccxt/ccxt/wiki/Install#netc)
+
+  ```shell
+  # C# / Nugget
+  dotnet add ccxt
+  ```
+
 ### With Docker
 
 The easiest way is to use Docker to run an isolated build & test environment with all the dependencies installed:
@@ -140,16 +127,18 @@ This way you can keep the build tools and processes isolated, not having to work
 - [Python](https://www.python.org/downloads/) 3.5.3+
   - requests (`pip install requests`)
   - [aiohttp](https://docs.aiohttp.org/) (`pip install aiohttp`)
+  - [ruff](https://docs.astral.sh/ruff/) (`pip install ruff`)
   - [tox](https://tox.readthedocs.io)
     - via pip: `pip install tox`
     - MacOS with [brew](https://brew.sh): `brew install tox`
     - Ubuntu Linux: `apt-get install tox`
-- [PHP](https://secure.php.net/downloads.php) 5.3+ with the following extensions installed and enabled:
+- [PHP](https://secure.php.net/downloads.php) 8.1+ with the following extensions installed and enabled:
   - cURL
   - iconv
   - mbstring
   - PCRE
-  - bcmath (php<7.1)
+  - gmp
+- [C#](https://dotnet.microsoft.com/en-us/download) 7.0
 
 #### Build Steps
 
@@ -197,6 +186,7 @@ The contents of the repository are structured as follows:
 /js/                       # the JS version of the library
 /ts/                       # the TypeScript version of the library
 /php/                      # PHP ccxt module/package folder
+/cs/                       # C#/dotnet package folder
 /python/                   # Python ccxt module/package folder for PyPI
 /python/__init__.py        # entry point for the Python version of the ccxt.library
 /python/async_support/     # asynchronous version of the ccxt.library for Python 3.5.3+ asyncio
@@ -218,23 +208,24 @@ The contents of the repository are structured as follows:
 
 ### Multilanguage Support
 
-The ccxt library is available in three different languages (more to come). We encourage developers to design *portable* code, so that a single-language user could read the code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
+The ccxt library is available in several different languages (TypeScript, JavaScript, Python, PHP, C# and more to come). We encourage developers to design *portable* code, so that a single-language user could read the code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
 
-At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we have decided to switch to what we call a *source/generated* process. There is now a single source version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) automatically from the source version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the source version as well.
+At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we have decided to switch to what we call a *source/generated* process. There is now a single source version in one language, that is TypeScript. Other language-specific versions are syntactically derived (transpiled, generated) automatically from the source version. But it doesn't mean that you have to be a TS or a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the source version as well.
 
 The module entry points are:
 - `./python/__init__.py` for the Python pip package
-- `./python/async/__init__.py` for the Python 3.5.3+ ccxt.async_support subpackage
-- `./ccxt.js` for the Node.js npm package
+- `./python/async/__init__.py` for the Python 3.7.0+ ccxt.async_support subpackage
+- `./js/ccxt.js` for the Node.js npm package
+- `./ts/ccxt.ts` for TypeScript
 - `./dist/ccxt.browser.js` for the browser bundle
 - `./ccxt.php` for PHP
 
-Generated versions and docs are transpiled from the source `ccxt.js` file and files in `./js/` by the `npm run build` command.
+Generated versions and docs are transpiled from the source `ts/src` folder by the `npm run build` command.
 
 ### Transpiled (generated) files
 
 - All derived exchange classes are transpiled by `tsc` from TypeScript to JavaScript and by our custom transpiler from TypeScript to PHP and Python. The source files are language-agnostic, easily mapped line-to-line to any other language and written in a cross-language-compatible way. Any coder can read it (by design).
-- All base classes are **not** transpiled, those are language-specific.
+- Base classes are **not** entirely transpiled and are only transpiled partially, as they are language-specific.
 
 #### JavaScript
 
@@ -255,13 +246,23 @@ These Python base classes and files are not transpiled:
 
 #### PHP
 
-These files containing derived exchange classes are transpiled from JS into PHP:
+These files containing derived exchange classes are transpiled from TS into C#:
 
 - `ts/[_a-z].ts` → `php/[_a-z].php`
 
 These PHP base classes and files are not transpiled:
 
 - `php/Exchange.php php/ExchangeError.php php/Precise.php ...`
+
+#### C#
+
+These files containing derived exchange classes are transpiled from TS into C#:
+
+- `ts/src/[_a-z].ts` → `cs/src/exchanges/[_a-z].cs`
+
+These C# base classes and files are not transpiled:
+
+- `cs/base/*`
 
 #### Typescript
 
@@ -500,16 +501,19 @@ Therefore we have a family of `safe*` functions:
 - `safeNumber (object, key, default)`, `safeNumber2 (object, key1, key2, default)` – for parsing amounts, prices, costs
 - `safeString (object, key, default)`, `safeString2 (object, key1, key2, default)` – for parsing ids, types, statuses
 - `safeStringLower (object, key, default)`, `safeStringLower2 (object, key1, key2, default)` – for parsing and turning to lowercase
-- `safeStringUpper (object, key, default)`, `safeStringUpper2 (object, key1, key2, default)` – for parsing and turning to lowercase
+- `safeStringUpper (object, key, default)`, `safeStringUpper2 (object, key1, key2, default)` – for parsing and turning to uppercase
+- `safeBool(object, key, default)` - for parsing bools inside dictionaries and arrays/lists
+- `safeList(object, key, default)` - for parsing lists/arrays inside dictionaries and arrays/lists
+- `safeDict(object, key, default)` - for parsing dictionaries inside dictionaries and arrays/lists
 - `safeValue (object, key, default)`, `safeValue2 (object, key1, key2, default)` – for parsing objects (dictionaries) and arrays (lists)
 - `safeTimestamp (object, key, default)`, `safeTimestamp2 (object, key1, key2, default)` – for parsing UNIX timestamps in seconds
 
-The `safeValue` function is used for objects inside objects, arrays inside objects and boolean `true/false` values.
+The `safeValue` function is used for objects inside objects, arrays inside objects and boolean `true/false` values (**deprecated, use it only when you don't know exactly which type is going to be returned, otherwise prefer** `safeBool/safeDict/safeList`).
 
 If you need to search for several different keys within an object you have available the `safeMethodN` function's family that allows for a search with an arbitrary number of keys by accepting an array of keys as an argument.
 
 ```javascript
-const price = this.safeStringN (object, [ 'key1', 'key2', 'key3' ], default)
+const price = this.safeStringN (object, [ 'key1', 'key2', 'key3' ], defaultValue)
 ```
 For every safe method listed above, there is the correspondent `safeMethodN` too.
 
@@ -727,7 +731,7 @@ This section covers the request-assembly part. The `.toFixed ()` method has [kno
 
 #### Escaped Control Characters
 
-When using strings containing control characters like `"\n"`, `"\t"`, always enclose them in double quotes (`"`), not single quotes (`'`)! Single-quoted strings are not parsed for control characters and are treated as is in many languages apart from JavaScript. Therefore for tabs and newlines to work in PHP, we need to surround them with double quotes (especially in the `sign()` implementation).
+When using strings containing control characters like `"\n"`, `"\t"`, always enclose them in double quotes (`"`), not single quotes (`'`)! Single-quoted strings are not parsed for control characters and are treated as is in many languages apart from TypeScript. Therefore for tabs and newlines to work in PHP, we need to surround them with double quotes (especially in the `sign()` implementation).
 
 Bad:
 
@@ -896,6 +900,40 @@ Incoming pull requests are automatically validated by the CI service. You can wa
 
 ### How To Build & Run Tests On Your Local Machine
 
+### Offline tests
+CCXT has various offline tests that help ensure we don't introduce regressions upon adding a new feature or patching a bug. They are effortless and fast to run (since they don't require access to the exchanges), so they should be part of our development flow at CCXT.
+
+
+They include the base tests (precision, crypto, orderbook, etc) and static (request/response) tests.
+
+These tests are located in the folder `ts/src/test/base/functions/`; most of their content is automatically transpilable to every language; therefore, the same code conventions apply.
+
+You can run them by doing: `npm run test-base` and `npm run-test-ws`
+
+Static tests are also offline but they work differently because they emulate a unified ccxt call (createOrder/fetchTickers/etc)  and they mock the server's response and/or assert the validity of the generated HTTP request.
+
+**Request-static**:
+- They emulate the HTTP request, stop it before it tries to connect and assert that the url/body are properly formed.
+
+Folder: `ts/src/test/static/request/`
+
+You can create a static-request test by running this command and pasting the result in the correct file (eg: `static/request/binance.json`)
+
+```shell
+node cli.js binance fetchTrades "BTC/USDT:USDT" --report
+````
+
+
+**Response-static**
+- Emulate a mocked response from the server and assert the CCXT parses the raw HTTP response correctly.
+
+Folder: `ts/src/test/static/response/binance.json`
+
+You can create a static-response test by running this command and pasting the result in the correct file (eg: `static/response/binance.json`)
+
+```shell
+node cli.js binance fetchTrades "BTC/USDT:USDT"  undefined 1 --response
+````
 #### Adding Exchange Credentials
 
 CCXT has tests for both the public API and the private authenticated API. By default, CCXT's built-in tests will only test the public APIs, because the code repository does not include the [API keys](https://github.com/ccxt/ccxt/wiki/Manual#authentication) that are required for the private API tests. Also, the included private tests will not alter the balance of the account in any way, all tests are non-intrusive. In order to enable private API testing, one must configure the API keys. That can be done either in `keys.local.json` or with the `env` variables.
@@ -906,7 +944,7 @@ Exchange API keys can be added to the `keys.local.json` in the root folder insid
 
 An example of `keys.local.json` file:
 
-```javascript
+```json
 {
     "ftx": {
         "apiKey": "XXX",
@@ -1010,12 +1048,10 @@ node run-tests --python-async kraken # test Kraken with Python async test, requi
 
 Follow this steps to add a test:
 
-- Create a file in [js/tests/Exchange](js/test/Exchange/) following syntax that can be transpiled.
-- Add file location to [transpile.js](build/transpile.js#L1600)
-- run `npm run transpile` to generate the test file in python and php.
-- Call test in [tests.js](js/test/test.js)
-- Call test in [test_async.py](python/ccxt/test/test_async.py)
-- Call test in [test_asnyc.php](php/test/test_async.php)
+- Create a file in [ts/tests/Exchange](ts/test/Exchange/) following syntax that can be transpiled.
+- Add test to `runPrivateTests` or `runPublicTests` to [ts/src/test/tests.ts](ts/src/test/tests.ts#L354) or for ccxt.pro endpoints to [ts/src/pro/test/tests.ts](ts/src/pro/test/tests.ts#L121)
+- run `npm run transpile` to generate the test file in javascript, python and php.
+- Call tests `node run-tests`
 
 ## Committing Changes To The Repository
 

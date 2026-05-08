@@ -6,15 +6,14 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinsph import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from typing import Optional
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
-from ccxt.base.errors import BadResponse
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
@@ -24,14 +23,14 @@ from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import BadResponse
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
 class coinsph(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(coinsph, self).describe(), {
             'id': 'coinsph',
             'name': 'Coins.ph',
@@ -48,12 +47,21 @@ class coinsph(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': False,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': False,
                 'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': False,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': False,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': False,
+                'createMarketSellOrderWithCost': False,
                 'createOrder': True,
+                'createOrderWithTakeProfitAndStopLoss': False,
+                'createOrderWithTakeProfitAndStopLossWs': False,
                 'createPostOnlyOrder': False,
                 'createReduceOnlyOrder': False,
                 'createStopLimitOrder': True,
@@ -73,40 +81,67 @@ class coinsph(Exchange, ImplicitAPI):
                 'fetchCanceledOrders': False,
                 'fetchClosedOrder': False,
                 'fetchClosedOrders': True,
-                'fetchCurrencies': False,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
+                'fetchCurrencies': True,
                 'fetchDeposit': None,
-                'fetchDepositAddress': False,
+                'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFee': False,
                 'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': False,
+                'fetchFundingInterval': False,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
+                'fetchIsolatedPositions': False,
                 'fetchL3OrderBook': False,
                 'fetchLedger': False,
                 'fetchLeverage': False,
+                'fetchLeverages': False,
                 'fetchLeverageTiers': False,
+                'fetchLiquidations': False,
+                'fetchLongShortRatio': False,
+                'fetchLongShortRatioHistory': False,
+                'fetchMarginAdjustmentHistory': False,
+                'fetchMarginMode': False,
+                'fetchMarginModes': False,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
+                'fetchMarkPrices': False,
+                'fetchMyLiquidations': False,
+                'fetchMySettlementHistory': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': False,
                 'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': False,
                 'fetchOpenOrder': None,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': False,
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchSettlementHistory': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -119,10 +154,13 @@ class coinsph(Exchange, ImplicitAPI):
                 'fetchTransactionFees': False,
                 'fetchTransactions': False,
                 'fetchTransfers': False,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': False,
                 'reduceMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'repayMargin': False,
                 'setLeverage': False,
                 'setMargin': False,
@@ -131,6 +169,7 @@ class coinsph(Exchange, ImplicitAPI):
                 'signIn': False,
                 'transfer': False,
                 'withdraw': True,
+                'ws': False,
             },
             'timeframes': {
                 '1m': '1m',
@@ -160,12 +199,17 @@ class coinsph(Exchange, ImplicitAPI):
                     'https://coins-docs.github.io/rest-api',
                 ],
                 'fees': 'https://support.coins.ph/hc/en-us/sections/4407198694681-Limits-Fees',
+                'referral': {
+                    'url': 'https://www.coins.ph/en-ph/register?invite_code=1371062463303277512&broker=9001',
+                    'discount': 0.2,
+                },
             },
             'api': {
                 'public': {
                     'get': {
                         'openapi/v1/ping': 1,
                         'openapi/v1/time': 1,
+                        'openapi/v1/user/ip': 1,
                         # cost 1 if 'symbol' param defined(one market symbol) or if 'symbols' param is a list of 1-20 market symbols
                         # cost 20 if 'symbols' param is a list of 21-100 market symbols
                         # cost 40 if 'symbols' param is a list of 101 or more market symbols or if both 'symbol' and 'symbols' params are omited
@@ -187,7 +231,14 @@ class coinsph(Exchange, ImplicitAPI):
                 },
                 'private': {
                     'get': {
+                        'openapi/v1/check-sys-status': 1,
+                        'openapi/wallet/v1/config/getall': 10,
+                        'openapi/wallet/v1/deposit/address': 10,
+                        'openapi/wallet/v1/deposit/history': 1,
+                        'openapi/wallet/v1/withdraw/history': 1,
+                        'openapi/wallet/v1/withdraw/address-whitelist': 1,
                         'openapi/v1/account': 10,
+                        'openapi/v1/api-keys': 1,
                         # cost 3 for a single symbol; 40 when the symbol parameter is omitted
                         'openapi/v1/openOrders': {'cost': 3, 'noSymbol': 40},
                         'openapi/v1/asset/tradeFee': 1,
@@ -197,16 +248,56 @@ class coinsph(Exchange, ImplicitAPI):
                         'openapi/v1/myTrades': 10,
                         'openapi/v1/capital/deposit/history': 1,
                         'openapi/v1/capital/withdraw/history': 1,
+                        'openapi/v3/payment-request/get-payment-request': 1,
+                        'merchant-api/v1/get-invoices': 1,
+                        'openapi/account/v3/crypto-accounts': 1,
+                        'openapi/transfer/v3/transfers/{id}': 1,
+                        'openapi/v1/sub-account/list': 10,
+                        'openapi/v1/sub-account/asset': 10,
+                        'openapi/v1/sub-account/transfer/universal-transfer-history': 10,
+                        'openapi/v1/sub-account/transfer/sub-history': 10,
+                        'openapi/v1/sub-account/apikey/ip-restriction': 10,
+                        'openapi/v1/sub-account/wallet/deposit/address': 1,
+                        'openapi/v1/sub-account/wallet/deposit/history': 1,
+                        'openapi/v1/fund-collect/get-fund-record': 1,
+                        'openapi/v1/asset/transaction/history': 20,
                     },
                     'post': {
+                        'openapi/wallet/v1/withdraw/apply': 600,
                         'openapi/v1/order/test': 1,
                         'openapi/v1/order': 1,
                         'openapi/v1/capital/withdraw/apply': 1,
                         'openapi/v1/capital/deposit/apply': 1,
+                        'openapi/v3/payment-request/payment-requests': 1,
+                        'openapi/v3/payment-request/delete-payment-request': 1,
+                        'openapi/v3/payment-request/payment-request-reminder': 1,
+                        'openapi/v1/userDataStream': 1,
+                        'merchant-api/v1/invoices': 1,
+                        'merchant-api/v1/invoices-cancel': 1,
+                        'openapi/convert/v1/get-supported-trading-pairs': 1,
+                        'openapi/convert/v1/get-quote': 1,
+                        'openapi/convert/v1/accpet-quote': 1,
+                        'openapi/convert/v1/query-order-history': 1,
+                        'openapi/fiat/v1/support-channel': 1,
+                        'openapi/fiat/v1/cash-out': 1,
+                        'openapi/fiat/v1/history': 1,
+                        'openapi/migration/v4/sellorder': 1,
+                        'openapi/migration/v4/validate-field': 1,
+                        'openapi/transfer/v3/transfers': 1,
+                        'openapi/v1/sub-account/create': 30,
+                        'openapi/v1/sub-account/transfer/universal-transfer': 100,
+                        'openapi/v1/sub-account/transfer/sub-to-master': 100,
+                        'openapi/v1/sub-account/apikey/add-ip-restriction': 30,
+                        'openapi/v1/sub-account/apikey/delete-ip-restriction': 30,
+                        'openapi/v1/fund-collect/collect-from-sub-account': 1,
+                    },
+                    'put': {
+                        'openapi/v1/userDataStream': 1,
                     },
                     'delete': {
                         'openapi/v1/order': 1,
                         'openapi/v1/openOrders': 1,
+                        'openapi/v1/userDataStream': 1,
                     },
                 },
             },
@@ -268,6 +359,87 @@ class coinsph(Exchange, ImplicitAPI):
                 },
                 'fetchTickers': {
                     'method': 'publicGetOpenapiQuoteV1Ticker24hr',  # publicGetOpenapiQuoteV1TickerPrice, publicGetOpenapiQuoteV1TickerBookTicker
+                },
+                'networks': {
+                    # all networks: 'ETH', 'TRX', 'BSC', 'ARBITRUM', 'RON', 'BTC', 'XRP'
+                    # you can call api privateGetOpenapiWalletV1ConfigGetall to check which network is supported for the currency
+                    'TRC20': 'TRX',
+                    'ERC20': 'ETH',
+                    'BEP20': 'BSC',
+                    'ARB': 'ARBITRUM',
+                },
+            },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'fetchCurrencies': {
+                        'private': True,
+                    },
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': False,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': True,  # todo implement
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,  # todo implement
+                        'symbolRequired': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
                 },
             },
             # https://coins-docs.github.io/errors/
@@ -388,6 +560,128 @@ class coinsph(Exchange, ImplicitAPI):
             },
         })
 
+    async def fetch_currencies(self, params={}) -> Currencies:
+        """
+        fetches all available currencies on an exchange
+
+        https://docs.coins.ph/rest-api/#all-coins-information-user_data
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an associative dictionary of currencies
+        """
+        if not self.check_required_credentials(False):
+            return {}
+        response = await self.privateGetOpenapiWalletV1ConfigGetall(params)
+        #
+        #    [
+        #        {
+        #            "coin": "PHP",
+        #            "name": "PHP",
+        #            "depositAllEnable": False,
+        #            "withdrawAllEnable": False,
+        #            "free": "0",
+        #            "locked": "0",
+        #            "transferPrecision": "2",
+        #            "transferMinQuantity": "0",
+        #            "networkList": [],
+        #            "legalMoney": True
+        #        },
+        #        {
+        #            "coin": "USDT",
+        #            "name": "USDT",
+        #            "depositAllEnable": True,
+        #            "withdrawAllEnable": True,
+        #            "free": "0",
+        #            "locked": "0",
+        #            "transferPrecision": "8",
+        #            "transferMinQuantity": "0",
+        #            "networkList": [
+        #                {
+        #                    "addressRegex": "^0x[0-9a-fA-F]{40}$",
+        #                    "memoRegex": " ",
+        #                    "network": "ETH",
+        #                    "name": "Ethereum(ERC20)",
+        #                    "depositEnable": True,
+        #                    "minConfirm": "12",
+        #                    "unLockConfirm": "-1",
+        #                    "withdrawDesc": "",
+        #                    "withdrawEnable": True,
+        #                    "withdrawFee": "6",
+        #                    "withdrawIntegerMultiple": "0.000001",
+        #                    "withdrawMax": "500000",
+        #                    "withdrawMin": "10",
+        #                    "sameAddress": False
+        #                },
+        #                {
+        #                    "addressRegex": "^T[0-9a-zA-Z]{33}$",
+        #                    "memoRegex": "",
+        #                    "network": "TRX",
+        #                    "name": "TRON",
+        #                    "depositEnable": True,
+        #                    "minConfirm": "19",
+        #                    "unLockConfirm": "-1",
+        #                    "withdrawDesc": "",
+        #                    "withdrawEnable": True,
+        #                    "withdrawFee": "3",
+        #                    "withdrawIntegerMultiple": "0.000001",
+        #                    "withdrawMax": "1000000",
+        #                    "withdrawMin": "20",
+        #                    "sameAddress": False
+        #                }
+        #            ],
+        #            "legalMoney": False
+        #        }
+        #    ]
+        #
+        result: dict = {}
+        for i in range(0, len(response)):
+            entry = response[i]
+            id = self.safe_string(entry, 'coin')
+            code = self.safe_currency_code(id)
+            isFiat = self.safe_bool(entry, 'isLegalMoney')
+            networkList = self.safe_list(entry, 'networkList', [])
+            networks: dict = {}
+            for j in range(0, len(networkList)):
+                networkItem = networkList[j]
+                network = self.safe_string(networkItem, 'network')
+                networkCode = self.network_id_to_code(network)
+                networks[networkCode] = {
+                    'info': networkItem,
+                    'id': network,
+                    'network': networkCode,
+                    'active': None,
+                    'deposit': self.safe_bool(networkItem, 'depositEnable'),
+                    'withdraw': self.safe_bool(networkItem, 'withdrawEnable'),
+                    'fee': self.safe_number(networkItem, 'withdrawFee'),
+                    'precision': self.safe_number(networkItem, 'withdrawIntegerMultiple'),
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number(networkItem, 'withdrawMin'),
+                            'max': self.safe_number(networkItem, 'withdrawMax'),
+                        },
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
+                    },
+                }
+            result[code] = self.safe_currency_structure({
+                'id': id,
+                'name': self.safe_string(entry, 'name'),
+                'code': code,
+                'type': 'fiat' if isFiat else 'crypto',
+                'precision': self.parse_number(self.parse_precision(self.safe_string(entry, 'transferPrecision'))),
+                'info': entry,
+                'active': None,
+                'deposit': self.safe_bool(entry, 'depositAllEnable'),
+                'withdraw': self.safe_bool(entry, 'withdrawAllEnable'),
+                'networks': networks,
+                'fee': None,
+                'fees': None,
+                'limits': {},
+            })
+        return result
+
     def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
         if ('noSymbol' in config) and not ('symbol' in params):
             return config['noSymbol']
@@ -413,8 +707,11 @@ class coinsph(Exchange, ImplicitAPI):
     async def fetch_status(self, params={}):
         """
         the latest known information on the availability of the exchange API
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
+
+        https://coins-docs.github.io/rest-api/#test-connectivity
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
         """
         response = await self.publicGetOpenapiV1Ping(params)
         return {
@@ -425,10 +722,13 @@ class coinsph(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :param dict params: extra parameters specific to the coinsph api endpoint
+
+        https://coins-docs.github.io/rest-api/#check-server-time
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
         response = await self.publicGetOpenapiV1Time(params)
@@ -437,73 +737,76 @@ class coinsph(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'serverTime')
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for coinsph
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+
+        https://coins-docs.github.io/rest-api/#exchange-information
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of objects representing market data
         """
         response = await self.publicGetOpenapiV1ExchangeInfo(params)
         #
         #     {
-        #         timezone: 'UTC',
-        #         serverTime: '1677449496897',
-        #         exchangeFilters: [],
-        #         symbols: [
+        #         "timezone": "UTC",
+        #         "serverTime": "1677449496897",
+        #         "exchangeFilters": [],
+        #         "symbols": [
         #             {
-        #                 symbol: 'XRPPHP',
-        #                 status: 'TRADING',
-        #                 baseAsset: 'XRP',
-        #                 baseAssetPrecision: '2',
-        #                 quoteAsset: 'PHP',
-        #                 quoteAssetPrecision: '4',
-        #                 orderTypes: [
-        #                     'LIMIT',
-        #                     'MARKET',
-        #                     'LIMIT_MAKER',
-        #                     'STOP_LOSS_LIMIT',
-        #                     'STOP_LOSS',
-        #                     'TAKE_PROFIT_LIMIT',
-        #                     'TAKE_PROFIT'
+        #                 "symbol": "XRPPHP",
+        #                 "status": "TRADING",
+        #                 "baseAsset": "XRP",
+        #                 "baseAssetPrecision": "2",
+        #                 "quoteAsset": "PHP",
+        #                 "quoteAssetPrecision": "4",
+        #                 "orderTypes": [
+        #                     "LIMIT",
+        #                     "MARKET",
+        #                     "LIMIT_MAKER",
+        #                     "STOP_LOSS_LIMIT",
+        #                     "STOP_LOSS",
+        #                     "TAKE_PROFIT_LIMIT",
+        #                     "TAKE_PROFIT"
         #                 ],
-        #                 filters: [
+        #                 "filters": [
         #                     {
-        #                         minPrice: '0.01',
-        #                         maxPrice: '99999999.00000000',
-        #                         tickSize: '0.01',
-        #                         filterType: 'PRICE_FILTER'
+        #                         "minPrice": "0.01",
+        #                         "maxPrice": "99999999.00000000",
+        #                         "tickSize": "0.01",
+        #                         "filterType": "PRICE_FILTER"
         #                     },
         #                     {
-        #                         minQty: '0.01',
-        #                         maxQty: '99999999999.00000000',
-        #                         stepSize: '0.01',
-        #                         filterType: 'LOT_SIZE'
+        #                         "minQty": "0.01",
+        #                         "maxQty": "99999999999.00000000",
+        #                         "stepSize": "0.01",
+        #                         "filterType": "LOT_SIZE"
         #                     },
-        #                     {minNotional: '50', filterType: 'NOTIONAL'},
-        #                     {minNotional: '50', filterType: 'MIN_NOTIONAL'},
+        #                     {minNotional: "50", filterType: "NOTIONAL"},
+        #                     {minNotional: "50", filterType: "MIN_NOTIONAL"},
         #                     {
-        #                         priceUp: '99999999',
-        #                         priceDown: '0.01',
-        #                         filterType: 'STATIC_PRICE_RANGE'
-        #                     },
-        #                     {
-        #                         multiplierUp: '1.1',
-        #                         multiplierDown: '0.9',
-        #                         filterType: 'PERCENT_PRICE_INDEX'
+        #                         "priceUp": "99999999",
+        #                         "priceDown": "0.01",
+        #                         "filterType": "STATIC_PRICE_RANGE"
         #                     },
         #                     {
-        #                         multiplierUp: '1.1',
-        #                         multiplierDown: '0.9',
-        #                         filterType: 'PERCENT_PRICE_ORDER_SIZE'
+        #                         "multiplierUp": "1.1",
+        #                         "multiplierDown": "0.9",
+        #                         "filterType": "PERCENT_PRICE_INDEX"
         #                     },
-        #                     {maxNumOrders: '200', filterType: 'MAX_NUM_ORDERS'},
-        #                     {maxNumAlgoOrders: '5', filterType: 'MAX_NUM_ALGO_ORDERS'}
+        #                     {
+        #                         "multiplierUp": "1.1",
+        #                         "multiplierDown": "0.9",
+        #                         "filterType": "PERCENT_PRICE_ORDER_SIZE"
+        #                     },
+        #                     {maxNumOrders: "200", filterType: "MAX_NUM_ORDERS"},
+        #                     {maxNumAlgoOrders: "5", filterType: "MAX_NUM_ALGO_ORDERS"}
         #                 ]
         #             },
         #         ]
         #     }
         #
-        markets = self.safe_value(response, 'symbols')
+        markets = self.safe_list(response, 'symbols', [])
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -512,8 +815,7 @@ class coinsph(Exchange, ImplicitAPI):
             quoteId = self.safe_string(market, 'quoteAsset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            isActive = self.safe_string(market, 'status') == 'TRADING'
-            limits = self.index_by(self.safe_value(market, 'filters'), 'filterType')
+            limits = self.index_by(self.safe_list(market, 'filters', []), 'filterType')
             amountLimits = self.safe_value(limits, 'LOT_SIZE', {})
             priceLimits = self.safe_value(limits, 'PRICE_FILTER', {})
             costLimits = self.safe_value(limits, 'NOTIONAL', {})
@@ -532,7 +834,7 @@ class coinsph(Exchange, ImplicitAPI):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': isActive,
+                'active': self.safe_string_lower(market, 'status') == 'trading',
                 'contract': False,
                 'linear': None,
                 'inverse': None,
@@ -565,20 +867,26 @@ class coinsph(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         self.set_markets(result)
         return result
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+        https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics
+        https://coins-docs.github.io/rest-api/#symbol-price-ticker
+        https://coins-docs.github.io/rest-api/#symbol-order-book-ticker
+
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         if symbols is not None:
             ids = []
             for i in range(0, len(symbols)):
@@ -587,54 +895,71 @@ class coinsph(Exchange, ImplicitAPI):
                 ids.append(id)
             request['symbols'] = ids
         defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr'
-        options = self.safe_value(self.options, 'fetchTickers', {})
+        options = self.safe_dict(self.options, 'fetchTickers', {})
         method = self.safe_string(options, 'method', defaultMethod)
-        tickers = await getattr(self, method)(self.extend(request, params))
+        tickers = None
+        if method == 'publicGetOpenapiQuoteV1TickerPrice':
+            tickers = await self.publicGetOpenapiQuoteV1TickerPrice(self.extend(request, params))
+        elif method == 'publicGetOpenapiQuoteV1TickerBookTicker':
+            tickers = await self.publicGetOpenapiQuoteV1TickerBookTicker(self.extend(request, params))
+        else:
+            tickers = await self.publicGetOpenapiQuoteV1Ticker24hr(self.extend(request, params))
         return self.parse_tickers(tickers, symbols, params)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+        https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics
+        https://coins-docs.github.io/rest-api/#symbol-price-ticker
+        https://coins-docs.github.io/rest-api/#symbol-order-book-ticker
+
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr'
-        options = self.safe_value(self.options, 'fetchTicker', {})
+        options = self.safe_dict(self.options, 'fetchTicker', {})
         method = self.safe_string(options, 'method', defaultMethod)
-        ticker = await getattr(self, method)(self.extend(request, params))
+        ticker = None
+        if method == 'publicGetOpenapiQuoteV1TickerPrice':
+            ticker = await self.publicGetOpenapiQuoteV1TickerPrice(self.extend(request, params))
+        elif method == 'publicGetOpenapiQuoteV1TickerBookTicker':
+            ticker = await self.publicGetOpenapiQuoteV1TickerBookTicker(self.extend(request, params))
+        else:
+            ticker = await self.publicGetOpenapiQuoteV1Ticker24hr(self.extend(request, params))
         return self.parse_ticker(ticker, market)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # publicGetOpenapiQuoteV1Ticker24hr
         #     {
-        #         symbol: 'ETHUSDT',
-        #         priceChange: '41.440000000000000000',
-        #         priceChangePercent: '0.0259',
-        #         weightedAvgPrice: '1631.169825783972125436',
-        #         prevClosePrice: '1601.520000000000000000',
-        #         lastPrice: '1642.96',
-        #         lastQty: '0.000001000000000000',
-        #         bidPrice: '1638.790000000000000000',
-        #         bidQty: '0.280075000000000000',
-        #         askPrice: '1647.340000000000000000',
-        #         askQty: '0.165183000000000000',
-        #         openPrice: '1601.52',
-        #         highPrice: '1648.28',
-        #         lowPrice: '1601.52',
-        #         volume: '0.000287',
-        #         quoteVolume: '0.46814574',
-        #         openTime: '1677417000000',
-        #         closeTime: '1677503415200',
-        #         firstId: '1364680572697591809',
-        #         lastId: '1365389809203560449',
-        #         count: '100'
+        #         "symbol": "ETHUSDT",
+        #         "priceChange": "41.440000000000000000",
+        #         "priceChangePercent": "0.0259",
+        #         "weightedAvgPrice": "1631.169825783972125436",
+        #         "prevClosePrice": "1601.520000000000000000",
+        #         "lastPrice": "1642.96",
+        #         "lastQty": "0.000001000000000000",
+        #         "bidPrice": "1638.790000000000000000",
+        #         "bidQty": "0.280075000000000000",
+        #         "askPrice": "1647.340000000000000000",
+        #         "askQty": "0.165183000000000000",
+        #         "openPrice": "1601.52",
+        #         "highPrice": "1648.28",
+        #         "lowPrice": "1601.52",
+        #         "volume": "0.000287",
+        #         "quoteVolume": "0.46814574",
+        #         "openTime": "1677417000000",
+        #         "closeTime": "1677503415200",
+        #         "firstId": "1364680572697591809",
+        #         "lastId": "1365389809203560449",
+        #         "count": "100"
         #     }
         #
         # publicGetOpenapiQuoteV1TickerPrice
@@ -688,17 +1013,20 @@ class coinsph(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://coins-docs.github.io/rest-api/#order-book
+
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return(default 100, max 200)
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :param int [limit]: the maximum amount of order book entries to return(default 100, max 200)
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -721,35 +1049,47 @@ class coinsph(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
         return orderbook
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+        https://coins-docs.github.io/rest-api/#klinecandlestick-data
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch(default 500, max 1000)
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch(default 500, max 1000)
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
         interval = self.safe_string(self.timeframes, timeframe)
-        request = {
+        until = self.safe_integer(params, 'until')
+        request: dict = {
             'symbol': market['id'],
             'interval': interval,
         }
+        if limit is None:
+            limit = 1000
         if since is not None:
             request['startTime'] = since
-            request['limit'] = 1000
-            # since work properly only when it is "younger" than last 'limit' candle
-            if limit is not None:
-                duration = self.parse_timeframe(timeframe) * 1000
-                request['endTime'] = self.sum(since, duration * (limit - 1))
+            # since work properly only when it is "younger" than last "limit" candle
+            if until is not None:
+                request['endTime'] = until
             else:
-                request['endTime'] = self.milliseconds()
-        else:
-            if limit is not None:
-                request['limit'] = limit
+                duration = self.parse_timeframe(timeframe) * 1000
+                endTimeByLimit = self.sum(since, duration * (limit - 1))
+                now = self.milliseconds()
+                request['endTime'] = min(endTimeByLimit, now)
+        elif until is not None:
+            request['endTime'] = until
+            # since work properly only when it is "younger" than last "limit" candle
+            duration = self.parse_timeframe(timeframe) * 1000
+            request['startTime'] = until - (duration * (limit - 1))
+        request['limit'] = limit
+        params = self.omit(params, 'until')
         response = await self.publicGetOpenapiQuoteV1Klines(self.extend(request, params))
         #
         #     [
@@ -770,7 +1110,7 @@ class coinsph(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
@@ -780,18 +1120,21 @@ class coinsph(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+
+        https://coins-docs.github.io/rest-api/#recent-trades-list
+
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch(default 500, max 1000)
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch(default 500, max 1000)
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if since is not None:
@@ -804,32 +1147,35 @@ class coinsph(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             price: '89685.8',
-        #             id: '1365561108437680129',
-        #             qty: '0.000004',
-        #             quoteQty: '0.000004000000000000',
-        #             time: '1677523569575',
-        #             isBuyerMaker: False,
-        #             isBestMatch: True
+        #             "price": "89685.8",
+        #             "id": "1365561108437680129",
+        #             "qty": "0.000004",
+        #             "quoteQty": "0.000004000000000000",
+        #             "time": "1677523569575",
+        #             "isBuyerMaker": False,
+        #             "isBestMatch": True
         #         },
         #     ]
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
+
+        https://coins-docs.github.io/rest-api/#account-trade-list-user_data
+
         :param str symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades structures to retrieve(default 500, max 1000)
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades structures to retrieve(default 500, max 1000)
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if since is not None:
@@ -841,34 +1187,37 @@ class coinsph(Exchange, ImplicitAPI):
         response = await self.privateGetOpenapiV1MyTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
+
+        https://coins-docs.github.io/rest-api/#account-trade-list-user_data
+
         :param str id: order id
         :param str symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades to retrieve
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
-        request = {
+        request: dict = {
             'orderId': id,
         }
         return await self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades
         #     {
-        #         price: '89685.8',
-        #         id: '1365561108437680129',
-        #         qty: '0.000004',
-        #         quoteQty: '0.000004000000000000',  # warning: report to exchange - self is not quote quantity, self is base quantity
-        #         time: '1677523569575',
-        #         isBuyerMaker: False,
-        #         isBestMatch: True
+        #         "price": "89685.8",
+        #         "id": "1365561108437680129",
+        #         "qty": "0.000004",
+        #         "quoteQty": "0.000004000000000000",  # warning: report to exchange - self is not quote quantity, self is base quantity
+        #         "time": "1677523569575",
+        #         "isBuyerMaker": False,
+        #         "isBestMatch": True
         #     },
         #
         # fetchMyTrades
@@ -913,10 +1262,10 @@ class coinsph(Exchange, ImplicitAPI):
                 'cost': feeCost,
                 'currency': self.safe_currency_code(feeCurrencyId),
             }
-        isBuyer = self.safe_string_2(trade, 'isBuyer', 'isBuyerMaker', None)
+        isBuyer = self.safe_bool_2(trade, 'isBuyer', 'isBuyerMaker', None)
         side = None
         if isBuyer is not None:
-            side = 'buy' if (isBuyer == 'true') else 'sell'
+            side = 'buy' if (isBuyer is True) else 'sell'
         isMaker = self.safe_string_2(trade, 'isMaker', None)
         takerOrMaker = None
         if isMaker is not None:
@@ -940,18 +1289,21 @@ class coinsph(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+
+        https://coins-docs.github.io/rest-api/#accept-the-quote
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
         response = await self.privateGetOpenapiV1Account(params)
         #
         #     {
-        #         accountType: 'SPOT',
-        #         balances: [
+        #         "accountType": "SPOT",
+        #         "balances": [
         #             {
         #                 "asset": "BTC",
         #                 "free": "4723846.89208129",
@@ -963,21 +1315,20 @@ class coinsph(Exchange, ImplicitAPI):
         #                 "locked": "0.00000000"
         #             }
         #         ],
-        #         canDeposit: True,
-        #         canTrade: True,
-        #         canWithdraw: True,
-        #         updateTime: '1677430932528'
+        #         "canDeposit": True,
+        #         "canTrade": True,
+        #         "canWithdraw": True,
+        #         "updateTime": "1677430932528"
         #     }
         #
         return self.parse_balance(response)
 
-    def parse_balance(self, response):
-        balances = self.safe_value(response, 'balances', [])
-        timestamp = self.milliseconds()
-        result = {
+    def parse_balance(self, response) -> Balances:
+        balances = self.safe_list(response, 'balances', [])
+        result: dict = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
         }
         for i in range(0, len(balances)):
             balance = balances[i]
@@ -989,25 +1340,32 @@ class coinsph(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
+
+        https://coins-docs.github.io/rest-api/#new-order--trade
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market', 'limit', 'stop_loss', 'take_profit', 'stop_loss_limit', 'take_profit_limit' or 'limit_maker'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.cost]: the quote quantity that can be used alternative for the amount for market buy orders
+        :param bool [params.test]: set to True to test an order, no order will be created but the request will be validated
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         # todo: add test order low priority
         await self.load_markets()
         market = self.market(symbol)
+        testOrder = self.safe_bool(params, 'test', False)
+        params = self.omit(params, 'test')
         orderType = self.safe_string(params, 'type', type)
         orderType = self.encode_order_type(orderType)
         params = self.omit(params, 'type')
         orderSide = self.encode_order_side(side)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'type': orderType,
             'side': orderSide,
@@ -1029,67 +1387,78 @@ class coinsph(Exchange, ImplicitAPI):
             if orderSide == 'SELL':
                 request['quantity'] = self.amount_to_precision(symbol, amount)
             elif orderSide == 'BUY':
-                quoteOrderQty = self.safe_number_2(params, 'cost', 'quoteOrderQty')
-                createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
-                if quoteOrderQty is not None:
-                    amount = quoteOrderQty
+                quoteAmount = None
+                createMarketBuyOrderRequiresPrice = True
+                createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+                cost = self.safe_number_2(params, 'cost', 'quoteOrderQty')
+                params = self.omit(params, 'cost')
+                if cost is not None:
+                    quoteAmount = self.cost_to_precision(symbol, cost)
                 elif createMarketBuyOrderRequiresPrice:
                     if price is None:
-                        raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
+                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
                     else:
                         amountString = self.number_to_string(amount)
                         priceString = self.number_to_string(price)
-                        quoteAmount = Precise.string_mul(amountString, priceString)
-                        amount = self.parse_number(quoteAmount)
-                request['quoteOrderQty'] = self.cost_to_precision(symbol, amount)
-                params = self.omit(params, 'cost', 'quoteOrderQty')
+                        costRequest = Precise.string_mul(amountString, priceString)
+                        quoteAmount = self.cost_to_precision(symbol, costRequest)
+                else:
+                    quoteAmount = self.cost_to_precision(symbol, amount)
+                request['quoteOrderQty'] = quoteAmount
         if orderType == 'STOP_LOSS' or orderType == 'STOP_LOSS_LIMIT' or orderType == 'TAKE_PROFIT' or orderType == 'TAKE_PROFIT_LIMIT':
-            stopPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
-            if stopPrice is None:
+            triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+            if triggerPrice is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders')
-            request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+            request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
         request['newOrderRespType'] = newOrderRespType
         params = self.omit(params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty')
-        response = await self.privatePostOpenapiV1Order(self.extend(request, params))
+        response = None
+        if testOrder:
+            response = await self.privatePostOpenapiV1OrderTest(self.extend(request, params))
+        else:
+            response = await self.privatePostOpenapiV1Order(self.extend(request, params))
         #
         #     {
-        #         symbol: 'ETHUSDT',
-        #         orderId: '1375407140139731486',
-        #         clientOrderId: '1375407140139733169',
-        #         transactTime: '1678697308023',
-        #         price: '1600',
-        #         origQty: '0.02',
-        #         executedQty: '0.02',
-        #         cummulativeQuoteQty: '31.9284',
-        #         status: 'FILLED',
-        #         timeInForce: 'GTC',
-        #         type: 'LIMIT',
-        #         side: 'BUY',
-        #         stopPrice: '0',
-        #         origQuoteOrderQty: '0',
-        #         fills: [
+        #         "symbol": "ETHUSDT",
+        #         "orderId": "1375407140139731486",
+        #         "clientOrderId": "1375407140139733169",
+        #         "transactTime": "1678697308023",
+        #         "price": "1600",
+        #         "origQty": "0.02",
+        #         "executedQty": "0.02",
+        #         "cummulativeQuoteQty": "31.9284",
+        #         "status": "FILLED",
+        #         "timeInForce": "GTC",
+        #         "type": "LIMIT",
+        #         "side": "BUY",
+        #         "stopPrice": "0",
+        #         "origQuoteOrderQty": "0",
+        #         "fills": [
         #             {
-        #                 price: '1596.42',
-        #                 qty: '0.02',
-        #                 commission: '0',
-        #                 commissionAsset: 'ETH',
-        #                 tradeId: '1375407140281532417'
+        #                 "price": "1596.42",
+        #                 "qty": "0.02",
+        #                 "commission": "0",
+        #                 "commissionAsset": "ETH",
+        #                 "tradeId": "1375407140281532417"
         #             }
         #         ]
         #     },
         #
         return self.parse_order(response, market)
 
-    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
+
+        https://coins-docs.github.io/rest-api/#query-order-user_data
+
         :param int|str id: order id
         :param str symbol: not used by coinsph fetchOrder()
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         clientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
         if clientOrderId is not None:
             request['origClientOrderId'] = clientOrderId
@@ -1099,38 +1468,44 @@ class coinsph(Exchange, ImplicitAPI):
         response = await self.privateGetOpenapiV1Order(self.extend(request, params))
         return self.parse_order(response)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+
+        https://coins-docs.github.io/rest-api/#current-open-orders-user_data
+
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = None
-        request = {}
+        request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         response = await self.privateGetOpenapiV1OpenOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
-        :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve(default 500, max 1000)
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+
+        https://coins-docs.github.io/rest-api/#history-orders-user_data
+
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve(default 500, max 1000)
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if since is not None:
@@ -1142,16 +1517,19 @@ class coinsph(Exchange, ImplicitAPI):
         response = await self.privateGetOpenapiV1HistoryOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
+
+        https://coins-docs.github.io/rest-api/#cancel-order-trade
+
         :param str id: order id
-        :param str|None symbol: not used by coinsph cancelOrder()
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: not used by coinsph cancelOrder()
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         clientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
         if clientOrderId is not None:
             request['origClientOrderId'] = clientOrderId
@@ -1161,25 +1539,28 @@ class coinsph(Exchange, ImplicitAPI):
         response = await self.privateDeleteOpenapiV1Order(self.extend(request, params))
         return self.parse_order(response)
 
-    async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel open orders of market
-        :param str|None symbol: unified market symbol
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+
+        https://coins-docs.github.io/rest-api/#cancel-all-open-orders-on-a-symbol-trade
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         await self.load_markets()
         market = None
-        request = {}
+        request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         response = await self.privateDeleteOpenapiV1OpenOrders(self.extend(request, params))
         return self.parse_orders(response, market)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder POST /openapi/v1/order
         #     {
@@ -1253,9 +1634,9 @@ class coinsph(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer_2(order, 'time', 'transactTime')
         trades = self.safe_value(order, 'fills', None)
-        stopPrice = self.safe_string(order, 'stopPrice')
-        if Precise.string_eq(stopPrice, '0'):
-            stopPrice = None
+        triggerPrice = self.safe_string(order, 'stopPrice')
+        if Precise.string_eq(triggerPrice, '0'):
+            triggerPrice = None
         return self.safe_order({
             'id': id,
             'clientOrderId': self.safe_string(order, 'clientOrderId'),
@@ -1268,8 +1649,7 @@ class coinsph(Exchange, ImplicitAPI):
             'timeInForce': self.parse_order_time_in_force(self.safe_string(order, 'timeInForce')),
             'side': self.parse_order_side(self.safe_string(order, 'side')),
             'price': self.safe_string(order, 'price'),
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'average': None,
             'amount': self.safe_string(order, 'origQty'),
             'cost': self.safe_string(order, 'cummulativeQuoteQty'),
@@ -1282,21 +1662,21 @@ class coinsph(Exchange, ImplicitAPI):
         }, market)
 
     def parse_order_side(self, status):
-        statuses = {
+        statuses: dict = {
             'BUY': 'buy',
             'SELL': 'sell',
         }
         return self.safe_string(statuses, status, status)
 
     def encode_order_side(self, status):
-        statuses = {
+        statuses: dict = {
             'buy': 'BUY',
             'sell': 'SELL',
         }
         return self.safe_string(statuses, status, status)
 
     def parse_order_type(self, status):
-        statuses = {
+        statuses: dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'LIMIT_MAKER': 'limit',
@@ -1308,7 +1688,7 @@ class coinsph(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def encode_order_type(self, status):
-        statuses = {
+        statuses: dict = {
             'market': 'MARKET',
             'limit': 'LIMIT',
             'limit_maker': 'LIMIT_MAKER',
@@ -1319,8 +1699,8 @@ class coinsph(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'NEW': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
@@ -1331,23 +1711,26 @@ class coinsph(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_order_time_in_force(self, status):
-        statuses = {
+        statuses: dict = {
             'GTC': 'GTC',
             'FOK': 'FOK',
             'IOC': 'IOC',
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_trading_fee(self, symbol: str, params={}):
+    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
+
+        https://coins-docs.github.io/rest-api/#trade-fee-user_data
+
         :param str symbol: unified market symbol
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = await self.privateGetOpenapiV1AssetTradeFee(self.extend(request, params))
@@ -1360,39 +1743,42 @@ class coinsph(Exchange, ImplicitAPI):
         #       }
         #     ]
         #
-        tradingFee = self.safe_value(response, 0, {})
+        tradingFee = self.safe_dict(response, 0, {})
         return self.parse_trading_fee(tradingFee, market)
 
-    async def fetch_trading_fees(self, params={}):
+    async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+
+        https://coins-docs.github.io/rest-api/#trade-fee-user_data
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
         await self.load_markets()
         response = await self.privateGetOpenapiV1AssetTradeFee(params)
         #
         #     [
         #         {
-        #             symbol: 'ETHPHP',
-        #             makerCommission: '0.0025',
-        #             takerCommission: '0.003'
+        #             "symbol": "ETHPHP",
+        #             "makerCommission": "0.0025",
+        #             "takerCommission": "0.003"
         #         },
         #         {
-        #             symbol: 'UNIPHP',
-        #             makerCommission: '0.0025',
-        #             takerCommission: '0.003'
+        #             "symbol": "UNIPHP",
+        #             "makerCommission": "0.0025",
+        #             "takerCommission": "0.003"
         #         },
         #     ]
         #
-        result = {}
+        result: dict = {}
         for i in range(0, len(response)):
             fee = self.parse_trading_fee(response[i])
             symbol = fee['symbol']
             result[symbol] = fee
         return result
 
-    def parse_trading_fee(self, fee, market=None):
+    def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
         #
         #     {
         #         "symbol": "ETHUSDT",
@@ -1408,71 +1794,61 @@ class coinsph(Exchange, ImplicitAPI):
             'symbol': symbol,
             'maker': self.safe_number(fee, 'makerCommission'),
             'taker': self.safe_number(fee, 'takerCommission'),
+            'percentage': None,
+            'tierBased': None,
         }
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal to coins_ph account
+
+        https://coins-docs.github.io/rest-api/#withdrawuser_data
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: not used by coinsph withdraw()
-        :param str|None tag:
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :param str tag:
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         options = self.safe_value(self.options, 'withdraw')
-        warning = self.safe_value(options, 'warning', True)
+        warning = self.safe_bool(options, 'warning', True)
         if warning:
             raise InvalidAddress(self.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = False to make a withdrawal to your coins_ph account")
+        networkCode = self.safe_string(params, 'network')
+        networkId = self.network_code_to_id(networkCode, code)
+        if networkId is None:
+            raise BadRequest(self.id + ' withdraw() require network parameter')
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'coin': currency['id'],
             'amount': self.number_to_string(amount),
+            'network': networkId,
+            'address': address,
         }
         if tag is not None:
             request['withdrawOrderId'] = tag
-        response = await self.privatePostOpenapiV1CapitalWithdrawApply(self.extend(request, params))
+        params = self.omit(params, 'network')
+        response = await self.privatePostOpenapiWalletV1WithdrawApply(self.extend(request, params))
         return self.parse_transaction(response, currency)
 
-    async def deposit(self, code: str, amount, address, tag=None, params={}):
-        """
-        make a deposit from coins_ph account to exchange account
-        :param str code: unified currency code
-        :param float amount: the amount to deposit
-        :param str address: not used by coinsph deposit()
-        :param str|None tag:
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
-        """
-        options = self.safe_value(self.options, 'deposit')
-        warning = self.safe_value(options, 'warning', True)
-        if warning:
-            raise InvalidAddress(self.id + " deposit() makes a deposits only from your coins_ph account, add .options['deposit']['warning'] = False to make a deposit to your exchange account")
-        await self.load_markets()
-        currency = self.currency(code)
-        request = {
-            'coin': currency['id'],
-            'amount': self.number_to_string(amount),
-        }
-        if tag is not None:
-            request['depositOrderId'] = tag
-        response = await self.privatePostOpenapiV1CapitalDepositApply(self.extend(request, params))
-        return self.parse_transaction(response, currency)
-
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
+
+        https://coins-docs.github.io/rest-api/#deposit-history-user_data
+
         :param str code: unified currency code
-        :param int|None since: the earliest time in ms to fetch deposits for
-        :param int|None limit: the maximum number of deposits structures to retrieve
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :param int [since]: the earliest time in ms to fetch deposits for
+        :param int [limit]: the maximum number of deposits structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         # todo: returns an empty array - find out why
         await self.load_markets()
         currency = None
-        request = {}
+        request: dict = {}
         if code is not None:
             currency = self.currency(code)
             request['coin'] = currency['id']
@@ -1480,22 +1856,53 @@ class coinsph(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        response = await self.privateGetOpenapiV1CapitalDepositHistory(self.extend(request, params))
+        response = await self.privateGetOpenapiWalletV1DepositHistory(self.extend(request, params))
+        #
+        # [
+        #     {
+        #         "id": "d_769800519366885376",
+        #         "amount": "0.001",
+        #         "coin": "BNB",
+        #         "network": "BNB",
+        #         "status": 0,
+        #         "address": "bnb136ns6lfw4zs5hg4n85vdthaad7hq5m4gtkgf23",
+        #         "addressTag": "101764890",
+        #         "txId": "98A3EA560C6B3336D348B6C83F0F95ECE4F1F5919E94BD006E5BF3BF264FACFC",
+        #         "insertTime": 1661493146000,
+        #         "confirmNo": 10,
+        #     },
+        #     {
+        #         "id": "d_769754833590042625",
+        #         "amount":"0.5",
+        #         "coin":"IOTA",
+        #         "network":"IOTA",
+        #         "status":1,
+        #         "address":"SIZ9VLMHWATXKV99LH99CIGFJFUMLEHGWVZVNNZXRJJVWBPHYWPPBOSDORZ9EQSHCZAMPVAPGFYQAUUV9DROOXJLNW",
+        #         "addressTag":"",
+        #         "txId":"ESBFVQUTPIWQNJSPXFNHNYHSQNTGKRVKPRABQWTAXCDWOAKDKYWPTVG9BGXNVNKTLEJGESAVXIKIZ9999",
+        #         "insertTime":1599620082000,
+        #         "confirmNo": 20,
+        #     }
+        # ]
+        #
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
+
+        https://coins-docs.github.io/rest-api/#withdraw-history-user_data
+
         :param str code: unified currency code
-        :param int|None since: the earliest time in ms to fetch withdrawals for
-        :param int|None limit: the maximum number of withdrawals structures to retrieve
-        :param dict params: extra parameters specific to the coinsph api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :param int [since]: the earliest time in ms to fetch withdrawals for
+        :param int [limit]: the maximum number of withdrawals structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         # todo: returns an empty array - find out why
         await self.load_markets()
         currency = None
-        request = {}
+        request: dict = {}
         if code is not None:
             currency = self.currency(code)
             request['coin'] = currency['id']
@@ -1503,10 +1910,44 @@ class coinsph(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        response = await self.privateGetOpenapiV1CapitalWithdrawHistory(self.extend(request, params))
+        response = await self.privateGetOpenapiWalletV1WithdrawHistory(self.extend(request, params))
+        #
+        # [
+        #     {
+        #         "id": "459890698271244288",
+        #         "amount": "0.01",
+        #         "transactionFee": "0",
+        #         "coin": "ETH",
+        #         "status": 1,
+        #         "address": "0x386AE30AE2dA293987B5d51ddD03AEb70b21001F",
+        #         "addressTag": "",
+        #         "txId": "0x4ae2fed36a90aada978fc31c38488e8b60d7435cfe0b4daed842456b4771fcf7",
+        #         "applyTime": 1673601139000,
+        #         "network": "ETH",
+        #         "withdrawOrderId": "thomas123",
+        #         "info": "",
+        #         "confirmNo": 100
+        #     },
+        #     {
+        #         "id": "451899190746456064",
+        #         "amount": "0.00063",
+        #         "transactionFee": "0.00037",
+        #         "coin": "ETH",
+        #         "status": 1,
+        #         "address": "0x386AE30AE2dA293987B5d51ddD03AEb70b21001F",
+        #         "addressTag": "",
+        #         "txId": "0x62690ca4f9d6a8868c258e2ce613805af614d9354dda7b39779c57b2e4da0260",
+        #         "applyTime": 1671695815000,
+        #         "network": "ETH",
+        #         "withdrawOrderId": "",
+        #         "info": "",
+        #         "confirmNo": 100
+        #     }
+        # ]
+        #
         return self.parse_transactions(response, currency, since, limit)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #     {
@@ -1568,10 +2009,8 @@ class coinsph(Exchange, ImplicitAPI):
         fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
-        internal = self.safe_integer(transaction, 'transferType')
-        if internal is not None:
-            internal = True if internal else False
         network = self.safe_string(transaction, 'network')
+        internal = network == 'Internal'
         return {
             'info': transaction,
             'id': id,
@@ -1591,20 +2030,68 @@ class coinsph(Exchange, ImplicitAPI):
             'status': status,
             'updated': updated,
             'internal': internal,
+            'comment': None,
             'fee': fee,
         }
 
-    def parse_transaction_status(self, status):
-        statuses = {
+    def parse_transaction_status(self, status: Str):
+        statuses: dict = {
             '0': 'pending',
-            '1': 'canceled',
-            '2': 'pending',
-            '3': 'failed',
-            '4': 'pending',
-            '5': 'failed',
-            '6': 'ok',
+            '1': 'ok',
+            '2': 'failed',
+            '3': 'pending',
         }
         return self.safe_string(statuses, status, status)
+
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+        """
+        fetch the deposit address for a currency associated with self account
+
+        https://coins-docs.github.io/rest-api/#deposit-address-user_data
+
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: network for fetch deposit address
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
+        """
+        networkCode = self.safe_string(params, 'network')
+        networkId = self.network_code_to_id(networkCode, code)
+        if networkId is None:
+            raise BadRequest(self.id + ' fetchDepositAddress() require network parameter')
+        await self.load_markets()
+        currency = self.currency(code)
+        request: dict = {
+            'coin': currency['id'],
+            'network': networkId,
+        }
+        params = self.omit(params, 'network')
+        response = await self.privateGetOpenapiWalletV1DepositAddress(self.extend(request, params))
+        #
+        #     {
+        #         "coin": "ETH",
+        #         "address": "0xfe98628173830bf79c59f04585ce41f7de168784",
+        #         "addressTag": ""
+        #     }
+        #
+        return self.parse_deposit_address(response, currency)
+
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+        #
+        #     {
+        #         "coin": "ETH",
+        #         "address": "0xfe98628173830bf79c59f04585ce41f7de168784",
+        #         "addressTag": ""
+        #     }
+        #
+        currencyId = self.safe_string(depositAddress, 'coin')
+        parsedCurrency = self.safe_currency_code(currencyId, currency)
+        return {
+            'info': depositAddress,
+            'currency': parsedCurrency,
+            'network': None,
+            'address': self.safe_string(depositAddress, 'address'),
+            'tag': self.safe_string(depositAddress, 'addressTag'),
+        }
 
     def url_encode_query(self, query={}):
         encodedArrayParams = ''
@@ -1614,9 +2101,9 @@ class coinsph(Exchange, ImplicitAPI):
             if isinstance(query[key], list):
                 if i != 0:
                     encodedArrayParams += '&'
-                array = query[key]
+                innerArray = query[key]
                 query = self.omit(query, key)
-                encodedArrayParam = self.parse_array_param(array, key)
+                encodedArrayParam = self.parse_array_param(innerArray, key)
                 encodedArrayParams += encodedArrayParam
         encodedQuery = self.urlencode(query)
         if len(encodedQuery) != 0:
@@ -1656,7 +2143,7 @@ class coinsph(Exchange, ImplicitAPI):
                 url += '?' + query
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         responseCode = self.safe_string(response, 'code', None)

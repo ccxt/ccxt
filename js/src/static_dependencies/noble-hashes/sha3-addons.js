@@ -113,7 +113,7 @@ class TupleHash extends Keccak {
         super.finish();
     }
     _cloneInto(to) {
-        to || (to = new TupleHash(this.blockLen, this.outputLen, this.enableXOF));
+        to ||= new TupleHash(this.blockLen, this.outputLen, this.enableXOF);
         return super._cloneInto(to);
     }
     clone() {
@@ -142,7 +142,7 @@ class ParallelHash extends Keccak {
         this.chunksDone = 0; // How many chunks we already have
         cshakePers(this, { NISTfn: 'ParallelHash', personalization: opts.personalization });
         let { blockLen: B } = opts;
-        B || (B = 8);
+        B ||= 8;
         assertNumber(B);
         this.chunkLen = B;
         super.update(leftEncode(B));
@@ -179,7 +179,7 @@ class ParallelHash extends Keccak {
         super.finish();
     }
     _cloneInto(to) {
-        to || (to = new ParallelHash(this.blockLen, this.outputLen, this.leafCons, this.enableXOF));
+        to ||= new ParallelHash(this.blockLen, this.outputLen, this.leafCons, this.enableXOF);
         if (this.leafHash)
             to.leafHash = this.leafHash._cloneInto(to.leafHash);
         to.chunkPos = this.chunkPos;
@@ -273,7 +273,7 @@ class KangarooTwelve extends Keccak {
     }
     _cloneInto(to) {
         const { blockLen, leafLen, leafHash, outputLen, rounds } = this;
-        to || (to = new KangarooTwelve(blockLen, leafLen, outputLen, rounds, {}));
+        to ||= new KangarooTwelve(blockLen, leafLen, outputLen, rounds, {});
         super._cloneInto(to);
         if (leafHash)
             to.leafHash = leafHash._cloneInto(to.leafHash);
@@ -340,7 +340,7 @@ class KeccakPRG extends Keccak {
     }
     _cloneInto(to) {
         const { rate } = this;
-        to || (to = new KeccakPRG(1600 - rate));
+        to ||= new KeccakPRG(1600 - rate);
         super._cloneInto(to);
         to.rate = rate;
         return to;

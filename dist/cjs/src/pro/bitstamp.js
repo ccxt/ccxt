@@ -1,12 +1,15 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bitstamp$1 = require('../bitstamp.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
+var Precise = require('../base/Precise.js');
 
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-//  ---------------------------------------------------------------------------
-class bitstamp extends bitstamp$1 {
+class bitstamp extends bitstamp$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -14,6 +17,7 @@ class bitstamp extends bitstamp$1 {
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchOHLCV': false,
                 'watchTicker': false,
                 'watchTickers': false,
@@ -29,7 +33,7 @@ class bitstamp extends bitstamp$1 {
                 'wsSessionToken': '',
                 'watchOrderBook': {
                     'snapshotDelay': 6,
-                    'maxRetries': 3,
+                    'snapshotMaxRetries': 3,
                 },
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
@@ -41,16 +45,16 @@ class bitstamp extends bitstamp$1 {
             },
         });
     }
+    /**
+     * @method
+     * @name bitstamp#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitstamp#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the bitstamp api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -73,22 +77,22 @@ class bitstamp extends bitstamp$1 {
         // the feed does not include a snapshot, just the deltas
         //
         //     {
-        //         data: {
-        //             timestamp: '1583656800',
-        //             microtimestamp: '1583656800237527',
-        //             bids: [
+        //         "data": {
+        //             "timestamp": "1583656800",
+        //             "microtimestamp": "1583656800237527",
+        //             "bids": [
         //                 ["8732.02", "0.00002478", "1207590500704256"],
         //                 ["8729.62", "0.01600000", "1207590502350849"],
         //                 ["8727.22", "0.01800000", "1207590504296448"],
         //             ],
-        //             asks: [
+        //             "asks": [
         //                 ["8735.67", "2.00000000", "1207590693249024"],
         //                 ["8735.67", "0.01700000", "1207590693634048"],
         //                 ["8735.68", "1.53294500", "1207590692048896"],
         //             ],
         //         },
-        //         event: 'data',
-        //         channel: 'diff_order_book_btcusd'
+        //         "event": "data",
+        //         "channel": "diff_order_book_btcusd"
         //     }
         //
         const channel = this.safeString(message, 'channel');
@@ -106,7 +110,7 @@ class bitstamp extends bitstamp$1 {
             // usually it takes at least 4-5 deltas to resolve
             const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 6);
             if (cacheLength === snapshotDelay) {
-                this.spawn(this.loadOrderBook, client, messageHash, symbol);
+                this.spawn(this.loadOrderBook, client, messageHash, symbol, null, {});
             }
             storedOrderBook.cache.push(delta);
             return;
@@ -152,17 +156,17 @@ class bitstamp extends bitstamp$1 {
         }
         return deltas.length;
     }
+    /**
+     * @method
+     * @name bitstamp#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitstamp#watchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the bitstamp api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -180,21 +184,21 @@ class bitstamp extends bitstamp$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     parseWsTrade(trade, market = undefined) {
         //
         //     {
-        //         buy_order_id: 1211625836466176,
-        //         amount_str: '1.08000000',
-        //         timestamp: '1584642064',
-        //         microtimestamp: '1584642064685000',
-        //         id: 108637852,
-        //         amount: 1.08,
-        //         sell_order_id: 1211625840754689,
-        //         price_str: '6294.77',
-        //         type: 1,
-        //         price: 6294.77
+        //         "buy_order_id": 1211625836466176,
+        //         "amount_str": "1.08000000",
+        //         "timestamp": "1584642064",
+        //         "microtimestamp": "1584642064685000",
+        //         "id": 108637852,
+        //         "amount": 1.08,
+        //         "sell_order_id": 1211625840754689,
+        //         "price_str": "6294.77",
+        //         "type": 1,
+        //         "price": 6294.77
         //     }
         //
         const microtimestamp = this.safeInteger(trade, 'microtimestamp');
@@ -224,20 +228,20 @@ class bitstamp extends bitstamp$1 {
     handleTrade(client, message) {
         //
         //     {
-        //         data: {
-        //             buy_order_id: 1207733769326592,
-        //             amount_str: "0.14406384",
-        //             timestamp: "1583691851",
-        //             microtimestamp: "1583691851934000",
-        //             id: 106833903,
-        //             amount: 0.14406384,
-        //             sell_order_id: 1207733765476352,
-        //             price_str: "8302.92",
-        //             type: 0,
-        //             price: 8302.92
+        //         "data": {
+        //             "buy_order_id": 1207733769326592,
+        //             "amount_str": "0.14406384",
+        //             "timestamp": "1583691851",
+        //             "microtimestamp": "1583691851934000",
+        //             "id": 106833903,
+        //             "amount": 0.14406384,
+        //             "sell_order_id": 1207733765476352,
+        //             "price_str": "8302.92",
+        //             "type": 0,
+        //             "price": 8302.92
         //         },
-        //         event: "trade",
-        //         channel: "live_trades_btcusd"
+        //         "event": "trade",
+        //         "channel": "live_trades_btcusd"
         //     }
         //
         // the trade streams push raw trade information in real-time
@@ -259,19 +263,19 @@ class bitstamp extends bitstamp$1 {
         tradesArray.append(trade);
         client.resolve(tradesArray, messageHash);
     }
+    /**
+     * @method
+     * @name bitstamp#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitstamp#watchOrders
-         * @description watches information on multiple orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the bitstamp api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' watchOrders requires a symbol argument');
+            throw new errors.ArgumentsRequired(this.id + ' watchOrders() requires a symbol argument');
         }
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -288,7 +292,7 @@ class bitstamp extends bitstamp$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(orders, since, limit, 'timestamp');
+        return this.filterBySinceLimit(orders, since, limit, 'timestamp', true);
     }
     handleOrders(client, message) {
         //
@@ -305,6 +309,7 @@ class bitstamp extends bitstamp$1 {
         //        "price_str":"1000.00"
         //     },
         //     "channel":"private-my_orders_ltcusd-4848701",
+        //     "event": "order_deleted" // field only present for cancelOrder
         // }
         //
         const channel = this.safeString(message, 'channel');
@@ -317,29 +322,65 @@ class bitstamp extends bitstamp$1 {
         const subscription = this.safeValue(client.subscriptions, channel);
         const symbol = this.safeString(subscription, 'symbol');
         const market = this.market(symbol);
+        order['event'] = this.safeString(message, 'event');
         const parsed = this.parseWsOrder(order, market);
         stored.append(parsed);
         client.resolve(this.orders, channel);
     }
     parseWsOrder(order, market = undefined) {
         //
-        //   {
-        //        "id":"1463471322288128",
-        //        "id_str":"1463471322288128",
-        //        "order_type":1,
-        //        "datetime":"1646127778",
-        //        "microtimestamp":"1646127777950000",
-        //        "amount":0.05,
-        //        "amount_str":"0.05000000",
-        //        "price":1000,
-        //        "price_str":"1000.00"
+        //    {
+        //        "id": "1894876776091648",
+        //        "id_str": "1894876776091648",
+        //        "order_type": 0,
+        //        "order_subtype": 0,
+        //        "datetime": "1751451375",
+        //        "microtimestamp": "1751451375070000",
+        //        "amount": 1.1,
+        //        "amount_str": "1.10000000",
+        //        "amount_traded": "0",
+        //        "amount_at_create": "1.10000000",
+        //        "price": 10.23,
+        //        "price_str": "10.23",
+        //        "is_liquidation": false,
+        //        "trade_account_id": 0
         //    }
         //
         const id = this.safeString(order, 'id_str');
-        const orderType = this.safeStringLower(order, 'order_type');
+        const orderTypeRaw = this.safeStringLower(order, 'order_type');
+        const side = (orderTypeRaw === '1') ? 'sell' : 'buy';
+        const orderSubTypeRaw = this.safeStringLower(order, 'order_subtype'); // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
+        let orderType = undefined;
+        let timeInForce = undefined;
+        if (orderSubTypeRaw === '0') {
+            orderType = 'limit';
+        }
+        else if (orderSubTypeRaw === '2') {
+            orderType = 'market';
+        }
+        else if (orderSubTypeRaw === '4') {
+            orderType = 'limit';
+            timeInForce = 'IOC';
+        }
+        else if (orderSubTypeRaw === '6') {
+            orderType = 'limit';
+            timeInForce = 'FOK';
+        }
+        else if (orderSubTypeRaw === '8') {
+            orderType = 'limit';
+            timeInForce = 'GTD';
+        }
         const price = this.safeString(order, 'price_str');
         const amount = this.safeString(order, 'amount_str');
-        const side = (orderType === '1') ? 'sell' : 'buy';
+        const filled = this.safeString(order, 'amount_traded');
+        const event = this.safeString(order, 'event');
+        let status = undefined;
+        if (Precise["default"].stringEq(filled, amount)) {
+            status = 'closed';
+        }
+        else if (event === 'order_deleted') {
+            status = 'canceled';
+        }
         const timestamp = this.safeTimestamp(order, 'datetime');
         market = this.safeMarket(undefined, market);
         const symbol = market['symbol'];
@@ -351,8 +392,8 @@ class bitstamp extends bitstamp$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
-            'type': undefined,
-            'timeInForce': undefined,
+            'type': orderType,
+            'timeInForce': timeInForce,
             'postOnly': undefined,
             'side': side,
             'price': price,
@@ -361,9 +402,9 @@ class bitstamp extends bitstamp$1 {
             'amount': amount,
             'cost': undefined,
             'average': undefined,
-            'filled': undefined,
+            'filled': filled,
             'remaining': undefined,
-            'status': undefined,
+            'status': status,
             'fee': undefined,
             'trades': undefined,
         }, market);
@@ -378,14 +419,14 @@ class bitstamp extends bitstamp$1 {
     handleSubscriptionStatus(client, message) {
         //
         //     {
-        //         'event': "bts:subscription_succeeded",
-        //         'channel': "detail_order_book_btcusd",
-        //         'data': {},
+        //         "event": "bts:subscription_succeeded",
+        //         "channel": "detail_order_book_btcusd",
+        //         "data": {},
         //     }
         //     {
-        //         event: 'bts:subscription_succeeded',
-        //         channel: 'private-my_orders_ltcusd-4848701',
-        //         data: {}
+        //         "event": "bts:subscription_succeeded",
+        //         "channel": "private-my_orders_ltcusd-4848701",
+        //         "data": {}
         //     }
         //
         const channel = this.safeString(message, 'channel');
@@ -396,22 +437,22 @@ class bitstamp extends bitstamp$1 {
     handleSubject(client, message) {
         //
         //     {
-        //         data: {
-        //             timestamp: '1583656800',
-        //             microtimestamp: '1583656800237527',
-        //             bids: [
+        //         "data": {
+        //             "timestamp": "1583656800",
+        //             "microtimestamp": "1583656800237527",
+        //             "bids": [
         //                 ["8732.02", "0.00002478", "1207590500704256"],
         //                 ["8729.62", "0.01600000", "1207590502350849"],
         //                 ["8727.22", "0.01800000", "1207590504296448"],
         //             ],
-        //             asks: [
+        //             "asks": [
         //                 ["8735.67", "2.00000000", "1207590693249024"],
         //                 ["8735.67", "0.01700000", "1207590693634048"],
         //                 ["8735.68", "1.53294500", "1207590692048896"],
         //             ],
         //         },
-        //         event: 'data',
-        //         channel: 'detail_order_book_btcusd'
+        //         "event": "data",
+        //         "channel": "detail_order_book_btcusd"
         //     }
         //
         // private order
@@ -428,6 +469,7 @@ class bitstamp extends bitstamp$1 {
         //         "price_str":"1000.00"
         //         },
         //         "channel":"private-my_orders_ltcusd-4848701",
+        //         "event": "order_deleted" // field only present for cancelOrder
         //     }
         //
         const channel = this.safeString(message, 'channel');
@@ -447,9 +489,9 @@ class bitstamp extends bitstamp$1 {
     }
     handleErrorMessage(client, message) {
         // {
-        //     event: 'bts:error',
-        //     channel: '',
-        //     data: { code: 4009, message: 'Connection is unauthorized.' }
+        //     "event": "bts:error",
+        //     "channel": '',
+        //     "data": { code: 4009, message: "Connection is unauthorized." }
         // }
         const event = this.safeString(message, 'event');
         if (event === 'bts:error') {
@@ -458,7 +500,7 @@ class bitstamp extends bitstamp$1 {
             const code = this.safeNumber(data, 'code');
             this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
         }
-        return message;
+        return true;
     }
     handleMessage(client, message) {
         if (!this.handleErrorMessage(client, message)) {
@@ -466,42 +508,42 @@ class bitstamp extends bitstamp$1 {
         }
         //
         //     {
-        //         'event': "bts:subscription_succeeded",
-        //         'channel': "detail_order_book_btcusd",
-        //         'data': {},
+        //         "event": "bts:subscription_succeeded",
+        //         "channel": "detail_order_book_btcusd",
+        //         "data": {},
         //     }
         //
         //     {
-        //         data: {
-        //             timestamp: '1583656800',
-        //             microtimestamp: '1583656800237527',
-        //             bids: [
+        //         "data": {
+        //             "timestamp": "1583656800",
+        //             "microtimestamp": "1583656800237527",
+        //             "bids": [
         //                 ["8732.02", "0.00002478", "1207590500704256"],
         //                 ["8729.62", "0.01600000", "1207590502350849"],
         //                 ["8727.22", "0.01800000", "1207590504296448"],
         //             ],
-        //             asks: [
+        //             "asks": [
         //                 ["8735.67", "2.00000000", "1207590693249024"],
         //                 ["8735.67", "0.01700000", "1207590693634048"],
         //                 ["8735.68", "1.53294500", "1207590692048896"],
         //             ],
         //         },
-        //         event: 'data',
-        //         channel: 'detail_order_book_btcusd'
+        //         "event": "data",
+        //         "channel": "detail_order_book_btcusd"
         //     }
         //
         //     {
-        //         event: 'bts:subscription_succeeded',
-        //         channel: 'private-my_orders_ltcusd-4848701',
-        //         data: {}
+        //         "event": "bts:subscription_succeeded",
+        //         "channel": "private-my_orders_ltcusd-4848701",
+        //         "data": {}
         //     }
         //
         const event = this.safeString(message, 'event');
         if (event === 'bts:subscription_succeeded') {
-            return this.handleSubscriptionStatus(client, message);
+            this.handleSubscriptionStatus(client, message);
         }
         else {
-            return this.handleSubject(client, message);
+            this.handleSubject(client, message);
         }
     }
     async authenticate(params = {}) {
@@ -519,12 +561,11 @@ class bitstamp extends bitstamp$1 {
             //
             const sessionToken = this.safeString(response, 'token');
             if (sessionToken !== undefined) {
-                const userId = this.safeNumber(response, 'user_id');
+                const userId = this.safeString(response, 'user_id');
                 const validity = this.safeIntegerProduct(response, 'valid_sec', 1000);
                 this.options['expiresIn'] = this.sum(time, validity);
                 this.options['userId'] = userId;
                 this.options['wsSessionToken'] = sessionToken;
-                return response;
             }
         }
     }
@@ -544,4 +585,4 @@ class bitstamp extends bitstamp$1 {
     }
 }
 
-module.exports = bitstamp;
+exports["default"] = bitstamp;

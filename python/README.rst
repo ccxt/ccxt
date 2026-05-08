@@ -4,7 +4,7 @@ CCXT – CryptoCurrency eXchange Trading Library
 `Build Status <https://travis-ci.org/ccxt/ccxt>`__ `npm <https://npmjs.com/package/ccxt>`__ `PyPI <https://pypi.python.org/pypi/ccxt>`__ `NPM Downloads <https://www.npmjs.com/package/ccxt>`__ `Discord <https://discord.gg/dhzSKYU>`__ `Supported Exchanges <https://github.com/ccxt/ccxt/wiki/Exchange-Markets>`__ `Open Collective <https://opencollective.com/ccxt>`__
 `Twitter Follow <https://twitter.com/ccxt_official>`__
 
-A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
+A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go.
 
 Install · Usage · `Manual <https://github.com/ccxt/ccxt/wiki>`__ · `FAQ <https://github.com/ccxt/ccxt/wiki/FAQ>`__ · `Examples <https://github.com/ccxt/ccxt/tree/master/examples>`__ · `Contributing <https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md>`__ · Social
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
