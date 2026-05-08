@@ -18,9 +18,9 @@ func NewLunoCore() *LunoCore {
     return p
 }
 
-func  (this *LunoCore) Describe() interface{}  {
-    return this.DeepExtend(this.base.Describe(), map[string]interface{} {
-        "has": map[string]interface{} {
+func  (this *LunoCore) Describe() any  {
+    return this.DeepExtend(this.base.Describe(), map[string]any {
+        "has": map[string]any {
             "ws": true,
             "watchTicker": false,
             "watchTickers": false,
@@ -31,16 +31,16 @@ func  (this *LunoCore) Describe() interface{}  {
             "watchOrderBook": true,
             "watchOHLCV": false,
         },
-        "urls": map[string]interface{} {
-            "api": map[string]interface{} {
+        "urls": map[string]any {
+            "api": map[string]any {
                 "ws": "wss://ws.luno.com/api/1",
             },
         },
-        "options": map[string]interface{} {
-            "sequenceNumbers": map[string]interface{} {},
+        "options": map[string]any {
+            "sequenceNumbers": map[string]any {},
         },
-        "streaming": map[string]interface{} {},
-        "exceptions": map[string]interface{} {},
+        "streaming": map[string]any {},
+        "exceptions": map[string]any {},
     })
 }
 /**
@@ -54,34 +54,34 @@ func  (this *LunoCore) Describe() interface{}  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *LunoCore) WatchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *LunoCore) WatchTrades(symbol any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                     since := ccxt.GetArg(optionalArgs, 0, nil)
             _ = since
             limit := ccxt.GetArg(optionalArgs, 1, nil)
             _ = limit
-            params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
+            params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
             this.CheckRequiredCredentials()
         
             retRes518 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes518)
-            var market interface{} = this.Market(symbol)
+            var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
-            var subscriptionHash interface{} = ccxt.Add("/stream/", ccxt.GetValue(market, "id"))
-            var subscription interface{} = map[string]interface{} {
+            var subscriptionHash any = ccxt.Add("/stream/", ccxt.GetValue(market, "id"))
+            var subscription any = map[string]any {
                 "symbol": symbol,
             }
-            var url interface{} = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), subscriptionHash)
-            var messageHash interface{} = ccxt.Add("trades:", symbol)
-            var subscribe interface{} = map[string]interface{} {
+            var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), subscriptionHash)
+            var messageHash any = ccxt.Add("trades:", symbol)
+            var subscribe any = map[string]any {
                 "api_key_id": this.ApiKey,
                 "api_key_secret": this.Secret,
             }
-            var request interface{} = this.DeepExtend(subscribe, params)
+            var request any = this.DeepExtend(subscribe, params)
         
             trades:= (<-this.Watch(url, messageHash, request, subscriptionHash, subscription))
             ccxt.PanicOnError(trades)
@@ -95,7 +95,7 @@ func  (this *LunoCore) WatchTrades(symbol interface{}, optionalArgs ...interface
             }()
             return ch
         }
-func  (this *LunoCore) HandleTrades(client interface{}, message interface{}, subscription interface{})  {
+func  (this *LunoCore) HandleTrades(client any, message any, subscription any)  {
     //
     //     {
     //         "sequence": "110980825",
@@ -111,29 +111,29 @@ func  (this *LunoCore) HandleTrades(client interface{}, message interface{}, sub
     //         "timestamp": 1660598775360
     //     }
     //
-    var rawTrades interface{} = this.SafeValue(message, "trade_updates", []interface{}{})
-    var length interface{} =     ccxt.GetArrayLength(rawTrades)
+    var rawTrades any = this.SafeValue(message, "trade_updates", []any{})
+    var length any =     ccxt.GetArrayLength(rawTrades)
     if ccxt.IsTrue(ccxt.IsEqual(length, 0)) {
         return
     }
-    var symbol interface{} = ccxt.GetValue(subscription, "symbol")
-    var market interface{} = this.Market(symbol)
-    var messageHash interface{} = ccxt.Add("trades:", symbol)
-    var stored interface{} = this.SafeValue(this.Trades, symbol)
+    var symbol any = ccxt.GetValue(subscription, "symbol")
+    var market any = this.Market(symbol)
+    var messageHash any = ccxt.Add("trades:", symbol)
+    var stored any = this.SafeValue(this.Trades, symbol)
     if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
-        var limit interface{} = this.SafeInteger(this.Options, "tradesLimit", 1000)
+        var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
         stored = ccxt.NewArrayCache(limit)
         ccxt.AddElementToObject(this.Trades, symbol, stored)
     }
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(rawTrades)); i++ {
-        var rawTrade interface{} = ccxt.GetValue(rawTrades, i)
-        var trade interface{} = this.ParseTrade(rawTrade, market)
+        var rawTrade any = ccxt.GetValue(rawTrades, i)
+        var trade any = this.ParseTrade(rawTrade, market)
         stored.(ccxt.Appender).Append(trade)
     }
     ccxt.AddElementToObject(this.Trades, symbol, stored)
     client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Trades, symbol), messageHash)
 }
-func  (this *LunoCore) ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *LunoCore) ParseTrade(trade any, optionalArgs ...any) any  {
     //
     // watchTrades (public)
     //
@@ -147,7 +147,7 @@ func  (this *LunoCore) ParseTrade(trade interface{}, optionalArgs ...interface{}
     //
     market := ccxt.GetArg(optionalArgs, 0, nil)
     _ = market
-    return this.SafeTrade(map[string]interface{} {
+    return this.SafeTrade(map[string]any {
         "info": trade,
         "id": nil,
         "timestamp": nil,
@@ -173,32 +173,32 @@ func  (this *LunoCore) ParseTrade(trade interface{}, optionalArgs ...interface{}
  * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
-func  (this *LunoCore) WatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *LunoCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                     limit := ccxt.GetArg(optionalArgs, 0, nil)
             _ = limit
-            params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
+            params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
             this.CheckRequiredCredentials()
         
             retRes1518 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes1518)
-            var market interface{} = this.Market(symbol)
+            var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
-            var subscriptionHash interface{} = ccxt.Add("/stream/", ccxt.GetValue(market, "id"))
-            var subscription interface{} = map[string]interface{} {
+            var subscriptionHash any = ccxt.Add("/stream/", ccxt.GetValue(market, "id"))
+            var subscription any = map[string]any {
                 "symbol": symbol,
             }
-            var url interface{} = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), subscriptionHash)
-            var messageHash interface{} = ccxt.Add("orderbook:", symbol)
-            var subscribe interface{} = map[string]interface{} {
+            var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), subscriptionHash)
+            var messageHash any = ccxt.Add("orderbook:", symbol)
+            var subscribe any = map[string]any {
                 "api_key_id": this.ApiKey,
                 "api_key_secret": this.Secret,
             }
-            var request interface{} = this.DeepExtend(subscribe, params)
+            var request any = this.DeepExtend(subscribe, params)
         
             orderbook:= (<-this.Watch(url, messageHash, request, subscriptionHash, subscription))
             ccxt.PanicOnError(orderbook)
@@ -209,7 +209,7 @@ func  (this *LunoCore) WatchOrderBook(symbol interface{}, optionalArgs ...interf
             }()
             return ch
         }
-func  (this *LunoCore) HandleOrderBook(client interface{}, message interface{}, subscription interface{})  {
+func  (this *LunoCore) HandleOrderBook(client any, message any, subscription any)  {
     //
     //     {
     //         "sequence": "24352",
@@ -242,28 +242,28 @@ func  (this *LunoCore) HandleOrderBook(client interface{}, message interface{}, 
     //         "timestamp": 1660598775360
     //     }
     //
-    var symbol interface{} = ccxt.GetValue(subscription, "symbol")
-    var messageHash interface{} = ccxt.Add("orderbook:", symbol)
-    var timestamp interface{} = this.SafeInteger(message, "timestamp")
+    var symbol any = ccxt.GetValue(subscription, "symbol")
+    var messageHash any = ccxt.Add("orderbook:", symbol)
+    var timestamp any = this.SafeInteger(message, "timestamp")
     if !ccxt.IsTrue((ccxt.InOp(this.Orderbooks, symbol))) {
-        ccxt.AddElementToObject(this.Orderbooks, symbol, this.IndexedOrderBook(map[string]interface{} {}))
+        ccxt.AddElementToObject(this.Orderbooks, symbol, this.IndexedOrderBook(map[string]any {}))
     }
-    var asks interface{} = this.SafeValue(message, "asks")
+    var asks any = this.SafeValue(message, "asks")
     if ccxt.IsTrue(!ccxt.IsEqual(asks, nil)) {
-        var snapshot interface{} = this.CustomParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "volume", "id")
+        var snapshot any = this.CustomParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "volume", "id")
         ccxt.AddElementToObject(this.Orderbooks, symbol, this.IndexedOrderBook(snapshot))
     } else {
-        var ob interface{} = ccxt.GetValue(this.Orderbooks, symbol)
+        var ob any = ccxt.GetValue(this.Orderbooks, symbol)
         this.HandleDelta(ob, message)
         ccxt.AddElementToObject(ob, "timestamp", timestamp)
         ccxt.AddElementToObject(ob, "datetime", this.Iso8601(timestamp))
     }
-    var orderbook interface{} = ccxt.GetValue(this.Orderbooks, symbol)
-    var nonce interface{} = this.SafeInteger(message, "sequence")
+    var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+    var nonce any = this.SafeInteger(message, "sequence")
     ccxt.AddElementToObject(orderbook, "nonce", nonce)
     client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func  (this *LunoCore) CustomParseOrderBook(orderbook interface{}, symbol interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *LunoCore) CustomParseOrderBook(orderbook any, symbol any, optionalArgs ...any) any  {
     timestamp := ccxt.GetArg(optionalArgs, 0, nil)
     _ = timestamp
     bidsKey := ccxt.GetArg(optionalArgs, 1, "bids")
@@ -276,9 +276,9 @@ func  (this *LunoCore) CustomParseOrderBook(orderbook interface{}, symbol interf
     _ = amountKey
     countOrIdKey := ccxt.GetArg(optionalArgs, 5, 2)
     _ = countOrIdKey
-    var bids interface{} = this.ParseBidsAsks(this.SafeValue(orderbook, bidsKey, []interface{}{}), priceKey, amountKey, countOrIdKey)
-    var asks interface{} = this.ParseBidsAsks(this.SafeValue(orderbook, asksKey, []interface{}{}), priceKey, amountKey, countOrIdKey)
-    return map[string]interface{} {
+    var bids any = this.ParseBidsAsks(this.SafeValue(orderbook, bidsKey, []any{}), priceKey, amountKey, countOrIdKey)
+    var asks any = this.ParseBidsAsks(this.SafeValue(orderbook, asksKey, []any{}), priceKey, amountKey, countOrIdKey)
+    return map[string]any {
         "symbol": symbol,
         "bids": this.SortBy(bids, 0, true),
         "asks": this.SortBy(asks, 0),
@@ -287,7 +287,7 @@ func  (this *LunoCore) CustomParseOrderBook(orderbook interface{}, symbol interf
         "nonce": nil,
     }
 }
-func  (this *LunoCore) ParseBidsAsks(bidasks interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *LunoCore) ParseBidsAsks(bidasks any, optionalArgs ...any) any  {
     priceKey := ccxt.GetArg(optionalArgs, 0, "price")
     _ = priceKey
     amountKey := ccxt.GetArg(optionalArgs, 1, "volume")
@@ -295,29 +295,29 @@ func  (this *LunoCore) ParseBidsAsks(bidasks interface{}, optionalArgs ...interf
     thirdKey := ccxt.GetArg(optionalArgs, 2, 2)
     _ = thirdKey
     bidasks = this.ToArray(bidasks)
-    var result interface{} = []interface{}{}
+    var result any = []any{}
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(bidasks)); i++ {
         ccxt.AppendToArray(&result, this.CustomParseBidAsk(ccxt.GetValue(bidasks, i), priceKey, amountKey, thirdKey))
     }
     return result
 }
-func  (this *LunoCore) CustomParseBidAsk(bidask interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *LunoCore) CustomParseBidAsk(bidask any, optionalArgs ...any) any  {
     priceKey := ccxt.GetArg(optionalArgs, 0, "price")
     _ = priceKey
     amountKey := ccxt.GetArg(optionalArgs, 1, "volume")
     _ = amountKey
     thirdKey := ccxt.GetArg(optionalArgs, 2, 2)
     _ = thirdKey
-    var price interface{} = this.SafeNumber(bidask, priceKey)
-    var amount interface{} = this.SafeNumber(bidask, amountKey)
-    var result interface{} = []interface{}{price, amount}
+    var price any = this.SafeNumber(bidask, priceKey)
+    var amount any = this.SafeNumber(bidask, amountKey)
+    var result any = []any{price, amount}
     if ccxt.IsTrue(!ccxt.IsEqual(thirdKey, nil)) {
-        var thirdValue interface{} = this.SafeString(bidask, thirdKey)
+        var thirdValue any = this.SafeString(bidask, thirdKey)
         ccxt.AppendToArray(&result, thirdValue)
     }
     return result
 }
-func  (this *LunoCore) HandleDelta(orderbook interface{}, message interface{})  {
+func  (this *LunoCore) HandleDelta(orderbook any, message any)  {
     //
     //  create
     //     {
@@ -361,39 +361,39 @@ func  (this *LunoCore) HandleDelta(orderbook interface{}, message interface{})  
     //         "timestamp": 1660598775360
     //     }
     //
-    var createUpdate interface{} = this.SafeValue(message, "create_update")
-    var asksOrderSide interface{} = ccxt.GetValue(orderbook, "asks")
-    var bidsOrderSide interface{} = ccxt.GetValue(orderbook, "bids")
+    var createUpdate any = this.SafeValue(message, "create_update")
+    var asksOrderSide any = ccxt.GetValue(orderbook, "asks")
+    var bidsOrderSide any = ccxt.GetValue(orderbook, "bids")
     if ccxt.IsTrue(!ccxt.IsEqual(createUpdate, nil)) {
-        var bidAskArray interface{} = this.CustomParseBidAsk(createUpdate, "price", "volume", "order_id")
-        var typeVar interface{} = this.SafeString(createUpdate, "type")
+        var bidAskArray any = this.CustomParseBidAsk(createUpdate, "price", "volume", "order_id")
+        var typeVar any = this.SafeString(createUpdate, "type")
         if ccxt.IsTrue(ccxt.IsEqual(typeVar, "ASK")) {
             asksOrderSide.(ccxt.IOrderBookSide).StoreArray(bidAskArray)
         } else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "BID")) {
             bidsOrderSide.(ccxt.IOrderBookSide).StoreArray(bidAskArray)
         }
     }
-    var deleteUpdate interface{} = this.SafeValue(message, "delete_update")
+    var deleteUpdate any = this.SafeValue(message, "delete_update")
     if ccxt.IsTrue(!ccxt.IsEqual(deleteUpdate, nil)) {
-        var orderId interface{} = this.SafeString(deleteUpdate, "order_id")
-        asksOrderSide.(ccxt.IOrderBookSide).StoreArray([]interface{}{0, 0, orderId})
-        bidsOrderSide.(ccxt.IOrderBookSide).StoreArray([]interface{}{0, 0, orderId})
+        var orderId any = this.SafeString(deleteUpdate, "order_id")
+        asksOrderSide.(ccxt.IOrderBookSide).StoreArray([]any{0, 0, orderId})
+        bidsOrderSide.(ccxt.IOrderBookSide).StoreArray([]any{0, 0, orderId})
     }
 }
-func  (this *LunoCore) HandleMessage(client interface{}, message interface{})  {
+func  (this *LunoCore) HandleMessage(client any, message any)  {
     if ccxt.IsTrue(ccxt.IsEqual(message, "")) {
         return
     }
-    var subscriptions interface{} = ccxt.ObjectValues(client.(ccxt.ClientInterface).GetSubscriptions())
-    var handlers interface{} = []interface{}{this.HandleOrderBook, this.HandleTrades}
+    var subscriptions any = ccxt.ObjectValues(client.(ccxt.ClientInterface).GetSubscriptions())
+    var handlers any = []any{this.HandleOrderBook, this.HandleTrades}
     for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(handlers)); j++ {
-        var handler interface{} = ccxt.GetValue(handlers, j)
+        var handler any = ccxt.GetValue(handlers, j)
         ccxt.CallDynamically(handler, client, message, ccxt.GetValue(subscriptions, 0))
     }
 }
 
 
-func (this *LunoCore) Init(userConfig map[string]interface{}) {
+func (this *LunoCore) Init(userConfig map[string]any) {
     this.base.Init(this.DeepExtend(this.Describe(), userConfig))
     this.Itf = this
     this.Exchange.DerivedExchange = this

@@ -2036,6 +2036,7 @@ fetches the bid and ask price and volume for multiple markets
 | params.subType | <code>string</code> | No | "linear" or "inverse" |
 
 ##### Supported exchanges
+* [aster](/exchanges/aster.md#fetchbidsasks)
 * [binance](/exchanges/binance.md#fetchbidsasks)
 * [bitrue](/exchanges/bitrue.md#fetchbidsasks)
 * [bybit](/exchanges/bybit.md#fetchbidsasks)
@@ -3547,6 +3548,7 @@ fetches the last price for multiple markets
 | params.subType | <code>string</code> | No | "linear" or "inverse" |
 
 ##### Supported exchanges
+* [aster](/exchanges/aster.md#fetchlastprices)
 * [binance](/exchanges/binance.md#fetchlastprices)
 * [hashkey](/exchanges/hashkey.md#fetchlastprices)
 * [htx](/exchanges/htx.md#fetchlastprices)
@@ -5489,6 +5491,7 @@ fetches historical positions
 * [bingx](/exchanges/bingx.md#fetchpositionhistory)
 * [bydfi](/exchanges/bydfi.md#fetchpositionhistory)
 * [coinex](/exchanges/coinex.md#fetchpositionhistory)
+* [phemex](/exchanges/phemex.md#fetchpositionhistory)
 * [whitebit](/exchanges/whitebit.md#fetchpositionhistory)
 
 ---
@@ -5685,6 +5688,7 @@ fetches historical positions
 
 ##### Supported exchanges
 * [bitget](/exchanges/bitget.md#fetchpositionshistory)
+* [blofin](/exchanges/blofin.md#fetchpositionshistory)
 * [bybit](/exchanges/bybit.md#fetchpositionshistory)
 * [bydfi](/exchanges/bydfi.md#fetchpositionshistory)
 * [gate](/exchanges/gate.md#fetchpositionshistory)
@@ -7382,6 +7386,7 @@ sign in, must be called prior to using other authenticated methods
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [aster](/exchanges/aster.md#signin)
 * [bullish](/exchanges/bullish.md#signin)
 * [grvt](/exchanges/grvt.md#signin)
 * [ndax](/exchanges/ndax.md#signin)

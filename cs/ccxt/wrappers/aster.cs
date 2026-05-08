@@ -10,8 +10,8 @@ public partial class aster
     /// retrieves data on all markets for bigone
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#trading-specification-information"/>  <br/>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#exchange-information"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/market-data/#trading-specification-information"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/market-data/#exchange-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -31,7 +31,8 @@ public partial class aster
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#check-server-time"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/market-data/#get-server-time"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/market-data/#check-server-time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -51,8 +52,10 @@ public partial class aster
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#k-line-data"/>  <br/>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#klinecandlestick-data"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/market-data/#k-line-data"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/market-data/#klinecandlestick-data"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/market-data/#index-price-klinecandlestick-data"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/market-data/#mark-price-klinecandlestick-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -98,8 +101,10 @@ public partial class aster
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#recent-trades-list"/>  <br/>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#recent-trades-list"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/market-data/#recent-trades-list"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/market-data/#recent-trades-aggregated"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/market-data/#recent-trades-list"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/market-data/#compressedaggregate-trades-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -133,8 +138,8 @@ public partial class aster
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#account-trade-history-user_data"/>  <br/>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#account-trade-list-user_data"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#account-trade-history-user_data"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#account-trade-list-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -180,8 +185,8 @@ public partial class aster
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#depth-information"/>  <br/>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#order-book"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/market-data/#depth-information"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/market-data/#order-book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -205,10 +210,178 @@ public partial class aster
         return new OrderBook(res);
     }
     /// <summary>
+    /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/market-data/#24h-price-change"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/market-data/#24hr-ticker-price-change-statistics"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTicker(symbol, parameters);
+        return new Ticker(res);
+    }
+    /// <summary>
+    /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/market-data/#24h-price-change"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/market-data/#24hr-ticker-price-change-statistics"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'spot', 'option', use params["subType"] for swap and future markets
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an array of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTickers(symbols, parameters);
+        return new Tickers(res);
+    }
+    /// <summary>
+    /// fetches the last price for multiple markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/market-data/#latest-price"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-price-ticker"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of lastprices structures.</returns>
+    public async Task<LastPrices> FetchLastPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchLastPrices(symbols, parameters);
+        return new LastPrices(res);
+    }
+    /// <summary>
+    /// fetches the bid and ask price and volume for multiple markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/market-data/#current-best-order"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-order-book-ticker"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
+    public async Task<Tickers> FetchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchBidsAsks(symbols, parameters);
+        return new Tickers(res);
+    }
+    /// <summary>
+    /// fetch the current funding rate
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-price-ticker"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingRate(symbol, parameters);
+        return new FundingRate(res);
+    }
+    /// <summary>
+    /// fetch the current funding rate for multiple symbols
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-price-ticker"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingRates(symbols, parameters);
+        return new FundingRates(res);
+    }
+    /// <summary>
+    /// fetch the funding rate interval for multiple markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/market-data/#get-funding-rate-config"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRates> FetchFundingIntervals(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingIntervals(symbols, parameters);
+        return new FundingRates(res);
+    }
+    /// <summary>
     /// fetches historical funding rate prices
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-funding-rate-history"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/market-data/#get-funding-rate-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -245,125 +418,11 @@ public partial class aster
         return ((IList<object>)res).Select(item => new FundingRateHistory(item)).ToList<FundingRateHistory>();
     }
     /// <summary>
-    /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#24h-price-change"/>  <br/>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#24hr-ticker-price-change-statistics"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
-    public async Task<Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTicker(symbol, parameters);
-        return new Ticker(res);
-    }
-    /// <summary>
-    /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#24h-price-change"/>  <br/>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#24hr-ticker-price-change-statistics"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.subType</term>
-    /// <description>
-    /// string : "linear" or "inverse"
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.type</term>
-    /// <description>
-    /// string : 'spot', 'option', use params["subType"] for swap and future markets
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an array of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
-    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTickers(symbols, parameters);
-        return new Tickers(res);
-    }
-    /// <summary>
-    /// fetch the current funding rate
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#mark-price"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
-    public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchFundingRate(symbol, parameters);
-        return new FundingRate(res);
-    }
-    /// <summary>
-    /// fetch the current funding rate for multiple symbols
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#24hr-ticker-price-change-statistics"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
-    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchFundingRates(symbols, parameters);
-        return new FundingRates(res);
-    }
-    /// <summary>
-    /// fetch the funding rate interval for multiple markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-funding-rate-config"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
-    public async Task<FundingRates> FetchFundingIntervals(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchFundingIntervals(symbols, parameters);
-        return new FundingRates(res);
-    }
-    /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#account-information-v4-user_data"/>  <br/>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#account-information-user_data"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#account-information-user_data"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#futures-account-balance-v3-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -395,7 +454,7 @@ public partial class aster
     /// set margin mode to 'cross' or 'isolated'
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#change-margin-type-trade"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-margin-type-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -415,7 +474,7 @@ public partial class aster
     /// fetchs the position mode, hedged or one way, hedged for aster is set identically for all linear markets or all inverse markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-current-position-modeuser_data"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-current-position-modeuser_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -435,7 +494,7 @@ public partial class aster
     /// set hedged to true or false for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#change-position-modetrade"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-position-modetrade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -455,8 +514,8 @@ public partial class aster
     /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#get-symbol-fees"/>  <br/>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#user-commission-rate-user_data"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/market-data/#get-symbol-fees"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#user-commission-rate-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -476,8 +535,8 @@ public partial class aster
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#query-order-user_data"/>  <br/>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#query-order-user_data"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#query-order-user_data"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#query-order-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -503,7 +562,8 @@ public partial class aster
     /// fetch an open order by the id
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#query-current-open-order-user_data"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#query-current-open-order-user_data"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#query-current-open-order-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -523,8 +583,8 @@ public partial class aster
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#query-all-orders-user_data"/>  <br/>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#all-orders-user_data"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#query-all-orders-user_data"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#all-orders-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -564,8 +624,8 @@ public partial class aster
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#current-open-orders-user_data"/>  <br/>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#current-all-open-orders-user_data"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#current-open-orders-user_data"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#current-all-open-orders-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -611,8 +671,8 @@ public partial class aster
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#place-order-trade"/>  <br/>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#new-order--trade"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#place-order-trade"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#new-order-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -687,7 +747,7 @@ public partial class aster
     /// create a list of trade orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#place-multiple-orders--trade"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#new-order-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -733,8 +793,8 @@ public partial class aster
     /// cancel all open orders in a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#cancel-all-open-orders-trade"/>  <br/>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#cancel-all-open-orders-trade"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#cancel-all-open-orders-trade"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#current-all-open-orders-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -754,8 +814,8 @@ public partial class aster
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#cancel-order-trade"/>  <br/>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#cancel-order-trade"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#cancel-order-trade"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#cancel-order-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -775,7 +835,8 @@ public partial class aster
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#cancel-multiple-orders-trade"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#cancel-all-open-orders-trade"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#cancel-multiple-orders-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -801,7 +862,7 @@ public partial class aster
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#change-initial-leverage-trade"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-initial-leverage-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -821,7 +882,7 @@ public partial class aster
     /// fetch the set leverage for all markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#position-information-v2-user_data"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -841,7 +902,7 @@ public partial class aster
     /// fetches margin mode of the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#position-information-v2-user_data"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -861,7 +922,7 @@ public partial class aster
     /// fetches the history of margin added or reduced from contract isolated positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-position-margin-change-history-trade"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-position-margin-change-history-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>type</term>
@@ -901,7 +962,7 @@ public partial class aster
     /// fetch the history of funding payments paid and received on this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-income-historyuser_data"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-income-historyuser_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -953,7 +1014,7 @@ public partial class aster
     /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-income-historyuser_data"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-income-historyuser_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -999,7 +1060,7 @@ public partial class aster
     /// fetch positions risk
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#position-information-v2-user_data"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1019,7 +1080,7 @@ public partial class aster
     /// fetch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#position-information-v2-user_data"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1045,7 +1106,6 @@ public partial class aster
     /// fetch account positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#position-information-v2-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1065,7 +1125,9 @@ public partial class aster
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#withdraw-user_data"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#withdraw-user_data"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/deposit%26withdrawal/#withdraw-by-fapiv3-evm-futures"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/deposit%26withdrawal/#withdraw-by-fapiv3-evm-spot"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1085,8 +1147,8 @@ public partial class aster
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#transfer-asset-to-other-address-trade"/>  <br/>
-    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#transfer-between-futures-and-spot-user_data"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/account%26trades/#perp-spot-transfer-trade"/>  <br/>
+    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#transfer-between-futures-and-spot-transfer"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

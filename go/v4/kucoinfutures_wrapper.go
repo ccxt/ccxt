@@ -6,7 +6,7 @@ type Kucoinfutures struct {
 	exchangeTyped *Kucoin
 }
 
-func NewKucoinfutures(userConfig map[string]interface{}) *Kucoinfutures {
+func NewKucoinfutures(userConfig map[string]any) *Kucoinfutures {
 	p := NewKucoinfuturesCore()
 	p.Init(userConfig)
 	return &Kucoinfutures{
@@ -42,12 +42,12 @@ func (this *Kucoinfutures) FetchBidsAsks(options ...FetchBidsAsksOptions) (Ticke
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -77,7 +77,7 @@ func (this *Kucoinfutures) Transfer(code string, amount float64, fromAccount str
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -90,7 +90,7 @@ func (this *Kucoinfutures) Transfer(code string, amount float64, fromAccount str
 
 // missing typed methods from base
 // nolint
-func (this *Kucoinfutures) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+func (this *Kucoinfutures) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
 func (this *Kucoinfutures) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
@@ -102,7 +102,7 @@ func (this *Kucoinfutures) CancelOrdersWithClientOrderIds(clientOrderIds []strin
 func (this *Kucoinfutures) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }
-func (this *Kucoinfutures) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
+func (this *Kucoinfutures) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }
 func (this *Kucoinfutures) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
@@ -204,19 +204,19 @@ func (this *Kucoinfutures) EditOrderWithClientOrderId(clientOrderId string, symb
 func (this *Kucoinfutures) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
 }
-func (this *Kucoinfutures) FetchAccounts(params ...interface{}) ([]Account, error) {
+func (this *Kucoinfutures) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
 func (this *Kucoinfutures) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
-func (this *Kucoinfutures) FetchBalance(params ...interface{}) (Balances, error) {
+func (this *Kucoinfutures) FetchBalance(params ...any) (Balances, error) {
 	return this.exchangeTyped.FetchBalance(params...)
 }
 func (this *Kucoinfutures) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
 	return this.exchangeTyped.FetchBorrowInterest(options...)
 }
-func (this *Kucoinfutures) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]interface{}, error) {
+func (this *Kucoinfutures) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
 }
 func (this *Kucoinfutures) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
@@ -225,7 +225,7 @@ func (this *Kucoinfutures) FetchCanceledAndClosedOrders(options ...FetchCanceled
 func (this *Kucoinfutures) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrders(options...)
 }
-func (this *Kucoinfutures) FetchConvertCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Kucoinfutures) FetchConvertCurrencies(params ...any) (Currencies, error) {
 	return this.exchangeTyped.FetchConvertCurrencies(params...)
 }
 func (this *Kucoinfutures) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
@@ -240,10 +240,10 @@ func (this *Kucoinfutures) FetchConvertTradeHistory(options ...FetchConvertTrade
 func (this *Kucoinfutures) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
 	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
 }
-func (this *Kucoinfutures) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error) {
+func (this *Kucoinfutures) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
 	return this.exchangeTyped.FetchCrossBorrowRates(params...)
 }
-func (this *Kucoinfutures) FetchCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Kucoinfutures) FetchCurrencies(params ...any) (Currencies, error) {
 	return this.exchangeTyped.FetchCurrencies(params...)
 }
 func (this *Kucoinfutures) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
@@ -261,13 +261,13 @@ func (this *Kucoinfutures) FetchDeposits(options ...FetchDepositsOptions) ([]Tra
 func (this *Kucoinfutures) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Kucoinfutures) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {
+func (this *Kucoinfutures) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Kucoinfutures) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
+func (this *Kucoinfutures) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
-func (this *Kucoinfutures) FetchFreeBalance(params ...interface{}) (Balance, error) {
+func (this *Kucoinfutures) FetchFreeBalance(params ...any) (Balance, error) {
 	return this.exchangeTyped.FetchFreeBalance(params...)
 }
 func (this *Kucoinfutures) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
@@ -297,7 +297,7 @@ func (this *Kucoinfutures) FetchIndexOHLCV(symbol string, options ...FetchIndexO
 func (this *Kucoinfutures) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
 }
-func (this *Kucoinfutures) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrowRates, error) {
+func (this *Kucoinfutures) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
 }
 func (this *Kucoinfutures) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
@@ -339,7 +339,7 @@ func (this *Kucoinfutures) FetchMarginModes(options ...FetchMarginModesOptions) 
 func (this *Kucoinfutures) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Kucoinfutures) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
+func (this *Kucoinfutures) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	return this.exchangeTyped.FetchMarkets(params...)
 }
 func (this *Kucoinfutures) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
@@ -399,7 +399,7 @@ func (this *Kucoinfutures) FetchOrderStatus(id string, options ...FetchOrderStat
 func (this *Kucoinfutures) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Kucoinfutures) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {
+func (this *Kucoinfutures) FetchPaymentMethods(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Kucoinfutures) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
@@ -408,7 +408,7 @@ func (this *Kucoinfutures) FetchPosition(symbol string, options ...FetchPosition
 func (this *Kucoinfutures) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Kucoinfutures) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error) {
+func (this *Kucoinfutures) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Kucoinfutures) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -426,7 +426,7 @@ func (this *Kucoinfutures) FetchPositionsRisk(options ...FetchPositionsRiskOptio
 func (this *Kucoinfutures) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Kucoinfutures) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
+func (this *Kucoinfutures) FetchStatus(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Kucoinfutures) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
@@ -435,7 +435,7 @@ func (this *Kucoinfutures) FetchTicker(symbol string, options ...FetchTickerOpti
 func (this *Kucoinfutures) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Kucoinfutures) FetchTime(params ...interface{}) (int64, error) {
+func (this *Kucoinfutures) FetchTime(params ...any) (int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Kucoinfutures) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
@@ -444,16 +444,16 @@ func (this *Kucoinfutures) FetchTrades(symbol string, options ...FetchTradesOpti
 func (this *Kucoinfutures) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 	return this.exchangeTyped.FetchTradingFee(symbol, options...)
 }
-func (this *Kucoinfutures) FetchTradingFees(params ...interface{}) (TradingFees, error) {
+func (this *Kucoinfutures) FetchTradingFees(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFees(params...)
 }
-func (this *Kucoinfutures) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]interface{}, error) {
+func (this *Kucoinfutures) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)
 }
-func (this *Kucoinfutures) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {
+func (this *Kucoinfutures) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFee(code, options...)
 }
-func (this *Kucoinfutures) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]interface{}, error) {
+func (this *Kucoinfutures) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFees(options...)
 }
 func (this *Kucoinfutures) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
@@ -471,10 +471,10 @@ func (this *Kucoinfutures) FetchWithdrawals(options ...FetchWithdrawalsOptions) 
 func (this *Kucoinfutures) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)
 }
-func (this *Kucoinfutures) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {
+func (this *Kucoinfutures) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetMarginMode(marginMode, options...)
 }
-func (this *Kucoinfutures) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {
+func (this *Kucoinfutures) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetPositionMode(hedged, options...)
 }
 func (this *Kucoinfutures) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -552,13 +552,13 @@ func (this *Kucoinfutures) CreateTriggerOrderWs(symbol string, typeVar string, s
 func (this *Kucoinfutures) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
 }
-func (this *Kucoinfutures) FetchBalanceWs(params ...interface{}) (Balances, error) {
+func (this *Kucoinfutures) FetchBalanceWs(params ...any) (Balances, error) {
 	return this.exchangeTyped.FetchBalanceWs(params...)
 }
 func (this *Kucoinfutures) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Kucoinfutures) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {
+func (this *Kucoinfutures) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Kucoinfutures) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -600,46 +600,46 @@ func (this *Kucoinfutures) FetchTickerWs(symbol string, options ...FetchTickerWs
 func (this *Kucoinfutures) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchTradesWs(symbol, options...)
 }
-func (this *Kucoinfutures) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {
+func (this *Kucoinfutures) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Kucoinfutures) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {
+func (this *Kucoinfutures) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
-func (this *Kucoinfutures) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {
+func (this *Kucoinfutures) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
 	return this.exchangeTyped.UnWatchBidsAsks(options...)
 }
-func (this *Kucoinfutures) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {
+func (this *Kucoinfutures) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchMyTrades(options...)
 }
-func (this *Kucoinfutures) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {
+func (this *Kucoinfutures) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
 }
-func (this *Kucoinfutures) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {
+func (this *Kucoinfutures) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
 }
-func (this *Kucoinfutures) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {
+func (this *Kucoinfutures) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
 }
-func (this *Kucoinfutures) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
+func (this *Kucoinfutures) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
 }
-func (this *Kucoinfutures) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {
+func (this *Kucoinfutures) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrders(options...)
 }
-func (this *Kucoinfutures) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {
+func (this *Kucoinfutures) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTicker(symbol, options...)
 }
-func (this *Kucoinfutures) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {
+func (this *Kucoinfutures) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTickers(options...)
 }
-func (this *Kucoinfutures) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {
+func (this *Kucoinfutures) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTrades(symbol, options...)
 }
-func (this *Kucoinfutures) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {
+func (this *Kucoinfutures) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
 }
-func (this *Kucoinfutures) WatchBalance(params ...interface{}) (Balances, error) {
+func (this *Kucoinfutures) WatchBalance(params ...any) (Balances, error) {
 	return this.exchangeTyped.WatchBalance(params...)
 }
 func (this *Kucoinfutures) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {

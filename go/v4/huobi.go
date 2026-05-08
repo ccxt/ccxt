@@ -13,14 +13,14 @@ func NewHuobiCore() *HuobiCore {
 	return p
 }
 
-func (this *HuobiCore) Describe() interface{} {
-	return this.DeepExtend(this.HtxCore.Describe(), map[string]interface{}{
+func (this *HuobiCore) Describe() any {
+	return this.DeepExtend(this.HtxCore.Describe(), map[string]any{
 		"id":    "huobi",
 		"alias": true,
 	})
 }
 
-func (this *HuobiCore) Init(userConfig map[string]interface{}) {
+func (this *HuobiCore) Init(userConfig map[string]any) {
 	this.HtxCore.Init(this.DeepExtend(this.Describe(), userConfig))
 	this.Itf = this
 	this.Exchange.DerivedExchange = this

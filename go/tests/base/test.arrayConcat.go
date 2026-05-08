@@ -8,8 +8,8 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestArrayConcat() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
-	AssertDeepEqual(exchange, nil, "testArrayConcat", exchange.ArrayConcat([]interface{}{"b"}, []interface{}{"a", "c"}), []interface{}{"b", "a", "c"})
+	}, map[string]any{}, exchange)
+	AssertDeepEqual(exchange, nil, "testArrayConcat", exchange.ArrayConcat([]any{"b"}, []any{"a", "c"}), []any{"b", "a", "c"})
 }

@@ -8,17 +8,17 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestIsEmpty() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
+	}, map[string]any{}, exchange)
 	assert(ccxt.IsEqual(exchange.IsEmpty(nil), true), "undefined should be empty")
 	assert(ccxt.IsEqual(exchange.IsEmpty(nil), true), "null should be empty")
-	assert(ccxt.IsEqual(exchange.IsEmpty(map[string]interface{}{}), true), "empty object should be empty")
-	assert(ccxt.IsEqual(exchange.IsEmpty([]interface{}{}), true), "empty array should be empty")
-	assert(ccxt.IsEqual(exchange.IsEmpty(map[string]interface{}{
+	assert(ccxt.IsEqual(exchange.IsEmpty(map[string]any{}), true), "empty object should be empty")
+	assert(ccxt.IsEqual(exchange.IsEmpty([]any{}), true), "empty array should be empty")
+	assert(ccxt.IsEqual(exchange.IsEmpty(map[string]any{
 		"foo": 1,
 	}), false), "non-empty object should not be empty")
-	assert(ccxt.IsEqual(exchange.IsEmpty([]interface{}{1, 2}), false), "non-empty array should not be empty")
+	assert(ccxt.IsEqual(exchange.IsEmpty([]any{1, 2}), false), "non-empty array should not be empty")
 	// below are scalars, so they are not checked.
 	// @ts-expect-error
 	assert(ccxt.IsEqual(exchange.IsEmpty(""), false), "empty string should return false")

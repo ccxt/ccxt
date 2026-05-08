@@ -3516,6 +3516,9 @@ class binance extends binance$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrdersWs(symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' cancelAllOrdersWs() requires a symbol argument');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const type = this.getMarketType('cancelAllOrdersWs', market, params);

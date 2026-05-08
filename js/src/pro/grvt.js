@@ -308,7 +308,7 @@ export default class grvt extends grvtRest {
             const market = this.market(symbol);
             const marketId = market['id'];
             const limitRaw = this.safeInteger(params, 'limit', 50); // 50, 200, 500, 1000
-            rawHashes.push(marketId + '@' + limitRaw);
+            rawHashes.push(marketId + '@' + limitRaw.toString());
             messageHashes.push('trade::' + market['symbol']);
         }
         const request = {
@@ -508,14 +508,14 @@ export default class grvt extends grvtRest {
         let interval = undefined;
         [interval, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'interval', 500);
         symbols = this.marketSymbols(symbols);
-        const extraPart = isSnapshot ? (interval + '-' + limit) : interval;
+        const extraPart = isSnapshot ? (interval.toString() + '-' + limit.toString()) : interval.toString();
         const rawHashes = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
             const marketId = market['id'];
-            rawHashes.push(marketId + '@' + extraPart.toString());
+            rawHashes.push(marketId + '@' + extraPart);
             messageHashes.push('orderbook::' + market['symbol']);
         }
         const request = {

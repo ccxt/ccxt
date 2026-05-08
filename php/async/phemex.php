@@ -225,6 +225,7 @@ class phemex extends Exchange {
                         'api-data/futures/trading-fees' => 5, // ?symbol=<symbol>
                         'api-data/g-futures/trading-fees' => 5, // ?symbol=<symbol>
                         'api-data/futures/v2/tradeAccountDetail' => 5, // ?currency=<currecny>&type=<type>&limit=<limit>&offset=<offset>&start=<start>&end=<end>&withCount=<withCount>
+                        'api-data/g-futures/closedPosition' => 5,
                         'g-orders/activeList' => 1, // ?symbol=<symbol>
                         'orders/activeList' => 1, // ?symbol=<symbol>
                         'exchange/order/list' => 5, // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
@@ -3973,6 +3974,63 @@ class phemex extends Exchange {
         }) ();
     }
 
+    public function fetch_position_history(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches historical $positions
+             *
+             * @see https://phemex-docs.github.io/#query-closed-$positions
+             *
+             * @param {string} $symbol unified contract $symbol
+             * @param {int} [$since] the earliest time in ms to fetch $positions for
+             * @param {int} [$limit] the maximum amount of records to fetch
+             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch $positions for
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['limit'] = min (200, $limit);
+            }
+            $response = Async\await($this->privateGetApiDataGFuturesClosedPosition ($this->extend($request, $params)));
+            //
+            //    {
+            //        "code" => "0",
+            //        "msg" => "OK",
+            //        "data" => array(
+            //            array(
+            //                "symbol" => "ETHUSDT",
+            //                "currency" => "USDT",
+            //                "term" => "0",
+            //                "closedSizeRq" => "0.09",
+            //                "side" => "1",
+            //                "cumEntryValueRv" => null,
+            //                "closedPnlRv" => "-0.1385",
+            //                "exchangeFeeRv" => "0.2561889",
+            //                "fundingFeeRv" => "0",
+            //                "realizedPnlRv" => "-0.3946889",
+            //                "finished" => "0",
+            //                "openedTimeNs" => "1777998771316",
+            //                "updatedTimeNs" => "1777998802592",
+            //                "openPrice" => "2372.88888889",
+            //                "closePrice" => "2371.35000000",
+            //                "roi" => "-0.09702738",
+            //                "leverage" => "-52.5"
+            //            ),
+            //        )
+            //    }
+            //
+            $data = $this->safe_list($response, 'data', array());
+            $positions = $this->parse_positions($data, array( $symbol ));
+            return $this->filter_by_symbol_since_limit($positions, $symbol, $since, $limit);
+        }) ();
+    }
+
     public function parse_position(array $position, ?array $market = null) {
         //
         //    {
@@ -4045,6 +4103,29 @@ class phemex extends Exchange {
         //        "execSeq" => "12112761561"
         //    }
         //
+        //
+        // fetchPositionsHistory
+        //
+        //            array(
+        //                "symbol" => "ETHUSDT",
+        //                "currency" => "USDT",
+        //                "term" => "0",
+        //                "closedSizeRq" => "0.09",
+        //                "side" => "1",
+        //                "cumEntryValueRv" => null,
+        //                "closedPnlRv" => "-0.1385",
+        //                "exchangeFeeRv" => "0.2561889",
+        //                "fundingFeeRv" => "0",
+        //                "realizedPnlRv" => "-0.3946889",
+        //                "finished" => "0",
+        //                "openedTimeNs" => "1777998771316",
+        //                "updatedTimeNs" => "1777998802592",
+        //                "openPrice" => "2372.88888889",
+        //                "closePrice" => "2371.35000000",
+        //                "roi" => "-0.09702738", // todo => check if percentage or not
+        //                "leverage" => "-52.5"
+        //            ),
+        //
         $marketId = $this->safe_string($position, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
@@ -4056,15 +4137,16 @@ class phemex extends Exchange {
         $initialMarginPercentageString = Precise::string_div($initialMarginString, $notionalString);
         $liquidationPrice = $this->safe_number_2($position, 'liquidationPrice', 'liquidationPriceRp');
         $markPriceString = $this->safe_string_2($position, 'markPrice', 'markPriceRp');
-        $contracts = $this->safe_string_2($position, 'size', 'sizeRq');
+        $contracts = $this->safe_string_n($position, array( 'size', 'sizeRq', 'closedSizeRq' ));
         $contractSize = $this->safe_value($market, 'contractSize');
         $contractSizeString = $this->number_to_string($contractSize);
         $leverage = $this->parse_number(Precise::string_abs(($this->safe_string_2($position, 'leverage', 'leverageRr'))));
-        $entryPriceString = $this->safe_string_2($position, 'avgEntryPrice', 'avgEntryPriceRp');
+        $entryPriceString = $this->safe_string_n($position, array( 'avgEntryPrice', 'avgEntryPriceRp', 'openPrice' ));
         $rawSide = $this->safe_string($position, 'side');
         $side = null;
         if ($rawSide !== null) {
-            $side = ($rawSide === 'Buy') ? 'long' : 'short';
+            $isLong = ($rawSide === 'Buy' || $rawSide === '1');
+            $side = $isLong ? 'long' : 'short';
         }
         // Inverse long contract => unRealizedPnl = (posSize * $contractSize) / avgEntryPrice - (posSize * $contractSize) / markPrice
         // Inverse short contract => unRealizedPnl =  (posSize *$contractSize) / markPrice - (posSize * $contractSize) / avgEntryPrice
@@ -4090,13 +4172,15 @@ class phemex extends Exchange {
         $apiUnrealizedPnl = $this->safe_string($position, 'unRealisedPnlRv', $unrealizedPnl);
         $marginRatio = Precise::string_div($maintenanceMarginString, $collateral);
         $isCross = $this->safe_value($position, 'crossMargin');
+        $timestamp = $this->safe_integer($position, 'openedTimeNs');
+        $lastUpdateTimestamp = $this->safe_integer($position, 'updatedTimeNs', $this->safe_integer_product($position, 'transactTimeNs', 0.000001));
         return $this->safe_position(array(
             'info' => $position,
             'id' => $this->safe_string($position, 'execSeq'),
             'symbol' => $symbol,
             'contracts' => $this->parse_number($contracts),
             'contractSize' => $contractSize,
-            'realizedPnl' => $this->safe_number($position, 'curTermRealisedPnlRv'),
+            'realizedPnl' => $this->safe_number_2($position, 'curTermRealisedPnlRv', 'realizedPnlRv'),
             'unrealizedPnl' => $this->parse_number($apiUnrealizedPnl),
             'leverage' => $leverage,
             'liquidationPrice' => $liquidationPrice,
@@ -4105,14 +4189,15 @@ class phemex extends Exchange {
             'markPrice' => $this->parse_number($markPriceString), // markPrice lags a bit ¯\_(ツ)_/¯
             'lastPrice' => null,
             'entryPrice' => $this->parse_number($entryPriceString),
-            'timestamp' => null,
-            'lastUpdateTimestamp' => $this->safe_integer_product($position, 'transactTimeNs', 0.000001),
+            'exitPrice' => $this->safe_number($position, 'closePrice'),
+            'lastUpdateTimestamp' => $lastUpdateTimestamp,
             'initialMargin' => $this->parse_number($initialMarginString),
             'initialMarginPercentage' => $this->parse_number($initialMarginPercentageString),
             'maintenanceMargin' => $this->parse_number($maintenanceMarginString),
             'maintenanceMarginPercentage' => $this->parse_number($maintenanceMarginPercentageString),
             'marginRatio' => $this->parse_number($marginRatio),
-            'datetime' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'marginMode' => $isCross ? 'cross' : 'isolated',
             'side' => $side,
             'hedged' => $this->safe_string($position, 'posMode') === 'Hedged',

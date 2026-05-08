@@ -201,7 +201,7 @@ def helper_test_properties():
     #
     # common props
     #
-    assert 'GO_SKIP_START'
+    # @SKIP_START_GO
     assert exchange.id == 'Exch' + 'ange', 'id should be "Exchange"'
     assert exchange.has is not None, 'has should not be undefined'
     assert exchange.api is None, 'api should be undefined'
@@ -326,11 +326,11 @@ def helper_test_properties():
     assert exchange.codes is None, 'codes should be undefined'
     assert exchange.accounts is None, 'accounts should be undefined'
     assert test_shared_methods.exchange_prop(exchange, 'accountsById') is None, 'accountsById should be undefined'
+    # @SKIP_END_GO
     test_shared_methods.assert_deep_equal(exchange, {}, 'commonCurrencies', test_shared_methods.exchange_prop(exchange, 'commonCurrencies'), {
         'XBT': 'BTC',
         'BCHSV': 'BSV',
     })
-    assert 'GO_SKIP_END'
 
 
 def test_after_constructor():

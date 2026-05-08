@@ -6,7 +6,7 @@ type Bingx struct {
    exchangeTyped *ccxt.Bingx
 }
 
-func NewBingx(userConfig map[string]interface{}) *Bingx {
+func NewBingx(userConfig map[string]any) *Bingx {
    p := NewBingxCore()
    p.Init(userConfig)
    return &Bingx{
@@ -40,7 +40,7 @@ func (this *Bingx) WatchTicker(symbol string, options ...ccxt.WatchTickerOptions
         opt(&opts)
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -61,7 +61,7 @@ func (this *Bingx) WatchTicker(symbol string, options ...ccxt.WatchTickerOptions
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Bingx) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOptions) (interface{}, error) {
+func (this *Bingx) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOptions) (any, error) {
 
     opts := ccxt.UnWatchTickerOptionsStruct{}
 
@@ -69,7 +69,7 @@ func (this *Bingx) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOpt
         opt(&opts)
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -100,17 +100,17 @@ func (this *Bingx) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions
         opt(&opts)
     }
 
-    var since interface{} = nil
+    var since any = nil
     if opts.Since != nil {
         since = *opts.Since
     }
 
-    var limit interface{} = nil
+    var limit any = nil
     if opts.Limit != nil {
         limit = *opts.Limit
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -132,7 +132,7 @@ func (this *Bingx) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions
  * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Bingx) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (interface{}, error) {
+func (this *Bingx) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (any, error) {
 
     opts := ccxt.UnWatchTradesOptionsStruct{}
 
@@ -140,7 +140,7 @@ func (this *Bingx) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOpt
         opt(&opts)
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -170,12 +170,12 @@ func (this *Bingx) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookO
         opt(&opts)
     }
 
-    var limit interface{} = nil
+    var limit any = nil
     if opts.Limit != nil {
         limit = *opts.Limit
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -196,7 +196,7 @@ func (this *Bingx) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookO
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
-func (this *Bingx) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBookOptions) (interface{}, error) {
+func (this *Bingx) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBookOptions) (any, error) {
 
     opts := ccxt.UnWatchOrderBookOptionsStruct{}
 
@@ -204,7 +204,7 @@ func (this *Bingx) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderB
         opt(&opts)
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -236,22 +236,22 @@ func (this *Bingx) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions) 
         opt(&opts)
     }
 
-    var timeframe interface{} = nil
+    var timeframe any = nil
     if opts.Timeframe != nil {
         timeframe = *opts.Timeframe
     }
 
-    var since interface{} = nil
+    var since any = nil
     if opts.Since != nil {
         since = *opts.Since
     }
 
-    var limit interface{} = nil
+    var limit any = nil
     if opts.Limit != nil {
         limit = *opts.Limit
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -273,7 +273,7 @@ func (this *Bingx) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Bingx) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions) (interface{}, error) {
+func (this *Bingx) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions) (any, error) {
 
     opts := ccxt.UnWatchOHLCVOptionsStruct{}
 
@@ -281,12 +281,12 @@ func (this *Bingx) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptio
         opt(&opts)
     }
 
-    var timeframe interface{} = nil
+    var timeframe any = nil
     if opts.Timeframe != nil {
         timeframe = *opts.Timeframe
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -317,22 +317,22 @@ func (this *Bingx) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order
         opt(&opts)
     }
 
-    var symbol interface{} = nil
+    var symbol any = nil
     if opts.Symbol != nil {
         symbol = *opts.Symbol
     }
 
-    var since interface{} = nil
+    var since any = nil
     if opts.Since != nil {
         since = *opts.Since
     }
 
-    var limit interface{} = nil
+    var limit any = nil
     if opts.Limit != nil {
         limit = *opts.Limit
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -363,22 +363,22 @@ func (this *Bingx) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.T
         opt(&opts)
     }
 
-    var symbol interface{} = nil
+    var symbol any = nil
     if opts.Symbol != nil {
         symbol = *opts.Symbol
     }
 
-    var since interface{} = nil
+    var since any = nil
     if opts.Since != nil {
         since = *opts.Since
     }
 
-    var limit interface{} = nil
+    var limit any = nil
     if opts.Limit != nil {
         limit = *opts.Limit
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -398,7 +398,7 @@ func (this *Bingx) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.T
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Bingx) WatchBalance(params ...interface{}) (ccxt.Balances, error) {
+func (this *Bingx) WatchBalance(params ...any) (ccxt.Balances, error) {
     res := <- this.Core.WatchBalance(params...)
     if ccxt.IsError(res) {
         return ccxt.Balances{}, ccxt.CreateReturnError(res)
@@ -424,22 +424,22 @@ func (this *Bingx) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt
         opt(&opts)
     }
 
-    var symbols interface{} = nil
+    var symbols any = nil
     if opts.Symbols != nil {
         symbols = *opts.Symbols
     }
 
-    var since interface{} = nil
+    var since any = nil
     if opts.Since != nil {
         since = *opts.Since
     }
 
-    var limit interface{} = nil
+    var limit any = nil
     if opts.Limit != nil {
         limit = *opts.Limit
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -451,11 +451,11 @@ func (this *Bingx) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt
 }
 // missing typed methods from base
 //nolint
-func (this *Bingx) LoadMarkets(params ...interface{}) (map[string]ccxt.MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }
+func (this *Bingx) LoadMarkets(params ...any) (map[string]ccxt.MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }
 func (this *Bingx) CancelOrders(ids []string, options ...ccxt.CancelOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelOrders(ids, options...)}
 func (this *Bingx) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...ccxt.CancelOrdersWithClientOrderIdsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)}
 func (this *Bingx) CancelAllOrders(options ...ccxt.CancelAllOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelAllOrders(options...)}
-func (this *Bingx) CancelAllOrdersAfter(timeout int64, options ...ccxt.CancelAllOrdersAfterOptions) (map[string]interface{}, error) {return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)}
+func (this *Bingx) CancelAllOrdersAfter(timeout int64, options ...ccxt.CancelAllOrdersAfterOptions) (map[string]any, error) {return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)}
 func (this *Bingx) CancelOrder(id string, options ...ccxt.CancelOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.CancelOrder(id, options...)}
 func (this *Bingx) CancelOrderWithClientOrderId(clientOrderId string, options ...ccxt.CancelOrderWithClientOrderIdOptions) (ccxt.Order, error) {return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)}
 func (this *Bingx) CancelOrdersForSymbols(orders []ccxt.CancellationRequest, options ...ccxt.CancelOrdersForSymbolsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)}
@@ -489,29 +489,29 @@ func (this *Bingx) EditLimitSellOrder(id string, symbol string, amount float64, 
 func (this *Bingx) EditOrder(id string, symbol string, typeVar string, side string, options ...ccxt.EditOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.EditOrder(id, symbol, typeVar, side, options...)}
 func (this *Bingx) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...ccxt.EditOrderWithClientOrderIdOptions) (ccxt.Order, error) {return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)}
 func (this *Bingx) EditOrders(orders []ccxt.OrderRequest, options ...ccxt.EditOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.EditOrders(orders, options...)}
-func (this *Bingx) FetchAccounts(params ...interface{}) ([]ccxt.Account, error) {return this.exchangeTyped.FetchAccounts(params...)}
+func (this *Bingx) FetchAccounts(params ...any) ([]ccxt.Account, error) {return this.exchangeTyped.FetchAccounts(params...)}
 func (this *Bingx) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) ([]ccxt.Greeks, error) {return this.exchangeTyped.FetchAllGreeks(options...)}
-func (this *Bingx) FetchBalance(params ...interface{}) (ccxt.Balances, error) {return this.exchangeTyped.FetchBalance(params...)}
+func (this *Bingx) FetchBalance(params ...any) (ccxt.Balances, error) {return this.exchangeTyped.FetchBalance(params...)}
 func (this *Bingx) FetchBidsAsks(options ...ccxt.FetchBidsAsksOptions) (ccxt.Tickers, error) {return this.exchangeTyped.FetchBidsAsks(options...)}
 func (this *Bingx) FetchBorrowInterest(options ...ccxt.FetchBorrowInterestOptions) ([]ccxt.BorrowInterest, error) {return this.exchangeTyped.FetchBorrowInterest(options...)}
-func (this *Bingx) FetchBorrowRate(code string, amount float64, options ...ccxt.FetchBorrowRateOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchBorrowRate(code, amount, options...)}
+func (this *Bingx) FetchBorrowRate(code string, amount float64, options ...ccxt.FetchBorrowRateOptions) (map[string]any, error) {return this.exchangeTyped.FetchBorrowRate(code, amount, options...)}
 func (this *Bingx) FetchCanceledAndClosedOrders(options ...ccxt.FetchCanceledAndClosedOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)}
 func (this *Bingx) FetchClosedOrders(options ...ccxt.FetchClosedOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.FetchClosedOrders(options...)}
-func (this *Bingx) FetchConvertCurrencies(params ...interface{}) (ccxt.Currencies, error) {return this.exchangeTyped.FetchConvertCurrencies(params...)}
+func (this *Bingx) FetchConvertCurrencies(params ...any) (ccxt.Currencies, error) {return this.exchangeTyped.FetchConvertCurrencies(params...)}
 func (this *Bingx) FetchConvertQuote(fromCode string, toCode string, options ...ccxt.FetchConvertQuoteOptions) (ccxt.Conversion, error) {return this.exchangeTyped.FetchConvertQuote(fromCode, toCode, options...)}
 func (this *Bingx) FetchConvertTrade(id string, options ...ccxt.FetchConvertTradeOptions) (ccxt.Conversion, error) {return this.exchangeTyped.FetchConvertTrade(id, options...)}
 func (this *Bingx) FetchConvertTradeHistory(options ...ccxt.FetchConvertTradeHistoryOptions) ([]ccxt.Conversion, error) {return this.exchangeTyped.FetchConvertTradeHistory(options...)}
 func (this *Bingx) FetchCrossBorrowRate(code string, options ...ccxt.FetchCrossBorrowRateOptions) (ccxt.CrossBorrowRate, error) {return this.exchangeTyped.FetchCrossBorrowRate(code, options...)}
-func (this *Bingx) FetchCrossBorrowRates(params ...interface{}) (ccxt.CrossBorrowRates, error) {return this.exchangeTyped.FetchCrossBorrowRates(params...)}
-func (this *Bingx) FetchCurrencies(params ...interface{}) (ccxt.Currencies, error) {return this.exchangeTyped.FetchCurrencies(params...)}
+func (this *Bingx) FetchCrossBorrowRates(params ...any) (ccxt.CrossBorrowRates, error) {return this.exchangeTyped.FetchCrossBorrowRates(params...)}
+func (this *Bingx) FetchCurrencies(params ...any) (ccxt.Currencies, error) {return this.exchangeTyped.FetchCurrencies(params...)}
 func (this *Bingx) FetchDepositAddress(code string, options ...ccxt.FetchDepositAddressOptions) (ccxt.DepositAddress, error) {return this.exchangeTyped.FetchDepositAddress(code, options...)}
 func (this *Bingx) FetchDepositAddresses(options ...ccxt.FetchDepositAddressesOptions) ([]ccxt.DepositAddress, error) {return this.exchangeTyped.FetchDepositAddresses(options...)}
 func (this *Bingx) FetchDepositAddressesByNetwork(code string, options ...ccxt.FetchDepositAddressesByNetworkOptions) ([]ccxt.DepositAddress, error) {return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)}
 func (this *Bingx) FetchDeposits(options ...ccxt.FetchDepositsOptions) ([]ccxt.Transaction, error) {return this.exchangeTyped.FetchDeposits(options...)}
 func (this *Bingx) FetchDepositsWithdrawals(options ...ccxt.FetchDepositsWithdrawalsOptions) ([]ccxt.Transaction, error) {return this.exchangeTyped.FetchDepositsWithdrawals(options...)}
-func (this *Bingx) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)}
-func (this *Bingx) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchDepositWithdrawFees(options...)}
-func (this *Bingx) FetchFreeBalance(params ...interface{}) (ccxt.Balance, error) {return this.exchangeTyped.FetchFreeBalance(params...)}
+func (this *Bingx) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (map[string]any, error) {return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)}
+func (this *Bingx) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (map[string]any, error) {return this.exchangeTyped.FetchDepositWithdrawFees(options...)}
+func (this *Bingx) FetchFreeBalance(params ...any) (ccxt.Balance, error) {return this.exchangeTyped.FetchFreeBalance(params...)}
 func (this *Bingx) FetchFundingHistory(options ...ccxt.FetchFundingHistoryOptions) ([]ccxt.FundingHistory, error) {return this.exchangeTyped.FetchFundingHistory(options...)}
 func (this *Bingx) FetchFundingInterval(symbol string, options ...ccxt.FetchFundingIntervalOptions) (ccxt.FundingRate, error) {return this.exchangeTyped.FetchFundingInterval(symbol, options...)}
 func (this *Bingx) FetchFundingIntervals(options ...ccxt.FetchFundingIntervalsOptions) (ccxt.FundingRates, error) {return this.exchangeTyped.FetchFundingIntervals(options...)}
@@ -521,7 +521,7 @@ func (this *Bingx) FetchFundingRates(options ...ccxt.FetchFundingRatesOptions) (
 func (this *Bingx) FetchGreeks(symbol string, options ...ccxt.FetchGreeksOptions) (ccxt.Greeks, error) {return this.exchangeTyped.FetchGreeks(symbol, options...)}
 func (this *Bingx) FetchIndexOHLCV(symbol string, options ...ccxt.FetchIndexOHLCVOptions) ([]ccxt.OHLCV, error) {return this.exchangeTyped.FetchIndexOHLCV(symbol, options...)}
 func (this *Bingx) FetchIsolatedBorrowRate(symbol string, options ...ccxt.FetchIsolatedBorrowRateOptions) (ccxt.IsolatedBorrowRate, error) {return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)}
-func (this *Bingx) FetchIsolatedBorrowRates(params ...interface{}) (ccxt.IsolatedBorrowRates, error) {return this.exchangeTyped.FetchIsolatedBorrowRates(params...)}
+func (this *Bingx) FetchIsolatedBorrowRates(params ...any) (ccxt.IsolatedBorrowRates, error) {return this.exchangeTyped.FetchIsolatedBorrowRates(params...)}
 func (this *Bingx) FetchLastPrices(options ...ccxt.FetchLastPricesOptions) (ccxt.LastPrices, error) {return this.exchangeTyped.FetchLastPrices(options...)}
 func (this *Bingx) FetchLedger(options ...ccxt.FetchLedgerOptions) ([]ccxt.LedgerEntry, error) {return this.exchangeTyped.FetchLedger(options...)}
 func (this *Bingx) FetchLedgerEntry(id string, options ...ccxt.FetchLedgerEntryOptions) (ccxt.LedgerEntry, error) {return this.exchangeTyped.FetchLedgerEntry(id, options...)}
@@ -535,7 +535,7 @@ func (this *Bingx) FetchMarginAdjustmentHistory(options ...ccxt.FetchMarginAdjus
 func (this *Bingx) FetchMarginMode(symbol string, options ...ccxt.FetchMarginModeOptions) (ccxt.MarginMode, error) {return this.exchangeTyped.FetchMarginMode(symbol, options...)}
 func (this *Bingx) FetchMarginModes(options ...ccxt.FetchMarginModesOptions) (ccxt.MarginModes, error) {return this.exchangeTyped.FetchMarginModes(options...)}
 func (this *Bingx) FetchMarketLeverageTiers(symbol string, options ...ccxt.FetchMarketLeverageTiersOptions) ([]ccxt.LeverageTier, error) {return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)}
-func (this *Bingx) FetchMarkets(params ...interface{}) ([]ccxt.MarketInterface, error) {return this.exchangeTyped.FetchMarkets(params...)}
+func (this *Bingx) FetchMarkets(params ...any) ([]ccxt.MarketInterface, error) {return this.exchangeTyped.FetchMarkets(params...)}
 func (this *Bingx) FetchMarkOHLCV(symbol string, options ...ccxt.FetchMarkOHLCVOptions) ([]ccxt.OHLCV, error) {return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)}
 func (this *Bingx) FetchMarkPrice(symbol string, options ...ccxt.FetchMarkPriceOptions) (ccxt.Ticker, error) {return this.exchangeTyped.FetchMarkPrice(symbol, options...)}
 func (this *Bingx) FetchMarkPrices(options ...ccxt.FetchMarkPricesOptions) (ccxt.Tickers, error) {return this.exchangeTyped.FetchMarkPrices(options...)}
@@ -555,32 +555,32 @@ func (this *Bingx) FetchOrderBooks(options ...ccxt.FetchOrderBooksOptions) (ccxt
 func (this *Bingx) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.FetchOrders(options...)}
 func (this *Bingx) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (string, error) {return this.exchangeTyped.FetchOrderStatus(id, options...)}
 func (this *Bingx) FetchOrderTrades(id string, options ...ccxt.FetchOrderTradesOptions) ([]ccxt.Trade, error) {return this.exchangeTyped.FetchOrderTrades(id, options...)}
-func (this *Bingx) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {return this.exchangeTyped.FetchPaymentMethods(params...)}
+func (this *Bingx) FetchPaymentMethods(params ...any) (map[string]any, error) {return this.exchangeTyped.FetchPaymentMethods(params...)}
 func (this *Bingx) FetchPosition(symbol string, options ...ccxt.FetchPositionOptions) (ccxt.Position, error) {return this.exchangeTyped.FetchPosition(symbol, options...)}
 func (this *Bingx) FetchPositionHistory(symbol string, options ...ccxt.FetchPositionHistoryOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositionHistory(symbol, options...)}
-func (this *Bingx) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchPositionMode(options...)}
+func (this *Bingx) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (map[string]any, error) {return this.exchangeTyped.FetchPositionMode(options...)}
 func (this *Bingx) FetchPositions(options ...ccxt.FetchPositionsOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositions(options...)}
 func (this *Bingx) FetchPositionsForSymbol(symbol string, options ...ccxt.FetchPositionsForSymbolOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositionsForSymbol(symbol, options...)}
 func (this *Bingx) FetchPositionsHistory(options ...ccxt.FetchPositionsHistoryOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositionsHistory(options...)}
 func (this *Bingx) FetchPositionsRisk(options ...ccxt.FetchPositionsRiskOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositionsRisk(options...)}
 func (this *Bingx) FetchPremiumIndexOHLCV(symbol string, options ...ccxt.FetchPremiumIndexOHLCVOptions) ([]ccxt.OHLCV, error) {return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)}
-func (this *Bingx) FetchStatus(params ...interface{}) (map[string]interface{}, error) {return this.exchangeTyped.FetchStatus(params...)}
+func (this *Bingx) FetchStatus(params ...any) (map[string]any, error) {return this.exchangeTyped.FetchStatus(params...)}
 func (this *Bingx) FetchTicker(symbol string, options ...ccxt.FetchTickerOptions) (ccxt.Ticker, error) {return this.exchangeTyped.FetchTicker(symbol, options...)}
 func (this *Bingx) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.Tickers, error) {return this.exchangeTyped.FetchTickers(options...)}
-func (this *Bingx) FetchTime(params ...interface{}) ( int64, error) {return this.exchangeTyped.FetchTime(params...)}
+func (this *Bingx) FetchTime(params ...any) ( int64, error) {return this.exchangeTyped.FetchTime(params...)}
 func (this *Bingx) FetchTrades(symbol string, options ...ccxt.FetchTradesOptions) ([]ccxt.Trade, error) {return this.exchangeTyped.FetchTrades(symbol, options...)}
 func (this *Bingx) FetchTradingFee(symbol string, options ...ccxt.FetchTradingFeeOptions) (ccxt.TradingFeeInterface, error) {return this.exchangeTyped.FetchTradingFee(symbol, options...)}
-func (this *Bingx) FetchTradingFees(params ...interface{}) (ccxt.TradingFees, error) {return this.exchangeTyped.FetchTradingFees(params...)}
-func (this *Bingx) FetchTradingLimits(options ...ccxt.FetchTradingLimitsOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchTradingLimits(options...)}
-func (this *Bingx) FetchTransactionFee(code string, options ...ccxt.FetchTransactionFeeOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchTransactionFee(code, options...)}
-func (this *Bingx) FetchTransactionFees(options ...ccxt.FetchTransactionFeesOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchTransactionFees(options...)}
+func (this *Bingx) FetchTradingFees(params ...any) (ccxt.TradingFees, error) {return this.exchangeTyped.FetchTradingFees(params...)}
+func (this *Bingx) FetchTradingLimits(options ...ccxt.FetchTradingLimitsOptions) (map[string]any, error) {return this.exchangeTyped.FetchTradingLimits(options...)}
+func (this *Bingx) FetchTransactionFee(code string, options ...ccxt.FetchTransactionFeeOptions) (map[string]any, error) {return this.exchangeTyped.FetchTransactionFee(code, options...)}
+func (this *Bingx) FetchTransactionFees(options ...ccxt.FetchTransactionFeesOptions) (map[string]any, error) {return this.exchangeTyped.FetchTransactionFees(options...)}
 func (this *Bingx) FetchTransactions(options ...ccxt.FetchTransactionsOptions) ([]ccxt.Transaction, error) {return this.exchangeTyped.FetchTransactions(options...)}
 func (this *Bingx) FetchTransfer(id string, options ...ccxt.FetchTransferOptions) (ccxt.TransferEntry, error) {return this.exchangeTyped.FetchTransfer(id, options...)}
 func (this *Bingx) FetchTransfers(options ...ccxt.FetchTransfersOptions) ([]ccxt.TransferEntry, error) {return this.exchangeTyped.FetchTransfers(options...)}
 func (this *Bingx) FetchWithdrawals(options ...ccxt.FetchWithdrawalsOptions) ([]ccxt.Transaction, error) {return this.exchangeTyped.FetchWithdrawals(options...)}
 func (this *Bingx) SetMargin(symbol string, amount float64, options ...ccxt.SetMarginOptions) (ccxt.MarginModification, error) {return this.exchangeTyped.SetMargin(symbol, amount, options...)}
-func (this *Bingx) SetMarginMode(marginMode string, options ...ccxt.SetMarginModeOptions) (map[string]interface{}, error) {return this.exchangeTyped.SetMarginMode(marginMode, options...)}
-func (this *Bingx) SetPositionMode(hedged bool, options ...ccxt.SetPositionModeOptions) (map[string]interface{}, error) {return this.exchangeTyped.SetPositionMode(hedged, options...)}
+func (this *Bingx) SetMarginMode(marginMode string, options ...ccxt.SetMarginModeOptions) (map[string]any, error) {return this.exchangeTyped.SetMarginMode(marginMode, options...)}
+func (this *Bingx) SetPositionMode(hedged bool, options ...ccxt.SetPositionModeOptions) (map[string]any, error) {return this.exchangeTyped.SetPositionMode(hedged, options...)}
 func (this *Bingx) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...ccxt.TransferOptions) (ccxt.TransferEntry, error) {return this.exchangeTyped.Transfer(code, amount, fromAccount, toAccount, options...)}
 func (this *Bingx) Withdraw(code string, amount float64, address string, options ...ccxt.WithdrawOptions) (ccxt.Transaction, error) {return this.exchangeTyped.Withdraw(code, amount, address, options...)}
 func (this *Bingx) CancelAllOrdersWs(options ...ccxt.CancelAllOrdersWsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelAllOrdersWs(options...)}
@@ -607,9 +607,9 @@ func (this *Bingx) CreateTrailingAmountOrderWs(symbol string, typeVar string, si
 func (this *Bingx) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...ccxt.CreateTrailingPercentOrderWsOptions) (ccxt.Order, error) {return this.exchangeTyped.CreateTrailingPercentOrderWs(symbol, typeVar, side, amount, options...)}
 func (this *Bingx) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...ccxt.CreateTriggerOrderWsOptions) (ccxt.Order, error) {return this.exchangeTyped.CreateTriggerOrderWs(symbol, typeVar, side, amount, options...)}
 func (this *Bingx) EditOrderWs(id string, symbol string, typeVar string, side string, options ...ccxt.EditOrderWsOptions) (ccxt.Order, error) {return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)}
-func (this *Bingx) FetchBalanceWs(params ...interface{}) (ccxt.Balances, error) {return this.exchangeTyped.FetchBalanceWs(params...)}
+func (this *Bingx) FetchBalanceWs(params ...any) (ccxt.Balances, error) {return this.exchangeTyped.FetchBalanceWs(params...)}
 func (this *Bingx) FetchClosedOrdersWs(options ...ccxt.FetchClosedOrdersWsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.FetchClosedOrdersWs(options...)}
-func (this *Bingx) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchDepositsWs(options...)}
+func (this *Bingx) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) (map[string]any, error) {return this.exchangeTyped.FetchDepositsWs(options...)}
 func (this *Bingx) FetchMyTradesWs(options ...ccxt.FetchMyTradesWsOptions) ([]ccxt.Trade, error) {return this.exchangeTyped.FetchMyTradesWs(options...)}
 func (this *Bingx) FetchOHLCVWs(symbol string, options ...ccxt.FetchOHLCVWsOptions) ([]ccxt.OHLCV, error) {return this.exchangeTyped.FetchOHLCVWs(symbol, options...)}
 func (this *Bingx) FetchOpenOrdersWs(options ...ccxt.FetchOpenOrdersWsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.FetchOpenOrdersWs(options...)}
@@ -623,15 +623,15 @@ func (this *Bingx) FetchPositionWs(symbol string, options ...ccxt.FetchPositionW
 func (this *Bingx) FetchTickersWs(options ...ccxt.FetchTickersWsOptions) (ccxt.Tickers, error) {return this.exchangeTyped.FetchTickersWs(options...)}
 func (this *Bingx) FetchTickerWs(symbol string, options ...ccxt.FetchTickerWsOptions) (ccxt.Ticker, error) {return this.exchangeTyped.FetchTickerWs(symbol, options...)}
 func (this *Bingx) FetchTradesWs(symbol string, options ...ccxt.FetchTradesWsOptions) ([]ccxt.Trade, error) {return this.exchangeTyped.FetchTradesWs(symbol, options...)}
-func (this *Bingx) FetchTradingFeesWs(params ...interface{}) (ccxt.TradingFees, error) {return this.exchangeTyped.FetchTradingFeesWs(params...)}
-func (this *Bingx) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchWithdrawalsWs(options...)}
-func (this *Bingx) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (interface{}, error) {return this.exchangeTyped.UnWatchBidsAsks(options...)}
-func (this *Bingx) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (interface{}, error) {return this.exchangeTyped.UnWatchMyTrades(options...)}
-func (this *Bingx) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...ccxt.UnWatchOHLCVForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)}
-func (this *Bingx) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.UnWatchOrderBookForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)}
-func (this *Bingx) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrders(options...)}
-func (this *Bingx) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTickers(options...)}
-func (this *Bingx) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWatchTradesForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)}
+func (this *Bingx) FetchTradingFeesWs(params ...any) (ccxt.TradingFees, error) {return this.exchangeTyped.FetchTradingFeesWs(params...)}
+func (this *Bingx) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) (map[string]any, error) {return this.exchangeTyped.FetchWithdrawalsWs(options...)}
+func (this *Bingx) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, error) {return this.exchangeTyped.UnWatchBidsAsks(options...)}
+func (this *Bingx) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (any, error) {return this.exchangeTyped.UnWatchMyTrades(options...)}
+func (this *Bingx) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...ccxt.UnWatchOHLCVForSymbolsOptions) (any, error) {return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)}
+func (this *Bingx) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.UnWatchOrderBookForSymbolsOptions) (any, error) {return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)}
+func (this *Bingx) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (any, error) {return this.exchangeTyped.UnWatchOrders(options...)}
+func (this *Bingx) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any, error) {return this.exchangeTyped.UnWatchTickers(options...)}
+func (this *Bingx) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWatchTradesForSymbolsOptions) (any, error) {return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)}
 func (this *Bingx) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.Tickers, error) {return this.exchangeTyped.WatchBidsAsks(options...)}
 func (this *Bingx) WatchLiquidations(symbol string, options ...ccxt.WatchLiquidationsOptions) ([]ccxt.Liquidation, error) {return this.exchangeTyped.WatchLiquidations(symbol, options...)}
 func (this *Bingx) WatchMarkPrice(symbol string, options ...ccxt.WatchMarkPriceOptions) (ccxt.Ticker, error) {return this.exchangeTyped.WatchMarkPrice(symbol, options...)}

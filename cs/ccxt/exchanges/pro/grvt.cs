@@ -342,7 +342,7 @@ public partial class grvt : ccxt.grvt
             object market = this.market(symbol);
             object marketId = getValue(market, "id");
             object limitRaw = this.safeInteger(parameters, "limit", 50); // 50, 200, 500, 1000
-            ((IList<object>)rawHashes).Add(add(add(marketId, "@"), limitRaw));
+            ((IList<object>)rawHashes).Add(add(add(marketId, "@"), ((object)limitRaw).ToString()));
             ((IList<object>)messageHashes).Add(add("trade::", getValue(market, "symbol")));
         }
         object request = new Dictionary<string, object>() {
@@ -579,7 +579,7 @@ public partial class grvt : ccxt.grvt
         interval = ((IList<object>)intervalparametersVariable)[0];
         parameters = ((IList<object>)intervalparametersVariable)[1];
         symbols = this.marketSymbols(symbols);
-        object extraPart = ((bool) isTrue(isSnapshot)) ? (add(add(interval, "-"), limit)) : interval;
+        object extraPart = ((bool) isTrue(isSnapshot)) ? (add(add(((object)interval).ToString(), "-"), ((object)limit).ToString())) : ((object)interval).ToString();
         object rawHashes = new List<object>() {};
         object messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
@@ -587,7 +587,7 @@ public partial class grvt : ccxt.grvt
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
             object marketId = getValue(market, "id");
-            ((IList<object>)rawHashes).Add(add(add(marketId, "@"), ((object)extraPart).ToString()));
+            ((IList<object>)rawHashes).Add(add(add(marketId, "@"), extraPart));
             ((IList<object>)messageHashes).Add(add("orderbook::", getValue(market, "symbol")));
         }
         object request = new Dictionary<string, object>() {

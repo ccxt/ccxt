@@ -6,7 +6,7 @@ type Myokx struct {
    exchangeTyped *ccxt.Okx
 }
 
-func NewMyokx(userConfig map[string]interface{}) *Myokx {
+func NewMyokx(userConfig map[string]any) *Myokx {
    p := NewMyokxCore()
    p.Init(userConfig)
    return &Myokx{
@@ -24,11 +24,11 @@ func NewMyokx(userConfig map[string]interface{}) *Myokx {
 
 // missing typed methods from base
 //nolint
-func (this *Myokx) LoadMarkets(params ...interface{}) (map[string]ccxt.MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }
+func (this *Myokx) LoadMarkets(params ...any) (map[string]ccxt.MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }
 func (this *Myokx) CancelOrders(ids []string, options ...ccxt.CancelOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelOrders(ids, options...)}
 func (this *Myokx) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...ccxt.CancelOrdersWithClientOrderIdsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)}
 func (this *Myokx) CancelAllOrders(options ...ccxt.CancelAllOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelAllOrders(options...)}
-func (this *Myokx) CancelAllOrdersAfter(timeout int64, options ...ccxt.CancelAllOrdersAfterOptions) (map[string]interface{}, error) {return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)}
+func (this *Myokx) CancelAllOrdersAfter(timeout int64, options ...ccxt.CancelAllOrdersAfterOptions) (map[string]any, error) {return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)}
 func (this *Myokx) CancelOrder(id string, options ...ccxt.CancelOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.CancelOrder(id, options...)}
 func (this *Myokx) CancelOrderWithClientOrderId(clientOrderId string, options ...ccxt.CancelOrderWithClientOrderIdOptions) (ccxt.Order, error) {return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)}
 func (this *Myokx) CancelOrdersForSymbols(orders []ccxt.CancellationRequest, options ...ccxt.CancelOrdersForSymbolsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)}
@@ -62,29 +62,29 @@ func (this *Myokx) EditLimitSellOrder(id string, symbol string, amount float64, 
 func (this *Myokx) EditOrder(id string, symbol string, typeVar string, side string, options ...ccxt.EditOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.EditOrder(id, symbol, typeVar, side, options...)}
 func (this *Myokx) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...ccxt.EditOrderWithClientOrderIdOptions) (ccxt.Order, error) {return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)}
 func (this *Myokx) EditOrders(orders []ccxt.OrderRequest, options ...ccxt.EditOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.EditOrders(orders, options...)}
-func (this *Myokx) FetchAccounts(params ...interface{}) ([]ccxt.Account, error) {return this.exchangeTyped.FetchAccounts(params...)}
+func (this *Myokx) FetchAccounts(params ...any) ([]ccxt.Account, error) {return this.exchangeTyped.FetchAccounts(params...)}
 func (this *Myokx) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) ([]ccxt.Greeks, error) {return this.exchangeTyped.FetchAllGreeks(options...)}
-func (this *Myokx) FetchBalance(params ...interface{}) (ccxt.Balances, error) {return this.exchangeTyped.FetchBalance(params...)}
+func (this *Myokx) FetchBalance(params ...any) (ccxt.Balances, error) {return this.exchangeTyped.FetchBalance(params...)}
 func (this *Myokx) FetchBidsAsks(options ...ccxt.FetchBidsAsksOptions) (ccxt.Tickers, error) {return this.exchangeTyped.FetchBidsAsks(options...)}
 func (this *Myokx) FetchBorrowInterest(options ...ccxt.FetchBorrowInterestOptions) ([]ccxt.BorrowInterest, error) {return this.exchangeTyped.FetchBorrowInterest(options...)}
-func (this *Myokx) FetchBorrowRate(code string, amount float64, options ...ccxt.FetchBorrowRateOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchBorrowRate(code, amount, options...)}
+func (this *Myokx) FetchBorrowRate(code string, amount float64, options ...ccxt.FetchBorrowRateOptions) (map[string]any, error) {return this.exchangeTyped.FetchBorrowRate(code, amount, options...)}
 func (this *Myokx) FetchCanceledAndClosedOrders(options ...ccxt.FetchCanceledAndClosedOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)}
 func (this *Myokx) FetchClosedOrders(options ...ccxt.FetchClosedOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.FetchClosedOrders(options...)}
-func (this *Myokx) FetchConvertCurrencies(params ...interface{}) (ccxt.Currencies, error) {return this.exchangeTyped.FetchConvertCurrencies(params...)}
+func (this *Myokx) FetchConvertCurrencies(params ...any) (ccxt.Currencies, error) {return this.exchangeTyped.FetchConvertCurrencies(params...)}
 func (this *Myokx) FetchConvertQuote(fromCode string, toCode string, options ...ccxt.FetchConvertQuoteOptions) (ccxt.Conversion, error) {return this.exchangeTyped.FetchConvertQuote(fromCode, toCode, options...)}
 func (this *Myokx) FetchConvertTrade(id string, options ...ccxt.FetchConvertTradeOptions) (ccxt.Conversion, error) {return this.exchangeTyped.FetchConvertTrade(id, options...)}
 func (this *Myokx) FetchConvertTradeHistory(options ...ccxt.FetchConvertTradeHistoryOptions) ([]ccxt.Conversion, error) {return this.exchangeTyped.FetchConvertTradeHistory(options...)}
 func (this *Myokx) FetchCrossBorrowRate(code string, options ...ccxt.FetchCrossBorrowRateOptions) (ccxt.CrossBorrowRate, error) {return this.exchangeTyped.FetchCrossBorrowRate(code, options...)}
-func (this *Myokx) FetchCrossBorrowRates(params ...interface{}) (ccxt.CrossBorrowRates, error) {return this.exchangeTyped.FetchCrossBorrowRates(params...)}
-func (this *Myokx) FetchCurrencies(params ...interface{}) (ccxt.Currencies, error) {return this.exchangeTyped.FetchCurrencies(params...)}
+func (this *Myokx) FetchCrossBorrowRates(params ...any) (ccxt.CrossBorrowRates, error) {return this.exchangeTyped.FetchCrossBorrowRates(params...)}
+func (this *Myokx) FetchCurrencies(params ...any) (ccxt.Currencies, error) {return this.exchangeTyped.FetchCurrencies(params...)}
 func (this *Myokx) FetchDepositAddress(code string, options ...ccxt.FetchDepositAddressOptions) (ccxt.DepositAddress, error) {return this.exchangeTyped.FetchDepositAddress(code, options...)}
 func (this *Myokx) FetchDepositAddresses(options ...ccxt.FetchDepositAddressesOptions) ([]ccxt.DepositAddress, error) {return this.exchangeTyped.FetchDepositAddresses(options...)}
 func (this *Myokx) FetchDepositAddressesByNetwork(code string, options ...ccxt.FetchDepositAddressesByNetworkOptions) ([]ccxt.DepositAddress, error) {return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)}
 func (this *Myokx) FetchDeposits(options ...ccxt.FetchDepositsOptions) ([]ccxt.Transaction, error) {return this.exchangeTyped.FetchDeposits(options...)}
 func (this *Myokx) FetchDepositsWithdrawals(options ...ccxt.FetchDepositsWithdrawalsOptions) ([]ccxt.Transaction, error) {return this.exchangeTyped.FetchDepositsWithdrawals(options...)}
-func (this *Myokx) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)}
-func (this *Myokx) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchDepositWithdrawFees(options...)}
-func (this *Myokx) FetchFreeBalance(params ...interface{}) (ccxt.Balance, error) {return this.exchangeTyped.FetchFreeBalance(params...)}
+func (this *Myokx) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (map[string]any, error) {return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)}
+func (this *Myokx) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (map[string]any, error) {return this.exchangeTyped.FetchDepositWithdrawFees(options...)}
+func (this *Myokx) FetchFreeBalance(params ...any) (ccxt.Balance, error) {return this.exchangeTyped.FetchFreeBalance(params...)}
 func (this *Myokx) FetchFundingHistory(options ...ccxt.FetchFundingHistoryOptions) ([]ccxt.FundingHistory, error) {return this.exchangeTyped.FetchFundingHistory(options...)}
 func (this *Myokx) FetchFundingInterval(symbol string, options ...ccxt.FetchFundingIntervalOptions) (ccxt.FundingRate, error) {return this.exchangeTyped.FetchFundingInterval(symbol, options...)}
 func (this *Myokx) FetchFundingIntervals(options ...ccxt.FetchFundingIntervalsOptions) (ccxt.FundingRates, error) {return this.exchangeTyped.FetchFundingIntervals(options...)}
@@ -94,7 +94,7 @@ func (this *Myokx) FetchFundingRates(options ...ccxt.FetchFundingRatesOptions) (
 func (this *Myokx) FetchGreeks(symbol string, options ...ccxt.FetchGreeksOptions) (ccxt.Greeks, error) {return this.exchangeTyped.FetchGreeks(symbol, options...)}
 func (this *Myokx) FetchIndexOHLCV(symbol string, options ...ccxt.FetchIndexOHLCVOptions) ([]ccxt.OHLCV, error) {return this.exchangeTyped.FetchIndexOHLCV(symbol, options...)}
 func (this *Myokx) FetchIsolatedBorrowRate(symbol string, options ...ccxt.FetchIsolatedBorrowRateOptions) (ccxt.IsolatedBorrowRate, error) {return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)}
-func (this *Myokx) FetchIsolatedBorrowRates(params ...interface{}) (ccxt.IsolatedBorrowRates, error) {return this.exchangeTyped.FetchIsolatedBorrowRates(params...)}
+func (this *Myokx) FetchIsolatedBorrowRates(params ...any) (ccxt.IsolatedBorrowRates, error) {return this.exchangeTyped.FetchIsolatedBorrowRates(params...)}
 func (this *Myokx) FetchLastPrices(options ...ccxt.FetchLastPricesOptions) (ccxt.LastPrices, error) {return this.exchangeTyped.FetchLastPrices(options...)}
 func (this *Myokx) FetchLedger(options ...ccxt.FetchLedgerOptions) ([]ccxt.LedgerEntry, error) {return this.exchangeTyped.FetchLedger(options...)}
 func (this *Myokx) FetchLedgerEntry(id string, options ...ccxt.FetchLedgerEntryOptions) (ccxt.LedgerEntry, error) {return this.exchangeTyped.FetchLedgerEntry(id, options...)}
@@ -108,7 +108,7 @@ func (this *Myokx) FetchMarginAdjustmentHistory(options ...ccxt.FetchMarginAdjus
 func (this *Myokx) FetchMarginMode(symbol string, options ...ccxt.FetchMarginModeOptions) (ccxt.MarginMode, error) {return this.exchangeTyped.FetchMarginMode(symbol, options...)}
 func (this *Myokx) FetchMarginModes(options ...ccxt.FetchMarginModesOptions) (ccxt.MarginModes, error) {return this.exchangeTyped.FetchMarginModes(options...)}
 func (this *Myokx) FetchMarketLeverageTiers(symbol string, options ...ccxt.FetchMarketLeverageTiersOptions) ([]ccxt.LeverageTier, error) {return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)}
-func (this *Myokx) FetchMarkets(params ...interface{}) ([]ccxt.MarketInterface, error) {return this.exchangeTyped.FetchMarkets(params...)}
+func (this *Myokx) FetchMarkets(params ...any) ([]ccxt.MarketInterface, error) {return this.exchangeTyped.FetchMarkets(params...)}
 func (this *Myokx) FetchMarkOHLCV(symbol string, options ...ccxt.FetchMarkOHLCVOptions) ([]ccxt.OHLCV, error) {return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)}
 func (this *Myokx) FetchMarkPrice(symbol string, options ...ccxt.FetchMarkPriceOptions) (ccxt.Ticker, error) {return this.exchangeTyped.FetchMarkPrice(symbol, options...)}
 func (this *Myokx) FetchMarkPrices(options ...ccxt.FetchMarkPricesOptions) (ccxt.Tickers, error) {return this.exchangeTyped.FetchMarkPrices(options...)}
@@ -128,32 +128,32 @@ func (this *Myokx) FetchOrderBooks(options ...ccxt.FetchOrderBooksOptions) (ccxt
 func (this *Myokx) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.FetchOrders(options...)}
 func (this *Myokx) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (string, error) {return this.exchangeTyped.FetchOrderStatus(id, options...)}
 func (this *Myokx) FetchOrderTrades(id string, options ...ccxt.FetchOrderTradesOptions) ([]ccxt.Trade, error) {return this.exchangeTyped.FetchOrderTrades(id, options...)}
-func (this *Myokx) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {return this.exchangeTyped.FetchPaymentMethods(params...)}
+func (this *Myokx) FetchPaymentMethods(params ...any) (map[string]any, error) {return this.exchangeTyped.FetchPaymentMethods(params...)}
 func (this *Myokx) FetchPosition(symbol string, options ...ccxt.FetchPositionOptions) (ccxt.Position, error) {return this.exchangeTyped.FetchPosition(symbol, options...)}
 func (this *Myokx) FetchPositionHistory(symbol string, options ...ccxt.FetchPositionHistoryOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositionHistory(symbol, options...)}
-func (this *Myokx) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchPositionMode(options...)}
+func (this *Myokx) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (map[string]any, error) {return this.exchangeTyped.FetchPositionMode(options...)}
 func (this *Myokx) FetchPositions(options ...ccxt.FetchPositionsOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositions(options...)}
 func (this *Myokx) FetchPositionsForSymbol(symbol string, options ...ccxt.FetchPositionsForSymbolOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositionsForSymbol(symbol, options...)}
 func (this *Myokx) FetchPositionsHistory(options ...ccxt.FetchPositionsHistoryOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositionsHistory(options...)}
 func (this *Myokx) FetchPositionsRisk(options ...ccxt.FetchPositionsRiskOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositionsRisk(options...)}
 func (this *Myokx) FetchPremiumIndexOHLCV(symbol string, options ...ccxt.FetchPremiumIndexOHLCVOptions) ([]ccxt.OHLCV, error) {return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)}
-func (this *Myokx) FetchStatus(params ...interface{}) (map[string]interface{}, error) {return this.exchangeTyped.FetchStatus(params...)}
+func (this *Myokx) FetchStatus(params ...any) (map[string]any, error) {return this.exchangeTyped.FetchStatus(params...)}
 func (this *Myokx) FetchTicker(symbol string, options ...ccxt.FetchTickerOptions) (ccxt.Ticker, error) {return this.exchangeTyped.FetchTicker(symbol, options...)}
 func (this *Myokx) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.Tickers, error) {return this.exchangeTyped.FetchTickers(options...)}
-func (this *Myokx) FetchTime(params ...interface{}) ( int64, error) {return this.exchangeTyped.FetchTime(params...)}
+func (this *Myokx) FetchTime(params ...any) ( int64, error) {return this.exchangeTyped.FetchTime(params...)}
 func (this *Myokx) FetchTrades(symbol string, options ...ccxt.FetchTradesOptions) ([]ccxt.Trade, error) {return this.exchangeTyped.FetchTrades(symbol, options...)}
 func (this *Myokx) FetchTradingFee(symbol string, options ...ccxt.FetchTradingFeeOptions) (ccxt.TradingFeeInterface, error) {return this.exchangeTyped.FetchTradingFee(symbol, options...)}
-func (this *Myokx) FetchTradingFees(params ...interface{}) (ccxt.TradingFees, error) {return this.exchangeTyped.FetchTradingFees(params...)}
-func (this *Myokx) FetchTradingLimits(options ...ccxt.FetchTradingLimitsOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchTradingLimits(options...)}
-func (this *Myokx) FetchTransactionFee(code string, options ...ccxt.FetchTransactionFeeOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchTransactionFee(code, options...)}
-func (this *Myokx) FetchTransactionFees(options ...ccxt.FetchTransactionFeesOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchTransactionFees(options...)}
+func (this *Myokx) FetchTradingFees(params ...any) (ccxt.TradingFees, error) {return this.exchangeTyped.FetchTradingFees(params...)}
+func (this *Myokx) FetchTradingLimits(options ...ccxt.FetchTradingLimitsOptions) (map[string]any, error) {return this.exchangeTyped.FetchTradingLimits(options...)}
+func (this *Myokx) FetchTransactionFee(code string, options ...ccxt.FetchTransactionFeeOptions) (map[string]any, error) {return this.exchangeTyped.FetchTransactionFee(code, options...)}
+func (this *Myokx) FetchTransactionFees(options ...ccxt.FetchTransactionFeesOptions) (map[string]any, error) {return this.exchangeTyped.FetchTransactionFees(options...)}
 func (this *Myokx) FetchTransactions(options ...ccxt.FetchTransactionsOptions) ([]ccxt.Transaction, error) {return this.exchangeTyped.FetchTransactions(options...)}
 func (this *Myokx) FetchTransfer(id string, options ...ccxt.FetchTransferOptions) (ccxt.TransferEntry, error) {return this.exchangeTyped.FetchTransfer(id, options...)}
 func (this *Myokx) FetchTransfers(options ...ccxt.FetchTransfersOptions) ([]ccxt.TransferEntry, error) {return this.exchangeTyped.FetchTransfers(options...)}
 func (this *Myokx) FetchWithdrawals(options ...ccxt.FetchWithdrawalsOptions) ([]ccxt.Transaction, error) {return this.exchangeTyped.FetchWithdrawals(options...)}
 func (this *Myokx) SetMargin(symbol string, amount float64, options ...ccxt.SetMarginOptions) (ccxt.MarginModification, error) {return this.exchangeTyped.SetMargin(symbol, amount, options...)}
-func (this *Myokx) SetMarginMode(marginMode string, options ...ccxt.SetMarginModeOptions) (map[string]interface{}, error) {return this.exchangeTyped.SetMarginMode(marginMode, options...)}
-func (this *Myokx) SetPositionMode(hedged bool, options ...ccxt.SetPositionModeOptions) (map[string]interface{}, error) {return this.exchangeTyped.SetPositionMode(hedged, options...)}
+func (this *Myokx) SetMarginMode(marginMode string, options ...ccxt.SetMarginModeOptions) (map[string]any, error) {return this.exchangeTyped.SetMarginMode(marginMode, options...)}
+func (this *Myokx) SetPositionMode(hedged bool, options ...ccxt.SetPositionModeOptions) (map[string]any, error) {return this.exchangeTyped.SetPositionMode(hedged, options...)}
 func (this *Myokx) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...ccxt.TransferOptions) (ccxt.TransferEntry, error) {return this.exchangeTyped.Transfer(code, amount, fromAccount, toAccount, options...)}
 func (this *Myokx) Withdraw(code string, amount float64, address string, options ...ccxt.WithdrawOptions) (ccxt.Transaction, error) {return this.exchangeTyped.Withdraw(code, amount, address, options...)}
 func (this *Myokx) CancelAllOrdersWs(options ...ccxt.CancelAllOrdersWsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelAllOrdersWs(options...)}
@@ -180,9 +180,9 @@ func (this *Myokx) CreateTrailingAmountOrderWs(symbol string, typeVar string, si
 func (this *Myokx) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...ccxt.CreateTrailingPercentOrderWsOptions) (ccxt.Order, error) {return this.exchangeTyped.CreateTrailingPercentOrderWs(symbol, typeVar, side, amount, options...)}
 func (this *Myokx) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...ccxt.CreateTriggerOrderWsOptions) (ccxt.Order, error) {return this.exchangeTyped.CreateTriggerOrderWs(symbol, typeVar, side, amount, options...)}
 func (this *Myokx) EditOrderWs(id string, symbol string, typeVar string, side string, options ...ccxt.EditOrderWsOptions) (ccxt.Order, error) {return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)}
-func (this *Myokx) FetchBalanceWs(params ...interface{}) (ccxt.Balances, error) {return this.exchangeTyped.FetchBalanceWs(params...)}
+func (this *Myokx) FetchBalanceWs(params ...any) (ccxt.Balances, error) {return this.exchangeTyped.FetchBalanceWs(params...)}
 func (this *Myokx) FetchClosedOrdersWs(options ...ccxt.FetchClosedOrdersWsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.FetchClosedOrdersWs(options...)}
-func (this *Myokx) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchDepositsWs(options...)}
+func (this *Myokx) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) (map[string]any, error) {return this.exchangeTyped.FetchDepositsWs(options...)}
 func (this *Myokx) FetchMyTradesWs(options ...ccxt.FetchMyTradesWsOptions) ([]ccxt.Trade, error) {return this.exchangeTyped.FetchMyTradesWs(options...)}
 func (this *Myokx) FetchOHLCVWs(symbol string, options ...ccxt.FetchOHLCVWsOptions) ([]ccxt.OHLCV, error) {return this.exchangeTyped.FetchOHLCVWs(symbol, options...)}
 func (this *Myokx) FetchOpenOrdersWs(options ...ccxt.FetchOpenOrdersWsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.FetchOpenOrdersWs(options...)}
@@ -196,20 +196,20 @@ func (this *Myokx) FetchPositionWs(symbol string, options ...ccxt.FetchPositionW
 func (this *Myokx) FetchTickersWs(options ...ccxt.FetchTickersWsOptions) (ccxt.Tickers, error) {return this.exchangeTyped.FetchTickersWs(options...)}
 func (this *Myokx) FetchTickerWs(symbol string, options ...ccxt.FetchTickerWsOptions) (ccxt.Ticker, error) {return this.exchangeTyped.FetchTickerWs(symbol, options...)}
 func (this *Myokx) FetchTradesWs(symbol string, options ...ccxt.FetchTradesWsOptions) ([]ccxt.Trade, error) {return this.exchangeTyped.FetchTradesWs(symbol, options...)}
-func (this *Myokx) FetchTradingFeesWs(params ...interface{}) (ccxt.TradingFees, error) {return this.exchangeTyped.FetchTradingFeesWs(params...)}
-func (this *Myokx) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchWithdrawalsWs(options...)}
-func (this *Myokx) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (interface{}, error) {return this.exchangeTyped.UnWatchBidsAsks(options...)}
-func (this *Myokx) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (interface{}, error) {return this.exchangeTyped.UnWatchMyTrades(options...)}
-func (this *Myokx) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOHLCV(symbol, options...)}
-func (this *Myokx) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...ccxt.UnWatchOHLCVForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)}
-func (this *Myokx) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBookOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrderBook(symbol, options...)}
-func (this *Myokx) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.UnWatchOrderBookForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)}
-func (this *Myokx) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrders(options...)}
-func (this *Myokx) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTicker(symbol, options...)}
-func (this *Myokx) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTickers(options...)}
-func (this *Myokx) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTrades(symbol, options...)}
-func (this *Myokx) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWatchTradesForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)}
-func (this *Myokx) WatchBalance(params ...interface{}) (ccxt.Balances, error) {return this.exchangeTyped.WatchBalance(params...)}
+func (this *Myokx) FetchTradingFeesWs(params ...any) (ccxt.TradingFees, error) {return this.exchangeTyped.FetchTradingFeesWs(params...)}
+func (this *Myokx) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) (map[string]any, error) {return this.exchangeTyped.FetchWithdrawalsWs(options...)}
+func (this *Myokx) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, error) {return this.exchangeTyped.UnWatchBidsAsks(options...)}
+func (this *Myokx) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (any, error) {return this.exchangeTyped.UnWatchMyTrades(options...)}
+func (this *Myokx) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions) (any, error) {return this.exchangeTyped.UnWatchOHLCV(symbol, options...)}
+func (this *Myokx) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...ccxt.UnWatchOHLCVForSymbolsOptions) (any, error) {return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)}
+func (this *Myokx) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBookOptions) (any, error) {return this.exchangeTyped.UnWatchOrderBook(symbol, options...)}
+func (this *Myokx) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.UnWatchOrderBookForSymbolsOptions) (any, error) {return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)}
+func (this *Myokx) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (any, error) {return this.exchangeTyped.UnWatchOrders(options...)}
+func (this *Myokx) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOptions) (any, error) {return this.exchangeTyped.UnWatchTicker(symbol, options...)}
+func (this *Myokx) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any, error) {return this.exchangeTyped.UnWatchTickers(options...)}
+func (this *Myokx) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (any, error) {return this.exchangeTyped.UnWatchTrades(symbol, options...)}
+func (this *Myokx) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWatchTradesForSymbolsOptions) (any, error) {return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)}
+func (this *Myokx) WatchBalance(params ...any) (ccxt.Balances, error) {return this.exchangeTyped.WatchBalance(params...)}
 func (this *Myokx) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.Tickers, error) {return this.exchangeTyped.WatchBidsAsks(options...)}
 func (this *Myokx) WatchLiquidations(symbol string, options ...ccxt.WatchLiquidationsOptions) ([]ccxt.Liquidation, error) {return this.exchangeTyped.WatchLiquidations(symbol, options...)}
 func (this *Myokx) WatchMarkPrice(symbol string, options ...ccxt.WatchMarkPriceOptions) (ccxt.Ticker, error) {return this.exchangeTyped.WatchMarkPrice(symbol, options...)}
