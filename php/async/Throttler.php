@@ -114,4 +114,13 @@ class Throttler {
         }
         return $future->promise();
     }
+
+    public function set_rate_limit(float $rateLimit) {
+        $this->config['rateLimit'] = $rateLimit;
+        $this->config['refillRate'] = 1 / $rateLimit;
+        if ($this->config['algorithm'] !== 'leakyBucket') {
+            $this->config['maxWeight'] = $this->config['windowSize'] / $rateLimit;
+        }
+    }
+
 }
