@@ -3553,12 +3553,11 @@ export default class Exchange {
     }
 
     setRateLimit (rateLimit: number) {
-        const oldThrottler = this.throttler;
         this.rateLimit = rateLimit;
-        this.tokenBucket = undefined;
-        this.initRestRateLimiter ();
-        if (oldThrottler !== undefined && oldThrottler !== this.throttler) {
-            oldThrottler.drain (this.throttler);
+        this.throttler.config['rateLimit'] = rateLimit;
+        this.throttler.config['refillRate'] = 1 / rateLimit;
+        if (this.throttler.config['algorithm'] !== 'leakyBucket') {
+            this.throttler.config['maxWeight'] = this.throttler.config['windowSize'] / rateLimit;
         }
     }
 
