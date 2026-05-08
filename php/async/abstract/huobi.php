@@ -580,6 +580,9 @@ abstract class huobi extends \ccxt\async\htx {
     public function spot_private_post_v1_subuser_transfer($params = array()) {
         return $this->request('v1/subuser/transfer', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 10));
     }
+    public function spot_private_post_v1_trust_user_active_credit($params = array()) {
+        return $this->request('v1/trust/user/active/credit', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 10));
+    }
     public function spot_private_post_v1_order_orders_place($params = array()) {
         return $this->request('v1/order/orders/place', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 0.2));
     }
@@ -949,11 +952,20 @@ abstract class huobi extends \ccxt\async\htx {
     public function contract_public_get_linear_swap_api_v1_swap_estimated_settlement_price($params = array()) {
         return $this->request('linear-swap-api/v1/swap_estimated_settlement_price', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function contract_private_get_api_v1_contract_sub_auth_list($params = array()) {
+        return $this->request('api/v1/contract_sub_auth_list', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function contract_private_get_api_v1_contract_api_trading_status($params = array()) {
         return $this->request('api/v1/contract_api_trading_status', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function contract_private_get_swap_api_v1_swap_sub_auth_list($params = array()) {
+        return $this->request('swap-api/v1/swap_sub_auth_list', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function contract_private_get_swap_api_v1_swap_api_trading_status($params = array()) {
         return $this->request('swap-api/v1/swap_api_trading_status', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contract_private_get_linear_swap_api_v1_swap_sub_auth_list($params = array()) {
+        return $this->request('linear-swap-api/v1/swap_sub_auth_list', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function contract_private_get_linear_swap_api_v1_swap_api_trading_status($params = array()) {
         return $this->request('linear-swap-api/v1/swap_api_trading_status', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
@@ -975,6 +987,48 @@ abstract class huobi extends \ccxt\async\htx {
     }
     public function contract_private_get_linear_swap_api_v3_linear_swap_overview_account_info($params = array()) {
         return $this->request('linear-swap-api/v3/linear_swap_overview_account_info', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contract_private_get_v5_account_balance($params = array()) {
+        return $this->request('v5/account/balance', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contract_private_get_v5_account_asset_mode($params = array()) {
+        return $this->request('v5/account/asset_mode', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contract_private_get_v5_trade_position_opens($params = array()) {
+        return $this->request('v5/trade/position/opens', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contract_private_get_v5_trade_order_opens($params = array()) {
+        return $this->request('v5/trade/order/opens', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contract_private_get_v5_trade_order_details($params = array()) {
+        return $this->request('v5/trade/order/details', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contract_private_get_v5_trade_order_history($params = array()) {
+        return $this->request('v5/trade/order/history', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contract_private_get_v5_trade_order($params = array()) {
+        return $this->request('v5/trade/order', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contract_private_get_v5_position_lever($params = array()) {
+        return $this->request('v5/position/lever', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contract_private_get_v5_position_mode($params = array()) {
+        return $this->request('v5/position/mode', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contract_private_get_v5_position_risk_limit($params = array()) {
+        return $this->request('v5/position/risk/limit', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contract_private_get_v5_position_risk_limit_tier($params = array()) {
+        return $this->request('v5/position/risk/limit_tier', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contract_private_get_v5_market_risk_limit($params = array()) {
+        return $this->request('v5/market/risk/limit', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contract_private_get_v5_market_assets_deduction_currency($params = array()) {
+        return $this->request('v5/market/assets_deduction_currency', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contract_private_get_v5_market_multi_assets_margin($params = array()) {
+        return $this->request('v5/market/multi_assets_margin', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function contract_private_post_api_v1_contract_balance_valuation($params = array()) {
         return $this->request('api/v1/contract_balance_valuation', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -1055,7 +1109,7 @@ abstract class huobi extends \ccxt\async\htx {
         return $this->request('api/v1/contract_cancelall', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function contract_private_post_api_v1_contract_switch_lever_rate($params = array()) {
-        return $this->request('api/v1/contract_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('api/v1/contract_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 30));
     }
     public function contract_private_post_api_v1_lightning_close_position($params = array()) {
         return $this->request('api/v1/lightning_close_position', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -1223,7 +1277,7 @@ abstract class huobi extends \ccxt\async\htx {
         return $this->request('swap-api/v1/swap_lightning_close_position', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function contract_private_post_swap_api_v1_swap_switch_lever_rate($params = array()) {
-        return $this->request('swap-api/v1/swap_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('swap-api/v1/swap_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 30));
     }
     public function contract_private_post_swap_api_v1_swap_order_info($params = array()) {
         return $this->request('swap-api/v1/swap_order_info', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -1436,10 +1490,10 @@ abstract class huobi extends \ccxt\async\htx {
         return $this->request('linear-swap-api/v1/swap_cross_cancelall', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function contract_private_post_linear_swap_api_v1_swap_switch_lever_rate($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('linear-swap-api/v1/swap_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 30));
     }
     public function contract_private_post_linear_swap_api_v1_swap_cross_switch_lever_rate($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('linear-swap-api/v1/swap_cross_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 30));
     }
     public function contract_private_post_linear_swap_api_v1_swap_lightning_close_position($params = array()) {
         return $this->request('linear-swap-api/v1/swap_lightning_close_position', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -1626,6 +1680,39 @@ abstract class huobi extends \ccxt\async\htx {
     }
     public function contract_private_post_linear_swap_api_v1_swap_cross_track_hisorders($params = array()) {
         return $this->request('linear-swap-api/v1/swap_cross_track_hisorders', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function contract_private_post_v5_account_asset_mode($params = array()) {
+        return $this->request('v5/account/asset_mode', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function contract_private_post_v5_trade_order($params = array()) {
+        return $this->request('v5/trade/order', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function contract_private_post_v5_trade_batch_orders($params = array()) {
+        return $this->request('v5/trade/batch_orders', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function contract_private_post_v5_trade_cancel_order($params = array()) {
+        return $this->request('v5/trade/cancel_order', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function contract_private_post_v5_trade_cancel_batch_orders($params = array()) {
+        return $this->request('v5/trade/cancel_batch_orders', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function contract_private_post_v5_trade_cancel_all_orders($params = array()) {
+        return $this->request('v5/trade/cancel_all_orders', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function contract_private_post_v5_trade_position($params = array()) {
+        return $this->request('v5/trade/position', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function contract_private_post_v5_trade_position_all($params = array()) {
+        return $this->request('v5/trade/position_all', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function contract_private_post_v5_position_lever($params = array()) {
+        return $this->request('v5/position/lever', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function contract_private_post_v5_position_mode($params = array()) {
+        return $this->request('v5/position/mode', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function contract_private_post_v5_account_fee_deduction_currency($params = array()) {
+        return $this->request('v5/account/fee_deduction_currency', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function v2PublicGetReferenceCurrencies($params = array()) {
         return $this->request('reference/currencies', 'v2Public', 'GET', $params, null, null, array("cost" => 1));
@@ -2200,6 +2287,9 @@ abstract class huobi extends \ccxt\async\htx {
     public function spotPrivatePostV1SubuserTransfer($params = array()) {
         return $this->request('v1/subuser/transfer', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 10));
     }
+    public function spotPrivatePostV1TrustUserActiveCredit($params = array()) {
+        return $this->request('v1/trust/user/active/credit', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 10));
+    }
     public function spotPrivatePostV1OrderOrdersPlace($params = array()) {
         return $this->request('v1/order/orders/place', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 0.2));
     }
@@ -2569,11 +2659,20 @@ abstract class huobi extends \ccxt\async\htx {
     public function contractPublicGetLinearSwapApiV1SwapEstimatedSettlementPrice($params = array()) {
         return $this->request('linear-swap-api/v1/swap_estimated_settlement_price', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function contractPrivateGetApiV1ContractSubAuthList($params = array()) {
+        return $this->request('api/v1/contract_sub_auth_list', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function contractPrivateGetApiV1ContractApiTradingStatus($params = array()) {
         return $this->request('api/v1/contract_api_trading_status', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function contractPrivateGetSwapApiV1SwapSubAuthList($params = array()) {
+        return $this->request('swap-api/v1/swap_sub_auth_list', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function contractPrivateGetSwapApiV1SwapApiTradingStatus($params = array()) {
         return $this->request('swap-api/v1/swap_api_trading_status', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contractPrivateGetLinearSwapApiV1SwapSubAuthList($params = array()) {
+        return $this->request('linear-swap-api/v1/swap_sub_auth_list', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function contractPrivateGetLinearSwapApiV1SwapApiTradingStatus($params = array()) {
         return $this->request('linear-swap-api/v1/swap_api_trading_status', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
@@ -2595,6 +2694,48 @@ abstract class huobi extends \ccxt\async\htx {
     }
     public function contractPrivateGetLinearSwapApiV3LinearSwapOverviewAccountInfo($params = array()) {
         return $this->request('linear-swap-api/v3/linear_swap_overview_account_info', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contractPrivateGetV5AccountBalance($params = array()) {
+        return $this->request('v5/account/balance', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contractPrivateGetV5AccountAssetMode($params = array()) {
+        return $this->request('v5/account/asset_mode', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contractPrivateGetV5TradePositionOpens($params = array()) {
+        return $this->request('v5/trade/position/opens', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contractPrivateGetV5TradeOrderOpens($params = array()) {
+        return $this->request('v5/trade/order/opens', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contractPrivateGetV5TradeOrderDetails($params = array()) {
+        return $this->request('v5/trade/order/details', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contractPrivateGetV5TradeOrderHistory($params = array()) {
+        return $this->request('v5/trade/order/history', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contractPrivateGetV5TradeOrder($params = array()) {
+        return $this->request('v5/trade/order', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contractPrivateGetV5PositionLever($params = array()) {
+        return $this->request('v5/position/lever', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contractPrivateGetV5PositionMode($params = array()) {
+        return $this->request('v5/position/mode', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contractPrivateGetV5PositionRiskLimit($params = array()) {
+        return $this->request('v5/position/risk/limit', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contractPrivateGetV5PositionRiskLimitTier($params = array()) {
+        return $this->request('v5/position/risk/limit_tier', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contractPrivateGetV5MarketRiskLimit($params = array()) {
+        return $this->request('v5/market/risk/limit', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contractPrivateGetV5MarketAssetsDeductionCurrency($params = array()) {
+        return $this->request('v5/market/assets_deduction_currency', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contractPrivateGetV5MarketMultiAssetsMargin($params = array()) {
+        return $this->request('v5/market/multi_assets_margin', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function contractPrivatePostApiV1ContractBalanceValuation($params = array()) {
         return $this->request('api/v1/contract_balance_valuation', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -2675,7 +2816,7 @@ abstract class huobi extends \ccxt\async\htx {
         return $this->request('api/v1/contract_cancelall', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function contractPrivatePostApiV1ContractSwitchLeverRate($params = array()) {
-        return $this->request('api/v1/contract_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('api/v1/contract_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 30));
     }
     public function contractPrivatePostApiV1LightningClosePosition($params = array()) {
         return $this->request('api/v1/lightning_close_position', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -2843,7 +2984,7 @@ abstract class huobi extends \ccxt\async\htx {
         return $this->request('swap-api/v1/swap_lightning_close_position', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function contractPrivatePostSwapApiV1SwapSwitchLeverRate($params = array()) {
-        return $this->request('swap-api/v1/swap_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('swap-api/v1/swap_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 30));
     }
     public function contractPrivatePostSwapApiV1SwapOrderInfo($params = array()) {
         return $this->request('swap-api/v1/swap_order_info', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -3056,10 +3197,10 @@ abstract class huobi extends \ccxt\async\htx {
         return $this->request('linear-swap-api/v1/swap_cross_cancelall', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function contractPrivatePostLinearSwapApiV1SwapSwitchLeverRate($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('linear-swap-api/v1/swap_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 30));
     }
     public function contractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('linear-swap-api/v1/swap_cross_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 30));
     }
     public function contractPrivatePostLinearSwapApiV1SwapLightningClosePosition($params = array()) {
         return $this->request('linear-swap-api/v1/swap_lightning_close_position', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -3246,5 +3387,38 @@ abstract class huobi extends \ccxt\async\htx {
     }
     public function contractPrivatePostLinearSwapApiV1SwapCrossTrackHisorders($params = array()) {
         return $this->request('linear-swap-api/v1/swap_cross_track_hisorders', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function contractPrivatePostV5AccountAssetMode($params = array()) {
+        return $this->request('v5/account/asset_mode', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function contractPrivatePostV5TradeOrder($params = array()) {
+        return $this->request('v5/trade/order', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function contractPrivatePostV5TradeBatchOrders($params = array()) {
+        return $this->request('v5/trade/batch_orders', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function contractPrivatePostV5TradeCancelOrder($params = array()) {
+        return $this->request('v5/trade/cancel_order', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function contractPrivatePostV5TradeCancelBatchOrders($params = array()) {
+        return $this->request('v5/trade/cancel_batch_orders', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function contractPrivatePostV5TradeCancelAllOrders($params = array()) {
+        return $this->request('v5/trade/cancel_all_orders', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function contractPrivatePostV5TradePosition($params = array()) {
+        return $this->request('v5/trade/position', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function contractPrivatePostV5TradePositionAll($params = array()) {
+        return $this->request('v5/trade/position_all', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function contractPrivatePostV5PositionLever($params = array()) {
+        return $this->request('v5/position/lever', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function contractPrivatePostV5PositionMode($params = array()) {
+        return $this->request('v5/position/mode', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function contractPrivatePostV5AccountFeeDeductionCurrency($params = array()) {
+        return $this->request('v5/account/fee_deduction_currency', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
 }

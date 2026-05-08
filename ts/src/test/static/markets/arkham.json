@@ -1,0 +1,332 @@
+{
+    "BTC/USDT": {
+        "id": "BTC_USDT",
+        "lowercaseId": null,
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": null,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": false,
+        "linear": false,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "price": 0.01,
+            "amount": 0.00001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.00001,
+                "max": 9000
+            },
+            "price": {
+                "min": 0.01,
+                "max": 1000000
+            },
+            "cost": {
+                "min": 5,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "symbol": "BTC_USDT",
+            "baseSymbol": "BTC",
+            "baseImageUrl": "https://static.arkhamintelligence.com/tokens/bitcoin.png",
+            "baseIsStablecoin": false,
+            "baseName": "Bitcoin",
+            "quoteSymbol": "USDT",
+            "quoteImageUrl": "https://static.arkhamintelligence.com/tokens/tether.png",
+            "quoteIsStablecoin": true,
+            "quoteName": "Tether",
+            "minTickPrice": "0.01",
+            "minLotSize": "0.00001",
+            "minSize": "0.00001",
+            "maxSize": "9000",
+            "minPrice": "0.01",
+            "maxPrice": "1000000",
+            "minNotional": "5",
+            "maxPriceScalarUp": "1.8",
+            "maxPriceScalarDown": "0.2",
+            "pairType": "spot",
+            "maxLeverage": "0",
+            "status": "listed"
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "SOL/USDT": {
+        "id": "SOL_USDT",
+        "lowercaseId": null,
+        "symbol": "SOL/USDT",
+        "base": "SOL",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "SOL",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": null,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": false,
+        "linear": false,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "price": 0.01,
+            "amount": 0.001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.001,
+                "max": 90000
+            },
+            "price": {
+                "min": 0.01,
+                "max": 10000
+            },
+            "cost": {
+                "min": 5,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "symbol": "SOL_USDT",
+            "baseSymbol": "SOL",
+            "baseImageUrl": "https://static.arkhamintelligence.com/tokens/solana.png",
+            "baseIsStablecoin": false,
+            "baseName": "Solana",
+            "quoteSymbol": "USDT",
+            "quoteImageUrl": "https://static.arkhamintelligence.com/tokens/tether.png",
+            "quoteIsStablecoin": true,
+            "quoteName": "Tether",
+            "minTickPrice": "0.01",
+            "minLotSize": "0.001",
+            "minSize": "0.001",
+            "maxSize": "90000",
+            "minPrice": "0.01",
+            "maxPrice": "10000",
+            "minNotional": "5",
+            "maxPriceScalarUp": "1.8",
+            "maxPriceScalarDown": "0.2",
+            "pairType": "spot",
+            "maxLeverage": "0",
+            "status": "listed"
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "BTC/USDT:USDT": {
+        "id": "BTC_USDT_PERP",
+        "lowercaseId": null,
+        "symbol": "BTC/USDT:USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "BTC.P",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": null,
+        "subType": "linear",
+        "taker": null,
+        "maker": null,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "price": 0.01,
+            "amount": 0.00001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.00001,
+                "max": 9000
+            },
+            "price": {
+                "min": 0.01,
+                "max": 1000000
+            },
+            "cost": {
+                "min": 5,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "symbol": "BTC_USDT_PERP",
+            "baseSymbol": "BTC.P",
+            "baseImageUrl": "https://static.arkhamintelligence.com/tokens/bitcoin.png",
+            "baseIsStablecoin": false,
+            "baseName": "Bitcoin Perpetual",
+            "quoteSymbol": "USDT",
+            "quoteImageUrl": "https://static.arkhamintelligence.com/tokens/tether.png",
+            "quoteIsStablecoin": true,
+            "quoteName": "Tether",
+            "minTickPrice": "0.01",
+            "minLotSize": "0.00001",
+            "minSize": "0.00001",
+            "maxSize": "9000",
+            "minPrice": "0.01",
+            "maxPrice": "1000000",
+            "minNotional": "5",
+            "maxPriceScalarUp": "1.5",
+            "maxPriceScalarDown": "0.5",
+            "pairType": "perpetual",
+            "marginSchedule": "C",
+            "maxLeverage": "25",
+            "status": "listed"
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "SOL/USDT:USDT": {
+        "id": "SOL_USDT_PERP",
+        "lowercaseId": null,
+        "symbol": "SOL/USDT:USDT",
+        "base": "SOL",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "SOL.P",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": null,
+        "subType": "linear",
+        "taker": null,
+        "maker": null,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "price": 0.01,
+            "amount": 0.001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.001,
+                "max": 90000
+            },
+            "price": {
+                "min": 0.01,
+                "max": 10000
+            },
+            "cost": {
+                "min": 5,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "symbol": "SOL_USDT_PERP",
+            "baseSymbol": "SOL.P",
+            "baseImageUrl": "https://static.arkhamintelligence.com/tokens/solana.png",
+            "baseIsStablecoin": false,
+            "baseName": "Solana Perpetual",
+            "quoteSymbol": "USDT",
+            "quoteImageUrl": "https://static.arkhamintelligence.com/tokens/tether.png",
+            "quoteIsStablecoin": true,
+            "quoteName": "Tether",
+            "minTickPrice": "0.01",
+            "minLotSize": "0.001",
+            "minSize": "0.001",
+            "maxSize": "90000",
+            "minPrice": "0.01",
+            "maxPrice": "10000",
+            "minNotional": "5",
+            "maxPriceScalarUp": "1.5",
+            "maxPriceScalarDown": "0.5",
+            "pairType": "perpetual",
+            "marginSchedule": "E",
+            "maxLeverage": "10",
+            "status": "listed"
+        },
+        "tierBased": null,
+        "percentage": null
+    }
+}

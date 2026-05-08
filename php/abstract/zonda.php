@@ -103,6 +103,18 @@ abstract class zonda extends \ccxt\Exchange {
     public function v1_01private_get_fiat_cantor_history($params = array()) {
         return $this->request('fiat_cantor/history', 'v1_01Private', 'GET', $params, null, null, array());
     }
+    public function v1_01private_get_client_payments_v2_customer_crypto_currency_channels_deposit($params = array()) {
+        return $this->request('client_payments/v2/customer/crypto/{currency}/channels/deposit', 'v1_01Private', 'GET', $params, null, null, array());
+    }
+    public function v1_01private_get_client_payments_v2_customer_crypto_currency_channels_withdrawal($params = array()) {
+        return $this->request('client_payments/v2/customer/crypto/{currency}/channels/withdrawal', 'v1_01Private', 'GET', $params, null, null, array());
+    }
+    public function v1_01private_get_client_payments_v2_customer_crypto_deposit_fee($params = array()) {
+        return $this->request('client_payments/v2/customer/crypto/deposit/fee', 'v1_01Private', 'GET', $params, null, null, array());
+    }
+    public function v1_01private_get_client_payments_v2_customer_crypto_withdrawal_fee($params = array()) {
+        return $this->request('client_payments/v2/customer/crypto/withdrawal/fee', 'v1_01Private', 'GET', $params, null, null, array());
+    }
     public function v1_01private_post_trading_offer_symbol($params = array()) {
         return $this->request('trading/offer/{symbol}', 'v1_01Private', 'POST', $params, null, null, array());
     }
@@ -126,6 +138,12 @@ abstract class zonda extends \ccxt\Exchange {
     }
     public function v1_01private_post_api_payments_withdrawals_fiat($params = array()) {
         return $this->request('api_payments/withdrawals/fiat', 'v1_01Private', 'POST', $params, null, null, array());
+    }
+    public function v1_01private_post_client_payments_v2_customer_crypto_deposit($params = array()) {
+        return $this->request('client_payments/v2/customer/crypto/deposit', 'v1_01Private', 'POST', $params, null, null, array());
+    }
+    public function v1_01private_post_client_payments_v2_customer_crypto_withdrawal($params = array()) {
+        return $this->request('client_payments/v2/customer/crypto/withdrawal', 'v1_01Private', 'POST', $params, null, null, array());
     }
     public function v1_01private_delete_trading_offer_symbol_id_side_price($params = array()) {
         return $this->request('trading/offer/{symbol}/{id}/{side}/{price}', 'v1_01Private', 'DELETE', $params, null, null, array());
@@ -232,6 +250,18 @@ abstract class zonda extends \ccxt\Exchange {
     public function v1_01PrivateGetFiatCantorHistory($params = array()) {
         return $this->request('fiat_cantor/history', 'v1_01Private', 'GET', $params, null, null, array());
     }
+    public function v1_01PrivateGetClientPaymentsV2CustomerCryptoCurrencyChannelsDeposit($params = array()) {
+        return $this->request('client_payments/v2/customer/crypto/{currency}/channels/deposit', 'v1_01Private', 'GET', $params, null, null, array());
+    }
+    public function v1_01PrivateGetClientPaymentsV2CustomerCryptoCurrencyChannelsWithdrawal($params = array()) {
+        return $this->request('client_payments/v2/customer/crypto/{currency}/channels/withdrawal', 'v1_01Private', 'GET', $params, null, null, array());
+    }
+    public function v1_01PrivateGetClientPaymentsV2CustomerCryptoDepositFee($params = array()) {
+        return $this->request('client_payments/v2/customer/crypto/deposit/fee', 'v1_01Private', 'GET', $params, null, null, array());
+    }
+    public function v1_01PrivateGetClientPaymentsV2CustomerCryptoWithdrawalFee($params = array()) {
+        return $this->request('client_payments/v2/customer/crypto/withdrawal/fee', 'v1_01Private', 'GET', $params, null, null, array());
+    }
     public function v1_01PrivatePostTradingOfferSymbol($params = array()) {
         return $this->request('trading/offer/{symbol}', 'v1_01Private', 'POST', $params, null, null, array());
     }
@@ -255,6 +285,12 @@ abstract class zonda extends \ccxt\Exchange {
     }
     public function v1_01PrivatePostApiPaymentsWithdrawalsFiat($params = array()) {
         return $this->request('api_payments/withdrawals/fiat', 'v1_01Private', 'POST', $params, null, null, array());
+    }
+    public function v1_01PrivatePostClientPaymentsV2CustomerCryptoDeposit($params = array()) {
+        return $this->request('client_payments/v2/customer/crypto/deposit', 'v1_01Private', 'POST', $params, null, null, array());
+    }
+    public function v1_01PrivatePostClientPaymentsV2CustomerCryptoWithdrawal($params = array()) {
+        return $this->request('client_payments/v2/customer/crypto/withdrawal', 'v1_01Private', 'POST', $params, null, null, array());
     }
     public function v1_01PrivateDeleteTradingOfferSymbolIdSidePrice($params = array()) {
         return $this->request('trading/offer/{symbol}/{id}/{side}/{price}', 'v1_01Private', 'DELETE', $params, null, null, array());

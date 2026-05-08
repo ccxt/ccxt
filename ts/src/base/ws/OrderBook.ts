@@ -1,5 +1,5 @@
 /* eslint-disable max-classes-per-file */
-// @ts-nocheck 
+// @ts-nocheck
 
 import { iso8601 } from '../../base/functions/time.js';
 import { extend, deepExtend } from '../../base/functions/generic.js';
@@ -11,16 +11,36 @@ import {
     CountedBids,
     IndexedAsks,
     IndexedBids,
+    IOrderBookSide
     // IncrementalAsks,
     // IncrementalBids,
     // IncrementalIndexedAsks,
     // IncrementalIndexedBids, // check this
 } from './OrderBookSide.js';
+import { Int, Str } from '../types.js';
 
 // ----------------------------------------------------------------------------
 // overwrites absolute volumes at price levels
 
-class OrderBook {
+interface CustomOrderBookProp  {
+    cache: any[];
+}
+
+class OrderBook implements CustomOrderBookProp {
+
+    cache = [] // make prop visible so we use typed OrderBooks
+
+    asks: IOrderBookSide<any>;
+
+    bids: IOrderBookSide<any>;
+
+    timestamp: Int;
+
+    datetime: Str;
+
+    nonce: Int;
+
+    symbol: Str;
 
     constructor (snapshot = {}, depth = undefined) {
 
@@ -28,6 +48,7 @@ class OrderBook {
             __proto__: null, // make it invisible
             value: [],
             writable: true,
+            enumerable: false,
         })
 
         depth = depth || Number.MAX_SAFE_INTEGER

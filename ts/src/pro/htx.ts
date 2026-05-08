@@ -2,16 +2,16 @@
 //  ---------------------------------------------------------------------------
 
 import htxRest from '../htx.js';
-import { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } from '../base/errors.js';
+import { ExchangeError, InvalidNonce, ChecksumError, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, Str, Strings } from '../base/types.js';
+import type { Int, Market, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class htx extends htxRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -29,9 +29,14 @@ export default class htx extends htxRest {
                 'watchTickers': false,
                 'watchTicker': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': true,
                 'watchBalance': true,
                 'watchOHLCV': true,
+                'unWatchTicker': true,
+                'unWatchOHLCV': true,
+                'unWatchTrades': true,
+                'unWatchOrderBook': true,
             },
             'urls': {
                 'api': {
@@ -44,22 +49,22 @@ export default class htx extends htxRest {
                             },
                             'future': {
                                 'linear': {
-                                    'public': 'wss://api.hbdm.com/linear-swap-ws',
-                                    'private': 'wss://api.hbdm.com/linear-swap-notification',
+                                    'public': 'wss://api.hbdm.vn/linear-swap-ws',
+                                    'private': 'wss://api.hbdm.vn/linear-swap-notification',
                                 },
                                 'inverse': {
-                                    'public': 'wss://api.hbdm.com/ws',
-                                    'private': 'wss://api.hbdm.com/notification',
+                                    'public': 'wss://api.hbdm.vn/ws',
+                                    'private': 'wss://api.hbdm.vn/notification',
                                 },
                             },
                             'swap': {
                                 'inverse': {
-                                    'public': 'wss://api.hbdm.com/swap-ws',
-                                    'private': 'wss://api.hbdm.com/swap-notification',
+                                    'public': 'wss://api.hbdm.vn/swap-ws',
+                                    'private': 'wss://api.hbdm.vn/swap-notification',
                                 },
                                 'linear': {
-                                    'public': 'wss://api.hbdm.com/linear-swap-ws',
-                                    'private': 'wss://api.hbdm.com/linear-swap-notification',
+                                    'public': 'wss://api.hbdm.vn/linear-swap-ws',
+                                    'private': 'wss://api.hbdm.vn/linear-swap-notification',
                                 },
                             },
                         },
@@ -100,6 +105,8 @@ export default class htx extends htxRest {
                 'api': 'api', // or api-aws for clients hosted on AWS
                 'watchOrderBook': {
                     'maxRetries': 3,
+                    'checksum': true,
+                    'depth': 150, // 150 or 20
                 },
                 'ws': {
                     'gunzip': true,
@@ -115,7 +122,7 @@ export default class htx extends htxRest {
                         '2002': AuthenticationError, // { action: 'sub', code: 2002, ch: 'accounts.update#2', message: 'invalid.auth.state' }
                         '2021': BadRequest,
                         '2001': BadSymbol, // { action: 'sub', code: 2001, ch: 'orders#2ltcusdt', message: 'invalid.symbol'}
-                        '2011': BadSymbol, // { op: 'sub', cid: '1649149285', topic: 'orders_cross.hereltc-usdt', 'err-code': 2011, 'err-msg': "Contract doesn't exist.", ts: 1649149287637 }
+                        '2011': BadSymbol, // { op: 'sub', cid: '1649149285', topic: 'orders_cross.ltc-usdt', 'err-code': 2011, 'err-msg': "Contract doesn't exist.", ts: 1649149287637 }
                         '2040': BadRequest, // { op: 'sub', cid: '1649152947', 'err-code': 2040, 'err-msg': 'Missing required parameter.', ts: 1649152948684 }
                         '4007': BadRequest, // { op: 'sub', cid: '1', topic: 'accounts_unify.USDT', 'err-code': 4007, 'err-msg': 'Non - single account user is not available, please check through the cross and isolated account asset interface', ts: 1698419318540 }
                     },
@@ -125,24 +132,28 @@ export default class htx extends htxRest {
     }
 
     requestId () {
+        this.lockId ();
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
+        this.unlockId ();
         return requestId.toString ();
     }
 
-    async watchTicker (symbol: string, params = {}) {
-        /**
-         * @method
-         * @name huobi#watchTicker
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the huobi api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
+    /**
+     * @method
+     * @name htx#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53561-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33ab2-77ae-11ed-9966-0242ac110003
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const options = this.safeValue (this.options, 'watchTicker', {});
+        const options = this.safeDict (this.options, 'watchTicker', {});
         const topic = this.safeString (options, 'name', 'market.{marketId}.detail');
         if (topic === 'market.{marketId}.ticker' && market['type'] !== 'spot') {
             throw new BadRequest (this.id + ' watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead');
@@ -150,6 +161,29 @@ export default class htx extends htxRest {
         const messageHash = this.implodeParams (topic, { 'marketId': market['id'] });
         const url = this.getUrlByMarketType (market['type'], market['linear']);
         return await this.subscribePublic (url, symbol, messageHash, undefined, params);
+    }
+
+    /**
+     * @method
+     * @name htx#unWatchTicker
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53561-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33ab2-77ae-11ed-9966-0242ac110003
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async unWatchTicker (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const topic = 'ticker';
+        const options = this.safeDict (this.options, 'watchTicker', {});
+        const channel = this.safeString (options, 'name', 'market.{marketId}.detail');
+        if (channel === 'market.{marketId}.ticker' && market['type'] !== 'spot') {
+            throw new BadRequest (this.id + ' watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead');
+        }
+        const subMessageHash = this.implodeParams (channel, { 'marketId': market['id'] });
+        return await this.unsubscribePublic (market, subMessageHash, topic, params);
     }
 
     handleTicker (client: Client, message) {
@@ -200,17 +234,20 @@ export default class htx extends htxRest {
         return message;
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name huobi#watchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the huobi api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
+    /**
+     * @method
+     * @name htx#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53b69-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33c21-77ae-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33cfe-77ae-11ed-9966-0242ac110003
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -221,6 +258,27 @@ export default class htx extends htxRest {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    /**
+     * @method
+     * @name htx#unWatchTrades
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53b69-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33c21-77ae-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33cfe-77ae-11ed-9966-0242ac110003
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const topic = 'trades';
+        const options = this.safeDict (this.options, 'watchTrades', {});
+        const channel = this.safeString (options, 'name', 'market.{marketId}.trade.detail');
+        const subMessageHash = this.implodeParams (channel, { 'marketId': market['id'] });
+        return await this.unsubscribePublic (market, subMessageHash, topic, params);
     }
 
     handleTrades (client: Client, message) {
@@ -265,18 +323,21 @@ export default class htx extends htxRest {
         return message;
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name huobi#watchOHLCV
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the huobi api endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
+    /**
+     * @method
+     * @name htx#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53241-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c3346a-77ae-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33563-77ae-11ed-9966-0242ac110003
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -288,6 +349,29 @@ export default class htx extends htxRest {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    /**
+     * @method
+     * @name htx#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53241-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c3346a-77ae-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33563-77ae-11ed-9966-0242ac110003
+     * @param {string} symbol unified symbol of the market
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
+        const subMessageHash = 'market.' + market['id'] + '.kline.' + interval;
+        const topic = 'ohlcv';
+        params['symbolsAndTimeframes'] = [ [ market['symbol'], timeframe ] ];
+        return await this.unsubscribePublic (market, subMessageHash, topic, params);
     }
 
     handleOHLCV (client: Client, message) {
@@ -327,36 +411,39 @@ export default class htx extends htxRest {
         client.resolve (stored, ch);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name huobi#watchOrderBook
-         * @see https://huobiapi.github.io/docs/dm/v1/en/#subscribe-market-depth-data
-         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#subscribe-incremental-market-depth-data
-         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-subscribe-incremental-market-depth-data
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the huobi api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
+    /**
+     * @method
+     * @name htx#watchOrderBook
+     * @see https://huobiapi.github.io/docs/dm/v1/en/#subscribe-market-depth-data
+     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#subscribe-incremental-market-depth-data
+     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-subscribe-incremental-market-depth-data
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     */
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const allowedLimits = [ 20, 150 ];
+        const allowedLimits = [ 5, 20, 150, 400 ];
         // 2) 5-level/20-level incremental MBP is a tick by tick feed,
         // which means whenever there is an order book change at that level, it pushes an update;
         // 150-levels/400-level incremental MBP feed is based on the gap
         // between two snapshots at 100ms interval.
-        limit = (limit === undefined) ? 20 : limit;
+        const options = this.safeDict (this.options, 'watchOrderBook', {});
+        if (limit === undefined) {
+            limit = this.safeInteger (options, 'depth', 150);
+        }
         if (!this.inArray (limit, allowedLimits)) {
-            throw new ExchangeError (this.id + ' watchOrderBook swap market accepts limits of 20 and 150 only');
+            throw new ExchangeError (this.id + ' watchOrderBook market accepts limits of 5, 20, 150 or 400 only');
         }
         let messageHash = undefined;
         if (market['spot']) {
-            messageHash = 'market.' + market['id'] + '.mbp.' + limit.toString ();
+            messageHash = 'market.' + market['id'] + '.mbp.' + this.numberToString (limit);
         } else {
-            messageHash = 'market.' + market['id'] + '.depth.size_' + limit.toString () + '.high_freq';
+            messageHash = 'market.' + market['id'] + '.depth.size_' + this.numberToString (limit) + '.high_freq';
         }
         const url = this.getUrlByMarketType (market['type'], market['linear'], false, true);
         let method = this.handleOrderBookSubscription;
@@ -367,6 +454,36 @@ export default class htx extends htxRest {
         }
         const orderbook = await this.subscribePublic (url, symbol, messageHash, method, params);
         return orderbook.limit ();
+    }
+
+    /**
+     * @method
+     * @name htx#unWatchOrderBook
+     * @description unsubscribe from the orderbook channel
+     * @see https://huobiapi.github.io/docs/dm/v1/en/#subscribe-market-depth-data
+     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#subscribe-incremental-market-depth-data
+     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-subscribe-incremental-market-depth-data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.limit] orderbook limit, default is undefined
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     */
+    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const topic = 'orderbook';
+        const options = this.safeDict (this.options, 'watchOrderBook', {});
+        const depth = this.safeInteger (options, 'depth', 150);
+        let subMessageHash = undefined;
+        if (market['spot']) {
+            subMessageHash = 'market.' + market['id'] + '.mbp.' + this.numberToString (depth);
+        } else {
+            subMessageHash = 'market.' + market['id'] + '.depth.size_' + this.numberToString (depth) + '.high_freq';
+        }
+        if (!(market['spot'])) {
+            params['data_type'] = 'incremental';
+        }
+        return await this.unsubscribePublic (market, subMessageHash, topic, params);
     }
 
     handleOrderBookSnapshot (client: Client, message, subscription) {
@@ -438,6 +555,8 @@ export default class htx extends htxRest {
                 client.resolve (orderbook, messageHash);
             }
         } catch (e) {
+            delete client.subscriptions[messageHash];
+            delete this.orderbooks[symbol];
             client.reject (e, messageHash);
         }
     }
@@ -452,13 +571,13 @@ export default class htx extends htxRest {
         const market = this.market (symbol);
         const url = this.getUrlByMarketType (market['type'], market['linear'], false, true);
         const requestId = this.requestId ();
-        const request = {
+        const request: Dict = {
             'req': messageHash,
             'id': requestId,
         };
         // this is a temporary subscription by a specific requestId
         // it has a very short lifetime until the snapshot is received over ws
-        const snapshotSubscription = {
+        const snapshotSubscription: Dict = {
             'id': requestId,
             'messageHash': messageHash,
             'symbol': symbol,
@@ -475,6 +594,7 @@ export default class htx extends htxRest {
             delete client.subscriptions[messageHash];
             client.reject (e, messageHash);
         }
+        return undefined;
     }
 
     handleDelta (bookside, delta) {
@@ -574,7 +694,10 @@ export default class htx extends htxRest {
             orderbook['nonce'] = version;
         }
         if ((prevSeqNum !== undefined) && prevSeqNum > orderbook['nonce']) {
-            throw new InvalidNonce (this.id + ' watchOrderBook() received a mesage out of order');
+            const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
+            if (checksum) {
+                throw new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+            }
         }
         const spotConditon = market['spot'] && (prevSeqNum === orderbook['nonce']);
         const nonSpotCondition = market['contract'] && (version - 1 === orderbook['nonce']);
@@ -636,20 +759,19 @@ export default class htx extends htxRest {
         //     }
         //
         const messageHash = this.safeString (message, 'ch');
-        const tick = this.safeValue (message, 'tick');
+        const tick = this.safeDict (message, 'tick');
         const event = this.safeString (tick, 'event');
-        const ch = this.safeValue (message, 'ch');
+        const ch = this.safeString (message, 'ch');
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
         const symbol = this.safeSymbol (marketId);
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
+        if (!(symbol in this.orderbooks)) {
             const size = this.safeString (parts, 3);
             const sizeParts = size.split ('_');
             const limit = this.safeInteger (sizeParts, 1);
-            orderbook = this.orderBook ({}, limit);
-            this.orderbooks[symbol] = orderbook;
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
         }
+        const orderbook = this.orderbooks[symbol];
         if ((event === undefined) && (orderbook['nonce'] === undefined)) {
             orderbook.cache.push (message);
         } else {
@@ -668,17 +790,18 @@ export default class htx extends htxRest {
         }
     }
 
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name huobi#watchMyTrades
-         * @description watches information on multiple trades made by the user
-         * @param {string} symbol unified market symbol of the market trades were made in
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trade structures to retrieve
-         * @param {object} [params] extra parameters specific to the huobi api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
-         */
+    /**
+     * @method
+     * @name htx#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53dd5-7773-11ed-9966-0242ac110003
+     * @param {string} symbol unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         let type = undefined;
@@ -766,17 +889,18 @@ export default class htx extends htxRest {
         return [ channel, messageHash ];
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name huobi#watchOrders
-         * @description watches information on multiple orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the huobi api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
+    /**
+     * @method
+     * @name htx#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53c8f-7773-11ed-9966-0242ac110003
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         let type = undefined;
         let subType = undefined;
@@ -816,23 +940,39 @@ export default class htx extends htxRest {
         //
         // spot
         //
+        //     for new order creation
+        //
         //     {
         //         "action":"push",
         //         "ch":"orders#btcusdt", // or "orders#*" for global subscriptions
         //         "data": {
+        //             "orderStatus": "submitted",
+        //             "eventType": "creation",
+        //             "totalTradeAmount": 0 // for "submitted" order status
+        //             "orderCreateTime": 1645116048355, // only when `submitted` status
         //             "orderSource": "spot-web",
-        //             "orderCreateTime": 1645116048355,
         //             "accountId": 44234548,
         //             "orderPrice": "100",
         //             "orderSize": "0.05",
         //             "symbol": "ethusdt",
         //             "type": "buy-limit",
         //             "orderId": "478861479986886",
-        //             "eventType": "creation",
         //             "clientOrderId": '',
-        //             "orderStatus": "submitted"
         //         }
         //     }
+        //
+        //     for filled order, additional fields are present:
+        //
+        //             "orderStatus": "filled",
+        //             "eventType": "trade",
+        //             "totalTradeAmount": "5.9892649859",
+        //             "tradePrice": "0.676669",
+        //             "tradeVolume": "8.8511",
+        //             "tradeTime": 1760427775894,
+        //             "aggressor": false,
+        //             "execAmt": "8.8511",
+        //             "tradeId": 100599712781,
+        //             "remainAmt": "0",
         //
         // spot wrapped trade
         //
@@ -935,11 +1075,19 @@ export default class htx extends htxRest {
                 // inject trade in existing order by faking an order object
                 const orderId = this.safeString (parsedTrade, 'order');
                 const trades = [ parsedTrade ];
-                const order = {
+                const status = this.parseOrderStatus (this.safeString2 (data, 'orderStatus', 'status', 'closed'));
+                const filled = this.safeString (data, 'execAmt');
+                const remaining = this.safeString (data, 'remainAmt');
+                const order: Dict = {
                     'id': orderId,
                     'trades': trades,
-                    'status': 'closed',
+                    'status': status,
                     'symbol': market['symbol'],
+                    'filled': this.parseNumber (filled),
+                    'remaining': this.parseNumber (remaining),
+                    'price': this.safeNumber (data, 'orderPrice'),
+                    'amount': this.safeNumber (data, 'orderSize'),
+                    'info': data,
                 };
                 parsedOrder = order;
             } else {
@@ -951,13 +1099,13 @@ export default class htx extends htxRest {
             const rawTrades = this.safeValue (message, 'trade', []);
             const tradesLength = rawTrades.length;
             if (tradesLength > 0) {
-                const tradesObject = {
+                const tradesObject: Dict = {
                     'trades': rawTrades,
                     'ch': messageHash,
                     'symbol': marketId,
                 };
                 // inject order params in every trade
-                const extendTradeParams = {
+                const extendTradeParams: Dict = {
                     'order': this.safeString (parsedOrder, 'id'),
                     'type': this.safeString (parsedOrder, 'type'),
                     'side': this.safeString (parsedOrder, 'side'),
@@ -1214,19 +1362,21 @@ export default class htx extends htxRest {
         }, market);
     }
 
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name huobi#watchPositions
-         * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7de1c-77b5-11ed-9966-0242ac110003
-         * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7df0f-77b5-11ed-9966-0242ac110003
-         * @see https://www.huobi.com/en-in/opend/newApiPages/?id=28c34a7d-77ae-11ed-9966-0242ac110003
-         * @see https://www.huobi.com/en-in/opend/newApiPages/?id=5d5156b5-77b6-11ed-9966-0242ac110003
-         * @description watch all open positions. Note: huobi has one channel for each marginMode and type
-         * @param {string[]|undefined} symbols list of unified market symbols
-         * @param {object} params extra parameters specific to the huobi api endpoint
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
-         */
+    /**
+     * @method
+     * @name htx#watchPositions
+     * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7de1c-77b5-11ed-9966-0242ac110003
+     * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7df0f-77b5-11ed-9966-0242ac110003
+     * @see https://www.huobi.com/en-in/opend/newApiPages/?id=28c34a7d-77ae-11ed-9966-0242ac110003
+     * @see https://www.huobi.com/en-in/opend/newApiPages/?id=5d5156b5-77b6-11ed-9966-0242ac110003
+     * @description watch all open positions. Note: huobi has one channel for each marginMode and type
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param since
+     * @param limit
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         let market = undefined;
         let messageHash = '';
@@ -1336,14 +1486,18 @@ export default class htx extends htxRest {
         client.resolve (newPositions, marginMode + ':positions');
     }
 
-    async watchBalance (params = {}) {
-        /**
-         * @method
-         * @name huobi#watchBalance
-         * @description watch balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the huobi api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
+    /**
+     * @method
+     * @name htx#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec52e28-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000084-77b7-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb7dcca-77b5-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c34995-77ae-11ed-9966-0242ac110003
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    async watchBalance (params = {}): Promise<Balances> {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         let subType = undefined;
@@ -1418,7 +1572,7 @@ export default class htx extends htxRest {
                 }
             }
         }
-        const subscriptionParams = {
+        const subscriptionParams: Dict = {
             'type': type,
             'subType': subType,
             'margin': marginMode,
@@ -1628,7 +1782,7 @@ export default class htx extends htxRest {
                                 const account = this.account ();
                                 account['free'] = this.safeString2 (balance, 'margin_balance', 'margin_available');
                                 account['used'] = this.safeString (balance, 'margin_frozen');
-                                const accountsByCode = {};
+                                const accountsByCode: Dict = {};
                                 accountsByCode[code] = account;
                                 const symbol = market['symbol'];
                                 this.balance[symbol] = this.safeBalance (accountsByCode);
@@ -1674,20 +1828,42 @@ export default class htx extends htxRest {
         //         "ts": 1583414229143
         //     }
         //
+        // unsubscribe
+        //     {
+        //         "id": "2",
+        //         "status": "ok",
+        //         "unsubbed": "market.BTC-USDT-251003.detail",
+        //         "ts": 1759329276980
+        //     }
+        //
         const id = this.safeString (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeValue (subscriptionsById, id);
+        const subscription = this.safeDict (subscriptionsById, id);
         if (subscription !== undefined) {
             const method = this.safeValue (subscription, 'method');
             if (method !== undefined) {
-                return method.call (this, client, message, subscription);
+                method.call (this, client, message, subscription);
+                // return; commented out to clean up
             }
             // clean up
             if (id in client.subscriptions) {
                 delete client.subscriptions[id];
             }
         }
-        return message;
+        if ('unsubbed' in message) {
+            this.handleUnSubscription (client, subscription);
+        }
+    }
+
+    handleUnSubscription (client: Client, subscription: Dict) {
+        const messageHashes = this.safeList (subscription, 'messageHashes', []);
+        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const unsubHash = messageHashes[i];
+            const subHash = subMessageHashes[i];
+            this.cleanUnsubscription (client, subHash, unsubHash);
+        }
+        this.cleanCache (subscription);
     }
 
     handleSystemStatus (client: Client, message) {
@@ -1788,7 +1964,7 @@ export default class htx extends htxRest {
         const type = this.safeString (parts, 0);
         if (type === 'market') {
             const methodName = this.safeString (parts, 2);
-            const methods = {
+            const methods: Dict = {
                 'depth': this.handleOrderBook,
                 'mbp': this.handleOrderBook,
                 'detail': this.handleTicker,
@@ -1798,10 +1974,9 @@ export default class htx extends htxRest {
                 'kline': this.handleOHLCV,
             };
             const method = this.safeValue (methods, methodName);
-            if (method === undefined) {
-                return message;
-            } else {
-                return method.call (this, client, message);
+            if (method !== undefined) {
+                method.call (this, client, message);
+                return;
             }
         }
         // private spot subjects
@@ -1860,7 +2035,7 @@ export default class htx extends htxRest {
                 await client.send ({ 'op': 'pong', 'ts': pingTs });
             }
         } catch (e) {
-            const error = new NetworkError (this.id + ' pong failed ' + this.json (e));
+            const error = new NetworkError (this.id + ' pong failed ' + this.exceptionMessage (e));
             client.reset (error);
         }
     }
@@ -1890,11 +2065,11 @@ export default class htx extends htxRest {
         //        "data": { "user-id": "35930539" }
         //    }
         //
-        const promise = client.futures['authenticated'];
+        const promise = client.futures['auth'];
         promise.resolve (message);
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //     {
         //         "action": "sub",
@@ -1919,6 +2094,12 @@ export default class htx extends htxRest {
         //         'err-msg': "Non - single account user is not available, please check through the cross and isolated account asset interface",
         //         "ts": 1698419490189
         //     }
+        //     {
+        //         "action":"req",
+        //         "code":2002,
+        //         "ch":"auth",
+        //         "message":"auth.fail"
+        //     }
         //
         const status = this.safeString (message, 'status');
         if (status === 'error') {
@@ -1929,6 +2110,7 @@ export default class htx extends htxRest {
                 const errorCode = this.safeString (message, 'err-code');
                 try {
                     this.throwExactlyMatchedException (this.exceptions['ws']['exact'], errorCode, this.json (message));
+                    throw new ExchangeError (this.json (message));
                 } catch (e) {
                     const messageHash = this.safeString (subscription, 'messageHash');
                     client.reject (e, messageHash);
@@ -1940,11 +2122,12 @@ export default class htx extends htxRest {
             }
             return false;
         }
-        const code = this.safeInteger2 (message, 'code', 'err-code');
-        if (code !== undefined && ((code !== 200) && (code !== 0))) {
+        const code = this.safeString2 (message, 'code', 'err-code');
+        if (code !== undefined && ((code !== '200') && (code !== '0'))) {
             const feedback = this.id + ' ' + this.json (message);
             try {
                 this.throwExactlyMatchedException (this.exceptions['ws']['exact'], code, feedback);
+                throw new ExchangeError (feedback);
             } catch (e) {
                 if (e instanceof AuthenticationError) {
                     client.reject (e, 'auth');
@@ -1958,7 +2141,7 @@ export default class htx extends htxRest {
                 }
             }
         }
-        return message;
+        return true;
     }
 
     handleMessage (client: Client, message) {
@@ -2227,7 +2410,7 @@ export default class htx extends htxRest {
 
     getUrlByMarketType (type, isLinear = true, isPrivate = false, isFeed = false) {
         const api = this.safeString (this.options, 'api', 'api');
-        const hostname = { 'hostname': this.hostname };
+        const hostname: Dict = { 'hostname': this.hostname };
         let hostnameURL = undefined;
         let url = undefined;
         if (type === 'spot') {
@@ -2251,11 +2434,11 @@ export default class htx extends htxRest {
 
     async subscribePublic (url, symbol, messageHash, method = undefined, params = {}) {
         const requestId = this.requestId ();
-        const request = {
+        const request: Dict = {
             'sub': messageHash,
             'id': requestId,
         };
-        const subscription = {
+        const subscription: Dict = {
             'id': requestId,
             'messageHash': messageHash,
             'symbol': symbol,
@@ -2267,9 +2450,34 @@ export default class htx extends htxRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 
+    async unsubscribePublic (market: Market, subMessageHash: string, topic: string, params = {}) {
+        const requestId = this.requestId ();
+        const request: Dict = {
+            'unsub': subMessageHash,
+            'id': requestId,
+        };
+        const messageHash = 'unsubscribe::' + subMessageHash;
+        const isFeed = (topic === 'orderbook');
+        const url = this.getUrlByMarketType (market['type'], market['linear'], false, isFeed);
+        const subscription: Dict = {
+            'unsubscribe': true,
+            'id': requestId,
+            'subMessageHashes': [ subMessageHash ],
+            'messageHashes': [ messageHash ],
+            'symbols': [ market['symbol'] ],
+            'topic': topic,
+        };
+        const symbolsAndTimeframes = this.safeList (params, 'symbolsAndTimeframes');
+        if (symbolsAndTimeframes !== undefined) {
+            subscription['symbolsAndTimeframes'] = symbolsAndTimeframes;
+            params = this.omit (params, 'symbolsAndTimeframes');
+        }
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+    }
+
     async subscribePrivate (channel, messageHash, type, subtype, params = {}, subscriptionParams = {}) {
         const requestId = this.requestId ();
-        const subscription = {
+        const subscription: Dict = {
             'id': requestId,
             'messageHash': messageHash,
             'params': params,
@@ -2291,14 +2499,11 @@ export default class htx extends htxRest {
         const isLinear = subtype === 'linear';
         const url = this.getUrlByMarketType (type, isLinear, true);
         const hostname = (type === 'spot') ? this.urls['hostnames']['spot'] : this.urls['hostnames']['contract'];
-        const authParams = {
+        const authParams: Dict = {
             'type': type,
             'url': url,
             'hostname': hostname,
         };
-        if (type === 'spot') {
-            this.options['ws']['gunzip'] = false;
-        }
         await this.authenticate (authParams);
         return await this.watch (url, messageHash, this.extend (request, params), channel, extendedSubsription);
     }
@@ -2311,10 +2516,10 @@ export default class htx extends htxRest {
             throw new ArgumentsRequired (this.id + ' authenticate requires a url, hostname and type argument');
         }
         this.checkRequiredCredentials ();
-        const messageHash = 'authenticated';
+        const messageHash = 'auth';
         const relativePath = url.replace ('wss://' + hostname, '');
         const client = this.client (url);
-        const future = client.future (messageHash);
+        const future = client.reusableFuture (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const timestamp = this.ymdhms (this.milliseconds (), 'T');
@@ -2335,12 +2540,12 @@ export default class htx extends htxRest {
                 };
             }
             signatureParams = this.keysort (signatureParams);
-            const auth = this.urlencode (signatureParams);
+            const auth = this.urlencode (signatureParams, true); // true required in go
             const payload = [ 'GET', hostname, relativePath, auth ].join ("\n"); // eslint-disable-line quotes
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
             let request = undefined;
             if (type === 'spot') {
-                const newParams = {
+                const newParams: Dict = {
                     'authType': 'api',
                     'accessKey': this.apiKey,
                     'signatureMethod': 'HmacSHA256',
@@ -2365,13 +2570,13 @@ export default class htx extends htxRest {
                 };
             }
             const requestId = this.requestId ();
-            const subscription = {
+            const subscription: Dict = {
                 'id': requestId,
                 'messageHash': messageHash,
                 'params': params,
             };
             this.watch (url, messageHash, request, messageHash, subscription);
         }
-        return future;
+        return await future;
     }
 }

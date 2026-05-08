@@ -6,16 +6,17 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Int, Str
+from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Str, Trade
 from ccxt.async_support.base.ws.client import Client
+from typing import List
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
-from ccxt.base.errors import AuthenticationError
 
 
 class hollaex(ccxt.async_support.hollaex):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(hollaex, self).describe(), {
             'has': {
                 'ws': True,
@@ -27,6 +28,7 @@ class hollaex(ccxt.async_support.hollaex):
                 'watchTicker': False,
                 'watchTickers': False,  # for now
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
             },
             'urls': {
                 'api': {
@@ -57,13 +59,16 @@ class hollaex(ccxt.async_support.hollaex):
             },
         })
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://apidocs.hollaex.com/#sending-receiving-messages
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the hollaex api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -111,14 +116,17 @@ class hollaex(ccxt.async_support.hollaex):
         messageHash = channel + ':' + marketId
         client.resolve(orderbook, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+
+        https://apidocs.hollaex.com/#sending-receiving-messages
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the hollaex api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -162,14 +170,17 @@ class hollaex(ccxt.async_support.hollaex):
         client.resolve(stored, messageHash)
         client.resolve(stored, channel)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made by the user
+
+        https://apidocs.hollaex.com/#sending-receiving-messages
+
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
-        :param dict [params]: extra parameters specific to the hollaex api endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
         messageHash = 'usertrade'
@@ -212,12 +223,12 @@ class hollaex(ccxt.async_support.hollaex):
         # when the user does not have any trades yet
         dataLength = len(rawTrades)
         if dataLength == 0:
-            return 0
+            return
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCache(limit)
         stored = self.myTrades
-        marketIds = {}
+        marketIds: dict = {}
         for i in range(0, len(rawTrades)):
             trade = rawTrades[i]
             parsed = self.parse_trade(trade)
@@ -234,14 +245,17 @@ class hollaex(ccxt.async_support.hollaex):
             messageHash = channel + ':' + marketId
             client.resolve(self.myTrades, messageHash)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
+
+        https://apidocs.hollaex.com/#sending-receiving-messages
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the hollaex api endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         messageHash = 'order'
@@ -318,7 +332,7 @@ class hollaex(ccxt.async_support.hollaex):
         # usually the first message is an empty array
         dataLength = len(data)
         if dataLength == 0:
-            return 0
+            return
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
@@ -328,7 +342,7 @@ class hollaex(ccxt.async_support.hollaex):
             rawOrders = [data]
         else:
             rawOrders = data
-        marketIds = {}
+        marketIds: dict = {}
         for i in range(0, len(rawOrders)):
             order = rawOrders[i]
             parsed = self.parse_order(order)
@@ -345,11 +359,14 @@ class hollaex(ccxt.async_support.hollaex):
             messageHash = channel + ':' + marketId
             client.resolve(self.orders, messageHash)
 
-    async def watch_balance(self, params={}):
+    async def watch_balance(self, params={}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
-        :param dict [params]: extra parameters specific to the hollaex api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+
+        https://apidocs.hollaex.com/#sending-receiving-messages
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         messageHash = 'wallet'
         return await self.watch_private(messageHash, params)
@@ -393,7 +410,7 @@ class hollaex(ccxt.async_support.hollaex):
 
     async def watch_public(self, messageHash, params={}):
         url = self.urls['api']['ws']
-        request = {
+        request: dict = {
             'op': 'subscribe',
             'args': [messageHash],
         }
@@ -413,20 +430,20 @@ class hollaex(ccxt.async_support.hollaex):
         url = self.urls['api']['ws']
         auth = 'CONNECT' + '/stream' + expires
         signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-        authParams = {
+        authParams: dict = {
             'api-key': self.apiKey,
             'api-signature': signature,
             'api-expires': expires,
         }
         signedUrl = url + '?' + self.urlencode(authParams)
-        request = {
+        request: dict = {
             'op': 'subscribe',
             'args': [messageHash],
         }
         message = self.extend(request, params)
         return await self.watch(signedUrl, messageHash, message, messageHash)
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         #
         #     {error: "Bearer or HMAC authentication required"}
         #     {error: "Error: wrong input"}
@@ -533,7 +550,7 @@ class hollaex(ccxt.async_support.hollaex):
         if content == 'pong':
             self.handle_pong(client, message)
             return
-        methods = {
+        methods: dict = {
             'trade': self.handle_trades,
             'orderbook': self.handle_order_book,
             'order': self.handle_order,
@@ -545,7 +562,7 @@ class hollaex(ccxt.async_support.hollaex):
         if method is not None:
             method(client, message)
 
-    def ping(self, client):
+    def ping(self, client: Client):
         # hollaex does not support built-in ws protocol-level ping-pong
         return {'op': 'ping'}
 
@@ -555,8 +572,8 @@ class hollaex(ccxt.async_support.hollaex):
 
     def on_error(self, client: Client, error):
         self.options['ws-expires'] = None
-        self.on_error(client, error)
+        super(hollaex, self).on_error(client, error)
 
     def on_close(self, client: Client, error):
         self.options['ws-expires'] = None
-        self.on_close(client, error)
+        super(hollaex, self).on_close(client, error)

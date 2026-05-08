@@ -3,13 +3,16 @@
     "es2021": true,
     "node": true
   },
+  "globals": {
+    "WebAssembly": "readonly"
+  },
   "parserOptions": {
     "ecmaVersion": 2020,
     "sourceType": "module"
   },
   "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint"],
-  "extends": ["eslint:recommended", "airbnb-base", "plugin:import/typescript"],
+  "plugins": ["@typescript-eslint", "jsdoc"],
+  "extends": ["eslint:recommended", "airbnb-base", "plugin:import/typescript", "plugin:jsdoc/recommended-typescript-error"],
   "ignorePatterns": ["base/functions/*", "static_dependencies/*", "pro/bridge/*", "abstract/*"],
   "rules": {
     "import/no-unresolved":"off", // tmp until typescript decides to properly resolve names
@@ -47,7 +50,7 @@
     "no-nested-ternary": "error",
     "eqeqeq": "error",
     "quotes": ["error", "single", { "avoidEscape": true }],
-    "no-unused-vars": ["error", { "argsIgnorePattern": "^(exchange|headers|body|account|info|symbol|price|tag|side|since|limit|params|market|timeframe|api|path|code|currency|statusCode|statusText|url|method|response|requestHeaders|requestBody|bidsKey|asksKey|context|config|type|priceKey|amountKey|networkCode|marginMode|subscription|message|client|nonce|orderbook|bookside|deltas|delta)" }],
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^(exchange|headers|body|account|info|symbol|price|tag|side|since|name|limit|params|market|timeframe|api|path|code|currency|statusCode|statusText|url|method|response|requestHeaders|requestBody|bidsKey|asksKey|context|config|type|priceKey|amountKey|networkCode|marginMode|subscription|message|client|nonce|orderbook|bookside|deltas|delta|countOrIdKey|amount|fromCurrency|toCurrency|rawCurrency|error|reject)" }],
     "new-parens": "error",
     "new-cap": ["error"],
     "no-var": "error",
@@ -57,7 +60,7 @@
     }],
     "no-warning-comments": ["warn", { "terms": ["fixme"] }],
     "padded-blocks": ["error", "never"],
-    "lines-between-class-members": "error",
+    "lines-between-class-members": ["error", "always", { "exceptAfterSingleLine": true }],
     "no-multiple-empty-lines": ["error", { "max": 1 }],
     "padding-line-between-statements": ["error",
       { "blankLine": "never",  "prev":"*", "next": "*" },
@@ -67,7 +70,7 @@
       { "blankLine": "always", "prev":"*", "next": "cjs-export" },
       { "blankLine": "always", "prev":"*", "next": "export" },
       { "blankLine": "any",    "prev":"export", "next": "export" },
-      { "blankLine": "always", "prev":"*", "next": "function" },
+      { "blankLine": "always", "prev":"*", "next": "function" }
     ],
     "prefer-template": "off",
     "curly": "error",
@@ -83,6 +86,7 @@
     "camelcase": "off",
     "no-lonely-if": "off",
     "no-mixed-operators": "off",
+    "jsdoc/no-types": "off",
     "no-shadow": ["error", {
       "builtinGlobals": true, // prevent shadowing global vars (i.e. Object, Array, Number, etc...)
       "hoist": "all", // just for cleanest practices
@@ -97,7 +101,11 @@
     "no-underscore-dangle": "off",
     "consistent-return": "off",
     "no-await-in-loop": "off",
-    "prefer-exponentiation-operator": "off"
+    "prefer-exponentiation-operator": "off",
+    "jsdoc/check-tag-names": ["error", {
+      "definedTags": ["method", "remarks"]
+    }],
+    "jsdoc/require-param-description": "off"
   },
   "settings": {
     "import/resolver": {
@@ -107,6 +115,11 @@
     },
     "import/parsers": {
       "@typescript-eslint/parser": [".ts", ".js"]
-    }
+    },
+    "jsdoc": {
+      "tagNamePreference": {
+        "function": "method"
+      }
+  }
   }
 }

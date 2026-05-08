@@ -39,7 +39,6 @@ setup(
 
     name=package['name'],
     version=package['version'],
-
     description=package['description'],
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -84,22 +83,30 @@ setup(
         'certifi>=2018.1.18',
         'requests>=2.18.4',
         'cryptography>=2.6.1',
-        'typing_extensions>=4.4.0'
+        'typing_extensions>=4.4.0',
     ],
 
     extras_require={
         ':python_version>="3.5.2"': [
-            'aiohttp>=3.8',
+            'aiohttp>=3.10.11',
             'aiodns>=1.1.1',
             'yarl>=1.7.2',
-            'tox>=4.8.0'
+        ],
+        ':python_version>="3.9" and python_version<="3.13"': [
+            'coincurve==21.0.0',
         ],
         'qa': [
             'ruff==0.0.292',
+            'tox>=4.8.0',
         ],
         'type': [
             'mypy==1.6.1',
         ],
     },
     project_urls=project_urls,
+
+    include_package_data=True,
+    package_data={
+        "ccxt": ["static_dependencies/mnemonic/wordlist/**/*", "static_dependencies/dydx_v4_client/**/*", "static_dependencies/lighter_client/*"],
+    },
 )

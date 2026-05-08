@@ -10,8 +10,6 @@ sys.path.append(root + '/python')
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 # ----------------------------------------------------------------------------
-import asyncio
-import ccxt.async_support as ccxt  # noqa: E402
 
 
 # AUTO-TRANSPILE #
@@ -38,7 +36,8 @@ async def start_exchange(exchange_name, symbols):
     await ex.close()
 
 
-# main function
+# main function    await ex.close()
+
 async def example():
     exchanges = ['binance', 'okx', 'kraken']
     symbols = ['BTC/USDT', 'ETH/USDT']

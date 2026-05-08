@@ -1,64 +1,62 @@
-'use strict';
-
-// ----------------------------------------------------------------------------
 
 import assert from 'assert';
-import errors from '../../../base/errors.js';
 import testPosition from '../../../test/Exchange/base/test.position.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
+import { Exchange } from '../../../../ccxt.js';
 
-/*  ------------------------------------------------------------------------ */
-
-export default async (exchange, symbol: string) => {
-
-    console.log ('testing watchPositions...');
-
+async function testWatchPositions (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'watchPositions';
-    const skippedProperties = {};
-
-    if (!exchange.has[method]) {
-        console.log (exchange.id, 'does not support', method + '() method');
-        return;
-    }
-
-    let response = undefined;
-
-    let now = Date.now ();
-    const ends = now + 10000;
-
+    let now = exchange.milliseconds ();
+    const ends = now + 15000;
     while (now < ends) {
-
+        let response = undefined;
+        let success = true;
         try {
-
-            // Test without symbol
-            const positions = await exchange[method] ();
-            assert (Array.isArray (positions), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json (positions));
-            for (let i = 0; i < positions.length; i++) {
-                testPosition (exchange, skippedProperties, method, positions[i], undefined, now);
+            response = await exchange.watchPositions ([ symbol ]);
+        } catch (e) {
+            if (!testSharedMethods.isTemporaryFailure (e)) {
+                throw e;
             }
-            testSharedMethods.assertTimestampOrder (exchange, method, undefined, positions);
+            now = exchange.milliseconds ();
+            // continue;
+            success = false;
+        }
+        if (success === true) {
+            testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, response, symbol);
+            now = exchange.milliseconds ();
+            for (let i = 0; i < response.length; i++) {
+                testPosition (exchange, skippedProperties, method, response[i], undefined, now);
+            }
+            testSharedMethods.assertTimestampOrder (exchange, method, symbol, response);
+        }
 
-            // Test with symbols
-            const positionsForSymbols = await exchange[method] ([ symbol ]);
+        //
+        // Test with specific symbol
+        //
+        let positionsForSymbols = undefined;
+        let success2 = true;
+        try {
+            positionsForSymbols = await exchange.watchPositions ([ symbol ]);
+        } catch (e) {
+            if (!testSharedMethods.isTemporaryFailure (e)) {
+                throw e;
+            }
+            now = exchange.milliseconds ();
+            // continue;
+            success2 = false;
+        }
+        if (success2 === true) {
             assert (Array.isArray (positionsForSymbols), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json (positionsForSymbols));
-            const positionsForSymbolLength = positionsForSymbols.length;
-            assert (positionsForSymbolLength <= 4, exchange.id + ' ' + method + ' positions length for particular symbol should be less than 4, returned ' + exchange.json (positionsForSymbols));
+            // max theoretical 4 positions: two for one-way-mode and two for two-way mode
+            assert (positionsForSymbols.length <= 4, exchange.id + ' ' + method + ' positions length for particular symbol should be less than 4, returned ' + exchange.json (positionsForSymbols));
+            now = exchange.milliseconds ();
             for (let i = 0; i < positionsForSymbols.length; i++) {
                 testPosition (exchange, skippedProperties, method, positionsForSymbols[i], symbol, now);
             }
-            testSharedMethods.assertTimestampOrder (exchange, method, [ symbol ], positions);
-
-            response = positions;
-
-        } catch (e) {
-
-            if (!(e instanceof errors.NetworkError)) {
-                throw e;
-            }
-
-            now = Date.now ();
+            testSharedMethods.assertTimestampOrder (exchange, method, symbol, positionsForSymbols);
         }
     }
+    return true;
+}
 
-    return response;
-};
+export default testWatchPositions;

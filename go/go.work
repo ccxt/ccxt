@@ -1,0 +1,7 @@
+go 1.24.4
+
+use (
+	./tests
+	./tests/base
+	./v4
+)

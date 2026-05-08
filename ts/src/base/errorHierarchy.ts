@@ -10,12 +10,14 @@ const errorHierarchy = {
             'ArgumentsRequired': {},
             'BadRequest': {
                 'BadSymbol': {},
-                'MarginModeAlreadySet': {},
-                'NoChange': {},
-                'OperationRejected': {},
             },
-            'BadResponse': {
-                'NullResponse': {},
+            'OperationRejected': {
+                'NoChange': {
+                    'MarginModeAlreadySet': {},
+                },
+                'MarketClosed': {},
+                'ManualInteractionNeeded': {},
+                'RestrictedLocation': {},
             },
             'InsufficientFunds': {},
             'InvalidAddress': {
@@ -24,26 +26,33 @@ const errorHierarchy = {
             'InvalidOrder': {
                 'OrderNotFound': {},
                 'OrderNotCached': {},
-                'CancelPending': {},
                 'OrderImmediatelyFillable': {},
                 'OrderNotFillable': {},
                 'DuplicateOrderId': {},
                 'ContractUnavailable': {},
             },
             'NotSupported': {},
+            'InvalidProxySettings': {},
+            'ExchangeClosedByUser': {},
         },
         'OperationFailed': {
             'NetworkError': {
-                'DDoSProtection': {
-                    'RateLimitExceeded': {},
-                },
+                'DDoSProtection': {},
+                'RateLimitExceeded': {},
                 'ExchangeNotAvailable': {
                     'OnMaintenance': {},
                 },
-                'InvalidNonce': {},
+                'InvalidNonce': {
+                    'ChecksumError': {},
+                },
                 'RequestTimeout': {},
             },
+            'BadResponse': {
+                'NullResponse': {},
+            },
+            'CancelPending': {},
         },
+        'UnsubscribeError': {},
     },
 };
 

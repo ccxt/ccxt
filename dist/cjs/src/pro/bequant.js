@@ -1,12 +1,19 @@
 'use strict';
 
-var hitbtc = require('./hitbtc.js');
+Object.defineProperty(exports, '__esModule', { value: true });
 
-//  ---------------------------------------------------------------------------
+var hitbtc = require('./hitbtc.js');
+var bequant$1 = require('../bequant.js');
+
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class bequant extends hitbtc {
+class bequant extends hitbtc["default"] {
     describe() {
-        return this.deepExtend(super.describe(), {
+        // eslint-disable-next-line new-cap
+        const restInstance = new bequant$1["default"]();
+        const restDescribe = restInstance.describe();
+        const extended = this.deepExtend(super.describe(), restDescribe);
+        return this.deepExtend(extended, {
             'id': 'bequant',
             'name': 'Bequant',
             'countries': ['MT'],
@@ -16,6 +23,10 @@ class bequant extends hitbtc {
                 'api': {
                     'public': 'https://api.bequant.io/api/3',
                     'private': 'https://api.bequant.io/api/3',
+                    'ws': {
+                        'public': 'wss://api.bequant.io/api/3/ws/public',
+                        'private': 'wss://api.bequant.io/api/3/ws/trading',
+                    },
                 },
                 'www': 'https://bequant.io',
                 'doc': [
@@ -30,4 +41,4 @@ class bequant extends hitbtc {
     }
 }
 
-module.exports = bequant;
+exports["default"] = bequant;
