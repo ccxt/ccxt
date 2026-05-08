@@ -173,6 +173,16 @@ public class Throttler
     }
 
 
+    public void setRateLimit(double rateLimit)
+    {
+        this.config.RateLimit = rateLimit;
+        this.config.RefillRate = 1.0 / rateLimit;
+        if (this.config.Algorithm != "leakyBucket")
+        {
+            this.config.MaxWeight = this.config.WindowSize / rateLimit;
+        }
+    }
+
     // move this elsewhere later
     private dict extend(object aa, object bb)
     {
