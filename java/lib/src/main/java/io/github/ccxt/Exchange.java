@@ -82,7 +82,8 @@ public class Exchange {
 
     public volatile List<Object> symbols = new ArrayList<>();
     public volatile List<Object> codes = new ArrayList<>();
-    public volatile List<Object> ids = new ArrayList<>();
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public volatile List ids = new ArrayList<>();
 
     public boolean substituteCommonCurrencyCodes = true;
 
@@ -4786,7 +4787,7 @@ public Object describe()
         * @name exchange#featureValue
         * @description this method is a very deterministic to help users to know what feature is supported by the exchange
         * @param {string} [symbol] unified symbol
-        * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
+        * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/README?id=features
         * @param {string} [paramName] unified param value, like: `triggerPrice`, `stopLoss.triggerPrice` (check docs for supported param names)
         * @param {object} [defaultValue] return default value if no result found
         * @returns {object} returns feature value
@@ -4806,7 +4807,7 @@ public Object describe()
         * @description this method is a very deterministic to help users to know what feature is supported by the exchange
         * @param {string} [marketType] supported only: "spot", "swap", "future"
         * @param {string} [subType] supported only: "linear", "inverse"
-        * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
+        * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/README?id=features
         * @param {string} [paramName] unified param value (check docs for supported param names)
         * @param {object} [defaultValue] return default value if no result found
         * @returns {object} returns feature value
