@@ -3554,11 +3554,8 @@ export default class Exchange {
 
     setRateLimit (rateLimit: number) {
         this.rateLimit = rateLimit;
-        this.throttler.config['rateLimit'] = rateLimit;
-        this.throttler.config['refillRate'] = 1 / rateLimit;
-        if (this.throttler.config['algorithm'] !== 'leakyBucket') {
-            this.throttler.config['maxWeight'] = this.throttler.config['windowSize'] / rateLimit;
-        }
+        const throttler = this.throttler;
+        throttler.setRateLimit (rateLimit);
     }
 
     featuresGenerator () {
