@@ -1,5 +1,7 @@
 {
     "aftermath": {
+        "skip": "exchange doesn't function for some reasons during last few days",
+        "until": "2026-06-07",
         "skipMethods": {
             "fetchCurrencies": {
                 "activeMajorCurrencies": "/currencies endpoint reports BTC with deposit=false, withdraw=false; aftermath is a Sui DEX, BTC is not natively bridgeable there"
@@ -601,7 +603,7 @@
     },
     "btcbox": {
         "skip": "temporary reorg on exchange, lets wait few more weeks",
-        "until":"2026-05-01",
+        "until":"2026-06-01",
         "skipMethods": {
             "loadMarkets": {
                 "precision":"is undefined"
