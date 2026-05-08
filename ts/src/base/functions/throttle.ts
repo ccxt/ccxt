@@ -125,14 +125,6 @@ class Throttler {
         }
         return promise;
     }
-
-    drain (targetThrottler) {
-        this.running = false;
-        while (this.queue.length > 0) {
-            const { resolver, cost } = this.queue.shift ();
-            targetThrottler.throttle (cost).then (resolver);
-        }
-    }
 }
 
 export {
