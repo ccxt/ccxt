@@ -834,7 +834,18 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
         if (target instanceof Map<?, ?> map) {
             if (args.length != 2)
                 throw new IllegalArgumentException("Map requires (key, value)");
-            ((Map<Object, Object>) map).put(args[0], args[1]);
+            Map<Object, Object> m = (Map<Object, Object>) map;
+            // ConcurrentHashMap rejects null values. We use it for thread-safe
+            // shared state (Exchange.options); translate null put → remove
+            // there since TS `obj[key] = null` is semantically equivalent to
+            // "key is not set" (safeValue returns null either way).
+            // Other maps (request payloads, responses) keep explicit null
+            // entries — many static-request/response tests check for them.
+            if (args[1] == null && m instanceof java.util.concurrent.ConcurrentHashMap) {
+                m.remove(args[0]);
+            } else {
+                m.put(args[0], args[1]);
+            }
             return;
         }
 

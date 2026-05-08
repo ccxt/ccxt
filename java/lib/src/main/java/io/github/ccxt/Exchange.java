@@ -101,7 +101,13 @@ public class Exchange {
     public Object number = Float.class;                   // C# typeof(float) → Java Class<?> for Float
     public Map<String, Object> has = new HashMap<>();
     public Map<String, Object> features = new HashMap<>();
-    public Map<String, Object> options = new HashMap<>();
+    // ConcurrentHashMap so concurrent watchTrades / loadMarkets calls don't
+    // race on put/get/remove/iterate. Null values are not allowed by CHM,
+    // but the few exchange-side `options.put("listenKey", null)` sites are
+    // semantically equivalent to "delete the key" — Helpers.addElementToObject
+    // routes null puts to remove() to preserve that semantics (see
+    // SharedStateRaceTest for the concurrent regression that motivated this).
+    public Map<String, Object> options = new java.util.concurrent.ConcurrentHashMap<>();
     public boolean isSandboxModeEnabled = false;
 
     public volatile Object markets = null;
@@ -291,15 +297,26 @@ public class Exchange {
         this.limits    = (Map<String, Object>) this.safeValue(extendedProperties, "limits");
         this.streaming = (Map<String, Object>) this.safeValue(extendedProperties, "streaming");
 
-        // handle options
+        // handle options — keep this.options as a ConcurrentHashMap so concurrent
+        // watchTrades / loadMarkets calls don't race (see Exchange.options field
+        // comment + SharedStateRaceTest).
         var extendedOptions = this.safeDict(extendedProperties, "options");
+        Map<String, Object> initialOptions;
         if (extendedOptions != null) {
             extendedOptions = this.deepExtend(this.getDefaultOptions(), extendedOptions);
-            this.options = new HashMap<String, Object>((Map<String, Object>)extendedOptions);
+            initialOptions = (Map<String, Object>) extendedOptions;
         } else {
-            var defaults = this.getDefaultOptions();
-            this.options = new HashMap<String, Object>((Map<String, Object>)defaults);
+            initialOptions = (Map<String, Object>) this.getDefaultOptions();
         }
+        java.util.concurrent.ConcurrentHashMap<String, Object> opts = new java.util.concurrent.ConcurrentHashMap<>();
+        for (Map.Entry<String, Object> e : initialOptions.entrySet()) {
+            // CHM doesn't accept null values; skip entries that were explicitly
+            // initialized to null (semantically equivalent to "not set").
+            if (e.getKey() != null && e.getValue() != null) {
+                opts.put(e.getKey(), e.getValue());
+            }
+        }
+        this.options = opts;
 
         Boolean verboseTmp = (Boolean) this.safeValue(extendedProperties, "verbose", Boolean.FALSE);
         this.verbose = (verboseTmp != null) ? verboseTmp : false;

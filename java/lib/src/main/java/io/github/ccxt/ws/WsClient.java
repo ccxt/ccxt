@@ -24,6 +24,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -97,6 +99,13 @@ public class WsClient {
     // Netty internals
     private volatile Channel channel;
     private String proxy;
+
+    // Per-client single-thread executor: serializes handleMessageCallback so that
+    // frames from one connection are processed in arrival order (matches C# Client.cs
+    // Receiving loop). Different WsClients still run in parallel since each owns its
+    // own executor. Virtual-thread factory keeps blocking .join() calls cheap.
+    private final ExecutorService messageExecutor = Executors.newSingleThreadExecutor(
+            Thread.ofVirtual().name("ws-msg-", 0).factory());
 
     public WsClient(String url, String proxy,
                     BiConsumer<WsClient, Object> handleMessage,
@@ -306,8 +315,11 @@ public class WsClient {
 
     void onMessage(Object message) {
         if (this.handleMessageCallback != null) {
-            // Offload to virtual thread to avoid blocking Netty event loop
-            Exchange.VIRTUAL_EXECUTOR.execute(() -> {
+            // Offload to a per-client single-thread executor: keeps Netty's event loop
+            // unblocked AND preserves frame ordering per connection. Cross-frame races
+            // on shared exchange state (orderbook cache, balance sub-maps, etc.) are
+            // eliminated for same-client traffic.
+            messageExecutor.execute(() -> {
                 try {
                     this.handleMessageCallback.accept(this, message);
                 } catch (Exception e) {
@@ -474,6 +486,8 @@ public class WsClient {
                 f.reject(new RuntimeException("Connection closed by the user"));
             }
         }
+
+        messageExecutor.shutdown();
     }
 
     // ─── Binary decompression (matches C# lines 393-471) ───
