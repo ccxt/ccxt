@@ -21,6 +21,9 @@ import java.io.ByteArrayOutputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -125,6 +128,14 @@ public class WsClient {
         this.keepAlive = keepAlive;
         this.decompressBinary = decompressBinary;
         this.connected = new CompletableFuture<>();
+    }
+
+
+    public static String getFormattedDate() {
+        DateTimeFormatter formatter =
+                DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+
+        return "[" + LocalDateTime.now().format(formatter) + "] ";
     }
 
     // ─── Future management (matches C# Client.cs lines 77-130) ───
@@ -294,7 +305,7 @@ public class WsClient {
 
         } catch (Exception e) {
             if (this.verbose) {
-                System.err.println("WebSocket connection error: " + e.getMessage());
+                System.err.println(getFormattedDate() + "WebSocket connection error: " + e.getMessage());
             }
             this.onError(e);
         }
@@ -302,7 +313,7 @@ public class WsClient {
 
     void onOpen() {
         if (this.verbose) {
-            System.out.println("WsClient connected: " + this.url);
+            System.out.println(getFormattedDate() + "WsClient connected: " + this.url);
         }
         this.isConnected = true;
         this.connectionEstablished = System.currentTimeMillis();
@@ -335,13 +346,13 @@ public class WsClient {
     public void onPong() {
         this.lastPong = System.currentTimeMillis();
         if (this.verbose) {
-            System.out.println("Pong received: " + this.lastPong);
+            System.out.println(getFormattedDate() + "Pong received: " + this.lastPong);
         }
     }
 
     void onClose(Object reason) {
         if (this.verbose) {
-            System.out.println("WsClient closed: " + this.url + " reason: " + reason);
+            System.out.println(getFormattedDate() + "WsClient closed: " + this.url + " reason: " + reason);
         }
         this.isConnected = false;
         this.startedConnecting.set(false);
@@ -353,7 +364,7 @@ public class WsClient {
 
     void onError(Object err) {
         if (this.verbose) {
-            System.err.println("WsClient error on " + this.url + ": " + err);
+            System.err.println( getFormattedDate() + "WsClient error on " + this.url + ": " + err);
         }
         this.isConnected = false;
         this.startedConnecting.set(false);
@@ -391,7 +402,7 @@ public class WsClient {
                 now = System.currentTimeMillis();
                 if (this.lastPong + this.keepAlive * this.maxPingPongMisses < now) {
                     this.onError(new RuntimeException(
-                            "Connection to " + this.url + " lost, no pong within " + this.keepAlive + "ms"));
+                          getFormattedDate() + "Connection to " + this.url + " lost, no pong within " + this.keepAlive + "ms"));
                     break;
                 }
 
@@ -400,12 +411,23 @@ public class WsClient {
                         Object pingResult = this.pingCallback.apply(this);
                         if (pingResult != null) {
                             this.send(pingResult);
+                        } else {
+                            // callback was not overriden we still need to send the frame
+                            if (this.channel != null && this.channel.isActive()) {
+                                if (this.verbose) {
+                                    System.out.println(getFormattedDate() + " Ping Frame: " + this.lastPong);
+                                }
+                                this.channel.writeAndFlush(new PingWebSocketFrame());
+                            }
                         }
                     } catch (Exception pingEx) {
                         this.onError(pingEx);
                         break;
                     }
                 } else if (this.channel != null && this.channel.isActive()) {
+                    if (this.verbose) {
+                        System.out.println(getFormattedDate() + " Ping Frame: " + this.lastPong);
+                    }
                     this.channel.writeAndFlush(new PingWebSocketFrame());
                 }
 
@@ -415,7 +437,7 @@ public class WsClient {
             Thread.currentThread().interrupt();
         } catch (Exception e) {
             if (this.verbose) {
-                System.err.println("PingLoop error: " + e.getMessage());
+                System.err.println(getFormattedDate() + "PingLoop error: " + e.getMessage());
             }
             this.onError(e);
         }
@@ -441,7 +463,7 @@ public class WsClient {
         }
 
         if (this.verbose) {
-            System.out.println("Sending: " + json);
+            System.out.println(getFormattedDate() +  "Sending: " + json);
         }
 
         if (this.channel != null && this.channel.isActive()) {
