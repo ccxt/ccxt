@@ -38,6 +38,63 @@ function overwriteFileAndFolder(path: string, content: string) {
     writeFile(path, content);
 }
 
+// Split a comma-separated argument list, respecting nested () [] {} and
+// string literals (so that `()` inside a quoted string is not counted as
+// paren depth). Used to rewrite multi-arg System.out.println calls in
+// transpiled tests.
+function splitTopLevelArgs(s: string): string[] {
+    const out: string[] = [];
+    let depth = 0;
+    let inStr: string | null = null;
+    let buf = '';
+    for (let i = 0; i < s.length; i++) {
+        const ch = s[i];
+        if (inStr) {
+            buf += ch;
+            if (ch === '\\' && i + 1 < s.length) { buf += s[++i]; continue; }
+            if (ch === inStr) inStr = null;
+            continue;
+        }
+        if (ch === '"' || ch === '\'') { inStr = ch; buf += ch; continue; }
+        if (ch === '(' || ch === '[' || ch === '{') depth++;
+        else if (ch === ')' || ch === ']' || ch === '}') depth--;
+        if (ch === ',' && depth === 0) {
+            out.push(buf);
+            buf = '';
+        } else {
+            buf += ch;
+        }
+    }
+    if (buf.length > 0) out.push(buf);
+    return out;
+}
+
+// Find a System.out.println(...) call starting at `from` in `src` and
+// return the start, end-of-call (one past the closing paren), and the raw
+// argument string. Walks paren depth and respects string literals.
+function findPrintlnCall(src: string, from: number): { start: number, end: number, args: string } | null {
+    const marker = 'System.out.println(';
+    const start = src.indexOf(marker, from);
+    if (start < 0) return null;
+    let i = start + marker.length;
+    let depth = 1;
+    let inStr: string | null = null;
+    while (i < src.length && depth > 0) {
+        const ch = src[i];
+        if (inStr) {
+            if (ch === '\\' && i + 1 < src.length) { i += 2; continue; }
+            if (ch === inStr) inStr = null;
+            i++; continue;
+        }
+        if (ch === '"' || ch === '\'') inStr = ch;
+        else if (ch === '(') depth++;
+        else if (ch === ')') depth--;
+        i++;
+    }
+    if (depth !== 0) return null;
+    return { start, end: i, args: src.slice(start + marker.length, i - 1) };
+}
+
 // this is necessary because for some reason
 // pathname keeps the first '/' for windows paths
 // making them invalid
@@ -2781,16 +2838,19 @@ class NewTranspiler {
 
         const wsTests = fs.readdirSync(baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
 
+        if (!fs.existsSync(baseFolders.java)) {
+            fs.mkdirSync(baseFolders.java, { recursive: true });
+        }
+
         const tests = [] as any;
 
         wsTests.forEach(test => {
-        const parsedName = test.replace('.ts', '');
-        const parsedParts = parsedName.split('.');
-        const finalName = this.capitalize(parsedParts[0]) + this.capitalize(parsedParts[1]);
+            const correctedName = 'Test' + this.capitalize(test.replace('test.', ''));
             tests.push({
+                base: false,
                 name: test,
                 tsFile: baseFolders.ts + test + '.ts',
-                javaFile: baseFolders.java + finalName + '.java',
+                javaFile: baseFolders.java + correctedName + '.java',
             });
         });
 
@@ -2813,18 +2873,61 @@ class NewTranspiler {
                 [/throw e/gm, 'throw new RuntimeException(e)'],
                 [/TestSharedMethods\.assertTimestampAndDatetime\(exchange, skippedProperties, method, orderbook\)/, '// testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook)'], // tmp disabling timestamp check on the orderbook
                 [/void function/g, 'void'],
-                [/(\w+)\.spawn\(([^,]+),(.+)\)/gm, '$1.spawn($2, new object[] {$3})'],
+                // Test files transpile TS `exchange.spawn(localFn, args)` where
+                // `localFn` is a top-level async function in the same file
+                // (transpiled as a method on the test class). Java's
+                // Exchange.spawn takes a Runnable, so wrap the call in a
+                // lambda that invokes the method and .join()s its
+                // CompletableFuture, mirroring the lib's spawn pattern.
+                [/(\w+)\.spawn\(([^,]+),(.+)\)/gm, '$1.spawn(() -> { try { this.$2($3).join(); } catch(Exception _e) { throw new RuntimeException(_e); } })'],
                 [/exchange.jsonStringifyWithNull/g, 'exchange.json']
             ];
 
             if (filename.includes('fetch') || filename.includes('load') || filename.includes('create') || filename.includes('watch')) {
-                contentIndentend = this.regexAll(contentIndentend, [
-                    [/test(\w+)\(exchange,/gm, 'Test$1.test$1(exchange,'], // dirty trick recognize outside static functions, check comment below *
-                ]);
+                // Resolve cross-file static test calls. e.g. testTrade(exchange,...)
+                // is rewritten to TestTrade.testTrade(exchange,...). Skip names
+                // ending in "Helper": ccxt's TS test files declare local helpers
+                // (testWatchTickersHelper, testWatchBidsAsksHelper) inline on the
+                // same class as the public test, so they resolve as instance
+                // method calls without qualification. Without this skip the
+                // rewrite invents nonexistent helper classes.
+                contentIndentend = contentIndentend.replace(
+                    /test(\w+)\(exchange,/g,
+                    (match: string, name: string) =>
+                        name.endsWith('Helper') ? match : `Test${name}.test${name}(exchange,`
+                );
             } else {
                 contentIndentend = this.regexAll(contentIndentend, [
                     [/testTrade\(exchange\,/, 'TestTrade.testTrade(exchange,'], // quick fix
                 ]);
+            }
+
+            // Java's System.out.println accepts a single argument; the transpiled
+            // output of `console.log(a, b, c)` is `System.out.println(a, b, c)`,
+            // which doesn't compile. Collapse multi-arg println calls into a
+            // single space-separated string. Walks paren depth and respects
+            // string literals so that `()` inside a quoted message doesn't
+            // confuse the matcher.
+            {
+                let cursor = 0;
+                let rebuilt = '';
+                while (true) {
+                    const found = findPrintlnCall(contentIndentend, cursor);
+                    if (!found) {
+                        rebuilt += contentIndentend.slice(cursor);
+                        break;
+                    }
+                    rebuilt += contentIndentend.slice(cursor, found.start);
+                    const parts = splitTopLevelArgs(found.args);
+                    if (parts.length <= 1) {
+                        rebuilt += `System.out.println(${found.args})`;
+                    } else {
+                        const joined = parts.map(p => `String.valueOf(${p.trim()})`).join(' + " " + ');
+                        rebuilt += `System.out.println(${joined})`;
+                    }
+                    cursor = found.end;
+                }
+                contentIndentend = rebuilt;
             }
 
             //*
@@ -2833,8 +2936,45 @@ class NewTranspiler {
             // but that function is part of a different class.
 
             contentIndentend = this.regexAll(contentIndentend, regexes)
-            // cast callDynamically to CompletableFuture when .join() is called on the result
+            // cast callDynamically to CompletableFuture when .join() is called on the result.
+            // The simple regex form only handles one level of nested parens; some WS tests
+            // pass arrays-of-lists which the regex can't reach, so do a paren-counting pass too.
             contentIndentend = contentIndentend.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
+            {
+                const marker = '(Helpers.callDynamically(';
+                let cursor = 0;
+                let rebuilt = '';
+                while (true) {
+                    const start = contentIndentend.indexOf(marker, cursor);
+                    if (start < 0) { rebuilt += contentIndentend.slice(cursor); break; }
+                    let i = start + marker.length;
+                    let depth = 1;
+                    let inStr: string | null = null;
+                    while (i < contentIndentend.length && depth > 0) {
+                        const ch = contentIndentend[i];
+                        if (inStr) {
+                            if (ch === '\\' && i + 1 < contentIndentend.length) { i += 2; continue; }
+                            if (ch === inStr) inStr = null;
+                            i++; continue;
+                        }
+                        if (ch === '"' || ch === '\'') inStr = ch;
+                        else if (ch === '(') depth++;
+                        else if (ch === ')') depth--;
+                        i++;
+                    }
+                    // i now points one past the inner closing `)`. Need to also match `).join()`.
+                    if (depth === 0 && contentIndentend.slice(i, i + 8) === ').join()') {
+                        const args = contentIndentend.slice(start + marker.length, i - 1);
+                        rebuilt += contentIndentend.slice(cursor, start);
+                        rebuilt += `((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(${args})).join()`;
+                        cursor = i + 8;
+                    } else {
+                        rebuilt += contentIndentend.slice(cursor, start + 1);
+                        cursor = start + 1;
+                    }
+                }
+                contentIndentend = rebuilt;
+            }
             // Null-safe Array.isArray (see Helpers.isArrayJs).
             contentIndentend = contentIndentend.replace(/\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)/g, 'Helpers.isArrayJs($1)');
             // const namespace = isWs ? 'using ccxt;\nusing ccxt.pro;' : 'using ccxt;';
@@ -2848,8 +2988,7 @@ class NewTranspiler {
                 'import io.github.ccxt.Helpers;',
                 'import io.github.ccxt.Exchange;',
                 'import io.github.ccxt.errors.*;',
-                isWs ? 'import tests.exchange.TestSharedMethods;' : '',
-                isWs ? 'import tests.exchange.*;' : '',
+                ...(isWs ? ['import tests.exchange.*;'] : []),
                 preciseImport,
                 '',
                 this.createGeneratedHeader().join('\n'),

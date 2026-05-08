@@ -682,13 +682,6 @@ public class WsClient {
             } else if (frame instanceof CloseWebSocketFrame closeFrame) {
                 wsClient.onClose("Server closed: " + closeFrame.statusCode() + " " + closeFrame.reasonText());
             }
-//              else if (frame instanceof PingWebSocketFrame pingFrame) {
-//                 if (wsClient.verbose) {
-//                     System.out.println(getFormattedDate() + "Received Ping Frame will respond with Pong");
-//                 }
-// //                wsClient.channel.writeAndFlush(new PingWebSocketFrame());
-//                 wsClient.channel.writeAndFlush(new PongWebSocketFrame(pingFrame.content().retain()));
-//             }
         }
 
         @Override
