@@ -317,6 +317,28 @@
                 "input": []
             }
         ],
+        "fetchLeverage": [
+            {
+                "description": "fetch leverage with symbol",
+                "method": "fetchLeverage",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/leverage?market=BTC-USD",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "set leverage with symbol",
+                "method": "setLeverage",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/leverage",
+                "input": [
+                    10,
+                    "BTC/USDC:USDC"
+                ],
+                "output": "{\"market\":\"BTC-USD\",\"leverage\":\"10\"}"
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "fetch balance",

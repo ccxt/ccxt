@@ -1072,6 +1072,55 @@
                 }
             }
         ],
+        "fetchLeverage": [
+            {
+                "description": "fetch leverage with symbol",
+                "method": "fetchLeverage",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "status": "OK",
+                    "data": [
+                        {
+                            "market": "BTC-USD",
+                            "leverage": "10"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "market": "BTC-USD",
+                        "leverage": "10"
+                    },
+                    "symbol": "BTC/USDC:USDC",
+                    "marginMode": null,
+                    "longLeverage": 10,
+                    "shortLeverage": 10
+                }
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "set leverage with symbol",
+                "method": "setLeverage",
+                "input": [
+                    10,
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "status": "OK",
+                    "data": {}
+                },
+                "parsedResponse": {
+                    "info": {},
+                    "symbol": "BTC/USDC:USDC",
+                    "marginMode": null,
+                    "longLeverage": null,
+                    "shortLeverage": null
+                }
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "fetchOHLCV with until",

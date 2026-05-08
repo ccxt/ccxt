@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/extended.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, int, Leverage, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees } from './base/types.js';
 import { ArgumentsRequired, BadRequest } from './base/errors.js';
 import { DECIMAL_PLACES, NO_PADDING, TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 
@@ -91,7 +91,7 @@ export default class extended extends Exchange {
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchLedger': false,
-                'fetchLeverage': false,
+                'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': false,
                 'fetchLongShortRatio': false,
@@ -136,7 +136,7 @@ export default class extended extends Exchange {
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
-                'setLeverage': false,
+                'setLeverage': true,
                 'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -230,6 +230,9 @@ export default class extended extends Exchange {
                         ],
                         'put': [
                             'user/referrals',
+                        ],
+                        'patch': [
+                            'user/leverage',
                         ],
                         'delete': [
                             'user/order/{id}',
@@ -1470,6 +1473,87 @@ export default class extended extends Exchange {
 
     /**
      * @method
+     * @name extended#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://api.docs.extended.exchange/#get-leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['id'],
+        };
+        const response = await this.v1PrivateGetUserLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "status": "OK",
+        //         "data": [
+        //             {
+        //                 "market": "SOL-USD",
+        //                 "leverage": "10"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseLeverage (this.safeDict (data, 0), market);
+    }
+
+    /**
+     * @method
+     * @name extended#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://api.docs.extended.exchange/#update-leverage
+     * @param {int} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['id'],
+            'leverage': this.numberToString (leverage),
+        };
+        const response = await this.v1PrivatePatchUserLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "status": "OK",
+        //         "data": {}
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
+    }
+
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        //
+        //     {
+        //         "market": "BTC-USD",
+        //         "leverage": "10"
+        //     }
+        //
+        const marketId = this.safeString (leverage, 'market');
+        market = this.safeMarket (marketId, market);
+        const leverageValue = this.safeNumber (leverage, 'leverage');
+        return {
+            'info': leverage,
+            'symbol': market['symbol'],
+            'marginMode': undefined,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        } as Leverage;
+    }
+
+    /**
+     * @method
      * @name extended#fetchPositions
      * @description fetch all open positions
      * @see https://api.docs.extended.exchange/#get-positions
@@ -2289,7 +2373,7 @@ export default class extended extends Exchange {
             headers = {
                 'X-Api-Key': this.apiKey,
             };
-            if (method === 'POST') {
+            if ((method === 'POST') || (method === 'PATCH')) {
                 const settlement = this.safeDict (query, 'settlement');
                 if (settlement !== undefined && this.safeDict (settlement, 'signature') === undefined) {
                     if ((this.privateKey === undefined) || (this.privateKey === '')) {
