@@ -332,6 +332,9 @@ public class WsClient {
             // eliminated for same-client traffic.
             messageExecutor.execute(() -> {
                 try {
+                    if (this.verbose) {
+                        System.out.println(getFormattedDate() + "OnMessage:" + message);
+                    }
                     this.handleMessageCallback.accept(this, message);
                 } catch (Exception e) {
                     if (this.verbose) {
