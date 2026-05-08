@@ -148,7 +148,7 @@ jobs:
         run: npm run buildJava
       - name: Live tests
         if: env.important_modified == 'true'
-        run: npm run live-tests-java
+        run: ./run-tests-simul.sh --java
       - name: Live tests (specific)
         if: env.important_modified == 'false'
         run: ./run-tests-simul.sh --java "${{ env.rest_files }}" "${{ env.ws_files }}"
