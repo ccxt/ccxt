@@ -245,7 +245,7 @@ async function createExchanges (ids) {
 // ----------------------------------------------------------------------------
 
 const ccxtCertifiedBadge = '[![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification)'
-    , ccxtProBadge = '[![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)'
+    , ccxtProBadge = '[![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual)'
 
 // ----------------------------------------------------------------------------
 
@@ -582,7 +582,6 @@ function exportWikiToGitHub (wikiPath, gitWikiPath) {
         'Exchange-Markets.md': 'Exchange-Markets.md',
         'Exchange-Markets-By-Country.md': 'Exchange-Markets-By-Country.md',
         'ccxt.pro.md': 'ccxt.pro.md',
-        // 'ccxt.pro.install.md': 'ccxt.pro.install.md',
         'ccxt.pro.manual.md': 'ccxt.pro.manual.md',
     }
 
