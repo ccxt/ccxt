@@ -1,30 +1,12 @@
 package io.github.ccxt.ws;
 
-import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.*;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.http.*;
-import io.netty.handler.codec.http.websocketx.*;
-import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketClientCompressionHandler;
-import io.netty.handler.proxy.HttpProxyHandler;
-import io.netty.handler.proxy.Socks5ProxyHandler;
-import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -34,11 +16,43 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.Inflater;
-import java.util.zip.InflaterOutputStream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.github.ccxt.Exchange;
 import io.github.ccxt.base.JsonHelper;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ChannelPromise;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.http.DefaultHttpHeaders;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpClientCodec;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
+import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory;
+import io.netty.handler.codec.http.websocketx.WebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketHandshakeException;
+import io.netty.handler.codec.http.websocketx.WebSocketVersion;
+import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketClientCompressionHandler;
+import io.netty.handler.proxy.HttpProxyHandler;
+import io.netty.handler.proxy.Socks5ProxyHandler;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 
 /**
  * Netty-based WebSocket client for CCXT.
@@ -657,6 +671,9 @@ public class WsClient {
                 // RFC 6455 §5.5.3: a Pong frame sent in response to a Ping frame
                 // must echo the Ping's application data. Without this reply,
                 // Binance closes the stream with `1008 Pong timeout`.
+                if (wsClient.verbose) {
+                    System.out.println(getFormattedDate() + "Received Ping Frame will respond with Pong");
+                }
                 ctx.writeAndFlush(new PongWebSocketFrame(pingFrame.content().retain()));
 
             } else if (frame instanceof PongWebSocketFrame) {
@@ -664,13 +681,14 @@ public class WsClient {
 
             } else if (frame instanceof CloseWebSocketFrame closeFrame) {
                 wsClient.onClose("Server closed: " + closeFrame.statusCode() + " " + closeFrame.reasonText());
-            } else if (frame instanceof PingWebSocketFrame pingFrame) {
-                if (wsClient.verbose) {
-                    System.out.println(getFormattedDate() + "Received Ping Frame will respond with Pong");
-                }
-//                wsClient.channel.writeAndFlush(new PingWebSocketFrame());
-                wsClient.channel.writeAndFlush(new PongWebSocketFrame(pingFrame.content().retain()));
             }
+//              else if (frame instanceof PingWebSocketFrame pingFrame) {
+//                 if (wsClient.verbose) {
+//                     System.out.println(getFormattedDate() + "Received Ping Frame will respond with Pong");
+//                 }
+// //                wsClient.channel.writeAndFlush(new PingWebSocketFrame());
+//                 wsClient.channel.writeAndFlush(new PongWebSocketFrame(pingFrame.content().retain()));
+//             }
         }
 
         @Override
