@@ -125,6 +125,15 @@ class Throttler {
         }
         return promise;
     }
+
+    setRateLimit (rateLimit: number) {
+        this.config['rateLimit'] = rateLimit;
+        this.config['refillRate'] = 1 / rateLimit;
+        if (this.config['algorithm'] !== 'leakyBucket') {
+            this.config['maxWeight'] = this.config['windowSize'] / rateLimit;
+        }
+    }
+
 }
 
 export {
