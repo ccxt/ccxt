@@ -1121,6 +1121,94 @@
                 }
             }
         ],
+        "fetchPositionsHistory": [
+            {
+                "description": "fetch positions history with symbol",
+                "method": "fetchPositionsHistory",
+                "input": [
+                    [
+                        "BTC/USDC:USDC"
+                    ]
+                ],
+                "httpResponse": {
+                    "status": "OK",
+                    "data": [
+                        {
+                            "id": "2052253880279891968",
+                            "accountId": 3342,
+                            "market": "BTC-USD",
+                            "side": "LONG",
+                            "size": "0.0001000000000000",
+                            "maxPositionSize": "0.0001000000000000",
+                            "leverage": "15.0000000000000000",
+                            "openPrice": "81500.0000000000000000",
+                            "realisedPnl": "-0.0040750000000000",
+                            "realisedPnlBreakdown": {
+                                "tradePnl": "0.0000000000000000",
+                                "fundingFees": "0.0000000000000000",
+                                "openFees": "-0.0040750000000000",
+                                "closeFees": "0.0000000000000000"
+                            },
+                            "createdTime": 1778130428749
+                        }
+                    ],
+                    "pagination": {
+                        "cursor": "2052253880279891968",
+                        "count": 1
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "2052253880279891968",
+                            "accountId": 3342,
+                            "market": "BTC-USD",
+                            "side": "LONG",
+                            "size": "0.0001000000000000",
+                            "maxPositionSize": "0.0001000000000000",
+                            "leverage": "15.0000000000000000",
+                            "openPrice": "81500.0000000000000000",
+                            "realisedPnl": "-0.0040750000000000",
+                            "realisedPnlBreakdown": {
+                                "tradePnl": "0.0000000000000000",
+                                "fundingFees": "0.0000000000000000",
+                                "openFees": "-0.0040750000000000",
+                                "closeFees": "0.0000000000000000"
+                            },
+                            "createdTime": 1778130428749,
+                            "cursor": "2052253880279891968"
+                        },
+                        "id": "2052253880279891968",
+                        "symbol": "BTC/USDC:USDC",
+                        "timestamp": 1778130428749,
+                        "datetime": "2026-05-07T05:07:08.749Z",
+                        "lastUpdateTimestamp": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": "81500.0000000000000000",
+                        "notional": null,
+                        "leverage": "15.0000000000000000",
+                        "unrealizedPnl": null,
+                        "realizedPnl": "-0.0040750000000000",
+                        "contracts": "0.0001000000000000",
+                        "contractSize": "1",
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": null,
+                        "lastPrice": null,
+                        "collateral": null,
+                        "marginMode": null,
+                        "side": "long",
+                        "percentage": null,
+                        "hedged": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    }
+                ]
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "fetchOHLCV with until",

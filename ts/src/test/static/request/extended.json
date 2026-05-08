@@ -369,6 +369,18 @@
                 ]
             }
         ],
+        "fetchPositionsHistory": [
+            {
+                "description": "fetch positions history with symbol",
+                "method": "fetchPositionsHistory",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/positions/history?market=BTC-USD",
+                "input": [
+                    [
+                        "BTC/USDC:USDC"
+                    ]
+                ]
+            }
+        ],
         "cancelOrder": [
             {
                 "description": "cancel order by id",

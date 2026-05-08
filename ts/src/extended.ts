@@ -117,7 +117,7 @@ export default class extended extends Exchange {
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
-                'fetchPositionsHistory': false,
+                'fetchPositionsHistory': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
@@ -1617,6 +1617,71 @@ export default class extended extends Exchange {
         return this.safeDict (positions, 0) as Position;
     }
 
+    /**
+     * @method
+     * @name extended#fetchPositionsHistory
+     * @description fetch historical positions
+     * @see https://api.docs.extended.exchange/#get-positions-history
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of position structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        if (typeof symbols === 'string') {
+            symbols = [ symbols ];
+        }
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchPositionsHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchPositionsHistory', symbols as any, since, limit, params, 'cursor', 'cursor', undefined, 10000) as Position[];
+        }
+        const request: Dict = {};
+        if (symbols !== undefined) {
+            const marketIds = this.marketIds (symbols);
+            request['market'] = (marketIds.length === 1) ? marketIds[0] : marketIds;
+        }
+        const response = await this.v1PrivateGetUserPositionsHistory (this.extend (request, params));
+        //
+        //     {
+        //         "status": "OK",
+        //         "data": [
+        //             {
+        //                 "id": 1784963886257016832,
+        //                 "accountId": 1,
+        //                 "market": "BTC-USD",
+        //                 "side": "LONG",
+        //                 "exitType": "TRADE",
+        //                 "leverage": "10",
+        //                 "size": "0.1",
+        //                 "maxPositionSize": "0.2",
+        //                 "openPrice": "39000",
+        //                 "exitPrice": "40000",
+        //                 "realisedPnl": "10",
+        //                 "createdTime": 1701563440000,
+        //                 "closedTime": 1701567040000
+        //             }
+        //         ],
+        //         "pagination": {
+        //             "cursor": 1784963886257016832,
+        //             "count": 1
+        //         }
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const pagination = this.safeDict (response, 'pagination', {});
+        const cursor = this.safeValue (pagination, 'cursor');
+        if ((cursor !== undefined) && (data.length > 0)) {
+            const lastIndex = data.length - 1;
+            data[lastIndex] = this.extend (data[lastIndex], { 'cursor': cursor });
+        }
+        const positions = this.parsePositions (data, symbols);
+        return this.filterBySinceLimit (positions, since, limit, 'timestamp') as Position[];
+    }
+
     parsePosition (position: Dict, market: Market = undefined): Position {
         //
         //     {
@@ -1646,7 +1711,8 @@ export default class extended extends Exchange {
         const marketId = this.safeString (position, 'market');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger2 (position, 'createdAt', 'createdTime');
-        const lastUpdateTimestamp = this.safeInteger2 (position, 'updatedAt', 'updatedTime');
+        let lastUpdateTimestamp = this.safeInteger2 (position, 'updatedAt', 'updatedTime');
+        lastUpdateTimestamp = this.safeInteger (position, 'closedTime', lastUpdateTimestamp);
         const side = this.safeStringLower (position, 'side');
         const margin = this.safeString (position, 'margin');
         return this.safePosition ({
@@ -1670,7 +1736,7 @@ export default class extended extends Exchange {
             'marginRatio': undefined,
             'liquidationPrice': this.safeString (position, 'liquidationPrice'),
             'markPrice': this.safeString (position, 'markPrice'),
-            'lastPrice': undefined,
+            'lastPrice': this.safeString (position, 'exitPrice'),
             'collateral': margin,
             'marginMode': undefined,
             'side': side,
