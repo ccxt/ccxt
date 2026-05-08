@@ -257,6 +257,8 @@ export default class extended extends Exchange {
                 },
             },
             'options': {
+                'brokerId': 'CCXT-CODE',
+                'brokerReferralCodeApplied': false,
             },
         });
     }
@@ -1962,14 +1964,10 @@ export default class extended extends Exchange {
         const expiryEpochMillis = this.safeInteger (params, 'expiryEpochMillis', now + 3600000);
         const settlementExpiration = this.safeInteger (params, 'settlementExpiration', this.parseToInt ((expiryEpochMillis + 999) / 1000) + 1209600);
         const nonce = this.numberToString (this.nonce ());
-        let starkKey = this.safeString2 (params, 'starkKey', 'l2Key');
-        let collateralPosition = this.safeString2 (params, 'collateralPosition', 'l2Vault');
-        if ((starkKey === undefined) || (collateralPosition === undefined)) {
-            const account = await this.v1PrivateGetUserAccountInfo ();
-            const accountData = this.safeDict (account, 'data', {});
-            starkKey = this.safeString (accountData, 'l2Key', starkKey);
-            collateralPosition = this.safeString (accountData, 'l2Vault', collateralPosition);
-        }
+        const account = await this.v1PrivateGetUserAccountInfo ();
+        const accountData = this.safeDict (account, 'data', {});
+        const starkKey = this.safeString (accountData, 'l2Key');
+        const collateralPosition = this.safeString (accountData, 'l2Vault');
         const info = this.safeDict (market, 'info', {});
         const l2Config = this.safeDict (info, 'l2Config', {});
         const syntheticId = this.safeString (l2Config, 'syntheticId');
@@ -2003,10 +2001,7 @@ export default class extended extends Exchange {
             'expiration': this.numberToString (settlementExpiration),
             'salt': nonce,
         };
-        let clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
-        if (clientOrderId === undefined) {
-            clientOrderId = this.uuid ();
-        }
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id', this.uuid ());
         const request: Dict = {
             'id': clientOrderId,
             'market': market['id'],
@@ -2021,7 +2016,7 @@ export default class extended extends Exchange {
             'settlement': settlement,
             'postOnly': postOnly,
             'reduceOnly': reduceOnly,
-            'selfTradeProtectionLevel': this.safeString (params, 'selfTradeProtectionLevel', 'ACCOUNT'),
+            'selfTradeProtectionLevel': 'ACCOUNT',
         };
         if (builderFee !== undefined) {
             request['builderFee'] = builderFee;
@@ -2034,7 +2029,7 @@ export default class extended extends Exchange {
         if (cancelId !== undefined) {
             request['cancelId'] = cancelId;
         }
-        params = this.omit (params, [ 'clientOrderId', 'client_id', 'timeInForce', 'postOnly', 'reduceOnly', 'reduce_only', 'fee', 'nonce', 'expiryEpochMillis', 'settlementExpiration', 'starkKey', 'l2Key', 'collateralPosition', 'l2Vault', 'selfTradeProtectionLevel', 'builderFee', 'builderId', 'cancelId', 'previousOrderId' ]);
+        params = this.omit (params, [ 'clientOrderId', 'client_id', 'timeInForce', 'postOnly', 'reduceOnly', 'reduce_only', 'fee', 'nonce', 'expiryEpochMillis', 'settlementExpiration', 'builderFee', 'builderId', 'cancelId', 'previousOrderId', 'brokerId', 'referralCode' ]);
         return {
             'request': this.extend (request, params),
             'market': market,
@@ -2043,6 +2038,16 @@ export default class extended extends Exchange {
             'price': priceString,
             'amount': amountString,
         };
+    }
+
+    async applyBrokerReferralCode () {
+        const brokerId = this.safeString (this.options, 'brokerId');
+        const brokerReferralCodeApplied = this.safeBool (this.options, 'brokerReferralCodeApplied', false);
+        if ((brokerId === undefined) || brokerReferralCodeApplied) {
+            return;
+        }
+        await this.v1PrivatePostUserReferralsUse ({ 'code': brokerId });
+        this.options['brokerReferralCodeApplied'] = true;
     }
 
     /**
@@ -2063,11 +2068,10 @@ export default class extended extends Exchange {
      * @param {boolean} [params.reduceOnly] true if the order should only reduce a position
      * @param {string} [params.fee] max fee rate for the order, default is 0.0005
      * @param {int} [params.expiryEpochMillis] order expiration timestamp in milliseconds, default is now + 1 hour
-     * @param {string} [params.starkKey] account stark public key, fetched from account info if omitted
-     * @param {string} [params.collateralPosition] account vault id, fetched from account info if omitted
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        await this.applyBrokerReferralCode ();
         const extendedOrderRequest = await this.createExtendedOrderRequest (symbol, type, side, amount, price, params);
         const request = this.safeDict (extendedOrderRequest, 'request', {});
         const response = await this.v1PrivatePostUserOrder (request);
@@ -2118,6 +2122,7 @@ export default class extended extends Exchange {
         if (id === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an id argument');
         }
+        await this.applyBrokerReferralCode ();
         let expiryEpochMillis = this.safeInteger (params, 'expiryEpochMillis');
         let postOnly = this.safeBool (params, 'postOnly');
         let reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');

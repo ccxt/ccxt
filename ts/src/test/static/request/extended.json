@@ -157,55 +157,6 @@
                 "output": null
             }
         ],
-        "createOrder": [
-            {
-                "description": "create limit sell order",
-                "method": "createOrder",
-                "url": "https://api.starknet.extended.exchange/api/v1/user/order",
-                "input": [
-                    "BTC/USDC:USDC",
-                    "limit",
-                    "sell",
-                    0.01,
-                    87777,
-                    {
-                        "clientOrderId": "123456789",
-                        "starkKey": "0x3",
-                        "collateralPosition": "4",
-                        "expiryEpochMillis": 1777966055617,
-                        "settlementExpiration": 1779175656,
-                        "postOnly": false,
-                        "reduceOnly": false
-                    }
-                ],
-                "output": "{\"id\":\"123456789\",\"market\":\"BTC-USD\",\"type\":\"LIMIT\",\"side\":\"SELL\",\"qty\":\"0.01\",\"price\":\"87777\",\"timeInForce\":\"GTT\",\"expiryEpochMillis\":1777966055617,\"fee\":\"0.0005\",\"nonce\":\"1777964253\",\"settlement\":{\"signature\":{\"r\":\"0x5055aa2528ec9eaf0620c22203c5ea6f350a8ce8cffac0cb062085c1b36992d\",\"s\":\"0x5c40e07654552029418646e1dd5f03472b87616a7d289a07afc5ec19095fd4\"},\"starkKey\":\"0x3\",\"collateralPosition\":\"4\"},\"postOnly\":false,\"reduceOnly\":false,\"selfTradeProtectionLevel\":\"ACCOUNT\"}"
-            }
-        ],
-        "editOrder": [
-            {
-                "description": "edit limit sell order",
-                "method": "editOrder",
-                "url": "https://api.starknet.extended.exchange/api/v1/user/order",
-                "input": [
-                    "987654321",
-                    "BTC/USDC:USDC",
-                    "limit",
-                    "sell",
-                    0.01,
-                    85777,
-                    {
-                        "clientOrderId": "223456789",
-                        "starkKey": "0x3",
-                        "collateralPosition": "4",
-                        "expiryEpochMillis": 1777966055617,
-                        "settlementExpiration": 1779175656,
-                        "postOnly": false,
-                        "reduceOnly": false
-                    }
-                ],
-                "output": "{\"id\":\"223456789\",\"market\":\"BTC-USD\",\"type\":\"LIMIT\",\"side\":\"SELL\",\"qty\":\"0.01\",\"price\":\"85777\",\"timeInForce\":\"GTT\",\"expiryEpochMillis\":1777966055617,\"fee\":\"0.0005\",\"nonce\":\"1777964253\",\"settlement\":{\"signature\":{\"r\":\"0x5d1e810d2a0cb80167a52574555a1280d432c005fb4306364733c92be6051d\",\"s\":\"0x5cdc5abdf0d54633a166996bc0a7b79e94589f4550db0cc7e2bd8bd8eee54bb\"},\"starkKey\":\"0x3\",\"collateralPosition\":\"4\"},\"postOnly\":false,\"reduceOnly\":false,\"selfTradeProtectionLevel\":\"ACCOUNT\",\"cancelId\":\"987654321\"}"
-            }
-        ],
         "fetchOrder": [
             {
                 "description": "fetch order by id",
