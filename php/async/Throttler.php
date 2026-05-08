@@ -114,14 +114,4 @@ class Throttler {
         }
         return $future->promise();
     }
-    
-    public function drain(Throttler $targetThrottler) {
-        $this->running = false;
-        while (!$this->queue->isEmpty()) {
-            list($future, $cost) = $this->queue->dequeue();
-            $targetThrottler($cost)->then(function () use ($future) {
-                $future->resolve(null);
-            });
-        }
-    }
 }
