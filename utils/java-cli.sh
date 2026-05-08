@@ -4,8 +4,12 @@ set -e
 
 cd java/
 
-# Run the CLI with all passed arguments
-./gradlew cli:run --args="$*"
+
+if [ "$#" -gt 0 ]; then
+    ./gradlew cli:run --args="$*"
+else
+    ./gradlew cli:run
+fi
 
 # Return to original directory
 cd ..
