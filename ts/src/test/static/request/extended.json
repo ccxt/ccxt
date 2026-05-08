@@ -339,6 +339,18 @@
                 "output": "{\"market\":\"BTC-USD\",\"leverage\":\"10\"}"
             }
         ],
+        "fetchTransactions": [
+            {
+                "description": "fetch transactions with limit",
+                "method": "fetchTransactions",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/assetOperations?limit=1",
+                "input": [
+                    null,
+                    null,
+                    1
+                ]
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "fetch balance",

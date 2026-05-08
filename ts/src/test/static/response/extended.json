@@ -1121,6 +1121,75 @@
                 }
             }
         ],
+        "fetchTransactions": [
+            {
+                "description": "fetch transactions with limit",
+                "method": "fetchTransactions",
+                "input": [
+                    null,
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "status": "OK",
+                    "data": [
+                        {
+                            "id": "1951255127004282880",
+                            "type": "TRANSFER",
+                            "status": "COMPLETED",
+                            "amount": "-3.0000000000000000",
+                            "fee": "0",
+                            "asset": 1,
+                            "time": 1754050449502,
+                            "accountId": 100009,
+                            "counterpartyAccountId": 100023
+                        }
+                    ],
+                    "pagination": {
+                        "cursor": "1951255127004282880",
+                        "count": 1
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "1951255127004282880",
+                            "type": "TRANSFER",
+                            "status": "COMPLETED",
+                            "amount": "-3.0000000000000000",
+                            "fee": "0",
+                            "asset": 1,
+                            "time": 1754050449502,
+                            "accountId": 100009,
+                            "counterpartyAccountId": 100023,
+                            "cursor": "1951255127004282880"
+                        },
+                        "id": "1951255127004282880",
+                        "txid": null,
+                        "timestamp": 1754050449502,
+                        "datetime": "2025-08-01T10:54:09.502Z",
+                        "address": null,
+                        "addressFrom": null,
+                        "addressTo": null,
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "type": "transfer",
+                        "amount": 3,
+                        "currency": "USDC",
+                        "status": "ok",
+                        "updated": 1754050449502,
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 0
+                        },
+                        "network": null,
+                        "comment": null,
+                        "internal": true
+                    }
+                ]
+            }
+        ],
         "fetchPositionsHistory": [
             {
                 "description": "fetch positions history with symbol",

@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/extended.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, int, Leverage, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, int, Leverage, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction } from './base/types.js';
 import { ArgumentsRequired, BadRequest } from './base/errors.js';
 import { DECIMAL_PLACES, NO_PADDING, TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 
@@ -127,7 +127,7 @@ export default class extended extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
-                'fetchTransactions': false,
+                'fetchTransactions': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawAddresses': false,
@@ -259,6 +259,33 @@ export default class extended extends Exchange {
             'options': {
             },
         });
+    }
+
+    async loadMarkets (reload = false, params = {}) {
+        const markets = await super.loadMarkets (reload, params);
+        const currenciesByNumericId = this.safeDict (this.options, 'currenciesByNumericId');
+        if ((currenciesByNumericId === undefined) || reload) {
+            this.options['currenciesByNumericId'] = this.indexByStringifiedNumericId (this.currencies);
+        }
+        return markets;
+    }
+
+    indexByStringifiedNumericId (input) {
+        const result: Dict = {};
+        if (input === undefined) {
+            return undefined;
+        }
+        const keys = Object.keys (input);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const item = input[key];
+            const numericIdString = this.safeString (item, 'numericId');
+            if (numericIdString === undefined) {
+                continue;
+            }
+            result[numericIdString] = item;
+        }
+        return result;
     }
 
     /**
@@ -1376,6 +1403,158 @@ export default class extended extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    /**
+     * @method
+     * @name extended#fetchTransactions
+     * @description fetch history of deposits, withdrawals, and transfers
+     * @see https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch transactions for
+     * @param {int} [limit] the maximum number of transaction structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchTransactions (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransactions', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchTransactions', code, since, limit, params, 'cursor', 'cursor', undefined, 50) as Transaction[];
+        }
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const request: Dict = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.v1PrivateGetUserAssetOperations (this.extend (request, params));
+        //
+        //     {
+        //         "status": "OK",
+        //         "data": [
+        //             {
+        //                 "id": "1951255127004282880",
+        //                 "type": "TRANSFER",
+        //                 "status": "COMPLETED",
+        //                 "amount": "-3.0000000000000000",
+        //                 "fee": "0",
+        //                 "asset": 1,
+        //                 "time": 1754050449502,
+        //                 "accountId": 100009,
+        //                 "counterpartyAccountId": 100023
+        //             }
+        //         ],
+        //         "pagination": {
+        //             "cursor": 1951255127004282880,
+        //             "count": 1
+        //         }
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const pagination = this.safeDict (response, 'pagination', {});
+        const cursor = this.safeValue (pagination, 'cursor');
+        if ((cursor !== undefined) && (data.length > 0)) {
+            const lastIndex = data.length - 1;
+            data[lastIndex] = this.extend (data[lastIndex], { 'cursor': cursor });
+        }
+        return this.parseTransactions (data, currency, since, limit);
+    }
+
+    getExtendedCurrencyCodeById (assetId: Str, currency: Currency = undefined): Str {
+        if (assetId === undefined) {
+            return this.safeString (currency, 'code');
+        }
+        const currenciesByNumericId = this.safeDict (this.options, 'currenciesByNumericId', {});
+        const currencyByNumericId = this.safeDict (currenciesByNumericId, assetId);
+        if (currencyByNumericId !== undefined) {
+            return this.safeString (currencyByNumericId, 'code');
+        }
+        if (currency !== undefined) {
+            return currency['code'];
+        }
+        let code = this.safeCurrencyCode (assetId);
+        if (code === 'USD') {
+            code = 'USDC';
+        }
+        return code;
+    }
+
+    parseTransactionStatus (status: Str): Str {
+        const statuses: Dict = {
+            'CREATED': 'pending',
+            'IN_PROGRESS': 'pending',
+            'COMPLETED': 'ok',
+            'REJECTED': 'failed',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransactionType (type: Str): Str {
+        const types: Dict = {
+            'DEPOSIT': 'deposit',
+            'WITHDRAWAL': 'withdrawal',
+            'TRANSFER': 'transfer',
+            'CLAIM': 'claim',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        //
+        //     {
+        //         "id": "1951255127004282880",
+        //         "type": "TRANSFER",
+        //         "status": "COMPLETED",
+        //         "amount": "-3.0000000000000000",
+        //         "fee": "0",
+        //         "asset": 1,
+        //         "time": 1754050449502,
+        //         "accountId": 100009,
+        //         "counterpartyAccountId": 100023
+        //     }
+        //
+        const timestamp = this.safeInteger (transaction, 'time');
+        const assetId = this.safeString (transaction, 'asset');
+        const code = this.getExtendedCurrencyCodeById (assetId, currency);
+        const amountString = this.safeString (transaction, 'amount');
+        const amount = (amountString === undefined) ? undefined : this.parseNumber (Precise.stringAbs (amountString));
+        let fee = undefined;
+        const feeCost = this.safeString (transaction, 'fee');
+        if (feeCost !== undefined) {
+            fee = {
+                'currency': code,
+                'cost': this.parseNumber (Precise.stringAbs (feeCost)),
+            };
+        }
+        const transactionType = this.parseTransactionType (this.safeString (transaction, 'type'));
+        const network = this.safeString (transaction, 'chain');
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'transactionHash'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': undefined,
+            'addressFrom': undefined,
+            'addressTo': undefined,
+            'tag': undefined,
+            'tagFrom': undefined,
+            'tagTo': undefined,
+            'type': transactionType,
+            'amount': amount,
+            'currency': code,
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
+            'updated': timestamp,
+            'fee': fee,
+            'network': network,
+            'comment': undefined,
+            'internal': (transactionType === 'transfer'),
+        };
     }
 
     /**
