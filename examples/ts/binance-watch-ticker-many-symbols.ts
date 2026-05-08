@@ -1,21 +1,20 @@
 'use strict';
 
-const ccxt = require ('ccxt');
+import ccxt from '../../js/ccxt.js';
 
-// your version must be 0.7+
-console.log ('CCXT Version:', ccxt.version)
+console.log ('CCXT Version:', ccxt.version); // eslint-disable-line import/no-named-as-default-member
 
 function handle (exchange, symbol, ticker) {
-    console.log (new Date (), exchange.id, symbol, ticker['last'])
+    console.log (new Date (), exchange.id, symbol, ticker['last']);
 }
 
 async function loop (exchange, symbol) {
-    while (true) {
+    while (true) { // eslint-disable-line no-constant-condition
         try {
-            const ticker = await exchange.watchTicker (symbol)
-            handle (exchange, symbol, ticker)
+            const ticker = await exchange.watchTicker (symbol);
+            handle (exchange, symbol, ticker);
         } catch (e) {
-            console.log (symbol, e)
+            console.log (symbol, e);
             // do nothing and retry on next loop iteration
             // throw e // uncomment to break all loops in case of an error in any one of them
             // break // you can also break just this one loop if it fails
@@ -24,26 +23,17 @@ async function loop (exchange, symbol) {
 }
 
 async function main () {
-
-     const exchange = new ccxt.pro.binanceusdm () // usd(s)-margined contracts
+    const exchange = new ccxt.pro.binance (); // eslint-disable-line import/no-named-as-default-member
     //
-    // or
-    //
-    //  const exchange = new ccxt.pro.binance () // spot markets
-    //
-    // WARNING: when using the spot markets mind subscription limits!
+    // WARNING: when using all the markets mind subscription limits!
     // don't attempt to subscribe to all of them
     // the exchanges will not allow that in general
     // instead, specify a shorter list of symbols to subscribe to
     //
-    // or
-    //
-    //  const exchange = new ccxt.pro.binancecoinm () // coin-margined contracts
-
     if (exchange.has['watchTicker']) {
-        await exchange.loadMarkets ()
+        await exchange.loadMarkets ();
         // many symbols
-        await Promise.all (exchange.symbols.map (symbol => loop (exchange, symbol)))
+        await Promise.all (exchange.symbols.map ((symbol) => loop (exchange, symbol)));
         //
         // or
         //
@@ -53,10 +43,9 @@ async function main () {
         // or
         //
         // await loop (exchange, 'BTC/USDT') // one symbol
-
     } else {
-        console.log (exchange.id, 'does not support watchTicker yet')
+        console.log (exchange.id, 'does not support watchTicker yet');
     }
 }
 
-main ()
+main ();
