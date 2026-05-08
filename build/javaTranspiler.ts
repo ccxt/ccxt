@@ -2817,7 +2817,7 @@ class NewTranspiler {
                 [/exchange.jsonStringifyWithNull/g, 'exchange.json']
             ];
 
-            if (filename.includes('fetch') || filename.includes('load') || filename.includes('create')) {
+            if (filename.includes('fetch') || filename.includes('load') || filename.includes('create') || filename.includes('watch')) {
                 contentIndentend = this.regexAll(contentIndentend, [
                     [/test(\w+)\(exchange,/gm, 'Test$1.test$1(exchange,'], // dirty trick recognize outside static functions, check comment below *
                 ]);
