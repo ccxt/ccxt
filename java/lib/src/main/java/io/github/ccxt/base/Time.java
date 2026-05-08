@@ -79,7 +79,7 @@ public final class Time {
             return null;
         }
 
-        String datetime = ((String) datetime2).trim();
+        String datetime = stripUtcSuffix(((String) datetime2).trim());
         if (datetime.isEmpty()) {
             return null;
         }
@@ -109,7 +109,7 @@ public final class Time {
             return null;
         }
 
-        String datetime = ((String) datetime2).trim();
+        String datetime = stripUtcSuffix(((String) datetime2).trim());
         if (datetime.isEmpty()) {
             return null;
         }
@@ -138,6 +138,21 @@ public final class Time {
         } catch (DateTimeParseException ex) {
             return null;
         }
+    }
+
+    // Aftermath (and a few other exchanges) return datetimes like
+    // "2025-12-29 22:43:54.639 UTC". JS's Date.parse and Python's dateutil
+    // accept the trailing zone word; java.time's strict parsers do not.
+    // Strip a trailing " UTC"/" GMT" so the rest of the parsing succeeds.
+    private static String stripUtcSuffix(String s) {
+        int len = s.length();
+        if (len >= 4) {
+            String tail = s.substring(len - 4);
+            if (tail.equalsIgnoreCase(" UTC") || tail.equalsIgnoreCase(" GMT")) {
+                return s.substring(0, len - 4).trim();
+            }
+        }
+        return s;
     }
 
     // -------- iso8601 formatting --------
