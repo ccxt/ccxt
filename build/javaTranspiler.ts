@@ -2776,7 +2776,7 @@ class NewTranspiler {
 
         const baseFolders = {
             ts: './ts/src/pro/test/Exchange/',
-            csharp: EXCHANGE_GENERATED_FOLDER + 'Ws/',
+            java: EXCHANGE_GENERATED_FOLDER + 'ws/',
         };
 
         const wsTests = fs.readdirSync(baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
@@ -2784,10 +2784,13 @@ class NewTranspiler {
         const tests = [] as any;
 
         wsTests.forEach(test => {
+        const parsedName = test.replace('.ts', '');
+        const parsedParts = parsedName.split('.');
+        const finalName = this.capitalize(parsedParts[0]) + this.capitalize(parsedParts[1]);
             tests.push({
                 name: test,
                 tsFile: baseFolders.ts + test + '.ts',
-                javaFile: baseFolders.java + test + '.java',
+                javaFile: baseFolders.java + finalName + '.java',
             });
         });
 
@@ -2838,12 +2841,15 @@ class NewTranspiler {
             let parsedName = 'Test' + this.capitalize(filename.replace('test.', '').replace('tests.', ''));
             if (parsedName === 'TestOhlcv') parsedName = 'TestOHLCV'; // special case
             const preciseImport = contentIndentend.indexOf('Precise.') >= 0 ? 'import io.github.ccxt.base.Precise;\n' : '';
+            const packageName = isWs ? 'tests.exchange.ws' : 'tests.exchange';
             const fileHeaders = [
-                'package tests.exchange;',
+                `package ${packageName};`,
                 'import tests.BaseTest;',
                 'import io.github.ccxt.Helpers;',
                 'import io.github.ccxt.Exchange;',
                 'import io.github.ccxt.errors.*;',
+                isWs ? 'import tests.exchange.TestSharedMethods;' : '',
+                isWs ? 'import tests.exchange.*;' : '',
                 preciseImport,
                 '',
                 this.createGeneratedHeader().join('\n'),
@@ -2886,7 +2892,7 @@ class NewTranspiler {
         }
         this.transpileBaseTestsToJava();
         this.transpileExchangeTests();
-        // this.transpileWsExchangeTests();
+        this.transpileWsExchangeTests();
     }
 }
 
