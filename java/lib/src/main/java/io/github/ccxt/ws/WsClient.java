@@ -653,6 +653,12 @@ public class WsClient {
                 }
                 wsClient.onMessage(parsed);
 
+            } else if (frame instanceof PingWebSocketFrame pingFrame) {
+                // RFC 6455 §5.5.3: a Pong frame sent in response to a Ping frame
+                // must echo the Ping's application data. Without this reply,
+                // Binance closes the stream with `1008 Pong timeout`.
+                ctx.writeAndFlush(new PongWebSocketFrame(pingFrame.content().retain()));
+
             } else if (frame instanceof PongWebSocketFrame) {
                 wsClient.onPong();
 
