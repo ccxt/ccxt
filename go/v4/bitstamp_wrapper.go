@@ -822,7 +822,7 @@ func (this *Bitstamp) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry,
  * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Bitstamp) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
 

@@ -1746,28 +1746,41 @@ func  (this *KrakenfuturesCore) WatchMultiHelper(unifiedName any, channelName an
         
             retRes15048 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes15048)
+            var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             // symbols are required
             symbols = this.MarketSymbols(symbols, nil, false, true, false)
             var messageHashes any = []any{}
+            var rawSubs any = []any{}
             for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
-                ccxt.AppendToArray(&messageHashes, this.GetMessageHash(unifiedName, nil, this.Symbol(ccxt.GetValue(symbols, i))))
+                var messageHash any = this.GetMessageHash(unifiedName, nil, this.Symbol(ccxt.GetValue(symbols, i)))
+                ccxt.AppendToArray(&messageHashes, messageHash)
+                var market any = this.Market(ccxt.GetValue(symbols, i))
+                if !ccxt.IsTrue(this.SubscriptionExistsForHash(url, messageHash)) {
+                    ccxt.AppendToArray(&rawSubs, ccxt.GetValue(market, "id"))
+                }
             }
-            var marketIds any = this.MarketIds(symbols)
-            var request any = map[string]any {
-                "event": "subscribe",
-                "feed": channelName,
-                "product_ids": marketIds,
+            var request any = map[string]any {}
+            var length any =     ccxt.GetArrayLength(rawSubs)
+            if ccxt.IsTrue(ccxt.IsGreaterThan(length, 0)) {
+                request = map[string]any {
+                    "event": "subscribe",
+                    "feed": channelName,
+                    "product_ids": rawSubs,
+                }
             }
-            var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
         
-                retRes151815 :=  (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscriptionArgs))
-                ccxt.PanicOnError(retRes151815)
-                ch <- retRes151815
+                retRes152715 :=  (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscriptionArgs))
+                ccxt.PanicOnError(retRes152715)
+                ch <- retRes152715
                 return nil
         
             }()
             return ch
         }
+func  (this *KrakenfuturesCore) SubscriptionExistsForHash(url any, hash any) any  {
+    var client any = this.Client(url)
+    return (ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), hash))
+}
 func  (this *KrakenfuturesCore) GetMessageHash(unifiedElementName any, optionalArgs ...any) any  {
     // unifiedElementName can be : orderbook, trade, ticker, bidask ...
     // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected

@@ -666,8 +666,6 @@ export default class bitfinex extends Exchange {
             }
             const minOrderSizeString = this.safeString (market, 3);
             const maxOrderSizeString = this.safeString (market, 4);
-            const isMargin = (spot && this.inArray (id, marginIds));
-            const isContract = !spot;
             result.push ({
                 'id': 't' + id,
                 'symbol': symbol,
@@ -680,12 +678,12 @@ export default class bitfinex extends Exchange {
                 'type': type,
                 'spot': spot,
                 'tradfi': this.inArray (id, securitiesMarketsIds),
-                'margin': isMargin,
+                'margin': (spot && this.inArray (id, marginIds)),
                 'swap': swap,
                 'future': false,
                 'option': false,
                 'active': true,
-                'contract': isContract,
+                'contract': !spot,
                 'linear': swap ? true : undefined,
                 'inverse': swap ? false : undefined,
                 'contractSize': swap ? this.parseNumber ('1') : undefined,
@@ -1214,21 +1212,13 @@ export default class bitfinex extends Exchange {
         const isFetchTicker = firstValue !== undefined; // if it's Nan, then it's string (symbol)
         let symbol: Str = undefined;
         let minusIndex = 0;
-        let isFundingCurrency = false;
         if (isFetchTicker) {
             minusIndex = 1;
-            // singular fetchTicker funding shape has 16 fields per the docs;
-            // bitfinex has been observed adding a trailing timestamp (17).
-            isFundingCurrency = (length === 16) || (length === 17);
         } else {
             const marketId = this.safeString (ticker, 0);
             market = this.safeMarket (marketId, market);
-            // multi-ticker funding shape: SYMBOL + 16 fields = 17, but
-            // bitfinex now appends a millisecond timestamp making it 18.
-            // Without this, fUSD parses as a trading pair and indices land
-            // on negative-volume / wrong-sign fields, breaking fetchTickers.
-            isFundingCurrency = (length === 17) || (length === 18);
         }
+        const isFundingCurrency = length >= 17;
         symbol = this.safeSymbol (undefined, market);
         let last: Str = undefined;
         let bid: Str = undefined;
@@ -1603,7 +1593,7 @@ export default class bitfinex extends Exchange {
             // '16384': 'OCO', // The one cancels other order option allows you to place a pair of orders stipulating that if one order is executed fully or partially, then the other is automatically canceled.
             // '524288': 'No Var Rates' // Excludes variable rate funding offers from matching against this order, if on margin
         };
-        return this.safeValue (flagValues, flags);
+        return this.safeValue (flagValues, flags, undefined);
     }
 
     parseTimeInForce (orderType) {

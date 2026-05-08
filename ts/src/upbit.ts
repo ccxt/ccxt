@@ -634,9 +634,8 @@ export default class upbit extends Exchange {
     async fetchOrderBooks (symbols: Strings = undefined, limit: Int = undefined, params = {}): Promise<OrderBooks> {
         await this.loadMarkets ();
         let ids = undefined;
-        const allIds = this.ids;
         if (symbols === undefined) {
-            ids = allIds.join (',');
+            ids = this.ids.join (',');
         } else {
             ids = this.marketIds (symbols);
             ids = ids.join (',');
@@ -781,35 +780,14 @@ export default class upbit extends Exchange {
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        let allIds = undefined;
-        if (symbols === undefined) {
-            allIds = this.ids;
-        } else {
-            allIds = this.marketIds (symbols);
-        }
-        //  upbit accepts a comma-separated `markets` param but its frontend
-        //  (Tomcat) rejects URLs >~ 4KB with HTTP 400 — and the full id list
-        //  is now ~7KB across BTC/KRW/USDT quotes. Chunk and merge.
+        const ids = (symbols !== undefined) ? this.marketIds (symbols) : this.ids;
         const promises = [];
-        const total = allIds.length;
-        let start = 0;
-        while (start < total) {
-            const end = Math.min (start + 100, total);
-            // arraySlice (vs Array.prototype.slice) so the Java transpile
-            // doesn't dispatch to Helpers.slice (which is the String slice
-            // and ClassCastExceptions on List input).
-            const chunk = this.arraySlice (allIds, start, end);
-            const request: Dict = {
-                'markets': chunk.join (','),
-            };
-            promises.push (this.publicGetTicker (this.extend (request, params)));
-            start = end;
+        const queries = this.idsQueryStrings (ids, 6400); // seems upbit server limitations
+        for (let i = 0; i < queries.length; i++) {
+            const idsQuery = queries[i];
+            promises.push (this.publicGetTicker ({ 'markets': idsQuery }));
         }
         const responses = await Promise.all (promises);
-        let response = [];
-        for (let i = 0; i < responses.length; i++) {
-            response = this.arrayConcat (response, responses[i]);
-        }
         //
         //     [ {                market: "BTC-ETH",
         //                    "trade_date": "20181122",
@@ -838,13 +816,28 @@ export default class upbit extends Exchange {
         //           "lowest_52_week_date": "2017-12-08",
         //                     "timestamp":  1542883543813  } ]
         //
-        const result: Dict = {};
-        for (let t = 0; t < response.length; t++) {
-            const ticker = this.parseTicker (response[t]);
-            const symbol = ticker['symbol'];
-            result[symbol] = ticker;
+        const concated = this.arraysConcat (responses);
+        return this.parseTickers (concated, symbols);
+    }
+
+    idsQueryStrings (ids: string[], maxQueryLength: number) {
+        let idsString = '';
+        const queries = [];
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            if (idsString !== '') {
+                idsString = idsString + ',';
+            }
+            idsString = idsString + id;
+            if (idsString.length >= maxQueryLength) {
+                queries.push (idsString);
+                idsString = '';
+            }
         }
-        return this.filterByArrayTickers (result, 'symbol', symbols);
+        if (idsString !== '') {
+            queries.push (idsString);
+        }
+        return queries;
     }
 
     /**
@@ -1887,7 +1880,6 @@ export default class upbit extends Exchange {
                 'cost': feeCost,
             };
         }
-        const parsedType = type; // java req;
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -1896,7 +1888,7 @@ export default class upbit extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': market['symbol'],
-            'type': parsedType,
+            'type': type,
             'timeInForce': this.safeStringUpper (order, 'time_in_force'),
             'postOnly': undefined,
             'side': side,
@@ -2218,10 +2210,9 @@ export default class upbit extends Exchange {
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires params["network"]');
         }
-        const networkId = this.networkCodeToId (networkCode, currency['code']);
         const response = await this.privateGetDepositsCoinAddress (this.extend ({
             'currency': currency['id'],
-            'net_type': networkId,
+            'net_type': this.networkCodeToId (networkCode, currency['code']),
         }, params));
         //
         //    {

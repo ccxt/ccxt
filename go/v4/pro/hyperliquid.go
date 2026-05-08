@@ -1704,7 +1704,7 @@ func  (this *HyperliquidCore) WatchOrders(optionalArgs ...any) <- chan any {
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *HyperliquidCore) UnWatchOrders(optionalArgs ...any) <- chan any {
             ch := make(chan any)

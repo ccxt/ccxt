@@ -171,6 +171,7 @@ export default class krakenfutures extends krakenfuturesRest {
     handleMyTrades(client: Client, message: any): void;
     parseWsMyTrade(trade: any, market?: any): Trade;
     watchMultiHelper(unifiedName: string, channelName: string, symbols?: Strings, subscriptionArgs?: any, params?: {}): Promise<any>;
+    subscriptionExistsForHash(url: string, hash: string): boolean;
     getMessageHash(unifiedElementName: string, subChannelName?: Str, symbol?: Str): string;
     handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: any, message: any): void;

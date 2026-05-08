@@ -1503,20 +1503,34 @@ export default class krakenfutures extends krakenfuturesRest {
 
     async watchMultiHelper (unifiedName: string, channelName: string, symbols: Strings = undefined, subscriptionArgs = undefined, params = {}) {
         await this.loadMarkets ();
+        const url = this.urls['api']['ws'];
         // symbols are required
         symbols = this.marketSymbols (symbols, undefined, false, true, false);
         const messageHashes = [];
+        const rawSubs = [];
         for (let i = 0; i < symbols.length; i++) {
-            messageHashes.push (this.getMessageHash (unifiedName, undefined, this.symbol (symbols[i])));
+            const messageHash = this.getMessageHash (unifiedName, undefined, this.symbol (symbols[i]));
+            messageHashes.push (messageHash);
+            const market = this.market (symbols[i]);
+            if (!this.subscriptionExistsForHash (url, messageHash)) {
+                rawSubs.push (market['id']);
+            }
         }
-        const marketIds = this.marketIds (symbols);
-        const request: Dict = {
-            'event': 'subscribe',
-            'feed': channelName,
-            'product_ids': marketIds,
-        };
-        const url = this.urls['api']['ws'];
+        let request: Dict = {};
+        const length = rawSubs.length;
+        if (length > 0) {
+            request = {
+                'event': 'subscribe',
+                'feed': channelName,
+                'product_ids': rawSubs,
+            };
+        }
         return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscriptionArgs);
+    }
+
+    subscriptionExistsForHash (url: string, hash: string) {
+        const client = this.client (url);
+        return (hash in client.subscriptions);
     }
 
     getMessageHash (unifiedElementName: string, subChannelName: Str = undefined, symbol: Str = undefined) {

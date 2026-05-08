@@ -1735,12 +1735,9 @@ export default class gate extends Exchange {
                 const maxMultiplier = Precise.stringAdd ('1', priceDeviate);
                 const minPrice = Precise.stringMul (minMultiplier, markPrice);
                 const maxPrice = Precise.stringMul (maxMultiplier, markPrice);
-                // gate occasionally returns create_time = "0" for option contracts,
-                // which would surface as `created: 0` and trip the >2009 timestamp
-                // assertion in market validation. Treat zero as missing.
-                let created = this.safeTimestamp (market, 'create_time');
-                if (created === 0) {
-                    created = undefined;
+                let createdTs = this.safeTimestamp (market, 'create_time');
+                if (createdTs === 0) {
+                    createdTs = undefined;
                 }
                 result.push ({
                     'id': id,
@@ -1790,7 +1787,7 @@ export default class gate extends Exchange {
                             'max': undefined,
                         },
                     },
-                    'created': created,
+                    'created': createdTs,
                     'info': market,
                 });
             }
@@ -2319,14 +2316,14 @@ export default class gate extends Exchange {
      */
     async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
         await this.loadMarkets ();
-        const currency = this.currency (code);
+        let currency = this.currency (code);
         const request = {
             'currency': currency['id'],
         };
         const response = await this.privateWalletGetDepositAddress (this.extend (request, params));
         const chains = this.safeValue (response, 'multichain_addresses', []);
-        // const currencyId = this.safeString (response, 'currency');
-        // currency = this.safeCurrency (currencyId, currency);
+        const currencyId = this.safeString (response, 'currency');
+        currency = this.safeCurrency (currencyId, currency);
         const parsed = this.parseDepositAddresses (chains, undefined, false);
         return this.indexBy (parsed, 'network') as DepositAddress[];
     }
@@ -6574,17 +6571,14 @@ export default class gate extends Exchange {
         const tiers = [];
         while (Precise.stringLt (floor, riskLimitMax)) {
             const cap = Precise.stringAdd (floor, riskLimitStep);
-            const minNotional = this.parseNumber (floor);
-            const maintenanceMarginRateParsed = this.parseNumber (maintenanceMarginRate);
-            const maxLev = this.parseNumber (Precise.stringDiv ('1', initialMarginRatio));
             tiers.push ({
                 'tier': this.parseNumber (Precise.stringDiv (cap, riskLimitStep)),
                 'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
                 'currency': this.safeString (market, 'settle'),
-                'minNotional': minNotional,
+                'minNotional': this.parseNumber (floor),
                 'maxNotional': this.parseNumber (cap),
-                'maintenanceMarginRate': maintenanceMarginRateParsed,
-                'maxLeverage': maxLev,
+                'maintenanceMarginRate': this.parseNumber (maintenanceMarginRate),
+                'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRatio)),
                 'info': info,
             });
             maintenanceMarginRate = Precise.stringAdd (maintenanceMarginRate, maintenanceMarginUnit);
@@ -6614,12 +6608,11 @@ export default class gate extends Exchange {
         for (let i = 0; i < info.length; i++) {
             const item = info[i];
             const maxNotional = this.safeNumber (item, 'risk_limit');
-            const minNot = minNotional; // java req
             tiers.push ({
                 'tier': this.sum (i, 1),
                 'symbol': market['symbol'],
                 'currency': market['base'],
-                'minNotional': minNot,
+                'minNotional': minNotional,
                 'maxNotional': maxNotional,
                 'maintenanceMarginRate': this.safeNumber (item, 'maintenance_rate'),
                 'maxLeverage': this.safeNumber (item, 'leverage_max'),

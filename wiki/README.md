@@ -88,7 +88,7 @@ Welcome to the ccxt wiki!
 
 ## Examples
 
-- [Usage Examples](https://docs.ccxt.com/#/Examples)
+- [Usage Examples](https://docs.ccxt.com/Examples)
 
 ## New Exchanges
 
@@ -97,4 +97,4 @@ Welcome to the ccxt wiki!
 
 ## API Reference
 
-- [API Reference](https://docs.ccxt.com/#/spec)
+- [API Reference](https://docs.ccxt.com/spec)

@@ -1230,15 +1230,13 @@ class bitfinex extends Exchange {
         $isFetchTicker = $firstValue !== null; // if it's Nan, then it's string ($symbol)
         $symbol = null;
         $minusIndex = 0;
-        $isFundingCurrency = false;
         if ($isFetchTicker) {
             $minusIndex = 1;
-            $isFundingCurrency = ($length === 16);
         } else {
             $marketId = $this->safe_string($ticker, 0);
             $market = $this->safe_market($marketId, $market);
-            $isFundingCurrency = ($length === 17);
         }
+        $isFundingCurrency = $length >= 17;
         $symbol = $this->safe_symbol(null, $market);
         $last = null;
         $bid = null;

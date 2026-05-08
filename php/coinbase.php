@@ -5298,7 +5298,7 @@ class coinbase extends Exchange {
          * @param {string[]} [$codes] list of unified currency $codes, default is null (all currencies)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->accountId] account ID to fetch deposit addresses for
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~ indexed by currency code
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=address-structure address structures~ indexed by currency code
          */
         $this->load_markets();
         $request = $this->prepare_account_request(null, $params);
