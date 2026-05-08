@@ -41,16 +41,9 @@ async function main () {
     if (exchange.has['watchTrades']) {
         await exchange.loadMarkets ()
         // Change this value accordingly
-        const timeframe = '1m'
-
-        const allSymbols = exchange.symbols;
-
+        const timeframe = '1m';
         // arbitrary n symbols
-        const limit = 5;
-        // const selectedSymbols = allSymbols.slice(0, limit);
-        // you can also specify the symbols manually
-        // example:
-        // const selectedSymbols = ['BTC/USDT', 'LTC/USDT']
+        const selectedSymbols = [ 'BTC/USDT', 'LTC/USDT' ]; // or random 3 pairs: exchange.symbols.slice(0, 3);
 
         console.log(selectedSymbols);
 
@@ -59,10 +52,9 @@ async function main () {
         const completeCandlesOnly = true
 
         await Promise.all (selectedSymbols.map (symbol => loop (exchange, symbol, timeframe, completeCandlesOnly)))
-
     } else {
         console.log (exchange.id, 'does not support watchTrades yet')
     }
 }
 
-main ()
+main ();
