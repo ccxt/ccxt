@@ -252,15 +252,31 @@ function genMethod(m: MethodInfo, castToObject = false): string {
     lines.push(`        return ${genReturnExpr(m)};`);
     lines.push(`    }`);
 
-    // Convenience overload: required params only
-    if (m.optionalParams.length > 0 && m.requiredParams.length > 0) {
-        const reqDecl = m.requiredParams.map(p => `${p.javaType} ${p.name}`).join(', ');
-        const reqArgs = m.requiredParams.map(p => p.name).join(', ');
-        const defaults = m.optionalParams.map(p => {
-            if (p.defaultValue && p.defaultValue !== 'null') return p.defaultValue;
-            return `(${p.javaType}) null`;
-        }).join(', ');
-        lines.push(`    public ${m.javaReturnType} ${methodName}(${reqDecl}) { return ${methodName}(${reqArgs}, ${defaults}); }`);
+    // Truncation overloads: required + first k optionals, for k = 0 .. N-1.
+    // Each truncation has a unique arity, so Java's overload resolution is
+    // unambiguous at every call site (no `null`-trap from sibling overloads
+    // at the same arity).
+    //
+    // Skipped when there are no required params: the resulting zero-arg /
+    // single-null overloads collide with internal `this.method()` and
+    // `this.method(null)` calls in transpiled WS Core code (which extend
+    // typed REST and inherit these overloads), where overload resolution
+    // would shadow the parent's `Object...` method and break the internal
+    // CompletableFuture binding. Users of zero-required methods can fall
+    // back to the full typed signature.
+    if (m.requiredParams.length > 0) {
+        const defaultExpr = (p: ParamInfo) =>
+            p.defaultValue && p.defaultValue !== 'null'
+                ? p.defaultValue
+                : `(${p.javaType}) null`;
+        for (let k = 0; k < m.optionalParams.length; k++) {
+            const presentParams = [...m.requiredParams, ...m.optionalParams.slice(0, k)];
+            const presentDecl = presentParams.map(p => `${p.javaType} ${p.name}`).join(', ');
+            const presentArgs = presentParams.map(p => p.name).join(', ');
+            const trailingDefaults = m.optionalParams.slice(k).map(defaultExpr).join(', ');
+            const allArgs = presentArgs ? `${presentArgs}, ${trailingDefaults}` : trailingDefaults;
+            lines.push(`    public ${m.javaReturnType} ${methodName}(${presentDecl}) { return ${methodName}(${allArgs}); }`);
+        }
     }
 
     // Async method (full params)

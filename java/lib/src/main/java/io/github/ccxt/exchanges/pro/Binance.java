@@ -29,6 +29,8 @@ public class Binance extends BinanceCore {
         return toTypedList(res, Liquidation::new);
     }
     public List<Liquidation> watchLiquidations(String symbol) { return watchLiquidations(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
+    public List<Liquidation> watchLiquidations(String symbol, Long since) { return watchLiquidations(symbol, since, (Long) null, (Map<String, Object>) null); }
+    public List<Liquidation> watchLiquidations(String symbol, Long since, Long limit) { return watchLiquidations(symbol, since, limit, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public List<Liquidation> watchLiquidationsForSymbols(Object symbols, Long since, Long limit, Map<String, Object> params) {
@@ -36,6 +38,8 @@ public class Binance extends BinanceCore {
         return toTypedList(res, Liquidation::new);
     }
     public List<Liquidation> watchLiquidationsForSymbols(Object symbols) { return watchLiquidationsForSymbols(symbols, (Long) null, (Long) null, (Map<String, Object>) null); }
+    public List<Liquidation> watchLiquidationsForSymbols(Object symbols, Long since) { return watchLiquidationsForSymbols(symbols, since, (Long) null, (Map<String, Object>) null); }
+    public List<Liquidation> watchLiquidationsForSymbols(Object symbols, Long since, Long limit) { return watchLiquidationsForSymbols(symbols, since, limit, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public List<Liquidation> watchMyLiquidations(String symbol, Long since, Long limit, Map<String, Object> params) {
@@ -43,6 +47,8 @@ public class Binance extends BinanceCore {
         return toTypedList(res, Liquidation::new);
     }
     public List<Liquidation> watchMyLiquidations(String symbol) { return watchMyLiquidations(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
+    public List<Liquidation> watchMyLiquidations(String symbol, Long since) { return watchMyLiquidations(symbol, since, (Long) null, (Map<String, Object>) null); }
+    public List<Liquidation> watchMyLiquidations(String symbol, Long since, Long limit) { return watchMyLiquidations(symbol, since, limit, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public List<Liquidation> watchMyLiquidationsForSymbols(Object symbols, Long since, Long limit, Map<String, Object> params) {
@@ -50,6 +56,8 @@ public class Binance extends BinanceCore {
         return toTypedList(res, Liquidation::new);
     }
     public List<Liquidation> watchMyLiquidationsForSymbols(Object symbols) { return watchMyLiquidationsForSymbols(symbols, (Long) null, (Long) null, (Map<String, Object>) null); }
+    public List<Liquidation> watchMyLiquidationsForSymbols(Object symbols, Long since) { return watchMyLiquidationsForSymbols(symbols, since, (Long) null, (Map<String, Object>) null); }
+    public List<Liquidation> watchMyLiquidationsForSymbols(Object symbols, Long since, Long limit) { return watchMyLiquidationsForSymbols(symbols, since, limit, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public List<Trade> watchTrades(String symbol, Long since, Long limit, Map<String, Object> params) {
@@ -57,6 +65,8 @@ public class Binance extends BinanceCore {
         return toTypedList(res, Trade::new);
     }
     public List<Trade> watchTrades(String symbol) { return watchTrades(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
+    public List<Trade> watchTrades(String symbol, Long since) { return watchTrades(symbol, since, (Long) null, (Map<String, Object>) null); }
+    public List<Trade> watchTrades(String symbol, Long since, Long limit) { return watchTrades(symbol, since, limit, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public List<Trade> watchTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> params) {
@@ -64,6 +74,8 @@ public class Binance extends BinanceCore {
         return toTypedList(res, Trade::new);
     }
     public List<Trade> watchTradesForSymbols(Object symbols) { return watchTradesForSymbols(symbols, (Long) null, (Long) null, (Map<String, Object>) null); }
+    public List<Trade> watchTradesForSymbols(Object symbols, Long since) { return watchTradesForSymbols(symbols, since, (Long) null, (Map<String, Object>) null); }
+    public List<Trade> watchTradesForSymbols(Object symbols, Long since, Long limit) { return watchTradesForSymbols(symbols, since, limit, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public List<Trade> watchMyTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> params) {
@@ -71,6 +83,8 @@ public class Binance extends BinanceCore {
         return toTypedList(res, Trade::new);
     }
     public List<Trade> watchMyTradesForSymbols(Object symbols) { return watchMyTradesForSymbols(symbols, (Long) null, (Long) null, (Map<String, Object>) null); }
+    public List<Trade> watchMyTradesForSymbols(Object symbols, Long since) { return watchMyTradesForSymbols(symbols, since, (Long) null, (Map<String, Object>) null); }
+    public List<Trade> watchMyTradesForSymbols(Object symbols, Long since, Long limit) { return watchMyTradesForSymbols(symbols, since, limit, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public List<Order> watchOrdersForSymbols(Object symbols, Long since, Long limit, Map<String, Object> params) {
@@ -78,6 +92,8 @@ public class Binance extends BinanceCore {
         return toTypedList(res, Order::new);
     }
     public List<Order> watchOrdersForSymbols(Object symbols) { return watchOrdersForSymbols(symbols, (Long) null, (Long) null, (Map<String, Object>) null); }
+    public List<Order> watchOrdersForSymbols(Object symbols, Long since) { return watchOrdersForSymbols(symbols, since, (Long) null, (Map<String, Object>) null); }
+    public List<Order> watchOrdersForSymbols(Object symbols, Long since, Long limit) { return watchOrdersForSymbols(symbols, since, limit, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public OrderBook watchOrderBookForSymbols(Object symbols, Long limit, Map<String, Object> params) {
@@ -85,6 +101,7 @@ public class Binance extends BinanceCore {
         return new OrderBook(res);
     }
     public OrderBook watchOrderBookForSymbols(Object symbols) { return watchOrderBookForSymbols(symbols, (Long) null, (Map<String, Object>) null); }
+    public OrderBook watchOrderBookForSymbols(Object symbols, Long limit) { return watchOrderBookForSymbols(symbols, limit, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public OrderBook watchOrderBook(String symbol, Long limit, Map<String, Object> params) {
@@ -92,6 +109,7 @@ public class Binance extends BinanceCore {
         return new OrderBook(res);
     }
     public OrderBook watchOrderBook(String symbol) { return watchOrderBook(symbol, (Long) null, (Map<String, Object>) null); }
+    public OrderBook watchOrderBook(String symbol, Long limit) { return watchOrderBook(symbol, limit, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public FundingRate watchFundingRate(String symbol, Map<String, Object> params) {
@@ -112,6 +130,9 @@ public class Binance extends BinanceCore {
         return toTypedList(res, OHLCV::new);
     }
     public List<OHLCV> watchOHLCV(String symbol) { return watchOHLCV(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
+    public List<OHLCV> watchOHLCV(String symbol, String timeframe) { return watchOHLCV(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
+    public List<OHLCV> watchOHLCV(String symbol, String timeframe, Long since) { return watchOHLCV(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
+    public List<OHLCV> watchOHLCV(String symbol, String timeframe, Long since, Long limit) { return watchOHLCV(symbol, timeframe, since, limit, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public Position watchPosition(String symbol, Map<String, Object> params) {
