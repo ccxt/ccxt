@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/extended.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees } from './base/types.js';
 import { ArgumentsRequired, BadRequest } from './base/errors.js';
 import { DECIMAL_PLACES, NO_PADDING, TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 
@@ -125,8 +125,8 @@ export default class extended extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTrades': true,
-                'fetchTradingFee': false,
-                'fetchTradingFees': false,
+                'fetchTradingFee': true,
+                'fetchTradingFees': true,
                 'fetchTransactions': false,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
@@ -1373,6 +1373,99 @@ export default class extended extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    /**
+     * @method
+     * @name extended#fetchTradingFee
+     * @description fetch the trading fees for a market
+     * @see https://api.docs.extended.exchange/#get-fees
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.builderId] builder client id
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['id'],
+        };
+        const response = await this.v1PrivateGetUserFees (this.extend (request, params));
+        //
+        //     {
+        //         "status": "OK",
+        //         "data": [
+        //             {
+        //                 "market": "BTC-USD",
+        //                 "makerFeeRate": "0.00000",
+        //                 "takerFeeRate": "0.00025",
+        //                 "builderFeeRate": "0.0001"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const first = this.safeDict (data, 0, {});
+        return this.parseTradingFee (first, market);
+    }
+
+    /**
+     * @method
+     * @name extended#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://api.docs.extended.exchange/#get-fees
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.market] exchange market id
+     * @param {string} [params.builderId] builder client id
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+     */
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
+        await this.loadMarkets ();
+        const response = await this.v1PrivateGetUserFees (params);
+        //
+        //     {
+        //         "status": "OK",
+        //         "data": [
+        //             {
+        //                 "market": "BTC-USD",
+        //                 "makerFeeRate": "0.00000",
+        //                 "takerFeeRate": "0.00025",
+        //                 "builderFeeRate": "0.0001"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const result: Dict = {};
+        for (let i = 0; i < data.length; i++) {
+            const fee = this.safeDict (data, i, {});
+            const parsed = this.parseTradingFee (fee);
+            const symbol = this.safeString (parsed, 'symbol');
+            result[symbol] = parsed;
+        }
+        return result;
+    }
+
+    parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
+        //
+        //     {
+        //         "market": "BTC-USD",
+        //         "makerFeeRate": "0.00000",
+        //         "takerFeeRate": "0.00025",
+        //         "builderFeeRate": "0.0001"
+        //     }
+        //
+        const marketId = this.safeString (fee, 'market');
+        market = this.safeMarket (marketId, market);
+        return {
+            'info': fee,
+            'symbol': market['symbol'],
+            'maker': this.safeNumber (fee, 'makerFeeRate'),
+            'taker': this.safeNumber (fee, 'takerFeeRate'),
+            'percentage': true,
+            'tierBased': undefined,
+        };
     }
 
     /**

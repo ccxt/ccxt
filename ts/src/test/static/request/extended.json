@@ -299,6 +299,24 @@
                 ]
             }
         ],
+        "fetchTradingFee": [
+            {
+                "description": "fetch trading fee with symbol",
+                "method": "fetchTradingFee",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/fees?market=BTC-USD",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "fetch trading fees",
+                "method": "fetchTradingFees",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/fees",
+                "input": []
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "fetch balance",

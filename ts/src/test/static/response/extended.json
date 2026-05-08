@@ -1006,6 +1006,72 @@
                 ]
             }
         ],
+        "fetchTradingFee": [
+            {
+                "description": "fetch trading fee with symbol",
+                "method": "fetchTradingFee",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "status": "OK",
+                    "data": [
+                        {
+                            "market": "BTC-USD",
+                            "makerFeeRate": "0.00000",
+                            "takerFeeRate": "0.00025",
+                            "builderFeeRate": "0.0001"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "market": "BTC-USD",
+                        "makerFeeRate": "0.00000",
+                        "takerFeeRate": "0.00025",
+                        "builderFeeRate": "0.0001"
+                    },
+                    "symbol": "BTC/USDC:USDC",
+                    "maker": 0,
+                    "taker": 0.00025,
+                    "percentage": true,
+                    "tierBased": null
+                }
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "fetch trading fees",
+                "method": "fetchTradingFees",
+                "input": [],
+                "httpResponse": {
+                    "status": "OK",
+                    "data": [
+                        {
+                            "market": "BTC-USD",
+                            "makerFeeRate": "0.00000",
+                            "takerFeeRate": "0.00025",
+                            "builderFeeRate": "0.0001"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USDC:USDC": {
+                        "info": {
+                            "market": "BTC-USD",
+                            "makerFeeRate": "0.00000",
+                            "takerFeeRate": "0.00025",
+                            "builderFeeRate": "0.0001"
+                        },
+                        "symbol": "BTC/USDC:USDC",
+                        "maker": 0,
+                        "taker": 0.00025,
+                        "percentage": true,
+                        "tierBased": null
+                    }
+                }
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "fetchOHLCV with until",
