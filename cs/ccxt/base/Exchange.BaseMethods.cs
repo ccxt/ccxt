@@ -1583,6 +1583,13 @@ public partial class Exchange
         this.initThrottler();
     }
 
+    public virtual void setRateLimit(double rateLimit)
+    {
+        this.rateLimit = rateLimit;
+        var throttler = this.throttler;
+        throttler.setRateLimit(rateLimit);
+    }
+
     public virtual void featuresGenerator()
     {
         //
