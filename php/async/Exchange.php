@@ -89,11 +89,11 @@ class Exchange extends \ccxt\Exchange {
 
     public function __destruct() {
         $this->close();
-        parent::__destruct();
+        // parent::__destruct(); // not needed atm
     }
 
     public function close() {
-        // Here happens the language-specific cleanup of WS & REST resources
+        // ##### language-specific cleanup of WS & REST resources #####
         // [REST]
         if ($this->browser) {
             $this->browser = null;

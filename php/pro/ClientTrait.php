@@ -222,8 +222,6 @@ trait ClientTrait {
     }
 
     public function close_clients() {
-        // Here happens the language-specific cleanup of WS & REST resources
-        // [WS]
         // make sure to close the exchange once you are finished using the websocket connections
         // so that the event loop can complete it's work and go to sleep
         foreach ($this->clients as $client) {

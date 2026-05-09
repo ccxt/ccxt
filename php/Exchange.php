@@ -2672,10 +2672,11 @@ class Exchange {
     }
 
     public function close() {
-        // Here happens the language-specific cleanup of WS & REST resources
+        // ##### language-specific cleanup of WS & REST resources #####
         // [REST]
         if ($this->curl !== null) {
             curl_close($this->curl);
+            $this->curl = null;
         }
         $this->clean_rest_data();
    }

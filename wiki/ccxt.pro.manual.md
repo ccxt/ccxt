@@ -1330,7 +1330,7 @@ poloniex = ccxt.poloniex()
 while(condition):
     await poloniex.watch_ticker('ETH/USDT'))
 # ... your codes
-await polonix.close()  # close the exchange instance when you don't need it anymore, as it also cleans-up the cached instance data
+await poloniex.close()  # close the exchange instance when you don't need it anymore, as it also cleans-up the cached instance data
 ```
 
 

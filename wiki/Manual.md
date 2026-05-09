@@ -1857,7 +1857,7 @@ import ccxt.async_support as ccxt
 async def print_poloniex_ethbtc_ticker():
     poloniex = ccxt.poloniex()
     print(await poloniex.fetch_ticker('ETH/BTC'))
-    await polonix.close()  # close the exchange instance when you don't need it anymore
+    await poloniex.close()  # close the exchange instance when you don't need it anymore
 
 asyncio.run(print_poloniex_ethbtc_ticker())
 ```
@@ -7193,7 +7193,7 @@ Depending programming language, when your script finishes its work with any exch
 poloniex = ccxt.poloniex()
 print(await poloniex.fetch_ticker('ETH/USDT'))
 # ... your codes
-await polonix.close()  # close the exchange instance when you don't need it anymore, as it also cleans-up the cached instance data
+await poloniex.close()  # close the exchange instance when you don't need it anymore, as it also cleans-up the cached instance data
 ```
 Especially it is needed for all programming languages if you use Websockets.
 
