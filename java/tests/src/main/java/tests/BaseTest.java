@@ -376,7 +376,22 @@ public class BaseTest {
     }
 
     public String exceptionMessage(Object e) {
-        return ((Exception) e).getMessage();
+        // Walk the cause chain so reflection-driven failures don't show as a
+        // bare `InvocationTargetException` and the real exchange/parser error
+        // is hidden one or two `getCause()` levels deep — that's what made
+        // bitmex, deribit, etc. unfixable from logs alone.
+        if (!(e instanceof Throwable)) return String.valueOf(e);
+        Throwable cur = (Throwable) e;
+        StringBuilder sb = new StringBuilder();
+        int depth = 0;
+        while (cur != null && depth < 5) {
+            if (depth > 0) sb.append(" → caused by: ");
+            sb.append("[").append(cur.getClass().getSimpleName()).append("] ");
+            sb.append(String.valueOf(cur.getMessage()));
+            cur = cur.getCause();
+            depth++;
+        }
+        return sb.toString();
     }
 
     public static CompletableFuture<Void> close(Object exchange) {

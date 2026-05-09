@@ -38,7 +38,7 @@ public class TestWatchPosition extends BaseTest {
             }
             if (Helpers.isTrue(Helpers.isEqual(success, true)))
             {
-                Assert((response instanceof java.util.Map), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), symbol), " must return an object. "), exchange.json(response)));
+                Assert(Helpers.isObject(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), symbol), " must return an object. "), exchange.json(response)));
                 now = exchange.milliseconds();
                 TestPosition.testPosition(exchange, skippedProperties, method, response, null, now);
             }

@@ -206,7 +206,22 @@ public class Generic {
         for (Object x : objs) {
             if (x == null) continue;
 
-            if (x instanceof Map<?, ?> mx) {
+            // TS treats every object as a plain dict; Java has typed wrappers
+            // (WsOrderBook, Trade, Ticker, …) that aren't Maps. If the input
+            // exposes a Map<String, Object> toMap() method, use it — otherwise
+            // the final `(Map) outObj` cast crashes with ClassCastException
+            // (e.g. bitmex watchOrderBook returns IndexedOrderBook).
+            Map<?, ?> mx = null;
+            if (x instanceof Map<?, ?> m) {
+                mx = m;
+            } else {
+                Map<String, Object> coerced = tryToMap(x);
+                if (coerced != null) {
+                    mx = coerced;
+                }
+            }
+
+            if (mx != null) {
                 if (!(outObj instanceof Map)) outObj = new LinkedHashMap<String, Object>();
                 Map<String, Object> out = (Map<String, Object>) outObj;
                 Map<String, Object> dictX = (Map<String, Object>) mx;
@@ -226,6 +241,21 @@ public class Generic {
             }
         }
         return (Map<String, Object>) outObj;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> tryToMap(Object x) {
+        try {
+            java.lang.reflect.Method m = x.getClass().getMethod("toMap");
+            if (Map.class.isAssignableFrom(m.getReturnType())) {
+                return (Map<String, Object>) m.invoke(x);
+            }
+        } catch (NoSuchMethodException ignored) {
+            // Most types don't have toMap(); that's fine.
+        } catch (Exception ignored) {
+            // toMap() exists but threw — fall through to default handling.
+        }
+        return null;
     }
 
     // ---------- inArray ----------

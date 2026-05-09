@@ -167,6 +167,27 @@ public class Helpers {
         return a.getClass().isArray();
     }
 
+    /**
+     * JS-style truthy `typeof o === 'object'` check. The TS source uses this
+     * to assert "I got back something object-shaped" without caring whether
+     * it's a Map, an array, or a typed wrapper. The ast-transpiler maps it
+     * to Java `instanceof java.util.Map` which is too strict — typed return
+     * types like WsOrderBook and Trade aren't Maps but ARE objects in the
+     * JS sense. Match the loose JS semantics: anything non-null and not a
+     * primitive boxed type or string.
+     *
+     * Used as a post-transpile rewrite target so the 150+ test assertion
+     * sites become permissive in one place.
+     */
+    public static boolean isObject(Object o) {
+        if (o == null) return false;
+        if (o instanceof String) return false;
+        if (o instanceof Number) return false;
+        if (o instanceof Boolean) return false;
+        if (o instanceof Character) return false;
+        return true;
+    }
+
     public static boolean isEqual(Object a, Object b) {
         try {
             if (a == null && b == null) return true;

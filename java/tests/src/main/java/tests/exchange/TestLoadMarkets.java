@@ -17,7 +17,7 @@ public class TestLoadMarkets extends BaseTest {
 
         Object method = "loadMarkets";
         Object markets = (exchange.loadMarkets()).join();
-        Assert((exchange.markets instanceof java.util.Map), ".markets is not an object");
+        Assert(Helpers.isObject(exchange.markets), ".markets is not an object");
         Assert((Helpers.isArrayJs(exchange.symbols)), ".symbols is not an array");
         Object symbolsLength = Helpers.getArrayLength(exchange.symbols);
         Object marketKeys = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)exchange.markets).keySet());

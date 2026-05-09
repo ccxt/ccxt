@@ -2982,6 +2982,12 @@ class NewTranspiler {
             }
             // Null-safe Array.isArray (see Helpers.isArrayJs).
             contentIndentend = contentIndentend.replace(/\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)/g, 'Helpers.isArrayJs($1)');
+            // Permissive `typeof X === 'object'` check (see Helpers.isObject).
+            // The ast-transpiler emits `X instanceof java.util.Map` here; that's
+            // too strict — typed wrappers like WsOrderBook and Trade aren't Maps
+            // but ARE objects in the JS sense. Widen to Helpers.isObject so the
+            // tests' "must return an object" assertions pass on typed returns.
+            contentIndentend = contentIndentend.replace(/\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.Map\)/g, 'Helpers.isObject($1)');
             // const namespace = isWs ? 'using ccxt;\nusing ccxt.pro;' : 'using ccxt;';
 
             const preciseImport = contentIndentend.indexOf('Precise.') >= 0 ? 'import io.github.ccxt.base.Precise;\n' : '';

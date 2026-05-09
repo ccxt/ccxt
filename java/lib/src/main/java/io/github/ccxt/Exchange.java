@@ -723,7 +723,21 @@ public class Exchange {
     public Object exceptionMessage(Object exc, Object... optionalArgs) {
         boolean includeStack = optionalArgs.length > 0 && optionalArgs[0] != null ? (boolean) optionalArgs[0] : true;
         if (exc instanceof Throwable t) {
-            String message = "[" + t.getClass().getSimpleName() + "] " + (includeStack ? t.toString() : t.getMessage());
+            // Walk the cause chain and include each level's class+message. Without
+            // this, reflection-driven failures show as bare "InvocationTargetException"
+            // and the real exchange/parser error is hidden one or two `getCause()` levels
+            // deep — which made bitmex, deribit, etc. unfixable from logs alone.
+            StringBuilder sb = new StringBuilder();
+            Throwable cur = t;
+            int depth = 0;
+            while (cur != null && depth < 5) {
+                if (depth > 0) sb.append(" → caused by: ");
+                sb.append("[").append(cur.getClass().getSimpleName()).append("] ");
+                sb.append(includeStack ? cur.toString() : cur.getMessage());
+                cur = cur.getCause();
+                depth++;
+            }
+            String message = sb.toString();
             int length = Math.min(100000, message.length());
             return message.substring(0, length);
         }
