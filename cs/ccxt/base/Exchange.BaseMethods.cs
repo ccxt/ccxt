@@ -1586,8 +1586,7 @@ public partial class Exchange
     public virtual void setRateLimit(double rateLimit)
     {
         this.rateLimit = rateLimit;
-        var throttler = this.throttler;
-        throttler.setRateLimit(rateLimit);
+        this.throttler.setRateLimit(rateLimit);
     }
 
     public virtual void featuresGenerator()
