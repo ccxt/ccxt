@@ -66,8 +66,9 @@ public partial class ascendex : Exchange
                 { "fetchMarkOHLCV", false },
                 { "fetchMySettlementHistory", false },
                 { "fetchOHLCV", true },
-                { "fetchOpenInterest", false },
+                { "fetchOpenInterest", "emulated" },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", true },
                 { "fetchOpenOrders", true },
                 { "fetchOption", false },
                 { "fetchOptionChain", false },
@@ -3838,6 +3839,82 @@ public partial class ascendex : Exchange
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object leverages = this.safeList(data, "contracts", new List<object>() {});
         return this.parseLeverages(leverages, symbols, "symbol");
+    }
+
+    /**
+     * @method
+     * @name ascendex#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#futures-pricing-data
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    public async override Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
+        object response = null;
+        response = await this.v2PublicGetFuturesPricingData(this.extend(request, parameters));
+        //
+        //    {
+        //        code: '0',
+        //        data: {
+        //            contracts: [
+        //                {
+        //                    time: '1772138885616',
+        //                    symbol: 'ZIL-PERP',
+        //                    markPrice: '0.004167783',
+        //                    indexPrice: '0.004168',
+        //                    lastPrice: '0.00416',
+        //                    openInterest: '7685003',
+        //                    fundingRate: '0.0003',
+        //                    nextFundingTime: '1772139600000'
+        //                },
+        //            ]
+        //            collaterals: [
+        //                { asset: 'TAO', referencePrice: '182.15' },
+        //                ...
+        //            ]
+        //        }
+        //    }
+        //
+        symbols = this.marketSymbols(symbols);
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object contracts = this.safeList(data, "contracts", new List<object>() {});
+        return this.parseOpenInterests(contracts, symbols);
+    }
+
+    public override object parseOpenInterest(object interest, object market = null)
+    {
+        //
+        // fetchOpenInterests
+        //
+        //    {
+        //        time: '1772138885616',
+        //        symbol: 'ZIL-PERP',
+        //        markPrice: '0.004167783',
+        //        indexPrice: '0.004168',
+        //        lastPrice: '0.00416',
+        //        openInterest: '7685003',
+        //        fundingRate: '0.0003',
+        //        nextFundingTime: '1772139600000'
+        //    }
+        //
+        object marketId = this.safeString(interest, "symbol");
+        object timestamp = this.safeInteger(interest, "time");
+        object openInterest = this.safeNumber(interest, "openInterest");
+        return this.safeOpenInterest(new Dictionary<string, object>() {
+            { "info", interest },
+            { "symbol", this.safeSymbol(marketId, market, null, "swap") },
+            { "baseVolume", openInterest },
+            { "quoteVolume", null },
+            { "openInterestAmount", openInterest },
+            { "openInterestValue", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+        }, market);
     }
 
     public override object parseLeverage(object leverage, object market = null)

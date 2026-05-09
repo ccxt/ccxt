@@ -91,6 +91,7 @@
 * [unWatchTradesForSymbols](#unwatchtradesforsymbols)
 * [unWatchTrades](#unwatchtrades)
 * [watchFundingRate](#watchfundingrate)
+* [watchFundingRates](#watchfundingrates)
 * [watchTicker](#watchticker)
 * [unWatchTicker](#unwatchticker)
 * [watchTickers](#watchtickers)
@@ -2194,6 +2195,27 @@ okx.watchFundingRate (symbol[, params])
 ```
 
 
+<a name="watchFundingRates" id="watchfundingrates"></a>
+
+### watchFundingRates{docsify-ignore}
+watch the funding rate for multiple markets
+
+**Kind**: instance method of [<code>okx</code>](#okx)  
+**Returns**: <code>object</code> - a dictionary of [funding rates structures](https://docs.ccxt.com/?id=funding-rate-structure), indexed by market symbols
+
+**See**: https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | a list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+okx.watchFundingRates (symbols[, params])
+```
+
+
 <a name="watchTicker" id="watchticker"></a>
 
 ### watchTicker{docsify-ignore}
@@ -2579,6 +2601,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 **Kind**: instance method of [<code>okx</code>](#okx)  
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
+**See**: https://www.okx.com/docs-v5/en/#trading-account-websocket-account-channel  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

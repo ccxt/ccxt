@@ -42,6 +42,9 @@ export default class cex extends cexRest {
             },
             'options': {
                 'orderbook': {},
+                'watchTrades': {
+                    'symbol': undefined,
+                },
             },
             'streaming': {},
             'exceptions': {},
@@ -126,13 +129,17 @@ export default class cex extends cexRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        const currentSymbol = this.safeString(this.options['watchTrades'], 'symbol');
+        if (currentSymbol !== undefined && currentSymbol !== symbol) {
+            throw new ArgumentsRequired(this.id + ' : this exchange only supports watching trades for one symbol per instance. You should either set .options["watchTrades"]["symbol"] to new symbol, or create a new instance');
+        }
+        this.options['watchTrades']['symbol'] = symbol;
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];
         const url = this.urls['api']['ws'];
         const messageHash = 'trades';
         const subscriptionHash = 'old:' + symbol;
-        this.options['currentWatchTradeSymbol'] = symbol; // exchange supports only 1 symbol for this watchTrades channel
         const client = this.safeValue(this.clients, url);
         if (client !== undefined) {
             const subscriptionKeys = Object.keys(client.subscriptions);
@@ -153,10 +160,6 @@ export default class cex extends cexRest {
         };
         const request = this.deepExtend(message, params);
         const trades = await this.watch(url, messageHash, request, subscriptionHash);
-        // assing symbol to the trades as message does not contain symbol information
-        for (let i = 0; i < trades.length; i++) {
-            trades[i]['symbol'] = symbol;
-        }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTradesSnapshot(client, message) {
@@ -171,29 +174,13 @@ export default class cex extends cexRest {
         //         ]
         //     }
         //
-        const data = this.safeList(message, 'data', []);
-        const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
-        const stored = new ArrayCache(limit);
-        const symbol = this.safeString(this.options, 'currentWatchTradeSymbol');
-        if (symbol === undefined) {
-            return;
-        }
-        const market = this.market(symbol);
-        const dataLength = data.length;
-        for (let i = 0; i < dataLength; i++) {
-            const index = dataLength - 1 - i;
-            const rawTrade = data[index];
-            const parsed = this.parseWsOldTrade(rawTrade, market);
-            stored.append(parsed);
-        }
-        const messageHash = 'trades';
-        this.trades = stored; // trades don't have symbol
-        client.resolve(this.trades, messageHash);
+        this.handleTradesInner(client, message);
     }
     parseWsOldTrade(trade, market = undefined) {
         //
         //  snapshot trade
         //    "sell:1665467367741:3888551:19058.8:14541219"
+        //
         //  update trade
         //    ['buy', '1665467516704', '98070', "19057.7", "14541220"]
         //
@@ -230,18 +217,27 @@ export default class cex extends cexRest {
         //         ]
         //     }
         //
-        const data = this.safeValue(message, 'data', []);
-        const stored = this.trades; // to do fix this, this.trades is not meant to be used like this
+        this.handleTradesInner(client, message);
+    }
+    handleTradesInner(client, message) {
+        const data = this.safeList(message, 'data', []);
+        const symbol = this.safeString(this.options['watchTrades'], 'symbol');
+        if (!(symbol in this.trades)) {
+            const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
+            this.trades[symbol] = new ArrayCache(limit);
+        }
+        const stored = this.trades[symbol];
+        const market = this.market(symbol);
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             const index = dataLength - 1 - i;
             const rawTrade = data[index];
-            const parsed = this.parseWsOldTrade(rawTrade);
+            const parsed = this.parseWsOldTrade(rawTrade, market);
             stored.append(parsed);
         }
         const messageHash = 'trades';
-        this.trades = stored;
-        client.resolve(this.trades, messageHash);
+        this.trades[symbol] = stored;
+        client.resolve(this.trades[symbol], messageHash);
     }
     /**
      * @method
@@ -888,7 +884,7 @@ export default class cex extends cexRest {
         //     {
         //         "e": "open-orders",
         //         "data": [{
-        //             "id": "59098421630",
+        //             "id": "59098421631",
         //             "time": "1664062285425",
         //             "type": "buy",
         //             "price": "18920",

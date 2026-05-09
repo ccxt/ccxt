@@ -381,7 +381,7 @@ class coinmetro extends coinmetro$1["default"] {
             const code = this.safeCurrencyCode(id);
             const typeRaw = this.safeString(currency, 'type');
             let type = undefined;
-            if (typeRaw === 'coin' || typeRaw === 'token' || typeRaw === 'erc20') {
+            if (typeRaw === 'coin' || typeRaw === 'token' || typeRaw === 'erc20' || typeRaw === 'crypto') {
                 type = 'crypto';
             }
             else if (typeRaw === 'fiat') {

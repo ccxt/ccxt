@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
-from ccxt.base.types import Any, Bool, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Bool, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 
@@ -16,6 +16,8 @@ class paradex(ccxt.async_support.paradex):
         return self.deep_extend(super(paradex, self).describe(), {
             'has': {
                 'ws': True,
+                'watchFundingRate': True,
+                'watchFundingRates': True,
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchOrderBook': True,
@@ -224,7 +226,7 @@ class paradex(ccxt.async_support.paradex):
                 orderbookData['asks'].append([price, size])
         orderbook = self.orderbooks[symbol]
         snapshot = self.parse_order_book(orderbookData, symbol, timestamp, 'bids', 'asks')
-        snapshot['nonce'] = self.safe_number(data, 'seq_no')
+        snapshot['nonce'] = self.safe_integer(data, 'seq_no')
         orderbook.reset(snapshot)
         messageHash = self.safe_string(params, 'channel')
         client.resolve(orderbook, messageHash)
@@ -275,16 +277,16 @@ class paradex(ccxt.async_support.paradex):
             },
         }
         messageHashes = []
-        if isinstance(symbols, list):
+        if symbols is not None and isinstance(symbols, list):
             for i in range(0, len(symbols)):
                 messageHash = channel + '.' + symbols[i]
                 messageHashes.append(messageHash)
         else:
             messageHashes.append(channel)
-        newTickers = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes)
+        newTicker = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes)
         if self.newUpdates:
             result: dict = {}
-            result[newTickers['symbol']] = newTickers
+            result[newTicker['symbol']] = newTicker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
@@ -404,6 +406,134 @@ class paradex(ccxt.async_support.paradex):
         client.resolve(ticker, messageHash)
         return message
 
+    async def watch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+        """
+        watch the current funding rate for a symbol
+
+        https://docs.paradex.trade/ws/web-socket-channels/funding-data-market-symbol/funding-data-market-symbol
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
+        """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
+        channel = 'funding_data'
+        url = self.urls['api']['ws']
+        request: dict = {
+            'jsonrpc': '2.0',
+            'method': 'subscribe',
+            'params': {
+                'channel': channel,
+            },
+        }
+        messageHash = channel + '.' + symbol
+        return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
+
+    async def watch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+        """
+        watch the funding rate for multiple markets
+
+        https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+
+        :param str[] [symbols]: a list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        channel = 'funding_data'
+        url = self.urls['api']['ws']
+        request: dict = {
+            'jsonrpc': '2.0',
+            'method': 'subscribe',
+            'params': {
+                'channel': channel,
+            },
+        }
+        messageHashes = []
+        if symbols is not None:
+            symbolsLength = len(symbols)
+            if symbolsLength > 0:
+                for i in range(0, len(symbols)):
+                    messageHash = channel + '.' + symbols[i]
+                    messageHashes.append(messageHash)
+            else:
+                messageHashes.append(channel)  # if an empty array is passed, subscribe to all funding rates
+        else:
+            messageHashes.append(channel)
+        newFundingRates = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes)
+        if self.newUpdates:
+            result: dict = {}
+            result[newFundingRates['symbol']] = newFundingRates
+            return result
+        return self.filter_by_array(self.fundingRates, 'symbol', symbols)
+
+    def handle_funding_rate(self, client: Client, message):
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "method": "subscription",
+        #         "params": {
+        #             "channel": "funding_data",
+        #             "data": {
+        #                 "market": "TRUMP-USD-PERP",
+        #                 "funding_index": "-0.551694014226244835",
+        #                 "funding_premium": "-0.000509914923994872836",
+        #                 "funding_rate": "-0.00014969570582",
+        #                 "funding_rate_8h": "-0.00014969",
+        #                 "funding_period_hours": 8,
+        #                 "created_at": 1771506636154
+        #             }
+        #         }
+        #     }
+        #
+        params = self.safe_dict(message, 'params', {})
+        data = self.safe_dict(params, 'data', {})
+        fundingRate = self.parse_funding_rate_ws(data)
+        symbol = fundingRate['symbol']
+        self.fundingRates[symbol] = fundingRate
+        channel = self.safe_string(params, 'channel')
+        messageHash = channel + '.' + symbol
+        client.resolve(fundingRate, messageHash)
+
+    def parse_funding_rate_ws(self, contract, market: Market = None) -> FundingRate:
+        #
+        #     {
+        #         "market": "TRUMP-USD-PERP",
+        #         "funding_index": "-0.551694014226244835",
+        #         "funding_premium": "-0.000509914923994872836",
+        #         "funding_rate": "-0.00014969570582",
+        #         "funding_rate_8h": "-0.00014969",
+        #         "funding_period_hours": 8,
+        #         "created_at": 1771506636154
+        #     }
+        #
+        marketId = self.safe_string(contract, 'market')
+        symbol = self.safe_symbol(marketId, market)
+        timestamp = self.safe_integer(contract, 'created_at')
+        fundingPeriod = self.safe_string(contract, 'funding_period_hours')
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': None,
+            'indexPrice': None,
+            'interestRate': self.parse_number('0'),
+            'estimatedSettlePrice': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fundingRate': self.safe_number(contract, 'funding_rate'),
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': None,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+            'interval': fundingPeriod + 'h',
+        }
+
     def handle_error_message(self, client: Client, message) -> Bool:
         #
         #     {
@@ -477,6 +607,7 @@ class paradex(ccxt.async_support.paradex):
                 'order_book': self.handle_order_book,
                 'markets_summary': self.handle_ticker,
                 'orders': self.handle_order,
+                'funding_data': self.handle_funding_rate,
             }
             method = self.safe_value(methods, name)
             if method is not None:

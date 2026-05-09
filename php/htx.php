@@ -102,13 +102,15 @@ class htx extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionADLRank' => true,
                 'fetchPositionHistory' => 'emulated',
                 'fetchPositions' => true,
+                'fetchPositionsADLRank' => true,
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => true,
                 'fetchSettlementHistory' => true,
-                'fetchStatus' => true,
+                'fetchStatus' => false, // none of `summary.json` endpoint work atm. revise in near future
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -1393,6 +1395,7 @@ class htx extends Exchange {
                     ),
                 ),
             ),
+            'rollingWindowSize' => 2000.0,
         ));
     }
 
@@ -3534,6 +3537,7 @@ class htx extends Exchange {
 
     public function fetch_balance($params = array ()): array {
         /**
+         * query for $balance and get the amount of funds available for trading or funds locked in orders
          *
          * @see https://huobiapi.github.io/docs/spot/v1/en/#get-$account-$balance-of-a-specific-$account
          * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
@@ -3542,34 +3546,37 @@ class htx extends Exchange {
          * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-$account-information
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#$isolated-query-user-s-$account-information
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#$cross-query-user-39-s-$account-information
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969
          *
-         * query for $balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [$params->unified] provide this parameter if you have a recent $account with unified $cross+$isolated $margin $account
+         * @param {string} [$params->subType] $linear or $future
+         * @param {bool} [$params->uta] provide this parameter if you have a recent $account with unified $cross+$isolated $margin $account
+         * @param {bool} [$params->multiAssetMode] set to true if you are using multi-asset mode for USDT-margined contracts
          * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
          */
         $this->load_markets();
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-        $options = $this->safe_value($this->options, 'fetchBalance', array());
-        $isUnifiedAccount = $this->safe_value_2($params, 'isUnifiedAccount', 'unified', false);
-        $params = $this->omit($params, array( 'isUnifiedAccount', 'unified' ));
+        $subType = null;
+        $isUnifiedAccount = null;
+        $isMultiAssetMode = null;
+        list($subType, $params) = $this->handle_option_and_params_2($params, 'fetchBalance', 'defaultSubType', 'subType', 'linear');
+        list($isUnifiedAccount, $params) = $this->handle_option_and_params_2($params, 'fetchBalance', 'unified', 'uta', false);
+        list($isMultiAssetMode, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'multiAssetMode', false);
         $request = array();
         $spot = ($type === 'spot');
         $future = ($type === 'future');
-        $defaultSubType = $this->safe_string_2($this->options, 'defaultSubType', 'subType', 'linear');
-        $subType = $this->safe_string_2($options, 'defaultSubType', 'subType', $defaultSubType);
-        $subType = $this->safe_string_2($params, 'defaultSubType', 'subType', $subType);
         $inverse = ($subType === 'inverse');
         $linear = ($subType === 'linear');
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBalance', $params);
-        $params = $this->omit($params, array( 'defaultSubType', 'subType' ));
         $isolated = ($marginMode === 'isolated');
         $cross = ($marginMode === 'cross');
         $margin = ($type === 'margin') || ($spot && ($cross || $isolated));
         $response = null;
-        if ($spot || $margin) {
+        if ($isMultiAssetMode) {
+            $response = $this->contractPrivateGetV5AccountBalance ($this->extend($request, $params));
+        } elseif ($spot || $margin) {
             if ($margin) {
                 if ($isolated) {
                     $response = $this->spotPrivateGetV1MarginAccountsBalance ($this->extend($request, $params));
@@ -3754,11 +3761,60 @@ class htx extends Exchange {
         //         "ts" => 1640915104870
         //     }
         //
-        // TODO add $balance parsing for $linear swap
+        // multi asset mode
+        //
+        //     {
+        //         "code" => 200,
+        //         "message" => "Success",
+        //         "data" => {
+        //             "state" => "normal",
+        //             "equity" => "174.216697577770536136",
+        //             "details" => array(
+        //                 array(
+        //                     "currency" => "USDT",
+        //                     "equity" => "174.216697577770536136",
+        //                     "available" => "174.216697577770536136",
+        //                     "profit_unreal" => "0",
+        //                     "initial_margin" => "0",
+        //                     "maintenance_margin" => "0",
+        //                     "maintenance_margin_rate" => "0",
+        //                     "initial_margin_rate" => "0",
+        //                     "available_margin" => "174.216697577770536136",
+        //                     "voucher" => "0",
+        //                     "voucher_value" => "0",
+        //                     "withdraw_available" => "174.216697577770536136",
+        //                     "created_time" => 1770293270932,
+        //                     "updated_time" => 1770293270932,
+        //                     "isolated_equity" => "0",
+        //                     "isolated_profit_unreal" => "0"
+        //                 }
+        //             ),
+        //             "initial_margin" => "0",
+        //             "maintenance_margin" => "0",
+        //             "maintenance_margin_rate" => "0",
+        //             "profit_unreal" => "0",
+        //             "available_margin" => "174.216697577770536136",
+        //             "voucher_value" => "0",
+        //             "created_time" => 1770293268881,
+        //             "updated_time" => 1770293270932
+        //         ),
+        //         "ts" => 1770293281344
+        //     }
         //
         $result = array( 'info' => $response );
         $data = $this->safe_value($response, 'data');
-        if ($spot || $margin) {
+        if ($isMultiAssetMode) {
+            $details = $this->safe_list($data, 'details', array());
+            for ($i = 0; $i < count($details); $i++) {
+                $balance = $details[$i];
+                $currencyId = $this->safe_string($balance, 'currency');
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $account['free'] = $this->safe_string($balance, 'withdraw_available');
+                $result[$code] = $account;
+            }
+            $result = $this->safe_balance($result);
+        } elseif ($spot || $margin) {
             if ($isolated) {
                 for ($i = 0; $i < count($data); $i++) {
                     $entry = $data[$i];
@@ -4180,7 +4236,7 @@ class htx extends Exchange {
             // POST /linear-swap-api/v3/swap_hisorders linear isolated --------
             // POST /linear-swap-api/v3/swap_cross_hisorders linear cross -----
             'trade_type' => 0, // 0:All; 1 => Open long; 2 => Open short; 3 => Close short; 4 => Close long; 5 => Liquidate long positions; 6 => Liquidate short positions, 17:buy(one-way mode), 18:sell(one-way mode)
-            'status' => '0', // support multiple query seperated by ',',such as '3,4,5', 0 => all. 3. Have sumbmitted the $orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
+            'status' => '0', // support multiple query separated by ',',such as '3,4,5', 0 => all. 3. Have submitted the $orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
         );
         $response = null;
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
@@ -8531,9 +8587,9 @@ class htx extends Exchange {
         }
         $request = array();
         $subType = null;
-        list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', $market, $params, 'linear');
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchOpenInterests', $market, $params, 'linear');
         $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchPositions', $market, $params);
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenInterests', $market, $params);
         $response = null;
         if ($marketType === 'future') {
             $response = $this->contractPublicGetApiV1ContractOpenInterest ($this->extend($request, $params));
@@ -9504,5 +9560,263 @@ class htx extends Exchange {
             //
         }
         return $response;
+    }
+
+    public function fetch_positions_adl_rank(?array $symbols = null, $params = array ()): array {
+        /**
+         * fetches the auto deleveraging rank and risk percentage for a list of $symbols
+         *
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb81b5a-77b5-11ed-9966-0242ac110003
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb81c49-77b5-11ed-9966-0242ac110003
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c2f164-77ae-11ed-9966-0242ac110003
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=5d518648-77b6-11ed-9966-0242ac110003
+         *
+         * @param {string[]} [$symbols] a list of unified $market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structures~
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        $market = null;
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength > 0) {
+                $first = $this->safe_string($symbols, 0);
+                $market = $this->market($first);
+            }
+        }
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchPositionsADLRank', $params, 'cross');
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchPositionsADLRank', $market, $params, 'linear');
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchPositionsADLRank', $market, $params);
+        if ($marketType === 'spot') {
+            $marketType = 'future';
+        }
+        $response = null;
+        if ($subType === 'linear') {
+            if ($marginMode === 'isolated') {
+                $response = $this->contractPrivatePostLinearSwapApiV1SwapPositionInfo ($params);
+            } elseif ($marginMode === 'cross') {
+                $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo ($params);
+            } else {
+                throw new NotSupported($this->id . ' fetchPositionsADLRank() not support this $market type');
+            }
+            //
+            //         {
+            //             "status" => "ok",
+            //         "data" => array(
+            //             {
+            //                 "symbol" => "BTC",
+            //                 "contract_code" => "BTC-USDT",
+            //                 "volume" => 1.000000000000000000,
+            //                 "available" => 1.000000000000000000,
+            //                 "frozen" => 0E-18,
+            //                 "cost_open" => 96039.700000000000000000,
+            //                 "cost_hold" => 96039.700000000000000000,
+            //                 "profit_unreal" => 0.000600000000000000,
+            //                 "profit_rate" => 0.000006247416432995,
+            //                 "lever_rate" => 1,
+            //                 "position_margin" => 96.040300000000000000,
+            //                 "direction" => "buy",
+            //                 "profit" => 0.000600000000000000,
+            //                 "last_price" => 96040.3,
+            //                 "margin_asset" => "USDT",
+            //                 "margin_mode" => "cross",
+            //                 "margin_account" => "USDT",
+            //                 "contract_type" => "swap",
+            //                 "pair" => "BTC-USDT",
+            //                 "business_type" => "swap",
+            //                 "trade_partition":"USDT",
+            //                 "position_mode" => "single_side",
+            //                 "store_time" => "2023-10-08 20:05:06",
+            //                 "liquidation_price" => null,
+            //                 "market_closing_slippage" => null,
+            //                 "risk_rate" => 249.274066168760049797,
+            //                 "new_risk_rate" => 0.003995619743220614,
+            //                 "risk_rate_percent" => 0.003995619743220614,
+            //                 "withdraw_available" => null,
+            //                 "open_adl" => 1,
+            //                 "adl_risk_percent" => 3,
+            //                 "tp_trigger_price" => null,
+            //                 "sl_trigger_price" => null,
+            //                 "tp_order_id" => null,
+            //                 "sl_order_id" => null,
+            //                 "tp_trigger_type" => null,
+            //                 "sl_trigger_type" => null,
+            //                 "adjust_value" => null
+            //             }
+            //         ),
+            //         "ts" => 1768489640285
+            //     }
+            //
+        } else {
+            if ($marketType === 'future') {
+                $response = $this->contractPrivatePostApiV1ContractPositionInfo ($params);
+                //
+                //     {
+                //         "status" => "ok",
+                //         "data" => array(
+                //             {
+                //                 "symbol" => "BTC",
+                //                 "contract_code" => "BTC-USDT-260123",
+                //                 "volume" => 1.000000000000000000,
+                //                 "available" => 1.000000000000000000,
+                //                 "frozen" => 0E-18,
+                //                 "cost_open" => 96203.100000000000000000,
+                //                 "cost_hold" => 96203.100000000000000000,
+                //                 "profit_unreal" => -0.199400000000000000,
+                //                 "profit_rate" => -0.002072698281032524,
+                //                 "lever_rate" => 1,
+                //                 "position_margin" => 96.003700000000000000,
+                //                 "direction" => "buy",
+                //                 "profit" => -0.199400000000000000,
+                //                 "last_price" => 96003.7,
+                //                 "margin_asset" => "USDT",
+                //                 "margin_mode" => "cross",
+                //                 "margin_account" => "USDT",
+                //                 "contract_type" => "next_week",
+                //                 "pair" => "BTC-USDT",
+                //                 "business_type" => "futures",
+                //                 "trade_partition" => "USDT",
+                //                 "position_mode" => "single_side",
+                //                 "store_time" => "2026-01-15 23:45:21",
+                //                 "liquidation_price" => null,
+                //                 "market_closing_slippage" => null,
+                //                 "risk_rate" => 249.265098252125343196,
+                //                 "new_risk_rate" => 0.003995762920935011,
+                //                 "risk_rate_percent" => 0.003995762920935011,
+                //                 "withdraw_available" => null,
+                //                 "open_adl" => 1,
+                //                 "adl_risk_percent" => 2,
+                //                 "tp_trigger_price" => null,
+                //                 "sl_trigger_price" => null,
+                //                 "tp_order_id" => null,
+                //                 "sl_order_id" => null,
+                //                 "tp_trigger_type" => null,
+                //                 "sl_trigger_type" => null,
+                //                 "adjust_value" => null
+                //             }
+                //         ),
+                //         "ts" => 1768491964551
+                //     }
+                //
+            } elseif ($marketType === 'swap') {
+                $response = $this->contractPrivatePostSwapApiV1SwapPositionInfo ($params);
+                //
+                //     {
+                //         "status" => "ok"
+                //         "data" => array(
+                //             {
+                //                 "symbol" => "THETA"
+                //                 "contract_code" => "THETA-USD"
+                //                 "volume" => 20
+                //                 "available" => 20
+                //                 "frozen" => 0
+                //                 "cost_open" => 0.6048347107438017
+                //                 "cost_hold" => 0.65931
+                //                 "profit_unreal" => -10.5257562398811
+                //                 "profit_rate" => 1.0158596753357925
+                //                 "lever_rate" => 20
+                //                 "position_margin" => 15.693659761456372
+                //                 "direction" => "buy"
+                //                 "profit" => 16.795657677889032
+                //                 "last_price" => 0.6372
+                //                 "adl_risk_percent" => "3"
+                //                 "liq_px" => "112"
+                //                 "new_risk_rate" => ""
+                //                 "trade_partition" => ""
+                //             }
+                //         )
+                //         "ts" => 1603868312729
+                //     }
+                //
+            } else {
+                throw new NotSupported($this->id . ' fetchPositionsADLRank() not support this $market type');
+            }
+        }
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_adl_ranks($data, $symbols);
+    }
+
+    public function parse_adl_rank(array $info, ?array $market = null): array {
+        //
+        // fetchPositionADLRank linear swap and future
+        //
+        //     {
+        //         "symbol" => "BTC",
+        //         "contract_code" => "BTC-USDT",
+        //         "volume" => 1.000000000000000000,
+        //         "available" => 1.000000000000000000,
+        //         "frozen" => 0E-18,
+        //         "cost_open" => 96039.700000000000000000,
+        //         "cost_hold" => 96039.700000000000000000,
+        //         "profit_unreal" => 0.000600000000000000,
+        //         "profit_rate" => 0.000006247416432995,
+        //         "lever_rate" => 1,
+        //         "position_margin" => 96.040300000000000000,
+        //         "direction" => "buy",
+        //         "profit" => 0.000600000000000000,
+        //         "last_price" => 96040.3,
+        //         "margin_asset" => "USDT",
+        //         "margin_mode" => "cross",
+        //         "margin_account" => "USDT",
+        //         "contract_type" => "swap",
+        //         "pair" => "BTC-USDT",
+        //         "business_type" => "swap",
+        //         "trade_partition":"USDT",
+        //         "position_mode" => "single_side",
+        //         "store_time" => "2023-10-08 20:05:06",
+        //         "liquidation_price" => null,
+        //         "market_closing_slippage" => null,
+        //         "risk_rate" => 249.274066168760049797,
+        //         "new_risk_rate" => 0.003995619743220614,
+        //         "risk_rate_percent" => 0.003995619743220614,
+        //         "withdraw_available" => null,
+        //         "open_adl" => 1,
+        //         "adl_risk_percent" => 3,
+        //         "tp_trigger_price" => null,
+        //         "sl_trigger_price" => null,
+        //         "tp_order_id" => null,
+        //         "sl_order_id" => null,
+        //         "tp_trigger_type" => null,
+        //         "sl_trigger_type" => null,
+        //         "adjust_value" => null
+        //     }
+        //
+        // fetchPositionADLRank inverse
+        //
+        //     {
+        //         "symbol" => "THETA"
+        //         "contract_code" => "THETA-USD"
+        //         "volume" => 20
+        //         "available" => 20
+        //         "frozen" => 0
+        //         "cost_open" => 0.6048347107438017
+        //         "cost_hold" => 0.65931
+        //         "profit_unreal" => -10.5257562398811
+        //         "profit_rate" => 1.0158596753357925
+        //         "lever_rate" => 20
+        //         "position_margin" => 15.693659761456372
+        //         "direction" => "buy"
+        //         "profit" => 16.795657677889032
+        //         "last_price" => 0.6372
+        //         "adl_risk_percent" => "3"
+        //         "liq_px" => "112"
+        //         "new_risk_rate" => ""
+        //         "trade_partition" => ""
+        //     }
+        //
+        $marketId = $this->safe_string($info, 'contract_code');
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
+            'rank' => $this->safe_integer($info, 'adl_risk_percent'),
+            'rating' => null,
+            'percentage' => null,
+            'timestamp' => null,
+            'datetime' => null,
+        );
     }
 }

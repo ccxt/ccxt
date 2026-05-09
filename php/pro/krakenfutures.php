@@ -382,7 +382,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //
         //        {
         //            instrument => 'PF_LTCUSD',
-        //            $balance => 0.5,
+        //            balance => 0.5,
         //            pnl => -0.8628305877699987,
         //            entry_price => 70.53,
         //            mark_price => 68.80433882446,
@@ -399,8 +399,13 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //
         $marketId = $this->safe_string($position, 'instrument');
         $hedged = 'both';
-        $balance = $this->safe_number($position, 'balance');
-        $side = ($balance > 0) ? 'long' : 'short';
+        $balanceString = $this->safe_string($position, 'balance');
+        $side = null;
+        if (Precise::string_gt($balanceString, '0')) {
+            $side = 'long';
+        } elseif (Precise::string_lt($balanceString, '0')) {
+            $side = 'short';
+        }
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -411,7 +416,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             'entryPrice' => $this->safe_number($position, 'entry_price'),
             'unrealizedPnl' => $this->safe_number($position, 'pnl'),
             'percentage' => $this->safe_number($position, 'return_on_equity'),
-            'contracts' => $this->parse_number(Precise::string_abs($this->number_to_string($balance))),
+            'contracts' => $this->parse_number(Precise::string_abs($balanceString)),
             'contractSize' => null,
             'markPrice' => $this->safe_number($position, 'mark_price'),
             'side' => $side,
@@ -1529,21 +1534,35 @@ class krakenfutures extends \ccxt\async\krakenfutures {
     public function watch_multi_helper(string $unifiedName, string $channelName, ?array $symbols = null, $subscriptionArgs = null, $params = array ()) {
         return Async\async(function () use ($unifiedName, $channelName, $symbols, $subscriptionArgs, $params) {
             Async\await($this->load_markets());
+            $url = $this->urls['api']['ws'];
             // $symbols are required
             $symbols = $this->market_symbols($symbols, null, false, true, false);
             $messageHashes = array();
+            $rawSubs = array();
             for ($i = 0; $i < count($symbols); $i++) {
-                $messageHashes[] = $this->get_message_hash($unifiedName, null, $this->symbol($symbols[$i]));
+                $messageHash = $this->get_message_hash($unifiedName, null, $this->symbol($symbols[$i]));
+                $messageHashes[] = $messageHash;
+                $market = $this->market($symbols[$i]);
+                if (!$this->subscription_exists_for_hash($url, $messageHash)) {
+                    $rawSubs[] = $market['id'];
+                }
             }
-            $marketIds = $this->market_ids($symbols);
-            $request = array(
-                'event' => 'subscribe',
-                'feed' => $channelName,
-                'product_ids' => $marketIds,
-            );
-            $url = $this->urls['api']['ws'];
+            $request = array();
+            $length = count($rawSubs);
+            if ($length > 0) {
+                $request = array(
+                    'event' => 'subscribe',
+                    'feed' => $channelName,
+                    'product_ids' => $rawSubs,
+                );
+            }
             return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes, $subscriptionArgs));
         }) ();
+    }
+
+    public function subscription_exists_for_hash(string $url, string $hash) {
+        $client = $this->client($url);
+        return (is_array($client->subscriptions) && array_key_exists($hash, $client->subscriptions));
     }
 
     public function get_message_hash(string $unifiedElementName, ?string $subChannelName = null, ?string $symbol = null) {

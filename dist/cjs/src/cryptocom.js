@@ -483,6 +483,7 @@ class cryptocom extends cryptocom$1["default"] {
                     '219': errors.InvalidOrder,
                     '306': errors.InsufficientFunds,
                     '314': errors.InvalidOrder,
+                    '315': errors.InvalidOrder,
                     '325': errors.InvalidOrder,
                     '415': errors.InvalidOrder,
                     '10001': errors.ExchangeError,

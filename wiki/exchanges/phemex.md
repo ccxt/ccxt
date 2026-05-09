@@ -26,6 +26,7 @@
 * [fetchDeposits](#fetchdeposits)
 * [fetchWithdrawals](#fetchwithdrawals)
 * [fetchPositions](#fetchpositions)
+* [fetchPositionHistory](#fetchpositionhistory)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [fetchFundingRate](#fetchfundingrate)
 * [setMargin](#setmargin)
@@ -41,6 +42,7 @@
 * [fetchConvertQuote](#fetchconvertquote)
 * [createConvertTrade](#createconverttrade)
 * [fetchConvertTradeHistory](#fetchconverttradehistory)
+* [fetchPositionADLRank](#fetchpositionadlrank)
 * [watchBalance](#watchbalance)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
@@ -568,6 +570,30 @@ phemex.fetchPositions ([symbols, params])
 ```
 
 
+<a name="fetchPositionHistory" id="fetchpositionhistory"></a>
+
+### fetchPositionHistory{docsify-ignore}
+fetches historical positions
+
+**Kind**: instance method of [<code>phemex</code>](#phemex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
+
+**See**: https://phemex-docs.github.io/#query-closed-positions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified contract symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch positions for |
+| limit | <code>int</code> | No | the maximum amount of records to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange api endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch positions for |
+
+
+```javascript
+phemex.fetchPositionHistory (symbol[, since, limit, params])
+```
+
+
 <a name="fetchFundingHistory" id="fetchfundinghistory"></a>
 
 ### fetchFundingHistory{docsify-ignore}
@@ -915,6 +941,34 @@ fetch the users history of conversion trades
 
 ```javascript
 phemex.fetchConvertTradeHistory ([code, since, limit, params])
+```
+
+
+<a name="fetchPositionADLRank" id="fetchpositionadlrank"></a>
+
+### fetchPositionADLRank{docsify-ignore}
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+**Kind**: instance method of [<code>phemex</code>](#phemex)  
+**Returns**: <code>object</code> - an array of [auto de leverage structures](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+**See**
+
+- https://phemex-docs.github.io/#query-account-positions
+- https://phemex-docs.github.io/#query-trading-account-and-positions
+- https://phemex-docs.github.io/#query-account-positions-with-unrealized-pnl
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.code | <code>string</code> | No | the currency code to fetch ranks for, USD, BTC or USDT, USDT is the default |
+| params.method | <code>string</code> | No | *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions' |
+
+
+```javascript
+phemex.fetchPositionADLRank ([symbols, params])
 ```
 
 

@@ -6,7 +6,6 @@ var deepcoin$1 = require('./abstract/deepcoin.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var Precise = require('./base/Precise.js');
-require('../ccxt.js');
 var errors = require('./base/errors.js');
 
 // ----------------------------------------------------------------------------
@@ -916,7 +915,7 @@ class deepcoin extends deepcoin$1["default"] {
      */
     async fetchBalance(params = {}) {
         await this.loadMarkets();
-        let marketType = 'spot';
+        let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params, marketType);
         const request = {
             'instType': this.convertToInstrumentType(marketType),

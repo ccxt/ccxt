@@ -3,6 +3,22 @@
     "skipKeys": [],
     "outputType": "urlencoded",
     "methods": {
+        "fetchCanceledOrders": [
+            {
+                "description": "canceled trigger orders",
+                "method": "fetchCanceledOrders",
+                "url": "https://futures.kraken.com/api/history/v2/triggers",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            }
+        ],
         "fetchOrders": [
             {
                 "description": "orders status",
@@ -228,6 +244,20 @@
             }
         ],
         "fetchClosedOrders": [
+            {
+                "description": "fetchClosed trigger roders",
+                "method": "fetchClosedOrders",
+                "url": "https://futures.kraken.com/api/history/v2/triggers",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "fetch closed orders",
                 "method": "fetchClosedOrders",

@@ -1,10 +1,10 @@
 import bitmartRest from '../bitmart.js';
-import type { Int, Market, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Bool } from '../base/types.js';
+import type { Int, Market, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Bool, FundingRate, FundingRates } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitmart extends bitmartRest {
     describe(): any;
-    subscribe(channel: any, symbol: any, type: any, params?: {}): Promise<any>;
-    subscribeMultiple(channel: string, type: string, symbols?: Strings, params?: {}): Promise<any>;
+    subscribe(unifiedName: any, channel: any, symbol: any, type: any, params?: {}): Promise<any>;
+    subscribeMultiple(unifiedName: string, channel: string, type: string, symbols?: Strings, params?: {}): Promise<any>;
     /**
      * @method
      * @name bitmart#watchBalance
@@ -52,7 +52,7 @@ export default class bitmart extends bitmartRest {
      * @see https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     unWatchTrades(symbol: string, params?: {}): Promise<any>;
     /**
@@ -63,7 +63,7 @@ export default class bitmart extends bitmartRest {
      * @see https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
     getParamsForMultipleSub(methodName: string, symbols: string[], limit?: Int, params?: {}): any[];
@@ -97,7 +97,7 @@ export default class bitmart extends bitmartRest {
      * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     unWatchTicker(symbol: string, params?: {}): Promise<any>;
     /**
@@ -108,7 +108,7 @@ export default class bitmart extends bitmartRest {
      * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
     /**
@@ -145,7 +145,7 @@ export default class bitmart extends bitmartRest {
      * @see https://developer-pro.bitmart.com/en/futuresv2/#private-order-channel
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     unWatchOrders(symbol?: Str, params?: {}): Promise<any>;
     handleOrders(client: Client, message: any): void;
@@ -231,7 +231,7 @@ export default class bitmart extends bitmartRest {
      * @see https://developer-pro.bitmart.com/en/futuresv2/#public-depth-channel
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
@@ -258,9 +258,30 @@ export default class bitmart extends bitmartRest {
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
+    /**
+     * @method
+     * @name bitmart#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-funding-rate-channel
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    /**
+     * @method
+     * @name bitmart#watchFundingRates
+     * @description watch the funding rate for multiple markets
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-funding-rate-channel
+     * @param {string[]} symbols a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market symbols
+     */
+    watchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
+    handleFundingRate(client: Client, message: any): void;
     authenticate(type: any, params?: {}): Promise<any>;
     handleSubscriptionStatus(client: Client, message: any): any;
     handleAuthenticate(client: Client, message: any): void;
@@ -275,5 +296,6 @@ export default class bitmart extends bitmartRest {
     };
     parseTopic(topic: any): string;
     parseMarketType(marketType: string): string;
+    subscriptionExistsForHash(url: string, hash: string): boolean;
     handleMessage(client: Client, message: any): void;
 }

@@ -14,7 +14,7 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_status.php';
 function test_fetch_status($exchange, $skipped_properties) {
     return Async\async(function () use ($exchange, $skipped_properties) {
         $method = 'fetchStatus';
-        $status = Async\await($exchange->fetch_status());
+        $status = \React\Async\await($exchange->fetch_status());
         test_status($exchange, $skipped_properties, $method, $status, $exchange->milliseconds());
         return true;
     }) ();

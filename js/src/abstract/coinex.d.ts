@@ -235,6 +235,8 @@ interface Exchange {
     v2PrivatePostFuturesStopOrder(params?: {}): Promise<implicitReturnType>;
     v2PrivatePostFuturesBatchOrder(params?: {}): Promise<implicitReturnType>;
     v2PrivatePostFuturesBatchStopOrder(params?: {}): Promise<implicitReturnType>;
+    v2PrivatePostFuturesCancelPositionStopLoss(params?: {}): Promise<implicitReturnType>;
+    v2PrivatePostFuturesCancelPositionTakeProfit(params?: {}): Promise<implicitReturnType>;
     v2PrivatePostFuturesModifyOrder(params?: {}): Promise<implicitReturnType>;
     v2PrivatePostFuturesModifyStopOrder(params?: {}): Promise<implicitReturnType>;
     v2PrivatePostFuturesBatchModifyOrder(params?: {}): Promise<implicitReturnType>;

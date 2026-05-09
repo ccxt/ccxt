@@ -34,6 +34,7 @@
 * [fetchTransfers](#fetchtransfers)
 * [transfer](#transfer)
 * [fetchBorrowRateHistory](#fetchborrowratehistory)
+* [fetchOpenInterest](#fetchopeninterest)
 * [signIn](#signin)
 * [watchTrades](#watchtrades)
 * [watchTicker](#watchticker)
@@ -745,6 +746,27 @@ retrieves a history of a currencies borrow interest rate at specific time slots
 
 ```javascript
 bullish.fetchBorrowRateHistory (code[, since, limit, params])
+```
+
+
+<a name="fetchOpenInterest" id="fetchopeninterest"></a>
+
+### fetchOpenInterest{docsify-ignore}
+fetches the open interest of a specific market
+
+**Kind**: instance method of [<code>bullish</code>](#bullish)  
+**Returns**: <code>object</code> - an [open interest structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-symbol-/tick  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the open interest for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bullish.fetchOpenInterest (symbol[, params])
 ```
 
 

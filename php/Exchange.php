@@ -37,13 +37,14 @@ use StarkNet\Crypto\Curve;
 use StarkNet\Crypto\Key;
 use StarkNet\Hash;
 use StarkNet\TypedData;
+use Lighter\Signer;
 use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.34';
+$version = '4.5.52';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +63,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.5.34';
+    const VERSION = '4.5.52';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -75,7 +76,7 @@ class Exchange {
     public $curl_reset = true;
     public $curl_close = false;
 
-    public $id = null;
+    public $id = 'Exchange';
 
     public $validateServerSsl = true;
     public $validateClientSsl = false;
@@ -130,13 +131,7 @@ class Exchange {
     public $quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
 
     public $name = null;
-    public $status = array(
-        'status' => 'ok',
-        'updated' => null,
-        'eta' => null,
-        'url' => null,
-        'info' => null,
-    );
+    public $status = null;
     public $countries = null;
     public $version = null;
     public $certified = false; // if certified by the CCXT dev team
@@ -187,32 +182,22 @@ class Exchange {
         ),
     );
 
-    public $precision = array(
-        'amount'=> null,
-        'price'=> null,
-        'cost'=> null,
-        'base'=> null,
-        'quote'=> null,
-    );
-    public $liquidations = array();
+    public $precision = null;
+    public $liquidations = null;
     public $orders = null;
     public $triggerOrders = null;
-    public $myLiquidations = array();
+    public $myLiquidations = null;
     public $myTrades = null;
     public $trades = array();
     public $transactions = array();
     public $positions = null;
     public $ohlcvs = array();
     public $exceptions = array();
-    public $accounts = array();
-    public $accountsById = array();
+    public $accounts = null;
+    public $accountsById = null;
 
     public $limits = array(
-        'cost' => array(
-            'min' => null,
-            'max' => null,
-        ),
-        'price' => array(
+        'leverage' => array(
             'min' => null,
             'max' => null,
         ),
@@ -220,7 +205,11 @@ class Exchange {
             'min' => null,
             'max' => null,
         ),
-        'leverage' => array(
+        'price' => array(
+            'min' => null,
+            'max' => null,
+        ),
+        'cost' => array(
             'min' => null,
             'max' => null,
         ),
@@ -253,17 +242,18 @@ class Exchange {
         '511' => 'AuthenticationError',
     );
     public $verbose = false;
-    public $apiKey = '';
-    public $secret = '';
-    public $password = '';
-    public $login = '';
-    public $uid = '';
-    public $accountId = null;
-    public $privateKey = '';
-    public $walletAddress = '';
-    public $token = ''; // reserved for HTTP auth in some cases
 
-    public $twofa = null;
+    public $apiKey;
+    public $secret;
+    public $password;
+    public $login;
+    public $uid;
+    public $accountId;
+    public $privateKey;
+    public $walletAddress;
+    public $token; // reserved for HTTP auth in some cases
+    public $twofa;
+
     public $markets_by_id = null;
     public $currencies_by_id = null;
     public $minFundingAddressLength = 1; // used in check_address
@@ -289,7 +279,7 @@ class Exchange {
 
     // API methods metainfo
     public $has = array();
-    public $features = array();
+    public $features = null;
 
     public $precisionMode = DECIMAL_PLACES;
     public $paddingMode = NO_PADDING;
@@ -314,13 +304,11 @@ class Exchange {
     public $last_request_body = null;
     public $last_request_url = null;
 
-    public $requiresWeb3 = false;
     public $requiresEddsa = false;
     public $rateLimit = 2000;
 
     public $commonCurrencies = array(
         'XBT' => 'BTC',
-        'BCC' => 'BCH',
         'BCHSV' => 'BSV',
     );
 
@@ -341,7 +329,7 @@ class Exchange {
     public $quoteCurrencies = null;
 
     public static $exchanges = array(
-        'alp',
+        'aftermath',
         'alpaca',
         'apex',
         'arkham',
@@ -384,7 +372,6 @@ class Exchange {
         'coinbaseadvanced',
         'coinbaseexchange',
         'coinbaseinternational',
-        'coincatch',
         'coincheck',
         'coinex',
         'coinmate',
@@ -395,7 +382,6 @@ class Exchange {
         'cryptocom',
         'cryptomus',
         'deepcoin',
-        'defx',
         'delta',
         'deribit',
         'derive',
@@ -407,6 +393,7 @@ class Exchange {
         'gate',
         'gateio',
         'gemini',
+        'grvt',
         'hashkey',
         'hibachi',
         'hitbtc',
@@ -422,6 +409,7 @@ class Exchange {
         'kucoinfutures',
         'latoken',
         'lbank',
+        'lighter',
         'luno',
         'mercado',
         'mexc',
@@ -434,16 +422,16 @@ class Exchange {
         'onetrading',
         'oxfun',
         'p2b',
+        'pacifica',
         'paradex',
         'paymium',
         'phemex',
         'poloniex',
-        'probit',
-        'timex',
         'tokocrypto',
         'toobit',
         'upbit',
         'wavesexchange',
+        'weex',
         'whitebit',
         'woo',
         'woofipro',
@@ -677,17 +665,6 @@ class Exchange {
         );
     }
 
-    public static function uuidv1() {
-        $biasSeconds = 12219292800;  // seconds from 15th Oct 1572 to Jan 1st 1970
-        $bias = $biasSeconds * 10000000;  // in hundreds of nanoseconds
-        $time = static::microseconds() * 10 + $bias;
-        $timeHex = dechex($time);
-        $arranged = substr($timeHex, 7, 8) . substr($timeHex, 3, 4) . '1' . substr($timeHex, 0, 3);
-        $clockId = '9696';
-        $macAddress = 'ffffffffffff';
-        return $arranged . $clockId . $macAddress;
-    }
-
     public static function parse_timeframe($timeframe) {
         $amount = substr($timeframe, 0, -1);
         $unit = substr($timeframe, -1);
@@ -822,12 +799,6 @@ class Exchange {
         return $arrayOfArrays;
     }
 
-    public static function flatten($array) {
-        return array_reduce($array, function ($acc, $item) {
-            return array_merge($acc, is_array($item) ? static::flatten($item) : array($item));
-        }, array());
-    }
-
     public static function array_concat() {
         return call_user_func_array('array_merge', array_filter(func_get_args(), 'is_array'));
     }
@@ -844,12 +815,21 @@ class Exchange {
     }
 
     public static function is_empty($object) {
-        return empty($object) || count($object) === 0;
+        if ($object === null) {
+            return true;
+        }
+        if (is_countable($object)) {
+            return count($object) === 0;
+        }
+        if (is_object($object)) {
+            return count(get_object_vars($object)) === 0;
+        }
+        return false;
     }
 
     public static function keysort($array) {
         $result = $array;
-        ksort($result);
+        ksort($result, SORT_STRING);
         return $result;
     }
 
@@ -863,6 +843,7 @@ class Exchange {
         if (preg_match_all('/{([\w-]+)}/u', $string, $matches)) {
             return $matches[1];
         }
+        return [];
     }
 
 
@@ -920,10 +901,6 @@ class Exchange {
         }));
     }
 
-    public static function ordered($array) { // for Python OrderedDicts, does nothing in PHP and JS
-        return $array;
-    }
-
     public function aggregate($bidasks) {
         $result = array();
 
@@ -958,10 +935,7 @@ class Exchange {
     }
 
     public function urlencode_nested($array) {
-        // we don't have to implement this method in PHP
-        // https://github.com/ccxt/ccxt/issues/12872
-        // https://github.com/ccxt/ccxt/issues/12900
-        return $this->urlencode($array);
+        return str_replace(array('%5B', '%5D'), array('[', ']'), $this->urlencode($array));
     }
 
     public function urlencode_with_array_repeat($array) {
@@ -1067,13 +1041,6 @@ class Exchange {
         return $time;
     }
 
-    public static function rfc2616($timestamp) {
-        if (!$timestamp) {
-            $timestamp = static::milliseconds();
-        }
-        return gmdate('D, d M Y H:i:s T', (int) round($timestamp / 1000));
-    }
-
     public static function dmy($timestamp, $infix = '-') {
         return gmdate('m' . $infix . 'd' . $infix . 'Y', (int) round($timestamp / 1000));
     }
@@ -1094,6 +1061,15 @@ class Exchange {
     public static function ymdhms($timestamp, $infix = ' ') {
         return gmdate('Y-m-d\\' . $infix . 'H:i:s', (int) round($timestamp / 1000));
     }
+    public static function string_to_binary(string $buff): string
+    {
+        return mb_convert_encoding($buff, 'UTF-8');
+    }
+
+    public static function binary_to_string(string $buff): string
+    {
+        return mb_convert_encoding($buff, 'UTF-8');
+    }
 
     public static function binary_concat() {
         return implode('', func_get_args());
@@ -1107,8 +1083,20 @@ class Exchange {
         return \base64_encode($binary);
     }
 
+    public static function string_to_base64($str) {
+        return \base64_encode($str);
+    }
+
+    public static function base64_to_binary($str) {
+        return \base64_decode($str);
+    }
+
     public static function base16_to_binary($data) {
         return hex2bin($data);
+    }
+
+    public static function binary_to_base16($data) {
+        return bin2hex($data);
     }
 
     public static function int_to_base16($integer) {
@@ -1131,7 +1119,7 @@ class Exchange {
 
     public static function is_json_encoded_object($input) {
         return ('string' === gettype($input)) &&
-                (strlen($input) >= 2) &&
+                // (strlen($input) >= 2) && // commented: https://github.com/ccxt/ccxt/pull/28193
                 (('{' === $input[0]) || ('[' === $input[0]));
     }
 
@@ -1197,6 +1185,16 @@ class Exchange {
     }
 
     public static function underscore($camelcase) {
+        // handle edgecase: fetchADLRank -> fetch_adl_rank
+        if ($camelcase == 'fetchADLRank') {
+            return 'fetch_adl_rank';
+        }
+        if ($camelcase == 'fetchPositionADLRank') {
+            return 'fetch_position_adl_rank';
+        }
+        if ($camelcase == 'fetchPositionsADLRank') {
+            return 'fetch_positions_adl_rank';
+        }
         // conversion fooBar10OHLCV2Candles → foo_bar10_ohlcv2_candles
         $underscore = preg_replace_callback('/[a-z0-9][A-Z]/m', function ($x) {
             return $x[0][0] . '_' . $x[0][1];
@@ -1265,6 +1263,52 @@ class Exchange {
             $signature = static::hmac($token, $secret, $algorithm, 'binary');
         }
         return $token . '.' . static::urlencode_base64($signature);
+    }
+
+    public function get_temp_dir(): string {
+        $tmp = realpath(sys_get_temp_dir()) ?: '';
+        return str_ends_with($tmp, DIRECTORY_SEPARATOR) ? $tmp : $tmp . DIRECTORY_SEPARATOR;
+    }
+
+
+    public function ensure_whitelisted_file(string $filePath) {
+        $tempDir = $this->get_temp_dir();
+        if (!str_ends_with($tempDir, DIRECTORY_SEPARATOR)) {
+            $tempDir .= DIRECTORY_SEPARATOR;
+        }
+        // resolve parent dir (which exists) + filename
+        $dir = realpath(dirname($filePath));
+        if ($dir === false) {
+            throw new \RuntimeException('dir path does not exist: ' . $filePath);
+        }
+        $sanitized = $dir . DIRECTORY_SEPARATOR . basename($filePath);
+        if (str_starts_with($sanitized, $tempDir) && str_ends_with($sanitized, '.ccxtfile')) {
+            return;
+        }
+        throw new \RuntimeException('invalid file path: ' . $filePath);
+    }
+
+    public function read_file(string $filePath) {
+        $this->ensure_whitelisted_file($filePath);
+        if (!file_exists($filePath)) {
+            throw new \Exception("File not found: $filePath");
+        }
+        return file_get_contents($filePath);
+    }
+
+    public function write_file(string $path, string $data) {
+        $this->ensure_whitelisted_file($path);
+        $dir = dirname($path);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0777, true);
+        }
+        file_put_contents($path, $data);
+        return true;
+    }
+
+    public function exists_file(string $path) {
+        $this->ensure_whitelisted_file($path);
+        return file_exists($path);
     }
 
     public static function base64_to_base64url(string $base64, bool $stripPadding = true): string {
@@ -1439,6 +1483,244 @@ class Exchange {
         return $this->json($signature);
     }
 
+    public function is_lighter_library_path_required() {
+        return true;
+    }
+
+    public function load_lighter_library_helper($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex, $createClient = false) {
+        if ($path == null || $path == '') {
+            throw new ExchangeError($this->id . ' load_lighter_library() requires a path to the lighter library. You can find it here https://github.com/elliottech/lighter-python/tree/main/lighter/signers. Please download the appropriate library for your system and provide the path to it.\nExample: exchange.options["libraryPath"] = "path/to/lighter-signer-linux-arm64.so"');
+        }
+        $lighterSigner = Signer::getInstance($path);
+
+        if ($createClient) {
+            $this->lighter_create_client(
+                $lighterSigner,
+                $chainId,
+                $privateKey,
+                $apiKeyIndex,
+                $accountIndex
+            );
+        }
+        return $lighterSigner;
+    }
+
+    public function lighter_create_client($signer, $chainId, $privateKey, $apiKeyIndex, $accountIndex) {
+        $url = $this->implode_hostname($this->urls['api']['public']);
+        $signer->createClient(
+            $url,
+            $privateKey,
+            $chainId,
+            $apiKeyIndex,
+            $accountIndex
+        );
+        return $signer;
+    }
+
+    public function load_lighter_library($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex, $createClient = false) {
+        return $this->load_lighter_library_helper($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex, $createClient);
+    }
+
+    public function lighter_sign_create_grouped_orders($signer, $request) {
+        $orders = $request['orders'];
+        $orders_arr = array();
+        foreach ($orders as $order) {
+            $orders_arr[] = array(
+                'marketIndex' => $order['market_index'],
+                'clientOrderIndex' => $order['client_order_index'],
+                'baseAmount' => $order['base_amount'],
+                'price' => $order['avg_execution_price'],
+                'isAsk' => $order['is_ask'],
+                'type' => $order['order_type'],
+                'timeInForce' => $order['time_in_force'],
+                'reduceOnly' => $order['reduce_only'],
+                'triggerPrice' => $order['trigger_price'],
+                'orderExpiry' => $order['order_expiry'],
+            );
+        }
+        $result = $signer->signCreateGroupedOrders(
+            $request['grouping_type'],
+            $orders_arr,
+            $request['integrator_account_index'],
+            $request['integrator_taker_fee'],
+            $request['integrator_maker_fee'],
+            true, // skip nonce
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
+    public function lighter_sign_create_order($signer, $request) {
+        $result = $signer->signCreateOrder(
+            $request['market_index'],
+            $request['client_order_index'],
+            $request['base_amount'],
+            $request['avg_execution_price'],
+            $request['is_ask'],
+            $request['order_type'],
+            $request['time_in_force'],
+            $request['reduce_only'],
+            $request['trigger_price'],
+            $request['order_expiry'],
+            $request['integrator_account_index'],
+            $request['integrator_taker_fee'],
+            $request['integrator_maker_fee'],
+            true, // skip nonce
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
+    public function lighter_sign_cancel_order($signer, $request) {
+        $result = $signer->signCancelOrder(
+            $request['market_index'],
+            $request['order_index'],
+            true, // skip nonce
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
+    public function lighter_sign_withdraw($signer, $request) {
+        $result = $signer->signWithdraw(
+            $request['asset_index'],
+            $request['route_type'],
+            $request['amount'],
+            true, // skip nonce
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
+    public function lighter_sign_create_sub_account($signer, $request) {
+        $result = $signer->signCreateSubAccount(
+            true, // skip nonce
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
+    public function lighter_sign_cancel_all_orders($signer, $request) {
+        $result = $signer->signCancelAllOrders(
+            $request['time_in_force'],
+            $request['time'],
+            true, // skip nonce
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
+    public function lighter_sign_modify_order($signer, $request) {
+        $result = $signer->signModifyOrder(
+            $request['market_index'],
+            $request['index'],
+            $request['base_amount'],
+            $request['price'],
+            $request['trigger_price'],
+            true, // skip nonce
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
+    public function lighter_sign_transfer($signer, $request) {
+        $result = $signer->signTransfer(
+            $request['to_account_index'],
+            $request['asset_index'],
+            $request['from_route_type'],
+            $request['to_route_type'],
+            $request['amount'],
+            $request['usdc_fee'],
+            $request['memo'],
+            true, // skip nonce
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
+    public function lighter_sign_update_leverage($signer, $request) {
+        $result = $signer->signUpdateLeverage(
+            $request['market_index'],
+            $request['initial_margin_fraction'],
+            $request['margin_mode'],
+            true, // skip nonce
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
+    public function lighter_create_auth_token($signer, $request) {
+        $result = $signer->createAuthToken(
+            $request['deadline'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return $result;
+    }
+
+    public function lighter_sign_update_margin($signer, $request) {
+        $result = $signer->signUpdateMargin(
+            $request['market_index'],
+            $request['usdc_amount'],
+            $request['direction'],
+            true, // skip nonce
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
+    public function lighter_sign_approve_integrator($signer, $request) {
+        $result = $signer->signApproveIntegrator(
+            $request['integrator_account_index'],
+            $request['integrator_taker_fee'],
+            $request['integrator_maker_fee'],
+            $request['integrator_taker_fee'],
+            $request['integrator_maker_fee'],
+            $request['approval_expiry'],
+            True, # skip nonce
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index'],
+        );
+        return [ $result['txType'], $result['txInfo'], $result['messageToSign'] ];
+    }
+
+    public function lighter_generate_api_key($signer) {
+        $result = $signer->generateAPIKey();
+        return [ $result['privateKey'], $result['publicKey'] ];
+    }
+
+    public function lighter_sign_change_pubkey($signer, $request) {
+        $result = $signer->signChangePubKey(
+            $request['pubkey'],
+            True, # skip nonce
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index'],
+        );
+        return [ $result['txType'], $result['txInfo'], $result['messageToSign'] ];
+    }
+
     public function packb($data) {
         return MessagePack::pack($data);
     }
@@ -1546,7 +1828,14 @@ class Exchange {
             $tmp = $headers;
             $headers = array();
             foreach ($tmp as $key => $value) {
-                $headers[] = $key . ': ' . $value;
+                // handle multipart/form-data
+                if (strtolower($key) == 'content-type') {
+                    if ($value != 'multipart/form-data') {
+                        $headers[] = $key . ': ' . $value;
+                    }
+                } else {
+                    $headers[] = $key . ': ' . $value;
+                }
             }
         }
 
@@ -2090,10 +2379,6 @@ class Exchange {
         return $s;
     }
 
-    public function vwap($baseVolume, $quoteVolume) {
-        return (($quoteVolume !== null) && ($baseVolume !== null) && ($baseVolume > 0)) ? ($quoteVolume / $baseVolume) : null;
-    }
-
     // ------------------------------------------------------------------------
     // web3 / 0x methods
 
@@ -2198,11 +2483,6 @@ class Exchange {
     public static function number_to_be($n, $padding) {
         $n = new BN($n);
         return array_reduce(array_map('chr', $n->toArray('be', $padding)),  [__CLASS__, 'binary_concat']);
-    }
-
-    public static function number_to_le($n, $padding) {
-        $n = new BN($n);
-        return array_reduce(array_map('chr', $n->toArray('le', $padding)),  [__CLASS__, 'binary_concat']);
     }
 
     public static function base58_to_binary($s) {
@@ -2352,7 +2632,7 @@ class Exchange {
         $obj->$property = $defaultValue;
     }
 
-    function exceptionMessage($exc, $includeStack = true) {
+    function exception_message($exc, $includeStack = true) {
         $message = '[' . get_class($exc) . '] ' . (!$includeStack ? $exc->getMessage() : $exc->getTraceAsString());
         $length = min(100000, strlen($message));
         return substr($message, 0, $length);
@@ -2492,15 +2772,16 @@ class Exchange {
 
     public function describe(): mixed {
         return array(
-            'id' => null,
-            'name' => null,
-            'countries' => null,
-            'enableRateLimit' => true,
-            'rateLimit' => 2000, // milliseconds = seconds * 1000
+            'id' => $this->id,
+            'name' => $this->name,
+            'countries' => $this->countries,
+            'enableRateLimit' => $this->enableRateLimit,
+            'rateLimit' => $this->rateLimit, // milliseconds = seconds * 1000
+            'rateLimiterAlgorithm' => $this->rateLimiterAlgorithm,
             'timeout' => $this->timeout, // milliseconds = seconds * 1000
-            'certified' => false, // if certified by the CCXT dev team
-            'pro' => false, // if it is integrated with CCXT Pro for WebSocket support
-            'alias' => false, // whether this exchange is an alias to another exchange
+            'certified' => $this->certified, // if certified by the CCXT dev team
+            'pro' => $this->pro, // if it is integrated with CCXT Pro for WebSocket support
+            'alias' => $this->alias, // whether this exchange is an alias to another exchange
             'dex' => false,
             'has' => array(
                 'publicAPI' => true,
@@ -2576,6 +2857,7 @@ class Exchange {
                 'editOrders' => null,
                 'editOrderWs' => null,
                 'fetchAccounts' => null,
+                'fetchADLRank' => null,
                 'fetchBalance' => true,
                 'fetchBalanceWs' => null,
                 'fetchBidsAsks' => null,
@@ -2661,6 +2943,8 @@ class Exchange {
                 'fetchOrderTrades' => null,
                 'fetchOrderWs' => null,
                 'fetchPosition' => null,
+                'fetchPositionADLRank' => null,
+                'fetchPositionsADLRank' => null,
                 'fetchPositionHistory' => null,
                 'fetchPositionsHistory' => null,
                 'fetchPositionWs' => null,
@@ -2743,9 +3027,12 @@ class Exchange {
             'urls' => array(
                 'logo' => null,
                 'api' => null,
+                'test' => null,
                 'www' => null,
                 'doc' => null,
+                'api_management' => null,
                 'fees' => null,
+                'referral' => null,
             ),
             'api' => null,
             'requiredCredentials' => array(
@@ -2782,6 +3069,7 @@ class Exchange {
                 'updated' => null,
                 'eta' => null,
                 'url' => null,
+                'info' => null,
             ),
             'exceptions' => null,
             'httpExceptions' => array(
@@ -2872,7 +3160,7 @@ class Exchange {
         if ($value === null) {
             return $defaultValue;
         }
-        if ((gettype($value) === 'array') && (gettype($value) !== 'array' || array_keys($value) !== array_keys(array_keys($value)))) {
+        if ($this->is_dictionary($value)) {
             return $value;
         }
         return $defaultValue;
@@ -2888,7 +3176,7 @@ class Exchange {
         if ($value === null) {
             return $defaultValue;
         }
-        if ((gettype($value) === 'array') && (gettype($value) !== 'array' || array_keys($value) !== array_keys(array_keys($value)))) {
+        if ($this->is_dictionary($value)) {
             return $value;
         }
         return $defaultValue;
@@ -2917,6 +3205,10 @@ class Exchange {
             return $value;
         }
         return $defaultValue;
+    }
+
+    public function is_dictionary(mixed $value) {
+        return ($value !== null) && (gettype($value) === 'array') && (gettype($value) !== 'array' || array_keys($value) !== array_keys(array_keys($value)));
     }
 
     public function safe_list_2($dictionaryOrList, int|string $key1, string $key2, ?array $defaultValue = null) {
@@ -3558,8 +3850,12 @@ class Exchange {
         throw new NotSupported($this->id . ' watchFundingRate() is not supported yet');
     }
 
-    public function watch_funding_rates(array $symbols, $params = array ()) {
+    public function watch_funding_rates(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchFundingRates() is not supported yet');
+    }
+
+    public function un_watch_funding_rates(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' unWatchFundingRates() is not supported yet');
     }
 
     public function watch_funding_rates_for_symbols(array $symbols, $params = array ()) {
@@ -3645,7 +3941,12 @@ class Exchange {
     }
 
     public function fetch_open_interest(string $symbol, $params = array ()) {
-        throw new NotSupported($this->id . ' fetchOpenInterest() is not supported yet');
+        if ($this->has['fetchOpenInterests']) {
+            $openInterests = $this->fetch_open_interests(array( $symbol ), $params);
+            return $this->safe_dict($openInterests, $symbol);
+        } else {
+            throw new NotSupported($this->id . ' fetchOpenInterest() is not supported yet');
+        }
     }
 
     public function fetch_open_interests(?array $symbols = null, $params = array ()) {
@@ -3685,6 +3986,10 @@ class Exchange {
         // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
         $res = $this->parse_to_numeric((fmod($value, 1)));
         return $res === 0;
+    }
+
+    public function is_empty_string($value) {
+        return !$this->value_is_defined($value) || $value === '';
     }
 
     public function safe_number_omit_zero(array $obj, int|string $key, ?float $defaultValue = null) {
@@ -3837,7 +4142,7 @@ class Exchange {
         /**
          * this method is a very deterministic to help users to know what feature is supported by the exchange
          * @param {string} [$symbol] unified $symbol
-         * @param {string} [$methodName] view currently supported methods => https://docs.ccxt.com/#/README?id=features
+         * @param {string} [$methodName] view currently supported methods => https://docs.ccxt.com/README?id=features
          * @param {string} [$paramName] unified param value, like => `triggerPrice`, `stopLoss.triggerPrice` (check docs for supported param names)
          * @param {array} [$defaultValue] return default value if no result found
          * @return {array} returns feature value
@@ -3851,7 +4156,7 @@ class Exchange {
          * this method is a very deterministic to help users to know what feature is supported by the exchange
          * @param {string} [$marketType] supported only => "spot", "swap", "future"
          * @param {string} [$subType] supported only => "linear", "inverse"
-         * @param {string} [$methodName] view currently supported methods => https://docs.ccxt.com/#/README?id=features
+         * @param {string} [$methodName] view currently supported methods => https://docs.ccxt.com/README?id=features
          * @param {string} [$paramName] unified param value (check docs for supported param names)
          * @param {array} [$defaultValue] return default value if no result found
          * @return {array} returns feature value
@@ -4883,6 +5188,10 @@ class Exchange {
         return $reversed;
     }
 
+    public function string_to_base16($str) {
+        return '0x' . bin2hex(base64_decode(base64_encode($str)));
+    }
+
     public function reduce_fees_by_currency($fees) {
         //
         // this function takes a list of $fee structures having the following format
@@ -5095,6 +5404,14 @@ class Exchange {
             $message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file';
         }
         throw new NotSupported($this->id . ' fetchOHLCV() is not supported yet' . $message);
+    }
+
+    public function fetch_spot_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchSpotOHLCV() is not supported yet');
+    }
+
+    public function fetch_contract_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchContractOHLCV() is not supported yet');
     }
 
     public function fetch_ohlcv_ws(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -5607,6 +5924,21 @@ class Exchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
+    public function parse_adl_rank(array $info, ?array $market = null) {
+        throw new NotSupported($this->id . ' parseADLRank() is not supported yet');
+    }
+
+    public function parse_adl_ranks(array $ranks, ?array $symbols = null, $params = array ()) {
+        $symbols = $this->market_symbols($symbols);
+        $ranks = $this->to_array($ranks);
+        $result = array();
+        for ($i = 0; $i < count($ranks); $i++) {
+            $rank = $this->extend($this->parse_adl_rank($ranks[$i], null), $params);
+            $result[] = $rank;
+        }
+        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
+    }
+
     public function parse_accounts(array $accounts, $params = array ()) {
         $accounts = $this->to_array($accounts);
         $result = array();
@@ -5847,6 +6179,30 @@ class Exchange {
         return $results;
     }
 
+    public function filter_out_by_array($objects, int|string $key, $values = null, $indexed = true) {
+        $objects = $this->to_array($objects);
+        // return all of them if no $values were passed
+        if ($values === null || !$values) {
+            // return $indexed ? $this->index_by($objects, $key) : $objects;
+            if ($indexed) {
+                return $this->index_by($objects, $key);
+            } else {
+                return $objects;
+            }
+        }
+        $results = array();
+        for ($i = 0; $i < count($objects); $i++) {
+            if (!$this->in_array($objects[$i][$key], $values)) {
+                $results[] = $objects[$i];
+            }
+        }
+        // return $indexed ? $this->index_by($results, $key) : $results;
+        if ($indexed) {
+            return $this->index_by($results, $key);
+        }
+        return $results;
+    }
+
     public function fetch2($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null, $config = array ()) {
         if ($this->enableRateLimit) {
             $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config);
@@ -5982,7 +6338,8 @@ class Exchange {
     }
 
     public function edit_order_with_client_order_id(string $clientOrderId, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
-        return $this->edit_order('', $symbol, $type, $side, $amount, $price, $this->extend(array( 'clientOrderId' => $clientOrderId ), $params));
+        $extendedParams = $this->extend($params, array( 'clientOrderId' => $clientOrderId ));
+        return $this->edit_order('', $symbol, $type, $side, $amount, $price, $extendedParams);
     }
 
     public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
@@ -6480,12 +6837,20 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
     }
 
+    public function fetch_spot_tickers(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchSpotTickers() is not supported yet');
+    }
+
+    public function fetch_contract_tickers(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchContractTickers() is not supported yet');
+    }
+
     public function fetch_mark_prices(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchMarkPrices() is not supported yet');
     }
 
     public function fetch_tickers_ws(?array $symbols = null, $params = array ()) {
-        throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
+        throw new NotSupported($this->id . ' fetchTickersWs() is not supported yet');
     }
 
     public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()) {
@@ -6502,6 +6867,10 @@ class Exchange {
 
     public function un_watch_tickers(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' unWatchTickers() is not supported yet');
+    }
+
+    public function un_watch_funding_rate(string $symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' unWatchFundingRate() is not supported yet');
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -6539,6 +6908,10 @@ class Exchange {
         throw new NotSupported($this->id . ' createOrder() is not supported yet');
     }
 
+    public function create_twap_order(string $symbol, string $side, float $amount, float $duration, $params = array ()) {
+        throw new NotSupported($this->id . ' createTwapOrder() is not supported yet');
+    }
+
     public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array ()) {
         throw new NotSupported($this->id . ' createConvertTrade() is not supported yet');
     }
@@ -6553,6 +6926,31 @@ class Exchange {
 
     public function fetch_position_mode(?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchPositionMode() is not supported yet');
+    }
+
+    public function fetch_adl_rank(string $symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchADLRank() is not supported yet');
+    }
+
+    public function fetch_positions_adl_rank(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchPositionsADLRank() is not supported yet');
+    }
+
+    public function fetch_position_adl_rank(string $symbol, $params = array ()) {
+        if ($this->has['fetchPositionsADLRank']) {
+            $this->load_markets();
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $ranks = $this->fetch_positions_adl_rank(array( $symbol ), $params);
+            $rank = $this->safe_dict($ranks, 0);
+            if ($rank === null) {
+                throw new NullResponse($this->id . ' fetchPositionsADLRank() could not find a $rank for ' . $symbol);
+            } else {
+                return $rank;
+            }
+        } else {
+            throw new NotSupported($this->id . ' fetchPositionsADLRank() is not supported yet');
+        }
     }
 
     public function create_trailing_amount_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $trailingAmount = null, ?float $trailingTriggerPrice = null, $params = array ()) {
@@ -6732,7 +7130,7 @@ class Exchange {
         if ($triggerPrice === null) {
             throw new ArgumentsRequired($this->id . ' createTriggerOrder() requires a $triggerPrice argument');
         }
-        $params['triggerPrice'] = $triggerPrice;
+        $params = $this->extend($params, array( 'triggerPrice' => $triggerPrice ));
         if ($this->has['createTriggerOrder']) {
             return $this->create_order($symbol, $type, $side, $amount, $price, $params);
         }
@@ -6754,7 +7152,7 @@ class Exchange {
         if ($triggerPrice === null) {
             throw new ArgumentsRequired($this->id . ' createTriggerOrderWs() requires a $triggerPrice argument');
         }
-        $params['triggerPrice'] = $triggerPrice;
+        $params = $this->extend($params, array( 'triggerPrice' => $triggerPrice ));
         if ($this->has['createTriggerOrderWs']) {
             return $this->create_order_ws($symbol, $type, $side, $amount, $price, $params);
         }
@@ -6776,7 +7174,7 @@ class Exchange {
         if ($stopLossPrice === null) {
             throw new ArgumentsRequired($this->id . ' createStopLossOrder() requires a $stopLossPrice argument');
         }
-        $params['stopLossPrice'] = $stopLossPrice;
+        $params = $this->extend($params, array( 'stopLossPrice' => $stopLossPrice ));
         if ($this->has['createStopLossOrder']) {
             return $this->create_order($symbol, $type, $side, $amount, $price, $params);
         }
@@ -6798,7 +7196,7 @@ class Exchange {
         if ($stopLossPrice === null) {
             throw new ArgumentsRequired($this->id . ' createStopLossOrderWs() requires a $stopLossPrice argument');
         }
-        $params['stopLossPrice'] = $stopLossPrice;
+        $params = $this->extend($params, array( 'stopLossPrice' => $stopLossPrice ));
         if ($this->has['createStopLossOrderWs']) {
             return $this->create_order_ws($symbol, $type, $side, $amount, $price, $params);
         }
@@ -6820,7 +7218,7 @@ class Exchange {
         if ($takeProfitPrice === null) {
             throw new ArgumentsRequired($this->id . ' createTakeProfitOrder() requires a $takeProfitPrice argument');
         }
-        $params['takeProfitPrice'] = $takeProfitPrice;
+        $params = $this->extend($params, array( 'takeProfitPrice' => $takeProfitPrice ));
         if ($this->has['createTakeProfitOrder']) {
             return $this->create_order($symbol, $type, $side, $amount, $price, $params);
         }
@@ -6842,7 +7240,7 @@ class Exchange {
         if ($takeProfitPrice === null) {
             throw new ArgumentsRequired($this->id . ' createTakeProfitOrderWs() requires a $takeProfitPrice argument');
         }
-        $params['takeProfitPrice'] = $takeProfitPrice;
+        $params = $this->extend($params, array( 'takeProfitPrice' => $takeProfitPrice ));
         if ($this->has['createTakeProfitOrderWs']) {
             return $this->create_order_ws($symbol, $type, $side, $amount, $price, $params);
         }
@@ -6959,6 +7357,14 @@ class Exchange {
         throw new NotSupported($this->id . ' createOrders() is not supported yet');
     }
 
+    public function create_spot_orders(array $orders, $params = array ()) {
+        throw new NotSupported($this->id . ' createSpotOrders() is not supported yet');
+    }
+
+    public function create_contract_orders(array $orders, $params = array ()) {
+        throw new NotSupported($this->id . ' createContractOrders() is not supported yet');
+    }
+
     public function edit_orders(array $orders, $params = array ()) {
         throw new NotSupported($this->id . ' editOrders() is not supported yet');
     }
@@ -6969,6 +7375,14 @@ class Exchange {
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' cancelOrder() is not supported yet');
+    }
+
+    public function cancel_spot_order(string $id, ?string $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelSpotOrder() is not supported yet');
+    }
+
+    public function cancel_contract_order(string $id, ?string $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelContractOrder() is not supported yet');
     }
 
     public function cancel_order_with_client_order_id(string $clientOrderId, ?string $symbol = null, $params = array ()) {
@@ -7009,6 +7423,14 @@ class Exchange {
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' cancelAllOrders() is not supported yet');
+    }
+
+    public function cancel_all_spot_orders(?string $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelAllSpotOrders() is not supported yet');
+    }
+
+    public function cancel_all_contract_orders(?string $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelAllContractOrders() is not supported yet');
     }
 
     public function cancel_all_orders_after(?int $timeout, $params = array ()) {
@@ -7203,6 +7625,10 @@ class Exchange {
         }
     }
 
+    public function fetch_contract_deposit_address(string $code, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchContractDepositAddress() is not supported yet');
+    }
+
     public function account(): array {
         return array(
             'free' => null,
@@ -7284,7 +7710,7 @@ class Exchange {
     }
 
     public function handle_withdraw_tag_and_params($tag, $params) {
-        if (($tag !== null) && (gettype($tag) === 'array')) {
+        if ($this->is_dictionary($tag)) {
             $params = $this->extend($tag, $params);
             $tag = null;
         }
@@ -7350,7 +7776,7 @@ class Exchange {
             return null;
         }
         $market = $this->market($symbol);
-        return $this->decimal_to_precision($cost, TRUNCATE, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
+        return $this->decimal_to_precision($cost, TRUNCATE, $this->safe_string_2($market['precision'], 'cost', 'price'), $this->precisionMode, $this->paddingMode);
     }
 
     public function price_to_precision(string $symbol, $price) {
@@ -8284,6 +8710,14 @@ class Exchange {
         return $this->filter_by_array($objects, $key, $values, $indexed);
     }
 
+    public function filter_by_array_adl_ranks($objects, int|string $key, $values = null, $indexed = true) {
+        /**
+         * @ignore
+         * Typed wrapper for filterByArray that returns a list of ADL Ranks
+         */
+        return $this->filter_by_array($objects, $key, $values, $indexed);
+    }
+
     public function create_ohlcv_object(string $symbol, string $timeframe, $data) {
         $res = array();
         $res[$symbol] = array();
@@ -8386,7 +8820,8 @@ class Exchange {
             $uniqueResults = $this->remove_repeated_elements_from_array($result);
         }
         $key = ($method === 'fetchOHLCV') ? 0 : 'timestamp';
-        return $this->filter_by_since_limit($uniqueResults, $since, $limit, $key);
+        $sortedRes = $this->sort_by($uniqueResults, $key);
+        return $this->filter_by_since_limit($sortedRes, $since, $limit, $key);
     }
 
     public function safe_deterministic_call(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, ?string $timeframe = null, $params = array ()) {
@@ -9136,5 +9571,36 @@ class Exchange {
                 }
             }
         }
+    }
+
+    public function timeframe_from_milliseconds(float $ms) {
+        if ($ms <= 0) {
+            return '';
+        }
+        $second = 1000;
+        $minute = 60 * $second;
+        $hour = 60 * $minute;
+        $day = 24 * $hour;
+        $week = 7 * $day;
+        if (fmod($ms, $week) === 0) {
+            return ($ms / $week) . 'w';
+        }
+        if (fmod($ms, $day) === 0) {
+            return ($ms / $day) . 'd';
+        }
+        if (fmod($ms, $hour) === 0) {
+            return ($ms / $hour) . 'h';
+        }
+        if (fmod($ms, $minute) === 0) {
+            return ($ms / $minute) . 'm';
+        }
+        if (fmod($ms, $second) === 0) {
+            return ($ms / $second) . 's';
+        }
+        return '';
+    }
+
+    public function is_uta_enabled($params = array ()) {
+        return false; // stub
     }
 }

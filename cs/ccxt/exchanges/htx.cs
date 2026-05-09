@@ -98,13 +98,15 @@ public partial class htx : Exchange
                 { "fetchOrders", true },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", true },
+                { "fetchPositionADLRank", true },
                 { "fetchPositionHistory", "emulated" },
                 { "fetchPositions", true },
+                { "fetchPositionsADLRank", true },
                 { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", true },
                 { "fetchSettlementHistory", true },
-                { "fetchStatus", true },
+                { "fetchStatus", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
@@ -1298,6 +1300,7 @@ public partial class htx : Exchange
                     } },
                 } },
             } },
+            { "rollingWindowSize", 2000 },
         });
     }
 
@@ -3589,6 +3592,7 @@ public partial class htx : Exchange
     /**
      * @method
      * @name htx#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003
@@ -3596,9 +3600,11 @@ public partial class htx : Exchange
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
      * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-account-information
      * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-account-information
-     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.unified] provide this parameter if you have a recent account with unified cross+isolated margin account
+     * @param {string} [params.subType] linear or future
+     * @param {bool} [params.uta] provide this parameter if you have a recent account with unified cross+isolated margin account
+     * @param {bool} [params.multiAssetMode] set to true if you are using multi-asset mode for USDT-margined contracts
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
@@ -3609,27 +3615,35 @@ public partial class htx : Exchange
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        object options = this.safeValue(this.options, "fetchBalance", new Dictionary<string, object>() {});
-        object isUnifiedAccount = this.safeValue2(parameters, "isUnifiedAccount", "unified", false);
-        parameters = this.omit(parameters, new List<object>() {"isUnifiedAccount", "unified"});
+        object subType = null;
+        object isUnifiedAccount = null;
+        object isMultiAssetMode = null;
+        var subTypeparametersVariable = this.handleOptionAndParams2(parameters, "fetchBalance", "defaultSubType", "subType", "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        var isUnifiedAccountparametersVariable = this.handleOptionAndParams2(parameters, "fetchBalance", "unified", "uta", false);
+        isUnifiedAccount = ((IList<object>)isUnifiedAccountparametersVariable)[0];
+        parameters = ((IList<object>)isUnifiedAccountparametersVariable)[1];
+        var isMultiAssetModeparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "multiAssetMode", false);
+        isMultiAssetMode = ((IList<object>)isMultiAssetModeparametersVariable)[0];
+        parameters = ((IList<object>)isMultiAssetModeparametersVariable)[1];
         object request = new Dictionary<string, object>() {};
         object spot = (isEqual(type, "spot"));
         object future = (isEqual(type, "future"));
-        object defaultSubType = this.safeString2(this.options, "defaultSubType", "subType", "linear");
-        object subType = this.safeString2(options, "defaultSubType", "subType", defaultSubType);
-        subType = this.safeString2(parameters, "defaultSubType", "subType", subType);
         object inverse = (isEqual(subType, "inverse"));
         object linear = (isEqual(subType, "linear"));
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBalance", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        parameters = this.omit(parameters, new List<object>() {"defaultSubType", "subType"});
         object isolated = (isEqual(marginMode, "isolated"));
         object cross = (isEqual(marginMode, "cross"));
         object margin = isTrue((isEqual(type, "margin"))) || isTrue((isTrue(spot) && isTrue((isTrue(cross) || isTrue(isolated)))));
         object response = null;
-        if (isTrue(isTrue(spot) || isTrue(margin)))
+        if (isTrue(isMultiAssetMode))
+        {
+            response = await this.contractPrivateGetV5AccountBalance(this.extend(request, parameters));
+        } else if (isTrue(isTrue(spot) || isTrue(margin)))
         {
             if (isTrue(margin))
             {
@@ -3826,13 +3840,64 @@ public partial class htx : Exchange
         //         "ts": 1640915104870
         //     }
         //
-        // TODO add balance parsing for linear swap
+        // multi asset mode
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": {
+        //             "state": "normal",
+        //             "equity": "174.216697577770536136",
+        //             "details": [
+        //                 {
+        //                     "currency": "USDT",
+        //                     "equity": "174.216697577770536136",
+        //                     "available": "174.216697577770536136",
+        //                     "profit_unreal": "0",
+        //                     "initial_margin": "0",
+        //                     "maintenance_margin": "0",
+        //                     "maintenance_margin_rate": "0",
+        //                     "initial_margin_rate": "0",
+        //                     "available_margin": "174.216697577770536136",
+        //                     "voucher": "0",
+        //                     "voucher_value": "0",
+        //                     "withdraw_available": "174.216697577770536136",
+        //                     "created_time": 1770293270932,
+        //                     "updated_time": 1770293270932,
+        //                     "isolated_equity": "0",
+        //                     "isolated_profit_unreal": "0"
+        //                 }
+        //             ],
+        //             "initial_margin": "0",
+        //             "maintenance_margin": "0",
+        //             "maintenance_margin_rate": "0",
+        //             "profit_unreal": "0",
+        //             "available_margin": "174.216697577770536136",
+        //             "voucher_value": "0",
+        //             "created_time": 1770293268881,
+        //             "updated_time": 1770293270932
+        //         },
+        //         "ts": 1770293281344
+        //     }
         //
         object result = ((object)new Dictionary<string, object>() {
             { "info", response },
         });
         object data = this.safeValue(response, "data");
-        if (isTrue(isTrue(spot) || isTrue(margin)))
+        if (isTrue(isMultiAssetMode))
+        {
+            object details = this.safeList(data, "details", new List<object>() {});
+            for (object i = 0; isLessThan(i, getArrayLength(details)); postFixIncrement(ref i))
+            {
+                object balance = getValue(details, i);
+                object currencyId = this.safeString(balance, "currency");
+                object code = this.safeCurrencyCode(currencyId);
+                object account = this.account();
+                ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "withdraw_available");
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
+            result = this.safeBalance(result);
+        } else if (isTrue(isTrue(spot) || isTrue(margin)))
         {
             if (isTrue(isolated))
             {
@@ -8889,11 +8954,11 @@ public partial class htx : Exchange
         }
         object request = new Dictionary<string, object>() {};
         object subType = null;
-        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositions", market, parameters, "linear");
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOpenInterests", market, parameters, "linear");
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object marketType = null;
-        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchPositions", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOpenInterests", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object response = null;
@@ -9863,5 +9928,159 @@ public partial class htx : Exchange
             response = await this.contractPrivatePostLinearSwapApiV1SwapCrossSwitchPositionMode(this.extend(request, parameters));
         }
         return response;
+    }
+
+    /**
+     * @method
+     * @name htx#fetchPositionsADLRank
+     * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb81b5a-77b5-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb81c49-77b5-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c2f164-77ae-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=5d518648-77b6-11ed-9966-0242ac110003
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+     */
+    public async override Task<object> fetchPositionsADLRank(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, true, true, true);
+        object market = null;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object symbolsLength = getArrayLength(symbols);
+            if (isTrue(isGreaterThan(symbolsLength, 0)))
+            {
+                object first = this.safeString(symbols, 0);
+                market = this.market(first);
+            }
+        }
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchPositionsADLRank", parameters, "cross");
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchPositionsADLRank", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        if (isTrue(isEqual(marketType, "spot")))
+        {
+            marketType = "future";
+        }
+        object response = null;
+        if (isTrue(isEqual(subType, "linear")))
+        {
+            if (isTrue(isEqual(marginMode, "isolated")))
+            {
+                response = await this.contractPrivatePostLinearSwapApiV1SwapPositionInfo(parameters);
+            } else if (isTrue(isEqual(marginMode, "cross")))
+            {
+                response = await this.contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo(parameters);
+            } else
+            {
+                throw new NotSupported ((string)add(this.id, " fetchPositionsADLRank() not support this market type")) ;
+            }
+        } else
+        {
+            if (isTrue(isEqual(marketType, "future")))
+            {
+                response = await this.contractPrivatePostApiV1ContractPositionInfo(parameters);
+            } else if (isTrue(isEqual(marketType, "swap")))
+            {
+                response = await this.contractPrivatePostSwapApiV1SwapPositionInfo(parameters);
+            } else
+            {
+                throw new NotSupported ((string)add(this.id, " fetchPositionsADLRank() not support this market type")) ;
+            }
+        }
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseADLRanks(data, symbols);
+    }
+
+    public override object parseADLRank(object info, object market = null)
+    {
+        //
+        // fetchPositionADLRank linear swap and future
+        //
+        //     {
+        //         "symbol": "BTC",
+        //         "contract_code": "BTC-USDT",
+        //         "volume": 1.000000000000000000,
+        //         "available": 1.000000000000000000,
+        //         "frozen": 0E-18,
+        //         "cost_open": 96039.700000000000000000,
+        //         "cost_hold": 96039.700000000000000000,
+        //         "profit_unreal": 0.000600000000000000,
+        //         "profit_rate": 0.000006247416432995,
+        //         "lever_rate": 1,
+        //         "position_margin": 96.040300000000000000,
+        //         "direction": "buy",
+        //         "profit": 0.000600000000000000,
+        //         "last_price": 96040.3,
+        //         "margin_asset": "USDT",
+        //         "margin_mode": "cross",
+        //         "margin_account": "USDT",
+        //         "contract_type": "swap",
+        //         "pair": "BTC-USDT",
+        //         "business_type": "swap",
+        //         "trade_partition":"USDT",
+        //         "position_mode": "single_side",
+        //         "store_time": "2023-10-08 20:05:06",
+        //         "liquidation_price": null,
+        //         "market_closing_slippage": null,
+        //         "risk_rate": 249.274066168760049797,
+        //         "new_risk_rate": 0.003995619743220614,
+        //         "risk_rate_percent": 0.003995619743220614,
+        //         "withdraw_available": null,
+        //         "open_adl": 1,
+        //         "adl_risk_percent": 3,
+        //         "tp_trigger_price": null,
+        //         "sl_trigger_price": null,
+        //         "tp_order_id": null,
+        //         "sl_order_id": null,
+        //         "tp_trigger_type": null,
+        //         "sl_trigger_type": null,
+        //         "adjust_value": null
+        //     }
+        //
+        // fetchPositionADLRank inverse
+        //
+        //     {
+        //         "symbol": "THETA"
+        //         "contract_code": "THETA-USD"
+        //         "volume": 20
+        //         "available": 20
+        //         "frozen": 0
+        //         "cost_open": 0.6048347107438017
+        //         "cost_hold": 0.65931
+        //         "profit_unreal": -10.5257562398811
+        //         "profit_rate": 1.0158596753357925
+        //         "lever_rate": 20
+        //         "position_margin": 15.693659761456372
+        //         "direction": "buy"
+        //         "profit": 16.795657677889032
+        //         "last_price": 0.6372
+        //         "adl_risk_percent": "3"
+        //         "liq_px": "112"
+        //         "new_risk_rate": ""
+        //         "trade_partition": ""
+        //     }
+        //
+        object marketId = this.safeString(info, "contract_code");
+        return new Dictionary<string, object>() {
+            { "info", info },
+            { "symbol", this.safeSymbol(marketId, market, null, "contract") },
+            { "rank", this.safeInteger(info, "adl_risk_percent") },
+            { "rating", null },
+            { "percentage", null },
+            { "timestamp", null },
+            { "datetime", null },
+        };
     }
 }

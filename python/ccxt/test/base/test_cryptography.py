@@ -30,6 +30,7 @@ encode = Exchange.encode
 
 def equals(a, b):
     return a == b
+# NO_AUTO_TRANSPILE
 
 
 # even though no AUTO_TRANSP flag here, self file is manually transpiled

@@ -463,7 +463,7 @@ class backpack extends Exchange {
                     'INSUFFICIENT_SUPPLY' => '\\ccxt\\InsufficientFunds',
                     'INVALID_ASSET' => '\\ccxt\\BadRequest',
                     'INVALID_MARKET' => '\\ccxt\\BadSymbol',
-                    'INVALID_PRICE' => '\\ccxt\\BadRequest',
+                    'INVALID_PRICE' => '\\ccxt\\InvalidOrder', // array("code":"INVALID_PRICE","message":"Price is too far from the last active price")
                     'INVALID_POSITION_ID' => '\\ccxt\\BadRequest',
                     'INVALID_QUANTITY' => '\\ccxt\\BadRequest',
                     'INVALID_RANGE' => '\\ccxt\\BadRequest',

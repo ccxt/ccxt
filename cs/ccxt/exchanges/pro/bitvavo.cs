@@ -775,6 +775,17 @@ public partial class bitvavo : ccxt.bitvavo
         await this.loadMarkets();
         await this.authenticate();
         object request = new Dictionary<string, object>() {};
+        object operatorId = null;
+        var operatorIdparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrdersWs", "operatorId");
+        operatorId = ((IList<object>)operatorIdparametersVariable)[0];
+        parameters = ((IList<object>)operatorIdparametersVariable)[1];
+        if (isTrue(!isEqual(operatorId, null)))
+        {
+            ((IDictionary<string,object>)request)["operatorId"] = this.parseToInt(operatorId);
+        } else
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " canceAllOrdersWs() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
+        }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {

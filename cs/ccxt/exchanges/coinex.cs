@@ -401,6 +401,8 @@ public partial class coinex : Exchange
                             { "futures/stop-order", 20 },
                             { "futures/batch-order", 1 },
                             { "futures/batch-stop-order", 1 },
+                            { "futures/cancel-position-stop-loss", 20 },
+                            { "futures/cancel-position-take-profit", 20 },
                             { "futures/modify-order", 20 },
                             { "futures/modify-stop-order", 20 },
                             { "futures/batch-modify-order", 20 },
@@ -658,6 +660,7 @@ public partial class coinex : Exchange
                     { "Service is not available during funding fee settlement", typeof(OperationFailed) },
                 } },
             } },
+            { "rollingWindowSize", 1000 },
         });
     }
 

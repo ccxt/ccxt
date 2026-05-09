@@ -1176,7 +1176,7 @@ class bittrade(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {"status":   "ok",
-        #         "data": [{                 id:  13997833014,
+        #         "data": [{                 id:  13997833016,
         #                                "symbol": "ethbtc",
         #                          "account-id":  3398321,
         #                                "amount": "0.045000000000000000",

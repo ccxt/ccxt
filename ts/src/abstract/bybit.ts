@@ -318,6 +318,7 @@ interface Exchange {
     privatePostV5AccountBorrow (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountRepay (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountNoConvertRepay (params?: {}): Promise<implicitReturnType>;
+    privatePostV5AccountSetLimitPxAction (params?: {}): Promise<implicitReturnType>;
     privatePostV5AssetExchangeQuoteApply (params?: {}): Promise<implicitReturnType>;
     privatePostV5AssetExchangeConvertExecute (params?: {}): Promise<implicitReturnType>;
     privatePostV5AssetTransferInterTransfer (params?: {}): Promise<implicitReturnType>;

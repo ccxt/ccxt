@@ -831,7 +831,7 @@ public partial class bitteam : Exchange
         object response = await this.publicGetTradeApiCmcOrderbookPair(this.extend(request, parameters));
         //
         //     {
-        //         "timestamp": 1701166703285,
+        //         "timestamp": 1701166703284,
         //         "bids": [
         //             [
         //                 2019.334988,

@@ -362,8 +362,14 @@ class krakenfutures extends krakenfutures$1["default"] {
         //
         const marketId = this.safeString(position, 'instrument');
         const hedged = 'both';
-        const balance = this.safeNumber(position, 'balance');
-        const side = (balance > 0) ? 'long' : 'short';
+        const balanceString = this.safeString(position, 'balance');
+        let side = undefined;
+        if (Precise["default"].stringGt(balanceString, '0')) {
+            side = 'long';
+        }
+        else if (Precise["default"].stringLt(balanceString, '0')) {
+            side = 'short';
+        }
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -374,7 +380,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             'entryPrice': this.safeNumber(position, 'entry_price'),
             'unrealizedPnl': this.safeNumber(position, 'pnl'),
             'percentage': this.safeNumber(position, 'return_on_equity'),
-            'contracts': this.parseNumber(Precise["default"].stringAbs(this.numberToString(balance))),
+            'contracts': this.parseNumber(Precise["default"].stringAbs(balanceString)),
             'contractSize': undefined,
             'markPrice': this.safeNumber(position, 'mark_price'),
             'side': side,
@@ -1471,20 +1477,33 @@ class krakenfutures extends krakenfutures$1["default"] {
     }
     async watchMultiHelper(unifiedName, channelName, symbols = undefined, subscriptionArgs = undefined, params = {}) {
         await this.loadMarkets();
+        const url = this.urls['api']['ws'];
         // symbols are required
         symbols = this.marketSymbols(symbols, undefined, false, true, false);
         const messageHashes = [];
+        const rawSubs = [];
         for (let i = 0; i < symbols.length; i++) {
-            messageHashes.push(this.getMessageHash(unifiedName, undefined, this.symbol(symbols[i])));
+            const messageHash = this.getMessageHash(unifiedName, undefined, this.symbol(symbols[i]));
+            messageHashes.push(messageHash);
+            const market = this.market(symbols[i]);
+            if (!this.subscriptionExistsForHash(url, messageHash)) {
+                rawSubs.push(market['id']);
+            }
         }
-        const marketIds = this.marketIds(symbols);
-        const request = {
-            'event': 'subscribe',
-            'feed': channelName,
-            'product_ids': marketIds,
-        };
-        const url = this.urls['api']['ws'];
+        let request = {};
+        const length = rawSubs.length;
+        if (length > 0) {
+            request = {
+                'event': 'subscribe',
+                'feed': channelName,
+                'product_ids': rawSubs,
+            };
+        }
         return await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes, subscriptionArgs);
+    }
+    subscriptionExistsForHash(url, hash) {
+        const client = this.client(url);
+        return (hash in client.subscriptions);
     }
     getMessageHash(unifiedElementName, subChannelName = undefined, symbol = undefined) {
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...

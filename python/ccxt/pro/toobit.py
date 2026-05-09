@@ -1088,7 +1088,7 @@ class toobit(ccxt.async_support.toobit):
             self.options['ws']['lastAuthenticatedTime'] = 0
             return
         # whether or not to schedule another listenKey keepAlive request
-        listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 1200000)
+        listenKeyRefreshRate = self.safe_integer(self.options['ws'], 'listenKeyRefreshRate', 1200000)
         self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
 
     def get_user_stream_url(self):

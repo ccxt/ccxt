@@ -108,13 +108,15 @@ export default class htx extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPositionADLRank': true,
                 'fetchPositionHistory': 'emulated',
                 'fetchPositions': true,
+                'fetchPositionsADLRank': true,
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': true,
                 'fetchSettlementHistory': true,
-                'fetchStatus': true,
+                'fetchStatus': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -1399,6 +1401,7 @@ export default class htx extends Exchange {
                     },
                 },
             },
+            'rollingWindowSize': 2000.0,
         });
     }
     /**
@@ -3579,6 +3582,7 @@ export default class htx extends Exchange {
     /**
      * @method
      * @name htx#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003
@@ -3586,34 +3590,38 @@ export default class htx extends Exchange {
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
      * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-account-information
      * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-account-information
-     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.unified] provide this parameter if you have a recent account with unified cross+isolated margin account
+     * @param {string} [params.subType] linear or future
+     * @param {bool} [params.uta] provide this parameter if you have a recent account with unified cross+isolated margin account
+     * @param {bool} [params.multiAssetMode] set to true if you are using multi-asset mode for USDT-margined contracts
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
         await this.loadMarkets();
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
-        const options = this.safeValue(this.options, 'fetchBalance', {});
-        const isUnifiedAccount = this.safeValue2(params, 'isUnifiedAccount', 'unified', false);
-        params = this.omit(params, ['isUnifiedAccount', 'unified']);
+        let subType = undefined;
+        let isUnifiedAccount = undefined;
+        let isMultiAssetMode = undefined;
+        [subType, params] = this.handleOptionAndParams2(params, 'fetchBalance', 'defaultSubType', 'subType', 'linear');
+        [isUnifiedAccount, params] = this.handleOptionAndParams2(params, 'fetchBalance', 'unified', 'uta', false);
+        [isMultiAssetMode, params] = this.handleOptionAndParams(params, 'fetchBalance', 'multiAssetMode', false);
         const request = {};
         const spot = (type === 'spot');
         const future = (type === 'future');
-        const defaultSubType = this.safeString2(this.options, 'defaultSubType', 'subType', 'linear');
-        let subType = this.safeString2(options, 'defaultSubType', 'subType', defaultSubType);
-        subType = this.safeString2(params, 'defaultSubType', 'subType', subType);
         const inverse = (subType === 'inverse');
         const linear = (subType === 'linear');
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchBalance', params);
-        params = this.omit(params, ['defaultSubType', 'subType']);
         const isolated = (marginMode === 'isolated');
         const cross = (marginMode === 'cross');
         const margin = (type === 'margin') || (spot && (cross || isolated));
         let response = undefined;
-        if (spot || margin) {
+        if (isMultiAssetMode) {
+            response = await this.contractPrivateGetV5AccountBalance(this.extend(request, params));
+        }
+        else if (spot || margin) {
             if (margin) {
                 if (isolated) {
                     response = await this.spotPrivateGetV1MarginAccountsBalance(this.extend(request, params));
@@ -3805,11 +3813,61 @@ export default class htx extends Exchange {
         //         "ts": 1640915104870
         //     }
         //
-        // TODO add balance parsing for linear swap
+        // multi asset mode
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": {
+        //             "state": "normal",
+        //             "equity": "174.216697577770536136",
+        //             "details": [
+        //                 {
+        //                     "currency": "USDT",
+        //                     "equity": "174.216697577770536136",
+        //                     "available": "174.216697577770536136",
+        //                     "profit_unreal": "0",
+        //                     "initial_margin": "0",
+        //                     "maintenance_margin": "0",
+        //                     "maintenance_margin_rate": "0",
+        //                     "initial_margin_rate": "0",
+        //                     "available_margin": "174.216697577770536136",
+        //                     "voucher": "0",
+        //                     "voucher_value": "0",
+        //                     "withdraw_available": "174.216697577770536136",
+        //                     "created_time": 1770293270932,
+        //                     "updated_time": 1770293270932,
+        //                     "isolated_equity": "0",
+        //                     "isolated_profit_unreal": "0"
+        //                 }
+        //             ],
+        //             "initial_margin": "0",
+        //             "maintenance_margin": "0",
+        //             "maintenance_margin_rate": "0",
+        //             "profit_unreal": "0",
+        //             "available_margin": "174.216697577770536136",
+        //             "voucher_value": "0",
+        //             "created_time": 1770293268881,
+        //             "updated_time": 1770293270932
+        //         },
+        //         "ts": 1770293281344
+        //     }
         //
         let result = { 'info': response };
         const data = this.safeValue(response, 'data');
-        if (spot || margin) {
+        if (isMultiAssetMode) {
+            const details = this.safeList(data, 'details', []);
+            for (let i = 0; i < details.length; i++) {
+                const balance = details[i];
+                const currencyId = this.safeString(balance, 'currency');
+                const code = this.safeCurrencyCode(currencyId);
+                const account = this.account();
+                account['free'] = this.safeString(balance, 'withdraw_available');
+                result[code] = account;
+            }
+            result = this.safeBalance(result);
+        }
+        else if (spot || margin) {
             if (isolated) {
                 for (let i = 0; i < data.length; i++) {
                     const entry = data[i];
@@ -4240,7 +4298,7 @@ export default class htx extends Exchange {
             // POST /linear-swap-api/v3/swap_hisorders linear isolated --------
             // POST /linear-swap-api/v3/swap_cross_hisorders linear cross -----
             'trade_type': 0,
-            'status': '0', // support multiple query seperated by ',',such as '3,4,5', 0: all. 3. Have sumbmitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
+            'status': '0', // support multiple query separated by ',',such as '3,4,5', 0: all. 3. Have submitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
         };
         let response = undefined;
         const trigger = this.safeBool2(params, 'stop', 'trigger');
@@ -8734,9 +8792,9 @@ export default class htx extends Exchange {
         }
         const request = {};
         let subType = undefined;
-        [subType, params] = this.handleSubTypeAndParams('fetchPositions', market, params, 'linear');
+        [subType, params] = this.handleSubTypeAndParams('fetchOpenInterests', market, params, 'linear');
         let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchPositions', market, params);
+        [marketType, params] = this.handleMarketTypeAndParams('fetchOpenInterests', market, params);
         let response = undefined;
         if (marketType === 'future') {
             response = await this.contractPublicGetApiV1ContractOpenInterest(this.extend(request, params));
@@ -9707,5 +9765,266 @@ export default class htx extends Exchange {
             //
         }
         return response;
+    }
+    /**
+     * @method
+     * @name htx#fetchPositionsADLRank
+     * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb81b5a-77b5-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb81c49-77b5-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c2f164-77ae-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=5d518648-77b6-11ed-9966-0242ac110003
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+     */
+    async fetchPositionsADLRank(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, true, true, true);
+        let market = undefined;
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 0) {
+                const first = this.safeString(symbols, 0);
+                market = this.market(first);
+            }
+        }
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchPositionsADLRank', params, 'cross');
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchPositionsADLRank', market, params, 'linear');
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchPositionsADLRank', market, params);
+        if (marketType === 'spot') {
+            marketType = 'future';
+        }
+        let response = undefined;
+        if (subType === 'linear') {
+            if (marginMode === 'isolated') {
+                response = await this.contractPrivatePostLinearSwapApiV1SwapPositionInfo(params);
+            }
+            else if (marginMode === 'cross') {
+                response = await this.contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo(params);
+            }
+            else {
+                throw new NotSupported(this.id + ' fetchPositionsADLRank() not support this market type');
+            }
+            //
+            //         {
+            //             "status": "ok",
+            //         "data": [
+            //             {
+            //                 "symbol": "BTC",
+            //                 "contract_code": "BTC-USDT",
+            //                 "volume": 1.000000000000000000,
+            //                 "available": 1.000000000000000000,
+            //                 "frozen": 0E-18,
+            //                 "cost_open": 96039.700000000000000000,
+            //                 "cost_hold": 96039.700000000000000000,
+            //                 "profit_unreal": 0.000600000000000000,
+            //                 "profit_rate": 0.000006247416432995,
+            //                 "lever_rate": 1,
+            //                 "position_margin": 96.040300000000000000,
+            //                 "direction": "buy",
+            //                 "profit": 0.000600000000000000,
+            //                 "last_price": 96040.3,
+            //                 "margin_asset": "USDT",
+            //                 "margin_mode": "cross",
+            //                 "margin_account": "USDT",
+            //                 "contract_type": "swap",
+            //                 "pair": "BTC-USDT",
+            //                 "business_type": "swap",
+            //                 "trade_partition":"USDT",
+            //                 "position_mode": "single_side",
+            //                 "store_time": "2023-10-08 20:05:06",
+            //                 "liquidation_price": null,
+            //                 "market_closing_slippage": null,
+            //                 "risk_rate": 249.274066168760049797,
+            //                 "new_risk_rate": 0.003995619743220614,
+            //                 "risk_rate_percent": 0.003995619743220614,
+            //                 "withdraw_available": null,
+            //                 "open_adl": 1,
+            //                 "adl_risk_percent": 3,
+            //                 "tp_trigger_price": null,
+            //                 "sl_trigger_price": null,
+            //                 "tp_order_id": null,
+            //                 "sl_order_id": null,
+            //                 "tp_trigger_type": null,
+            //                 "sl_trigger_type": null,
+            //                 "adjust_value": null
+            //             }
+            //         ],
+            //         "ts": 1768489640285
+            //     }
+            //
+        }
+        else {
+            if (marketType === 'future') {
+                response = await this.contractPrivatePostApiV1ContractPositionInfo(params);
+                //
+                //     {
+                //         "status": "ok",
+                //         "data": [
+                //             {
+                //                 "symbol": "BTC",
+                //                 "contract_code": "BTC-USDT-260123",
+                //                 "volume": 1.000000000000000000,
+                //                 "available": 1.000000000000000000,
+                //                 "frozen": 0E-18,
+                //                 "cost_open": 96203.100000000000000000,
+                //                 "cost_hold": 96203.100000000000000000,
+                //                 "profit_unreal": -0.199400000000000000,
+                //                 "profit_rate": -0.002072698281032524,
+                //                 "lever_rate": 1,
+                //                 "position_margin": 96.003700000000000000,
+                //                 "direction": "buy",
+                //                 "profit": -0.199400000000000000,
+                //                 "last_price": 96003.7,
+                //                 "margin_asset": "USDT",
+                //                 "margin_mode": "cross",
+                //                 "margin_account": "USDT",
+                //                 "contract_type": "next_week",
+                //                 "pair": "BTC-USDT",
+                //                 "business_type": "futures",
+                //                 "trade_partition": "USDT",
+                //                 "position_mode": "single_side",
+                //                 "store_time": "2026-01-15 23:45:21",
+                //                 "liquidation_price": null,
+                //                 "market_closing_slippage": null,
+                //                 "risk_rate": 249.265098252125343196,
+                //                 "new_risk_rate": 0.003995762920935011,
+                //                 "risk_rate_percent": 0.003995762920935011,
+                //                 "withdraw_available": null,
+                //                 "open_adl": 1,
+                //                 "adl_risk_percent": 2,
+                //                 "tp_trigger_price": null,
+                //                 "sl_trigger_price": null,
+                //                 "tp_order_id": null,
+                //                 "sl_order_id": null,
+                //                 "tp_trigger_type": null,
+                //                 "sl_trigger_type": null,
+                //                 "adjust_value": null
+                //             }
+                //         ],
+                //         "ts": 1768491964551
+                //     }
+                //
+            }
+            else if (marketType === 'swap') {
+                response = await this.contractPrivatePostSwapApiV1SwapPositionInfo(params);
+                //
+                //     {
+                //         "status": "ok"
+                //         "data": [
+                //             {
+                //                 "symbol": "THETA"
+                //                 "contract_code": "THETA-USD"
+                //                 "volume": 20
+                //                 "available": 20
+                //                 "frozen": 0
+                //                 "cost_open": 0.6048347107438017
+                //                 "cost_hold": 0.65931
+                //                 "profit_unreal": -10.5257562398811
+                //                 "profit_rate": 1.0158596753357925
+                //                 "lever_rate": 20
+                //                 "position_margin": 15.693659761456372
+                //                 "direction": "buy"
+                //                 "profit": 16.795657677889032
+                //                 "last_price": 0.6372
+                //                 "adl_risk_percent": "3"
+                //                 "liq_px": "112"
+                //                 "new_risk_rate": ""
+                //                 "trade_partition": ""
+                //             }
+                //         ]
+                //         "ts": 1603868312729
+                //     }
+                //
+            }
+            else {
+                throw new NotSupported(this.id + ' fetchPositionsADLRank() not support this market type');
+            }
+        }
+        const data = this.safeList(response, 'data', []);
+        return this.parseADLRanks(data, symbols);
+    }
+    parseADLRank(info, market = undefined) {
+        //
+        // fetchPositionADLRank linear swap and future
+        //
+        //     {
+        //         "symbol": "BTC",
+        //         "contract_code": "BTC-USDT",
+        //         "volume": 1.000000000000000000,
+        //         "available": 1.000000000000000000,
+        //         "frozen": 0E-18,
+        //         "cost_open": 96039.700000000000000000,
+        //         "cost_hold": 96039.700000000000000000,
+        //         "profit_unreal": 0.000600000000000000,
+        //         "profit_rate": 0.000006247416432995,
+        //         "lever_rate": 1,
+        //         "position_margin": 96.040300000000000000,
+        //         "direction": "buy",
+        //         "profit": 0.000600000000000000,
+        //         "last_price": 96040.3,
+        //         "margin_asset": "USDT",
+        //         "margin_mode": "cross",
+        //         "margin_account": "USDT",
+        //         "contract_type": "swap",
+        //         "pair": "BTC-USDT",
+        //         "business_type": "swap",
+        //         "trade_partition":"USDT",
+        //         "position_mode": "single_side",
+        //         "store_time": "2023-10-08 20:05:06",
+        //         "liquidation_price": null,
+        //         "market_closing_slippage": null,
+        //         "risk_rate": 249.274066168760049797,
+        //         "new_risk_rate": 0.003995619743220614,
+        //         "risk_rate_percent": 0.003995619743220614,
+        //         "withdraw_available": null,
+        //         "open_adl": 1,
+        //         "adl_risk_percent": 3,
+        //         "tp_trigger_price": null,
+        //         "sl_trigger_price": null,
+        //         "tp_order_id": null,
+        //         "sl_order_id": null,
+        //         "tp_trigger_type": null,
+        //         "sl_trigger_type": null,
+        //         "adjust_value": null
+        //     }
+        //
+        // fetchPositionADLRank inverse
+        //
+        //     {
+        //         "symbol": "THETA"
+        //         "contract_code": "THETA-USD"
+        //         "volume": 20
+        //         "available": 20
+        //         "frozen": 0
+        //         "cost_open": 0.6048347107438017
+        //         "cost_hold": 0.65931
+        //         "profit_unreal": -10.5257562398811
+        //         "profit_rate": 1.0158596753357925
+        //         "lever_rate": 20
+        //         "position_margin": 15.693659761456372
+        //         "direction": "buy"
+        //         "profit": 16.795657677889032
+        //         "last_price": 0.6372
+        //         "adl_risk_percent": "3"
+        //         "liq_px": "112"
+        //         "new_risk_rate": ""
+        //         "trade_partition": ""
+        //     }
+        //
+        const marketId = this.safeString(info, 'contract_code');
+        return {
+            'info': info,
+            'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
+            'rank': this.safeInteger(info, 'adl_risk_percent'),
+            'rating': undefined,
+            'percentage': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
     }
 }

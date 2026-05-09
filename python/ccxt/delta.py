@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.delta import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, Num, Option, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, MarketInterface
+from ccxt.base.types import Any, ADL, Balances, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, Num, Option, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, MarketInterface
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -78,8 +78,10 @@ class delta(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': True,
+                'fetchPositionADLRank': True,
                 'fetchPositionMode': False,
                 'fetchPositions': True,
+                'fetchPositionsADLRank': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchSettlementHistory': True,
                 'fetchStatus': True,
@@ -3619,6 +3621,371 @@ class delta(Exchange, ImplicitAPI):
             'percentage': None,
             'baseVolume': self.safe_number(chain, 'volume'),
             'quoteVolume': None,
+        }
+
+    def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> List[ADL]:
+        """
+        fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+        https://docs.delta.exchange/#get-margined-positions
+
+        :param str[] [symbols]: a list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of `auto de leverage structures <https://docs.ccxt.com/?id=auto-de-leverage-structure>`
+        """
+        self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True, True)
+        response = self.privateGetPositionsMargined(params)
+        #
+        #     {
+        #         "result":
+        #             [
+        #                 {
+        #                     "adl_level": null,
+        #                     "auto_topup": False,
+        #                     "bankruptcy_price": "88618.22667",
+        #                     "commission": "0.03797924",
+        #                     "created_at": "2026-01-14T11:24:35.801586Z",
+        #                     "entry_price": "94948.1",
+        #                     "liquidation_price": "89092.96717",
+        #                     "margin": "6.32987333",
+        #                     "margin_mode": "isolated",
+        #                     "mark_price": "94942.90888022",
+        #                     "product": {
+        #                         "trading_status": "operational",
+        #                         "short_description": null,
+        #                         "quoting_asset": {
+        #                             "base_withdrawal_fee": "0.000000000000000000",
+        #                             "id": 4,
+        #                             "interest_credit": False,
+        #                             "interest_slabs": null,
+        #                             "kyc_deposit_limit": "0.000000000000000000",
+        #                             "kyc_withdrawal_limit": "0.000000000000000000",
+        #                             "min_withdrawal_amount": "0.000000000000000000",
+        #                             "minimum_precision": 2,
+        #                             "name": "Tether",
+        #                             "networks": [],
+        #                             "precision": 8,
+        #                             "sort_priority": null,
+        #                             "symbol": "USDT",
+        #                             "variable_withdrawal_fee": "0.000000000000000000"
+        #                         },
+        #                         "symbol": "BTCUSDT",
+        #                         "taker_commission_rate": "0.0004",
+        #                         "maintenance_margin_scaling_factor": "0",
+        #                         "spot_index": {
+        #                             "config": {
+        #                                 "impact_size": {
+        #                                     "max_impact_size": 150000,
+        #                                     "min_impact_size": 5000,
+        #                                     "step_value": 5000
+        #                                 },
+        #                                 "quoting_asset": "USDT",
+        #                                 "service_id": 1,
+        #                                 "underlying_asset": "BTC"
+        #                             },
+        #                             "constituent_exchanges": [
+        #                                 {
+        #                                     "exchange": "binance",
+        #                                     "health_interval": 3000,
+        #                                     "health_priority": 1,
+        #                                     "weight": 1
+        #                                 },
+        #                                 {
+        #                                     "exchange": "gateio",
+        #                                     "health_interval": 3000,
+        #                                     "health_priority": 3,
+        #                                     "weight": 1
+        #                                 },
+        #                                 {
+        #                                     "exchange": "bybit",
+        #                                     "health_interval": 3000,
+        #                                     "health_priority": 2,
+        #                                     "weight": 1
+        #                                 }
+        #                             ],
+        #                             "constituent_indices": null,
+        #                             "description": "BTC Spot",
+        #                             "health_interval": 300,
+        #                             "id": 2,
+        #                             "impact_size": "1.000000000000000000",
+        #                             "index_type": "spot_pair",
+        #                             "is_composite": False,
+        #                             "price_method": "ltp",
+        #                             "quoting_asset_id": 4,
+        #                             "symbol": ".DEXBTUSDT",
+        #                             "tick_size": "0.100000000000000000",
+        #                             "underlying_asset_id": 2
+        #                         },
+        #                         "liquidation_penalty_factor": "1",
+        #                         "auction_start_time": "2025-12-22T12:18:52Z",
+        #                         "is_quanto": False,
+        #                         "state": "live",
+        #                         "id": 84,
+        #                         "settling_asset": {
+        #                             "base_withdrawal_fee": "0.000000000000000000",
+        #                             "id": 4,
+        #                             "interest_credit": False,
+        #                             "interest_slabs": null,
+        #                             "kyc_deposit_limit": "0.000000000000000000",
+        #                             "kyc_withdrawal_limit": "0.000000000000000000",
+        #                             "min_withdrawal_amount": "0.000000000000000000",
+        #                             "minimum_precision": 2,
+        #                             "name": "Tether",
+        #                             "networks": [],
+        #                             "precision": 8,
+        #                             "sort_priority": null,
+        #                             "symbol": "USDT",
+        #                             "variable_withdrawal_fee": "0.000000000000000000"
+        #                         },
+        #                         "tick_size": "0.1",
+        #                         "impact_size": 4000,
+        #                         "insurance_fund_margin_contribution": "5",
+        #                         "maker_commission_rate": "0.0002",
+        #                         "ui_config": {
+        #                             "default_trading_view_candle": "15",
+        #                             "leverage_slider_values": [1,2,3,5,10,50,100],
+        #                             "price_clubbing_values": [0.1,1,10,50],
+        #                             "show_bracket_orders": False,
+        #                             "sort_priority": 1
+        #                         },
+        #                         "annualized_funding": "0",
+        #                         "strike_price": null,
+        #                         "price_band": "100",
+        #                         "funding_method": "mark_price",
+        #                         "contract_value": "0.001",
+        #                         "auction_finish_time": null,
+        #                         "product_specs": {
+        #                             "vol_expiry_time": 172800
+        #                         },
+        #                         "launch_time": "2020-04-20T08:37:05Z",
+        #                         "basis_factor_max_limit": "1000",
+        #                         "initial_margin": "1",
+        #                         "notional_type": "vanilla",
+        #                         "contract_unit_currency": "BTC",
+        #                         "disruption_reason": null,
+        #                         "underlying_asset": {
+        #                             "base_withdrawal_fee": "0.000000000000000000",
+        #                             "id": 2,
+        #                             "interest_credit": False,
+        #                             "interest_slabs": null,
+        #                             "kyc_deposit_limit": "0.000000000000000000",
+        #                             "kyc_withdrawal_limit": "0.000000000000000000",
+        #                             "min_withdrawal_amount": "0.000000000000000000",
+        #                             "minimum_precision": 4,
+        #                             "name": "Bitcoin",
+        #                             "networks": [],
+        #                             "precision": 8,
+        #                             "sort_priority": 1,
+        #                             "symbol": "BTC",
+        #                             "variable_withdrawal_fee": "0.000000000000000000"
+        #                         },
+        #                         "initial_margin_scaling_factor": "0",
+        #                         "position_size_limit": 10000000,
+        #                         "max_leverage_notional": "10000",
+        #                         "settlement_price": null,
+        #                         "barrier_price": null,
+        #                         "maintenance_margin": "0.5",
+        #                         "default_leverage": "50.000000000000000000",
+        #                         "settlement_time": null,
+        #                         "description": "BTCUSDT-Bitcoin Perpetual futures, quoted,settled & margined in Tether(USDT)",
+        #                         "contract_type": "perpetual_futures"
+        #                     },
+        #                     "product_id": 84,
+        #                     "product_symbol": "BTCUSDT",
+        #                     "realized_cashflow": "0.000000000000000000",
+        #                     "realized_funding": "0",
+        #                     "realized_holding_cost": "0",
+        #                     "realized_pnl": "0",
+        #                     "size": 1,
+        #                     "unrealized_pnl": "-0.00519112",
+        #                     "updated_at": "2026-01-14T11:24:35.801586Z",
+        #                     "user_id": 30084879
+        #                 }
+        #             ],
+        #         "success": True
+        #     }
+        #
+        result = self.safe_list(response, 'result', [])
+        return self.parse_adl_ranks(result, symbols)
+
+    def parse_adl_rank(self, info: dict, market: Market = None) -> ADL:
+        #
+        # fetchPositionsADLRank
+        #
+        #     {
+        #         "adl_level": null,
+        #         "auto_topup": False,
+        #         "bankruptcy_price": "88618.22667",
+        #         "commission": "0.03797924",
+        #         "created_at": "2026-01-14T11:24:35.801586Z",
+        #         "entry_price": "94948.1",
+        #         "liquidation_price": "89092.96717",
+        #         "margin": "6.32987333",
+        #         "margin_mode": "isolated",
+        #         "mark_price": "94942.90888022",
+        #         "product": {
+        #             "trading_status": "operational",
+        #             "short_description": null,
+        #             "quoting_asset": {
+        #                 "base_withdrawal_fee": "0.000000000000000000",
+        #                 "id": 4,
+        #                 "interest_credit": False,
+        #                 "interest_slabs": null,
+        #                 "kyc_deposit_limit": "0.000000000000000000",
+        #                 "kyc_withdrawal_limit": "0.000000000000000000",
+        #                 "min_withdrawal_amount": "0.000000000000000000",
+        #                 "minimum_precision": 2,
+        #                 "name": "Tether",
+        #                 "networks": [],
+        #                 "precision": 8,
+        #                 "sort_priority": null,
+        #                 "symbol": "USDT",
+        #                 "variable_withdrawal_fee": "0.000000000000000000"
+        #             },
+        #             "symbol": "BTCUSDT",
+        #             "taker_commission_rate": "0.0004",
+        #             "maintenance_margin_scaling_factor": "0",
+        #             "spot_index": {
+        #                 "config": {
+        #                     "impact_size": {
+        #                         "max_impact_size": 150000,
+        #                         "min_impact_size": 5000,
+        #                         "step_value": 5000
+        #                     },
+        #                     "quoting_asset": "USDT",
+        #                     "service_id": 1,
+        #                     "underlying_asset": "BTC"
+        #                 },
+        #                 "constituent_exchanges": [
+        #                     {
+        #                         "exchange": "binance",
+        #                         "health_interval": 3000,
+        #                         "health_priority": 1,
+        #                         "weight": 1
+        #                     },
+        #                     {
+        #                         "exchange": "gateio",
+        #                         "health_interval": 3000,
+        #                         "health_priority": 3,
+        #                         "weight": 1
+        #                     },
+        #                     {
+        #                         "exchange": "bybit",
+        #                         "health_interval": 3000,
+        #                         "health_priority": 2,
+        #                         "weight": 1
+        #                     }
+        #                 ],
+        #                 "constituent_indices": null,
+        #                 "description": "BTC Spot",
+        #                 "health_interval": 300,
+        #                 "id": 2,
+        #                 "impact_size": "1.000000000000000000",
+        #                 "index_type": "spot_pair",
+        #                 "is_composite": False,
+        #                 "price_method": "ltp",
+        #                 "quoting_asset_id": 4,
+        #                 "symbol": ".DEXBTUSDT",
+        #                 "tick_size": "0.100000000000000000",
+        #                 "underlying_asset_id": 2
+        #             },
+        #             "liquidation_penalty_factor": "1",
+        #             "auction_start_time": "2025-12-22T12:18:52Z",
+        #             "is_quanto": False,
+        #             "state": "live",
+        #             "id": 84,
+        #             "settling_asset": {
+        #                 "base_withdrawal_fee": "0.000000000000000000",
+        #                 "id": 4,
+        #                 "interest_credit": False,
+        #                 "interest_slabs": null,
+        #                 "kyc_deposit_limit": "0.000000000000000000",
+        #                 "kyc_withdrawal_limit": "0.000000000000000000",
+        #                 "min_withdrawal_amount": "0.000000000000000000",
+        #                 "minimum_precision": 2,
+        #                 "name": "Tether",
+        #                 "networks": [],
+        #                 "precision": 8,
+        #                 "sort_priority": null,
+        #                 "symbol": "USDT",
+        #                 "variable_withdrawal_fee": "0.000000000000000000"
+        #             },
+        #             "tick_size": "0.1",
+        #             "impact_size": 4000,
+        #             "insurance_fund_margin_contribution": "5",
+        #             "maker_commission_rate": "0.0002",
+        #             "ui_config": {
+        #                 "default_trading_view_candle": "15",
+        #                 "leverage_slider_values": [1,2,3,5,10,50,100],
+        #                 "price_clubbing_values": [0.1,1,10,50],
+        #                 "show_bracket_orders": False,
+        #                 "sort_priority": 1
+        #             },
+        #             "annualized_funding": "0",
+        #             "strike_price": null,
+        #             "price_band": "100",
+        #             "funding_method": "mark_price",
+        #             "contract_value": "0.001",
+        #             "auction_finish_time": null,
+        #             "product_specs": {
+        #                 "vol_expiry_time": 172800
+        #             },
+        #             "launch_time": "2020-04-20T08:37:05Z",
+        #             "basis_factor_max_limit": "1000",
+        #             "initial_margin": "1",
+        #             "notional_type": "vanilla",
+        #             "contract_unit_currency": "BTC",
+        #             "disruption_reason": null,
+        #             "underlying_asset": {
+        #                 "base_withdrawal_fee": "0.000000000000000000",
+        #                 "id": 2,
+        #                 "interest_credit": False,
+        #                 "interest_slabs": null,
+        #                 "kyc_deposit_limit": "0.000000000000000000",
+        #                 "kyc_withdrawal_limit": "0.000000000000000000",
+        #                 "min_withdrawal_amount": "0.000000000000000000",
+        #                 "minimum_precision": 4,
+        #                 "name": "Bitcoin",
+        #                 "networks": [],
+        #                 "precision": 8,
+        #                 "sort_priority": 1,
+        #                 "symbol": "BTC",
+        #                 "variable_withdrawal_fee": "0.000000000000000000"
+        #             },
+        #             "initial_margin_scaling_factor": "0",
+        #             "position_size_limit": 10000000,
+        #             "max_leverage_notional": "10000",
+        #             "settlement_price": null,
+        #             "barrier_price": null,
+        #             "maintenance_margin": "0.5",
+        #             "default_leverage": "50.000000000000000000",
+        #             "settlement_time": null,
+        #             "description": "BTCUSDT-Bitcoin Perpetual futures, quoted,settled & margined in Tether(USDT)",
+        #             "contract_type": "perpetual_futures"
+        #         },
+        #         "product_id": 84,
+        #         "product_symbol": "BTCUSDT",
+        #         "realized_cashflow": "0.000000000000000000",
+        #         "realized_funding": "0",
+        #         "realized_holding_cost": "0",
+        #         "realized_pnl": "0",
+        #         "size": 1,
+        #         "unrealized_pnl": "-0.00519112",
+        #         "updated_at": "2026-01-14T11:24:35.801586Z",
+        #         "user_id": 30084879
+        #     }
+        #
+        marketId = self.safe_string(info, 'product_symbol')
+        datetime = self.safe_string(info, 'created_at')
+        return {
+            'info': info,
+            'symbol': self.safe_symbol(marketId, market, None, 'contract'),
+            'rank': self.safe_integer(info, 'adl_level'),
+            'rating': None,
+            'percentage': None,
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

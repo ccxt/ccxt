@@ -1300,7 +1300,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         await self.load_markets()
         currency = self.currency(code)
         request: dict = {
-            'currency_id': currency['id'],
+            'assetName': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
         if code != 'AUD':

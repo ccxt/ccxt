@@ -59,8 +59,19 @@ function test_currency($exchange, $skipped_properties, $method, $entry) {
     if ($network_keys_length === 0 && (is_array($skipped_properties) && array_key_exists('skipCurrenciesWithoutNetworks', $skipped_properties))) {
         return;
     }
-    //
-    assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
+    try {
+        assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
+    } catch(\Throwable $e) {
+        $message = $exchange->exception_message($e);
+        // check structure if key is numeric, not string
+        if (mb_strpos($message, '"id" key') !== false) {
+            // @ts-ignore
+            $format['id'] = 123;
+            assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
+        } else {
+            assert($message === '', $message);
+        }
+    }
     //
     check_precision_accuracy($exchange, $skipped_properties, $method, $entry, 'precision');
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'fee', '0');
