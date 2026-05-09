@@ -111,8 +111,8 @@ class NewTranspiler {
             [/(\w+)\.call\(this,(.+)\)/gm, 'DynamicInvoker.InvokeMethod($1, new object[] {$2})'],
             [/(\w+)(\.limit\(\))/gm, '($1 as IOrderBook)$2'],
             [/(future)\.resolve\((.*)\)/gm, '($1 as Future).resolve($2)'],
-            [/this\.spawn\((this\.\w+),(.+)\)/gm, 'this.spawn($1, new object[] {$2})'],
-            [/this\.delay\(([^,]+),([^,]+),(.+)\)/gm, 'this.delay($1, $2, new object[] {$3})'],
+            // [/this\.spawn\((this\.\w+),(.+)\)/gm, 'this.spawn($1, new object[] {$2})'],
+            // [/this\.delay\(([^,]+),([^,]+),(.+)\)/gm, 'this.delay($1, $2, new object[] {$3})'],
             // [/(this\.\w+)\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$2", new object[] {$3})'], // check this.orders
             [/(((?:this\.)?\w+))\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$3", new object[] {$4})'],
             [/future(\.reject.+)/gm, '((Future)future)$1'],
@@ -1548,8 +1548,8 @@ class NewTranspiler {
         return lines.join('\n');
     }
 
-    postProcessWsJava(content: string, name: string): string {
-        const cap = this.capitalize(name) + 'Core'; // WS classes are now named *Core
+    postProcessWsJava(content: string, name: string, isCore = true): string {
+        const cap = this.capitalize(name) + (isCore ? 'Core' : ''); // WS classes are now named *Core
 
         // ── Fix broken method references: ClassName."methodName" → "methodName" ──
         // The transpiler generates method references as ClassName."methodName" which is
@@ -2804,6 +2804,10 @@ class NewTranspiler {
             let contentIndentend = file.content.split('\n').map((line: string) => line ? '    ' + line : line).join('\n');
             const filename = tests[idx].name;
 
+
+            let className = 'Test' + this.capitalize(filename.replace('test.', '').replace('tests.', ''));
+            if (className === 'TestOhlcv') className = 'TestOHLCV'; // special case
+
             let regexes = [
                 [/assert/g, 'Assert'],
                 [/testSharedMethods\./gm, 'TestSharedMethods.'],
@@ -2813,18 +2817,38 @@ class NewTranspiler {
                 [/throw e/gm, 'throw new RuntimeException(e)'],
                 [/TestSharedMethods\.assertTimestampAndDatetime\(exchange, skippedProperties, method, orderbook\)/, '// testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook)'], // tmp disabling timestamp check on the orderbook
                 [/void function/g, 'void'],
-                [/(\w+)\.spawn\(([^,]+),(.+)\)/gm, '$1.spawn($2, new object[] {$3})'],
+                // [/(\w+)\.spawn\(([^,]+),(.+)\)/gm, '$1.spawn($2, new object[] {$3})'],
                 [/exchange.jsonStringifyWithNull/g, 'exchange.json']
             ];
 
             if (filename.includes('fetch') || filename.includes('load') || filename.includes('create') || filename.includes('watch')) {
                 contentIndentend = this.regexAll(contentIndentend, [
-                    [/test(\w+)\(exchange,/gm, 'Test$1.test$1(exchange,'], // dirty trick recognize outside static functions, check comment below *
+                    [/testWatchBidsAsksHelper\(exchange,/gm, 'TestWatchBidsAsks.this.testWatchBidsAsksHelper(exchange,'], // this is an exception because runs inside an async context
+                    [/testWatchTickersHelper\(exchange,/gm, 'TestWatchTickers.this.testWatchTickersHelper(exchange,'], // this is an exception because runs inside an async context
+                    [/\stest(\w+)\(exchange,/gm, ' Test$1.test$1(exchange,'],
+                    // [/test(\w+)\(exchange,/gm, className + '.this.test$1(exchange,'], // dirty trick recognize outside static functions, check comment below *
                 ]);
             } else {
                 contentIndentend = this.regexAll(contentIndentend, [
                     [/testTrade\(exchange\,/, 'TestTrade.testTrade(exchange,'], // quick fix
                 ]);
+            }
+
+            if (isWs) {
+                // handle spawn calls
+                // ── this.spawn(this.method, args) → lambda (as statement ending with ;) ──
+                contentIndentend = contentIndentend.replace(/exchange\.spawn\((\w+),\s*([^)]*(?:\([^)]*\)[^)]*)*)\);/gm, (match: string, method: string, args: string) => {
+                    return `exchange.spawn(() -> { try { ${method}(${args}); } catch(Exception _e) { throw new RuntimeException(_e); } });`;
+                });
+                // this.spawn("methodName", arg1, arg2, ...) → this.spawn(() -> { ... }) (as statement)
+                contentIndentend = contentIndentend.replace(/exchange\.spawn\("(\w+)",\s*([^)]*(?:\([^)]*\)[^)]*)*)\);/gm, (match: string, method: string, args: string) => {
+                    return `exchange.spawn(() -> { try { ${method}(${args}); } catch(Exception _e) { throw new RuntimeException(_e); } });`;
+                });
+                // this.spawn(this.method, args) used as expression (value) — NOT ending with ;
+                contentIndentend = contentIndentend.replace(/exchange\.spawn\(\s*([^)]*(?:\([^)]*\)[^)]*)*)\)(?=\))/gm,
+                    (match: string, method: string, args: string) => {
+                        return `exchange.${method}(${args})`;
+                    });
             }
 
             //*
@@ -2838,8 +2862,7 @@ class NewTranspiler {
             // Null-safe Array.isArray (see Helpers.isArrayJs).
             contentIndentend = contentIndentend.replace(/\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)/g, 'Helpers.isArrayJs($1)');
             // const namespace = isWs ? 'using ccxt;\nusing ccxt.pro;' : 'using ccxt;';
-            let parsedName = 'Test' + this.capitalize(filename.replace('test.', '').replace('tests.', ''));
-            if (parsedName === 'TestOhlcv') parsedName = 'TestOHLCV'; // special case
+
             const preciseImport = contentIndentend.indexOf('Precise.') >= 0 ? 'import io.github.ccxt.base.Precise;\n' : '';
             const packageName = isWs ? 'tests.exchange.ws' : 'tests.exchange';
             const fileHeaders = [
@@ -2854,7 +2877,7 @@ class NewTranspiler {
                 '',
                 this.createGeneratedHeader().join('\n'),
                 '',
-                `public class ${parsedName} extends BaseTest {`,
+                `public class ${className} extends BaseTest {`,
             ]
             let java: string;
             if (filename === 'test.sharedMethods') {
