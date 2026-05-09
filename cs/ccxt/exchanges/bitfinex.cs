@@ -1192,17 +1192,15 @@ public partial class bitfinex : Exchange
         object isFetchTicker = !isEqual(firstValue, null); // if it's Nan, then it's string (symbol)
         object symbol = null;
         object minusIndex = 0;
-        object isFundingCurrency = false;
         if (isTrue(isFetchTicker))
         {
             minusIndex = 1;
-            isFundingCurrency = (isEqual(length, 16));
         } else
         {
             object marketId = this.safeString(ticker, 0);
             market = this.safeMarket(marketId, market);
-            isFundingCurrency = (isEqual(length, 17));
         }
+        object isFundingCurrency = isGreaterThanOrEqual(length, 17);
         symbol = this.safeSymbol(null, market);
         object last = null;
         object bid = null;

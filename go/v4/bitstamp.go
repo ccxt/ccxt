@@ -2752,7 +2752,7 @@ func (this *BitstampCore) FetchLedger(optionalArgs ...any) <-chan any {
  * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *BitstampCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)

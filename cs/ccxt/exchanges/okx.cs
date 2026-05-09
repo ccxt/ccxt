@@ -535,6 +535,7 @@ public partial class okx : Exchange
                         { "account/set-auto-earn", 10 },
                         { "account/set-settle-currency", 1 },
                         { "account/set-trading-config", 20 },
+                        { "account/demo-adjust-balance", 20 },
                         { "asset/subaccount/transfer", 10 },
                         { "account/subaccount/set-loan-allocation", 4 },
                         { "users/subaccount/create-subaccount", 10 },

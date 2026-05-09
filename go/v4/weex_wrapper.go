@@ -506,7 +506,7 @@ func (this *Weex) FetchFundingRateHistory(options ...FetchFundingRateHistoryOpti
  * @description query for balance and get the amount of funds available for trading or funds locked in positions
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] 'spot' or 'swap' (default is 'spot')
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Weex) FetchBalance(params ...any) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
@@ -765,7 +765,7 @@ func (this *Weex) FetchOrder(id string, options ...FetchOrderOptions) (Order, er
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
  * @param {boolean} [params.trigger] *swap only* whether to fetch trigger orders (default is false)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Weex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -1234,7 +1234,7 @@ func (this *Weex) FetchPositionsForSymbol(symbol string, options ...FetchPositio
  * @description fetch the trading fees for a contract market
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Weex) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 
@@ -1385,7 +1385,7 @@ func (this *Weex) FetchLeverage(symbol string, options ...FetchLeverageOptions) 
  * @see https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig
  * @param {string[]} [symbols] a list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *Weex) FetchLeverages(options ...FetchLeveragesOptions) (Leverages, error) {
 

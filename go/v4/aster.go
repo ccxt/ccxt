@@ -1204,7 +1204,7 @@ func (this *AsterCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *AsterCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1277,7 +1277,7 @@ func (this *AsterCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms for the ending date filter, default is undefined
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *AsterCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1364,7 +1364,7 @@ func (this *AsterCore) FetchMyTrades(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *AsterCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1521,7 +1521,7 @@ func (this *AsterCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#24hr-ticker-price-change-statistics
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *AsterCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1593,7 +1593,7 @@ func (this *AsterCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
  * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
- * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *AsterCore) FetchTickers(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1873,7 +1873,7 @@ func (this *AsterCore) ParseFundingRate(contract any, optionalArgs ...any) any {
  * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-price-ticker
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *AsterCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1922,7 +1922,7 @@ func (this *AsterCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan 
  * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-price-ticker
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *AsterCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1969,7 +1969,7 @@ func (this *AsterCore) FetchFundingRates(optionalArgs ...any) <-chan any {
  * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#get-funding-rate-config
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *AsterCore) FetchFundingIntervals(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2016,10 +2016,10 @@ func (this *AsterCore) FetchFundingIntervals(optionalArgs ...any) <-chan any {
  * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#get-funding-rate-history
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest funding rate
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *AsterCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2100,7 +2100,7 @@ func (this *AsterCore) ParseFundingRateHistory(contract any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
  * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *AsterCore) FetchBalance(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2302,7 +2302,7 @@ func (this *AsterCore) ParseTradingFee(fee any, optionalArgs ...any) any {
  * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#user-commission-rate-user_data
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *AsterCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2468,7 +2468,7 @@ func (this *AsterCore) ParseOrder(order any, optionalArgs ...any) any {
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] a unique id for the order
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *AsterCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2552,7 +2552,7 @@ func (this *AsterCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *AsterCore) FetchOpenOrder(id any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2638,7 +2638,7 @@ func (this *AsterCore) FetchOpenOrder(id any, optionalArgs ...any) <-chan any {
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch orders for
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *AsterCore) FetchOrders(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2732,7 +2732,7 @@ func (this *AsterCore) FetchOrders(optionalArgs ...any) <-chan any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
  * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *AsterCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2841,7 +2841,7 @@ func (this *AsterCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @param {float} [params.triggerPrice] the price that a trigger order is triggered at
  * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
  * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *AsterCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2912,7 +2912,7 @@ func (this *AsterCore) CreateOrder(symbol any, typeVar any, side any, amount any
  * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#new-order-trade
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *AsterCore) CreateOrders(orders any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3167,7 +3167,7 @@ func (this *AsterCore) CreateOrderRequest(symbol any, typeVar any, side any, amo
  * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#current-all-open-orders-user_data
  * @param {string} symbol unified market symbol of the market to cancel orders in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *AsterCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3225,7 +3225,7 @@ func (this *AsterCore) CancelAllOrders(optionalArgs ...any) <-chan any {
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *AsterCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3284,7 +3284,7 @@ func (this *AsterCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {string[]} [params.origClientOrderIdList] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
  * @param {int[]} [params.recvWindow]
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *AsterCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3387,7 +3387,7 @@ func (this *AsterCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any
  * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
  * @param {string[]} [symbols] a list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *AsterCore) FetchLeverages(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3484,7 +3484,7 @@ func (this *AsterCore) ParseLeverage(leverage any, optionalArgs ...any) any {
  * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
  * @param {string[]} symbols unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+ * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
 func (this *AsterCore) FetchMarginModes(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3573,7 +3573,7 @@ func (this *AsterCore) ParseMarginMode(marginMode any, optionalArgs ...any) any 
  * @param {int} [limit] the maximum amount of changes to fetch
  * @param {object} params extra parameters specific to the exchange api endpoint
  * @param {int} [params.until] timestamp in ms of the latest change to fetch
- * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+ * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
 func (this *AsterCore) FetchMarginAdjustmentHistory(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3724,7 +3724,7 @@ func (this *AsterCore) ModifyMarginHelper(symbol any, amount any, addOrReduce an
  * @param {string} symbol unified market symbol
  * @param {float} amount the amount of margin to remove
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
  */
 func (this *AsterCore) ReduceMargin(symbol any, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3751,7 +3751,7 @@ func (this *AsterCore) ReduceMargin(symbol any, amount any, optionalArgs ...any)
  * @param {string} symbol unified market symbol
  * @param {float} amount amount of margin to add
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
  */
 func (this *AsterCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3810,7 +3810,7 @@ func (this *AsterCore) ParseIncome(income any, optionalArgs ...any) any {
  * @param {int} [params.until] timestamp in ms of the latest funding history entry
  * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the funding history for a portfolio margin account
  * @param {string} [params.subType] "linear" or "inverse"
- * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *AsterCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3924,7 +3924,7 @@ func (this *AsterCore) ParseLedgerEntryType(typeVar any) any {
  * @param {int} [limit] max number of ledger entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest ledger entry
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
  */
 func (this *AsterCore) FetchLedger(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -4231,7 +4231,7 @@ func (this *AsterCore) FetchPositionsRisk(optionalArgs ...any) <-chan any {
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *AsterCore) FetchPositions(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -4658,7 +4658,7 @@ func (this *AsterCore) SignWithdrawPayload(withdrawPayload any, network any) any
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *AsterCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -4758,7 +4758,7 @@ func (this *AsterCore) ParseTransaction(transaction any, optionalArgs ...any) an
  * @param {string} fromAccount account to transfer from
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *AsterCore) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)

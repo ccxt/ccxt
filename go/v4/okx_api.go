@@ -1383,6 +1383,10 @@ func (this *OkxCore) PrivatePostAccountSetTradingConfig(args ...any) <-chan any 
 	return this.callEndpointAsync("privatePostAccountSetTradingConfig", args...)
 }
 
+func (this *OkxCore) PrivatePostAccountDemoAdjustBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountDemoAdjustBalance", args...)
+}
+
 func (this *OkxCore) PrivatePostAssetSubaccountTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAssetSubaccountTransfer", args...)
 }

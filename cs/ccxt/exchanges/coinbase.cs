@@ -5701,7 +5701,7 @@ public partial class coinbase : Exchange
      * @param {string[]} [codes] list of unified currency codes, default is undefined (all currencies)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountId] account ID to fetch deposit addresses for
-     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by currency code
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by currency code
      */
     public async override Task<object> fetchDepositAddresses(object codes = null, object parameters = null)
     {

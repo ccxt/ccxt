@@ -1441,7 +1441,7 @@ public partial class coinbase
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by currency code.</returns>
+    /// <returns> <term>object</term> a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by currency code.</returns>
     public async Task<List<DepositAddress>> FetchDepositAddresses(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddresses(codes, parameters);

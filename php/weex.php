@@ -1780,7 +1780,7 @@ class weex extends Exchange {
          * query for balance and get the amount of funds available for trading or funds locked in positions
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->type] 'spot' or 'swap' (default is 'spot')
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
@@ -2392,7 +2392,7 @@ class weex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->type] 'spot' or 'swap', used if $symbol is not provided (default is 'spot')
          * @param {boolean} [$params->trigger] *swap only* whether to fetch $trigger orders (default is false)
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -3411,7 +3411,7 @@ class weex extends Exchange {
          * fetch the trading fees for a contract $market
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3582,7 +3582,7 @@ class weex extends Exchange {
          *
          * @param {string[]} [$symbols] a list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structures~
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=leverage-structure leverage structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);

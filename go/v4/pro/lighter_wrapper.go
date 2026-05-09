@@ -29,7 +29,7 @@ func NewLighter(userConfig map[string]any) *Lighter {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Lighter) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOptions) (ccxt.OrderBook, error) {
 
@@ -61,7 +61,7 @@ func (this *Lighter) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBoo
  * @see https://apidocs.lighter.xyz/docs/websocket-reference#order-book
  * @param {string} symbol unified symbol of the market
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Lighter) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBookOptions) (any, error) {
 
@@ -88,7 +88,7 @@ func (this *Lighter) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrde
  * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Lighter) WatchTicker(symbol string, options ...ccxt.WatchTickerOptions) (ccxt.Ticker, error) {
 
@@ -115,7 +115,7 @@ func (this *Lighter) WatchTicker(symbol string, options ...ccxt.WatchTickerOptio
  * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Lighter) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOptions) (any, error) {
 
@@ -143,7 +143,7 @@ func (this *Lighter) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerO
  * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Lighter) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tickers, error) {
 
@@ -175,7 +175,7 @@ func (this *Lighter) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tic
  * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
  * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Lighter) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any, error) {
 
@@ -207,7 +207,7 @@ func (this *Lighter) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any,
  * @description watches a mark price
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Lighter) WatchMarkPrice(symbol string, options ...ccxt.WatchMarkPriceOptions) (ccxt.Ticker, error) {
 
@@ -234,7 +234,7 @@ func (this *Lighter) WatchMarkPrice(symbol string, options ...ccxt.WatchMarkPric
  * @description watches mark prices
  * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Lighter) WatchMarkPrices(options ...ccxt.WatchMarkPricesOptions) (ccxt.Tickers, error) {
 
@@ -266,7 +266,7 @@ func (this *Lighter) WatchMarkPrices(options ...ccxt.WatchMarkPricesOptions) (cc
  * @description unWatches a mark price
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Lighter) UnWatchMarkPrice(symbol string, options ...ccxt.UnWatchMarkPriceOptions) (any, error) {
 
@@ -293,7 +293,7 @@ func (this *Lighter) UnWatchMarkPrice(symbol string, options ...ccxt.UnWatchMark
  * @description unWatches mark prices
  * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Lighter) UnWatchMarkPrices(options ...ccxt.UnWatchMarkPricesOptions) (any, error) {
 
@@ -327,7 +327,7 @@ func (this *Lighter) UnWatchMarkPrices(options ...ccxt.UnWatchMarkPricesOptions)
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Lighter) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions) ([]ccxt.Trade, error) {
 
@@ -364,7 +364,7 @@ func (this *Lighter) WatchTrades(symbol string, options ...ccxt.WatchTradesOptio
  * @see https://apidocs.lighter.xyz/docs/websocket-reference#trade
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Lighter) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (any, error) {
 
@@ -393,7 +393,7 @@ func (this *Lighter) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesO
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Lighter) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.Trade, error) {
 
@@ -435,7 +435,7 @@ func (this *Lighter) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt
  * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Lighter) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (any, error) {
 
@@ -469,7 +469,7 @@ func (this *Lighter) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (an
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Lighter) WatchLiquidations(symbol string, options ...ccxt.WatchLiquidationsOptions) ([]ccxt.Liquidation, error) {
 

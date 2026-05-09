@@ -767,16 +767,13 @@ class upbit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
-        ids = None
-        if symbols is None:
-            ids = ','.join(self.ids)
-        else:
-            ids = self.market_ids(symbols)
-            ids = ','.join(ids)
-        request: dict = {
-            'markets': ids,
-        }
-        response = self.publicGetTicker(self.extend(request, params))
+        ids = self.market_ids(symbols) if (symbols is not None) else self.ids
+        promises = []
+        queries = self.ids_query_strings(ids, 6400)  # seems upbit server limitations
+        for i in range(0, len(queries)):
+            idsQuery = queries[i]
+            promises.append(self.publicGetTicker({'markets': idsQuery}))
+        responses = promises
         #
         #     [{               market: "BTC-ETH",
         #                    "trade_date": "20181122",
@@ -805,12 +802,23 @@ class upbit(Exchange, ImplicitAPI):
         #           "lowest_52_week_date": "2017-12-08",
         #                     "timestamp":  1542883543813  }]
         #
-        result: dict = {}
-        for t in range(0, len(response)):
-            ticker = self.parse_ticker(response[t])
-            symbol = ticker['symbol']
-            result[symbol] = ticker
-        return self.filter_by_array_tickers(result, 'symbol', symbols)
+        concated = self.arrays_concat(responses)
+        return self.parse_tickers(concated, symbols)
+
+    def ids_query_strings(self, ids: List[str], maxQueryLength: float):
+        idsString = ''
+        queries = []
+        for i in range(0, len(ids)):
+            id = ids[i]
+            if idsString != '':
+                idsString = idsString + ','
+            idsString = idsString + id
+            if len(idsString) >= maxQueryLength:
+                queries.append(idsString)
+                idsString = ''
+        if idsString != '':
+            queries.append(idsString)
+        return queries
 
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """

@@ -140,7 +140,7 @@ func (this *Aster) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OH
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Aster) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -182,7 +182,7 @@ func (this *Aster) FetchTrades(symbol string, options ...FetchTradesOptions) ([]
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms for the ending date filter, default is undefined
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Aster) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -227,7 +227,7 @@ func (this *Aster) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, erro
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Aster) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -261,7 +261,7 @@ func (this *Aster) FetchOrderBook(symbol string, options ...FetchOrderBookOption
  * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#24hr-ticker-price-change-statistics
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Aster) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -292,7 +292,7 @@ func (this *Aster) FetchTicker(symbol string, options ...FetchTickerOptions) (Ti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
  * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
- * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Aster) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -395,7 +395,7 @@ func (this *Aster) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, erro
  * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-price-ticker
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Aster) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
 
@@ -423,7 +423,7 @@ func (this *Aster) FetchFundingRate(symbol string, options ...FetchFundingRateOp
  * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-price-ticker
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Aster) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
 
@@ -456,7 +456,7 @@ func (this *Aster) FetchFundingRates(options ...FetchFundingRatesOptions) (Fundi
  * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#get-funding-rate-config
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Aster) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {
 
@@ -489,10 +489,10 @@ func (this *Aster) FetchFundingIntervals(options ...FetchFundingIntervalsOptions
  * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#get-funding-rate-history
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest funding rate
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *Aster) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
 
@@ -537,7 +537,7 @@ func (this *Aster) FetchFundingRateHistory(options ...FetchFundingRateHistoryOpt
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
  * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Aster) FetchBalance(params ...any) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
@@ -656,7 +656,7 @@ func (this *Aster) SetPositionMode(hedged bool, options ...SetPositionModeOption
  * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#user-commission-rate-user_data
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Aster) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 
@@ -687,7 +687,7 @@ func (this *Aster) FetchTradingFee(symbol string, options ...FetchTradingFeeOpti
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] a unique id for the order
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Aster) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -722,7 +722,7 @@ func (this *Aster) FetchOrder(id string, options ...FetchOrderOptions) (Order, e
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Aster) FetchOpenOrder(id string, options ...FetchOpenOrderOptions) (Order, error) {
 
@@ -759,7 +759,7 @@ func (this *Aster) FetchOpenOrder(id string, options ...FetchOpenOrderOptions) (
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch orders for
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Aster) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 
@@ -807,7 +807,7 @@ func (this *Aster) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
  * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Aster) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -863,7 +863,7 @@ func (this *Aster) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, 
  * @param {float} [params.triggerPrice] the price that a trigger order is triggered at
  * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
  * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Aster) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -896,7 +896,7 @@ func (this *Aster) CreateOrder(symbol string, typeVar string, side string, amoun
  * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#new-order-trade
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Aster) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
 
@@ -925,7 +925,7 @@ func (this *Aster) CreateOrders(orders []OrderRequest, options ...CreateOrdersOp
  * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#current-all-open-orders-user_data
  * @param {string} symbol unified market symbol of the market to cancel orders in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Aster) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 
@@ -960,7 +960,7 @@ func (this *Aster) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, 
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Aster) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -999,7 +999,7 @@ func (this *Aster) CancelOrder(id string, options ...CancelOrderOptions) (Order,
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {string[]} [params.origClientOrderIdList] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
  * @param {int[]} [params.recvWindow]
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Aster) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
@@ -1066,7 +1066,7 @@ func (this *Aster) SetLeverage(leverage int64, options ...SetLeverageOptions) (m
  * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
  * @param {string[]} [symbols] a list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *Aster) FetchLeverages(options ...FetchLeveragesOptions) (Leverages, error) {
 
@@ -1099,7 +1099,7 @@ func (this *Aster) FetchLeverages(options ...FetchLeveragesOptions) (Leverages, 
  * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
  * @param {string[]} symbols unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+ * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
 func (this *Aster) FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error) {
 
@@ -1136,7 +1136,7 @@ func (this *Aster) FetchMarginModes(options ...FetchMarginModesOptions) (MarginM
  * @param {int} [limit] the maximum amount of changes to fetch
  * @param {object} params extra parameters specific to the exchange api endpoint
  * @param {int} [params.until] timestamp in ms of the latest change to fetch
- * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+ * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
 func (this *Aster) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustmentHistoryOptions) ([]MarginModification, error) {
 
@@ -1189,7 +1189,7 @@ func (this *Aster) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustment
  * @param {int} [params.until] timestamp in ms of the latest funding history entry
  * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the funding history for a portfolio margin account
  * @param {string} [params.subType] "linear" or "inverse"
- * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *Aster) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
 
@@ -1235,7 +1235,7 @@ func (this *Aster) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([
  * @param {int} [limit] max number of ledger entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest ledger entry
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
  */
 func (this *Aster) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 
@@ -1312,7 +1312,7 @@ func (this *Aster) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]P
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Aster) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 
@@ -1386,7 +1386,7 @@ func (this *Aster) FetchAccountPositions(options ...FetchAccountPositionsOptions
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Aster) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 
@@ -1423,7 +1423,7 @@ func (this *Aster) Withdraw(code string, amount float64, address string, options
  * @param {string} fromAccount account to transfer from
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Aster) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 
