@@ -2,7 +2,6 @@ import assert from 'assert';
 import { Exchange } from "../../../ccxt";
 import testTicker from './base/test.ticker.js';
 import testSharedMethods from './base/test.sharedMethods.js';
-import { Any } from '../../static_dependencies/dydx-v4-client/google/protobuf/any';
 
 async function testFetchTickers (exchange: Exchange, skippedProperties: object, symbol: string) {
     const withoutSymbol = testFetchTickersHelper (exchange, skippedProperties, undefined);
