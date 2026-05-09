@@ -759,8 +759,6 @@ class NewTranspiler {
         baseClass = baseClass.replaceAll(/public virtual object setMarketsFromExchange\(object sourceExchange\)/g, 'public virtual Exchange setMarketsFromExchange(Exchange sourceExchange)');
         // Fix setRateLimit parameter type
         baseClass = baseClass.replaceAll('public virtual void setRateLimit(object rateLimit)', 'public virtual void setRateLimit(double rateLimit)');
-        // Fix setRateLimit local variable type (transpiler uses object, but we need Throttler)
-        baseClass = baseClass.replaceAll('object throttler = this.throttler;', 'var throttler = this.throttler;');
         // baseClass = baseClass.replace("= new List<Task<List<object>>> {", "= new List<Task<object>> {");
         // baseClass = baseClass.replace("this.number = Number;", "this.number = typeof(float);"); // tmp fix for c#
         baseClass = baseClass.replace("throw new getValue(broad, broadKey)(((string)message));", "this.throwDynamicException(broad, broadKey, message);"); // tmp fix for c#
