@@ -1678,6 +1678,8 @@ ${constStatements.join('\n')}
             [/(var \w+ any) = client.Futures/g, '$1 = (client.(Client)).Futures'], // tmp fix for go not needed after ws-merge
             // Fix setMarketsFromExchange parameter type
             [/func\s+\(this \*Exchange\)\s+SetMarketsFromExchange\(sourceExchange any\)/g, 'func (this *Exchange) SetMarketsFromExchange(sourceExchange *Exchange)'],
+            // Replace generated SetRateLimit with correct Go implementation
+            [/func \(this \*Exchange\) SetRateLimit\(rateLimit interface\{\}\) \{[^}]*\}/gs, 'func (this *Exchange) SetRateLimit(rateLimit float64) {\n\tthis.RateLimit = rateLimit\n\tthis.Throttler.Config["rateLimit"] = rateLimit\n\tthis.Throttler.Config["refillRate"] = 1 / rateLimit\n\tif this.Throttler.Config["algorithm"] != "leakyBucket" {\n\t\tthis.Throttler.Config["maxWeight"] = ToFloat64(this.Throttler.Config["windowSize"]) / rateLimit\n\t}\n}'],
         ]);
 
         const jsDelimiter = '// ' + delimiter;
