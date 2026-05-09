@@ -639,7 +639,7 @@ public class BaseTest {
             return new Exchange(exchangeArgs);
         }
 
-        return Exchange.dynamicallyCreateInstance(id, exchangeArgs, false);
+        return Exchange.dynamicallyCreateInstance(id, exchangeArgs, isWs);
     }
 
     public static Exchange initExchange(Object exchangeId, Object exchangeArgs) {
