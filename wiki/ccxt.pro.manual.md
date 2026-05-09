@@ -1328,8 +1328,8 @@ When your script finishes its work with any exchange, you are advised to clean-u
 ```python
 poloniex = ccxt.poloniex()
 while(condition):
-    await poloniex.watch_ticker('ETH/USDT'))
-# ... your codes
+    print(await poloniex.watch_ticker('ETH/USDT'))
+    # ... your codes
 await poloniex.close()  # close the exchange instance when you don't need it anymore, as it also cleans-up the cached instance data
 ```
 
