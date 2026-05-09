@@ -1512,7 +1512,13 @@ public class Exchange {
             if (this.marketsLoaded && !reload) {
                 return this.marketsLoading;
             }
-            if (!this.reloadingMarkets || reload) {
+            // Collapse concurrent callers onto the same in-flight reload regardless
+            // of the reload flag. The previous `|| reload` short-circuit caused 20
+            // concurrent loadMarkets(true) callers to spawn 20 sequential fetches.
+            // The cache-vs-fetch decision still respects `reload` via the early
+            // `marketsLoaded && !reload` guard above; this branch only decides
+            // whether to start a *new* fetch when none is in-flight.
+            if (!this.reloadingMarkets) {
                 this.reloadingMarkets = true;
                 try {
                     this.marketsLoading = this.loadMarketsHelper(reload)
@@ -2682,6 +2688,33 @@ public class Exchange {
     @SuppressWarnings("unchecked")
     protected static <T> List<T> toTypedList(Object raw, java.util.function.Function<Object, T> ctor) {
         return ((List<Object>) raw).stream().map(ctor).collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
+     * Mirrors TS Exchange.close() (ts/src/base/Exchange.ts:1537). Tags every
+     * tracked WsClient with a typed ExchangeClosedByUser so its in-flight
+     * futures reject with that exception (rather than a bare RuntimeException),
+     * then closes each client and clears the tracking map. Always hand-written
+     * — TS source has it above the transpile delimiter.
+     */
+    @SuppressWarnings("unchecked")
+    public void close() {
+        Map<String, Object> clientsMap = (Map<String, Object>) this.clients;
+        if (clientsMap == null || clientsMap.isEmpty()) {
+            return;
+        }
+        // Snapshot first — close() removes entries from the map and we mustn't
+        // iterate while mutating.
+        List<Object> snapshot = new ArrayList<>(clientsMap.values());
+        Throwable closeReason = new io.github.ccxt.errors.ExchangeClosedByUser(
+                this.id + " closedByUser");
+        for (Object c : snapshot) {
+            if (c instanceof io.github.ccxt.ws.WsClient wsc) {
+                wsc.closeReason = closeReason;
+                wsc.close();
+            }
+        }
+        clientsMap.clear();
     }
 
     // ------------------------------------------------------------------------

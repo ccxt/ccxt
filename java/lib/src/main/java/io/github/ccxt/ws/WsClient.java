@@ -47,6 +47,8 @@ import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketHandshakeException;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
+import io.netty.handler.codec.http.websocketx.extensions.WebSocketClientExtensionHandler;
+import io.netty.handler.codec.http.websocketx.extensions.compression.PerMessageDeflateClientExtensionHandshaker;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketClientCompressionHandler;
 import io.netty.handler.proxy.HttpProxyHandler;
 import io.netty.handler.proxy.Socks5ProxyHandler;
@@ -87,6 +89,13 @@ public class WsClient {
     public volatile CompletableFuture<Boolean> connected;
     public volatile long lastPong = 0;
     public boolean error = false;
+    /**
+     * Optional typed reason for a deliberate close. Set by Exchange.close()
+     * to an ExchangeClosedByUser before invoking this.close(); the close path
+     * then uses it to reject in-flight futures so callers can distinguish
+     * "I asked for this" from a remote-side disconnect.
+     */
+    public volatile Throwable closeReason = null;
 
     // Guards atomic complete-then-replace of `connected` and ping-thread bookkeeping.
     private final Object connectedLock = new Object();
@@ -116,6 +125,18 @@ public class WsClient {
     // Netty internals
     private volatile Channel channel;
     private String proxy;
+
+    // Permissive permessage-deflate handshaker: accepts every parameter the server
+    // may advertise, including server_no_context_takeover and client_no_context_takeover.
+    // Netty's bundled WebSocketClientCompressionHandler.INSTANCE rejects those —
+    // Coinbase advertises both on every connection and gets killed with
+    // `CodecException: invalid WebSocket Extension handshake`. The flags below
+    // (allowClientNoContext=true, requestedServerNoContext=true) match the maximally-
+    // permissive defaults used by gorilla/websocket and the browser native WebSocket;
+    // wire-protocol semantics are unchanged, so existing exchanges keep working.
+    private static final WebSocketClientExtensionHandler PERMISSIVE_COMPRESSION_HANDLER =
+            new WebSocketClientExtensionHandler(
+                    new PerMessageDeflateClientExtensionHandshaker(6, true, 15, true, true));
 
     // Per-client single-thread executor: serializes handleMessageCallback so that
     // frames from one connection are processed in arrival order (matches C# Client.cs
@@ -306,8 +327,10 @@ public class WsClient {
                             pipeline.addLast(new HttpClientCodec());
                             pipeline.addLast(new HttpObjectAggregator(65536 * 100));
 
-                            // WebSocket compression (permessage-deflate)
-                            pipeline.addLast(WebSocketClientCompressionHandler.INSTANCE);
+                            // WebSocket compression (permessage-deflate) — see comment
+                            // on PERMISSIVE_COMPRESSION_HANDLER for why this replaces
+                            // WebSocketClientCompressionHandler.INSTANCE.
+                            pipeline.addLast(PERMISSIVE_COMPRESSION_HANDLER);
 
                             // WebSocket frame handler
                             pipeline.addLast(handler);
@@ -518,11 +541,17 @@ public class WsClient {
         }
 
         // Snapshot keys before mutating the map to avoid ConcurrentModificationException.
+        // Prefer the typed closeReason (set by Exchange.close()) over a bare
+        // RuntimeException, so consumers can `catch (ExchangeClosedByUser)` and
+        // tell deliberate shutdown from a remote-side disconnect.
+        Throwable rejectionReason = (this.closeReason != null)
+                ? this.closeReason
+                : new io.github.ccxt.errors.ExchangeClosedByUser("Connection closed by the user");
         var snapshot = new java.util.ArrayList<>(futuresMap().keySet());
         for (String key : snapshot) {
             Future f = futuresMap().remove(key);
             if (f != null && !f.isDone()) {
-                f.reject(new RuntimeException("Connection closed by the user"));
+                f.reject(rejectionReason);
             }
         }
 
