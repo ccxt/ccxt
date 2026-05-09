@@ -495,6 +495,10 @@ class Exchange(object):
         # stub in sync
         pass
 
+    def set_rate_limit(self, rateLimit: float):
+        self.rateLimit = rateLimit
+        self.throttler.set_rate_limit(rateLimit)
+
     def throttle(self, cost=None):
         now = float(self.milliseconds())
         elapsed = now - self.lastRestRequestTimestamp
