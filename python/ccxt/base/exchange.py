@@ -2074,7 +2074,7 @@ class Exchange(object):
         return int(''.join([str(random.randint(0, 9)) for _ in range(size)]))
 
     def close(self):
-        # Here happens the language-specific cleanup of WS & REST resources
+        # Here happens the language-specific cleanup of REST resources
         # [REST]
         self.clean_rest_data()
         if self.session:

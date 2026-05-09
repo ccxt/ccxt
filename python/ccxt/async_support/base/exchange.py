@@ -149,7 +149,7 @@ class Exchange(BaseExchange):
         await self.close_connector()
         await self.close_proxy_sessions()
         await self.sleep(self.timeout_on_exit)
-        super.close()
+        super().close()
 
     async def close_connector(self):
         if self.tcp_connector is not None:
