@@ -663,10 +663,14 @@ class testMainClass {
         const swapSymbols = [
             // linear
             'BTC/USDT:USDT',
+            'BTC/USD:USDT',
             'BTC/USDC:USDC',
+            'BTC/USD:USDC',
             'BTC/USD:USD',
             'ETH/USDT:USDT',
+            'ETH/USD:USDT',
             'ETH/USDC:USDC',
+            'ETH/USD:USDC',
             'ETH/USD:USD',
             // inverse
             'BTC/USD:BTC',
