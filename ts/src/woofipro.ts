@@ -2088,7 +2088,7 @@ export default class woofipro extends Exchange {
         //
         //     {
         //         "success": true,
-        //         "timestamp": 1702989203989,
+        //         "timestamp": 1702989203988,
         //         "data": {
         //             "meta": {
         //                 "total": 9,
