@@ -2611,14 +2611,14 @@ export default class Exchange {
 
     cleanRestData () {
         this.ids = undefined;
-        this.markets = this.createSafeDictionary ();
-        this.markets_by_id = this.createSafeDictionary ();
+        this.markets = undefined;
+        this.markets_by_id = undefined;
         this.symbols = undefined;
         this.codes = undefined;
         this.currencies = this.createSafeDictionary ();
-        this.currencies_by_id = this.createSafeDictionary ();
-        this.baseCurrencies = this.createSafeDictionary ();
-        this.quoteCurrencies = this.createSafeDictionary ();
+        this.currencies_by_id = undefined;
+        this.baseCurrencies = undefined;
+        this.quoteCurrencies = undefined;
         this.last_http_response = undefined;
         // this.last_json_response = undefined; // not unified prop
         this.last_response_headers = undefined;
@@ -2626,15 +2626,15 @@ export default class Exchange {
     }
 
     cleanWsData () {
-        this.balance = this.createSafeDictionary ();
+        this.balance = this.createSafeDictionary (true);
         this.orderbooks = this.createSafeDictionary ();
         this.tickers = this.createSafeDictionary ();
-        this.liquidations = this.createSafeDictionary ();
+        this.liquidations = undefined; 
+        this.myLiquidations = undefined;
         this.orders = undefined;
         this.trades = this.createSafeDictionary ();
         this.transactions = this.createSafeDictionary ();
         this.ohlcvs = this.createSafeDictionary ();
-        this.myLiquidations = this.createSafeDictionary ();
         this.myTrades = undefined;
         this.positions = undefined;
     }
