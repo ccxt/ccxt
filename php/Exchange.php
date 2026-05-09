@@ -1184,6 +1184,11 @@ class Exchange {
         // stub in sync php
     }
 
+    public function set_rate_limit(float $rateLimit) {
+        $this->rateLimit = $rateLimit;
+        $this->throttler->set_rate_limit($rateLimit);
+    }
+
     public static function underscore($camelcase) {
         // handle edgecase: fetchADLRank -> fetch_adl_rank
         if ($camelcase == 'fetchADLRank') {
