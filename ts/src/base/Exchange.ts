@@ -1551,8 +1551,9 @@ export default class Exchange {
             delete this.clients[client.url];
             closedClients.push (client.close ());
         }
+        const result = await Promise.all (closedClients);
         this.cleanWsData ();
-        await Promise.all (closedClients);
+        return result;
     }
 
     async loadOrderBook (client, messageHash: string, symbol: string, limit: Int = undefined, params = {}) {
