@@ -7188,7 +7188,7 @@ ex.number = typeof(String); // typeof(String) | typeof(float)
 
 # Resource clean-up
 
-Depending programming language, when your script finishes its work with any exchange, you are advised to clean-up the resources:
+When your script finishes its work with any exchange, you are advised to clean-up the resources:
 ```python
 poloniex = ccxt.poloniex()
 print(await poloniex.fetch_ticker('ETH/USDT'))
