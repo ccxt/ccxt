@@ -2610,6 +2610,9 @@ export default class Exchange {
     }
 
     cleanRestData () {
+        if (!this.safeBool (this.options, 'cleanInstanceData', true)) {
+            return;
+        }
         this.ids = undefined;
         this.markets = undefined;
         this.markets_by_id = undefined;
@@ -2626,10 +2629,13 @@ export default class Exchange {
     }
 
     cleanWsData () {
+        if (!this.handleOption ('ws', 'cleanInstanceData', true)) {
+            return;
+        }
         this.balance = this.createSafeDictionary (true);
         this.orderbooks = this.createSafeDictionary ();
         this.tickers = this.createSafeDictionary ();
-        this.liquidations = undefined; 
+        this.liquidations = undefined;
         this.myLiquidations = undefined;
         this.orders = undefined;
         this.trades = this.createSafeDictionary ();
